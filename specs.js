@@ -160,5 +160,18 @@ vows.describe('SequelizeHelper').addBatch({
     'should be a comma seperated string': function(day) {
       assert.equal(SequelizeHelper.fieldsForInsertQuery(day), "name, foo")
     }
+  },
+  'valuesForUpdate': {
+    topic: function() {
+      var s = new Sequelize('sequelize_test', 'test', 'test')
+      var Day = s.define('Day', { name: Sequelize.STRING, foo: Sequelize.INTEGER })
+      return new Day({ name: 'Monday', foo: 2})
+    },
+    'should return a string': function(day) {
+      assert.isString(SequelizeHelper.valuesForUpdate(day))
+    },
+    'should correctly render data': function(day) {
+      assert.equal(SequelizeHelper.valuesForUpdate(day), "name = 'Monday', foo = 2")
+    }
   }
 }).export(module)

@@ -124,18 +124,10 @@ var Helper = {
         result  = []
         
     Helper.Hash.keys(actualValues).forEach(function(key) {
-      var value     = null,
+      var value     = actualValues[key],
           dataType  = object.attributes[key]
-      
-      switch(dataType) {
-        case exports.Sequelize.INTEGER:
-          value = actualValues[key];
-          break;
-        default:
-          value = "'" + actualValues[key] + "'"
-      }
-
-      result.push(value)
+          
+      result.push(Helper.transformValueByDataType(value, dataType))
     })
     
     return result
@@ -145,8 +137,29 @@ var Helper = {
     return Helper.Hash.keys(Helper.values(object)).join(", ")
   },
   
-  get valuesForUpdate() {
+  transformValueByDataType: function(value, dataType) {
+    var result = null
+    switch(dataType) {
+      case exports.Sequelize.INTEGER:
+        result = value; break;
+      default:
+        result = "'" + value + "'"
+    }
+    return result
+  },
+  
+  valuesForUpdate: function(object) {
+    var actualValues = Helper.values(object),
+        result  = []
+        
+    Helper.Hash.keys(actualValues).forEach(function(key) {
+      var value     = actualValues[key],
+          dataType  = object.attributes[key]
+          
+      result.push([key, Helper.transformValueByDataType(value, dataType)].join(" = "))
+    })
     
+    return result.join(", ")
   },
   
   evaluateTemplate: function(template, replacements) {
