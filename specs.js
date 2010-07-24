@@ -18,12 +18,12 @@ vows.describe('Sequelize').addBatch({
   },
   'constructor': {
     topic: function() {
-      return new Sequelize('database', 'username', 'password')
+      return new Sequelize('sequelize_test', 'test', 'test')
     },
     'sets config correctly': function(s) {
-      assert.equal(s.config.database, 'database')
-      assert.equal(s.config.username, 'username')
-      assert.equal(s.config.password, 'password')
+      assert.equal(s.config.database, 'sequelize_test')
+      assert.equal(s.config.username, 'test')
+      assert.equal(s.config.password, 'test')
     },
     'creates a connection object': function(s) {
       assert.isObject(s.connection)
@@ -34,7 +34,7 @@ vows.describe('Sequelize').addBatch({
   },
   'Sequalize#asTableName': {
     topic: function() {
-      return new Sequelize('database', 'username', 'password')
+      return new Sequelize('sequelize_test', 'test', 'test')
     },
     'should return the correct name': function(s) {
       assert.equal(s.asTableName('Name'), 'Names')
@@ -42,32 +42,23 @@ vows.describe('Sequelize').addBatch({
   },
   'Sequelize#define': {
     topic: function() {
-      var s = new Sequelize('database', 'username', 'password')
-      return [s, s.define('Day', { name: Sequelize.TEXT })]
+      var s = new Sequelize('sequelize_test', 'test', 'test')
+      return s.define('Day', { name: Sequelize.TEXT })
     },
-    'should return a function': function(obj) {
-      var s   = obj[0],
-          Day = obj[1]
-          
+    'should return a function': function(Day) {
       assert.isFunction(Day)
     },
-    'should store attributes': function(obj) {
-      var s   = obj[0],
-          Day = obj[1]
-          
+    'should store attributes': function(Day) {
       assert.isObject(Day.attributes)
       assert.deepEqual(Day.attributes, { name: Sequelize.TEXT })
     },
-    'should add new table to tables': function(obj) {
-      var s   = obj[0],
-          Day = obj[1]
-      
-      assert.include(s.tables, 'Day')
+    'should add new table to tables': function(Day) {
+      assert.include(Day.sequelize.tables, 'Day')
     }
   },
   'Sequelize#tableNames': {
     topic: function() {
-      return new Sequelize('database', 'username', 'password')
+      return new Sequelize('sequelize_test', 'test', 'test')
     },
     'should be an empty array if no tables are specified': function(s) {
       assert.deepEqual(s.tableNames, [])
@@ -80,10 +71,12 @@ vows.describe('Sequelize').addBatch({
   'Table#sync': {
     topic: function() {
       var s = new Sequelize('sequelize_test', 'test', 'test')
-      return s.define('Day', { name: s.TEXT })
+      return s.define('Day', { name: Sequelize.TEXT })
     },
     'send sync call': function(Day) {
-/*      Day.sync()*/
+/*      Day.sync()
+      SequelizeHelper.log(Day.sequelize)
+      Day.sequelize.closeConnection()*/
     }
   },
   'Table#drop': {

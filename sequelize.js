@@ -7,7 +7,7 @@
   })
 */
 
-var mysql = require(__dirname + "/lib/node-mysql/mysql")
+
 
 exports.Sequelize = function(database, username, password) {
   this.config = {
@@ -15,7 +15,6 @@ exports.Sequelize = function(database, username, password) {
     username: username,
     password: password
   }
-  this.connection = new mysql.Connection('localhost', this.config.username, this.config.password, this.config.database)
   this.tables = {}
 }
 
@@ -32,6 +31,7 @@ exports.Sequelize.prototype = {
     var table = new TableWrapper(this, this.asTableName(name), attributes)
     table.attributes = attributes
     this.tables[name] = {constructor: table, attributes: attributes}
+    table.sequelize = this
     return table
   },
   
@@ -44,11 +44,35 @@ exports.Sequelize.prototype = {
     return result
   },
   
-  query: function(queryString, options) {
-    options = options || {}
-    log("Executing the query: " + queryString)
-    this.connection.connect()
-    this.connection.query(queryString, options.onSuccess, options.onError)
+  query: function(queryString, callback) {
+    var fields = []
+    var values = []
+    var self = this
+    var connection = require(__dirname+"/lib/nodejs-mysql-native/client").createTCPClient()
+    
+    connection.auto_prepare = true
+    connection
+      .auth(this.config.database, this.config.username, this.config.password)
+      .addListener('authorized', function() {
+        Helper.log("Executing the query: " + queryString)
+        connection
+          .execute(queryString)
+          .addListener('row', function(r){ values.push(r) })
+          .addListener('field', function(f){ fields.push(f)})
+          .addListener('end', function() {
+            if(callback) {
+              var result = []
+              values.forEach(function(valueArray) {
+                var mapping = {}
+                for(var i = 0; i < fields.length; i++)
+                  mapping[fields[i].name] = valueArray[i]
+                result.push(mapping)
+              })
+              callback(result)
+            }
+          })
+        connection.close()
+      })
   }
 }
 
@@ -67,21 +91,26 @@ var TableWrapper = function(sequelize, tableName, attributes) {
     this.attributes = attributes
   }
   
-  table.sync = function(options) {
+  table.sync = function(callback) {
     var fields = ["id INT"]
     Helper.Hash.keys(attributes).forEach(function(name) { fields.push(name + " " + attributes[name]) })
     var query = "CREATE TABLE IF NOT EXISTS " + tableName + " (" + fields.join(', ') + ")"
 
-    sequelize.query(query, options)
+    sequelize.query(query, callback)
   }
   
-  table.drop = function(options) {
+  table.drop = function(callback) {
     var query = "DROP TABLE IF EXISTS " + tableName
-    sequelize.query(query, options)
+    sequelize.query(query, callback)
+  }
+  
+  table.findAll = function(callback) {
+    var query = "SELECT * FROM " + tableName
+    sequelize.query(query, callback)
   }
   
   table.prototype = {
-    save: function(options) {
+    save: function(callback) {
       var query = null
 
       if(this.id == null) {
@@ -96,7 +125,7 @@ var TableWrapper = function(sequelize, tableName, attributes) {
         )
       }
       
-      sequelize.query(query, options)
+      sequelize.query(query, callback)
     }
   }
   
@@ -143,7 +172,7 @@ var Helper = {
       case exports.Sequelize.INTEGER:
         result = value; break;
       default:
-        result = "'" + value + "'"
+        result = "'" + value + "'"; break;
     }
     return result
   },
