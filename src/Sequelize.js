@@ -19,7 +19,30 @@ var classMethods = {
     switch(command) {
       case 'create':
         query = "CREATE TABLE IF NOT EXISTS %{table} (%{fields})"
-        break;
+        break
+      case 'drop':
+        query = "DROP TABLE IF EXISTS %{table}"
+        break
+      case 'select':
+        query = "SELECT %{fields} FROM %{table}"
+        if(values.where) query += " WHERE %{where}"
+        if(values.order) query += " ORDER BY %{order}"
+        if(values.group) query += " GROUP BY %{group}"
+        if(values.limit) {
+          if(values.offset) query += " LIMIT %{offset}, %{limit}"
+          else query += " LIMIT %{limit}"
+        }
+        values.fields = values.fields || "*"
+        break
+      case 'insert':
+        query = "INSERT INTO %{table} (%{fields}) VALUES (%{values})"
+        break
+      case 'update':
+        query = "UPDATE %{table} SET %{values} WHERE id = %{id}"
+        break
+      case 'delete':
+        query = "DELETE FROM %{table} WHERE id = %{id} LIMIT 1"
+        break
     }
     return SequelizeHelper.evaluateTemplate(query, values)
   }

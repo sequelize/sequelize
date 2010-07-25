@@ -24,7 +24,6 @@ SequelizeHelper = {
     },
 
     transformValueByDataType: function(value, dataType) {
-      SequelizeHelper.log(Sequelize)
       var result = null
       switch(dataType) {
         case Sequelize.INTEGER:

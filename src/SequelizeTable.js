@@ -15,41 +15,44 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     sync: function(callback) {
       var fields = ["id INT NOT NULL auto_increment PRIMARY KEY"]
       SequelizeHelper.Hash.keys(attributes).forEach(function(name) { fields.push(name + " " + attributes[name]) })
-      var query = "CREATE TABLE IF NOT EXISTS " + tableName + " (" + fields.join(', ') + ")"
 
-      sequelize.query(query, function() {
-        if(callback) callback(table)
-      })
+      sequelize.query(
+        Sequelize.sqlQueryFor( 'create', { table: tableName, fields: fields.join(', ') } ),
+        function() { if(callback) callback(table) }
+      )
     },
 
     drop: function(callback) {
       var query = "DROP TABLE IF EXISTS " + tableName
-      sequelize.query(query, function() {
-        if(callback) callback(table)
-      })
+      sequelize.query(
+        Sequelize.sqlQueryFor('drop', { table: tableName }),
+        function() { if(callback) callback(table) }
+      )
     },
 
     findAll: function(callback) {
-      var query = "SELECT * FROM " + tableName
-      sequelize.query(query, function(result) {
-        var objects = []
-        result.forEach(function(resultSet) {
-          objects.push(table.sqlResultToObject(resultSet))
-        })
+      sequelize.query(
+        Sequelize.sqlQueryFor('select', { table: tableName }),
+        function(result) {
+          var objects = []
+          
+          result.forEach(function(resultSet) {
+            objects.push(table.sqlResultToObject(resultSet))
+          })
         
-        if(callback) callback(objects)
-      })
+          if(callback) callback(objects)
+        }
+      )
     },
 
     find: function(conditions, callback) {
-      var query = SequelizeHelper.evaluateTemplate(
-        "SELECT * FROM %{table} WHERE %{conditions} ORDER BY id DESC LIMIT 1",
-        { table: tableName, conditions: SequelizeHelper.SQL.hashToWhereConditions(conditions) }
+      sequelize.query(
+        Sequelize.sqlQueryFor('select', {
+          table: tableName, where: SequelizeHelper.SQL.hashToWhereConditions(conditions), order: 'id DESC', limit: 1
+        }), function(result) {
+          if (callback) callback(table.sqlResultToObject(result[0]))
+        }
       )
-      
-      sequelize.query(query, function(result) {
-        if (callback) callback(table.sqlResultToObject(result[0]))
-      })
     },
     
     sqlResultToObject: function(result) {
@@ -73,17 +76,12 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     save: function(callback) {
       var query = null
       var self = this
-      if(this.id == null) {
-        query = SequelizeHelper.evaluateTemplate(
-          "INSERT INTO %{table} (%{fields}) VALUES (%{values})",
-          { table: this.tableName, fields: SequelizeHelper.SQL.fieldsForInsertQuery(this), values: SequelizeHelper.SQL.valuesForInsertQuery(this) }
-        )
-      } else {
-        query = SequelizeHelper.evaluateTemplate(
-          "UPDATE %{table} SET %{values} WHERE id = %{id}",
-          { table: this.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id }
-        )
-      }
+      if(this.id == null)
+        query = Sequelize.sqlQueryFor('insert', {
+          table: this.tableName, fields: SequelizeHelper.SQL.fieldsForInsertQuery(this), values: SequelizeHelper.SQL.valuesForInsertQuery(this)
+        })
+      else
+        query = Sequelize.sqlQueryFor('update', { table: this.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id })
       
       sequelize.query(query, function() {
         if(self.id == null) {
@@ -108,7 +106,10 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     },
     
     destroy: function(callback) {
-      
+      sequelize.query(
+        Sequelize.sqlQueryFor('delete', { table: this.tableName, id: this.id }),
+        callback
+      )
     }
   }
   
