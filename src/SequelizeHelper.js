@@ -5,6 +5,10 @@ SequelizeHelper = {
   },
   
   SQL: {
+    asTableName: function(name) {
+      return name + "s"
+    },
+    
     valuesForInsertQuery: function(object) {
       var actualValues = object.values,
           result  = []

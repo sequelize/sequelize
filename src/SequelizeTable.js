@@ -63,19 +63,22 @@ SequelizeTable = function(sequelize, tableName, attributes) {
   }
   
   // instance methods
-  var instanceMethods = {
+  table.prototype = {
     get values() {
       var result = {}
       var self = this
+
       SequelizeHelper.Hash.keys(attributes).forEach(function(attribute) {
         result[attribute] = self[attribute]
       })
+
       return result
     },
     
     save: function(callback) {
       var query = null
       var self = this
+
       if(this.id == null)
         query = Sequelize.sqlQueryFor('insert', {
           table: this.tableName, fields: SequelizeHelper.SQL.fieldsForInsertQuery(this), values: SequelizeHelper.SQL.valuesForInsertQuery(this)
@@ -86,7 +89,6 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       sequelize.query(query, function() {
         if(self.id == null) {
           table.find(self.values, function(result) {
-            SequelizeHelper.log(result)
             self.id = result.id
             if(callback) callback(self)
           })
@@ -115,10 +117,6 @@ SequelizeTable = function(sequelize, tableName, attributes) {
   
   SequelizeHelper.Hash.forEach(classMethods, function(method, methodName) {
     table[methodName] = method
-  })
-
-  SequelizeHelper.Hash.forEach(instanceMethods, function(method, methodName) {
-    table.prototype[methodName] = method
   })
   
   return table

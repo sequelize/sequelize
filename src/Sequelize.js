@@ -48,26 +48,23 @@ var classMethods = {
   }
 }
 
-var instanceMethods = {
-  asTableName: function(name) {
-    return name + "s"
+Sequelize.prototype = {
+  get tableNames() {
+    var result = []
+    SequelizeHelper.Hash.keys(this.tables).forEach(function(tableName) {
+      result.push(SequelizeHelper.SQL.asTableName(tableName))
+    })
+    return result
   },
   
   define: function(name, attributes) {
-    var table = new SequelizeTable(this, this.asTableName(name), attributes)
+    var table = new SequelizeTable(this, SequelizeHelper.SQL.asTableName(name), attributes)
     table.attributes = attributes
+
     this.tables[name] = {constructor: table, attributes: attributes}
+
     table.sequelize = this
     return table
-  },
-  
-  get tableNames() {
-    var result = []
-    var self = this
-    SequelizeHelper.Hash.keys(this.tables).forEach(function(tableName) {
-      result.push(self.asTableName(tableName))
-    })
-    return result
   },
   
   query: function(queryString, callback) {
@@ -104,8 +101,4 @@ var instanceMethods = {
 
 SequelizeHelper.Hash.forEach(classMethods, function(method, methodName) {
   Sequelize[methodName] = method
-})
-
-SequelizeHelper.Hash.forEach(instanceMethods, function(method, methodName) {
-  Sequelize.prototype[methodName] = method
 })
