@@ -1,7 +1,6 @@
 var vows    = require('vows'),
-    assert  = require('assert'),
-    Sequelize = require(__dirname + "/sequelize").Sequelize,
-    SequelizeHelper = require(__dirname + "/sequelize").SequelizeHelper
+    assert  = require('assert')
+require(__dirname + "/../sequelize")
 
 vows.describe('Sequelize').addBatch({
   'constants': {
@@ -25,22 +24,11 @@ vows.describe('Sequelize').addBatch({
       assert.equal(s.config.username, 'test')
       assert.equal(s.config.password, 'test')
     },
-    'creates a connection object': function(s) {
-      assert.isObject(s.connection)
-    },
     'initializes empty table hash': function(s) {
       assert.isObject(s.tables)
     }
   },
-  'Sequalize#asTableName': {
-    topic: function() {
-      return new Sequelize('sequelize_test', 'test', 'test')
-    },
-    'should return the correct name': function(s) {
-      assert.equal(s.asTableName('Name'), 'Names')
-    }
-  },
-  'Sequelize#define': {
+  'define': {
     topic: function() {
       var s = new Sequelize('sequelize_test', 'test', 'test')
       return s.define('Day', { name: Sequelize.TEXT })
@@ -56,40 +44,45 @@ vows.describe('Sequelize').addBatch({
       assert.include(Day.sequelize.tables, 'Day')
     }
   },
-  'Sequelize#tableNames': {
-    topic: function() {
-      return new Sequelize('sequelize_test', 'test', 'test')
-    },
-    'should be an empty array if no tables are specified': function(s) {
+  'tableNames': {
+    'should be an empty array if no tables are specified': function() {
+      var s = new Sequelize('sequelize_test', 'test', 'test')
       assert.deepEqual(s.tableNames, [])
     },
     'should be no empty array if tables are specified': function(s) {
+      var s = new Sequelize('sequelize_test', 'test', 'test')
       s.define('Day', { name: Sequelize.TEXT })
       assert.deepEqual(s.tableNames, ['Days'])
     }
-  },
-  'Table#sync': {
-    topic: function() {
-      var s = new Sequelize('sequelize_test', 'test', 'test')
-      return s.define('Day', { name: Sequelize.TEXT })
-    },
-    'send sync call': function(Day) {
-/*      Day.sync()
-      SequelizeHelper.log(Day.sequelize)
-      Day.sequelize.closeConnection()*/
-    }
-  },
-  'Table#drop': {
-    topic: function() {
-      var s = new Sequelize('sequelize_test', 'test', 'test')
-      return s.define('Day', { name: s.TEXT })
-    },
-    'send drop call': function(Day) {
-      // create table before drop...
+  }
+}).export(module)
 
+vows.describe('SequelizeTable').addBatch({
+  'sync': {
+    topic: function() {
+      var s = new Sequelize('sequelize_test', 'test', 'test')
+      return s.define('ToBeSynced', { name: Sequelize.TEXT })
+    },
+    'should work': function(ToBeSynced) {
+      ToBeSynced.sync(function() {
+        assert.equal(1,1)
+      })
     }
   },
-  'Table#constructor': {
+  
+  'drop': {
+    topic: function() {
+      var s = new Sequelize('sequelize_test', 'test', 'test')
+      return s.define('ToBeDropped', { name: Sequelize.String })
+    },
+    'should work': function(ToBeDropped) {
+      ToBeDropped.drop(function() {
+        assert.equal(1, 1)
+      })
+    }
+  },
+  
+  'constructor': {
     topic: function() {
       var s = new Sequelize('sequelize_test', 'test', 'test')
       var Day = s.define('Day', { name: Sequelize.STRING })
@@ -109,9 +102,72 @@ vows.describe('Sequelize').addBatch({
       assert.deepEqual(day.attributes, { name: Sequelize.STRING })
     }
   },
-
+  
+  'save': {
+    topic: function() {
+      var s = new Sequelize('sequelize_test', 'test', 'test')
+      var SaveTest = s.define("SaveTest", { name: Sequelize.STRING })
+      var self = this
+      SaveTest.sync(this.callback)
+      new SaveTest({name: 'test'}).save(function(result) {
+        self.callback(result)
+      })
+    },
+    'after save': {
+      topic: function(instance) {
+        return instance
+      },
+      'should save data correctly': function(obj) {
+        assert.deepEqual(obj.values, {name: 'test1'})
+      }
+    }
+/*    'should save the data correctly': function(SaveTest) {
+      SaveTest.sync(function() {
+        new SaveTest({name: 'test1'}).save(function(obj) {
+          assert.deepEqual(obj.values, {name: 'test1'})
+        })
+      })
+    }
+*/  },
+  
+  'findAll': {
+    topic: function() {
+      var s = new Sequelize('sequelize_test', 'test', 'test')
+      var FindAllTest = s.define('FindAllTest', { name: Sequelize.STRING })
+      return FindAllTest
+    },
+    'after table was synced': function(FindAllTest){
+/*      FindAllTest.sync(function() {
+        new FindAllTest({name : 'Monday'}).save(function() {
+          new FindAllTest({name: 'Tuesday'}).save(function() {
+            FindAllTest.findAll(function(bla) {
+              SequelizeHelper.log(bla)
+            })
+          })
+        })
+        
+        
+      })*/
+    }
+  }
+/*    Day.drop(function() { Day.sync(function() {
+            new Day({name: 'Monday'}).save(function() {
+              Day.findAll(self.callback)
+            })
+          })})
+    
+    
+    
+    'should find created entries': function(result) {
+      assert.equal(1, 1)
+    }
+  }*/
 }).export(module)
 
+
+
+
+/*
 vows.describe('SequelizeHelper').addBatch({
   'values': {
     topic: function() {
@@ -166,5 +222,13 @@ vows.describe('SequelizeHelper').addBatch({
     'should correctly render data': function(day) {
       assert.equal(SequelizeHelper.valuesForUpdate(day), "name = 'Monday', foo = 2")
     }
+  },
+  'Sequalize#asTableName': {
+    topic: function() {
+      return new Sequelize('sequelize_test', 'test', 'test')
+    },
+    'should return the correct name': function(s) {
+      assert.equal(s.asTableName('Name'), 'Names')
+    }
   }
-}).export(module)
+}).export(module)*/
