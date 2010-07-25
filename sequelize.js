@@ -159,7 +159,7 @@ var TableWrapper = function(sequelize, tableName, attributes) {
           { table: this.tableName, fields: Helper.SQL.fieldsForInsertQuery(this), values: Helper.SQL.valuesForInsertQuery(this) }
         )
       } else {
-        query = evaluateTemplate(
+        query = Helper.evaluateTemplate(
           "UPDATE %{table} SET %{values} WHERE id = %{id}",
           { table: this.tableName, values: Helper.SQL.valuesForUpdate(this), id: this.id }
         )
@@ -176,6 +176,15 @@ var TableWrapper = function(sequelize, tableName, attributes) {
           if(callback) callback(self)
         }
       })
+    },
+    
+    updateAttributes: function(newValues, callback) {
+      var self = this
+      Helper.Hash.keys(this.attributes).forEach(function(attribute) {
+        if(newValues[attribute])
+          self[attribute] = newValues[attribute]
+      })
+      this.save(callback)
     }
   }
   
