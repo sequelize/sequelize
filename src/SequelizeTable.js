@@ -30,17 +30,23 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       )
     },
 
-    findAll: function(callback) {
+    // TODO: mysql library currently doesn't support MYSQL_DATE!!! look for fix
+    findAll: function(options, callback) {
+      // use the first param as callback if it is no object (hash)
+      var _callback = (typeof options == 'object') ? callback : options
+      var queryOptions = (typeof options == 'object') ? SequelizeHelper.Hash.merge(options, { table: tableName }) : { table: tableName }
+
       sequelize.query(
-        Sequelize.sqlQueryFor('select', { table: tableName }),
+        Sequelize.sqlQueryFor('select', queryOptions),
         function(result) {
           var objects = []
-          
+
           result.forEach(function(resultSet) {
             objects.push(table.sqlResultToObject(resultSet))
+
           })
         
-          if(callback) callback(objects)
+          if(_callback) _callback(objects)
         }
       )
     },
@@ -48,15 +54,16 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     find: function(conditions, callback) {
       sequelize.query(
         Sequelize.sqlQueryFor('select', {
-          table: tableName, where: SequelizeHelper.SQL.hashToWhereConditions(conditions), order: 'id DESC', limit: 1
+          table: tableName, where: SequelizeHelper.SQL.hashToWhereConditions(conditions, this.attributes), order: 'id DESC', limit: 1
         }), function(result) {
           if (callback) callback(table.sqlResultToObject(result[0]))
         }
       )
     },
-    
+
+    // TODO: mysql library currently doesn't support MYSQL_DATE!!! don't merge if fixed
     sqlResultToObject: function(result) {
-      var object = new table(result)
+      var object = new table(SequelizeHelper.Hash.merge({createdAt: new Date(), updatedAt: new Date()}, result, true))
       object.id = result.id
       return object
     }
@@ -79,11 +86,13 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       var query = null
       var self = this
 
-      if(this.id == null)
+      this.updateAt = new Date()
+      if(this.id == null) {
+        this.createdAt = new Date()
         query = Sequelize.sqlQueryFor('insert', {
           table: this.tableName, fields: SequelizeHelper.SQL.fieldsForInsertQuery(this), values: SequelizeHelper.SQL.valuesForInsertQuery(this)
         })
-      else
+      } else
         query = Sequelize.sqlQueryFor('update', { table: this.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id })
       
       sequelize.query(query, function() {

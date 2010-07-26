@@ -9,6 +9,17 @@ SequelizeHelper = {
       return name + "s"
     },
     
+    asSqlDate: function(date) {
+      return [
+        [
+          date.getFullYear(),
+          ((date.getMonth() < 9 ? '0' : '') + (date.getMonth()+1)),
+          ((date.getDate() < 10 ? '0' : '') + date.getDate())
+        ].join("-"),
+        date.toLocaleTimeString()
+      ].join(" ")
+    },
+    
     valuesForInsertQuery: function(object) {
       var actualValues = object.values,
           result  = []
@@ -28,14 +39,13 @@ SequelizeHelper = {
     },
 
     transformValueByDataType: function(value, dataType) {
-      var result = null
-      switch(dataType) {
-        case Sequelize.INTEGER:
-          result = value; break;
-        default:
-          result = "'" + value + "'"; break;
-      }
-      return result
+      if(dataType.indexOf(Sequelize.INTEGER) > -1)
+        return value
+      
+      if(dataType.indexOf(Sequelize.DATE) > -1)
+        return ("'" + SequelizeHelper.SQL.asSqlDate(value) + "'")
+      
+      return ("'" + value + "'")
     },
 
     valuesForUpdate: function(object, options) {
@@ -54,13 +64,13 @@ SequelizeHelper = {
       return result.join(options.seperator || ", ")
     },
     
-    hashToWhereConditions: function(conditions) {
+    hashToWhereConditions: function(conditions, attributes) {
       if(typeof conditions == 'number')
         return ('id = ' + conditions)
       else {
         var result = []
         SequelizeHelper.Hash.forEach(conditions, function(value, key) {
-          result.push(key + "=" + SequelizeHelper.SQL.transformValueByDataType(value))
+          result.push(key + "=" + SequelizeHelper.SQL.transformValueByDataType(value, attributes[key]))
         })
         return result.join(" AND ")
       }
@@ -95,6 +105,14 @@ SequelizeHelper = {
         result.push(object[key])
       })
       return result
+    },
+    
+    merge: function(source, target, force) {
+      SequelizeHelper.Hash.forEach(source, function(value, key) {
+        if(!target[key] || force)
+          target[key] = value
+      })
+      return target
     }
   }
 }

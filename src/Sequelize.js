@@ -14,6 +14,7 @@ var classMethods = {
   STRING: 'VARCHAR(255)',
   TEXT: 'VARCHAR(4000)',
   INTEGER: 'INT',
+  DATE: 'DATETIME',
   sqlQueryFor: function(command, values) {
     var query = null
     switch(command) {
@@ -24,6 +25,7 @@ var classMethods = {
         query = "DROP TABLE IF EXISTS %{table}"
         break
       case 'select':
+        values.fields = values.fields || "*"
         query = "SELECT %{fields} FROM %{table}"
         if(values.where) query += " WHERE %{where}"
         if(values.order) query += " ORDER BY %{order}"
@@ -32,7 +34,6 @@ var classMethods = {
           if(values.offset) query += " LIMIT %{offset}, %{limit}"
           else query += " LIMIT %{limit}"
         }
-        values.fields = values.fields || "*"
         break
       case 'insert':
         query = "INSERT INTO %{table} (%{fields}) VALUES (%{values})"
@@ -44,6 +45,7 @@ var classMethods = {
         query = "DELETE FROM %{table} WHERE id = %{id} LIMIT 1"
         break
     }
+    
     return SequelizeHelper.evaluateTemplate(query, values)
   }
 }
@@ -58,6 +60,9 @@ Sequelize.prototype = {
   },
   
   define: function(name, attributes) {
+    attributes.createdAt = 'DATETIME NOT NULL'
+    attributes.updatedAt = 'DATETIME NOT NULL'
+    
     var table = new SequelizeTable(this, SequelizeHelper.SQL.asTableName(name), attributes)
     table.attributes = attributes
 
