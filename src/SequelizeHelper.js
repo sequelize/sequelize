@@ -24,10 +24,8 @@ SequelizeHelper = {
       var actualValues = object.values,
           result  = []
 
-      SequelizeHelper.Hash.keys(actualValues).forEach(function(key) {
-        var value     = actualValues[key],
-            dataType  = object.attributes[key]
-
+      SequelizeHelper.Hash.forEach(actualValues, function(value, key) {
+        var dataType  = object.attributes[key]
         result.push(SequelizeHelper.SQL.transformValueByDataType(value, dataType))
       })
 
