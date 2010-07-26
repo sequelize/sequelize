@@ -8,10 +8,22 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     this.id = null // specify id as null to declare this object as unsaved and as not present in the database
     this.tableName = tableName
     this.attributes = attributes
+    
+    table.associations.forEach(function(association) {
+      self[association.name] = function(callback) {
+        var myTableName = tableName.toLowerCase().replace(/s$/, "")
+        
+        if(association.type = 'hasMany') {
+          var whereConditions = [myTableName+"Id", self.id].join("=")
+          return association.table.findAll({where: whereConditions})
+        }
+      }
+    })
   }
   
   // class methods
   var classMethods = {
+    associations: [],
     sync: function(callback) {
       var fields = ["id INT NOT NULL auto_increment PRIMARY KEY"]
       SequelizeHelper.Hash.keys(attributes).forEach(function(name) { fields.push(name + " " + attributes[name]) })
@@ -66,6 +78,33 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       var object = new table(SequelizeHelper.Hash.merge({createdAt: new Date(), updatedAt: new Date()}, result, true))
       object.id = result.id
       return object
+    },
+    
+    hasMany: function(assocName, table) {
+      this.associations.push({
+        name: assocName,
+        table: table,
+        type: 'hasMany'
+      })
+      return table
+    },
+    
+    hasOne: function(assocName, table) {
+      this.associations.push({
+        name: assocName,
+        table: table,
+        type: 'hasOne'
+      })
+      return table
+    },
+    
+    belongsTo: function(assocName, table) {
+      this.associations.push({
+        name: assocName,
+        table: table,
+        type: 'belongsTo'
+      })
+      return table
     }
   }
   
@@ -86,7 +125,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       var query = null
       var self = this
 
-      this.updateAt = new Date()
+      this.updatedAt = new Date()
       if(this.id == null) {
         this.createdAt = new Date()
         query = Sequelize.sqlQueryFor('insert', {
