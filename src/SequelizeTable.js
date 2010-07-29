@@ -1,3 +1,10 @@
+/*
+  A.hasOne(B)                 => B.aId
+  A.belongsTo(B)              => A.bId
+  A.hasMany(B)                => B.aId
+  A.hasMany(B) + B.hasMany(A) => AB.aId + AB.bId
+*/
+
 SequelizeTable = function(sequelize, tableName, attributes) {
   var table = function(values) {
     var self = this
@@ -24,13 +31,19 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       return result
     },
     
-    sync: function(callback) {
+    prepareAssociations: function() {
       table.associations.forEach(function(association) {
         switch(association.type) {
           case 'hasMany':
             if(association.table.isCrossAssociatedWith(association.table)) {
               // many to many relation
               
+              SequelizeHelper.log(association)
+              var _attributes = {}
+              _attributes[table.identifier] = Sequelize.INTEGER
+              _attributes[association.table.identifier] = Sequelize.INTEGER
+              SequelizeHelper.log(table.tableName + association.table.tableName)
+              sequelize.define(table.tableName + association.table.tableName, _attributes)
             } else {
               // one to many relation
               association.table.attributes[table.identifier] = Sequelize.INTEGER
@@ -43,10 +56,14 @@ SequelizeTable = function(sequelize, tableName, attributes) {
             break
           case 'belongsTo':
             // e.g. table.dayId = Sequelize.INTEGER
-            table.attributes[table.identifier] = Sequelize.INTEGER
+            table.attributes[association.table.identifier] = Sequelize.INTEGER
             break
         }
       })
+    },
+    
+    sync: function(callback) {
+      table.prepareAssociations()
 
       var fields = ["id INT NOT NULL auto_increment PRIMARY KEY"]
       SequelizeHelper.Hash.forEach(table.attributes, function(type, name) {
