@@ -22,10 +22,12 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     attributes: attributes,
     tableName: tableName,
     
-    isCrossAssociatedWith: function(_table) {
+    isCrossAssociatedWith: function(associatedTable) {
       var result = false
-      _table.associations.forEach(function(association) {
-        if((association.table.tableName == table.tableName) && (association.type == 'hasMany'))
+      var myTableName = table.tableName
+      
+      associatedTable.associations.forEach(function(association) {
+        if((association.table.tableName == myTableName) && (association.type == 'hasMany'))
           result = true
       })
       return result
@@ -35,20 +37,16 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       table.associations.forEach(function(association) {
         switch(association.type) {
           case 'hasMany':
-            if(association.table.isCrossAssociatedWith(association.table)) {
+            if(association.table.isCrossAssociatedWith(table)) {
               // many to many relation
-              
-              SequelizeHelper.log(association)
               var _attributes = {}
               _attributes[table.identifier] = Sequelize.INTEGER
               _attributes[association.table.identifier] = Sequelize.INTEGER
-              SequelizeHelper.log(table.tableName + association.table.tableName)
-              sequelize.define(table.tableName + association.table.tableName, _attributes)
+              sequelize.define([table.tableName, association.table.tableName].sort().join(""), _attributes)
             } else {
               // one to many relation
               association.table.attributes[table.identifier] = Sequelize.INTEGER
             }
-            
             break
           case 'hasOne':
             // e.g. assocTable.myTableId = Sequelize.INTEGER
@@ -63,8 +61,6 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     },
     
     sync: function(callback) {
-      table.prepareAssociations()
-
       var fields = ["id INT NOT NULL auto_increment PRIMARY KEY"]
       SequelizeHelper.Hash.forEach(table.attributes, function(type, name) {
         fields.push(name + " " + type)
