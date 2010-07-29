@@ -41,6 +41,9 @@ SequelizeHelper = {
     },
 
     transformValueByDataType: function(value, dataType) {
+      if(typeof value == 'undefined')
+        return "NULL"
+      
       if(dataType.indexOf(Sequelize.INTEGER) > -1)
         return value
       
