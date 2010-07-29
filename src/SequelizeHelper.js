@@ -5,6 +5,10 @@ SequelizeHelper = {
   },
   
   SQL: {
+    asTableIdentifier: function(name) {
+      return name.toLowerCase().replace(/s$/, "") + "Id"
+    },
+    
     asTableName: function(name) {
       return name + "s"
     },
@@ -25,7 +29,7 @@ SequelizeHelper = {
           result  = []
 
       SequelizeHelper.Hash.forEach(actualValues, function(value, key) {
-        var dataType  = object.attributes[key]
+        var dataType  = object.table.attributes[key]
         result.push(SequelizeHelper.SQL.transformValueByDataType(value, dataType))
       })
 

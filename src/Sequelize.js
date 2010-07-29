@@ -15,6 +15,7 @@ var classMethods = {
   TEXT: 'VARCHAR(4000)',
   INTEGER: 'INT',
   DATE: 'DATETIME',
+  
   sqlQueryFor: function(command, values) {
     var query = null
     switch(command) {
@@ -57,6 +58,32 @@ Sequelize.prototype = {
       result.push(SequelizeHelper.SQL.asTableName(tableName))
     })
     return result
+  },
+  
+  sync: function(callback) {
+    var finished = []
+    var tables = this.tables
+
+    SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
+      table.constructor.sync(function() {
+        finished.push(true)
+        if(finished.length == SequelizeHelper.Hash.keys(tables).length)
+          callback()
+      })
+    })
+  },
+  
+  drop: function(callback) {
+    var finished = []
+    var tables = this.tables
+
+    SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
+      table.constructor.drop(function() {
+        finished.push(true)
+        if(finished.length == SequelizeHelper.Hash.keys(tables).length)
+          callback()
+      })
+    })
   },
   
   define: function(name, attributes) {

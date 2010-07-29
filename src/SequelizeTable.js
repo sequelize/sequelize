@@ -6,38 +6,62 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         self[key] = value
     })
     this.id = null // specify id as null to declare this object as unsaved and as not present in the database
-    this.tableName = tableName
-    this.attributes = attributes
-    
-    table.associations.forEach(function(association) {
-      self[association.name] = function(callback) {
-        var myTableName = tableName.toLowerCase().replace(/s$/, "")
-        
-        if(association.type = 'hasMany') {
-          var whereConditions = [myTableName+"Id", self.id].join("=")
-          return association.table.findAll({where: whereConditions})
-        }
-      }
-    })
+    this.table = table
   }
   
   // class methods
   var classMethods = {
     associations: [],
+    attributes: attributes,
+    tableName: tableName,
+    
+    isCrossAssociatedWith: function(_table) {
+      var result = false
+      _table.associations.forEach(function(association) {
+        if((association.table.tableName == table.tableName) && (association.type == 'hasMany'))
+          result = true
+      })
+      return result
+    },
+    
     sync: function(callback) {
+      table.associations.forEach(function(association) {
+        switch(association.type) {
+          case 'hasMany':
+            if(association.table.isCrossAssociatedWith(association.table)) {
+              // many to many relation
+              
+            } else {
+              // one to many relation
+              association.table.attributes[table.identifier] = Sequelize.INTEGER
+            }
+            
+            break
+          case 'hasOne':
+            // e.g. assocTable.myTableId = Sequelize.INTEGER
+            association.table.attributes[table.identifier] = Sequelize.INTEGER
+            break
+          case 'belongsTo':
+            // e.g. table.dayId = Sequelize.INTEGER
+            table.attributes[table.identifier] = Sequelize.INTEGER
+            break
+        }
+      })
+
       var fields = ["id INT NOT NULL auto_increment PRIMARY KEY"]
-      SequelizeHelper.Hash.keys(attributes).forEach(function(name) { fields.push(name + " " + attributes[name]) })
+      SequelizeHelper.Hash.forEach(table.attributes, function(type, name) {
+        fields.push(name + " " + type)
+      })
 
       sequelize.query(
-        Sequelize.sqlQueryFor( 'create', { table: tableName, fields: fields.join(', ') } ),
+        Sequelize.sqlQueryFor( 'create', { table: table.tableName, fields: fields.join(', ') } ),
         function() { if(callback) callback(table) }
       )
     },
 
     drop: function(callback) {
-      var query = "DROP TABLE IF EXISTS " + tableName
       sequelize.query(
-        Sequelize.sqlQueryFor('drop', { table: tableName }),
+        Sequelize.sqlQueryFor('drop', { table: table.tableName }),
         function() { if(callback) callback(table) }
       )
     },
@@ -46,7 +70,9 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     findAll: function(options, callback) {
       // use the first param as callback if it is no object (hash)
       var _callback = (typeof options == 'object') ? callback : options
-      var queryOptions = (typeof options == 'object') ? SequelizeHelper.Hash.merge(options, { table: tableName }) : { table: tableName }
+      var queryOptions = (typeof options == 'object')
+        ? SequelizeHelper.Hash.merge(options, { table: table.tableName })
+        : { table: table.tableName }
 
       sequelize.query(
         Sequelize.sqlQueryFor('select', queryOptions),
@@ -66,47 +92,74 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     find: function(conditions, callback) {
       sequelize.query(
         Sequelize.sqlQueryFor('select', {
-          table: tableName, where: SequelizeHelper.SQL.hashToWhereConditions(conditions, this.attributes), order: 'id DESC', limit: 1
+          table: table.tableName,
+          where: SequelizeHelper.SQL.hashToWhereConditions(conditions, table.attributes),
+          order: 'id DESC',
+          limit: 1
         }), function(result) {
-          if (callback) callback(table.sqlResultToObject(result[0]))
+          var _result = result[0] ? table.sqlResultToObject(result[0]) : null
+          if (callback) callback(_result)
         }
       )
     },
 
     // TODO: mysql library currently doesn't support MYSQL_DATE!!! don't merge if fixed
     sqlResultToObject: function(result) {
+      if(typeof result == undefined) return null
+      
       var object = new table(SequelizeHelper.Hash.merge({createdAt: new Date(), updatedAt: new Date()}, result, true))
       object.id = result.id
       return object
     },
     
-    hasMany: function(assocName, table) {
-      this.associations.push({
+    hasMany: function(assocName, _table) {
+      table.associations.push({
         name: assocName,
-        table: table,
+        table: _table,
         type: 'hasMany'
       })
+      
+      table.prototype[assocName] = function(callback) {
+        var whereConditions = [table.identifier, this.id].join("=")
+        _table.findAll({where: whereConditions}, callback)
+      }
+      
       return table
     },
     
-    hasOne: function(assocName, table) {
-      this.associations.push({
+    hasOne: function(assocName, _table) {
+      table.associations.push({
         name: assocName,
-        table: table,
+        table: _table,
         type: 'hasOne'
       })
+      
+      table.prototype[assocName] = function(callback) {
+        var whereConditions = {}
+        whereConditions[table.identifier] = this.id
+        _table.find(whereConditions, callback)
+      }
+      
       return table
     },
     
-    belongsTo: function(assocName, table) {
-      this.associations.push({
+    belongsTo: function(assocName, _table) {
+      table.associations.push({
         name: assocName,
-        table: table,
+        table: _table,
         type: 'belongsTo'
       })
+      
+      table.prototype[assocName] = function(callback) {
+        var whereConditions = ["id", this[_table.identifier]].join("=")
+        _table.find({where: whereConditions}, callback)
+      }
+      
       return table
     }
   }
+  // don't put this into the hash!
+  classMethods.identifier = SequelizeHelper.SQL.asTableIdentifier(classMethods.tableName)
   
   // instance methods
   table.prototype = {
@@ -114,7 +167,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       var result = {}
       var self = this
 
-      SequelizeHelper.Hash.keys(attributes).forEach(function(attribute) {
+      SequelizeHelper.Hash.keys(table.attributes).forEach(function(attribute) {
         result[attribute] = self[attribute]
       })
 
@@ -129,10 +182,10 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       if(this.id == null) {
         this.createdAt = new Date()
         query = Sequelize.sqlQueryFor('insert', {
-          table: this.tableName, fields: SequelizeHelper.SQL.fieldsForInsertQuery(this), values: SequelizeHelper.SQL.valuesForInsertQuery(this)
+          table: table.tableName, fields: SequelizeHelper.SQL.fieldsForInsertQuery(this), values: SequelizeHelper.SQL.valuesForInsertQuery(this)
         })
       } else
-        query = Sequelize.sqlQueryFor('update', { table: this.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id })
+        query = Sequelize.sqlQueryFor('update', { table: table.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id })
       
       sequelize.query(query, function() {
         if(self.id == null) {
@@ -148,7 +201,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     
     updateAttributes: function(newValues, callback) {
       var self = this
-      SequelizeHelper.Hash.keys(this.attributes).forEach(function(attribute) {
+      SequelizeHelper.Hash.keys(table.attributes).forEach(function(attribute) {
         if(newValues[attribute])
           self[attribute] = newValues[attribute]
       })
@@ -157,7 +210,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     
     destroy: function(callback) {
       sequelize.query(
-        Sequelize.sqlQueryFor('delete', { table: this.tableName, id: this.id }),
+        Sequelize.sqlQueryFor('delete', { table: table.tableName, id: this.id }),
         callback
       )
     }
