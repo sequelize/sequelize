@@ -64,7 +64,11 @@ Sequelize.prototype = {
     var finished = []
     var tables = this.tables
 
-    SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
+    SequelizeHelper.Hash.forEach(tables, function(table) {
+      table.constructor.prepareAssociations()
+    })
+
+    SequelizeHelper.Hash.forEach(tables, function(table) {
       table.constructor.sync(function() {
         finished.push(true)
         if(finished.length == SequelizeHelper.Hash.keys(tables).length)
