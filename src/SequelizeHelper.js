@@ -4,6 +4,14 @@ SequelizeHelper = {
     sys.puts(sys.inspect(obj))
   },
   
+  evaluateTemplate: function(template, replacements) {
+    var result = template
+    SequelizeHelper.Hash.keys(replacements).forEach(function(key) {
+      result = result.replace("%{" + key + "}", replacements[key])
+    })
+    return result
+  },
+  
   SQL: {
     manyToManyTableName: function(t1, t2) {
       return [t1.tableName, t2.tableName].sort().join("")
@@ -45,7 +53,7 @@ SequelizeHelper = {
     },
 
     transformValueByDataType: function(value, dataType) {
-      if(typeof value == 'undefined')
+      if((value == null)||(typeof value == 'undefined'))
         return "NULL"
       
       if(dataType.indexOf(Sequelize.INTEGER) > -1)
@@ -63,10 +71,8 @@ SequelizeHelper = {
 
       options = options || {}
 
-      SequelizeHelper.Hash.keys(actualValues).forEach(function(key) {
-        var value     = actualValues[key],
-            dataType  = object.attributes[key]
-
+      SequelizeHelper.Hash.forEach(actualValues, function(value, key) {
+        var dataType  = object.table.attributes[key]
         result.push([key, SequelizeHelper.SQL.transformValueByDataType(value, dataType)].join(" = "))
       })
 
@@ -84,14 +90,6 @@ SequelizeHelper = {
         return result.join(" AND ")
       }
     }
-  },
-  
-  evaluateTemplate: function(template, replacements) {
-    var result = template
-    SequelizeHelper.Hash.keys(replacements).forEach(function(key) {
-      result = result.replace("%{" + key + "}", replacements[key])
-    })
-    return result
   },
   
   Hash: {
