@@ -42,7 +42,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
               var _attributes = {}
               _attributes[table.identifier] = Sequelize.INTEGER
               _attributes[association.table.identifier] = Sequelize.INTEGER
-              sequelize.define([table.tableName, association.table.tableName].sort().join(""), _attributes)
+              sequelize.define(SequelizeHelper.SQL.manyToManyTableName(table, association.table), _attributes)
             } else {
               // one to many relation
               association.table.attributes[table.identifier] = Sequelize.INTEGER
@@ -94,7 +94,6 @@ SequelizeTable = function(sequelize, tableName, attributes) {
 
           result.forEach(function(resultSet) {
             objects.push(table.sqlResultToObject(resultSet))
-
           })
         
           if(_callback) _callback(objects)
@@ -132,10 +131,26 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         type: 'hasMany'
       })
       
-      table.prototype[assocName] = function(callback) {
-        var whereConditions = [table.identifier, this.id].join("=")
-        _table.findAll({where: whereConditions}, callback)
-      }
+      // don't check inside of method to increase performance
+      if(_table.isCrossAssociatedWith(table))
+        table.prototype[assocName] = function(callback) {
+          var whereConditions = [table.identifier, this.id].join("=")
+          sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)]
+            .constructor
+            .findAll({ where: whereConditions }, function(result) {
+              if(result.length > 0) {
+                var ids = []
+                result.forEach(function(resultSet) { ids.push(resultSet.id) })
+                
+                _table.findAll({where: "id IN (" + ids.join(",") + ")"}, callback)
+              }
+            })
+        }
+      else
+        table.prototype[assocName] = function(callback) {
+          var whereConditions = [table.identifier, this.id].join("=")
+          _table.findAll({where: whereConditions}, callback)
+        }
       
       return table
     },
