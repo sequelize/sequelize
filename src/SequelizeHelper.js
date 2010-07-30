@@ -5,6 +5,10 @@ SequelizeHelper = {
   },
   
   SQL: {
+    manyToManyTableName: function(t1, t2) {
+      return [t1.tableName, t2.tableName].sort().join("")
+    },
+    
     asTableIdentifier: function(name) {
       return name.toLowerCase().replace(/s$/, "") + "Id"
     },
@@ -95,6 +99,14 @@ SequelizeHelper = {
       SequelizeHelper.Hash.keys(object).forEach(function(key) {
         func(object[key], key, object)
       })
+    },
+    
+    map: function(object, func) {
+      var result = []
+      SequelizeHelper.Hash.forEach(object, function(value, key, object) {
+        result.push(func(value, key, object))
+      })
+      return result
     },
     
     keys: function(object) {
