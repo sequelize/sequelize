@@ -1,13 +1,14 @@
 require(__dirname + "/SequelizeHelper")
 require(__dirname + "/SequelizeTable")
 
-Sequelize = function(database, username, password) {
+Sequelize = function(database, username, password, options) {
   this.config = {
     database: database,
     username: username,
     password: password
   }
   this.tables = {}
+  this.options = options || {}
 }
 
 var classMethods = {
@@ -113,7 +114,8 @@ Sequelize.prototype = {
     connection
       .auth(this.config.database, this.config.username, this.config.password)
       .addListener('authorized', function() {
-        SequelizeHelper.log("Executing the query: " + queryString)
+        if(!self.options.disableLogging)
+          SequelizeHelper.log("Executing the query: " + queryString)
         connection
           .execute(queryString)
           .addListener('row', function(r){ values.push(r) })
