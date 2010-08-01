@@ -1,6 +1,6 @@
 require(__dirname + "/../sequelize")
 
-var s = new Sequelize('sequelize_test', 'test', 'test')
+var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
 
 module.exports = {
@@ -23,5 +23,125 @@ module.exports = {
     assert.equal(Foo.isCrossAssociatedWith(Day), false)
     Day.hasMany('foos', Foo)
     assert.equal(Foo.isCrossAssociatedWith(Day), true)
+  },
+  'prepareAssociations belongsTo': function(assert) {
+    var Me = s.define('Me', {})
+    var You = s.define('You', {})
+    You.belongsTo('me', Me)
+    
+    Me.prepareAssociations()
+    You.prepareAssociations()
+
+    assert.includes(SequelizeHelper.Hash.keys(You.attributes), 'meId')
+    assert.isNotUndefined(You.attributes.meId)
+    assert.isNotNull(You.attributes.meId)
+  },
+  'prepareAssociations hasOne': function(assert) {
+    var Me = s.define('Me2', {})
+    var You = s.define('You2', {})
+    You.hasOne('me', Me)
+    
+    Me.prepareAssociations()
+    You.prepareAssociations()
+
+    assert.includes(SequelizeHelper.Hash.keys(Me.attributes), 'you2Id')
+    assert.isNotUndefined(Me.attributes.you2Id)
+    assert.isNotNull(Me.attributes.you2Id)
+  },
+  'prepareAssociations hasMany': function(assert) {
+    var ManyToManyPart1 = s.define('ManyToManyPart1', {})
+    var ManyToManyPart2 = s.define('ManyToManyPart2', {})
+    ManyToManyPart1.hasMany('manyToManyPart1', ManyToManyPart2)
+    ManyToManyPart2.hasMany('manyToManyPart1', ManyToManyPart1)
+
+    ManyToManyPart1.prepareAssociations()
+    ManyToManyPart2.prepareAssociations()
+
+    assert.isUndefined(ManyToManyPart1.attributes.manyToManyPart2Id)
+    assert.isUndefined(ManyToManyPart2.attributes.manyToManyPart1Id)
+
+    assert.isNotUndefined(s.tables.ManyToManyPart1sManyToManyPart2s)
+  },
+  'sync should return the table class': function(assert, beforeExit) {
+    var toBeTested = null
+    Day.sync(function(_Day) { toBeTested = _Day })
+    beforeExit(function() { assert.eql(toBeTested, Day) })
+  },
+  'drop should return the table class': function(assert, beforeExit) {
+    var toBeTested = null
+    Day.drop(function(_Day) { toBeTested = _Day })
+    beforeExit(function() { assert.eql(toBeTested, Day) })
+  },
+  'findAll should return all items as class objects': function(assert, beforeExit) {
+    var allFindAllTestItems = null
+    var FindAllTest = s.define('FindAllTest', {})
+    FindAllTest.drop(function() {
+      FindAllTest.sync(function() {
+        new FindAllTest({}).save(function() {
+          new FindAllTest({}).save(function() {
+            FindAllTest.findAll(function(findAlls) {
+              allFindAllTestItems = findAlls
+            })
+          })
+        })
+      })
+    })
+    
+    beforeExit(function(){
+      assert.equal(allFindAllTestItems.length, 2)
+      allFindAllTestItems.forEach(function(item) {
+        assert.equal(item instanceof FindAllTest, true)
+      })
+    })
+  },
+  'find returns the correct item': function(assert, beforeExit) {
+    var item = null
+    var itemToMatch = null
+    var FindTest = s.define('FindTest', { name: Sequelize.STRING })
+    FindTest.drop(function() {
+      FindTest.sync(function() {
+        itemToMatch = new FindTest({name: 'foo'})
+        itemToMatch.save(function() {
+          new FindTest({name: 'bar'}).save(function() {
+            FindTest.find({name: 'foo'}, function(result) {
+              item = result
+            })
+          })
+        })
+      })
+    })
+    
+    beforeExit(function() {
+      assert.equal(itemToMatch.id, item.id)
+      assert.equal(itemToMatch.name, item.name)
+    })
+  },
+  'sqlResultToObject returns the correct object': function(assert) {
+    var SqlResultToObjectTest = s.define('SqlResultToObject', {name: Sequelize.STRING})
+    var toBeTested = SqlResultToObjectTest.sqlResultToObject({
+      id: 1,
+      name: 'foo'
+    })
+    assert.equal(toBeTested instanceof SqlResultToObjectTest, true)
+    assert.equal(toBeTested.id, 1)
+    assert.equal(toBeTested.name, 'foo')
+  },
+  'hasMany': function(assert) {
+    var HasManyBlubb = s.define('HasManyBlubb', {})
+    Day.hasMany('HasManyBlubbs', HasManyBlubb)
+    assert.isNotUndefined(new Day({name:''}).HasManyBlubbs)
+  },
+  'hasOne': function(assert) {
+    var HasOneBlubb = s.define('HasOneBlubb', {})
+    Day.hasOne('HasOneBlubb', HasOneBlubb)
+    assert.isNotUndefined(new Day({name:''}).HasOneBlubb)
+  },
+  'belongsTo': function(assert) {
+    var BelongsToBlubb = s.define('BelongsToBlubb', {})
+    Day.belongsTo('BelongsToBlubb', BelongsToBlubb)
+    assert.isNotUndefined(new Day({name:''}).BelongsToBlubb)
+  },
+  'identifier': function(assert) {
+    assert.equal(s.define('Identifier', {}).identifier, 'identifierId')
   }
 }
