@@ -135,6 +135,16 @@ Sequelize.prototype = {
           })
         connection.close()
       })
+  },
+  waitForQueries: function(queries, callback) {
+    var finishedQueries = 0
+    queries.forEach(function(query) {
+      query(function() {
+        finishedQueries++
+        if(finishedQueries == queries.length)
+          callback()
+      })
+    })
   }
 }
 
