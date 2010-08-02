@@ -116,6 +116,7 @@ Sequelize.prototype = {
       .addListener('authorized', function() {
         if(!self.options.disableLogging)
           SequelizeHelper.log("Executing the query: " + queryString)
+        
         connection
           .execute(queryString)
           .addListener('row', function(r){ values.push(r) })
