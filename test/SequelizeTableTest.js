@@ -181,11 +181,12 @@ module.exports = {
   },
   'destroy should make the object unavailable': function(assert, beforeExit) {
     var subject = 1
-    Day.drop(function() {
-      Day.sync(function() {
-        new Day({name:'Monday'}).save(function(day) {
+    var UpdateAttributesTest = s.define('UpdateAttributeTest', {name: Sequelize.STRING})
+    UpdateAttributesTest.drop(function() {
+      UpdateAttributesTest.sync(function() {
+        new UpdateAttributesTest({name:'Monday'}).save(function(day) {
           day.destroy(function() {
-            Day.find(day.id, function(result) {
+            UpdateAttributesTest.find(day.id, function(result) {
               subject = result
             })
           })
