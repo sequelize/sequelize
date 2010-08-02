@@ -63,6 +63,9 @@ module.exports = {
     assert.equal(h.SQL.hashToWhereConditions(5, Day.attributes), 'id = 5')
     assert.equal(h.SQL.hashToWhereConditions({name: 'asd'}, Day.attributes), "name='asd'")
   },
+  'SQL: addPrefix': function(assert) {
+    assert.equal(SequelizeHelper.SQL.addPrefix('foo', 'bar'), 'fooBar')
+  },
   'Hash: forEach': function(assert) {
     var values = []
     var keys = []

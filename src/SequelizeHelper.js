@@ -21,6 +21,10 @@ SequelizeHelper = {
       return name.toLowerCase().replace(/s$/, "") + "Id"
     },
     
+    addPrefix: function(prefix, string) {
+      return prefix + string[0].toUpperCase() + string.replace(/^./, "")
+    },
+    
     asTableName: function(name) {
       return name + "s"
     },
