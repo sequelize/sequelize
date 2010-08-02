@@ -196,7 +196,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       var self = this
 
       SequelizeHelper.Hash.keys(table.attributes).forEach(function(attribute) {
-        result[attribute] = self[attribute]
+        result[attribute] = self[attribute] || null
       })
 
       return result
