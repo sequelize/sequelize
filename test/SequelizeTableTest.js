@@ -143,5 +143,57 @@ module.exports = {
   },
   'identifier': function(assert) {
     assert.equal(s.define('Identifier', {}).identifier, 'identifierId')
+  },
+  'values': function(assert) {
+    var day = new Day({name: 's'})
+    assert.eql(day.values, { name: "s", createdAt: null, updatedAt: null})
+  },
+  'save should set the id of a newly created object': function(assert, beforeExit) {
+    var subject = null
+    var SaveTest = s.define('SaveTest', {name: Sequelize.STRING})
+    SaveTest.drop(function(){
+      SaveTest.sync(function() {
+         new SaveTest({name:'s'}).save(function(_saveTest){
+          subject = _saveTest
+        })
+      })
+    })
+    
+    beforeExit(function() {
+      assert.isNotNull(subject.id)
+    })
+  },
+  'updateAttributes should update available attributes': function(assert, beforeExit) {
+    var subject = null
+    Day.drop(function() {
+      Day.sync(function() {
+        new Day({name:'Monday'}).save(function(day) {
+          day.updateAttributes({name: 'Sunday', foo: 'bar'}, function(day) {
+            subject = day
+          })
+        })
+      })
+    })
+    beforeExit(function() {
+      assert.equal(subject.name, 'Sunday')
+      assert.isUndefined(subject.foo)
+    })
+  },
+  'destroy should make the object unavailable': function(assert, beforeExit) {
+    var subject = 1
+    Day.drop(function() {
+      Day.sync(function() {
+        new Day({name:'Monday'}).save(function(day) {
+          day.destroy(function() {
+            Day.find(day.id, function(result) {
+              subject = result
+            })
+          })
+        })
+      })
+    })
+    beforeExit(function() {
+      assert.isNull(subject)
+    })
   }
 }
