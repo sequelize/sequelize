@@ -22,7 +22,7 @@ SequelizeHelper = {
     },
     
     addPrefix: function(prefix, string) {
-      return prefix + string[0].toUpperCase() + string.replace(/^./, "")
+      return prefix + string[0].toUpperCase() + string.replace(/^./, "").replace(/s$/, "")
     },
     
     asTableName: function(name) {
