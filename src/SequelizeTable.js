@@ -132,25 +132,58 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       })
       
       // don't check inside of method to increase performance
-      if(_table.isCrossAssociatedWith(table))
+      if(_table.isCrossAssociatedWith(table)) {
         table.prototype[assocName] = function(callback) {
+          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].constructor
           var whereConditions = [table.identifier, this.id].join("=")
-          sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)]
-            .constructor
-            .findAll({ where: whereConditions }, function(result) {
-              if(result.length > 0) {
-                var ids = []
-                result.forEach(function(resultSet) { ids.push(resultSet.id) })
-                
-                _table.findAll({where: "id IN (" + ids.join(",") + ")"}, callback)
-              }
-            })
+          Association.findAll({ where: whereConditions }, function(result) {
+            if(result.length > 0) {
+              var ids = []
+              result.forEach(function(resultSet) { ids.push(resultSet.id) })
+              
+              _table.findAll({where: "id IN (" + ids.join(",") + ")"}, callback)
+            }
+          })
         }
-      else
+        table.prototype[SequelizeHelper.SQL.addPrefix('add', assocName)] = function(object, callback) {
+          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].constructor
+          if(object instanceof _table) {
+            if((this.id != null) && (object.id != null)) {
+              var attributes = {}
+              attributes[this.table.identifier] = this.id
+              attributes[object.table.identifier] = object.id
+              new Association(attributes).save(callback)
+            } else {
+              throw new Error("Please save the objects before setting the association!")
+            }
+          } else {
+            throw new Error("You tried to add an object which is not associated with the class " + tableName)
+          }
+        }
+        table.prototype[SequelizeHelper.SQL.addPrefix('remove', assocName)] = function(object, callback) {
+          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].constructor
+          if(object instanceof _table) {
+            if((this.id != null) && (object.id != null)) {
+              var attributes = {}
+              attributes[this.identifier] = this.id
+              attributes[object.identifier] = object.id
+              Association.find(attributes, function(result) {
+                if((result != null) && (typeof result != 'undefined'))
+                  result.destroy(callback)
+              })
+            } else {
+              throw new Error("Please save the objects before removing the association!")
+            }
+          } else {
+            throw new Error("You tried to remove an object which is not associated with the class " + tableName)
+          }
+        }
+      } else {
         table.prototype[assocName] = function(callback) {
           var whereConditions = [table.identifier, this.id].join("=")
           _table.findAll({where: whereConditions}, callback)
         }
+      }
       
       return table
     },
