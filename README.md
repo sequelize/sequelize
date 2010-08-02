@@ -6,36 +6,36 @@ The Sequelize library provides easy access to a MySQL database by mapping databa
 
 To get the ball rollin' you first have to create an instance of _Sequelize_. Use it the following way:
 
-        var sequelize = new Sequelize('database', 'username', 'password')
+    var sequelize = new Sequelize('database', 'username', 'password')
   
 This will save the passed database credentials and provide all further methods.  
 The following lines are showing the basic usage:
 
-        var sequelize = new Sequelize('database', 'username', 'password')
-        var Project = sequelize.define('Project', {
-          name: Sequelize.STRING,
-          description: Sequelize.TEXT
-        })
-        var Member = sequelize.define('Member', {
-          name: Sequelize.STRING,
-          firstName: Sequelize.STRING,
-          hoursPerWeek: Sequelize.INTEGER
-        })
-        Project.hasMany('members', Member)
-        Member.belongsTo('project', Project)
+    var sequelize = new Sequelize('database', 'username', 'password')
+    var Project = sequelize.define('Project', {
+      name: Sequelize.STRING,
+      description: Sequelize.TEXT
+    })
+    var Member = sequelize.define('Member', {
+      name: Sequelize.STRING,
+      firstName: Sequelize.STRING,
+      hoursPerWeek: Sequelize.INTEGER
+    })
+    Project.hasMany('members', Member)
+    Member.belongsTo('project', Project)
   
-        var p = new Project({
-          name: 'my awesome project',
-          description: 'foo bar'
-        })
-        var m = new Project({
-          name: 'Depold',
-          firstName: 'Sascha',
-          hoursPerWeek: 20
-        })
-        p.save()
-        m.save()
-        m.updateAttributes({m.projectId: p.id})
+    var p = new Project({
+      name: 'my awesome project',
+      description: 'foo bar'
+    })
+    var m = new Project({
+      name: 'Depold',
+      firstName: 'Sascha',
+      hoursPerWeek: 20
+    })
+    p.save()
+    m.save()
+    m.updateAttributes({m.projectId: p.id})
 
 ... to be completed ...
   
