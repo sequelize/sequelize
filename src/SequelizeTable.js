@@ -134,7 +134,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       // don't check inside of method to increase performance
       if(_table.isCrossAssociatedWith(table)) {
         table.prototype[assocName] = function(callback) {
-          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].constructor
+          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
           var whereConditions = [table.identifier, this.id].join("=")
           Association.findAll({ where: whereConditions }, function(result) {
             if(result.length > 0) {
@@ -146,7 +146,8 @@ SequelizeTable = function(sequelize, tableName, attributes) {
           })
         }
         table.prototype[SequelizeHelper.SQL.addPrefix('add', assocName)] = function(object, callback) {
-          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].constructor
+          SequelizeHelper.log(SequelizeHelper.Hash.keys(sequelize.tables))
+          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
           if(object instanceof _table) {
             if((this.id != null) && (object.id != null)) {
               var attributes = {}
@@ -161,7 +162,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
           }
         }
         table.prototype[SequelizeHelper.SQL.addPrefix('remove', assocName)] = function(object, callback) {
-          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].constructor
+          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
           if(object instanceof _table) {
             if((this.id != null) && (object.id != null)) {
               var attributes = {}

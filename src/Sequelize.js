@@ -49,6 +49,17 @@ var classMethods = {
     }
     
     return SequelizeHelper.evaluateTemplate(query, values)
+  },
+  chainQueries: function(queries, callback) {
+    var executeQuery = function(index) {
+      queries[index](function() {
+        if(queries.length > (index + 1))
+          executeQuery(index + 1)
+        else
+          if (callback) callback()
+      })
+    }
+    executeQuery(0)
   }
 }
 
@@ -66,29 +77,36 @@ Sequelize.prototype = {
     var tables = this.tables
 
     SequelizeHelper.Hash.forEach(tables, function(table) {
-      table.constructor.prepareAssociations()
+      table.klass.prepareAssociations()
     })
 
-    SequelizeHelper.Hash.forEach(tables, function(table) {
-      table.constructor.sync(function() {
-        finished.push(true)
-        if(finished.length == SequelizeHelper.Hash.keys(tables).length)
-          callback()
+    if(SequelizeHelper.Hash.keys(tables).length == 0)
+      callback()
+    else
+      SequelizeHelper.Hash.forEach(tables, function(table) {
+        table.klass.sync(function() {
+          finished.push(true)
+          if(finished.length == SequelizeHelper.Hash.keys(tables).length)
+            callback()
+        })
       })
-    })
   },
   
   drop: function(callback) {
     var finished = []
     var tables = this.tables
 
-    SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
-      table.constructor.drop(function() {
-        finished.push(true)
-        if(finished.length == SequelizeHelper.Hash.keys(tables).length)
-          callback()
+    if(SequelizeHelper.Hash.keys(tables).length == 0)
+      callback()
+    else
+      SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
+        SequelizeHelper.log(table)
+        table.klass.drop(function() {
+          finished.push(true)
+          if(finished.length == SequelizeHelper.Hash.keys(tables).length)
+            callback()
+        })
       })
-    })
   },
   
   define: function(name, attributes) {
@@ -98,7 +116,7 @@ Sequelize.prototype = {
     var table = new SequelizeTable(this, SequelizeHelper.SQL.asTableName(name), attributes)
     table.attributes = attributes
 
-    this.tables[name] = {constructor: table, attributes: attributes}
+    this.tables[name] = {klass: table, attributes: attributes}
 
     table.sequelize = this
     return table
@@ -135,16 +153,6 @@ Sequelize.prototype = {
           })
         connection.close()
       })
-  },
-  waitForQueries: function(queries, callback) {
-    var finishedQueries = 0
-    queries.forEach(function(query) {
-      query(function() {
-        finishedQueries++
-        if(finishedQueries == queries.length)
-          callback()
-      })
-    })
   }
 }
 
