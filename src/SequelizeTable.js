@@ -91,12 +91,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       sequelize.query(
         Sequelize.sqlQueryFor('select', queryOptions),
         function(result) {
-          var objects = []
-
-          result.forEach(function(resultSet) {
-            objects.push(table.sqlResultToObject(resultSet))
-          })
-        
+          var objects = SequelizeHelper.Array.map(result, function(r) { return table.sqlResultToObject(r) })
           if(_callback) _callback(objects)
         }
       )
@@ -143,19 +138,21 @@ SequelizeTable = function(sequelize, tableName, attributes) {
               result.forEach(function(resultSet) { ids.push(resultSet.id) })
               
               _table.findAll({where: "id IN (" + ids.join(",") + ")"}, callback)
+            } else {
+              if(callback) callback([])
             }
           })
         }
         table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(objects, callback) {
-          var objectIds = SequelizeHelper.Array.map(objects, function(obj) { return obj.id })
-          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
           var self = this
+          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
           var currentAssociations = null
+          var objectIds = SequelizeHelper.Array.map(objects, function(obj) { return obj.id })
           
           var getAssociatedObjects = function(callback) {
             self[assocName](function(associations) {
               currentAssociations = associations
-              callback() 
+              callback(associations) 
             })
           }
           var deleteObsoleteAssociations = function(callback) {
@@ -163,10 +160,13 @@ SequelizeTable = function(sequelize, tableName, attributes) {
             currentAssociations.forEach(function(association) {
               if(objectIds.indexOf(association.id) == -1) obsolete.push(association.id)
             })
-            sequelize.query(
-              Sequelize.sqlQueryFor('delete', {table: Association.tableName, where: "id IN (" + obsolete.join(",") + ")"}),
-              function(){ callback(obsolete) }
-            )
+            if(obsolete.length == 0)
+              callback([])
+            else
+              sequelize.query(
+                Sequelize.sqlQueryFor('delete', {table: Association.tableName, where: "id IN (" + obsolete.join(",") + ")", limit: null}),
+                function(){ callback(obsolete) }
+              )
           }
           var createNewAssociations = function(obsolete) {
             var currentIds = SequelizeHelper.Array.map(currentAssociations, function(assoc) { return assoc.id })
@@ -178,8 +178,8 @@ SequelizeTable = function(sequelize, tableName, attributes) {
               if((o instanceof _table) && (self.id != null) && (o.id != null)) {
                 var attributes = {}
                 attributes[self.table.identifier] = self.id
-                attributes[object.table.identifier] = o.id
-                savings.push(new Association(attributes).save)
+                attributes[o.table.identifier] = o.id
+                savings.push({save: new Association(attributes)})
               }
             })
             Sequelize.chainQueries(savings, function() {
