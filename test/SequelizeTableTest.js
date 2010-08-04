@@ -75,6 +75,7 @@ module.exports = {
   'findAll should return all items as class objects': function(assert, beforeExit) {
     var allFindAllTestItems = null
     var FindAllTest = s.define('FindAllTest', {})
+
     FindAllTest.drop(function() {
       FindAllTest.sync(function() {
         new FindAllTest({}).save(function() {
@@ -130,6 +131,35 @@ module.exports = {
     var HasManyBlubb = s.define('HasManyBlubb', {})
     Day.hasMany('HasManyBlubbs', HasManyBlubb)
     assert.isNotUndefined(new Day({name:''}).HasManyBlubbs)
+  },
+  'hasMany findAll => crossAssociated': function(assert, beforeExit) {
+    var assoc = null
+    var Character = s.define('Character', {})
+    var Word = s.define('Word', {})
+    Character.hasMany('Words', Word)
+    Word.hasMany('Characters', Character)
+
+    Sequelize.chainQueries([
+      {drop: Character}, {drop: Word}, {prepareAssociations: Word}, {prepareAssociations: Character}, {sync: Word}, {sync: Character}
+    ],
+    function() {
+      var Association = s.tables.CharactersWords.klass
+      Association.sync(function() {
+        var w = new Word()
+        var c1 = new Character()
+        var c2 = new Character()
+        Sequelize.chainQueries([{save: w}, {save: c1}, {save: c2}], function() {
+          w.setCharacters([c1, c2], function(associations) {
+            assoc = associations
+          })
+        })
+      })
+    })
+    
+    beforeExit(function() {
+      assert.isNotNull(assoc)
+      assert.equal(assoc.length, 2)
+    })
   },
   'hasOne': function(assert) {
     var HasOneBlubb = s.define('HasOneBlubb', {})
