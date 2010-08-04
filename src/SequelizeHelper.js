@@ -22,7 +22,7 @@ SequelizeHelper = {
     },
     
     addPrefix: function(prefix, string) {
-      return prefix + string[0].toUpperCase() + string.replace(/^./, "").replace(/s$/, "")
+      return prefix + string[0].toUpperCase() + string.replace(/^./, "")
     },
     
     asTableName: function(name) {
@@ -132,6 +132,22 @@ SequelizeHelper = {
           target[key] = value
       })
       return target
+    }
+  },
+  Array: {
+    map: function(array, func) {
+      var result = []
+      array.forEach(function(element) {
+        result.push(func(element))
+      })
+      return result
+    },
+    without: function(array, func) {
+      var result = []
+      array.forEach(function(element) {
+        if(!func(element)) result.push(element)
+      })
+      return result
     }
   }
 }
