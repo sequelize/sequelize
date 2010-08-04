@@ -44,7 +44,7 @@ var classMethods = {
         query = "UPDATE %{table} SET %{values} WHERE id = %{id}"
         break
       case 'delete':
-        query = "DELETE FROM %{table} WHERE id = %{id} LIMIT 1"
+        query = "DELETE FROM %{table} WHERE %{where} LIMIT 1"
         break
     }
     
@@ -100,7 +100,6 @@ Sequelize.prototype = {
       callback()
     else
       SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
-        SequelizeHelper.log(table)
         table.klass.drop(function() {
           finished.push(true)
           if(finished.length == SequelizeHelper.Hash.keys(tables).length)
