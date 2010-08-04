@@ -89,7 +89,9 @@ SequelizeHelper = {
       else {
         var result = []
         SequelizeHelper.Hash.forEach(conditions, function(value, key) {
-          result.push(key + "=" + SequelizeHelper.SQL.transformValueByDataType(value, attributes[key]))
+          var _value = SequelizeHelper.SQL.transformValueByDataType(value, attributes[key])
+          if(_value == 'NULL') result.push(key + " IS NULL")
+          else result.push(key + "=" + _value)
         })
         return result.join(" AND ")
       }
