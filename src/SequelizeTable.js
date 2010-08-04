@@ -136,7 +136,6 @@ SequelizeTable = function(sequelize, tableName, attributes) {
             if(result.length > 0) {
               var ids = []
               result.forEach(function(resultSet) { ids.push(resultSet.id) })
-              
               _table.findAll({where: "id IN (" + ids.join(",") + ")"}, callback)
             } else {
               if(callback) callback([])
@@ -170,7 +169,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
           }
           var createNewAssociations = function(obsolete) {
             var currentIds = SequelizeHelper.Array.map(currentAssociations, function(assoc) { return assoc.id })
-            var withoutExisting = SequelizeHelper.Array.without(objects, function(o) {
+            var withoutExisting = SequelizeHelper.Array.reject(objects, function(o) {
               currentIds.indexOf(o.id) > -1
             })
             var savings = []
@@ -197,6 +196,25 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         table.prototype[assocName] = function(callback) {
           var whereConditions = [table.identifier, this.id].join("=")
           _table.findAll({where: whereConditions}, callback)
+        }
+        table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(objects, callback) {
+          var self = this
+          var objectIds = SequelizeHelper.Array.map(objects, function(obj) { return obj.id })
+          this[assocName](function(currentAssociations) {
+            var currentIds = SequelizeHelper.Array.map(currentAssociations, function(assoc) { return assoc.id })
+            var obsoleteAssociations = SequelizeHelper.Array.select(currentAssociations, function(assoc) { return objectsIds.indexOf(assoc.id) == -1 })
+            obsoleteAssociations.forEach(function(assoc) {
+              var attr = {}; attr[table.identifier] = null
+              assoc.updateAttributes(attr)
+            })
+            var newAssociations = SequelizeHelper.Array.select(objects, function(o) { return currentIds.indexOf(o.id) == -1 })
+            newAssociations.forEach(function(assoc) {
+              var attr = {}; attr[table.identifier] = self.id
+              assoc.updateAttributes(attr)
+            })
+            self[assocName](callback)
+          })
+          
         }
       }
       
