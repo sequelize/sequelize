@@ -45,7 +45,7 @@ var classMethods = {
         break
       case 'delete':
         query = "DELETE FROM %{table} WHERE %{where}"
-        if(values.limit != null) query += " LIMIT 1"
+        if(typeof values.limit == 'undefined') query += " LIMIT 1"
         
         break
     }
