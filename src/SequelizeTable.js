@@ -33,7 +33,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       return result
     },
     
-    prepareAssociations: function() {
+    prepareAssociations: function(callback) {
       table.associations.forEach(function(association) {
         switch(association.type) {
           case 'hasMany':
@@ -58,6 +58,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
             break
         }
       })
+      if(callback) callback()
     },
     
     sync: function(callback) {
@@ -145,39 +146,52 @@ SequelizeTable = function(sequelize, tableName, attributes) {
             }
           })
         }
-        table.prototype[SequelizeHelper.SQL.addPrefix('add', assocName)] = function(object, callback) {
-          SequelizeHelper.log(SequelizeHelper.Hash.keys(sequelize.tables))
+        table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(objects, callback) {
+          var objectIds = SequelizeHelper.Array.map(objects, function(obj) { return obj.id })
           var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
-          if(object instanceof _table) {
-            if((this.id != null) && (object.id != null)) {
-              var attributes = {}
-              attributes[this.table.identifier] = this.id
-              attributes[object.table.identifier] = object.id
-              new Association(attributes).save(callback)
-            } else {
-              throw new Error("Please save the objects before setting the association!")
-            }
-          } else {
-            throw new Error("You tried to add an object which is not associated with the class " + tableName)
+          var self = this
+          var currentAssociations = null
+          
+          var getAssociatedObjects = function(callback) {
+            self[assocName](function(associations) {
+              currentAssociations = associations
+              callback() 
+            })
           }
-        }
-        table.prototype[SequelizeHelper.SQL.addPrefix('remove', assocName)] = function(object, callback) {
-          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
-          if(object instanceof _table) {
-            if((this.id != null) && (object.id != null)) {
-              var attributes = {}
-              attributes[this.identifier] = this.id
-              attributes[object.identifier] = object.id
-              Association.find(attributes, function(result) {
-                if((result != null) && (typeof result != 'undefined'))
-                  result.destroy(callback)
-              })
-            } else {
-              throw new Error("Please save the objects before removing the association!")
-            }
-          } else {
-            throw new Error("You tried to remove an object which is not associated with the class " + tableName)
+          var deleteObsoleteAssociations = function(callback) {
+            var obsolete = []
+            currentAssociations.forEach(function(association) {
+              if(objectIds.indexOf(association.id) == -1) obsolete.push(association.id)
+            })
+            sequelize.query(
+              Sequelize.sqlQueryFor('delete', {table: Association.tableName, where: "id IN (" + obsolete.join(",") + ")"}),
+              function(){ callback(obsolete) }
+            )
           }
+          var createNewAssociations = function(obsolete) {
+            var currentIds = SequelizeHelper.Array.map(currentAssociations, function(assoc) { return assoc.id })
+            var withoutExisting = SequelizeHelper.Array.without(objects, function(o) {
+              currentIds.indexOf(o.id) > -1
+            })
+            var savings = []
+            withoutExisting.forEach(function(o) {
+              if((o instanceof _table) && (self.id != null) && (o.id != null)) {
+                var attributes = {}
+                attributes[self.table.identifier] = self.id
+                attributes[object.table.identifier] = o.id
+                savings.push(new Association(attributes).save)
+              }
+            })
+            Sequelize.chainQueries(savings, function() {
+              getAssociatedObjects(callback)
+            })
+          }
+          
+          getAssociatedObjects(function() {
+            deleteObsoleteAssociations(function(obsolete) {
+              createNewAssociations(obsolete)
+            })
+          })
         }
       } else {
         table.prototype[assocName] = function(callback) {
@@ -272,7 +286,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     
     destroy: function(callback) {
       sequelize.query(
-        Sequelize.sqlQueryFor('delete', { table: table.tableName, id: this.id }),
+        Sequelize.sqlQueryFor('delete', { table: table.tableName, where: ['id', this.id].join("=") }),
         callback
       )
     }
