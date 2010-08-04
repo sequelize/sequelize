@@ -236,6 +236,22 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         _table.find(whereConditions, callback)
       }
       
+      table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(object, callback) {
+        var self = this
+        
+        this[assocName](function(currentAssociation) {
+          if(object.id == currentAssociation.id) callback()
+          else {
+            var attr = {}
+            attr[table.identifier] = null
+            currentAssociation.updateAttributes(attr, function() {
+              attr[table.identifier] = self.id
+              object.updateAttributes(attr, callback)
+            })
+          }
+        })
+      }
+      
       return table
     },
     
@@ -249,6 +265,11 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       table.prototype[assocName] = function(callback) {
         var whereConditions = ["id", this[_table.identifier]].join("=")
         _table.find({where: whereConditions}, callback)
+      }
+      
+      table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(object, callback) {
+        var attr = {}; attr[object.table.identifier] = object.id
+        this.updateAttributes(attr, callback)
       }
       
       return table
