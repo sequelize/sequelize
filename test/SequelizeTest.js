@@ -69,7 +69,7 @@ module.exports = {
     assert.equal(query, "UPDATE Foo SET foo=1 WHERE id = 2")
   },
   'sqlQueryFor: delete': function(assert) {
-    var query = Sequelize.sqlQueryFor('delete', {table: 'Foo', id: 2})
-    assert.equal(query, "DELETE FROM Foo WHERE id = 2 LIMIT 1")
+    var query = Sequelize.sqlQueryFor('delete', {table: 'Foo', where: "id=2"})
+    assert.equal(query, "DELETE FROM Foo WHERE id=2 LIMIT 1")
   }
 }
