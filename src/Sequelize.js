@@ -53,23 +53,20 @@ var classMethods = {
     return SequelizeHelper.evaluateTemplate(query, values)
   },
   chainQueries: function(queries, callback) {
-    // queries = [{method: object}, {method: object}, {method: object}]
+    // queries = [{method: object}, {method: object, params: [1,2,3]}, {method: object}]
     var executeQuery = function(index) {
       var queryHash = queries[index]
-      var method = SequelizeHelper.Hash.keys(queryHash)
+      var method = SequelizeHelper.Array.without(SequelizeHelper.Hash.keys(queryHash), "params")[0]
       var object = queryHash[method]
+      var iterator = function() {
+        if(queries.length > (index + 1)) executeQuery(index + 1)
+        else if (callback) callback()
+      }
       
-      object[method](function() {
-        if(queries.length > (index + 1))
-          executeQuery(index + 1)
-        else
-          if (callback) callback()
-      })
+      object[method].apply(object, SequelizeHelper.Array.join(queryHash.params || [], [iterator]))
     }
-    if(queries.length > 0)
-      executeQuery(0)
-    else
-      if (callback) callback()
+    if(queries.length > 0) executeQuery(0)
+    else if (callback) callback()
   }
 }
 
@@ -106,8 +103,7 @@ Sequelize.prototype = {
     var finished = []
     var tables = this.tables
 
-    if(SequelizeHelper.Hash.keys(tables).length == 0)
-      callback()
+    if((SequelizeHelper.Hash.keys(tables).length == 0) && callback) callback()
     else
       SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
         table.klass.drop(function() {
