@@ -203,18 +203,20 @@ SequelizeTable = function(sequelize, tableName, attributes) {
           this[assocName](function(currentAssociations) {
             var currentIds = SequelizeHelper.Array.map(currentAssociations, function(assoc) { return assoc.id })
             var obsoleteAssociations = SequelizeHelper.Array.select(currentAssociations, function(assoc) { return objectsIds.indexOf(assoc.id) == -1 })
+            var queries = []
             obsoleteAssociations.forEach(function(assoc) {
               var attr = {}; attr[table.identifier] = null
-              assoc.updateAttributes(attr)
+              queries.push({updateAttributes: assoc, params: [attr]})
             })
             var newAssociations = SequelizeHelper.Array.select(objects, function(o) { return currentIds.indexOf(o.id) == -1 })
             newAssociations.forEach(function(assoc) {
               var attr = {}; attr[table.identifier] = self.id
-              assoc.updateAttributes(attr)
+              queries.push({updateAttributes: assoc, params: [attr]})
             })
-            self[assocName](callback)
+            Sequelize.chainQueries(queries, function() {
+              self[assocName](callback)
+            })
           })
-          
         }
       }
       
@@ -276,7 +278,9 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       if(this.id == null) {
         this.createdAt = new Date()
         query = Sequelize.sqlQueryFor('insert', {
-          table: table.tableName, fields: SequelizeHelper.SQL.fieldsForInsertQuery(this), values: SequelizeHelper.SQL.valuesForInsertQuery(this)
+          table: table.tableName,
+          fields: SequelizeHelper.SQL.fieldsForInsertQuery(this),
+          values: SequelizeHelper.SQL.valuesForInsertQuery(this)
         })
       } else
         query = Sequelize.sqlQueryFor('update', { table: table.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id })
