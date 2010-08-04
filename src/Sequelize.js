@@ -44,22 +44,32 @@ var classMethods = {
         query = "UPDATE %{table} SET %{values} WHERE id = %{id}"
         break
       case 'delete':
-        query = "DELETE FROM %{table} WHERE %{where} LIMIT 1"
+        query = "DELETE FROM %{table} WHERE %{where}"
+        if(values.limit != null) query += " LIMIT 1"
+        
         break
     }
     
     return SequelizeHelper.evaluateTemplate(query, values)
   },
   chainQueries: function(queries, callback) {
+    // queries = [{method: object}, {method: object}, {method: object}]
     var executeQuery = function(index) {
-      queries[index](function() {
+      var queryHash = queries[index]
+      var method = SequelizeHelper.Hash.keys(queryHash)
+      var object = queryHash[method]
+      
+      object[method](function() {
         if(queries.length > (index + 1))
           executeQuery(index + 1)
         else
           if (callback) callback()
       })
     }
-    executeQuery(0)
+    if(queries.length > 0)
+      executeQuery(0)
+    else
+      if (callback) callback()
   }
 }
 
@@ -80,7 +90,7 @@ Sequelize.prototype = {
       table.klass.prepareAssociations()
     })
 
-    if(SequelizeHelper.Hash.keys(tables).length == 0)
+    if(SequelizeHelper.Hash.keys(this.tables).length == 0)
       callback()
     else
       SequelizeHelper.Hash.forEach(tables, function(table) {
@@ -103,7 +113,7 @@ Sequelize.prototype = {
         table.klass.drop(function() {
           finished.push(true)
           if(finished.length == SequelizeHelper.Hash.keys(tables).length)
-            callback()
+            if(callback) callback()
         })
       })
   },
@@ -114,7 +124,6 @@ Sequelize.prototype = {
     
     var table = new SequelizeTable(this, SequelizeHelper.SQL.asTableName(name), attributes)
     table.attributes = attributes
-
     this.tables[name] = {klass: table, attributes: attributes}
 
     table.sequelize = this
