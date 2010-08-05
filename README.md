@@ -2,6 +2,14 @@
 
 The Sequelize library provides easy access to a MySQL database by mapping database entries to objects and vice versa. To put it in a nutshell... it's an ORM (Object-Relational-Mapper). The library is written entirely in JavaScript and can be used in the Node.JS environment.
 
+## Installation ##
+
+Sequelize will have a NPM and a Kiwi package in future. For now, you can just download the code from the git repository and require _sequelize.js_:
+
+    require(__dirname + "/path/to/sequelize/sequelize")
+
+This will make the class Sequelize available.
+
 ## Basic Mapping ##
 
 To get the ball rollin' you first have to create an instance of _Sequelize_. Use it the following way:
@@ -186,3 +194,4 @@ OK... you can define classes and associations. You can save them. You would prob
 - migrations (changing a tables structure without deleting information)
 - make findAll with conditions easier to use
 - fix problems with datetime
+- NPM/Kiwi package
