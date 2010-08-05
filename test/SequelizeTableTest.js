@@ -76,15 +76,11 @@ module.exports = {
     var allFindAllTestItems = null
     var FindAllTest = s.define('FindAllTest', {})
 
-    FindAllTest.drop(function() {
-      FindAllTest.sync(function() {
-        new FindAllTest({}).save(function() {
-          new FindAllTest({}).save(function() {
-            FindAllTest.findAll(function(findAlls) {
-              allFindAllTestItems = findAlls
-            })
-          })
-        })
+    Sequelize.chainQueries([
+      {drop: FindAllTest}, {sync: FindAllTest}, {save: new FindAllTest({})}, {save: new FindAllTest({})}
+    ], function() {
+      FindAllTest.findAll(function(findAlls) {
+        allFindAllTestItems = findAlls
       })
     })
     

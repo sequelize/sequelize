@@ -176,11 +176,13 @@ OK... you can define classes and associations. You can save them. You would prob
       // project will be the first entry of the Projects table with the title 'aProject' || null
     })
     
-    Project.findAll({ title: 'smth' }, function(projects) {
-      // projects will be an array of Project instances, having the title 'smth'
+    Project.findAll(function(projects) {
+      // projects will be an array of all Project instances
     })
 
 # TODO #
 - deletion dependencies
 - restrictions
 - migrations (changing a tables structure without deleting information)
+- make findAll with conditions easier to use
+- fix problems with datetime
