@@ -183,3 +183,4 @@ OK... you can define classes and associations. You can save them. You would prob
 # TODO #
 - deletion dependencies
 - restrictions
+- migrations (changing a tables structure without deleting information)
