@@ -240,14 +240,19 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         var self = this
         
         this[assocName](function(currentAssociation) {
-          if(object.id == currentAssociation.id) callback()
-          else {
-            var attr = {}
-            attr[table.identifier] = null
-            currentAssociation.updateAttributes(attr, function() {
-              attr[table.identifier] = self.id
-              object.updateAttributes(attr, callback)
-            })
+          var attr = {}
+          if(currentAssociation == null) {
+            attr[table.identifier] = self.id
+            object.updateAttributes(attr, callback)
+          } else {
+            if(object.id == currentAssociation.id) callback()
+            else {
+              attr[table.identifier] = null
+              currentAssociation.updateAttributes(attr, function() {
+                attr[table.identifier] = self.id
+                object.updateAttributes(attr, callback)
+              })
+            }
           }
         })
       }
@@ -263,13 +268,15 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       })
       
       table.prototype[assocName] = function(callback) {
-        var whereConditions = ["id", this[_table.identifier]].join("=")
-        _table.find({where: whereConditions}, callback)
+        _table.find(this[_table.identifier], callback)
       }
       
       table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(object, callback) {
         var attr = {}; attr[object.table.identifier] = object.id
-        this.updateAttributes(attr, callback)
+        var self = this
+        this.updateAttributes(attr, function() {
+          self[assocName](callback)
+        })
       }
       
       return table

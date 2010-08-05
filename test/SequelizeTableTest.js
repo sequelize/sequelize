@@ -132,7 +132,7 @@ module.exports = {
     Day.hasMany('HasManyBlubbs', HasManyBlubb)
     assert.isNotUndefined(new Day({name:''}).HasManyBlubbs)
   },
-  'hasMany findAll => crossAssociated': function(assert, beforeExit) {
+  'hasMany: set association': function(assert, beforeExit) {
     var assoc = null
     var Character = s.define('Character', {})
     var Word = s.define('Word', {})
@@ -166,10 +166,52 @@ module.exports = {
     Day.hasOne('HasOneBlubb', HasOneBlubb)
     assert.isNotUndefined(new Day({name:''}).HasOneBlubb)
   },
+  'hasOne set association': function(assert, beforeExit) {
+    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var Task = s2.define('Task', {title: Sequelize.STRING})
+    var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
+    
+    Task.hasOne('deadline', Deadline)
+    Deadline.belongsTo('task', Task)
+
+    var task = new Task({ title:'do smth' })
+    var deadline = new Deadline({date: new Date()})
+    var assertMe = null
+    
+    Sequelize.chainQueries([{sync: s2}, {drop: s2}, {sync: s2}, {save: task}, {save: deadline}], function() {
+      task.setDeadline(deadline, function(_deadline) { assertMe = _deadline })
+    })
+    
+    beforeExit(function() {
+      assert.isNotNull(assertMe)
+      assert.eql(assertMe, deadline)
+    })
+  },
   'belongsTo': function(assert) {
     var BelongsToBlubb = s.define('BelongsToBlubb', {})
     Day.belongsTo('BelongsToBlubb', BelongsToBlubb)
     assert.isNotUndefined(new Day({name:''}).BelongsToBlubb)
+  },
+  'belongsTo: set association': function(assert, beforeExit) {
+    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var Task = s2.define('Task', {title: Sequelize.STRING})
+    var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
+    
+    Task.hasOne('deadline', Deadline)
+    Deadline.belongsTo('task', Task)
+
+    var task = new Task({ title:'do smth' })
+    var deadline = new Deadline({date: new Date()})
+    var assertMe = null
+    
+    Sequelize.chainQueries([{drop: s2}, {sync: s2}, {save: task}, {save: deadline}], function() {
+      deadline.setTask(task, function(_task) { assertMe = _task })
+    })
+    
+    beforeExit(function() {
+      assert.isNotNull(assertMe)
+      assert.eql(assertMe.id, task.id)
+    })
   },
   'identifier': function(assert) {
     assert.equal(s.define('Identifier', {}).identifier, 'identifierId')
@@ -195,15 +237,15 @@ module.exports = {
   },
   'updateAttributes should update available attributes': function(assert, beforeExit) {
     var subject = null
-    Day.drop(function() {
-      Day.sync(function() {
-        new Day({name:'Monday'}).save(function(day) {
-          day.updateAttributes({name: 'Sunday', foo: 'bar'}, function(day) {
-            subject = day
-          })
+
+    Sequelize.chainQueries([{drop: Day}, {sync: Day}], function() {
+      new Day({name:'Monday'}).save(function(day) {
+        day.updateAttributes({name: 'Sunday', foo: 'bar'}, function(day) {
+          subject = day
         })
       })
     })
+
     beforeExit(function() {
       assert.equal(subject.name, 'Sunday')
       assert.isUndefined(subject.foo)
@@ -212,13 +254,11 @@ module.exports = {
   'destroy should make the object unavailable': function(assert, beforeExit) {
     var subject = 1
     var UpdateAttributesTest = s.define('UpdateAttributeTest', {name: Sequelize.STRING})
-    UpdateAttributesTest.drop(function() {
-      UpdateAttributesTest.sync(function() {
-        new UpdateAttributesTest({name:'Monday'}).save(function(day) {
-          day.destroy(function() {
-            UpdateAttributesTest.find(day.id, function(result) {
-              subject = result
-            })
+    Sequelize.chainQueries([{drop: UpdateAttributesTest}, {sync: UpdateAttributesTest}], function() {
+      new UpdateAttributesTest({name:'Monday'}).save(function(day) {
+        day.destroy(function() {
+          UpdateAttributesTest.find(day.id, function(result) {
+            subject = result
           })
         })
       })
