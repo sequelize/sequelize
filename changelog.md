@@ -6,3 +6,6 @@
 # v0.2.0 #
 - added methods for setting associations
 - added method for chaining an arbitraty amount of queries
+
+# 0.2.1 #
+- fixed date bug
