@@ -80,7 +80,6 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       )
     },
 
-    // TODO: mysql library currently doesn't support MYSQL_DATE!!! look for fix
     findAll: function(options, callback) {
       // use the first param as callback if it is no object (hash)
       var _callback = (typeof options == 'object') ? callback : options
@@ -111,11 +110,10 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       )
     },
 
-    // TODO: mysql library currently doesn't support MYSQL_DATE!!! don't merge if fixed
     sqlResultToObject: function(result) {
       if(typeof result == undefined) return null
-      
-      var object = new table(SequelizeHelper.Hash.merge({createdAt: new Date(), updatedAt: new Date()}, result, true))
+
+      var object = new table(result)
       object.id = result.id
       return object
     },

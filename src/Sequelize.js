@@ -87,13 +87,13 @@ Sequelize.prototype = {
       table.klass.prepareAssociations()
     })
 
-    if(SequelizeHelper.Hash.keys(this.tables).length == 0)
+    if((SequelizeHelper.Hash.keys(this.tables).length == 0) && callback)
       callback()
     else
       SequelizeHelper.Hash.forEach(tables, function(table) {
         table.klass.sync(function() {
           finished.push(true)
-          if(finished.length == SequelizeHelper.Hash.keys(tables).length)
+          if((finished.length == SequelizeHelper.Hash.keys(tables).length) && callback)
             callback()
         })
       })
@@ -140,7 +140,7 @@ Sequelize.prototype = {
           SequelizeHelper.log("Executing the query: " + queryString)
         
         connection
-          .execute(queryString)
+          .query(queryString)
           .addListener('row', function(r){ values.push(r) })
           .addListener('field', function(f){ fields.push(f)})
           .addListener('end', function() {
@@ -152,7 +152,7 @@ Sequelize.prototype = {
                   mapping[fields[i].name] = valueArray[i]
                 result.push(mapping)
               })
-              callback(result)
+              if(callback) callback(result)
             }
           })
         connection.close()
