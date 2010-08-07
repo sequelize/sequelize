@@ -193,5 +193,4 @@ OK... you can define classes and associations. You can save them. You would prob
 - restrictions
 - migrations (changing a tables structure without deleting information)
 - make findAll with conditions easier to use
-- fix problems with datetime
 - NPM/Kiwi package
