@@ -4,7 +4,7 @@ var h = SequelizeHelper
 module.exports = {
   'log should be defined': function(assert) {
     assert.isNotNull(h.log)
-    assert.isNotUndefined(h.log)
+    assert.isDefined(h.log)
   },
   
   'evaluateTemplate': function(assert) {

@@ -25,6 +25,7 @@ module.exports = {
     assert.equal(Foo.isCrossAssociatedWith(Day), true)
   },
   'prepareAssociations belongsTo': function(assert) {
+    var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
     var Me = s.define('Me', {})
     var You = s.define('You', {})
     You.belongsTo('me', Me)
@@ -33,7 +34,7 @@ module.exports = {
     You.prepareAssociations()
 
     assert.includes(SequelizeHelper.Hash.keys(You.attributes), 'meId')
-    assert.isNotUndefined(You.attributes.meId)
+    assert.isDefined(You.attributes.meId)
     assert.isNotNull(You.attributes.meId)
   },
   'prepareAssociations hasOne': function(assert) {
@@ -45,7 +46,7 @@ module.exports = {
     You.prepareAssociations()
 
     assert.includes(SequelizeHelper.Hash.keys(Me.attributes), 'you2Id')
-    assert.isNotUndefined(Me.attributes.you2Id)
+    assert.isDefined(Me.attributes.you2Id)
     assert.isNotNull(Me.attributes.you2Id)
   },
   'prepareAssociations hasMany': function(assert) {
@@ -60,7 +61,7 @@ module.exports = {
     assert.isUndefined(ManyToManyPart1.attributes.manyToManyPart2Id)
     assert.isUndefined(ManyToManyPart2.attributes.manyToManyPart1Id)
 
-    assert.isNotUndefined(s.tables.ManyToManyPart1sManyToManyPart2s)
+    assert.isDefined(s.tables.ManyToManyPart1sManyToManyPart2s)
   },
   'sync should return the table class': function(assert, beforeExit) {
     var toBeTested = null
@@ -113,6 +114,22 @@ module.exports = {
       assert.equal(itemToMatch.name, item.name)
     })
   },
+  'find returns data in correct attributes': function(assert, beforeExit) {
+    var assertMe = null
+    var FindMeNow = s.define('FindMeNow', { title: Sequelize.STRING, content: Sequelize.TEXT })
+    FindMeNow.drop(function() {
+      FindMeNow.sync(function() {
+        new FindMeNow({title: 'a title', content: 'a content'}).save(function(blubb) {
+          assertMe = blubb
+        })
+      })
+    })
+    beforeExit(function() {
+      assert.isNotNull(assertMe)
+      assert.equal(assertMe.title, 'a title')
+      assert.equal(assertMe.content, 'a content')
+    })
+  },
   'sqlResultToObject returns the correct object': function(assert) {
     var SqlResultToObjectTest = s.define('SqlResultToObject', {name: Sequelize.STRING})
     var toBeTested = SqlResultToObjectTest.sqlResultToObject({
@@ -126,7 +143,7 @@ module.exports = {
   'hasMany': function(assert) {
     var HasManyBlubb = s.define('HasManyBlubb', {})
     Day.hasMany('HasManyBlubbs', HasManyBlubb)
-    assert.isNotUndefined(new Day({name:''}).HasManyBlubbs)
+    assert.isDefined(new Day({name:''}).HasManyBlubbs)
   },
   'hasMany: set association': function(assert, beforeExit) {
     var assoc = null
@@ -158,9 +175,11 @@ module.exports = {
     })
   },
   'hasOne': function(assert) {
+    var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var Day = s.define('Day2', { name: Sequelize.TEXT })
     var HasOneBlubb = s.define('HasOneBlubb', {})
     Day.hasOne('HasOneBlubb', HasOneBlubb)
-    assert.isNotUndefined(new Day({name:''}).HasOneBlubb)
+    assert.isDefined(new Day({name:''}).HasOneBlubb)
   },
   'hasOne set association': function(assert, beforeExit) {
     var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
@@ -186,12 +205,13 @@ module.exports = {
   'belongsTo': function(assert) {
     var BelongsToBlubb = s.define('BelongsToBlubb', {})
     Day.belongsTo('BelongsToBlubb', BelongsToBlubb)
-    assert.isNotUndefined(new Day({name:''}).BelongsToBlubb)
+    assert.isDefined(new Day({name:''}).BelongsToBlubb)
   },
   'belongsTo: set association': function(assert, beforeExit) {
-    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: false})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
+    var allowExit = false
     
     Task.hasOne('deadline', Deadline)
     Deadline.belongsTo('task', Task)
@@ -200,13 +220,23 @@ module.exports = {
     var deadline = new Deadline({date: new Date()})
     var assertMe = null
     
-    Sequelize.chainQueries([{drop: s2}, {sync: s2}, {save: task}, {save: deadline}], function() {
-      deadline.setTask(task, function(_task) { assertMe = _task })
+    Sequelize.chainQueries([{drop: s2}, {sync: s2}], function() {
+      task.save(function() {
+        deadline.save(function() {
+          SequelizeHelper.log('drin')
+          assert.isDefined(deadline.id)
+          assert.isNotNull(deadline.id)
+          deadline.setTask(task, function(_task) {
+            assert.isNotNull(_task)
+            assert.eql(_task.id, task.id)
+            allowExit = true
+          })
+        })
+      })
     })
     
     beforeExit(function() {
-      assert.isNotNull(assertMe)
-      assert.eql(assertMe.id, task.id)
+      assert.equal(allowExit, true)
     })
   },
   'identifier': function(assert) {
@@ -233,16 +263,17 @@ module.exports = {
   },
   'updateAttributes should update available attributes': function(assert, beforeExit) {
     var subject = null
-
-    Sequelize.chainQueries([{drop: Day}, {sync: Day}], function() {
-      new Day({name:'Monday'}).save(function(day) {
-        day.updateAttributes({name: 'Sunday', foo: 'bar'}, function(day) {
-          subject = day
+    var UpdateMe = s.define('UpdateMe', {name: Sequelize.STRING})
+    Sequelize.chainQueries([{drop: UpdateMe}, {sync: UpdateMe}], function() {
+      new UpdateMe({name:'Monday'}).save(function(u) {
+        u.updateAttributes({name: 'Sunday', foo: 'bar'}, function(u) {
+          subject = u
         })
       })
     })
 
     beforeExit(function() {
+      assert.isNotNull(subject)
       assert.equal(subject.name, 'Sunday')
       assert.isUndefined(subject.foo)
     })

@@ -4,11 +4,11 @@ var s = new Sequelize('sequelize_test', 'test', 'test')
 
 module.exports = {
   'test constants': function(assert) {
-    assert.isNotUndefined(Sequelize.STRING)
+    assert.isDefined(Sequelize.STRING)
     assert.isNotNull(Sequelize.STRING)
-    assert.isNotUndefined(Sequelize.TEXT)
+    assert.isDefined(Sequelize.TEXT)
     assert.isNotNull(Sequelize.TEXT)
-    assert.isNotUndefined(Sequelize.INTEGER)
+    assert.isDefined(Sequelize.INTEGER)
     assert.isNotNull(Sequelize.INTEGER)
   },
   'the constructor sets config correctly': function(assert){
@@ -17,7 +17,8 @@ module.exports = {
     assert.equal(s.config.password, 'test')
   },
   'the constructor initializes empty tables hash': function(assert) {
-    assert.isNotUndefined(s.tables)
+    var s = new Sequelize('sequelize_test', 'test', 'test')
+    assert.isDefined(s.tables)
     assert.isNotNull(s.tables)
     assert.eql(s.tables, {})
   },
@@ -27,7 +28,7 @@ module.exports = {
   },
   'define should store attributes': function(assert) {
     var Day = s.define('Day', { name: Sequelize.TEXT })
-    assert.isNotUndefined(Day.attributes)
+    assert.isDefined(Day.attributes)
     assert.isNotNull(Day.attributes)
     assert.eql(Day.attributes, { name: Sequelize.TEXT, createdAt: "DATETIME NOT NULL", updatedAt: "DATETIME NOT NULL"})
   },
