@@ -208,7 +208,7 @@ module.exports = {
     assert.isDefined(new Day({name:''}).BelongsToBlubb)
   },
   'belongsTo: set association': function(assert, beforeExit) {
-    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: false})
+    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
     var allowExit = false
@@ -223,7 +223,6 @@ module.exports = {
     Sequelize.chainQueries([{drop: s2}, {sync: s2}], function() {
       task.save(function() {
         deadline.save(function() {
-          SequelizeHelper.log('drin')
           assert.isDefined(deadline.id)
           assert.isNotNull(deadline.id)
           deadline.setTask(task, function(_task) {
