@@ -18,9 +18,14 @@ module.exports = {
   },
   'SQL: asTableIdentifier': function(assert) {
     assert.equal(h.SQL.asTableIdentifier('Users'), 'userId')
+    assert.equal(h.SQL.asTableIdentifier('Children'), 'childId')
+    assert.equal(h.SQL.asTableIdentifier('Children'), 'childId')
+    assert.equal(h.SQL.asTableIdentifier('Mice'), 'mouseId')
   },
   'SQL: asTableName': function(assert) {
     assert.equal(h.SQL.asTableName('User'), 'Users')
+    assert.equal(h.SQL.asTableName('Child'), 'Children')
+    assert.equal(h.SQL.asTableName('Mouse'), 'Mice')
   },
   'SQL: asSqlDate': function(assert) {
     var d = new Date(Date.parse("Tue, 1 Jan 2000 00:00:00 GMT"))
@@ -93,5 +98,8 @@ module.exports = {
     
     assert.eql(h.Hash.merge(src, target), {a:1, b:3, c:3})
     assert.eql(h.Hash.merge(src, target, true), {a:1, b:2, c:3})
+  },
+  'Inflection: should be available': function(assert) {
+    assert.isDefined(h.Inflection)
   }
 }

@@ -18,7 +18,7 @@ SequelizeHelper = {
     },
     
     asTableIdentifier: function(name) {
-      return name.toLowerCase().replace(/s$/, "") + "Id"
+      return SequelizeHelper.Inflection.singularize(name.toLowerCase()) + "Id"
     },
     
     addPrefix: function(prefix, string) {
@@ -26,7 +26,7 @@ SequelizeHelper = {
     },
     
     asTableName: function(name) {
-      return name + "s"
+      return SequelizeHelper.Inflection.pluralize(name)
     },
     
     asSqlDate: function(date) {
@@ -171,5 +171,7 @@ SequelizeHelper = {
       arr2.forEach(function(e) { result.push(e) })
       return result
     }
-  }
+  },
+  
+  Inflection: require(__dirname + "/../lib/inflection/inflection")
 }
