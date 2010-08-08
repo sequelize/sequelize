@@ -1,0 +1,15 @@
+{
+  "name": "sequelize",
+  "description": "MySQL ORM for Node.JS",
+  "version": "0.2.2",
+  "author": "Sascha Depold <sascha-github@depold.com>",
+  "contributors": [ 
+    { "name": "Sascha Depold", "email": "sascha-github@depold.com" }
+  ],
+  "dependencies": {},
+  "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
+  "directories": { "lib": "./sequelize" },
+  "scripts": {},
+  "bin": {},
+  "engines": { "node": ">= 0.1.93" }
+}
