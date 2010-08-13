@@ -13,7 +13,7 @@ Sequelize = function(database, username, password, options) {
 
 var classMethods = {
   STRING: 'VARCHAR(255)',
-  TEXT: 'VARCHAR(4000)',
+  TEXT: 'TEXT',
   INTEGER: 'INT',
   DATE: 'DATETIME',
   
@@ -130,7 +130,7 @@ Sequelize.prototype = {
     var fields = []
     var values = []
     var self = this
-    var connection = require(__dirname+"/../lib/nodejs-mysql-native/client").createTCPClient()
+    var connection = require(__dirname + "/../lib/nodejs-mysql-native/client").createTCPClient()
     
     connection.auto_prepare = true
     connection
@@ -141,9 +141,9 @@ Sequelize.prototype = {
         
         connection
           .query(queryString)
-          .addListener('row', function(r){ values.push(r) })
-          .addListener('field', function(f){ fields.push(f)})
-          .addListener('end', function() {
+          .on('row', function(r){ values.push(r) })
+          .on('field', function(f){ fields.push(f)})
+          .on('end', function(stats) {
             if(callback) {
               var result = []
               values.forEach(function(valueArray) {
@@ -152,7 +152,7 @@ Sequelize.prototype = {
                   mapping[fields[i].name] = valueArray[i]
                 result.push(mapping)
               })
-              if(callback) callback(result)
+              if(callback) callback(result, stats)
             }
           })
         connection.close()
