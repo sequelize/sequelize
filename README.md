@@ -173,7 +173,7 @@ This will create a table named according to the table names of Project and Membe
 
 ## Finding some objects ##
 
-OK... you can define classes and associations. You can save them. You would probably like to get them from the databse again :) Easy:
+OK... you can define classes and associations. You can save them. You would probably like to get them from the database again :) Easy:
 
     Project.find(123, function(project) {
       // project will be an instance of Project and stores the content of the table entry with id 123
