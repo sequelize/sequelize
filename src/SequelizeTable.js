@@ -311,15 +311,9 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       } else
         query = Sequelize.sqlQueryFor('update', { table: table.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id })
       
-      sequelize.query(query, function() {
-        if(self.id == null) {
-          table.find(self.values, function(result) {
-            self.id = result.id
-            if(callback) callback(self)
-          })
-        } else {
-          if(callback) callback(self)
-        }
+      sequelize.query(query, function(result, stats) {
+        self.id = self.id || stats.insert_id
+        if(callback) callback(self)
       })
     },
     
