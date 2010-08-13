@@ -9,3 +9,13 @@
 
 # 0.2.1 #
 - fixed date bug
+
+# 0.2.2 #
+- released project as npm package
+
+# 0.2.3 #
+- added latest mysql connection library
+  - fixed id handling on save
+  - fixed text handling (varchar > 255; text)
+- using the inflection library for naming tables more convenient
+- Sequelize.TEXT is now using MySQL datatype TEXT instead of varchar(4000)

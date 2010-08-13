@@ -4,8 +4,12 @@ The Sequelize library provides easy access to a MySQL database by mapping databa
 
 ## Installation ##
 
-Sequelize will have a NPM and a Kiwi package in future. For now, you can just download the code from the git repository and require _sequelize.js_:
+Sequelize will have a Kiwi package in future. For now, you can install it via NPM or just download the code from the git repository and require _sequelize.js_:
 
+    #npm:
+    npm install sequelize
+
+    #checkout:
     require(__dirname + "/path/to/sequelize/sequelize")
 
 This will make the class Sequelize available.
