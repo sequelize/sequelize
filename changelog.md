@@ -19,3 +19,6 @@
   - fixed text handling (varchar > 255; text)
 - using the inflection library for naming tables more convenient
 - Sequelize.TEXT is now using MySQL datatype TEXT instead of varchar(4000)
+
+# 0.2.4 #
+- fixed bug when using cross associated tables (many to many associations)
