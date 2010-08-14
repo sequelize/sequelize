@@ -218,7 +218,6 @@ module.exports = {
 
     var task = new Task({ title:'do smth' })
     var deadline = new Deadline({date: new Date()})
-    var assertMe = null
     
     Sequelize.chainQueries([{drop: s2}, {sync: s2}], function() {
       task.save(function() {
@@ -292,5 +291,15 @@ module.exports = {
     beforeExit(function() {
       assert.isNull(subject)
     })
+  },
+  'isAssociatedWith': function(assert, beforeExit) {
+    var IsAssociatedWithTestOne = s.define("IsAssociatedWithTestOne", {})
+    var IsAssociatedWithTestTwo = s.define("IsAssociatedWithTestTwo", {})
+    
+    IsAssociatedWithTestOne.belongsTo('foo', IsAssociatedWithTestTwo)
+    assert.equal(true, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo))
+    assert.equal(true, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'belongsTo'))
+    assert.equal(false, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'hasMany'))
+    assert.equal(false, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'hasOne'))
   }
 }

@@ -22,15 +22,23 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     attributes: attributes,
     tableName: tableName,
     
-    isCrossAssociatedWith: function(associatedTable) {
+    isAssociatedWith: function(anotherTable, associationType) {
       var result = false
-      var myTableName = table.tableName
       
-      associatedTable.associations.forEach(function(association) {
-        if((association.table.tableName == myTableName) && (association.type == 'hasMany'))
-          result = true
+      var associations = SequelizeHelper.Array.select(table.associations, function(assoc) {
+        return assoc.table.tableName == anotherTable.tableName
       })
+      
+      if(associations.length > 0) {
+        if(associationType) result = (associations[0].type == associationType)
+        else result = true
+      }
+      
       return result
+    },
+    
+    isCrossAssociatedWith: function(anotherTable) {
+      return table.isAssociatedWith(anotherTable, 'hasMany') && anotherTable.isAssociatedWith(table, 'hasMany')
     },
     
     prepareAssociations: function(callback) {
