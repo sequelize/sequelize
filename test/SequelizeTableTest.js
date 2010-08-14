@@ -6,7 +6,7 @@ var Day = s.define('Day', { name: Sequelize.TEXT })
 module.exports = {
   'constructor': function(assert) {
     assert.eql(Day.associations, [])
-    assert.eql(Day.attributes, {"name":"VARCHAR(4000)","createdAt":"DATETIME NOT NULL","updatedAt":"DATETIME NOT NULL"})
+    assert.eql(Day.attributes, {"name":"TEXT","createdAt":"DATETIME NOT NULL","updatedAt":"DATETIME NOT NULL"})
     assert.eql(Day.tableName, 'Days')
   },
   'new': function(assert) {
