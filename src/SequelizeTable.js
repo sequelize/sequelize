@@ -274,7 +274,10 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       })
       
       table.prototype[assocName] = function(callback) {
-        _table.find(this[_table.identifier], callback)
+        if((this[_table.identifier] == null)||(isNaN(this[_table.identifier])))
+          callback([])
+        else
+          _table.find(this[_table.identifier], callback)
       }
       
       table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(object, callback) {
