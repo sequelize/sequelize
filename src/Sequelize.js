@@ -17,6 +17,7 @@ var classMethods = {
   INTEGER: 'INT',
   DATE: 'DATETIME',
   BOOLEAN: 'TINYINT(1) NOT NULL',
+  FLOAT: 'FLOAT',
   
   sqlQueryFor: function(command, values) {
     var query = null

@@ -60,6 +60,9 @@ SequelizeHelper = {
       if((value == null)||(typeof value == 'undefined'))
         return "NULL"
       
+      if(dataType.indexOf(Sequelize.FLOAT) > -1)
+        return (typeof value == 'number') ? value : parseFloat(value.replace(",", "."))
+      
       if(dataType.indexOf(Sequelize.BOOLEAN) > -1)
         return (value === true ? 1 : 0)
 
