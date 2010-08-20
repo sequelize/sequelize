@@ -51,13 +51,27 @@ SequelizeHelper = {
 
       return result
     },
+    
+    valuesForUpdate: function(object, options) {
+      var actualValues = object.values,
+          result  = []
+
+      options = options || {}
+
+      SequelizeHelper.Hash.forEach(actualValues, function(value, key) {
+        var dataType  = object.table.attributes[key]
+        result.push([key, SequelizeHelper.SQL.transformValueByDataType(value, dataType)].join(" = "))
+      })
+
+      return result.join(options.seperator || ", ")
+    },
 
     fieldsForInsertQuery: function(object) {
       return SequelizeHelper.Hash.keys(object.values).join(", ")
     },
 
     transformValueByDataType: function(value, dataType) {
-      if((value == null)||(typeof value == 'undefined'))
+      if((value == null)||(typeof value == 'undefined')||((dataType.indexOf(Sequelize.INTEGER) > -1) && isNaN(value)))
         return "NULL"
       
       if(dataType.indexOf(Sequelize.FLOAT) > -1)
@@ -75,20 +89,6 @@ SequelizeHelper = {
       return ("'" + value + "'")
     },
 
-    valuesForUpdate: function(object, options) {
-      var actualValues = object.values,
-          result  = []
-
-      options = options || {}
-
-      SequelizeHelper.Hash.forEach(actualValues, function(value, key) {
-        var dataType  = object.table.attributes[key]
-        result.push([key, SequelizeHelper.SQL.transformValueByDataType(value, dataType)].join(" = "))
-      })
-
-      return result.join(options.seperator || ", ")
-    },
-    
     hashToWhereConditions: function(conditions, attributes) {
       if(typeof conditions == 'number')
         return ('id = ' + conditions)

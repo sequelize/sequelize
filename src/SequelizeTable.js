@@ -338,6 +338,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         if(typeof newValues[attribute] != 'undefined')
           self[attribute] = newValues[attribute]
       })
+
       this.save(callback)
     },
     
