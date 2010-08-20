@@ -43,7 +43,7 @@ SequelizeHelper = {
     valuesForInsertQuery: function(object) {
       var actualValues = object.values,
           result  = []
-
+          
       SequelizeHelper.Hash.forEach(actualValues, function(value, key) {
         var dataType  = object.table.attributes[key]
         result.push(SequelizeHelper.SQL.transformValueByDataType(value, dataType))
@@ -60,6 +60,9 @@ SequelizeHelper = {
       if((value == null)||(typeof value == 'undefined'))
         return "NULL"
       
+      if(dataType.indexOf(Sequelize.BOOLEAN) > -1)
+        return (value === true ? 1 : 0)
+
       if(dataType.indexOf(Sequelize.INTEGER) > -1)
         return value
       

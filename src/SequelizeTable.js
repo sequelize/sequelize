@@ -9,8 +9,12 @@ SequelizeTable = function(sequelize, tableName, attributes) {
   var table = function(values) {
     var self = this
     SequelizeHelper.Hash.forEach(values, function(value, key) {
-      if(attributes[key])
-        self[key] = value
+      if(attributes[key]) {
+        if(attributes[key] == Sequelize.BOOLEAN) {
+          self[key] = ((value == 1) || (value == true)) ? true : false
+        } else
+          self[key] = value
+      }
     })
     this.id = null // specify id as null to declare this object as unsaved and as not present in the database
     this.table = table
@@ -301,7 +305,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       var self = this
 
       SequelizeHelper.Hash.keys(table.attributes).forEach(function(attribute) {
-        result[attribute] = self[attribute] || null
+        result[attribute] = (typeof self[attribute] == "undefined") ? null : self[attribute]
       })
 
       return result
@@ -331,7 +335,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     updateAttributes: function(newValues, callback) {
       var self = this
       SequelizeHelper.Hash.keys(table.attributes).forEach(function(attribute) {
-        if(newValues[attribute])
+        if(typeof newValues[attribute] != 'undefined')
           self[attribute] = newValues[attribute]
       })
       this.save(callback)

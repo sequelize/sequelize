@@ -34,6 +34,14 @@ To define mappings between a class (_Stop telling me that JavaScript don't know 
       description: Sequelize.TEXT,
       deadline: Sequelize.DATE
     })
+    
+Sequelize currently supports the following datatypes:
+
+    Sequelize.STRING  ===> VARCHAR(255)
+    Sequelize.TEXT    ===> TEXT
+    Sequelize.INTEGER ===> INT
+    Sequelize.DATE    ===> DATETIME
+    Sequelize.BOOLEAN ===> TINYINT(1)
 
 ## Creation and deletion of class tables ##
 

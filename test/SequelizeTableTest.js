@@ -301,5 +301,19 @@ module.exports = {
     assert.equal(true, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'belongsTo'))
     assert.equal(false, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'hasMany'))
     assert.equal(false, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'hasOne'))
+  },
+  'boolean ==> save': function(assert, beforeExit) {
+    var BooleanTest = s.define("BooleanTest", {flag: Sequelize.BOOLEAN})
+    var testIsFinished = false
+    BooleanTest.sync(function() {
+      new BooleanTest({flag: true}).save(function(obj) {
+        assert.equal(obj.flag, true)
+        obj.updateAttributes({flag: false}, function(obj2) {
+          assert.equal(obj2.flag, false)
+          testIsFinished = true
+        })
+      })
+    })
+    beforeExit(function() { assert.equal(true, testIsFinished) })
   }
 }
