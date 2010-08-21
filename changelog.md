@@ -22,3 +22,9 @@
 
 # 0.2.4 #
 - fixed bug when using cross associated tables (many to many associations)
+
+# 0.2.5 #
+- added BOOLEAN type
+- added FLOAT type
+- fixed DATE type issue
+- fixed npm package
