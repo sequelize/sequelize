@@ -10,9 +10,11 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     var self = this
     SequelizeHelper.Hash.forEach(values, function(value, key) {
       if(attributes[key]) {
-        if(attributes[key] == Sequelize.BOOLEAN) {
+        if(attributes[key].indexOf(Sequelize.BOOLEAN) > -1)
           self[key] = ((value == 1) || (value == true)) ? true : false
-        } else
+        else if(attributes[key].indexOf(Sequelize.DATE) > -1)
+          self[key] = (value instanceof Date) ? value : new Date(Date.parse(value))
+        else
           self[key] = value
       }
     })

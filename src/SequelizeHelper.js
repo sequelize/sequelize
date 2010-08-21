@@ -43,7 +43,7 @@ SequelizeHelper = {
     valuesForInsertQuery: function(object) {
       var actualValues = object.values,
           result  = []
-          
+
       SequelizeHelper.Hash.forEach(actualValues, function(value, key) {
         var dataType  = object.table.attributes[key]
         result.push(SequelizeHelper.SQL.transformValueByDataType(value, dataType))
