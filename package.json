@@ -8,7 +8,7 @@
   ],
   "dependencies": {},
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
-  "directories": { "lib": "./sequelize" },
+  "main": "src/Sequelize.js",
   "scripts": {},
   "bin": {},
   "engines": { "node": ">= 0.1.93" }
