@@ -1,5 +1,4 @@
-require(__dirname + "/../sequelize")
-
+var Sequelize = require(__dirname + "/../src/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'test', 'test')
 
 module.exports = {
@@ -34,7 +33,7 @@ module.exports = {
   },
   'define should add new table to tables': function(assert) {
     var Day = s.define('Day', { name: Sequelize.TEXT })
-    assert.includes(SequelizeHelper.Hash.keys(Day.sequelize.tables), 'Day')
+    assert.includes(Sequelize.Helper.Hash.keys(Day.sequelize.tables), 'Day')
   },
   'tableNames should be an empty array if no tables are specified': function(assert){
     var s2 = new Sequelize('sequelize_test', 'test', 'test')

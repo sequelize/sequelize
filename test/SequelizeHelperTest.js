@@ -1,5 +1,5 @@
-require(__dirname + "/../sequelize")
-var h = SequelizeHelper
+var Sequelize = require(__dirname + "/../src/Sequelize").Sequelize
+var h = Sequelize.Helper
 
 module.exports = {
   'log should be defined': function(assert) {
@@ -69,7 +69,7 @@ module.exports = {
     assert.equal(h.SQL.hashToWhereConditions({name: 'asd'}, Day.attributes), "name='asd'")
   },
   'SQL: addPrefix': function(assert) {
-    assert.equal(SequelizeHelper.SQL.addPrefix('foo', 'bar'), 'fooBar')
+    assert.equal(h.SQL.addPrefix('foo', 'bar'), 'fooBar')
   },
   'Hash: forEach': function(assert) {
     var values = []

@@ -1,5 +1,4 @@
-require(__dirname + "/../sequelize")
-
+var Sequelize = require(__dirname + "/../src/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
 
@@ -33,7 +32,7 @@ module.exports = {
     Me.prepareAssociations()
     You.prepareAssociations()
 
-    assert.includes(SequelizeHelper.Hash.keys(You.attributes), 'meId')
+    assert.includes(Sequelize.Helper.Hash.keys(You.attributes), 'meId')
     assert.isDefined(You.attributes.meId)
     assert.isNotNull(You.attributes.meId)
   },
@@ -45,7 +44,7 @@ module.exports = {
     Me.prepareAssociations()
     You.prepareAssociations()
 
-    assert.includes(SequelizeHelper.Hash.keys(Me.attributes), 'you2Id')
+    assert.includes(Sequelize.Helper.Hash.keys(Me.attributes), 'you2Id')
     assert.isDefined(Me.attributes.you2Id)
     assert.isNotNull(Me.attributes.you2Id)
   },
