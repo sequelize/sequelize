@@ -28,3 +28,6 @@
 - added FLOAT type
 - fixed DATE type issue
 - fixed npm package
+
+# 0.2.6 #
+- refactored Sequelize to fit CommonJS module conventions

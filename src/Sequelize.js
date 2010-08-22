@@ -1,7 +1,4 @@
-require(__dirname + "/SequelizeHelper")
-require(__dirname + "/SequelizeTable")
-
-Sequelize = function(database, username, password, options) {
+var Sequelize = function(database, username, password, options) {
   this.config = {
     database: database,
     username: username,
@@ -12,6 +9,8 @@ Sequelize = function(database, username, password, options) {
 }
 
 var classMethods = {
+  Helper: new require(__dirname + "/Helper").Helper(Sequelize),
+
   STRING: 'VARCHAR(255)',
   TEXT: 'TEXT',
   INTEGER: 'INT',
@@ -52,20 +51,20 @@ var classMethods = {
         break
     }
     
-    return SequelizeHelper.evaluateTemplate(query, values)
+    return Sequelize.Helper.evaluateTemplate(query, values)
   },
   chainQueries: function(queries, callback) {
     // queries = [{method: object}, {method: object, params: [1,2,3]}, {method: object}]
     var executeQuery = function(index) {
       var queryHash = queries[index]
-      var method = SequelizeHelper.Array.without(SequelizeHelper.Hash.keys(queryHash), "params")[0]
+      var method = Sequelize.Helper.Array.without(Sequelize.Helper.Hash.keys(queryHash), "params")[0]
       var object = queryHash[method]
       var iterator = function() {
         if(queries.length > (index + 1)) executeQuery(index + 1)
         else if (callback) callback()
       }
       
-      object[method].apply(object, SequelizeHelper.Array.join(queryHash.params || [], [iterator]))
+      object[method].apply(object, Sequelize.Helper.Array.join(queryHash.params || [], [iterator]))
     }
     if(queries.length > 0) executeQuery(0)
     else if (callback) callback()
@@ -75,8 +74,8 @@ var classMethods = {
 Sequelize.prototype = {
   get tableNames() {
     var result = []
-    SequelizeHelper.Hash.keys(this.tables).forEach(function(tableName) {
-      result.push(SequelizeHelper.SQL.asTableName(tableName))
+    Sequelize.Helper.Hash.keys(this.tables).forEach(function(tableName) {
+      result.push(Sequelize.Helper.SQL.asTableName(tableName))
     })
     return result
   },
@@ -85,17 +84,17 @@ Sequelize.prototype = {
     var finished = []
     var tables = this.tables
 
-    SequelizeHelper.Hash.forEach(tables, function(table) {
+    Sequelize.Helper.Hash.forEach(tables, function(table) {
       table.klass.prepareAssociations()
     })
 
-    if((SequelizeHelper.Hash.keys(this.tables).length == 0) && callback)
+    if((Sequelize.Helper.Hash.keys(this.tables).length == 0) && callback)
       callback()
     else
-      SequelizeHelper.Hash.forEach(tables, function(table) {
+      Sequelize.Helper.Hash.forEach(tables, function(table) {
         table.klass.sync(function() {
           finished.push(true)
-          if((finished.length == SequelizeHelper.Hash.keys(tables).length) && callback)
+          if((finished.length == Sequelize.Helper.Hash.keys(tables).length) && callback)
             callback()
         })
       })
@@ -105,22 +104,24 @@ Sequelize.prototype = {
     var finished = []
     var tables = this.tables
 
-    if((SequelizeHelper.Hash.keys(tables).length == 0) && callback) callback()
+    if((Sequelize.Helper.Hash.keys(tables).length == 0) && callback) callback()
     else
-      SequelizeHelper.Hash.forEach(tables, function(table, tableName) {
+      Sequelize.Helper.Hash.forEach(tables, function(table, tableName) {
         table.klass.drop(function() {
           finished.push(true)
-          if(finished.length == SequelizeHelper.Hash.keys(tables).length)
+          if(finished.length == Sequelize.Helper.Hash.keys(tables).length)
             if(callback) callback()
         })
       })
   },
   
   define: function(name, attributes) {
+    var SequelizeTable = require(__dirname + "/SequelizeTable").SequelizeTable
+    
     attributes.createdAt = 'DATETIME NOT NULL'
     attributes.updatedAt = 'DATETIME NOT NULL'
     
-    var table = new SequelizeTable(this, SequelizeHelper.SQL.asTableName(name), attributes)
+    var table = new SequelizeTable(Sequelize, this, Sequelize.Helper.SQL.asTableName(name), attributes)
     table.attributes = attributes
     this.tables[name] = {klass: table, attributes: attributes}
 
@@ -139,7 +140,7 @@ Sequelize.prototype = {
       .auth(this.config.database, this.config.username, this.config.password)
       .addListener('authorized', function() {
         if(!self.options.disableLogging)
-          SequelizeHelper.log("Executing the query: " + queryString)
+          Sequelize.Helper.log("Executing the query: " + queryString)
         
         connection
           .query(queryString)
@@ -162,6 +163,6 @@ Sequelize.prototype = {
   }
 }
 
-SequelizeHelper.Hash.forEach(classMethods, function(method, methodName) {
-  Sequelize[methodName] = method
-})
+for (var key in classMethods) Sequelize[key] = classMethods[key]
+
+exports.Sequelize = Sequelize

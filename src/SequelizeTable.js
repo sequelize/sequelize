@@ -5,10 +5,10 @@
   A.hasMany(B) + B.hasMany(A) => AB.aId + AB.bId
 */
 
-SequelizeTable = function(sequelize, tableName, attributes) {
+exports.SequelizeTable = function(Sequelize, sequelize, tableName, attributes) {
   var table = function(values) {
     var self = this
-    SequelizeHelper.Hash.forEach(values, function(value, key) {
+    Sequelize.Helper.Hash.forEach(values, function(value, key) {
       if(attributes[key]) {
         if(attributes[key].indexOf(Sequelize.BOOLEAN) > -1)
           self[key] = ((value == 1) || (value == true)) ? true : false
@@ -31,7 +31,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     isAssociatedWith: function(anotherTable, associationType) {
       var result = false
       
-      var associations = SequelizeHelper.Array.select(table.associations, function(assoc) {
+      var associations = Sequelize.Helper.Array.select(table.associations, function(assoc) {
         return assoc.table.tableName == anotherTable.tableName
       })
       
@@ -56,7 +56,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
               var _attributes = {}
               _attributes[table.identifier] = Sequelize.INTEGER
               _attributes[association.table.identifier] = Sequelize.INTEGER
-              sequelize.define(SequelizeHelper.SQL.manyToManyTableName(table, association.table), _attributes)
+              sequelize.define(Sequelize.Helper.SQL.manyToManyTableName(table, association.table), _attributes)
             } else {
               // one to many relation
               association.table.attributes[table.identifier] = Sequelize.INTEGER
@@ -77,7 +77,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     
     sync: function(callback) {
       var fields = ["id INT NOT NULL auto_increment PRIMARY KEY"]
-      SequelizeHelper.Hash.forEach(table.attributes, function(type, name) {
+      Sequelize.Helper.Hash.forEach(table.attributes, function(type, name) {
         fields.push(name + " " + type)
       })
 
@@ -98,13 +98,13 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       // use the first param as callback if it is no object (hash)
       var _callback = (typeof options == 'object') ? callback : options
       var queryOptions = (typeof options == 'object')
-        ? SequelizeHelper.Hash.merge(options, { table: table.tableName })
+        ? Sequelize.Helper.Hash.merge(options, { table: table.tableName })
         : { table: table.tableName }
 
       sequelize.query(
         Sequelize.sqlQueryFor('select', queryOptions),
         function(result) {
-          var objects = SequelizeHelper.Array.map(result, function(r) { return table.sqlResultToObject(r) })
+          var objects = Sequelize.Helper.Array.map(result, function(r) { return table.sqlResultToObject(r) })
           if(_callback) _callback(objects)
         }
       )
@@ -114,7 +114,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       sequelize.query(
         Sequelize.sqlQueryFor('select', {
           table: table.tableName,
-          where: SequelizeHelper.SQL.hashToWhereConditions(conditions, table.attributes),
+          where: Sequelize.Helper.SQL.hashToWhereConditions(conditions, table.attributes),
           order: 'id DESC',
           limit: 1
         }), function(result) {
@@ -142,7 +142,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       // don't check inside of method to increase performance
       if(_table.isCrossAssociatedWith(table)) {
         table.prototype[assocName] = function(callback) {
-          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
+          var Association = sequelize.tables[Sequelize.Helper.SQL.manyToManyTableName(_table, table)].klass
           var whereConditions = [table.identifier, this.id].join("=")
           Association.findAll({ where: whereConditions }, function(result) {
             if(result.length > 0) {
@@ -154,11 +154,11 @@ SequelizeTable = function(sequelize, tableName, attributes) {
             }
           })
         }
-        table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(objects, callback) {
+        table.prototype[Sequelize.Helper.SQL.addPrefix('set', assocName)] = function(objects, callback) {
           var self = this
-          var Association = sequelize.tables[SequelizeHelper.SQL.manyToManyTableName(_table, table)].klass
+          var Association = sequelize.tables[Sequelize.Helper.SQL.manyToManyTableName(_table, table)].klass
           var currentAssociations = null
-          var objectIds = SequelizeHelper.Array.map(objects, function(obj) { return obj.id })
+          var objectIds = Sequelize.Helper.Array.map(objects, function(obj) { return obj.id })
           
           var getAssociatedObjects = function(callback) {
             self[assocName](function(associations) {
@@ -180,8 +180,8 @@ SequelizeTable = function(sequelize, tableName, attributes) {
               )
           }
           var createNewAssociations = function(obsolete) {
-            var currentIds = SequelizeHelper.Array.map(currentAssociations, function(assoc) { return assoc.id })
-            var withoutExisting = SequelizeHelper.Array.reject(objects, function(o) {
+            var currentIds = Sequelize.Helper.Array.map(currentAssociations, function(assoc) { return assoc.id })
+            var withoutExisting = Sequelize.Helper.Array.reject(objects, function(o) {
               currentIds.indexOf(o.id) > -1
             })
             var savings = []
@@ -209,18 +209,18 @@ SequelizeTable = function(sequelize, tableName, attributes) {
           var whereConditions = [table.identifier, this.id].join("=")
           _table.findAll({where: whereConditions}, callback)
         }
-        table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(objects, callback) {
+        table.prototype[Sequelize.Helper.SQL.addPrefix('set', assocName)] = function(objects, callback) {
           var self = this
-          var objectIds = SequelizeHelper.Array.map(objects, function(obj) { return obj.id })
+          var objectIds = Sequelize.Helper.Array.map(objects, function(obj) { return obj.id })
           this[assocName](function(currentAssociations) {
-            var currentIds = SequelizeHelper.Array.map(currentAssociations, function(assoc) { return assoc.id })
-            var obsoleteAssociations = SequelizeHelper.Array.select(currentAssociations, function(assoc) { return objectsIds.indexOf(assoc.id) == -1 })
+            var currentIds = Sequelize.Helper.Array.map(currentAssociations, function(assoc) { return assoc.id })
+            var obsoleteAssociations = Sequelize.Helper.Array.select(currentAssociations, function(assoc) { return objectsIds.indexOf(assoc.id) == -1 })
             var queries = []
             obsoleteAssociations.forEach(function(assoc) {
               var attr = {}; attr[table.identifier] = null
               queries.push({updateAttributes: assoc, params: [attr]})
             })
-            var newAssociations = SequelizeHelper.Array.select(objects, function(o) { return currentIds.indexOf(o.id) == -1 })
+            var newAssociations = Sequelize.Helper.Array.select(objects, function(o) { return currentIds.indexOf(o.id) == -1 })
             newAssociations.forEach(function(assoc) {
               var attr = {}; attr[table.identifier] = self.id
               queries.push({updateAttributes: assoc, params: [attr]})
@@ -248,7 +248,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         _table.find(whereConditions, callback)
       }
       
-      table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(object, callback) {
+      table.prototype[Sequelize.Helper.SQL.addPrefix('set', assocName)] = function(object, callback) {
         var self = this
         
         this[assocName](function(currentAssociation) {
@@ -286,7 +286,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
           _table.find(this[_table.identifier], callback)
       }
       
-      table.prototype[SequelizeHelper.SQL.addPrefix('set', assocName)] = function(object, callback) {
+      table.prototype[Sequelize.Helper.SQL.addPrefix('set', assocName)] = function(object, callback) {
         var attr = {}; attr[object.table.identifier] = object.id
         var self = this
         this.updateAttributes(attr, function() {
@@ -298,7 +298,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     }
   }
   // don't put this into the hash!
-  classMethods.identifier = SequelizeHelper.SQL.asTableIdentifier(classMethods.tableName)
+  classMethods.identifier = Sequelize.Helper.SQL.asTableIdentifier(classMethods.tableName)
   
   // instance methods
   table.prototype = {
@@ -306,7 +306,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
       var result = {}
       var self = this
 
-      SequelizeHelper.Hash.keys(table.attributes).forEach(function(attribute) {
+      Sequelize.Helper.Hash.keys(table.attributes).forEach(function(attribute) {
         result[attribute] = (typeof self[attribute] == "undefined") ? null : self[attribute]
       })
 
@@ -322,11 +322,11 @@ SequelizeTable = function(sequelize, tableName, attributes) {
         this.createdAt = new Date()
         query = Sequelize.sqlQueryFor('insert', {
           table: table.tableName,
-          fields: SequelizeHelper.SQL.fieldsForInsertQuery(this),
-          values: SequelizeHelper.SQL.valuesForInsertQuery(this)
+          fields: Sequelize.Helper.SQL.fieldsForInsertQuery(this),
+          values: Sequelize.Helper.SQL.valuesForInsertQuery(this)
         })
       } else
-        query = Sequelize.sqlQueryFor('update', { table: table.tableName, values: SequelizeHelper.SQL.valuesForUpdate(this), id: this.id })
+        query = Sequelize.sqlQueryFor('update', { table: table.tableName, values: Sequelize.Helper.SQL.valuesForUpdate(this), id: this.id })
       
       sequelize.query(query, function(result, stats) {
         self.id = self.id || stats.insert_id
@@ -336,7 +336,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     
     updateAttributes: function(newValues, callback) {
       var self = this
-      SequelizeHelper.Hash.keys(table.attributes).forEach(function(attribute) {
+      Sequelize.Helper.Hash.keys(table.attributes).forEach(function(attribute) {
         if(typeof newValues[attribute] != 'undefined')
           self[attribute] = newValues[attribute]
       })
@@ -352,7 +352,7 @@ SequelizeTable = function(sequelize, tableName, attributes) {
     }
   }
   
-  SequelizeHelper.Hash.forEach(classMethods, function(method, methodName) {
+  Sequelize.Helper.Hash.forEach(classMethods, function(method, methodName) {
     table[methodName] = method
   })
   
