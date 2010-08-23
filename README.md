@@ -53,7 +53,7 @@ You can also store your model definitions in a single file using the _import_ me
   
     // Project.js
     exports.getProjectClass = function(Sequelize, sequelize) {
-      return sequelize.define("Project", {
+      sequelize.define("Project", {
         name: Sequelize.STRING,
         description: Sequelize.TEXT
       })

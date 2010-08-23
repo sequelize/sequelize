@@ -7,6 +7,4 @@ exports.getProjectClass = function(Sequelize, sequelize) {
   /*
     Here comes further Project logic
   */
-  
-  return Project
 }

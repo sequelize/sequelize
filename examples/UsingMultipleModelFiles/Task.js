@@ -8,6 +8,4 @@ exports.getTaskClass = function(Sequelize, sequelize) {
   /*
     Here comes further Task logic
   */
-  
-  return Task
 }
