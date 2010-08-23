@@ -1,14 +1,10 @@
 var Sequelize = require(__dirname + "/../../src/Sequelize").Sequelize,
     sequelize = new Sequelize("sequelize_test", "test", "test"),
-    Project   = require(__dirname + "/Project").getProjectClass(Sequelize, sequelize),
-    Task      = require(__dirname + "/Task").getTaskClass(Sequelize, sequelize)
+    Project   = sequelize.import(__dirname + "/Project").Project,
+    Task      = sequelize.import(__dirname + "/Task").Task
   
 Project.hasMany('tasks', Task)
 Task.belongsTo('project', Project)
-
-Sequelize.Helper.log(Project)
-Sequelize.Helper.log(Task)
-
     
 sequelize.drop(function() {
   sequelize.sync(function() {
