@@ -5,7 +5,11 @@
   A.hasMany(B) + B.hasMany(A) => AB.aId + AB.bId
 */
 
-exports.SequelizeTable = function(Sequelize, sequelize, tableName, attributes) {
+exports.SequelizeTable = function(Sequelize, sequelize, tableName, attributes, options) {
+  options = options || {}
+  options.classMethods = options.classMethods || {}
+  options.instanceMethods = options.instanceMethods || {}
+  
   var table = function(values) {
     var self = this
     Sequelize.Helper.Hash.forEach(values, function(value, key) {
@@ -352,8 +356,15 @@ exports.SequelizeTable = function(Sequelize, sequelize, tableName, attributes) {
     }
   }
   
-  Sequelize.Helper.Hash.forEach(classMethods, function(method, methodName) {
+  // merge classMethods + passed classMethods
+  Sequelize.Helper.Hash.merge(options.classMethods, classMethods)
+  Sequelize.Helper.Hash.forEach(classMethods, function(method, methodName) { 
     table[methodName] = method
+  })
+  
+  // merge passed instanceMethods
+  Sequelize.Helper.Hash.forEach(options.instanceMethods, function(method, methodName) {
+    table.prototype[methodName] = method
   })
   
   return table

@@ -115,13 +115,13 @@ Sequelize.prototype = {
       })
   },
   
-  define: function(name, attributes) {
+  define: function(name, attributes, options) {
     var SequelizeTable = require(__dirname + "/SequelizeTable").SequelizeTable
     
     attributes.createdAt = 'DATETIME NOT NULL'
     attributes.updatedAt = 'DATETIME NOT NULL'
     
-    var table = new SequelizeTable(Sequelize, this, Sequelize.Helper.SQL.asTableName(name), attributes)
+    var table = new SequelizeTable(Sequelize, this, Sequelize.Helper.SQL.asTableName(name), attributes, options)
     table.attributes = attributes
     this.tables[name] = {klass: table, attributes: attributes}
 
