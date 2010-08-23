@@ -45,6 +45,21 @@ Sequelize currently supports the following datatypes:
     Sequelize.INTEGER ===> INT
     Sequelize.DATE    ===> DATETIME
     Sequelize.BOOLEAN ===> TINYINT(1)
+    
+You can also store your model definitions in a single file using the _import_ method:
+
+    // app.js
+    var Project = sequelize.import(__dirname + "/path/to/models/Project").Project
+  
+    // Project.js
+    exports.getProjectClass = function(Sequelize, sequelize) {
+      return sequelize.define("Project", {
+        name: Sequelize.STRING,
+        description: Sequelize.TEXT
+      })
+    }
+
+Choose the name of the exported function the way you want. It doesn't matter at all. You can also specify multiple models in one file. The _import_ method will return a hash, which stores the result of _sequelize.define_ under the key _Project_.
 
 ## Creation and deletion of class tables ##
 
@@ -105,6 +120,24 @@ Now lets change some values and save changes to the database... There are two wa
     task.updateAttributes({
       title: 'a very different title now'
     }, function(){})
+
+## Expanding models ##
+
+Sequelize allows you to pass custom class and instance methods. Just do the following:
+
+    var Foo = sequelize.define('Foo', { /* attributes */}, {
+      classMethods: {
+        method1: function(){ return 'smth' }
+      },
+      instanceMethods: {
+        method2: function() { return 'foo' }
+      }
+    })
+    
+    // ==>
+    
+    Foo.method1()
+    new Foo({}).method2()
 
 ## Chain queries ##
     
