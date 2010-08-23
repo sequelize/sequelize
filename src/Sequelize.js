@@ -72,6 +72,36 @@ var classMethods = {
 }
 
 Sequelize.prototype = {
+  define: function(name, attributes, options) {
+    var SequelizeTable = require(__dirname + "/SequelizeTable").SequelizeTable
+    
+    attributes.createdAt = 'DATETIME NOT NULL'
+    attributes.updatedAt = 'DATETIME NOT NULL'
+    
+    var table = new SequelizeTable(Sequelize, this, Sequelize.Helper.SQL.asTableName(name), attributes, options)
+    table.attributes = attributes
+    this.tables[name] = {klass: table, attributes: attributes}
+
+    table.sequelize = this
+    return table
+  },
+  
+  import: function(path) {
+    var imported  = require(path),
+        self      = this,
+        result    = {} 
+    
+    Sequelize.Helper.Hash.forEach(imported, function(definition, functionName) {
+      definition(Sequelize, self)
+    })
+    
+    Sequelize.Helper.Hash.forEach(this.tables, function(constructor, name) {
+      result[name] = constructor.klass
+    })
+
+    return result
+  },
+  
   get tableNames() {
     var result = []
     Sequelize.Helper.Hash.keys(this.tables).forEach(function(tableName) {
@@ -113,20 +143,6 @@ Sequelize.prototype = {
             if(callback) callback()
         })
       })
-  },
-  
-  define: function(name, attributes, options) {
-    var SequelizeTable = require(__dirname + "/SequelizeTable").SequelizeTable
-    
-    attributes.createdAt = 'DATETIME NOT NULL'
-    attributes.updatedAt = 'DATETIME NOT NULL'
-    
-    var table = new SequelizeTable(Sequelize, this, Sequelize.Helper.SQL.asTableName(name), attributes, options)
-    table.attributes = attributes
-    this.tables[name] = {klass: table, attributes: attributes}
-
-    table.sequelize = this
-    return table
   },
   
   query: function(queryString, callback) {
