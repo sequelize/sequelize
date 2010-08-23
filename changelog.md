@@ -31,3 +31,6 @@
 
 # 0.2.6 #
 - refactored Sequelize to fit CommonJS module conventions
+
+# 0.3.0 #
+- added possibility to define class and instance methods for models
