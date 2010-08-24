@@ -79,6 +79,7 @@ exports.SequelizeTable = function(Sequelize, sequelize, tableName, attributes, o
       if(callback) callback()
     },
     
+    /* returns: table, error */
     sync: function(callback) {
       var fields = ["id INT NOT NULL auto_increment PRIMARY KEY"]
       Sequelize.Helper.Hash.forEach(table.attributes, function(type, name) {
@@ -87,14 +88,14 @@ exports.SequelizeTable = function(Sequelize, sequelize, tableName, attributes, o
 
       sequelize.query(
         Sequelize.sqlQueryFor( 'create', { table: table.tableName, fields: fields.join(', ') } ),
-        function() { if(callback) callback(table) }
+        function(err) { if(callback) callback(table, err) }
       )
     },
 
     drop: function(callback) {
       sequelize.query(
         Sequelize.sqlQueryFor('drop', { table: table.tableName }),
-        function() { if(callback) callback(table) }
+        function(err) { if(callback) callback(table, err) }
       )
     },
 

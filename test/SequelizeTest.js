@@ -75,5 +75,29 @@ module.exports = {
   'sqlQueryFor: delete wihtout limit': function(assert) {
     var query = Sequelize.sqlQueryFor('delete', {table: 'Foo', where: "id=2", limit: null})
     assert.equal(query, "DELETE FROM Foo WHERE id=2")
+  },
+  'sync: errors': function(assert, beforeExit) {
+    var testIsFinished = false,
+        sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
+        Fail = sequelizeWithInvalidCredentials.define('Fail', {})
+
+    sequelizeWithInvalidCredentials.sync(function(errors) {
+      assert.isDefined(errors)
+      assert.equal(errors.length, 1)
+      testIsFinished = true
+    })
+    beforeExit(function() { assert.equal(testIsFinished, true) })
+  },
+  'drop: errors': function(assert, beforeExit) {
+    var testIsFinished = false,
+        sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
+        Fail = sequelizeWithInvalidCredentials.define('Fail', {})
+
+    sequelizeWithInvalidCredentials.drop(function(errors) {
+      assert.isDefined(errors)
+      assert.equal(errors.length, 1)
+      testIsFinished = true
+    })
+    beforeExit(function() { assert.equal(testIsFinished, true) })
   }
 }

@@ -111,8 +111,9 @@ Sequelize.prototype = {
   },
   
   sync: function(callback) {
-    var finished = []
-    var tables = this.tables
+    var finished = [],
+        tables = this.tables,
+        errors = []
 
     Sequelize.Helper.Hash.forEach(tables, function(table) {
       table.klass.prepareAssociations()
@@ -122,25 +123,29 @@ Sequelize.prototype = {
       callback()
     else
       Sequelize.Helper.Hash.forEach(tables, function(table) {
-        table.klass.sync(function() {
+        table.klass.sync(function(_, err) {
           finished.push(true)
+          if(err) errors.push(err)
           if((finished.length == Sequelize.Helper.Hash.keys(tables).length) && callback)
-            callback()
+            callback(errors)
         })
       })
   },
   
   drop: function(callback) {
-    var finished = []
-    var tables = this.tables
+    var finished = [],
+        tables = this.tables,
+        errors = []
 
-    if((Sequelize.Helper.Hash.keys(tables).length == 0) && callback) callback()
+    if((Sequelize.Helper.Hash.keys(tables).length == 0) && callback)
+      callback()
     else
       Sequelize.Helper.Hash.forEach(tables, function(table, tableName) {
-        table.klass.drop(function() {
+        table.klass.drop(function(_, err) {
           finished.push(true)
-          if(finished.length == Sequelize.Helper.Hash.keys(tables).length)
-            if(callback) callback()
+          if(err) errors.push(err)
+          if((finished.length == Sequelize.Helper.Hash.keys(tables).length) && callback)
+            callback(errors)
         })
       })
   },
@@ -154,6 +159,7 @@ Sequelize.prototype = {
     connection.auto_prepare = true
     connection
       .auth(this.config.database, this.config.username, this.config.password)
+      .addListener("error", function(err) { callback(err) })
       .addListener('authorized', function() {
         if(!self.options.disableLogging)
           Sequelize.Helper.log("Executing the query: " + queryString)

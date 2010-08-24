@@ -314,5 +314,29 @@ module.exports = {
       })
     })
     beforeExit(function() { assert.equal(true, testIsFinished) })
+  },
+  'sync ==> failure': function(assert, beforeExit) {
+    var testIsFinished = false,
+        sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
+        Fail = sequelizeWithInvalidCredentials.define('Fail', {})
+    
+    Fail.sync(function(table, err) {
+      assert.isDefined(err)
+      assert.isDefined(err.message)
+      testIsFinished = true
+    })
+    beforeExit(function() { assert.equal(testIsFinished, true) })
+  },
+  'drop ==> failure': function(assert, beforeExit) {
+    var testIsFinished = false,
+        sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
+        Fail = sequelizeWithInvalidCredentials.define('Fail', {})
+
+    Fail.drop(function(table, err) {
+      assert.isDefined(err)
+      assert.isDefined(err.message)
+      testIsFinished = true
+    })
+    beforeExit(function() { assert.equal(testIsFinished, true) })
   }
 }
