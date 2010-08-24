@@ -6,8 +6,12 @@ var Sequelize = require(__dirname + "/../../src/Sequelize").Sequelize,
 Project.hasMany('tasks', Task)
 Task.belongsTo('project', Project)
     
-sequelize.drop(function() {
-  sequelize.sync(function() {
+sequelize.drop(function(errors) {
+  if(errors.length > 0) return Sequelize.Helper.log(errors)
+
+  sequelize.sync(function(errors) {
+    if(errors.length > 0) return Sequelize.Helper.log(errors)
+    
     new Project({
       name: 'Sequelize',
       description: 'A nice MySQL ORM for NodeJS'

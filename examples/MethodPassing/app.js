@@ -27,18 +27,22 @@ var Task = sequelize.define("Task", {
 
 // instance creation
 var task1 = new Task({
-  name: 'Choose a nice MySQL connector',
-  deadline: new Date(Date.parse("Jul 8, 2100")),
-  importance: 10
-})
-var task2 = new Task({
-  name: 'Build the rest',
-  deadline: new Date(Date.parse("Jul 8, 2005")),
-  importance: 90
-})
+      name: 'Choose a nice MySQL connector',
+      deadline: new Date(Date.parse("Jul 8, 2100")),
+      importance: 10
+    }),
+    task2 = new Task({
+      name: 'Build the rest',
+      deadline: new Date(Date.parse("Jul 8, 2005")),
+      importance: 90
+    })
 
-Task.drop(function() {
-  Task.sync(function() {
+Task.drop(function(table, error) {
+  if(error) return Sequelize.Helper.log(error)
+
+  Task.sync(function(table, error) {
+    if(error) return Sequelize.Helper.log(error)
+    
     task1.save(function() {
       task2.save(function() {
         
