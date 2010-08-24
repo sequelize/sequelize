@@ -23,7 +23,7 @@ To get the ball rollin' you first have to create an instance of _Sequelize_. Use
 
     var sequelize = new Sequelize('database', 'username', 'password')
   
-This will save the passed database credentials and provide all further methods.  
+This will save the passed database credentials and provide all further methods.
 
 To define mappings between a class (_Stop telling me that JavaScript don't know classes. Name it however you want to!_) and a table use the _define_ method:
     
@@ -72,6 +72,12 @@ As you are able to specify an objects _skeleton_, the next step is to push it to
     // drop the tables:
     Project.drop(callback)
     Task.drop(callback)
+    
+    // with error handling:
+    Project.[sync|drop](function(table, error) {
+      if(error) // oooh, did you entered wrong database credentials?
+      else // ok ... everything is nice!
+    })
 
 Because synchronizing and dropping all of your tables might be a lot of line to write, you can also let Sequelize do the work for you:
 
@@ -80,6 +86,12 @@ Because synchronizing and dropping all of your tables might be a lot of line to 
     
     // and drop it!
     sequelize.drop(callback)
+    
+    // with error handling:
+    sequelize.[sync|drop](function(errors) {
+      if(errors.length > 0) // whooops
+      else // woot woot
+    })
 
 ## Creating and working with instances ##
 

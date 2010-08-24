@@ -38,3 +38,4 @@
 
 # 0.3.1 #
 - added error handling when defining invalid database credentials
+- Sequelize#sync, Sequelize#drop, model#sync, model#drop returns errors via callback
