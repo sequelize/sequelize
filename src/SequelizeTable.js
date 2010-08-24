@@ -88,14 +88,14 @@ exports.SequelizeTable = function(Sequelize, sequelize, tableName, attributes, o
 
       sequelize.query(
         Sequelize.sqlQueryFor( 'create', { table: table.tableName, fields: fields.join(', ') } ),
-        function(err) { if(callback) callback(table, err) }
+        function(_, _, err) { if(callback) callback(table, err) }
       )
     },
 
     drop: function(callback) {
       sequelize.query(
         Sequelize.sqlQueryFor('drop', { table: table.tableName }),
-        function(err) { if(callback) callback(table, err) }
+        function(_, _, err) { if(callback) callback(table, err) }
       )
     },
 

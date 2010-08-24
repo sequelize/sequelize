@@ -35,3 +35,6 @@
 # 0.3.0 #
 - added possibility to define class and instance methods for models
 - added import method for loading model definition from a file
+
+# 0.3.1 #
+- added error handling when defining invalid database credentials

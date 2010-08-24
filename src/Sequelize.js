@@ -151,15 +151,15 @@ Sequelize.prototype = {
   },
   
   query: function(queryString, callback) {
-    var fields = []
-    var values = []
-    var self = this
-    var connection = require(__dirname + "/../lib/nodejs-mysql-native/client").createTCPClient()
+    var fields = [],
+        values = [],
+        self = this,
+        connection = require(__dirname + "/../lib/nodejs-mysql-native/client").createTCPClient()
     
     connection.auto_prepare = true
     connection
       .auth(this.config.database, this.config.username, this.config.password)
-      .addListener("error", function(err) { callback(err) })
+      .addListener("error", function(err) { callback(null, null, err) })
       .addListener('authorized', function() {
         if(!self.options.disableLogging)
           Sequelize.Helper.log("Executing the query: " + queryString)
