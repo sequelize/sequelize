@@ -1,4 +1,4 @@
-var Sequelize = require(__dirname + "/../src/Sequelize").Sequelize
+var Sequelize = require(__dirname + "/../lib/sequelize/Sequelize").Sequelize
 var h = Sequelize.Helper
 
 module.exports = {

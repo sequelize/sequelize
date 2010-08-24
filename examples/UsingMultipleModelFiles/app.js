@@ -1,4 +1,4 @@
-var Sequelize = require(__dirname + "/../../src/Sequelize").Sequelize,
+var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
     sequelize = new Sequelize("sequelize_test", "test", "test"),
     Project   = sequelize.import(__dirname + "/Project").Project,
     Task      = sequelize.import(__dirname + "/Task").Task

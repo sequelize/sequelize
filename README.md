@@ -13,7 +13,7 @@ Sequelize will have a Kiwi package in future. For now, you can install it via NP
     # checkout:
     cd <path/to/lib>
     git clone git://github.com/sdepold/sequelize.git
-    var Sequelize = require(__dirname + "/lib/sequelize/src/sequelize").Sequelize
+    var Sequelize = require(__dirname + "/lib/sequelize/lib/sequelize/Sequelize").Sequelize
 
 This will make the class Sequelize available.
 

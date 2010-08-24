@@ -1,4 +1,4 @@
-var Sequelize = require(__dirname + "/../src/Sequelize").Sequelize
+var Sequelize = require(__dirname + "/../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'test', 'test')
 
 module.exports = {
