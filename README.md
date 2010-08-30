@@ -14,6 +14,6 @@ The Sequelize library provides easy access to a MySQL database by mapping databa
 
 ## Documentation, Examples and Updates ##
 
-You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
-If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
+You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).  
+If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).  
 Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
