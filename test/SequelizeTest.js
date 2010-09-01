@@ -25,12 +25,6 @@ module.exports = {
     var Day = s.define('Day', { name: Sequelize.TEXT })
     assert.equal(typeof Day, 'function')
   },
-  'define should store attributes': function(assert) {
-    var Day = s.define('Day', { name: Sequelize.TEXT })
-    assert.isDefined(Day.attributes)
-    assert.isNotNull(Day.attributes)
-    assert.eql(Day.attributes, { name: Sequelize.TEXT, createdAt: "DATETIME NOT NULL", updatedAt: "DATETIME NOT NULL"})
-  },
   'define should add new table to tables': function(assert) {
     var Day = s.define('Day', { name: Sequelize.TEXT })
     assert.includes(Sequelize.Helper.Hash.keys(Day.sequelize.tables), 'Day')

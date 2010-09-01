@@ -5,7 +5,7 @@ var Day = s.define('Day', { name: Sequelize.TEXT })
 module.exports = {
   'constructor': function(assert) {
     assert.eql(Day.associations, [])
-    assert.eql(Day.attributes, {"name":"TEXT","createdAt":"DATETIME NOT NULL","updatedAt":"DATETIME NOT NULL"})
+    assert.eql(Day.attributes, {"name": {type: "TEXT"},"createdAt": {type: "DATETIME", allowNull: false},"updatedAt": {type: "DATETIME", allowNull: false}})
     assert.eql(Day.tableName, 'Days')
   },
   'new': function(assert) {
@@ -193,7 +193,9 @@ module.exports = {
     var assertMe = null
     
     Sequelize.chainQueries([{sync: s2}, {drop: s2}, {sync: s2}, {save: task}, {save: deadline}], function() {
-      task.setDeadline(deadline, function(_deadline) { assertMe = _deadline })
+      task.setDeadline(deadline, function(_deadline) {
+        assertMe = _deadline
+      })
     })
     
     beforeExit(function() {

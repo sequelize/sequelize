@@ -44,15 +44,15 @@ module.exports = {
     assert.eql(result, 'name, createdAt, updatedAt')
   },
   'SQL: transformValueByDataType': function(assert) {
-    assert.equal(h.SQL.transformValueByDataType('asd', Sequelize.STRING), "'asd'")
-    assert.equal(h.SQL.transformValueByDataType('asd', Sequelize.TEXT), "'asd'")
-    assert.equal(h.SQL.transformValueByDataType(6, Sequelize.INTEGER), "6")
-    assert.equal(h.SQL.transformValueByDataType(null, Sequelize.INTEGER), "NULL")
-    assert.equal(h.SQL.transformValueByDataType(null, Sequelize.STRING), "NULL")
-    assert.equal(h.SQL.transformValueByDataType(null, Sequelize.TEXT), "NULL")
+    assert.equal(h.SQL.transformValueByDataType('asd',  {type: Sequelize.STRING}), "'asd'")
+    assert.equal(h.SQL.transformValueByDataType('asd',  {type: Sequelize.TEXT}), "'asd'")
+    assert.equal(h.SQL.transformValueByDataType(6,      {type: Sequelize.INTEGER}), "6")
+    assert.equal(h.SQL.transformValueByDataType(null,   {type: Sequelize.INTEGER}), "NULL")
+    assert.equal(h.SQL.transformValueByDataType(null,   {type: Sequelize.STRING}), "NULL")
+    assert.equal(h.SQL.transformValueByDataType(null,   {type: Sequelize.TEXT}), "NULL")
     
     var d = new Date(Date.parse("Tue, 1 Jan 2000 00:00:00 GMT"))
-    assert.equal(h.SQL.transformValueByDataType(d, Sequelize.DATE), "'2000-01-01 01:00:00'")
+    assert.equal(h.SQL.transformValueByDataType(d, {type: Sequelize.DATE}), "'2000-01-01 01:00:00'")
   },
   'SQL: valuesForUpdate': function(assert) {
     var s = new Sequelize('sequelize_test', 'test', 'test')
