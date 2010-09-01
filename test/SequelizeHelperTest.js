@@ -101,5 +101,9 @@ module.exports = {
   },
   'Inflection: should be available': function(assert) {
     assert.isDefined(h.Inflection)
+  },
+  'Hash: without': function(assert) {
+    var hash = {a: 1, b: 2}
+    assert.eql(h.Hash.without(hash, ["a"]), {b: 2})
   }
 }
