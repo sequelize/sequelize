@@ -340,5 +340,19 @@ module.exports = {
       testIsFinished = true
     })
     beforeExit(function() { assert.equal(testIsFinished, true) })
+  },
+  'default values': function(assert) {
+    var DefaultTest = s.define("DefaultTest", {
+      aString: { type: Sequelize.STRING, allowNull: false, default: 'woot'},
+      aNumber: { type: Sequelize.INTEGER, allowNull: true},
+      aBoolean: { type: Sequelize.BOOLEAN, allowNull: false, default: false},
+      aText: { type: Sequelize.TEXT, allowNull: true }
+    }),
+    instance = new DefaultTest({})
+
+    assert.eql(instance.aString, 'woot')
+    assert.isUndefined(instance.aNumber)
+    assert.eql(instance.aBoolean, false)
+    assert.isUndefined(instance.aText)
   }
 }
