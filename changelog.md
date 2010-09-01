@@ -36,8 +36,11 @@
 - added possibility to define class and instance methods for models
 - added import method for loading model definition from a file
 
-# 0.3.1 #
+# 0.4.0 #
 - added error handling when defining invalid database credentials
 - Sequelize#sync, Sequelize#drop, model#sync, model#drop returns errors via callback
 - code is now located under lib/sequelize to use it with nDistro
 - added possibility to use non default mysql database (host/port)
+- added error handling when defining invalid database port/host
+- schema definitions can now contain default values and null allowance
+- database credentials can now also contain an empty / no password
