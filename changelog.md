@@ -40,3 +40,4 @@
 - added error handling when defining invalid database credentials
 - Sequelize#sync, Sequelize#drop, model#sync, model#drop returns errors via callback
 - code is now located under lib/sequelize to use it with nDistro
+- added possibility to use non default mysql database (host/port)
