@@ -15,14 +15,6 @@ module.exports = {
     assert.eql(day.name, 'asd')
     assert.isUndefined(new Day({name: 'asd', bla: 'foo'}).bla)
   },
-  'isCrossAssociatedWith': function(assert) {
-    var Foo = s.define('Foo', { bla: Sequelize.TEXT })
-    assert.equal(Foo.isCrossAssociatedWith(Day), false)
-    Foo.hasMany('days', Day)
-    assert.equal(Foo.isCrossAssociatedWith(Day), false)
-    Day.hasMany('foos', Foo)
-    assert.equal(Foo.isCrossAssociatedWith(Day), true)
-  },
   'prepareAssociations belongsTo': function(assert) {
     var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
     var Me = s.define('Me', {})
@@ -49,18 +41,18 @@ module.exports = {
     assert.isNotNull(Me.attributes.you2Id)
   },
   'prepareAssociations hasMany': function(assert) {
-    var ManyToManyPart1 = s.define('ManyToManyPart1', {})
-    var ManyToManyPart2 = s.define('ManyToManyPart2', {})
-    ManyToManyPart1.hasMany('manyToManyPart2s', ManyToManyPart2)
-    ManyToManyPart2.hasMany('manyToManyPart1s', ManyToManyPart1)
+    var House = s.define('House', {})
+    var Person = s.define('Person', {})
 
-    ManyToManyPart1.prepareAssociations()
-    ManyToManyPart2.prepareAssociations()
+    House.hasMany('members', Person, 'households')
+    House.prepareAssociations()
+    Person.prepareAssociations()
 
-    assert.isUndefined(ManyToManyPart1.attributes.manyToManyPart2Id)
-    assert.isUndefined(ManyToManyPart2.attributes.manyToManyPart1Id)
+    assert.isUndefined(House.attributes.personId)
+    assert.isUndefined(House.attributes.membersId)
+    assert.isUndefined(Person.attributes.houseId)
 
-    assert.isDefined(s.tables.ManyToManyPart1sManyToManyPart2s)
+    assert.isDefined(s.tables.HouseholdsMembers)
   },
   'sync should return the table class': function(assert, beforeExit) {
     var toBeTested = null
@@ -148,8 +140,7 @@ module.exports = {
     var assoc = null
     var Character = s.define('Character', {})
     var Word = s.define('Word', {})
-    Character.hasMany('Words', Word)
-    Word.hasMany('Characters', Character)
+    Character.hasMany('Words', Word, 'Characters')
 
     Sequelize.chainQueries([
       {drop: Character}, {drop: Word}, {prepareAssociations: Word}, {prepareAssociations: Character}, {sync: Word}, {sync: Character}
@@ -292,16 +283,6 @@ module.exports = {
     beforeExit(function() {
       assert.isNull(subject)
     })
-  },
-  'isAssociatedWith': function(assert, beforeExit) {
-    var IsAssociatedWithTestOne = s.define("IsAssociatedWithTestOne", {})
-    var IsAssociatedWithTestTwo = s.define("IsAssociatedWithTestTwo", {})
-    
-    IsAssociatedWithTestOne.belongsTo('foo', IsAssociatedWithTestTwo)
-    assert.equal(true, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo))
-    assert.equal(true, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'belongsTo'))
-    assert.equal(false, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'hasMany'))
-    assert.equal(false, IsAssociatedWithTestOne.isAssociatedWith(IsAssociatedWithTestTwo, 'hasOne'))
   },
   'boolean ==> save': function(assert, beforeExit) {
     var BooleanTest = s.define("BooleanTest", {flag: Sequelize.BOOLEAN})
