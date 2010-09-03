@@ -51,8 +51,8 @@ module.exports = {
   'prepareAssociations hasMany': function(assert) {
     var ManyToManyPart1 = s.define('ManyToManyPart1', {})
     var ManyToManyPart2 = s.define('ManyToManyPart2', {})
-    ManyToManyPart1.hasMany('manyToManyPart1', ManyToManyPart2)
-    ManyToManyPart2.hasMany('manyToManyPart1', ManyToManyPart1)
+    ManyToManyPart1.hasMany('manyToManyPart2s', ManyToManyPart2)
+    ManyToManyPart2.hasMany('manyToManyPart1s', ManyToManyPart1)
 
     ManyToManyPart1.prepareAssociations()
     ManyToManyPart2.prepareAssociations()

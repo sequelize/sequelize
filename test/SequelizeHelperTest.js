@@ -13,8 +13,8 @@ module.exports = {
   },
   
   'SQL: manyToManyTableName': function(assert) {
-    assert.equal(h.SQL.manyToManyTableName({tableName: 'foo'}, {tableName: 'bar'}), 'barfoo')
-    assert.equal(h.SQL.manyToManyTableName({tableName: 'bar'}, {tableName: 'foo'}), 'barfoo')
+    assert.equal(h.SQL.manyToManyTableName('foo', 'bar'), 'BarFoo')
+    assert.equal(h.SQL.manyToManyTableName('bar','foo'), 'BarFoo')
   },
   'SQL: asTableIdentifier': function(assert) {
     assert.equal(h.SQL.asTableIdentifier('Users'), 'userId')
