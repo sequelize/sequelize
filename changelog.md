@@ -44,3 +44,7 @@
 - added error handling when defining invalid database port/host
 - schema definitions can now contain default values and null allowance
 - database credentials can now also contain an empty / no password
+
+# v0.4.1 #
+- THIS UPDATE CHANGES TABLE STRUCTURES MASSIVELY! MAKE SURE TO DROP YOUR CURRENT TABLES AND LET THEM CREATE AGAIN!
+- 
