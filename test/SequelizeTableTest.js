@@ -134,7 +134,7 @@ module.exports = {
   'hasMany': function(assert) {
     var HasManyBlubb = s.define('HasManyBlubb', {})
     Day.hasMany('HasManyBlubbs', HasManyBlubb)
-    assert.isDefined(new Day({name:''}).HasManyBlubbs)
+    assert.isDefined(new Day({name:''}).getHasManyBlubbs)
   },
   'hasMany: set association': function(assert, beforeExit) {
     var assoc = null
@@ -169,7 +169,7 @@ module.exports = {
     var Day = s.define('Day2', { name: Sequelize.TEXT })
     var HasOneBlubb = s.define('HasOneBlubb', {})
     Day.hasOne('HasOneBlubb', HasOneBlubb)
-    assert.isDefined(new Day({name:''}).HasOneBlubb)
+    assert.isDefined(new Day({name:''}).getHasOneBlubb)
   },
   'hasOne set association': function(assert, beforeExit) {
     var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
@@ -197,7 +197,7 @@ module.exports = {
   'belongsTo': function(assert) {
     var BelongsToBlubb = s.define('BelongsToBlubb', {})
     Day.belongsTo('BelongsToBlubb', BelongsToBlubb)
-    assert.isDefined(new Day({name:''}).BelongsToBlubb)
+    assert.isDefined(new Day({name:''}).getBelongsToBlubb)
   },
   'belongsTo: set association': function(assert, beforeExit) {
     var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
