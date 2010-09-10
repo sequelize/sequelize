@@ -19,7 +19,8 @@ module.exports = {
     var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
     var Me = s.define('Me', {})
     var You = s.define('You', {})
-    You.belongsTo('me', Me)
+    var assoc = Me.hasOne('you', You)
+    You.belongsTo('me', Me, assoc)
     
     Me.prepareAssociations()
     You.prepareAssociations()
@@ -27,18 +28,6 @@ module.exports = {
     assert.includes(Sequelize.Helper.Hash.keys(You.attributes), 'meId')
     assert.isDefined(You.attributes.meId)
     assert.isNotNull(You.attributes.meId)
-  },
-  'prepareAssociations hasOne': function(assert) {
-    var Me = s.define('Me2', {})
-    var You = s.define('You2', {})
-    You.hasOne('me', Me)
-    
-    Me.prepareAssociations()
-    You.prepareAssociations()
-
-    assert.includes(Sequelize.Helper.Hash.keys(Me.attributes), 'you2Id')
-    assert.isDefined(Me.attributes.you2Id)
-    assert.isNotNull(Me.attributes.you2Id)
   },
   'prepareAssociations hasMany': function(assert) {
     var House = s.define('House', {})
@@ -176,8 +165,8 @@ module.exports = {
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
     
-    Task.hasOne('deadline', Deadline)
-    Deadline.belongsTo('task', Task)
+    var taskAssoc = Task.hasOne('deadline', Deadline)
+    Deadline.belongsTo('task', Task, taskAssoc)
 
     var task = new Task({ title:'do smth' })
     var deadline = new Deadline({date: new Date()})
@@ -196,7 +185,9 @@ module.exports = {
   },
   'belongsTo': function(assert) {
     var BelongsToBlubb = s.define('BelongsToBlubb', {})
-    Day.belongsTo('BelongsToBlubb', BelongsToBlubb)
+    var Day = s.define('Day2', { name: Sequelize.TEXT })
+    var assoc = Day.hasOne('asd', BelongsToBlubb)
+    Day.belongsTo('BelongsToBlubb', BelongsToBlubb, assoc)
     assert.isDefined(new Day({name:''}).getBelongsToBlubb)
   },
   'belongsTo: set association': function(assert, beforeExit) {
@@ -205,8 +196,8 @@ module.exports = {
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
     var allowExit = false
     
-    Task.hasOne('deadline', Deadline)
-    Deadline.belongsTo('task', Task)
+    var assoc = Task.hasOne('deadline', Deadline)
+    Deadline.belongsTo('task', Task, assoc)
 
     var task = new Task({ title:'do smth' })
     var deadline = new Deadline({date: new Date()})
