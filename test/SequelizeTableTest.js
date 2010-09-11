@@ -1,5 +1,5 @@
 var Sequelize = require(__dirname + "/../lib/sequelize/Sequelize").Sequelize
-var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
     assert.isUndefined(new Day({name: 'asd', bla: 'foo'}).bla)
   },
   'prepareAssociations belongsTo': function(assert) {
-    var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Me = s.define('Me', {})
     var You = s.define('You', {})
     var assoc = Me.hasOne('you', You)
@@ -154,14 +154,14 @@ module.exports = {
     })
   },
   'hasOne': function(assert) {
-    var s = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Day = s.define('Day2', { name: Sequelize.TEXT })
     var HasOneBlubb = s.define('HasOneBlubb', {})
     Day.hasOne('HasOneBlubb', HasOneBlubb)
     assert.isDefined(new Day({name:''}).getHasOneBlubb)
   },
   'hasOne set association': function(assert, beforeExit) {
-    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var s2 = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
     
@@ -191,7 +191,7 @@ module.exports = {
     assert.isDefined(new Day({name:''}).getBelongsToBlubb)
   },
   'belongsTo: set association': function(assert, beforeExit) {
-    var s2 = new Sequelize('sequelize_test', 'test', 'test', {disableLogging: true})
+    var s2 = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
     var allowExit = false
