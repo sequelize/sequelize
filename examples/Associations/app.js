@@ -11,14 +11,9 @@ var Pet = sequelize.define('pet', {
 
 Person.hasMany('brothers')
 Person.hasMany('sisters')
-
-var fatherAssoc = Person.hasOne('father', Person)
-var motherAssoc = Person.hasOne('mother', Person)
-Person.belongsTo('father', Person, fatherAssoc)
-Person.belongsTo('mother', Person, motherAssoc)
-
-var petAssoc = Person.hasMany('pets', Pet)
-Pet.belongsTo('owner', Person, petAssoc)
+Person.hasOneAndBelongsTo('father', Person)
+Person.hasOneAndBelongsTo('mother', Person)
+Person.hasManyAndBelongsTo('pets', Pet, 'owner')
 
 Sequelize.chainQueries([{drop: sequelize}, {sync: sequelize}], function() {
   var person  = new Person({ name: 'Luke' }),
