@@ -54,3 +54,4 @@
 - added many-to-many association on the same model
 - added hasManyAndBelongsTo
 - added hasOneAndBelongsTo
+- nodejs-mysql-native 0.4.2
