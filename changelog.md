@@ -46,5 +46,11 @@
 - database credentials can now also contain an empty / no password
 
 # v0.4.1 #
-- THIS UPDATE CHANGES TABLE STRUCTURES MASSIVELY! MAKE SURE TO DROP YOUR CURRENT TABLES AND LET THEM CREATE AGAIN!
-- 
+- THIS UPDATE CHANGES TABLE STRUCTURES MASSIVELY!
+- MAKE SURE TO DROP YOUR CURRENT TABLES AND LET THEM CREATE AGAIN!
+
+- names of many-to-many-association-tables are chosen from passed association names
+- foreign keys are chosen from passed association name
+- added many-to-many association on the same model
+- added hasManyAndBelongsTo
+- added hasOneAndBelongsTo
