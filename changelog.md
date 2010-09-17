@@ -55,3 +55,7 @@
 - added hasManyAndBelongsTo
 - added hasOneAndBelongsTo
 - nodejs-mysql-native 0.4.2
+
+# v0.4.2 #
+- fixed bugs from 0.4.1
+- added the model instance method loadAssociatedData which adds the hash Model#associatedData to an instance which contains all associated data
