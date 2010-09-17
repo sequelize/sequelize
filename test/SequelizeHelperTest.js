@@ -69,7 +69,8 @@ module.exports = {
     assert.equal(h.SQL.hashToWhereConditions({name: 'asd'}, Day.attributes), "name='asd'")
   },
   'SQL: addPrefix': function(assert) {
-    assert.equal(h.SQL.addPrefix('foo', 'bar'), 'fooBar')
+    assert.equal(h.SQL.addPrefix('foo', 'bar', true), 'fooBar')
+    assert.equal(h.SQL.addPrefix('foo', 'bar', false), 'fooBars')
   },
   'Hash: forEach': function(assert) {
     var values = []

@@ -158,15 +158,15 @@ module.exports = {
     var Day = s.define('Day2', { name: Sequelize.TEXT })
     var HasOneBlubb = s.define('HasOneBlubb', {})
     Day.hasOne('HasOneBlubb', HasOneBlubb)
-    assert.isDefined(new Day({name:''}).getHasOneBlubb)
+    
+    assert.isDefined(Day.prototype.getHasOneBlubb)
   },
   'hasOne set association': function(assert, beforeExit) {
     var s2 = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
     
-    var taskAssoc = Task.hasOne('deadline', Deadline)
-    Deadline.belongsTo('task', Task, taskAssoc)
+    Task.hasOneAndBelongsTo('deadline', Deadline, 'task')
 
     var task = new Task({ title:'do smth' })
     var deadline = new Deadline({date: new Date()})
