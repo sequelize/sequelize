@@ -59,3 +59,7 @@
 # v0.4.2 #
 - fixed bugs from 0.4.1
 - added the model instance method loadAssociatedData which adds the hash Model#associatedData to an instance which contains all associated data
+
+# v0.4.3 - in development #
+- TODO: add loadAssociatedData to finder methods
+- TODO: store data found by finder method in the associatedData hash + grep them from there if reload is not forced
