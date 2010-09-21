@@ -64,3 +64,4 @@
 - renamed loadAssociatedData to fetchAssociations
 - added fetchAssociations to finder methods
 - TODO: store data found by finder method in the associatedData hash + grep them from there if reload is not forced
+- TODO: allow array as value for chainQueries => Sequelize.chainQueries({save: [a,b,c]}, callback)
