@@ -21,7 +21,7 @@ Sequelize.chainQueries([{drop: sequelize}, {sync: sequelize}], function() {
       console.log("Now let's get the same data with loadAssociatedData!")
       person.fetchAssociations(function(data) {
         Sequelize.Helper.log("And here we are: " + data.pets[0].name)
-        Sequelize.Helper.log("The object should now also contain the data: " + person.associatedData.pets[0].name)
+        Sequelize.Helper.log("The object should now also contain the data: " + person.fetchedAssociations.pets[0].name)
 
         Person.find(person.id, { fetchAssociations: true }, function(p) {
           Sequelize.Helper.log(p)
