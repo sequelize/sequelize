@@ -19,9 +19,17 @@ Sequelize.chainQueries([{drop: sequelize}, {sync: sequelize}], function() {
     person.setPets([pet], function(pets) {
       console.log('my pet: ' + pets[0].name )
       console.log("Now let's get the same data with loadAssociatedData!")
-      person.loadAssociatedData(function(data) {
+      person.fetchAssociations(function(data) {
         Sequelize.Helper.log("And here we are: " + data.pets[0].name)
         Sequelize.Helper.log("The object should now also contain the data: " + person.associatedData.pets[0].name)
+
+        Person.find(person.id, { fetchAssociations: true }, function(p) {
+          Sequelize.Helper.log(p)
+        })
+
+        Person.findAll({ fetchAssociations: true }, function(people) {
+          Sequelize.Helper.log(people)
+        })
       })
     })
   })
