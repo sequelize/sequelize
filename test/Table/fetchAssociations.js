@@ -10,7 +10,7 @@ module.exports = {
 
     Foo.hasMany('bars', Bar, 'foos')
     Sequelize.chainQueries([{drop: s}, {sync: s}], function() {
-      new Foo({name:'asd'}).save(function() {
+      new Foo({name:'asd'}).save(function(foo) {
         assert.eql(foo.fetchedAssociations, {})
         allowExit = true
       })
@@ -24,7 +24,7 @@ module.exports = {
 
     Foo.hasMany('bars', Bar, 'foos')
     Sequelize.chainQueries([{drop: s}, {sync: s}], function() {
-      new Foo({name:'asd'}).save(function() {
+      new Foo({name:'asd'}).save(function(foo) {
         foo.fetchAssociations(function() {
           assert.eql(foo.fetchedAssociations, {bars: []})
           allowExit = true
