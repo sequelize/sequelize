@@ -1,13 +1,21 @@
+/*
+  Title: Working with associations
+
+  This example demonstrates the use of associations.
+  First of all, Person is getting associated via many-to-many with other Person objects (e.g. Person.hasMany('brothers')).
+  Afterwards a Person becomes associated with a 'father' and a mother using a one-to-one association created by hasOneAndBelongsTo.
+  The last association has the type many-to-one and is defined by the function hasManyAndBelongsTo.
+  The rest of the example is about setting and getting the associated data. 
+*/
+
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
-    sequelize = new Sequelize("sequelize_test", "root", null, {disableLogging: true})
-
-var Person = sequelize.define('person', {
-  name: Sequelize.STRING
-})
-
-var Pet = sequelize.define('pet', {
-  name: Sequelize.STRING
-})
+    sequelize = new Sequelize("sequelize_test", "root", null, {disableLogging: true}),
+    Person    = sequelize.define('person', {
+      name: Sequelize.STRING
+    }),
+    Pet = sequelize.define('pet', {
+      name: Sequelize.STRING
+    })
 
 Person.hasMany('brothers')
 Person.hasMany('sisters')
