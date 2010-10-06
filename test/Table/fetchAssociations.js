@@ -3,7 +3,6 @@ var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
     Foo = s.define('Foo', { name: Sequelize.TEXT }),
     Bar = s.define('Bar', { nr: Sequelize.INTEGER })
 
-
 module.exports = {
   'should have no fetchedAssociations first': function(assert, beforeExit) {
     var allowExit = false
