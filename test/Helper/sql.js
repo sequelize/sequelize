@@ -17,6 +17,13 @@ module.exports = {
     assert.equal(h.SQL.asTableName('Child'), 'Children')
     assert.equal(h.SQL.asTableName('Mouse'), 'Mice')
   },
+  'SQL: asTableName with options': function(assert) {
+    h.configure({ disableTableNameModification: true })
+    assert.equal(h.SQL.asTableName('User'), 'User')
+    assert.equal(h.SQL.asTableName('Child'), 'Child')
+    assert.equal(h.SQL.asTableName('Mouse'), 'Mouse')
+    h.configure({ disableTableNameModification: false })
+  },
   'SQL: asSqlDate': function(assert) {
     var d = new Date(Date.parse("Tue, 1 Jan 2000 00:00:00 GMT"))
     assert.equal(h.SQL.asSqlDate(d), '2000-01-01 01:00:00')
