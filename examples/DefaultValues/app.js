@@ -1,3 +1,10 @@
+/*
+  Title: Default values
+
+  This example demonstrates the use of default values for defined model fields. Instead of just specifying the datatype,
+  you have to pass a hash with a type and a default. You also might want to specify either an attribute can be null or not!
+*/
+
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
     sequelize = new Sequelize("sequelize_test", "root", null),
     User      = sequelize.define('User', {
