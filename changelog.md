@@ -65,5 +65,6 @@
 - renamed Model#associatedData to fetchedAssociations
 - added fetchAssociations to finder methods
 - store data found by finder method in the associatedData hash + grep them from there if reload is not forced
+- added option to sequelize constructor for disabling the pluralization of tablenames: disableTableNameModification
 - TODO: allow array as value for chainQueries => Sequelize.chainQueries([save: [a,b,c]], callback)
 - TODO: remove the usage of an array => Sequelize.chainQueries({save: a}, {destroy: b}, callback)
