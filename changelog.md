@@ -60,11 +60,11 @@
 - fixed bugs from 0.4.1
 - added the model instance method loadAssociatedData which adds the hash Model#associatedData to an instance which contains all associated data
 
-# v0.4.3 - in development #
+# v0.4.3 #
 - renamed loadAssociatedData to fetchAssociations
 - renamed Model#associatedData to fetchedAssociations
 - added fetchAssociations to finder methods
 - store data found by finder method in the associatedData hash + grep them from there if reload is not forced
 - added option to sequelize constructor for disabling the pluralization of tablenames: disableTableNameModification
-- TODO: allow array as value for chainQueries => Sequelize.chainQueries([save: [a,b,c]], callback)
-- TODO: remove the usage of an array => Sequelize.chainQueries({save: a}, {destroy: b}, callback)
+- allow array as value for chainQueries => Sequelize.chainQueries([save: [a,b,c]], callback)
+- remove the usage of an array => Sequelize.chainQueries({save: a}, {destroy: b}, callback)
