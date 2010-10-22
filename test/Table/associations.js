@@ -32,6 +32,7 @@ module.exports = {
     })
 
     beforeExit(function() {
+      assert.match(1,2)
       assert.isNotNull(assoc)
       assert.equal(assoc.length, 2)
     })
