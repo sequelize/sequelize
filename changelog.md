@@ -68,3 +68,8 @@
 - added option to sequelize constructor for disabling the pluralization of tablenames: disableTableNameModification
 - allow array as value for chainQueries => Sequelize.chainQueries([save: [a,b,c]], callback)
 - remove the usage of an array => Sequelize.chainQueries({save: a}, {destroy: b}, callback)
+
+# v0.4.4 - in development #
+- TODO: Wrap queries correctly using `foo`
+- TODO: Add method for adding and deleting single associations
+- TODO: Add option for using camel case or underscorízed tablenames/table fields
