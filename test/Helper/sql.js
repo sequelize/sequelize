@@ -38,7 +38,7 @@ module.exports = {
     var s = new Sequelize('sequelize_test', 'test', 'test')
     var Day = s.define('Day', { name: Sequelize.TEXT })
     var result = h.SQL.fieldsForInsertQuery(new Day({name: 'asd'}))
-    assert.eql(result, 'name, createdAt, updatedAt')
+    assert.eql(result, '`name`, `createdAt`, `updatedAt`')
   },
   'SQL: transformValueByDataType': function(assert) {
     assert.equal(h.SQL.transformValueByDataType('asd',  {type: Sequelize.STRING}), "'asd'")
@@ -62,11 +62,19 @@ module.exports = {
     var s = new Sequelize('sequelize_test', 'test', 'test')
     var Day = s.define('Day', { name: Sequelize.TEXT })
     var day = new Day({name: 'asd'})
-    assert.equal(h.SQL.hashToWhereConditions(5, Day.attributes), 'id = 5')
-    assert.equal(h.SQL.hashToWhereConditions({name: 'asd'}, Day.attributes), "name='asd'")
+    assert.equal(h.SQL.hashToWhereConditions(5, Day.attributes), '`id`=5')
+    assert.equal(h.SQL.hashToWhereConditions({name: 'asd'}, Day.attributes), "`name`='asd'")
   },
   'SQL: addPrefix': function(assert) {
     assert.equal(h.SQL.addPrefix('foo', 'bar', true), 'fooBar')
     assert.equal(h.SQL.addPrefix('foo', 'bar', false), 'fooBars')
+  },
+  'getDataTypeForValue': function(assert) {
+    var fct = h.SQL.getDataTypeForValue
+    assert.equal(fct(1), Sequelize.INTEGER)
+    assert.equal(fct(1.2), Sequelize.FLOAT)
+    assert.equal(fct("1"), Sequelize.TEXT)
+    assert.equal(fct(new Date()), Sequelize.DATE)
+    assert.equal(fct(true), Sequelize.BOOLEAN)
   }
 }

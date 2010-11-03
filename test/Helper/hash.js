@@ -33,5 +33,11 @@ module.exports = {
   'Hash: without': function(assert) {
     var hash = {a: 1, b: 2}
     assert.eql(h.Hash.without(hash, ["a"]), {b: 2})
+  },
+  'Hash: isHash': function(assert) {
+    assert.eql(h.Hash.isHash([1,2]), false)
+    assert.eql(h.Hash.isHash(1), false)
+    assert.eql(h.Hash.isHash("asd"), false)
+    assert.eql(h.Hash.isHash({a:1}), true)
   }
 }
