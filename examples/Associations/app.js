@@ -9,7 +9,7 @@
 */
 
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
-    sequelize = new Sequelize("sequelize_test", "root", null, {disableLogging: false}),
+    sequelize = new Sequelize("sequelize_test", "root", null, {disableLogging: true}),
     Person    = sequelize.define('person', {
       name: Sequelize.STRING
     }),
