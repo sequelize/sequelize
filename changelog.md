@@ -73,5 +73,6 @@
 - select now supports array usage of fields
 - select now supports hash usage of where
 - Wrapped queries correctly using `foo`
+- Added Model.count(callback), which returns the number of elements saved in the database
 - TODO: Add method for adding and deleting single associations
 - TODO: Add option for using camel case or underscorízed tablenames/table fields
