@@ -1,8 +1,9 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'test', 'test')
+var assert = require("assert")
 
 module.exports = {
-  'test constants': function(assert) {
+  'test constants': function() {
     assert.isDefined(Sequelize.STRING)
     assert.isNotNull(Sequelize.STRING)
     assert.isDefined(Sequelize.TEXT)
@@ -10,34 +11,34 @@ module.exports = {
     assert.isDefined(Sequelize.INTEGER)
     assert.isNotNull(Sequelize.INTEGER)
   },
-  'the constructor sets config correctly': function(assert){
+  'the constructor sets config correctly': function(){
     assert.equal(s.config.database, 'sequelize_test')
     assert.equal(s.config.username, 'test')
     assert.equal(s.config.password, 'test')
   },
-  'the constructor initializes empty tables hash': function(assert) {
+  'the constructor initializes empty tables hash': function() {
     var s = new Sequelize('sequelize_test', 'test', 'test')
     assert.isDefined(s.tables)
     assert.isNotNull(s.tables)
     assert.eql(s.tables, {})
   },
-  'define should return a function': function(assert){
+  'define should return a function': function(){
     var Day = s.define('Day', { name: Sequelize.TEXT })
     assert.equal(typeof Day, 'function')
   },
-  'define should add new table to tables': function(assert) {
+  'define should add new table to tables': function() {
     var Day = s.define('Day', { name: Sequelize.TEXT })
     assert.includes(Sequelize.Helper.Hash.keys(Day.sequelize.tables), 'Day')
   },
-  'tableNames should be an empty array if no tables are specified': function(assert){
+  'tableNames should be an empty array if no tables are specified': function(){
     var s2 = new Sequelize('sequelize_test', 'test', 'test')
     assert.deepEqual(s2.tableNames, [])
   },
-  'tableNames should be no empty array if tables are specified': function(assert) {
+  'tableNames should be no empty array if tables are specified': function() {
     s.define('Day', { name: Sequelize.TEXT })
     assert.deepEqual(s.tableNames, ['Days'])
   },
-  'sync: errors': function(assert, beforeExit) {
+  'sync: errors': function(beforeExit) {
     var testIsFinished = false,
         sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
         Fail = sequelizeWithInvalidCredentials.define('Fail', {})
@@ -49,7 +50,7 @@ module.exports = {
     })
     beforeExit(function() { assert.equal(testIsFinished, true) })
   },
-  'drop: errors': function(assert, beforeExit) {
+  'drop: errors': function(beforeExit) {
     var testIsFinished = false,
         sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
         Fail = sequelizeWithInvalidCredentials.define('Fail', {})

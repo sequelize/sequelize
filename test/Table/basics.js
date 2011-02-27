@@ -1,31 +1,32 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
+var assert = require("assert")
 
 module.exports = {
-  'constructor': function(assert) {
+  'constructor': function() {
     assert.eql(Day.associations, [])
     assert.eql(Day.attributes, {"name": {type: "TEXT"},"createdAt": {type: "DATETIME", allowNull: false},"updatedAt": {type: "DATETIME", allowNull: false}})
     assert.eql(Day.tableName, 'Days')
   },
-  'new': function(assert) {
+  'new': function() {
     var day = new Day({name: 'asd'})
     assert.isNull(day.id)
     assert.eql(day.table, Day)
     assert.eql(day.name, 'asd')
     assert.isUndefined(new Day({name: 'asd', bla: 'foo'}).bla)
   },
-  'sync should return the table class': function(assert, beforeExit) {
+  'sync should return the table class': function(beforeExit) {
     var toBeTested = null
     Day.sync(function(_Day) { toBeTested = _Day })
     beforeExit(function() { assert.eql(toBeTested, Day) })
   },
-  'drop should return the table class': function(assert, beforeExit) {
+  'drop should return the table class': function(beforeExit) {
     var toBeTested = null
     Day.drop(function(_Day) { toBeTested = _Day })
     beforeExit(function() { assert.eql(toBeTested, Day) })
   },
-  'sqlResultToObject returns the correct object': function(assert) {
+  'sqlResultToObject returns the correct object': function() {
     var SqlResultToObjectTest = s.define('SqlResultToObject', {name: Sequelize.STRING})
     var toBeTested = SqlResultToObjectTest.sqlResultToObject({
       id: 1,
@@ -35,14 +36,14 @@ module.exports = {
     assert.equal(toBeTested.id, 1)
     assert.equal(toBeTested.name, 'foo')
   },
-  'identifier': function(assert) {
+  'identifier': function() {
     assert.equal(s.define('Identifier', {}).identifier, 'identifierId')
   },
-  'values': function(assert) {
+  'values': function() {
     var day = new Day({name: 's'})
     assert.eql(day.values, { name: "s", createdAt: null, updatedAt: null})
   },
-  'default values': function(assert) {
+  'default values': function() {
     var DefaultTest = s.define("DefaultTest", {
       aString: { type: Sequelize.STRING, allowNull: false, default: 'woot'},
       aNumber: { type: Sequelize.INTEGER, allowNull: true},

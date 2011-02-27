@@ -1,9 +1,10 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
+var assert = require("assert")
 
 module.exports = {
-  'findAll should return all items as class objects': function(assert, beforeExit) {
+  'findAll should return all items as class objects': function(beforeExit) {
     var allFindAllTestItems = null
     var FindAllTest = s.define('FindAllTest', {})
 
@@ -22,7 +23,7 @@ module.exports = {
       })
     })
   },
-  'find returns the correct item': function(assert, beforeExit) {
+  'find returns the correct item': function(beforeExit) {
     var item = null
     var itemToMatch = null
     var FindTest = s.define('FindTest', { name: Sequelize.STRING })
@@ -44,7 +45,7 @@ module.exports = {
       assert.equal(itemToMatch.name, item.name)
     })
   },
-  'find returns data in correct attributes': function(assert, beforeExit) {
+  'find returns data in correct attributes': function(beforeExit) {
     var assertMe = null
     var FindMeNow = s.define('FindMeNow', { title: Sequelize.STRING, content: Sequelize.TEXT })
     FindMeNow.drop(function() {
@@ -55,9 +56,9 @@ module.exports = {
       })
     })
     beforeExit(function() {
-      assert.isNotNull(assertMe)
-      assert.equal(assertMe.title, 'a title')
-      assert.equal(assertMe.content, 'a content')
+      assert.isNotNull(Me)
+      assert.equal(Me.title, 'a title')
+      assert.equal(Me.content, 'a content')
     })
   }
 }

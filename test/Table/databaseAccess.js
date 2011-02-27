@@ -1,9 +1,10 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
+var assert = require("assert")
 
 module.exports = {
- 'save should set the id of a newly created object': function(assert, beforeExit) {
+ 'save should set the id of a newly created object': function(beforeExit) {
     var subject = null
     var SaveTest = s.define('SaveTest', {name: Sequelize.STRING})
     SaveTest.drop(function(){
@@ -18,7 +19,7 @@ module.exports = {
       assert.isNotNull(subject.id)
     })
   },
-  'updateAttributes should update available attributes': function(assert, beforeExit) {
+  'updateAttributes should update available attributes': function(beforeExit) {
     var subject = null
     var UpdateMe = s.define('UpdateMe', {name: Sequelize.STRING})
     Sequelize.chainQueries([{drop: UpdateMe}, {sync: UpdateMe}], function() {
@@ -35,7 +36,7 @@ module.exports = {
       assert.isUndefined(subject.foo)
     })
   },
-  'destroy should make the object unavailable': function(assert, beforeExit) {
+  'destroy should make the object unavailable': function(beforeExit) {
     var subject = 1
     var UpdateAttributesTest = s.define('UpdateAttributeTest', {name: Sequelize.STRING})
     Sequelize.chainQueries([{drop: UpdateAttributesTest}, {sync: UpdateAttributesTest}], function() {
@@ -51,7 +52,7 @@ module.exports = {
       assert.isNull(subject)
     })
   },
-  'boolean ==> save': function(assert, beforeExit) {
+  'boolean ==> save': function(beforeExit) {
     var BooleanTest = s.define("BooleanTest", {flag: Sequelize.BOOLEAN})
     var testIsFinished = false
     BooleanTest.sync(function() {
@@ -65,7 +66,7 @@ module.exports = {
     })
     beforeExit(function() { assert.equal(true, testIsFinished) })
   },
-  'sync ==> failure': function(assert, beforeExit) {
+  'sync ==> failure': function(beforeExit) {
     var testIsFinished = false,
         sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
         Fail = sequelizeWithInvalidCredentials.define('Fail', {})
@@ -77,7 +78,7 @@ module.exports = {
     })
     beforeExit(function() { assert.equal(testIsFinished, true) })
   },
-  'drop ==> failure': function(assert, beforeExit) {
+  'drop ==> failure': function(beforeExit) {
     var testIsFinished = false,
         sequelizeWithInvalidCredentials = new Sequelize('foo', 'bar', 'barfoos'),
         Fail = sequelizeWithInvalidCredentials.define('Fail', {})

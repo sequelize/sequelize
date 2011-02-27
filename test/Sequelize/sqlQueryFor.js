@@ -1,16 +1,17 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'test', 'test')
+var assert = require("assert")
 
 module.exports = {
-  'sqlQueryFor: create': function(assert) {
+  'sqlQueryFor: create': function() {
     var query = Sequelize.sqlQueryFor('create', { table: 'Foo', fields: 'a INT' })
     assert.equal(query, "CREATE TABLE IF NOT EXISTS `Foo` (a INT)")
   },
-  'sqlQueryFor: drop': function(assert) {
+  'sqlQueryFor: drop': function() {
     var query = Sequelize.sqlQueryFor('drop', { table: 'Foo' })
     assert.equal(query, "DROP TABLE IF EXISTS `Foo`")
   },
-  'sqlQueryFor: select': function(assert) {
+  'sqlQueryFor: select': function() {
     assert.equal(Sequelize.sqlQueryFor('select', { table: 'Foo'}), "SELECT * FROM `Foo`")
     assert.equal(Sequelize.sqlQueryFor('select', { table: 'Foo', fields: ['id']}), "SELECT `id` FROM `Foo`")
     assert.equal(Sequelize.sqlQueryFor('select', { table: 'Foo', where: {id: 1}}), "SELECT * FROM `Foo` WHERE `id`=1")
@@ -19,23 +20,23 @@ module.exports = {
     assert.equal(Sequelize.sqlQueryFor('select', { table: 'Foo', limit: 1}), "SELECT * FROM `Foo` LIMIT 1")
     assert.equal(Sequelize.sqlQueryFor('select', { table: 'Foo', offset: 10, limit: 1}), "SELECT * FROM `Foo` LIMIT 10, 1")
   },
-  'sqlQueryFor: insert': function(assert) {
+  'sqlQueryFor: insert': function() {
     var query = Sequelize.sqlQueryFor('insert', { table: 'Foo', fields: ['foo'], values: "'bar'" })
     assert.equal(query, "INSERT INTO `Foo` (`foo`) VALUES ('bar')")
   },
-  'sqlQueryFor: update': function(assert) {
+  'sqlQueryFor: update': function() {
     var query = Sequelize.sqlQueryFor('update', { table: 'Foo', values: {foo : 1}, id: 2 })
     assert.equal(query, "UPDATE `Foo` SET `foo`=1 WHERE `id`=2")
   },
-  'sqlQueryFor: delete': function(assert) {
+  'sqlQueryFor: delete': function() {
     var query = Sequelize.sqlQueryFor('delete', {table: 'Foo', where: {id: 2}})
     assert.equal(query, "DELETE FROM `Foo` WHERE `id`=2 LIMIT 1")
   },
-  'sqlQueryFor: delete without limit': function(assert) {
+  'sqlQueryFor: delete without limit': function() {
     var query = Sequelize.sqlQueryFor('delete', {table: 'Foo', where: {id: 2}, limit: null})
     assert.equal(query, "DELETE FROM `Foo` WHERE `id`=2")
   },
-  'sqlQueryFor: delete with limit': function(assert) {
+  'sqlQueryFor: delete with limit': function() {
     var query = Sequelize.sqlQueryFor('delete', {table: 'Foo', where: {id: 2}, limit: 10})
     assert.equal(query, "DELETE FROM `Foo` WHERE `id`=2 LIMIT 10")
   }

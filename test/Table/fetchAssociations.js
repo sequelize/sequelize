@@ -3,8 +3,10 @@ var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
     Foo = s.define('Foo', { name: Sequelize.TEXT }),
     Bar = s.define('Bar', { nr: Sequelize.INTEGER })
 
+var assert = require("assert")
+
 module.exports = {
-  'should have no fetchedAssociations first': function(assert, beforeExit) {
+  'should have no fetchedAssociations first': function(beforeExit) {
     var allowExit = false
 
     Foo.hasMany('bars', Bar, 'foos')
@@ -18,7 +20,7 @@ module.exports = {
     beforeExit(function() { assert.eql(allowExit, true) })
   },
 
-  'should have an empty array for each table association': function(assert, beforeExit) {
+  'should have an empty array for each table association': function(beforeExit) {
     var allowExit = false
 
     Foo.hasMany('bars', Bar, 'foos')

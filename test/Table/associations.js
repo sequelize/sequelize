@@ -1,14 +1,15 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
+var assert = require("assert")
 
 module.exports = {
-  'hasMany': function(assert) {
+  'hasMany': function() {
     var HasManyBlubb = s.define('HasManyBlubb', {})
     Day.hasMany('HasManyBlubbs', HasManyBlubb)
     assert.isDefined(new Day({name:''}).getHasManyBlubbs)
   },
-  'hasMany: set association': function(assert, beforeExit) {
+  'hasMany: set association': function(beforeExit) {
     var assoc = null
     var Character = s.define('Character', {})
     var Word = s.define('Word', {})
@@ -37,7 +38,7 @@ module.exports = {
       assert.equal(assoc.length, 2)
     })
   },
-  'hasOne': function(assert) {
+  'hasOne': function() {
     var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Day = s.define('Day2', { name: Sequelize.TEXT })
     var HasOneBlubb = s.define('HasOneBlubb', {})
@@ -45,7 +46,7 @@ module.exports = {
 
     assert.isDefined(Day.prototype.getHasOneBlubb)
   },
-  'hasOne set association': function(assert, beforeExit) {
+  'hasOne set association': function(beforeExit) {
     var s2 = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
@@ -63,18 +64,18 @@ module.exports = {
     })
 
     beforeExit(function() {
-      assert.isNotNull(assertMe)
-      assert.eql(assertMe, deadline)
+      assert.isNotNull(Me)
+      assert.eql(Me, deadline)
     })
   },
-  'belongsTo': function(assert) {
+  'belongsTo': function() {
     var BelongsToBlubb = s.define('BelongsToBlubb', {})
     var Day = s.define('Day2', { name: Sequelize.TEXT })
     var assoc = Day.hasOne('asd', BelongsToBlubb)
     Day.belongsTo('BelongsToBlubb', BelongsToBlubb, assoc)
     assert.isDefined(new Day({name:''}).getBelongsToBlubb)
   },
-  'belongsTo: set association': function(assert, beforeExit) {
+  'belongsTo: set association': function(beforeExit) {
     var s2 = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})

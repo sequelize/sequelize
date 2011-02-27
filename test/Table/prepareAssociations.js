@@ -1,9 +1,10 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
 var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
 var Day = s.define('Day', { name: Sequelize.TEXT })
+var assert = require("assert")
 
 module.exports = {
- 'prepareAssociations belongsTo': function(assert) {
+ 'prepareAssociations belongsTo': function() {
     var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
     var Me = s.define('Me', {})
     var You = s.define('You', {})
@@ -17,7 +18,7 @@ module.exports = {
     assert.isDefined(You.attributes.meId)
     assert.isNotNull(You.attributes.meId)
   },
-  'prepareAssociations hasMany': function(assert) {
+  'prepareAssociations hasMany': function() {
     var House = s.define('House', {})
     var Person = s.define('Person', {})
 
