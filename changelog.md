@@ -74,5 +74,7 @@
 - select now supports hash usage of where
 - Wrapped queries correctly using `foo`
 - Added Model.count(callback), which returns the number of elements saved in the database
+- Merged israeldelahoz's changes for using created_at and updated_at instead of the camel cased version
+- using expresso 0.7.2
+- TODO: fix tests for new expresso version (not sure if they ever worked :>)
 - TODO: Add method for adding and deleting single associations
-- TODO: Add option for using camel case or underscorízed tablenames/table fields
