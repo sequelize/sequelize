@@ -76,5 +76,6 @@
 - Added Model.count(callback), which returns the number of elements saved in the database
 - Merged israeldelahoz's changes for using created_at and updated_at instead of the camel cased version
 - using expresso 0.7.2
-- TODO: fix tests for new expresso version (not sure if they ever worked :>)
+- tests were working all the time
+- moved config for test database into seperated config file
 - TODO: Add method for adding and deleting single associations
