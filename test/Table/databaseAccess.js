@@ -1,7 +1,8 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
-var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
-var Day = s.define('Day', { name: Sequelize.TEXT })
-var assert = require("assert")
+  , config    = require(__dirname + '/../config')
+  , s         = new Sequelize(config.database, config.username, config.password, {disableLogging: true})
+  , Day       = s.define('Day', { name: Sequelize.TEXT })
+  , assert    = require("assert")
 
 module.exports = {
  'save should set the id of a newly created object': function(beforeExit) {

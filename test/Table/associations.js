@@ -1,7 +1,8 @@
 var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize
-var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
-var Day = s.define('Day', { name: Sequelize.TEXT })
-var assert = require("assert")
+  , config    = require(__dirname + '/../config')
+  , s         = new Sequelize(config.database, config.username, config.password, {disableLogging: true})
+  , Day       = s.define('Day', { name: Sequelize.TEXT })
+  , assert    = require("assert")
 
 module.exports = {
   'hasMany': function() {
@@ -39,7 +40,7 @@ module.exports = {
     })
   },
   'hasOne': function() {
-    var s = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
+    var s = new Sequelize(config.database, config.username, config.password, {disableLogging: true})
     var Day = s.define('Day2', { name: Sequelize.TEXT })
     var HasOneBlubb = s.define('HasOneBlubb', {})
     Day.hasOne('HasOneBlubb', HasOneBlubb)
@@ -47,7 +48,7 @@ module.exports = {
     assert.isDefined(Day.prototype.getHasOneBlubb)
   },
   'hasOne set association': function(beforeExit) {
-    var s2 = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
+    var s2 = new Sequelize(config.database, config.username, config.password, {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
 
@@ -76,7 +77,7 @@ module.exports = {
     assert.isDefined(new Day({name:''}).getBelongsToBlubb)
   },
   'belongsTo: set association': function(beforeExit) {
-    var s2 = new Sequelize('sequelize_test', 'root', null, {disableLogging: true})
+    var s2 = new Sequelize(config.database, config.username, config.password, {disableLogging: true})
     var Task = s2.define('Task', {title: Sequelize.STRING})
     var Deadline = s2.define('Deadline', {date: Sequelize.DATE})
     var allowExit = false
