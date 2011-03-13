@@ -1,5 +1,5 @@
 module.exports = {
   username: 'root',
-  password: 'root',
-  database: 'sequelize_test'
+  password: 'slydog',
+  database: 'seq_test'
 }
