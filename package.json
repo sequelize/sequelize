@@ -2,13 +2,16 @@
   "name": "sequelize",
   "description": "MySQL ORM for Node.JS",
   "version": "0.4.3",
-  "author": "Sascha Depold <sascha+github@depold.com>",
+  "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [ 
-    { "name": "Sascha Depold", "email": "sascha-github@depold.com" }
+    { "name": "Sascha Depold", "email": "sascha@depold.com" }
   ],
-  "dependencies": {},
+  "dependencies": {
+    "mysql": ">=0.9.1",
+    "underscore": ">=1.1.5"
+  },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
-  "main": "lib/sequelize/Sequelize.js",
+  "main": "index",
   "scripts": {},
   "bin": {},
   "engines": { "node": ">= 0.1.93" }
