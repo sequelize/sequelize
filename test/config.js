@@ -1,5 +1,5 @@
 module.exports = {
   username: 'root',
-  password: 'root',
+  password: null,
   database: 'sequelize_test'
 }
