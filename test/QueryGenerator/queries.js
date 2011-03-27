@@ -52,5 +52,11 @@ module.exports = {
     )
     eql(QueryGenerator.updateQuery('myTable', {bar: 2}, {name: 'foo'}), "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'")
     eql(QueryGenerator.updateQuery('myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}), "UPDATE `myTable` SET `name`='foo\\';DROP TABLE myTable;' WHERE `name`='foo'")
+  },
+  'deleteQuery': function() {
+    eql(QueryGenerator.deleteQuery('myTable', {name: 'foo'}), "DELETE FROM `myTable` WHERE `name`='foo' LIMIT 1")
+    eql(QueryGenerator.deleteQuery('myTable', 1), "DELETE FROM `myTable` WHERE `id`=1 LIMIT 1")
+    eql(QueryGenerator.deleteQuery('myTable', 1, {limit: 10}), "DELETE FROM `myTable` WHERE `id`=1 LIMIT 10")
+    eql(QueryGenerator.deleteQuery('myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}), "DELETE FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;' LIMIT 10")
   }
 }
