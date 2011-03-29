@@ -12,9 +12,9 @@ User.sync({force: true}).on('success', function() {
   user.save.on('success', function(u) {
     console.log(u)
     console.log('just saved the user :)')
+    
+    u.destroy.on('success', function() {
+      console.log('just destroyed the user')
+    })
   })
 })
-
-
-// console.log(user)
-// console.log(user.save())
