@@ -18,5 +18,12 @@ module.exports = {
       bio: Sequelize.TEXT
     })
     User.sync().on('failure', beforeExit)
+  },
+  'drop should work': function(beforeExit) {
+    var User = sequelize.define('User', {
+      name: Sequelize.STRING,
+      bio: Sequelize.TEXT
+    })
+    User.drop().on('success', beforeExit)
   }
 }
