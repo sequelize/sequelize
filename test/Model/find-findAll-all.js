@@ -14,21 +14,28 @@ var initUsers = function(callback) {
   })
 }
 
-
 module.exports = {
-  'all should return all created models': function(beforeExit) {
-    initUsers(function(user, User) {
+  'all should return all created models': function(exit) {
+    initUsers(function(_, User) {
       User.all.on('success', function(users) {
         assert.eql(users.length, 2)
-        beforeExit()
+        exit()
       })
     })
   },
-  'find should return a single model': function(beforeExit) {
+  'find should return a single model': function(exit) {
     initUsers(function(lastInsertedUser, User) {
       User.find(lastInsertedUser.id).on('success', function(user) {
         assert.eql(user.id, lastInsertedUser.id)
-        beforeExit()
+        exit()
+      })
+    })
+  },
+  'find a specific user': function(exit) {
+    initUsers(function(u, User) {
+      User.find({name: 'foo'}).on('success', function(user) {
+        assert.eql(user.name, 'foo')
+        exit()
       })
     })
   }

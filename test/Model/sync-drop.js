@@ -5,15 +5,15 @@ var assert = require("assert")
   , User = sequelize.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
 
 module.exports = {
-  'sync should work with correct database config': function(beforeExit) {
-    User.sync().on('success', beforeExit)
+  'sync should work with correct database config': function(exit) {
+    User.sync().on('success', exit)
   },
-  'sync should fail with incorrect database config': function(beforeExit) {
+  'sync should fail with incorrect database config': function(exit) {
     var s = new Sequelize('foo', 'bar', null, {logging: false})
     var User2 = s.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
-    User2.sync().on('failure', beforeExit)
+    User2.sync().on('failure', exit)
   },
-  'drop should work': function(beforeExit) {
-    User.drop().on('success', beforeExit)
+  'drop should work': function(exit) {
+    User.drop().on('success', exit)
   }
 }
