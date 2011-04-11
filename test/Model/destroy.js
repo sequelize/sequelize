@@ -19,5 +19,17 @@ module.exports = {
         })
       })
     })
+  },
+  'destroy should mark the record as deleted if safeDelete is activated': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT }, {safeDelete:true})
+    User.sync({force: true}).on('success', function() {
+      User.create({name: 'asd', bio: 'asd'}).on('success', function(u) {
+        assert.isNull(u.deletedAt)
+        u.destroy().on('success', function(u) {
+          assert.isNotNull(u.deletedAt)
+          exit()
+        })
+      })
+    })
   }
 }
