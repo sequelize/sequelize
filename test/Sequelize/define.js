@@ -12,25 +12,36 @@ module.exports = {
   'it should handle extended attributes correctly - unique': function() {
     var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
       username: {type: Sequelize.STRING, unique: true}
-    })
+    }, { timestamps: false })
     assert.eql(User.attributes, {username:"VARCHAR(255) UNIQUE",id:"INT NOT NULL auto_increment PRIMARY KEY"})
   },
   'it should handle extended attributes correctly - default': function() {
     var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
       username: {type: Sequelize.STRING, defaultValue: 'foo'}
-    })
+    }, { timestamps: false })
     assert.eql(User.attributes, {username:"VARCHAR(255) DEFAULT 'foo'",id:"INT NOT NULL auto_increment PRIMARY KEY"})
   },
   'it should handle extended attributes correctly - null': function() {
     var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
       username: {type: Sequelize.STRING, allowNull: false}
-    })
+    }, { timestamps: false })
     assert.eql(User.attributes, {username:"VARCHAR(255) NOT NULL",id:"INT NOT NULL auto_increment PRIMARY KEY"})
   },
   'it should handle extended attributes correctly - primary key': function() {
     var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
       username: {type: Sequelize.STRING, primaryKey: true}
-    })
+    }, { timestamps: false })
     assert.eql(User.attributes, {username:"VARCHAR(255) PRIMARY KEY",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+  },
+  'it should add updatedAt and createdAt if timestamps is undefined or true': function() {
+    var User1 = sequelize.define('User' + parseInt(Math.random() * 999999999), {})
+    var User2 = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { timestamps: true })
+    
+    assert.eql(User1.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+    assert.eql(User2.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+  },
+  'it should add deletedAt if safeDelete is true': function() {
+    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { safeDelete: true })
+    assert.eql(User.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", deletedAt:"DATETIME", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
   }
 }
