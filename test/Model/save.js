@@ -19,5 +19,26 @@ module.exports = {
         })
       })
     })
+  },
+  'save should update the timestamp updated_at': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    User.sync({force: true}).on('success', function() {
+      var now = Date.now()
+      
+      // timeout is needed, in order to check the update of the timestamp
+      setTimeout(function() {
+        var u    = User.build({name: 'foo', bio: 'bar'})
+          , uNow = u.updatedAt
+          
+        assert.eql(true, uNow.getTime() > now)
+
+        setTimeout(function() {
+          u.save().on('success', function() {
+            assert.eql(true, uNow.getTime() < u.updatedAt)
+            exit()
+          })
+        }, 100)
+      }, 100)
+    })
   }
 }
