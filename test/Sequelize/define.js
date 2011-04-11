@@ -40,12 +40,12 @@ module.exports = {
     assert.eql(User1.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
     assert.eql(User2.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
   },
-  'it should add deletedAt if safeDelete is true': function() {
-    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { safeDelete: true })
+  'it should add deletedAt if paranoid is true': function() {
+    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { paranoid: true })
     assert.eql(User.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", deletedAt:"DATETIME", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
   },
   'timestamp columns should be camelcase if camelcase is passed': function() {
-    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { safeDelete: true, camelcase: true })
+    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { paranoid: true, camelcase: true })
     assert.eql(User.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", deleted_at:"DATETIME", updated_at:"DATETIME NOT NULL", created_at:"DATETIME NOT NULL"})
   }
 }
