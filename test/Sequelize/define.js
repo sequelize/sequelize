@@ -43,5 +43,9 @@ module.exports = {
   'it should add deletedAt if safeDelete is true': function() {
     var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { safeDelete: true })
     assert.eql(User.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", deletedAt:"DATETIME", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+  },
+  'timestamp columns should be camelcase if camelcase is passed': function() {
+    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { safeDelete: true, camelcase: true })
+    assert.eql(User.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", deleted_at:"DATETIME", updated_at:"DATETIME NOT NULL", created_at:"DATETIME NOT NULL"})
   }
 }
