@@ -31,7 +31,14 @@ module.exports = {
     var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
       username: {type: Sequelize.STRING, primaryKey: true}
     }, { timestamps: false })
-    assert.eql(User.attributes, {username:"VARCHAR(255) PRIMARY KEY",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+    assert.eql(User.attributes, {username:"VARCHAR(255) PRIMARY KEY"})
+  },
+  'primaryKeys should be correctly determined': function() {
+    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
+      foo: {type: Sequelize.STRING, primaryKey: true},
+      bar: Sequelize.STRING
+    })
+    assert.eql(User.primaryKeys, {"foo":"VARCHAR(255) PRIMARY KEY"})
   },
   'it should add updatedAt and createdAt if timestamps is undefined or true': function() {
     var User1 = sequelize.define('User' + parseInt(Math.random() * 999999999), {})
