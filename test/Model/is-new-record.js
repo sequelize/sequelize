@@ -16,7 +16,7 @@ var initUsers = function(num, callback) {
 module.exports = {
   'build should not create database entries': function(exit) {
     initUsers(1, function(users, User) {
-      assert.eql(users[0].id, null)
+      assert.isNull(users[0].id)
       assert.eql(users[0].isNewRecord, true)
       exit()
     })

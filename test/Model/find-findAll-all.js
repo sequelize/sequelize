@@ -60,6 +60,22 @@ module.exports = {
       })
     })
   },
+  'find should find records by primaryKeys': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
+      identifier: {type: Sequelize.STRING, primaryKey: true},
+      name: Sequelize.STRING
+    })
+    User.sync({force:true}).on('success', function() {
+      User.create({identifier: 'an identifier', name: 'John'}).on('success', function(u) {
+        assert.isUndefined(u.id)
+        User.find('an identifier').on('success', function(u2) {
+          assert.eql(u.identifier, 'an identifier')
+          assert.eql(u.name, 'John')
+          exit()
+        })
+      })
+    })
+  },
   'findAll should find all records': function(exit) {
     initUsers(2, function(_, User) {
       User.findAll().on('success', function(users) {
