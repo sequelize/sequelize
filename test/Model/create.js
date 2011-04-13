@@ -20,5 +20,20 @@ module.exports = {
           })
         })
      })
+  },
+  'it should raise an error if created object breaks definition constraints': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), {
+      username: {type: Sequelize.STRING, unique: true},
+      smth: {type: Sequelize.STRING, allowNull: false}
+    })
+    User.sync({force:true}).on('success', function() {
+      User.create({username: 'foo', smth: null}).on('failure', function(err) {
+        assert.eql(err.message, "Column 'smth' cannot be null")
+        User.create({username: 'foo'}).on('failure', function(err) {
+          assert.eql(err.message, "Column 'smth' cannot be null")
+          exit()
+        })
+      })
+    })
   }
 }
