@@ -19,7 +19,7 @@ module.exports = {
       assert.eql(users.length, 10)
       User.all.on('success', function(users) {
         assert.eql(users.length, 0)
-        exit()
+        exit(function(){})
       })
     })
   }

@@ -17,7 +17,7 @@ module.exports = {
   'build should not create database entries': function(exit) {
     initUsers(1, function(users, User) {
       assert.eql(users[0].values, {"name":"user0","bio":"foobar","id":null})
-      exit()
+      exit(function(){})
     })
   }
 }

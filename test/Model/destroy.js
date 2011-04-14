@@ -13,7 +13,7 @@ module.exports = {
           u.destroy().on('success', function() {
             User.all.on('success', function(users) {
               assert.eql(users.length, 0)
-              exit()
+              exit(function(){})
             })
           })
         })
@@ -27,7 +27,7 @@ module.exports = {
         assert.isNull(u.deletedAt)
         u.destroy().on('success', function(u) {
           assert.isNotNull(u.deletedAt)
-          exit()
+          exit(function(){})
         })
       })
     })

@@ -16,7 +16,7 @@ module.exports = {
        User.create({username:'foo'}).on('success', function() {
           User.create({username: 'foo'}).on('failure', function(err) {
             assert.eql(err.message, "Duplicate entry 'foo' for key 'username'")
-            exit()
+            exit(function(){})
           })
         })
      })
@@ -31,7 +31,7 @@ module.exports = {
         assert.eql(err.message, "Column 'smth' cannot be null")
         User.create({username: 'foo'}).on('failure', function(err) {
           assert.eql(err.message, "Column 'smth' cannot be null")
-          exit()
+          exit(function(){})
         })
       })
     })

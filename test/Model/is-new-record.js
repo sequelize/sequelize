@@ -18,7 +18,7 @@ module.exports = {
     initUsers(1, function(users, User) {
       assert.isNull(users[0].id)
       assert.eql(users[0].isNewRecord, true)
-      exit()
+      exit(function(){})
     })
   }
 }

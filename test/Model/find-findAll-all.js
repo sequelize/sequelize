@@ -22,7 +22,7 @@ module.exports = {
     initUsers(2, function(_, User) {
       User.all.on('success', function(users) {
         assert.eql(users.length, 2)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -30,7 +30,7 @@ module.exports = {
     initUsers(2, function(lastInsertedUser, User) {
       User.find(lastInsertedUser.id).on('success', function(user) {
         assert.eql(user.id, lastInsertedUser.id)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -39,7 +39,7 @@ module.exports = {
       var username = 'user1'
       User.find({where: {name: username}}).on('success', function(user) {
         assert.eql(user.name, username)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -47,7 +47,7 @@ module.exports = {
     initUsers(2, function(_, User) {
       User.find({where: {name: 'foo'}}).on('success', function(user) {
         assert.eql(user, null)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -56,7 +56,7 @@ module.exports = {
       User.find({limit: 10}).on('success', function(user) {
         // it returns an object instead of an array
         assert.eql(user.hasOwnProperty('name'), true)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -71,7 +71,7 @@ module.exports = {
         User.find('an identifier').on('success', function(u2) {
           assert.eql(u.identifier, 'an identifier')
           assert.eql(u.name, 'John')
-          exit()
+          exit(function(){})
         })
       })
     })
@@ -80,7 +80,7 @@ module.exports = {
     initUsers(2, function(_, User) {
       User.findAll().on('success', function(users) {
         assert.eql(users.length, 2)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -88,7 +88,7 @@ module.exports = {
     initUsers(2, function(lastUser, User) {
       User.findAll({where: "id != " + lastUser.id}).on('success', function(users) {
         assert.eql(users.length, 1)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -96,7 +96,7 @@ module.exports = {
     initUsers(2, function(lastUser, User) {
       User.findAll({order: "id DESC"}).on('success', function(users) {
         assert.eql(users[0].id > users[1].id, true)
-        exit()
+        exit(function(){})
       })
     })
   },
@@ -105,7 +105,7 @@ module.exports = {
       User.findAll({limit: 2, offset: 2}).on('success', function(users) {
         assert.eql(users.length, 2)
         assert.eql(users[0].id, 3)
-        exit()
+        exit(function(){})
       })
     })
   }

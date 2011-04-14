@@ -11,7 +11,7 @@ module.exports = {
     User.belongsTo('task', Task)
     assert.eql(User.attributes.taskId, "INT")
   },
-  'it should correctly add the foreign id with underscored': function() {
+  'it should correctly add the foreign id with underscore': function() {
     var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING }, {underscored: true})
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
     
@@ -25,7 +25,6 @@ module.exports = {
     User.belongsTo('task', Task)
     
     var u = User.build({username: 'asd'})
-    console.log(u)
     assert.isDefined(u.setTask)
     assert.isDefined(u.getTask)
   },
@@ -36,12 +35,14 @@ module.exports = {
     User.belongsTo('task', Task)
     
     User.sync({force: true}).on('success', function() {
-      User.create({username: 'asd'}).on('success', function(u) {
-        Task.create({title: 'a task'}).on('success', function(t) {
-          u.setTask(t).on('success', function() {
-            u.getTask().on('success', function(task) {
-              assert.eql(task.title, 'a task')
-              exit()
+      Task.sync({force: true}).on('success', function() {
+        User.create({username: 'asd'}).on('success', function(u) {
+          Task.create({title: 'a task'}).on('success', function(t) {
+            u.setTask(t).on('success', function() {
+              u.getTask().on('success', function(task) {
+                assert.eql(task.title, 'a task')
+                exit(function(){})
+              })
             })
           })
         })
