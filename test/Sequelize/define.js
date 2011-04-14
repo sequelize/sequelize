@@ -51,8 +51,8 @@ module.exports = {
     var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { paranoid: true })
     assert.eql(User.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", deletedAt:"DATETIME", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
   },
-  'timestamp columns should be camelcase if camelcase is passed': function() {
-    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { paranoid: true, camelcase: true })
+  'timestamp columns should be underscored if underscored is passed': function() {
+    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {}, { paranoid: true, underscored: true })
     assert.eql(User.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", deleted_at:"DATETIME", updated_at:"DATETIME NOT NULL", created_at:"DATETIME NOT NULL"})
   }
 }
