@@ -48,5 +48,31 @@ module.exports = {
         })
       })
     })
+  },
+  'it should correctly delete associations': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    
+    User.belongsTo('task', Task)
+    
+    User.sync({force: true}).on('success', function() {
+      Task.sync({force: true}).on('success', function() {
+        User.create({username: 'asd'}).on('success', function(u) {
+          Task.create({title: 'a task'}).on('success', function(t) {
+            u.setTask(t).on('success', function() {
+              u.getTask().on('success', function(task) {
+                assert.eql(task.title, 'a task')
+                u.setTask(null).on('success', function() {
+                  u.getTask().on('success', function(task) {
+                    assert.isNull(task)
+                    exit(function(){})
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
   }
 }
