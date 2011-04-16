@@ -13,36 +13,56 @@ module.exports = {
     assert.eql(Task.attributes['User'+num+'Id'], "INT")
   },
   'it should correctly add the foreign id with underscore': function() {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
+    var num  = parseInt(Math.random() * 99999999)
+    var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING }, {underscored: true})
     
-    Task.belongsTo('user', User)
-    assert.eql(Task.attributes.user_id, "INT")
+    Task.belongsTo(User)
+    assert.eql(Task.attributes['user'+num+'_id'], "INT")
+  },
+  'it should correctly add the foreign id if foreignKey is passed': function() {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    
+    Task.belongsTo(User, {foreignKey: 'person_id'})
+    assert.eql(Task.attributes['person_id'], "INT")
   },
   'it should define getter and setter': function() {
+    var num  = parseInt(Math.random() * 99999999)
+    var User = sequelize.define('User' + num, { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    
+    Task.belongsTo(User)
+    
+    var t = Task.build({title: 'asd'})
+    assert.isDefined(t['setUser'+num])
+    assert.isDefined(t['getUser'+num])
+  },
+  'it should define getter and setter according to passed as option': function() {
     var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
     
-    Task.belongsTo('user', User)
+    Task.belongsTo(User, {as: 'Person'})
     
     var t = Task.build({title: 'asd'})
-    assert.isDefined(t.setUser)
-    assert.isDefined(t.getUser)
+    assert.isDefined(t.setPerson)
+    assert.isDefined(t.getPerson)
   },
   'it should set the foreign id to null': function() {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
+    var num  = parseInt(Math.random() * 99999999)
+    var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
     
-    Task.belongsTo('user', User)
+    Task.belongsTo(User)
     
     var t = Task.build({title: 'asd'})
-    assert.isNull(t.userId)
+    assert.isNull(t['User'+num+'Id'])
   },
   'it should set and get the correct object': function(exit) {
     var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
     
-    Task.belongsTo('user', User)
+    Task.belongsTo(User, {as: 'User'})
     
     User.sync({force: true}).on('success', function() {
       Task.sync({force: true}).on('success', function() {
@@ -63,7 +83,7 @@ module.exports = {
     var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
     
-    Task.belongsTo('user', User)
+    Task.belongsTo(User, {as: 'User'})
     
     User.sync({force: true}).on('success', function() {
       Task.sync({force: true}).on('success', function() {
