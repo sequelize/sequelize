@@ -17,7 +17,6 @@ module.exports = {
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING }, {underscored: true})
     
     Task.belongsTo('user', User)
-console.log(Task.attributes)
     assert.eql(Task.attributes.user_id, "INT")
   },
   'it should define getter and setter': function() {
