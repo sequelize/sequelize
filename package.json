@@ -8,7 +8,8 @@
   ],
   "dependencies": {
     "mysql": ">=0.9.1",
-    "underscore": ">=1.1.5"
+    "underscore": ">=1.1.5",
+    "underscore.string": ">=1.1.3"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
