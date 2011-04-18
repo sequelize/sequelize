@@ -70,5 +70,33 @@ module.exports = {
         })
       })
     })
+  },
+  'it should correctly unset the obsolete objects': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    
+    User.hasOne(Task, {as: 'Task'})
+    
+    User.sync({force: true}).on('success', function() {
+      Task.sync({force: true}).on('success', function() {
+        User.create({username: 'name'}).on('success', function(user) {
+          Task.create({title: 'snafu'}).on('success', function(task) {
+            Task.create({title: 'another task'}).on('success', function(task2) {
+              user.setTask(task).on('success', function() {
+                user.getTask().on('success', function(_task) {
+                  assert.eql(task.title, _task.title)
+                  user.setTask(task2).on('success', function() {
+                    user.getTask().on('success', function(_task2) {
+                      assert.eql(task2.title, _task2.title)
+                      exit(function(){})
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
   }
 }
