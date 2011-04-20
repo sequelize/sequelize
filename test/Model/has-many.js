@@ -130,26 +130,32 @@ module.exports = {
     var t = Task.build({title: 'asd'})
     assert.isDefined(t.setUsers)
     assert.isDefined(t.getUsers)
-  }/*,
-  'it should set and get the correct objects': function(exit) {
+  },
+  'it should set and get the correct objects - monodirectional': function(exit) {
     var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
     
-    User.hasOne(Task, {as: 'Task'})
+    User.hasMany(Task, {as: 'Tasks'})
     
     User.sync({force: true}).on('success', function() {
       Task.sync({force: true}).on('success', function() {
         User.create({username: 'name'}).on('success', function(user) {
-          Task.create({title: 'snafu'}).on('success', function(task) {
-            user.setTask(task).on('success', function() {
-              user.getTask().on('success', function(task2) {
-                assert.eql(task.title, task2.title)
-                exit(function(){})
+          
+          Task.create({title: 'task1'}).on('success', function(task1) {
+            Task.create({title: 'task2'}).on('success', function(task2) {
+              
+              user.setTasks([task1, task2]).on('success', function() {
+                user.getTasks().on('success', function(tasks) {
+                  assert.eql(tasks.length, 2)
+                  exit(function(){})
+                })
               })
+              
             })
           })
+          
         })
       })
     })
-  }*/
+  }
 }
