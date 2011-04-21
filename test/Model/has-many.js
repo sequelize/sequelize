@@ -157,5 +157,41 @@ module.exports = {
         })
       })
     })
+  },
+  'it should set and get the correct objects - bidirectional': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    
+    User.hasMany(Task, {as: 'Tasks'})
+    Task.hasMany(User, {as: 'Users'})
+    
+    User.sync({force: true}).on('success', function() {
+      Task.sync({force: true}).on('success', function() {
+        User.create({username: 'name'}).on('success', function(user1) {
+          User.create({username: 'name2'}).on('success', function(user2) {
+            
+            Task.create({title: 'task1'}).on('success', function(task1) {
+              Task.create({title: 'task2'}).on('success', function(task2) {
+
+                user1.setTasks([task1, task2]).on('success', function() {
+                  user1.getTasks().on('success', function(tasks) {
+                    assert.eql(tasks.length, 2)
+                    
+                    task2.setUsers([user1, user2]).on('success', function() {
+                      task2.getUsers().on('success', function(users) {
+                        assert.eql(users.length, 2)
+                        exit(function(){})
+                      })
+                    })
+                  })
+                })
+              
+              })
+            })  
+            
+          })
+        })
+      })
+    })
   }
 }
