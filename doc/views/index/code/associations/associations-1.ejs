@@ -1,0 +1,23 @@
+// many to many association:
+Class.hasMany('association name', AssociationClass, 'back association name')
+// example
+Project.hasMany('tasks', Task, 'projects')
+
+// many to many association on the same class
+Class.hasMany('association name')
+// example
+Person.hasMany('friends')
+
+// one-to-one association
+Class.hasOneAndBelongsTo('association name', AssociationClass)
+// example
+Person.hasOneAndBelongsTo('house', House, 'owner')
+
+// one-to-many association
+Class.hasManyAndBelongsTo('association name', AssociationClass, 'back association name')
+// example
+Person.hasManyAndBelongsTo('cars', Car, 'owner')
+
+// one way associations
+Class.hasMany('association name', AssociationClass)
+Class.hasOne('association name', AssociationClass)

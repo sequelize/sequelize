@@ -4,7 +4,34 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>Sequelize &raquo; A MySQL Object-Relational-Mapper for NodeJS</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
+    <style type="text/css" media="screen">
+      body { background: url(/background) repeat top left fixed; }
+    </style>
     <script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script>
+    <!-- <script type="text/javascript" charset="utf-8" src="/javascripts/prototype.js"></script> -->
+    <script type="text/javascript" charset="utf-8">
+      var highlightNavigation = function(e) {
+        $$("#sidebar a").each(function(anchor) { anchor.removeClassName("active") })
+        $(e).addClassName("active")
+      }
+
+      var buildNavigation = function(additionalBefore, additionalAfter, options) {
+        options = options || {}
+        options.seperator = options.seperator || "<br />"
+
+        var navigationContent = "<h2>Navigation</h2><br />",
+            headline = null
+
+        navigationContent += additionalBefore.join(options.seperator)
+        $$("#content div a").each(function(e) {
+          if(headline = e.up().down("h2"))
+            navigationContent += "<a href='#" + e.name + "' onclick='highlightNavigation(this)'>" + headline.innerHTML + "</a>"
+        })
+        navigationContent += additionalAfter.join(options.seperator)
+
+        $("sidebar").update(navigationContent)
+      }
+    </script>
     <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-9039631-4']);
@@ -16,21 +43,9 @@
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
     </script>
-    <script type="text/javascript" charset="utf-8">
-      document.observe("dom:loaded", function() {
-        setTimeout(function() {
-          $$("[name='<%= active %>']").first().scrollTo()
-        }, 50)
-      })
-    </script>
   </head>
   <body>
-    <div id="sidebar" class="bordered">
-      <h2>Navigation</h2><br/>
-      <% for(var key in navigation) { %>
-        <%- linkTo(navigation[key], "?active=" + key, {class: (active==key) ? "active" : ""}) %>
-      <% } %>
-    </div>
+    <div id="sidebar" class="bordered"></div>
     <div id="wrapper">
       <div id="navigation" class="bordered">
         <table width="100%">

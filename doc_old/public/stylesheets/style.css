@@ -3,17 +3,13 @@ body {
   font-size: 14px;
   font-family: "Helvetica Neue", Verdana;
   line-height: 1.5;
-  background: url(/background) repeat top left fixed;
 }
-
 h2 {
-  margin: 0px
+  margin: 0px;
 }
-
 .active {
   text-decoration: underline !important;
 }
-
 .bordered {
   -moz-border-radius: 15px;
   border-radius: 15px;
@@ -26,57 +22,51 @@ h2 {
   -webkit-box-shadow: 0 2px 16px #000, 0 0 1px #000, 0 0 1px #000;
   -moz-box-shadow: 0 2px 16px #000, 0 0 1px #000, 0 0 1px #000;
 }
-
-#wrapper{ text-align:center; padding:0 200px; }
-
+#wrapper {
+  text-align: center;
+  padding: 0 200px;
+}
 #navigation, #content, #footer {
   width: 800px;
   text-align: justify;
-  margin:0px auto;
+  margin: 0px auto;
 }
-
 #footer {
   margin-top: 15px;
   color: white;
   text-align: center;
-  
-  a { color: white; }
 }
-
+#footer a {
+  color: white;
+}
 #navigation {
   margin-bottom: 15px;
   padding: 10px 20px;
-
-  a {
-    color: white;
-    display: block;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: bold;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 }
-
+#navigation a {
+  color: white;
+  display: block;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+}
+#navigation a:hover {
+  text-decoration: underline;
+}
 #sidebar {
   float: left;
   position: fixed;
   width: 140px;
-  
-  a {
-    color: white;
-    padding: 5px 0px;
-    display: block;
-    text-decoration: none;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 }
-
+#sidebar a {
+  color: white;
+  padding: 5px 0px;
+  display: block;
+  text-decoration: none;
+}
+#sidebar a:hover {
+  text-decoration: underline;
+}
 pre, .pre_like {
   border: 1px solid #888;
   -moz-border-radius: 5px;
@@ -84,38 +74,53 @@ pre, .pre_like {
   padding: 5px;
   background-color: rgba(43, 32, 28, 0.7);
 }
-
-.comment { color: grey }
-.string { color: #04D80D }
-.regexp { color: #2FE420 }
-.number { color: #44AA43 }
-.class, .this { color: #8AC9F2 }
-.inst.variable, .class.variable, .global.variable { color: #2F5FE0 }
-.keyword { font-weight: bold; color: #43A8ED }
-
+.comment {
+  color: grey;
+}
+.string {
+  color: #04d80d;
+}
+.regexp {
+  color: #2fe420;
+}
+.number {
+  color: #44aa43;
+}
+.class, .this {
+  color: #8ac9f2;
+}
+.inst.variable, .class.variable, .global.variable {
+  color: #2f5fe0;
+}
+.keyword {
+  font-weight: bold;
+  color: #43a8ed;
+}
 .seperator {
   border-top: 1px solid white;
   height: 1px;
   overflow: hidden;
-  margin-bottom: 10px
+  margin-bottom: 10px;
 }
-
 #forkBadge {
   position: fixed;
   top: 0px;
   right: 0px;
-  img {
-    border: none
-  }
 }
-
-#changelog {
-  p { margin: 0px }
-  h3 { margin: 5px 0px }
-  .pre_like { margin: 10px 0px }
-  ul { 
-    margin: 5px 0px;
-    padding-left: 30px;
-    padding-bottom: 0px;
-  }
+#forkBadge img {
+  border: none;
+}
+#changelog p {
+  margin: 0px;
+}
+#changelog h3 {
+  margin: 5px 0px;
+}
+#changelog .pre_like {
+  margin: 10px 0px;
+}
+#changelog ul {
+  margin: 5px 0px;
+  padding-left: 30px;
+  padding-bottom: 0px;
 }

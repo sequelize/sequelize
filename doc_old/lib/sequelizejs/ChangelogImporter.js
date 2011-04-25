@@ -5,7 +5,7 @@ module.exports = function(host, filename, forceFetch) {
 }
 
 module.exports.prototype = {
-  markdown: require(__dirname + '/../node/markdown'),
+  markdown: require('markdown'),
   changelogFile: __dirname + "/../../views/partials/changelog.ejs",
   fs: require("fs"),
 
@@ -13,7 +13,6 @@ module.exports.prototype = {
     var self    = this
       , https   = require("https")
       , changelog = []
-        
 
     https.get({ host: this.host, path: this.filename }, function(res) {
       res.setEncoding('utf8')

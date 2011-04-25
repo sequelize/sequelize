@@ -1,0 +1,11 @@
+// create all tables... now!
+sequelize.sync(callback)
+
+// and drop it!
+sequelize.drop(callback)
+
+// with error handling:
+sequelize.[sync|drop](function(errors) {
+  if(errors.length > 0) // whooops
+  else // woot woot
+})

@@ -1,0 +1,15 @@
+Project.hasManyAndBelongsTo('tasks', Task, 'project')
+
+var project = new Project...
+var task1 = new Task...
+var task2 = new Task
+
+// save them... and then:
+project.setTasks([task1, task2], function(associatedTasks) {
+  // the associatedTasks are the very same as task1 and task2
+})
+
+// ok now they are save... how do I get them later on?
+project.getTasks(function(associatedTasks) {
+  // bam
+})

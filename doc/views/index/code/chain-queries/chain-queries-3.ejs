@@ -1,0 +1,6 @@
+Sequelize.chainQueries(
+  { methodWithParams: project, params: [1, 2, 3] },
+  function() {
+    // the method call will equal: project.methodWithParams(1, 2, 3, callback)
+  }
+)

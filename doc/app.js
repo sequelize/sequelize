@@ -1,75 +1,32 @@
-/**
- * Module dependencies.
- */
-
-require.paths.unshift(__dirname + "/lib/node")
-
-var express = require('express'),
-    connect = require('connect'),
-    fs      = require('fs'),
-    http    = require('http'),
-    koala   = require('koala'),
-    sys     = require('sys'),
-    ChangelogImporter = require(__dirname + "/lib/sequelizejs/ChangelogImporter"),
-    ExampleImporter   = require(__dirname + "/lib/sequelizejs/ExampleImporter"),
-    changelogImporter = new ChangelogImporter("github.com", "/sdepold/sequelize/raw/master/changelog.md", false),
-    exampleImporter   = new ExampleImporter(false)
-
-var app = module.exports = express.createServer(
-  connect.logger()
-)
+var express = require('express')
+var app = module.exports = express.createServer()
 
 // Configuration
-
 app.configure(function(){
   app.set('views', __dirname + '/views')
-  app.use(connect.bodyDecoder())
-  app.use(connect.methodOverride())
-  app.use(connect.compiler({ src: __dirname + '/public', enable: ['less'] }))
+  app.set('view engine', 'ejs')
+  app.helpers(require("express-view-helpers"))
+  app.helpers({
+    koala: require("koala").render
+  })
+  app.use(express.bodyParser())
+  app.use(express.methodOverride())
+  app.use(require('connect').compiler({ src: __dirname + '/public', enable: ['less'] }))
   app.use(app.router)
-  app.use(connect.staticProvider(__dirname + '/public'))
+  app.use(express.static(__dirname + '/public'))
 })
 
 app.configure('development', function(){
-  app.use(connect.errorHandler({ dumpExceptions: true, showStack: true }))
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })) 
 })
 
 app.configure('production', function(){
-  app.use(connect.errorHandler())
+  app.use(express.errorHandler()) 
 })
 
 // Routes
-app.get('/', function(req, res){
-  res.render('index.ejs', {
-    locals: { koala: koala }
-  })
-})
-
-app.get("/changelog", function(req, res) {
-  res.render('changelog.ejs')
-})
-
-app.get("/examples/:example?", function(req, res) {
-  var examples = fs.readdirSync(__dirname + "/views/examples"),
-      example  = req.params.example
-
-  if (typeof example != "undefined") {
-    console.log(example)
-    if(examples.indexOf(example + ".ejs") > -1)
-      res.render("examples/" + example + ".ejs", {
-        locals: { examples: examples }
-      })
-    else
-      res.redirect("/examples")
-  } else {
-    res.render("examples/" + examples[0], {
-      locals: { examples: examples }
-    })
-  }
-})
-
 app.get("/background", function(req, res) {
-  fs.readdir(__dirname + "/public/images/", function(err, files) {
+  require("fs").readdir(__dirname + "/public/images/", function(err, files) {
     if(err) sys.log(err)
     else {
       if(files[0] == ".DS_Store") files.shift()
@@ -79,19 +36,26 @@ app.get("/background", function(req, res) {
   })
 })
 
-// Only listen on $ node app.js
-if (!module.parent) {
-  app.listen(4000)
-  sys.log("Server is now listening on port 4000")
-  
-  var runImporters = function() {
-    try { 
-      changelogImporter.run()
-      exampleImporter.run()
-     } catch(e) {
-       console.log(e)
-     }
+app.get('/', function(req, res){
+  var navigation = {
+    "installation": 'Installation',
+    "basic-mapping": 'Basic Mapping',
+    "sync-with-db": 'Synchronize with database',
+    "instances": "Creating and working with instances",
+    "expanding-models": "Expanding models",
+    "chain-queries": "Chain queries",
+    "associations": "Associations",
+    "find-objects": "Finding objects",
+    "projects": "Sequelize-based projects"
   }
-  setInterval(runImporters, 1000*60*60)
-  runImporters()
+  
+  res.render('index', {
+    navigation: navigation,
+    active: req.param('active') || 'installation'
+  })
+})
+
+if (!module.parent) {
+  app.listen(3000)
+  console.log("Express server listening on port %d", app.address().port)
 }

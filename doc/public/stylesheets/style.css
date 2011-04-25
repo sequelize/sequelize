@@ -3,6 +3,7 @@ body {
   font-size: 14px;
   font-family: "Helvetica Neue", Verdana;
   line-height: 1.5;
+  background: url(/background) repeat top left fixed;
 }
 h2 {
   margin: 0px;

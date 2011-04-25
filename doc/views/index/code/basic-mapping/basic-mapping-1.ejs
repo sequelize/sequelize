@@ -1,0 +1,18 @@
+var Project = sequelize.define('Project', {
+  title: Sequelize.STRING,
+  description: Sequelize.TEXT
+})
+
+var Task = sequelize.define('Task', {
+  title: Sequelize.STRING,
+  description: Sequelize.TEXT,
+  deadline: Sequelize.DATE
+})
+
+// You can also set some options:
+var Foo = sequelize.define('Foo', {
+  // instantiating will automatically set the flag to true if not set
+  flag: { type: Sequelize.BOOLEAN, allowNull: false, default: true},
+  // setting no title will throw an error when trying to save
+  title: { type: Sequelize.STRING, allowNull: false}
+})

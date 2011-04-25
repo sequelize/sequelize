@@ -1,0 +1,8 @@
+Sequelize.chainQueries( 
+  { save: project },
+  { save: task },
+  // what is equal to: { save: [project, task] }
+  function() {
+    // woot! saved.
+  }
+)

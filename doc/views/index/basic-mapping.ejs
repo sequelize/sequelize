@@ -1,0 +1,24 @@
+To get the ball rollin' you first have to create an instance of Sequelize. Use it the following way:
+
+<pre><%- koala(".js", "var sequelize = new Sequelize('database', 'username', 'password')") %></pre>
+
+This will save the passed database credentials and provide all further methods. Furthermore you can specify
+a non-default host or port and some options:
+
+<pre><%- koala(".js", partial("code/basic-mapping/advanced-instantiation.ejs")) %></pre>
+
+To define mappings between a class (Stop telling me that JavaScript don't know classes. Name it however you want to!) 
+and a table, use the define method:
+
+<pre><%- koala(".js", partial("code/basic-mapping/basic-mapping-1.ejs")) %></pre>
+
+Sequelize currently supports the following datatypes:
+
+<pre><%= partial("code/basic-mapping/basic-mapping-2.ejs") %></pre>
+
+You can also store your model definitions in a single file using the import method:
+
+<pre><%- koala(".js", partial("code/basic-mapping/basic-mapping-3.ejs")) %></pre>
+
+Choose the name of the exported function the way you want. It doesn't matter at all. You can also specify multiple
+models in one file. The import method will return a hash, which stores the result of sequelize.define under the key <i>Project</i>.

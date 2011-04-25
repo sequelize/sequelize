@@ -1,0 +1,3 @@
+Person.hasOne('father', Person) // will create a foreign key 'fatherId'
+Person.hasOne('mother', Person) // will create a foreign key 'motherId'
+Person.hasMany('friends') // will create a table 'FriendsPeople' with friendId and personId
