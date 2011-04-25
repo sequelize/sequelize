@@ -1,26 +1,43 @@
-var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
-    sequelize = new Sequelize("sequelize_test", "root", null, { disableLogging: true })
+var Sequelize    = require(__dirname + "/../../index")
+  , config       = require("../../test/config")
+  , sequelize    = new Sequelize(config.database, config.username, config.password, {logging: false, host: config.host})
+  , QueryChainer = Sequelize.Utils.QueryChainer
 
 var Person = sequelize.define('person', { name: Sequelize.STRING })
 
-Sequelize.chainQueries([{drop: sequelize}, {sync: sequelize}], function() {
-  var start   = Date.now(),
-      count   = 10000,
-      queries = []
+Person.sync({force: true}).on('success', function() {
+  var start   = Date.now()
+    , count   = 10000
+    , offset  = 0
+    , stepWidth = 100
+    , queries = []
+    , chainer = new QueryChainer
   
-  for(var i = 0; i < count; i++) {
-    var p = new Person({name: 'someone'})
-    queries.push({ save: p })
+  var perform = function(cb) {
+    console.log("Begin to create " + offset + " - " + (offset+stepWidth) + " items!")
+    
+    for(var i = offset; i < (offset + stepWidth); i++)
+      chainer.add(Person.create({name: 'someone'}))
+    
+    chainer.run().on('success', function() {
+      if(count - offset > 0) {
+        offset += stepWidth
+        perform(cb)
+      } else {
+        console.log("Saving " + count + " items took: " + (Date.now() - start) + "ms")
+        cb && cb.call()
+      }
+    })
   }
   
-  Sequelize.Helper.log("Begin to save " + count + " items!")
-  Sequelize.chainQueries(queries, function() {
-    Sequelize.Helper.log("Saving " + count + " items took: " + (Date.now() - start) + "ms")
-    
-    start   = Date.now()
-    Sequelize.Helper.log("Will now read them from the database:")
-    Person.findAll(function(persons) {
-      Sequelize.Helper.log("Reading " + persons.length + " items took: " + (Date.now() - start) + "ms")
+  perform(function() {
+    start = Date.now()
+    console.log("Will now read them from the database:")
+
+    Person.findAll().on('success', function(people) {
+      console.log("Reading " + people.length + " items took: " + (Date.now() - start) + "ms")
     })
   })
+}).on('failure', function(err) {
+  console.log(err)
 })
