@@ -9,7 +9,7 @@ Person.sync({force: true}).on('success', function() {
   var start   = Date.now()
     , count   = 10000
     , offset  = 0
-    , stepWidth = 100
+    , stepWidth = 50
     , queries = []
     , chainer = new QueryChainer
   
@@ -27,6 +27,8 @@ Person.sync({force: true}).on('success', function() {
         console.log("Saving " + count + " items took: " + (Date.now() - start) + "ms")
         cb && cb.call()
       }
+    }).on('failure', function(err) {
+      console.log(err)
     })
   }
   
