@@ -8,13 +8,13 @@ var sequelize = new Sequelize('database', 'username'[, null])
 
 // Want no logging? Use that:
 var sequelize = new Sequelize('database', 'username', 'password', {
-  disableLogging: true
+  logging: false
 })
 
 // Since v0.4.3 you can disable the pluralization of table names:
 var sequelize = new Sequelize('database', 'username', 'password', {
   disableTableNameModification: true
 })
-sequelize.define('person', { /* ... */})
+sequelize.define('person', { /* ... */ })
 // will result in a table called >person< if that option is specified
 // will result in a table called >people< if that option is not specified
