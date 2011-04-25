@@ -1,0 +1,24 @@
+<script type="text/javascript" charset="utf-8">
+  document.observe("dom:loaded", function() {
+    buildNavigation([], ["<br />", <%- navigation %>], { seperator: ' ' })
+  })
+</script>
+
+<div>
+  <a name="sequelize"></a>
+  <h1><%= title %></h1>
+  <p></p>
+</div>
+
+<% files.forEach(function(file) { %>
+  <div class="seperator"></div>
+
+  <div>
+    <a name="<%= file.filename %>"></a>
+    <h2><%= file.filename %></h2>
+    <p>
+      <%= file.description %>
+      <pre><%= file.code %></pre>
+    </p>
+</div>
+<% }) %>

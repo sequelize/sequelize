@@ -1,0 +1,57 @@
+<script type="text/javascript" charset="utf-8">
+  document.observe("dom:loaded", function() {
+    buildNavigation([], ["<br />", "<a href=\"/examples/Count\">Count</a>",
+"<a href=\"/examples/DefaultValues\">Default values</a>",
+"<a href=\"/examples/fetchAssociations\">fetchAssociations</a>",
+"<a href=\"/examples/MethodPassing\">MethodPassing</a>",
+"<a href=\"/examples/Performance\">Performance</a>",
+"<a href=\"/examples/SequelizeWithOptions\">SequelizeWithOptions</a>",
+"<a href=\"/examples/ChainQueries\">Using the chainQueries function</a>",
+"<a href=\"/examples/UsingMultipleModelFiles\">UsingMultipleModelFiles</a>",
+"<a href=\"/examples/Associations\">Working with associations</a>"], { seperator: ' ' })
+  })
+</script>
+
+<div>
+  <a name="sequelize"></a>
+  <h1>Count</h1>
+  <p></p>
+</div>
+
+
+  <div class="seperator"></div>
+
+  <div>
+    <a name="app.js"></a>
+    <h2>app.js</h2>
+    <p>
+      
+      <pre>var Sequelize = require(__dirname + &quot;/../../lib/sequelize/Sequelize&quot;).Sequelize,
+    sequelize = new Sequelize(&quot;sequelize_test&quot;, &quot;root&quot;, null, { disableLogging: true })
+
+var Person = sequelize.define('person', { name: Sequelize.STRING })
+
+Sequelize.chainQueries({drop: sequelize}, {sync: sequelize}, function() {
+  var count   = 10,
+      queries = []
+  
+  for(var i = 0; i &lt; count; i++) {
+    var p = new Person({name: 'someone' + (i%3)})
+    queries.push({ save: p })
+  }
+  
+  Sequelize.Helper.log(&quot;Begin to save &quot; + count + &quot; items!&quot;)
+  Sequelize.chainQueries(queries, function() {
+    Sequelize.Helper.log(&quot;Finished!&quot;)
+
+    Person.count(function(count) {
+      Sequelize.Helper.log(&quot;Counted &quot; + count + &quot; elements!&quot;)
+    })
+    
+    Person.count({name: 'someone2'}, function(count) {
+      Sequelize.Helper.log(&quot;Counted &quot; + count + &quot; elements with name = someone2!&quot;)
+    })
+  })
+})</pre>
+    </p>
+</div>

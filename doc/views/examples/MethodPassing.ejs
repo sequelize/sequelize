@@ -1,0 +1,94 @@
+<script type="text/javascript" charset="utf-8">
+  document.observe("dom:loaded", function() {
+    buildNavigation([], ["<br />", "<a href=\"/examples/Count\">Count</a>",
+"<a href=\"/examples/DefaultValues\">Default values</a>",
+"<a href=\"/examples/fetchAssociations\">fetchAssociations</a>",
+"<a href=\"/examples/MethodPassing\">MethodPassing</a>",
+"<a href=\"/examples/Performance\">Performance</a>",
+"<a href=\"/examples/SequelizeWithOptions\">SequelizeWithOptions</a>",
+"<a href=\"/examples/ChainQueries\">Using the chainQueries function</a>",
+"<a href=\"/examples/UsingMultipleModelFiles\">UsingMultipleModelFiles</a>",
+"<a href=\"/examples/Associations\">Working with associations</a>"], { seperator: ' ' })
+  })
+</script>
+
+<div>
+  <a name="sequelize"></a>
+  <h1>MethodPassing</h1>
+  <p></p>
+</div>
+
+
+  <div class="seperator"></div>
+
+  <div>
+    <a name="app.js"></a>
+    <h2>app.js</h2>
+    <p>
+      
+      <pre>var Sequelize = require(__dirname + &quot;/../../lib/sequelize/Sequelize&quot;).Sequelize,
+    sequelize = new Sequelize(&quot;sequelize_test&quot;, &quot;test&quot;, &quot;test&quot;, {disableLogging: true})
+
+// model definition    
+var Task = sequelize.define(&quot;Task&quot;, {
+  name: Sequelize.STRING,
+  deadline: Sequelize.DATE,
+  importance: Sequelize.INTEGER
+}, {
+  classMethods: {
+    setImportance: function(newImportance, callback) {
+      Task.findAll(function(allTasks) {
+        var queries = []
+        allTasks.forEach(function(task) {
+          queries.push({updateAttributes: task, params: [{ importance: newImportance }]})
+        })
+        Sequelize.chainQueries(queries, callback)
+      })
+    }
+  },
+  instanceMethods: {
+    hasDeadlinePassed: function() {
+      return (this.deadline &lt; new Date())
+    }
+  }
+})
+
+// instance creation
+var task1 = new Task({
+      name: 'Choose a nice MySQL connector',
+      deadline: new Date(Date.parse(&quot;Jul 8, 2100&quot;)),
+      importance: 10
+    }),
+    task2 = new Task({
+      name: 'Build the rest',
+      deadline: new Date(Date.parse(&quot;Jul 8, 2005&quot;)),
+      importance: 90
+    })
+
+Task.drop(function(table, error) {
+  if(error) return Sequelize.Helper.log(error)
+
+  Task.sync(function(table, error) {
+    if(error) return Sequelize.Helper.log(error)
+    
+    task1.save(function() {
+      task2.save(function() {
+        
+        Sequelize.Helper.log(&quot;should be false: &quot; + task1.hasDeadlinePassed())
+        Sequelize.Helper.log(&quot;should be true: &quot; + task2.hasDeadlinePassed())
+        Sequelize.Helper.log(&quot;should be 10: &quot; + task1.importance)
+        
+        Task.setImportance(30, function() {
+          Task.findAll(function(tasks) {
+            tasks.forEach(function(task) {
+              Sequelize.Helper.log(&quot;should be 30: &quot; + task.importance)
+            })
+          })
+        })
+        
+      })
+    })
+  })
+})</pre>
+    </p>
+</div>
