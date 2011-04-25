@@ -2,7 +2,7 @@ var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
   , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
-
+  
 module.exports = {
   'it should correctly add the foreign id': function() {
     var num  = parseInt(Math.random() * 99999999)
