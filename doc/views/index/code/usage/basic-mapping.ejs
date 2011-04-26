@@ -14,5 +14,11 @@ var Foo = sequelize.define('Foo', {
   // instantiating will automatically set the flag to true if not set
   flag: { dataType: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
   // setting no title will throw an error when trying to save
-  title: { dataType: Sequelize.STRING, allowNull: false}
+  title: { dataType: Sequelize.STRING, allowNull: false},
+  // creating 2 objects with the same value will throw an error
+  someUnique: {dataType: Sequelize.STRING, unique: false},
+  // go on reading for further information about primary keys
+  identifier: { dataType: Sequelize.String, primaryKey: true},
+  // autoIncrement can be used to create auto_incrementing integer columns
+  incrementMe: { dataType: Sequelize.INTEGER, autoIncrement: true }
 })
