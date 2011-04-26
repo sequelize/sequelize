@@ -12,7 +12,7 @@ var Task = sequelize.define('Task', {
 // You can also set some options:
 var Foo = sequelize.define('Foo', {
   // instantiating will automatically set the flag to true if not set
-  flag: { type: Sequelize.BOOLEAN, allowNull: false, default: true},
+  flag: { dataType: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
   // setting no title will throw an error when trying to save
-  title: { type: Sequelize.STRING, allowNull: false}
+  title: { dataType: Sequelize.STRING, allowNull: false}
 })
