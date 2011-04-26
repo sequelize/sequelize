@@ -29,9 +29,11 @@ module.exports = {
     User.sync({force:true}).on('success', function() {
       User.create({username: 'foo', smth: null}).on('failure', function(err) {
         assert.eql(err.message, "Column 'smth' cannot be null")
-        User.create({username: 'foo'}).on('failure', function(err) {
-          assert.eql(err.message, "Colusmn 'smth' cannot be null")
-          exit(function(){})
+        User.create({username: 'foo', smth: 'foo'}).on('success', function() {
+          User.create({username: 'foo', smth: 'bar'}).on('failure', function(err) {
+            assert.eql(err.message, "Duplicate entry 'foo' for key 'username'")
+            exit(function(){})
+          })
         })
       })
     })
