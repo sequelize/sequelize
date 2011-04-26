@@ -39,7 +39,7 @@ app.get("/background", function(req, res) {
 app.get('/', function(req, res){
   var navigation = {
     "installation": 'Installation',
-    "basic-mapping": 'Basic Mapping',
+    "usage": 'Usage',
     "sync-with-db": 'Synchronize with database',
     "instances": "Creating and working with instances",
     "expanding-models": "Expanding models",

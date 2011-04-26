@@ -1,0 +1,12 @@
+var sequelize = new Sequelize('database', 'username', 'password', {
+  host: "my.server.tld",
+  port: 12345
+})
+
+// No need for password?
+var sequelize = new Sequelize('database', 'username'[, null])
+
+// Want no logging? Use that:
+var sequelize = new Sequelize('database', 'username', 'password', {
+  logging: false
+})
