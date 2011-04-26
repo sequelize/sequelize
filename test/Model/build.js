@@ -22,5 +22,17 @@ module.exports = {
         exit(function(){})
       })
     })
+  },
+  'build should fill the object with default values': function() {
+    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), {
+      title: {dataType: Sequelize.STRING, defaultValue: 'a task!'},
+      foo: {dataType: Sequelize.INTEGER, defaultValue: 2},
+      bar: {dataType: Sequelize.DATE},
+      foobar: {dataType: Sequelize.TEXT, defaultValue: 'asd'}
+    })
+    assert.eql(Task.build().title, 'a task!')
+    assert.eql(Task.build().foo, 2)
+    assert.eql(Task.build().bar, null)
+    assert.eql(Task.build().foobar, 'asd')
   }
 }
