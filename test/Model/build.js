@@ -28,11 +28,13 @@ module.exports = {
       title: {dataType: Sequelize.STRING, defaultValue: 'a task!'},
       foo: {dataType: Sequelize.INTEGER, defaultValue: 2},
       bar: {dataType: Sequelize.DATE},
-      foobar: {dataType: Sequelize.TEXT, defaultValue: 'asd'}
+      foobar: {dataType: Sequelize.TEXT, defaultValue: 'asd'},
+      flag: {dataType: Sequelize.BOOLEAN, defaultValue: false}
     })
     assert.eql(Task.build().title, 'a task!')
     assert.eql(Task.build().foo, 2)
     assert.eql(Task.build().bar, null)
     assert.eql(Task.build().foobar, 'asd')
+    assert.eql(Task.build().flag, false)
   }
 }
