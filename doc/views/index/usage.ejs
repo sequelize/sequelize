@@ -13,11 +13,10 @@ To define mappings between a class and a table, use the define method (Stop tell
 
 Sequelize currently supports the following datatypes:
 
-<pre><%= partial("code/usage/basic-mapping-2.ejs") %></pre>
+<pre><%= partial("code/usage/data-types.ejs") %></pre>
 
 You can also store your model definitions in a single file using the import method:
 
-<pre><%- koala(".js", partial("code/usage/basic-mapping-3.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/usage/import.ejs")) %></pre>
 
-Choose the name of the exported function the way you want. It doesn't matter at all. You can also specify multiple
-models in one file. The import method will return a hash, which stores the result of sequelize.define under the key <i>Project</i>.
+The returned object is exactly the same as defined in the imported file's function.
