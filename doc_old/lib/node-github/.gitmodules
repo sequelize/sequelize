@@ -1,3 +1,0 @@
-[submodule "vendor/node-async-testing"]
-	path = vendor/node-async-testing
-	url = git://github.com/bentomas/node-async-testing.git
