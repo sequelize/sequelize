@@ -12,6 +12,6 @@ Task.drop() // will emit success or failure event
 // event handling:
 Project.[sync|drop]().on('success', function() {
   // ok ... everything is nice!
-}).on('failure', function() {
+}).on('failure', function(error) {
   // oooh, did you entered wrong database credentials?
 })

@@ -1,6 +1,3 @@
-Sequelize.chainQueries(
-  // push your items + method calls here
-  , function() {
-    // and here do some callback stuff
-  }
-)
+var chainer = new Sequelize.Utils.QueryChainer
+chainer.add(/* Query | EventEmitter */)
+chainer.run().on('success', function(){}).on('failure', function(errors){})
