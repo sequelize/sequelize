@@ -63,7 +63,7 @@ module.exports = {
     var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
     
     Task.belongsTo(User, {as: 'User'})
-    
+
     User.sync({force: true}).on('success', function() {
       Task.sync({force: true}).on('success', function() {
         User.create({username: 'asd'}).on('success', function(u) {

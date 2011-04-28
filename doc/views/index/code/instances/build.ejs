@@ -1,9 +1,9 @@
-var project = new Project({
+var project = Project.build({
   title: 'my awesome project',
   description: 'woot woot. this will make me a rich man'
 })
 
-var task = new Task({
+var task = Task.build({
   title: 'specify the project idea',
   description: 'bla',
   deadline: new Date()

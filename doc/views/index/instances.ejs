@@ -1,10 +1,15 @@
-In order to create instances of defined classes just do it as follows:
+In order to create instances of defined classes just do as follows. You might recognize the syntax if you coded Ruby in the past.
+Using the <i>build</i>-method will return an unsaved object, which you explicitly have to save.
 
-<pre><%- koala(".js", partial("code/instances/models-1.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/instances/build.ejs")) %></pre>
 
-To save it in the database use the save method and pass a callback to it, if needed:
+Builded instances will automatically get default values when they were defined:
 
-<pre><%- koala(".js", partial("code/instances/models-2.ejs")) %></pre>
+<pre><%- koala('.js', partial("code/instances/defaults.ejs")) %></pre>
+
+To get it stored in the database, use the save method and catch the events, ..., if needed:
+
+<pre><%- koala(".js", partial("code/instances/save.ejs")) %></pre>
 
 Now lets change some values and save changes to the database... There are two ways to do that:
 
