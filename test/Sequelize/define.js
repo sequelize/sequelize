@@ -62,5 +62,17 @@ module.exports = {
   'tablenames should be pluralized if they are not frozen': function() {
     var User = sequelize.define('User', {}, {freezeTableName: false})
     assert.eql(User.tableName, 'Users')
+  },
+  'it should add the passed class/instance methods': function() {
+    var User = sequelize.define('User', {}, {
+      classMethods: { doSmth: function(){ return 1 } },
+      instanceMethods: { makeItSo: function(){ return 2}}
+    })
+    assert.isDefined(User.doSmth)
+    assert.eql(User.doSmth(), 1)
+    assert.isUndefined(User.makeItSo)
+    
+    assert.isDefined(User.build().makeItSo)
+    assert.eql(User.build().makeItSo(), 2)
   }
 }
