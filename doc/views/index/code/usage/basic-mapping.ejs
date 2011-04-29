@@ -9,6 +9,12 @@ var Task = sequelize.define('Task', {
   deadline: Sequelize.DATE
 })
 
+/*
+  Sequelize will automatically add the attributes createdAt and updatedAt to the 
+  Model. So you will be able to know when the database entry went into the db and
+  when it was updated the last time.
+*/
+
 // You can also set some options:
 var Foo = sequelize.define('Foo', {
   // instantiating will automatically set the flag to true if not set
@@ -21,4 +27,21 @@ var Foo = sequelize.define('Foo', {
   identifier: { type: Sequelize.String, primaryKey: true},
   // autoIncrement can be used to create auto_incrementing integer columns
   incrementMe: { type: Sequelize.INTEGER, autoIncrement: true }
+})
+
+// And you can take influence of the way, Sequelize handles your column names:
+var Bar = sequelize.define('Bar', { /* bla */ }, {
+  // don't add the timestamp attributes (updatedAt, createdAt)
+  timestamps: false,
+  // don't delete database entries but set the newly added attribute deletedAt
+  // to the current date (when deletion was done). paranoid will only work if
+  // timestamps are not disabled
+  paranoid: true,
+  // don't use camelcase for automatically added attributes but underscore style
+  // so updatedAt will be updated_at
+  underscore: true,
+  // disable the modification of tablenames; By default, sequelize will automatically
+  // transform all passed model names (first parameter of define) into plural.
+  // if you don't want that, set the following
+  freezeTableName: true
 })

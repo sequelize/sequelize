@@ -25,6 +25,8 @@ module.exports = {
 
     sequelize.modelManager.models.forEach(function(model) {
       if(model.tableName == (Task.tableName + User.tableName)) {
+        assert.isDefined(model.attributes['User'+num+'Id'])
+        assert.isDefined(model.attributes['Task'+num+'Id'])
         exit(function(){})
       }
     }) 
@@ -40,7 +42,7 @@ module.exports = {
   'it should correctly add the foreign id with underscore - bidirectional': function() {
     var num = parseInt(Math.random() * 99999999)
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
-    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
     Task.hasMany(User)
     User.hasMany(Task)
@@ -51,6 +53,7 @@ module.exports = {
     sequelize.modelManager.models.forEach(function(model) {
       if(model.tableName == (Task.tableName + User.tableName)) {
         assert.isDefined(model.attributes['user'+ num +'_id'])
+        assert.isDefined(model.attributes['Task'+ num +'Id'])
       }
     })
   },

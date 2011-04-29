@@ -1,8 +1,11 @@
 With Sequelize you can also specify associations between multiple classes. Doing so will help you to easily 
-access and set those associated objects. The library therefore provides for each defined class the method 
-the following methods:
+access and set those associated objects. The library therefore provides for each defined class the following methods:<br/><br/>
 
-<pre><%- koala(".js", partial("code/associations/associations-1.ejs")) %></pre>
+NOTE: Associations with models that use custom primaryKeys (so not the field 'id') are currently unsupported.
+
+<pre><%- koala(".js", partial("code/associations/has-one.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/associations/belongs-to.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/associations/has-many.ejs")) %></pre>
 
 Because Sequelize is doing a lot of magic, you have to call Sequelize#sync after setting the associations!
 Doing so will allow you the following:
