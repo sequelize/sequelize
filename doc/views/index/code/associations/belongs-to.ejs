@@ -2,7 +2,7 @@ var User = sequelize.define('User', {/* ... */})
 var Project = sequelize.define('Project', {/* ... */})
 
 // One-way back associations
-Project.belongsTo('initiator', User)
+Project.belongsTo(User)
 
 /*
   In this example belongsTo will add an attribute UserId to the Project model!

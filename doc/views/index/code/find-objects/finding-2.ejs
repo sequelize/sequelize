@@ -1,4 +1,0 @@
-Person.find(person.id, { fetchAssociations: true }, function(p) {
-  var petNames = p.fetchedAssociations.pets.map(function(pet) { return pet.name }).join(", ")
-  Sequelize.Helper.log('The person's pets: ' + petNames)
-})

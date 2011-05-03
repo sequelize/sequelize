@@ -2,7 +2,7 @@ var User = sequelize.define('User', {/* ... */})
 var Project = sequelize.define('Project', {/* ... */})
 
 // One-way associations
-Project.hasOne('initiator', User)
+Project.hasOne(User)
 
 /*
   In this example hasOne will add an attribute ProjectId to the User model!
@@ -14,12 +14,12 @@ Project.hasOne('initiator', User)
   database and want to work on it:
 */
   
-Project.hasOne('inititator', User, { foreignKey: 'initiator_id' })
+Project.hasOne(User, { foreignKey: 'initiator_id' })
   
 /*
   Because Sequelize will use the model's name (first parameter of define) for
   the accessor methods, it is also possible to pass a special option to hasOne:
 */
 
-Project.hasOne('initiator', User, { as: 'Initiator' })
+Project.hasOne(User, { as: 'Initiator' })
 // Now you will get Project#getInitiator and Project#setInitiator

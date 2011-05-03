@@ -3,7 +3,7 @@ var Project = sequelize.define('Project', {/* ... */})
 
 // OK. Now things get more complicated (not really visible to the user :)).
 // First let's define a hasMany association
-Project.hasMany('Workers', User, {as: 'Workers'})
+Project.hasMany(User, {as: 'Workers'})
 
 /*
   This will add the attribute ProjectId or project_id to User.
@@ -13,7 +13,7 @@ Project.hasMany('Workers', User, {as: 'Workers'})
   But we want more! Let's define the other way around:
 */
 
-User.hasMany('Projects', Project)
+User.hasMany(Project)
 
 /*
   This will remove the attribute ProjectId (or project_id) from User and create

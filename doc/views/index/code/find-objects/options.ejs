@@ -1,0 +1,9 @@
+// define the order of the queried data
+Project.findAll({order: 'title DESC'})
+
+// limit the results of the query
+Project.findAll({limit: 10})
+
+// step over some elements
+// this only works with a specified limit
+Project.findAll({offset: 10, limit: 2})

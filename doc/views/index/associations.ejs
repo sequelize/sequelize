@@ -10,33 +10,16 @@ NOTE: Associations with models that use custom primaryKeys (so not the field 'id
 Because Sequelize is doing a lot of magic, you have to call Sequelize#sync after setting the associations!
 Doing so will allow you the following:
 
-<pre><%- koala(".js", partial("code/associations/associations-2.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/associations/setter-and-getter.ejs")) %></pre>
 
 To remove created associations you can just call the set method without a specific id:
 
-<pre><%- koala(".js", partial("code/associations/associations-3.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/associations/single-add-remove.ejs")) %></pre>
 
-You can also do it vice versa:
+You can of course also do it vice versa:
 
-<pre><%- koala(".js", partial("code/associations/associations-4.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/associations/vice-versa.ejs")) %></pre>
 
 For hasOne its basically the same:
 
-<pre><%- koala(".js", partial("code/associations/associations-5.ejs")) %></pre>
-
-In order to specify many-to-many associations you can use the following syntax:
-
-<pre><%- koala(".js", partial("code/associations/associations-6.ejs")) %></pre>
-
-This will create a table, named according to the specified association names (= MembersProjects), 
-which just stores the id of a project and a member. Don't forget to call the sync method of the sequelize 
-instance.<br><br>
-
-Since v0.4.1 all association tables and association keys are named as the passed association names:
-
-<pre><%- koala(".js", partial("code/associations/associations-7.ejs")) %></pre>
-
-Sequelize v0.4.2 introduced a new possibility to load the associated objects from the database. 
-The relevant method is called <i>fetchAssociations</i> and returns a hash:
-
-<pre><%- koala(".js", partial("code/associations/associations-8.ejs")) %></pre>
+<pre><%- koala(".js", partial("code/associations/has-one-example.ejs")) %></pre>
