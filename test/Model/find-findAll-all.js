@@ -92,6 +92,15 @@ module.exports = {
       })
     })
   },
+  'findAll should work with array usage': function(exit) {
+    initUsers(2, function(lastUser, User) {
+      User.findAll({where: ['id = ?', lastUser.id]}).on('success', function(users) {
+        assert.eql(users.length, 1)
+        assert.eql(users[0].id, lastUser.id)
+        exit(function(){})
+      })
+    })
+  },
   'findAll should return the correct order when order is passed': function(exit) {
     initUsers(2, function(lastUser, User) {
       User.findAll({order: "id DESC"}).on('success', function(users) {
