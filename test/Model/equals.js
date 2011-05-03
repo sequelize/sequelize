@@ -1,0 +1,46 @@
+var assert = require("assert")
+  , config = require("./../config")
+  , Sequelize = require("./../../index")
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
+
+module.exports = {
+  'it should correctly determine equal objects': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+
+    User.sync({force: true}).on('success', function() {
+      User.create({name: 'hallo', bio: 'welt'}).on('success', function(u) {
+        assert.eql(u.equals(u), true)
+        exit(function(){})
+      })
+    })
+  },
+  'it should correctly work with different primary keys': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), {
+      foo: {type: Sequelize.STRING, primaryKey: true},
+      bar: {type: Sequelize.STRING, primaryKey: true},
+      name: Sequelize.STRING, bio: Sequelize.TEXT
+    })
+
+    User.sync({force: true}).on('success', function() {
+      User.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).on('success', function(u) {
+        assert.eql(u.equals(u), true)
+        exit(function(){})
+      })
+    })
+  },
+  'equalsOneOf should work': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), {
+      foo: {type: Sequelize.STRING, primaryKey: true},
+      bar: {type: Sequelize.STRING, primaryKey: true},
+      name: Sequelize.STRING, bio: Sequelize.TEXT
+    })
+
+    User.sync({force: true}).on('success', function() {
+      User.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).on('success', function(u) {
+        assert.eql(u.equalsOneOf([u, {a:1}]), true)
+        assert.eql(u.equalsOneOf([{b:2}, {a:1}]), false)
+        exit(function(){})
+      })
+    })
+  }
+}
