@@ -1,9 +1,0 @@
-<%- partial('index/intro') %>
-<% for(var key in navigation) { %>
-  <div class="seperator"></div>
-  <div>
-    <a name="<%= key %>"></a>
-    <h2><%= navigation[key] %></h2>
-    <p><%- partial('index/'+key) %></p>
-  </div>
-<% } %>
