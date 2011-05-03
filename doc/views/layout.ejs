@@ -4,7 +4,12 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>Sequelize &raquo; A MySQL Object-Relational-Mapper for NodeJS</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
-    <!--<script type="text/javascript" charset="utf-8" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script>-->
+    <script type="text/javascript" charset="utf-8">
+      setTimeout(function() {
+        if(window.location.href.indexOf('#') == -1)
+          window.location.href = window.location.href + "#<%= active %>"
+      }, 50)
+    </script>
     <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-9039631-4']);
@@ -15,13 +20,6 @@
         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
-    </script>
-    <script type="text/javascript" charset="utf-8">
-      document.observe("dom:loaded", function() {
-        setTimeout(function() {
-          $$("[name='<%= active %>']").first().scrollTo()
-        }, 50)
-      })
     </script>
   </head>
   <body>
