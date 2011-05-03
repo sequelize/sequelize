@@ -69,13 +69,17 @@
 - allow array as value for chainQueries => Sequelize.chainQueries([save: [a,b,c]], callback)
 - remove the usage of an array => Sequelize.chainQueries({save: a}, {destroy: b}, callback)
 
-# v0.4.4 - in development #
-- select now supports array usage of fields
+# v1.0.0 #
+- complete rewrite
+- added new emitter syntax
+- sql injection protection
 - select now supports hash usage of where
+- select now supports array usage of where
+- added a lot of options to find/findAll
 - Wrapped queries correctly using `foo`
-- Added Model.count(callback), which returns the number of elements saved in the database
-- Merged israeldelahoz's changes for using created_at and updated_at instead of the camel cased version
 - using expresso 0.7.2
-- tests were working all the time
 - moved config for test database into seperated config file
-- TODO: Add method for adding and deleting single associations
+- Added method for adding and deleting single associations
+
+# v1.0.1 #
+- TODO: Add Model.count(callback), which returns the number of elements saved in the database
