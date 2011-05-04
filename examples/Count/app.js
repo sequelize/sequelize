@@ -1,27 +1,26 @@
-var Sequelize = require(__dirname + "/../../lib/sequelize/Sequelize").Sequelize,
-    sequelize = new Sequelize("sequelize_test", "root", null, { disableLogging: true })
+var Sequelize = require(__dirname + "/../../index")
+  , config    = require(__dirname + "/../../test/config")
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
 
-var Person = sequelize.define('person', { name: Sequelize.STRING })
+var Person  = sequelize.define('Person', { name: Sequelize.STRING })
+  , chainer = new Sequelize.Utils.QueryChainer
 
-Sequelize.chainQueries({drop: sequelize}, {sync: sequelize}, function() {
+sequelize.sync({force: true}).on('success', function() {
   var count   = 10,
       queries = []
   
-  for(var i = 0; i < count; i++) {
-    var p = new Person({name: 'someone' + (i%3)})
-    queries.push({ save: p })
-  }
+  for(var i = 0; i < count; i++)
+    chainer.add(Person.create({name: 'someone' + (i % 3)}))
   
-  Sequelize.Helper.log("Begin to save " + count + " items!")
-  Sequelize.chainQueries(queries, function() {
-    Sequelize.Helper.log("Finished!")
-
-    Person.count(function(count) {
-      Sequelize.Helper.log("Counted " + count + " elements!")
+  console.log("Begin to save " + count + " items!")
+  
+  chainer.run().on('success', function() {
+    console.log("finished")
+    Person.count().on('success', function(count) {
+      console.log("Counted " + count + " elements!")
     })
-    
-    Person.count({name: 'someone2'}, function(count) {
-      Sequelize.Helper.log("Counted " + count + " elements with name = someone2!")
+    Person.count({where: {name: 'someone2'}}).on('success', function(count) {
+      console.log("Counted " + count + " elements with name = someone2!")
     })
   })
 })
