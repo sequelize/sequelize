@@ -1,0 +1,3 @@
+[submodule "doc"]
+	path = doc
+	url = git@github.com:sdepold/sequelize-doc.git
