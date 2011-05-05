@@ -82,4 +82,4 @@
 - Added method for adding and deleting single associations
 
 # v1.0.1 #
-- TODO: Add Model.count(callback), which returns the number of elements saved in the database
+- Added Model.count(callback), which returns the number of elements saved in the database
