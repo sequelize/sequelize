@@ -19,7 +19,7 @@ module.exports = {
 
     Task.hasMany(User)
     User.hasMany(Task)
-    
+
     assert.isUndefined(Task.attributes['User'+num+'Id'])
     assert.isUndefined(User.attributes['User'+num+'Id'])
 
@@ -192,6 +192,47 @@ module.exports = {
               })
             })  
             
+          })
+        })
+      })
+    })
+  },
+  'it should correctly build the connector model names': function(exit){
+    var num    = parseInt(Math.random() * 99999999)
+      , Person = sequelize.define('Person' + num, { name: Sequelize.STRING })
+
+    Person.hasMany(Person, {as: 'Children'})
+    Person.hasMany(Person, {as: 'Friends'})
+    Person.hasMany(Person, {as: 'CoWorkers'})
+    
+    Person.sync({force: true}).on('success', function() {
+      var modelNames  = sequelize.modelManager.models.map(function(model) { return model.tableName })
+        , expectation = ["Person" + num + "s", "ChildrenPerson" + num + "s", "CoWorkersPerson" + num + "s", "FriendsPerson" + num + "s"]
+
+      expectation.forEach(function(ex) {
+        assert.eql(modelNames.indexOf(ex) > -1, true)
+      })
+      
+      exit(function(){})
+    })
+  },
+  'it should correctly get and set the connected models': function(exit) {
+    var num    = parseInt(Math.random() * 99999999)
+      , Person = sequelize.define('Person' + num, { name: Sequelize.STRING })
+
+    Person.hasMany(Person, {as: 'Children'})
+    Person.hasMany(Person, {as: 'Friends'})
+    Person.hasMany(Person, {as: 'CoWorkers'})
+    
+    Person.sync({force: true}).on('success', function() {
+      Person.create({name: 'foobar'}).on('success', function(person) {
+        Person.create({name: 'friend'}).on('success', function(friend) {
+          person.setFriends([friend]).on('success', function() {
+            person.getFriends().on('success', function(friends) {
+              assert.eql(friends.length, 1)
+              assert.eql(friends[0].name, 'friend')
+              exit(function(){})
+            })
           })
         })
       })
