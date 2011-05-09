@@ -101,6 +101,15 @@ module.exports = {
   },
   'it should correctly associate with itself': function(exit) {
     var Person = sequelize.define('Person' + config.rand(), { name: Sequelize.STRING })
-    exit(function(){})
+
+    Person.hasOne(Person, {as: 'Mother', foreignKey: 'MotherId'})
+    Person.hasOne(Person, {as: 'Father', foreignKey: 'FatherId'})
+    
+    Person.sync({force: true}).on('success', function() {
+      var p = Person.build()
+      assert.isDefined(p.setFather)
+      assert.isDefined(p.setMother)
+      exit(function(){})
+    })
   }
 }

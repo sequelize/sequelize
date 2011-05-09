@@ -104,5 +104,18 @@ module.exports = {
         })
       })
     })
+  },
+  'it should correctly handle self associations': function(exit) {
+    var Person = sequelize.define('Person' + config.rand(), { name: Sequelize.STRING })
+
+    Person.belongsTo(Person, {as: 'Mother', foreignKey: 'MotherId'})
+    Person.belongsTo(Person, {as: 'Father', foreignKey: 'FatherId'})
+    
+    Person.sync({force: true}).on('success', function() {
+      var p = Person.build()
+      assert.isDefined(p.setFather)
+      assert.isDefined(p.setMother)
+      exit(function(){})
+    })
   }
 }
