@@ -111,5 +111,12 @@ module.exports = {
       assert.isDefined(p.setMother)
       exit(function(){})
     })
+  },
+  'it should automatically set the foreignKey if it is a self association': function() {
+    var num = config.rand()
+    var Person = sequelize.define('Person' + num, { name: Sequelize.STRING })
+
+    Person.hasOne(Person, {as: 'Mother'})
+    assert.eql(Person.associations["MotherPerson"+num+"s"].options.foreignKey, 'MotherId')
   }
 }
