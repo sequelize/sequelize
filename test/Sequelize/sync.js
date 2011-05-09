@@ -5,10 +5,10 @@ var assert = require("assert")
 
 module.exports = {
   'it should sync all models - so instances can be created and saved to the database without failures': function(exit) {
-    var Project = sequelize.define('project' + parseInt(Math.random() * 9999999999999999999), {
+    var Project = sequelize.define('project' + config.rand(), {
       title: Sequelize.STRING
     })
-    var Task = sequelize.define('task' + parseInt(Math.random() * 99999999999999999), {
+    var Task = sequelize.define('task' + config.rand(), {
       title: Sequelize.STRING
     })
     

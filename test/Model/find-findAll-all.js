@@ -4,7 +4,7 @@ var assert = require("assert")
   , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
 
 var initUsers = function(num, callback) {
-  var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+  var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
   var createUser = function() {
     User.create({name: 'user' + num, bio: 'foobar'}).on('success', function(user){
       if(--num) createUser()
@@ -61,7 +61,7 @@ module.exports = {
     })
   },
   'find should find records by primaryKeys': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 999999999), {
+    var User = sequelize.define('User' + config.rand(), {
       identifier: {type: Sequelize.STRING, primaryKey: true},
       name: Sequelize.STRING
     })

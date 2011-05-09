@@ -4,12 +4,12 @@ var assert = require("assert")
   , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
 
 var initUsers = function(num, callback) {
-  return sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+  return sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
 }
 
 module.exports = {
   'do not allow duplicated records with unique:true': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), {
+    var User = sequelize.define('User' + config.rand(), {
        username: {type: Sequelize.STRING, unique: true}
      })
      User.sync({force:true}).on('success', function() {
@@ -22,7 +22,7 @@ module.exports = {
      })
   },
   'it should raise an error if created object breaks definition constraints': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), {
+    var User = sequelize.define('User' + config.rand(), {
       username: {type: Sequelize.STRING, unique: true},
       smth: {type: Sequelize.STRING, allowNull: false}
     })

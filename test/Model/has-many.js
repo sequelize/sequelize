@@ -5,7 +5,7 @@ var assert = require("assert")
 
 module.exports = {
   'it should correctly add the foreign id - monodirectional': function() {
-    var num = parseInt(Math.random() * 99999999)
+    var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -13,7 +13,7 @@ module.exports = {
     assert.eql(Task.attributes['User'+num+'Id'], "INT")
   },
   'it should correctly add the foreign ids - bidirectional': function(exit) {
-    var num = parseInt(Math.random() * 99999999)
+    var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
 
@@ -32,7 +32,7 @@ module.exports = {
     }) 
   },
   'it should correctly add the foreign id with underscore - monodirectional': function() {
-    var num = parseInt(Math.random() * 99999999)
+    var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING}, {underscored: true})
     
@@ -40,7 +40,7 @@ module.exports = {
     assert.isDefined(User.attributes['task'+ num +'_id'])
   },
   'it should correctly add the foreign id with underscore - bidirectional': function() {
-    var num = parseInt(Math.random() * 99999999)
+    var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -58,7 +58,7 @@ module.exports = {
     })
   },
   'it should correctly add the foreign id when defining the foreignkey as option - monodirectional': function() {
-    var num = parseInt(Math.random() * 99999999)
+    var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -66,7 +66,7 @@ module.exports = {
     assert.eql(Task.attributes.person_id, "INT")
   },
   'it should correctly add the foreign id when defining the foreignkey as option - bidirectional': function() {
-    var num = parseInt(Math.random() * 99999999)
+    var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -81,7 +81,7 @@ module.exports = {
     })
   },
   'it should define getter and setter - monodirectional': function() {
-    var num  = parseInt(Math.random() * 99999999)
+    var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -92,7 +92,7 @@ module.exports = {
     assert.isDefined(u['getTask'+num+"s"])
   },
   'it should define getter and setter - bidirectional': function() {
-    var num  = parseInt(Math.random() * 99999999)
+    var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -108,7 +108,7 @@ module.exports = {
     assert.isDefined(t['getUser'+num+'s'])
   },
   'it should define getter and setter according to as option - monodirectional': function() {
-    var num  = parseInt(Math.random() * 99999999)
+    var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -119,7 +119,7 @@ module.exports = {
     assert.isDefined(u.getTasks)
   },
   'it should define getter and setter according to as option - bidirectional': function() {
-    var num  = parseInt(Math.random() * 99999999)
+    var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
     
@@ -135,8 +135,8 @@ module.exports = {
     assert.isDefined(t.getUsers)
   },
   'it should set and get the correct objects - monodirectional': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
-    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
     
     User.hasMany(Task, {as: 'Tasks'})
     
@@ -162,8 +162,8 @@ module.exports = {
     })
   },
   'it should set and get the correct objects - bidirectional': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { username: Sequelize.STRING })
-    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), { title: Sequelize.STRING })
+    var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
     
     User.hasMany(Task, {as: 'Tasks'})
     Task.hasMany(User, {as: 'Users'})
@@ -198,7 +198,7 @@ module.exports = {
     })
   },
   'it should correctly build the connector model names': function(exit){
-    var num    = parseInt(Math.random() * 99999999)
+    var num    = config.rand()
       , Person = sequelize.define('Person' + num, { name: Sequelize.STRING })
 
     Person.hasMany(Person, {as: 'Children'})
@@ -217,7 +217,7 @@ module.exports = {
     })
   },
   'it should correctly get and set the connected models': function(exit) {
-    var num    = parseInt(Math.random() * 99999999)
+    var num    = config.rand()
       , Person = sequelize.define('Person' + num, { name: Sequelize.STRING })
 
     Person.hasMany(Person, {as: 'Children'})

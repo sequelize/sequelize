@@ -9,7 +9,7 @@ var initialize = function(options, callback) {
   options.taskCount = options.taskCount || 1
   options.userCount = options.userCount || 1
   
-  var num  = parseInt(Math.random() * 9999999999999)
+  var num  = config.rand()
     , User = sequelize.define('User' + num, { name: Sequelize.STRING })
     , Task = sequelize.define('Task' + num, { name: Sequelize.STRING })
     , chainer = new Sequelize.Utils.QueryChainer

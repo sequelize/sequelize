@@ -5,7 +5,7 @@ var assert = require("assert")
 
 module.exports = {
   'destroy should delete a saved record from the database': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
     User.sync({force: true}).on('success', function() {
       User.create({name: 'hallo', bio: 'welt'}).on('success', function(u) {
         User.all.on('success', function(users) {
@@ -21,7 +21,7 @@ module.exports = {
     })
   },
   'destroy should mark the record as deleted if paranoid is activated': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT }, {paranoid:true})
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT }, {paranoid:true})
     User.sync({force: true}).on('success', function() {
       User.create({name: 'asd', bio: 'asd'}).on('success', function(u) {
         assert.isNull(u.deletedAt)

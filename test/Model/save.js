@@ -5,7 +5,7 @@ var assert = require("assert")
 
 module.exports = {
   'save should add a record to the database': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
 
     User.sync({force: true}).on('success', function() {
       var u = User.build({name: 'hallo', bio: 'welt'})
@@ -22,7 +22,7 @@ module.exports = {
     })
   },
   'save should update the timestamp updated_at': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
     User.sync({force: true}).on('success', function() {
       var now = Date.now()
       // timeout is needed, in order to check the update of the timestamp

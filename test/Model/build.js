@@ -4,7 +4,7 @@ var assert = require("assert")
   , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
 
 var initUsers = function(num, callback) {
-  var User  = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+  var User  = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
     , users = []
     
   User.sync({force: true}).on('success', function() {
@@ -24,7 +24,7 @@ module.exports = {
     })
   },
   'build should fill the object with default values': function() {
-    var Task = sequelize.define('Task' + parseInt(Math.random() * 99999999), {
+    var Task = sequelize.define('Task' + config.rand(), {
       title: {type: Sequelize.STRING, defaultValue: 'a task!'},
       foo: {type: Sequelize.INTEGER, defaultValue: 2},
       bar: {type: Sequelize.DATE},

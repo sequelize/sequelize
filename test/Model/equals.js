@@ -5,7 +5,7 @@ var assert = require("assert")
 
 module.exports = {
   'it should correctly determine equal objects': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
 
     User.sync({force: true}).on('success', function() {
       User.create({name: 'hallo', bio: 'welt'}).on('success', function(u) {
@@ -15,7 +15,7 @@ module.exports = {
     })
   },
   'it should correctly work with different primary keys': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), {
+    var User = sequelize.define('User' + config.rand(), {
       foo: {type: Sequelize.STRING, primaryKey: true},
       bar: {type: Sequelize.STRING, primaryKey: true},
       name: Sequelize.STRING, bio: Sequelize.TEXT
@@ -29,7 +29,7 @@ module.exports = {
     })
   },
   'equalsOneOf should work': function(exit) {
-    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), {
+    var User = sequelize.define('User' + config.rand(), {
       foo: {type: Sequelize.STRING, primaryKey: true},
       bar: {type: Sequelize.STRING, primaryKey: true},
       name: Sequelize.STRING, bio: Sequelize.TEXT

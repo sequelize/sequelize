@@ -2,7 +2,7 @@ var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
   , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
-  , User = sequelize.define('User' + parseInt(Math.random() * 9999999999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+  , User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
 
 module.exports = {
   'it should update the attributes': function(exit) {
@@ -28,7 +28,7 @@ module.exports = {
     })
   },
   'it should not set primary keys or timestamps': function(exit) {
-    User = sequelize.define('User' + parseInt(Math.random() * 9999999999999), {
+    User = sequelize.define('User' + config.rand(), {
       name: Sequelize.STRING, bio: Sequelize.TEXT, identifier: {type: Sequelize.STRING, primaryKey: true}
     })
 
