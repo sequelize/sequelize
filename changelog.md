@@ -83,3 +83,4 @@
 
 # v1.0.1 #
 - Added Model.count(callback), which returns the number of elements saved in the database
+- Fixed self associations
