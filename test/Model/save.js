@@ -40,5 +40,23 @@ module.exports = {
         }, 100)
       }, 100)
     })
+  } ,
+  'save should only update fields in passed-array': function(exit) {
+    var User = sequelize.define('User' + parseInt(Math.random() * 99999999), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    User.sync({force: true}).on('success', function() {
+      var u = User.build({name: 'foo', bio: 'bar'}); 
+      u.save().on('success', function() {
+        var id = u.id;
+        u.name = 'fizz';
+        u.bio = 'buzz'; 
+        u.save(['name']).on('success', function(){ 
+          User.find(id).on('success', function(u2){  // re-select user
+            assert.eql('fizz', u2.name); 
+            assert.eql('bar', u2.bio); // bio should be unchanged
+            exit(function(){}); 
+          }); 
+        });
+      }) 
+    }); 
   }
 }
