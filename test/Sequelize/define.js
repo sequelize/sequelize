@@ -75,5 +75,13 @@ module.exports = {
     
     assert.isDefined(User.build().makeItSo)
     assert.eql(User.build().makeItSo(), 2)
+  },
+  'it shouldn\'t allow two auto increment fields': function() {
+    assert.throws(function () {
+      var User = sequelize.define('User', {
+        userid: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+        userscore: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+      })
+    })
   }
 }
