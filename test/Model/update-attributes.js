@@ -28,7 +28,7 @@ module.exports = {
     })
   },
   'it should not set primary keys or timestamps': function(exit) {
-    User = sequelize.define('User' + config.rand(), {
+    var User = sequelize.define('User' + config.rand(), {
       name: Sequelize.STRING, bio: Sequelize.TEXT, identifier: {type: Sequelize.STRING, primaryKey: true}
     })
 
@@ -42,6 +42,19 @@ module.exports = {
           assert.eql(user.identifier, oldIdentifier)
           exit(function(){})
         })
+      })
+    })
+  },
+  "it should use the primary keys in the where clause": function(exit) {
+    var User = sequelize.define('User' + config.rand(), {
+      name: Sequelize.STRING, bio: Sequelize.TEXT, identifier: {type: Sequelize.STRING, primaryKey: true}
+    })
+
+    User.sync({force:true}).on('success', function() {
+      User.create({name: 'snafu', identifier: 'identifier'}).on('success', function(user) {
+        var query = user.updateAttributes({name: 'foobar'})
+        assert.match(query.sql, /WHERE `identifier`..identifier./)
+        exit(function(){})
       })
     })
   }
