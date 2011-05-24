@@ -84,3 +84,7 @@
 # v1.0.1 #
 - Added Model.count(callback), which returns the number of elements saved in the database
 - Fixed self associations
+
+# v1.0.2 #
+- Fixed where clause generation for models with explicit primary keys (allanca)
+- Set insertId for non-default auto increment fields (allanca)
