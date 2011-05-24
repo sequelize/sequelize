@@ -37,5 +37,16 @@ module.exports = {
         })
       })
     })
+  },
+  'it should set the auto increment field to the insert id': function(exit) {
+    var User = sequelize.define('User' + config.rand(), {
+      userid: {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false}
+    })
+    User.sync({force:true}).on('success', function() {
+      User.create({}).on('success', function(user) {
+        assert.eql(user.userid, 1)
+        exit(function(){})
+      })
+    })
   }
 }
