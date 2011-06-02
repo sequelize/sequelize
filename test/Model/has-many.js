@@ -57,6 +57,36 @@ module.exports = {
       }
     })
   },
+  'it should correctly add the default columns - bidirectional': function() {
+    var num = config.rand()
+    var User = sequelize.define('User' + num, { username: Sequelize.STRING })
+    var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
+    
+    Task.hasMany(User)
+    User.hasMany(Task)
+
+    sequelize.modelManager.models.forEach(function(model) {
+      if(model.tableName == (Task.tableName + User.tableName)) {
+        assert.isDefined(model.attributes['createdAt'])
+        assert.isDefined(model.attributes['updatedAt'])
+      }
+    })
+  },
+  'it should correctly add the default columns with underscore - bidirectional': function() {
+    var num = config.rand()
+    var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
+    var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
+    
+    Task.hasMany(User)
+    User.hasMany(Task)
+
+    sequelize.modelManager.models.forEach(function(model) {
+      if(model.tableName == (Task.tableName + User.tableName)) {
+        assert.isDefined(model.attributes['created_at'])
+        assert.isDefined(model.attributes['updated_at'])
+      }
+    })
+  },
   'it should correctly add the foreign id when defining the foreignkey as option - monodirectional': function() {
     var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
