@@ -48,5 +48,15 @@ module.exports = {
         exit(function(){})
       })
     })
+  },
+  'save should call the create event on a new item': function(exit) {
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    User.on('create', function (obj) {
+      assert.eql(obj.name, 'hallo')
+      exit(function(){})
+    })
+    User.sync({force: true}).on('success', function() {
+      var u = User.build({name: 'hallo', bio: 'welt'}).save()
+    })
   }
 }
