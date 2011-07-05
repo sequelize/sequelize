@@ -57,5 +57,18 @@ module.exports = {
         exit(function(){})
       })
     })
+  },
+  'update should call the update event': function(exit) {
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    User.on('update', function (obj) {
+      assert.eql(obj.name, 'hallothere')
+      exit(function(){})
+    })
+    User.sync({force: true}).on('success', function() {
+      User.create({name: 'hallo', bio: 'identifier'}).on('success', function(user) {
+        assert.eql(user.name, 'hallo')
+        user.updateAttributes({name: 'hallothere'})
+      })
+    })
   }
 }

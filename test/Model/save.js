@@ -40,5 +40,15 @@ module.exports = {
         }, 100)
       }, 100)
     })
+  },
+  'save should call the save event': function(exit) {
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    User.on('save', function (obj) {
+      assert.eql(obj.name, 'hallo')
+      exit(function(){})
+    })
+    User.sync({force: true}).on('success', function() {
+      var u = User.build({name: 'hallo', bio: 'welt'}).save()
+    })
   }
 }

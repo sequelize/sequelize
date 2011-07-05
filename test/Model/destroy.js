@@ -31,5 +31,18 @@ module.exports = {
         })
       })
     })
+  },
+  'destroy should call the destroy event': function(exit) {
+    var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
+    User.on('destroy', function (obj) {
+      assert.eql(obj.name, 'hallo')
+      exit(function(){})
+    })
+    User.sync({force: true}).on('success', function() {
+      User.create({name: 'hallo', bio: 'asd'}).on('success', function(u) {
+        assert.eql(u.name, 'hallo')
+        u.destroy()
+      })
+    })
   }
 }
