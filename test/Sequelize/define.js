@@ -1,11 +1,11 @@
 var assert    = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
-  , sequelize = new Sequelize('database', 'username', 'password')
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
 
 module.exports = {
   'it should add a new model to the model-manager': function() {
-    var s = new Sequelize('database', 'username', 'password')
+    var s = new Sequelize(config.database, config.username, config.password)
     assert.eql(s.modelManager.all.length, 0)
     s.define('foo', { title: Sequelize.STRING })
     assert.eql(s.modelManager.all.length, 1)
