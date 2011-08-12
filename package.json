@@ -11,7 +11,7 @@
     "underscore": ">=1.1.5",
     "underscore.string": ">=1.1.3",
     "lingo": ">=0.0.4",
-    "mysql-pool": ">=0.2.0"
+    "mysql-pool": ">=0.2.1"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
