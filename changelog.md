@@ -88,3 +88,8 @@
 # v1.0.2 #
 - Fixed where clause generation for models with explicit primary keys (allanca)
 - Set insertId for non-default auto increment fields (allanca)
+
+# v1.1.0 #
+- defaultValue 0 is now working
+- REVERTED mysql-pool usage (will give it a new try later)
+- updated node-mysql to 0.9.4
