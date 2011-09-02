@@ -11,7 +11,9 @@ module.exports = {
   'sync should fail with incorrect database config': function(exit) {
     var s = new Sequelize('foo', 'bar', null, {logging: false})
     var User2 = s.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
-    User2.sync().on('failure', function(){exit(function(){})})
+    User2.sync().on('failure', function(err){
+      exit(function(){}
+    )})
   },
   'drop should work': function(exit) {
     User.drop().on('success', function(){exit(function(){})})
