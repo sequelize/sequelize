@@ -37,8 +37,8 @@ module.exports = {
             assert.eql(true, uNow.getTime() < u.updatedAt.getTime())
             exit(function(){})
           })
-        }, 100)
-      }, 100)
+        }, 10)
+      }, 10)
     })
   }
 }
