@@ -93,3 +93,7 @@
 - defaultValue 0 is now working
 - REVERTED mysql-pool usage (will give it a new try later)
 - updated node-mysql to 0.9.4
+
+# v1.1.1 #
+- fixed leaks
+- added query queueing (adjustable via maxConcurrentQueries in config; default: 50)
