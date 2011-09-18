@@ -11,34 +11,31 @@ Person.sync({force: true}).on('success', function() {
     , count = 10000
     , done  = 0
   
-  var createPeople = function(callback) {
-    Person.create({name: 'someone'}).on('success', callback).on('failure', function(err) { console.log(err) })
-  }
-  var createPeopleBatch = function(batchSize, callback) {
-    var done = 0
-    
-    for(var i = 0; i < batchSize; i++) 
-      createPeople(function() { (++done == batchSize) && callback() })
-  }
-  var batchCallback = function() {
-    sys.print(".");
-    
-    if((done += 50) != count)
-      createPeopleBatch(50, batchCallback)
-    else {
-      console.log("\nFinished creation of " + count + " people. Took: " + (Date.now() - start) + "ms")
+  var createPerson = function() {
+    Person.create({name: 'someone'}).on('success', function() {
+      if(++done == count) {
+        var duration = (Date.now() - start)
+        console.log("\nFinished creation of " + count + " people. Took: " + duration + "ms (avg: " + (duration/count) + "ms)")
+        
+        start = Date.now()
+        console.log("Will now read them from the database:")
       
-      start = Date.now()
-      console.log("Will now read them from the database:")
-    
-      Person.findAll().on('success', function(people) {
-        console.log("Reading " + people.length + " items took: " + (Date.now() - start) + "ms")
-      })
-    }
+        Person.findAll().on('success', function(people) {
+          console.log("Reading " + people.length + " items took: " + (Date.now() - start) + "ms")
+        })
+      } else {
+        (done % 100 == 0) && sys.print('.')
+      }
+    }).on('failure', function(err) {
+      console.log(err)
+    })
   }
-  
+
   console.log('Creating people :)')
-  createPeopleBatch(50, batchCallback)
+  for(var i = 0; i < count; i++) {
+    createPerson()
+  }
+    
 }).on('failure', function(err) {
   console.log(err)
 })
