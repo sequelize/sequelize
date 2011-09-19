@@ -95,5 +95,5 @@
 - updated node-mysql to 0.9.4
 
 # v1.1.1 #
-- fixed leaks
+- fixed memory leaks
 - added query queueing (adjustable via maxConcurrentQueries in config; default: 50)
