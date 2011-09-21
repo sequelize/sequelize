@@ -97,3 +97,6 @@
 # v1.1.1 #
 - fixed memory leaks
 - added query queueing (adjustable via maxConcurrentQueries in config; default: 50)
+
+# v1.1.2 #
+- prevent malfunction after being idle
