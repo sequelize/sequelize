@@ -100,3 +100,7 @@
 
 # v1.1.2 #
 - prevent malfunction after being idle
+
+# v1.1.3 #
+- [BUG] scoped options in model => a model can now have the attribute options
+- [FEATURE] added drop method for sequelize, that drops all currently registered tables
