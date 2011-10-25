@@ -9,7 +9,7 @@ describe('ModelDefinition', function() {
 
   afterEach(function() {
     Helpers.async(function(done) {
-      sequelize.drop().on('success', done)
+      sequelize.drop().on('success', done).on('failure', function(err) { console.log(err) })
     })
   })
 
@@ -23,7 +23,9 @@ describe('ModelDefinition', function() {
       }
 
       Helpers.async(function(done) {
-        User.sync({force: true}).on('success', function() { done() })
+        User.sync({force: true})
+            .on('success', function() { done() })
+            .on('failure', function(err) { console.log(err) })
       })
       Helpers.async(function(done) { createUser(2, done) })
     })
@@ -34,7 +36,7 @@ describe('ModelDefinition', function() {
         User.all.on('success', function(users) {
           done()
           expect(users.length).toEqual(2)
-        })
+        }).on('failure', function(err) { console.log(err) })
       })
 
     })
@@ -45,7 +47,9 @@ describe('ModelDefinition', function() {
 
     beforeEach(function() {
       Helpers.async(function(done) {
-        Person.sync({force: true}).on('success', function() { done() })
+        Person.sync({force: true})
+              .on('success', function() { done() })
+              .on('failure', function(err) { console.log(err) })
       })
     })
 
@@ -55,7 +59,7 @@ describe('ModelDefinition', function() {
         Person.create({name: 'John Doe', options: options}).on('success', function(person) {
           expect(person.options).toEqual(options)
           done()
-        })
+        }).on('failure', function(err) { console.log(err) })
       })
     })
   })
