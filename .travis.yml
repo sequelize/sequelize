@@ -1,6 +1,10 @@
-before_script: "npm install"
+before_script:
+  - "mysql -e 'create database sequelize_test;'"
+  - "npm install"
+
 script:
   - "node_modules/.bin/jasmine-node spec"
   - "expresso -s test/**/*"
+
 notifications:
   - sascha@depold.com
