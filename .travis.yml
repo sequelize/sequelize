@@ -1,0 +1,6 @@
+before_script: "npm install"
+script:
+  - "jasmine-node spec"
+  - "expresso -s test/**/*"
+notifications:
+  - sascha@depold.com
