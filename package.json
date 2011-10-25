@@ -13,7 +13,9 @@
     "lingo": ">=0.0.4"
   },
   "devDependencies": {
-    "jasmine-node": ">=1.0.12"
+    "jasmine-node": ">=1.0.12",
+    "expresso": ">=0.9.2",
+    "should": ">=0.3.2"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
