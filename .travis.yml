@@ -8,3 +8,6 @@ script:
 
 notifications:
   - sascha@depold.com
+
+env:
+  - DB=mysql
