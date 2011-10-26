@@ -104,3 +104,6 @@
 # v1.1.3 #
 - [BUG] scoped options in model => a model can now have the attribute options
 - [FEATURE] added drop method for sequelize, that drops all currently registered tables
+
+# v1.1.4 #
+- [BUG] tables with identical prefix (e.g. wp_) can now be used in many-to-many associations
