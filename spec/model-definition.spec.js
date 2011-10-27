@@ -1,37 +1,21 @@
 var config    = require("./config/config")
-  , Helpers   = require("./config/helpers")
   , Sequelize = require("../index")
+  , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
+  , Helpers   = new (require("./config/helpers"))(sequelize)
 
 describe('ModelDefinition', function() {
-  var sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
-    , User      = sequelize.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
+  var User = sequelize.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
 
-  beforeEach(function() {
-    Helpers.async(function(done) {
-      sequelize.sync({force: true}).on('success', done).on('failure', function(err) { console.log(err) })
-    })
-  })
-
-  afterEach(function() {
-    Helpers.async(function(done) {
-      sequelize.drop().on('success', done).on('failure', function(err) { console.log(err) })
-    })
-  })
+  beforeEach(function() { Helpers.sync() })
+  afterEach(function() { Helpers.drop() })
 
   //////////// all //////////////
 
   describe('.all', function() {
     beforeEach(function() {
-      var UserFactory = function(options, callback, count) {
-        count = count || 1
-
-        User.create(options).on('success', function(user){
-          --count ? UserFactory(options, callback, count) : callback(user)
-        }).on('failure', function(err) {
-          console.log(err)
-        })
-      }
-      Helpers.async(function(done) { UserFactory({name: 'user', bio: 'foobar'}, done, 2) })
+      Helpers.async(function(done) {
+        Helpers.Factories.User({name: 'user', bio: 'foobar'}, done, 2)
+      })
     })
 
     it("should return all users", function() {
@@ -52,10 +36,10 @@ describe('ModelDefinition', function() {
     it('should allow the creation of an object with options as attribute', function() {
       Helpers.async(function(done) {
         var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
-        Person.create({name: 'John Doe', options: options}).on('success', function(person) {
+        Helpers.Factories.Model('Person', {name: 'John Doe', options: options}, function(person) {
           expect(person.options).toEqual(options)
           done()
-        }).on('failure', function(err) { console.log(err) })
+        })
       })
     })
   })
@@ -71,10 +55,7 @@ describe('ModelDefinition', function() {
       Table2.hasMany(Table1)
 
       it("should create a table wp_table1wp_table2s", function() {
-        var models = sequelize.modelManager.models.filter(function(model) {
-          return model.tableName.indexOf('wp_table1swp_table2s') > -1
-        })
-        expect(models.length).toBe(1)
+        expect(sequelize.modelManager.getModel('wp_table1swp_table2s')).toBeDefined()
       })
     })
   })
