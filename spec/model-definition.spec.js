@@ -13,9 +13,7 @@ describe('ModelDefinition', function() {
 
   describe('.all', function() {
     beforeEach(function() {
-      Helpers.async(function(done) {
-        Helpers.Factories.User({name: 'user', bio: 'foobar'}, done, 2)
-      })
+      Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
     })
 
     it("should return all users", function() {
@@ -34,12 +32,9 @@ describe('ModelDefinition', function() {
     var Person = sequelize.define('Person', { name: Sequelize.STRING, options: Sequelize.TEXT })
 
     it('should allow the creation of an object with options as attribute', function() {
-      Helpers.async(function(done) {
-        var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
-        Helpers.Factories.Model('Person', {name: 'John Doe', options: options}, function(person) {
-          expect(person.options).toEqual(options)
-          done()
-        })
+      var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
+      Helpers.Factories.Model('Person', {name: 'John Doe', options: options}, function(person) {
+        expect(person.options).toEqual(options)
       })
     })
   })

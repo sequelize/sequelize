@@ -8,10 +8,14 @@ Factories.prototype.Model = function(modelName, options, callback, count) {
 
   var self = this
 
-  this.sequelize.modelManager.getModel(modelName).create(options).on('success', function(model){
-    --count ? self.Model(modelName, options, callback, count) : callback(model)
-  }).on('failure', function(err) {
-    console.log(err)
+  this.helpers.async(function(done) {
+    self.sequelize.modelManager.getModel(modelName).create(options).on('success', function(model){
+      done()
+      --count ? self.Model(modelName, options, callback, count) : (callback && callback(model))
+    }).on('failure', function(err) {
+      console.log(err)
+      done()
+    })
   })
 }
 
