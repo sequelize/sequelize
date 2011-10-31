@@ -21,7 +21,7 @@ module.exports = {
       name: Sequelize.STRING, bio: Sequelize.TEXT
     })
 
-    User.sync({force: true}).on('success', function() {
+    User.sync({force: true, charset: 'latin1'}).on('success', function() {
       User.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).on('success', function(u) {
         assert.eql(u.equals(u), true)
         exit(function(){})
