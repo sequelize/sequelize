@@ -4,7 +4,7 @@ var config    = require("./config/config")
   , Helpers   = new (require("./config/helpers"))(sequelize)
 
 describe('ModelDefinition', function() {
-  var User = sequelize.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
+  var User = sequelize.define('User', { age: Sequelize.INTEGER, name: Sequelize.STRING, bio: Sequelize.TEXT })
 
   beforeEach(function() { Helpers.sync() })
   afterEach(function() { Helpers.drop() })
@@ -37,6 +37,38 @@ describe('ModelDefinition', function() {
         expect(person.options).toEqual(options)
       })
     })
+  })
+
+  //////////// min //////////////
+
+  describe('.min', function() {
+
+    it("should return the min value", function() {
+      for(var i = 2; i < 5; i++) Helpers.Factories.User({ age: i })
+
+      Helpers.async(function(done) {
+        User.min('age').on('success', function(min) {
+          expect(min).toEqual(2); done()
+        })
+      })
+    })
+
+  })
+
+  //////////// max //////////////
+
+  describe('.max', function() {
+
+    it("should return the max value", function() {
+      for(var i = 2; i <= 5; i++) Helpers.Factories.User({ age: i })
+
+      Helpers.async(function(done) {
+        User.max('age').on('success', function(min) {
+          expect(min).toEqual(5); done()
+        })
+      })
+    })
+
   })
 
   /////////// many-to-many with same prefix ////////////
