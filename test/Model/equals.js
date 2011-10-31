@@ -11,8 +11,8 @@ module.exports = {
       User.create({name: 'hallo', bio: 'welt'}).on('success', function(u) {
         assert.eql(u.equals(u), true)
         exit(function(){})
-      })
-    })
+      }).on('failure', function(err) { console.log(err) })
+    }).on('failure', function(err) { console.log(err) })
   },
   'it should correctly work with different primary keys': function(exit) {
     var User = sequelize.define('User' + config.rand(), {
