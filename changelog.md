@@ -107,3 +107,9 @@
 
 # v1.1.4 #
 - [BUG] tables with identical prefix (e.g. wp_) can now be used in many-to-many associations
+
+# v1.2.0 #
+- [FEATURE] min/max function for models, which return the min/max value in a column
+- [FEATURE] getModel for modelManager for getting a model without storing it in a variable; use it via sequelize.modelManager.getModel('User')
+- [TEST] test suite refactoring for jasmine
+
