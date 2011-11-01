@@ -115,5 +115,6 @@
 
 # v1.2.1 #
 - [REFACTORING] renamed the global options for sync, query and define on sequelize; before: options.queryOptions; now: options.query
-- [FEATURE] allow definition of charset via global define option in sequelize or via an option in sequelize.define
+- [FEATURE] allow definition of charset via global define option in sequelize or via charset option in sequelize.define
+- [FEATURE] allow definition of mysql engine via global define option in sequelize or via engine option in sequelize.define; default is InnoDB now
 - [TEST] force latin1 charset for travis
