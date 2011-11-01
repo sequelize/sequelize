@@ -1,7 +1,7 @@
 var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false, define: { charset: 'latin1' }})
 
 var initUsers = function(num, callback) {
   return sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })

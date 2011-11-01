@@ -1,14 +1,14 @@
 var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false, define: { charset: 'latin1' }})
 
 module.exports = {
   'it should correctly add the foreign id - monodirectional': function() {
     var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     User.hasMany(Task)
     assert.eql(Task.attributes['User'+num+'Id'], "INT")
   },
@@ -29,13 +29,13 @@ module.exports = {
         assert.isDefined(model.attributes['Task'+num+'Id'])
         exit(function(){})
       }
-    }) 
+    })
   },
   'it should correctly add the foreign id with underscore - monodirectional': function() {
     var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING}, {underscored: true})
-    
+
     Task.hasMany(User)
     assert.isDefined(User.attributes['task'+ num +'_id'])
   },
@@ -43,10 +43,10 @@ module.exports = {
     var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     Task.hasMany(User)
     User.hasMany(Task)
-    
+
     assert.isUndefined(Task.attributes['user'+ num +'_id'])
     assert.isUndefined(User.attributes['user'+ num +'_id'])
 
@@ -61,7 +61,7 @@ module.exports = {
     var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     User.hasMany(Task, {foreignKey: 'person_id'})
     assert.eql(Task.attributes.person_id, "INT")
   },
@@ -69,10 +69,10 @@ module.exports = {
     var num = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING }, {underscored: true})
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     User.hasMany(Task, {foreignKey: 'person_id'})
     Task.hasMany(User, {foreignKey: 'work_item_id'})
-    
+
     sequelize.modelManager.models.forEach(function(model) {
       if(model.tableName == (Task.tableName + User.tableName)) {
         assert.isDefined(model.attributes.person_id)
@@ -84,9 +84,9 @@ module.exports = {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     User.hasMany(Task)
-    
+
     var u = User.build({username: 'asd'})
     assert.isDefined(u['setTask'+num+"s"])
     assert.isDefined(u['getTask'+num+"s"])
@@ -95,14 +95,14 @@ module.exports = {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     User.hasMany(Task)
     Task.hasMany(User)
-    
+
     var u = User.build({username: 'asd'})
     assert.isDefined(u['setTask'+num+"s"])
     assert.isDefined(u['getTask'+num+"s"])
-    
+
     var t = Task.build({title: 'foobar'})
     assert.isDefined(t['setUser'+num+'s'])
     assert.isDefined(t['getUser'+num+'s'])
@@ -111,9 +111,9 @@ module.exports = {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     User.hasMany(Task, {as: 'Tasks'})
-    
+
     var u = User.build({username: 'asd'})
     assert.isDefined(u.setTasks)
     assert.isDefined(u.getTasks)
@@ -122,14 +122,14 @@ module.exports = {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     User.hasMany(Task, {as: 'Tasks'})
     Task.hasMany(User, {as: 'Users'})
-    
+
     var u = User.build({username: 'asd'})
     assert.isDefined(u.setTasks)
     assert.isDefined(u.getTasks)
-    
+
     var t = Task.build({title: 'asd'})
     assert.isDefined(t.setUsers)
     assert.isDefined(t.getUsers)
@@ -137,26 +137,26 @@ module.exports = {
   'it should set and get the correct objects - monodirectional': function(exit) {
     var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
-    
+
     User.hasMany(Task, {as: 'Tasks'})
-    
+
     User.sync({force: true}).on('success', function() {
       Task.sync({force: true}).on('success', function() {
         User.create({username: 'name'}).on('success', function(user) {
-          
+
           Task.create({title: 'task1'}).on('success', function(task1) {
             Task.create({title: 'task2'}).on('success', function(task2) {
-              
+
               user.setTasks([task1, task2]).on('success', function() {
                 user.getTasks().on('success', function(tasks) {
                   assert.eql(tasks.length, 2)
                   exit(function(){})
                 })
               })
-              
+
             })
           })
-          
+
         })
       })
     })
@@ -164,22 +164,22 @@ module.exports = {
   'it should set and get the correct objects - bidirectional': function(exit) {
     var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
-    
+
     User.hasMany(Task, {as: 'Tasks'})
     Task.hasMany(User, {as: 'Users'})
-    
+
     User.sync({force: true}).on('success', function() {
       Task.sync({force: true}).on('success', function() {
         User.create({username: 'name'}).on('success', function(user1) {
           User.create({username: 'name2'}).on('success', function(user2) {
-            
+
             Task.create({title: 'task1'}).on('success', function(task1) {
               Task.create({title: 'task2'}).on('success', function(task2) {
 
                 user1.setTasks([task1, task2]).on('success', function() {
                   user1.getTasks().on('success', function(tasks) {
                     assert.eql(tasks.length, 2)
-                    
+
                     task2.setUsers([user1, user2]).on('success', function() {
                       task2.getUsers().on('success', function(users) {
                         assert.eql(users.length, 2)
@@ -188,10 +188,10 @@ module.exports = {
                     })
                   })
                 })
-              
+
               })
-            })  
-            
+            })
+
           })
         })
       })
@@ -204,7 +204,7 @@ module.exports = {
     Person.hasMany(Person, {as: 'Children'})
     Person.hasMany(Person, {as: 'Friends'})
     Person.hasMany(Person, {as: 'CoWorkers'})
-    
+
     Person.sync({force: true}).on('success', function() {
       var modelNames  = sequelize.modelManager.models.map(function(model) { return model.tableName })
         , expectation = ["Person" + num + "s", "ChildrenPerson" + num + "s", "CoWorkersPerson" + num + "s", "FriendsPerson" + num + "s"]
@@ -212,7 +212,7 @@ module.exports = {
       expectation.forEach(function(ex) {
         assert.eql(modelNames.indexOf(ex) > -1, true)
       })
-      
+
       exit(function(){})
     })
   },
@@ -223,7 +223,7 @@ module.exports = {
     Person.hasMany(Person, {as: 'Children'})
     Person.hasMany(Person, {as: 'Friends'})
     Person.hasMany(Person, {as: 'CoWorkers'})
-    
+
     Person.sync({force: true}).on('success', function() {
       Person.create({name: 'foobar'}).on('success', function(person) {
         Person.create({name: 'friend'}).on('success', function(friend) {

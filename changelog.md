@@ -113,3 +113,7 @@
 - [FEATURE] getModel for modelManager for getting a model without storing it in a variable; use it via sequelize.modelManager.getModel('User')
 - [TEST] test suite refactoring for jasmine
 
+# v1.2.1 #
+- [REFACTORING] renamed the global options for sync, query and define on sequelize; before: options.queryOptions; now: options.query
+- [FEATURE] allow definition of charset via global define option in sequelize or via an option in sequelize.define
+- [TEST] force latin1 charset for travis

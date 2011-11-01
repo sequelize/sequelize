@@ -1,7 +1,7 @@
 var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false, define: { charset: 'latin1' }})
 
 module.exports = {
   'save should add a record to the database': function(exit) {

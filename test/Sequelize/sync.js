@@ -1,7 +1,7 @@
 var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false, define: { charset: 'latin1' }})
 
 module.exports = {
   'it should sync all models - so instances can be created and saved to the database without failures': function(exit) {
@@ -11,7 +11,7 @@ module.exports = {
     var Task = sequelize.define('task' + config.rand(), {
       title: Sequelize.STRING
     })
-    
+
     sequelize.sync().on('success', function() {
       Project.create({title: 'bla'}).on('success', function() {
         Task.create({title: 'bla'}).on('success', function() {

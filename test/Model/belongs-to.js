@@ -1,14 +1,14 @@
 var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
-  
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false, define: { charset: 'latin1' }})
+
 module.exports = {
   'it should correctly add the foreign id': function() {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     Task.belongsTo(User)
     assert.eql(Task.attributes['User'+num+'Id'], "INT")
   },
@@ -16,14 +16,14 @@ module.exports = {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING }, {underscored: true})
-    
+
     Task.belongsTo(User)
     assert.eql(Task.attributes['user'+num+'_id'], "INT")
   },
   'it should correctly add the foreign id if foreignKey is passed': function() {
     var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
-    
+
     Task.belongsTo(User, {foreignKey: 'person_id'})
     assert.eql(Task.attributes['person_id'], "INT")
   },
@@ -31,9 +31,9 @@ module.exports = {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     Task.belongsTo(User)
-    
+
     var t = Task.build({title: 'asd'})
     assert.isDefined(t['setUser'+num])
     assert.isDefined(t['getUser'+num])
@@ -41,9 +41,9 @@ module.exports = {
   'it should define getter and setter according to passed as option': function() {
     var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
-    
+
     Task.belongsTo(User, {as: 'Person'})
-    
+
     var t = Task.build({title: 'asd'})
     assert.isDefined(t.setPerson)
     assert.isDefined(t.getPerson)
@@ -52,16 +52,16 @@ module.exports = {
     var num  = config.rand()
     var User = sequelize.define('User' + num, { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + num, { title: Sequelize.STRING })
-    
+
     Task.belongsTo(User)
-    
+
     var t = Task.build({title: 'asd'})
     assert.isNull(t['User'+num+'Id'])
   },
   'it should set and get the correct object': function(exit) {
     var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
-    
+
     Task.belongsTo(User, {as: 'User'})
 
     User.sync({force: true}).on('success', function() {
@@ -82,9 +82,9 @@ module.exports = {
   'it should correctly delete associations': function(exit) {
     var User = sequelize.define('User' + config.rand(), { username: Sequelize.STRING })
     var Task = sequelize.define('Task' + config.rand(), { title: Sequelize.STRING })
-    
+
     Task.belongsTo(User, {as: 'User'})
-    
+
     User.sync({force: true}).on('success', function() {
       Task.sync({force: true}).on('success', function() {
         User.create({username: 'asd'}).on('success', function(u) {
@@ -110,7 +110,7 @@ module.exports = {
 
     Person.belongsTo(Person, {as: 'Mother', foreignKey: 'MotherId'})
     Person.belongsTo(Person, {as: 'Father', foreignKey: 'FatherId'})
-    
+
     Person.sync({force: true}).on('success', function() {
       var p = Person.build()
       assert.isDefined(p.setFather)

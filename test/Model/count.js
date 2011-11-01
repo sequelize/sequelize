@@ -1,8 +1,8 @@
 var assert = require("assert")
   , config = require("./../config")
   , Sequelize = require("./../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
-  
+  , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false, define: { charset: 'latin1' }})
+
 module.exports = {
   'it should correctly count all objects': function(exit) {
     var User = sequelize.define('User', { username: Sequelize.STRING })
