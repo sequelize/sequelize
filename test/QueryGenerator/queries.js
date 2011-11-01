@@ -1,10 +1,12 @@
 var assert = require("assert")
   , QueryGenerator = require("../../lib/sequelize/query-generator")
   , eql = assert.equal
-  
+
 module.exports = {
   'create table query': function() {
-    eql(QueryGenerator.createTableQuery('myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}), "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));")
+    eql(QueryGenerator.createTableQuery('myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}), "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;")
+    eql(QueryGenerator.createTableQuery('myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {engine: 'MyISAM'}), "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;")
+    eql(QueryGenerator.createTableQuery('myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {charset: 'latin1'}), "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;")
   },
   'drop table query': function() {
     eql(QueryGenerator.dropTableQuery('myTable'), "DROP TABLE IF EXISTS `myTable`;")
