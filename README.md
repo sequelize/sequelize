@@ -2,6 +2,9 @@
 
 The Sequelize library provides easy access to a MySQL database by mapping database entries to objects and vice versa. To put it in a nutshell... it's an ORM (Object-Relational-Mapper). The library is written entirely in JavaScript and can be used in the Node.JS environment.
 
+## v1.2.1 ##
+I highly recommend to [read this article about the changes in sequelize 1.2.1](http://blog.depold.com/post/12319530694/changes-in-sequelize-1-2-1), which changes some defaults and some interfaces.
+
 ## Features ##
 
 - Schema definition
@@ -16,7 +19,9 @@ The Sequelize library provides easy access to a MySQL database by mapping databa
 
 You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
 If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
-Also make sure to take a look at the examples in the repository. The website will contain them soon, as well. For a (more or less) complete overview of changes in 1.0.0. take a look at [this blogpost](http://blog.depold.com/post/5936116582/changes-in-sequelize-1-0-0).
+Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
+For a (more or less) complete overview of changes in 1.0.0. take a look at [this blogpost](http://blog.depold.com/post/5936116582/changes-in-sequelize-1-0-0).
+An article about changes in 1.2.1. can be found [here](http://blog.depold.com/post/12319530694/changes-in-sequelize-1-2-1)
 
 ## Collaboration ##
 
