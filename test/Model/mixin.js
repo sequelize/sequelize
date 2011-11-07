@@ -1,5 +1,5 @@
 var assert          = require("assert")
-  , ModelDefinition = require("./../../lib/sequelize/model-definition")
+  , ModelDefinition = require("./../../lib/model-definition")
 
 module.exports = {
   'mixin should be correctly added to the model': function() {

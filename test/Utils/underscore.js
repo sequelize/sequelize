@@ -1,5 +1,5 @@
 var assert = require("assert")
-  , Utils  = require("../../lib/sequelize/utils")
+  , Utils  = require("../../lib/utils")
 
 module.exports = {
   'underscoredIf should be defined': function() {

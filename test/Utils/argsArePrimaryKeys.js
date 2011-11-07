@@ -1,5 +1,5 @@
 var assert = require("assert")
-  , Utils  = require("../../lib/sequelize/utils")
+  , Utils  = require("../../lib/utils")
 
 module.exports = {
   'it should be false if primaryKeys and args have different lengths': function() {

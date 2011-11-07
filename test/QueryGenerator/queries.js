@@ -1,5 +1,5 @@
 var assert = require("assert")
-  , QueryGenerator = require("../../lib/sequelize/query-generator")
+  , QueryGenerator = require("../../lib/query-generator")
   , eql = assert.equal
 
 module.exports = {

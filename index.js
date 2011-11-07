@@ -1,1 +1,1 @@
-module.exports = require("./lib/sequelize/sequelize")
+module.exports = require("./lib/sequelize")
