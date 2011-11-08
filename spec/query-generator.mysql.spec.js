@@ -2,7 +2,7 @@ var config    = require("./config/config")
   , Sequelize = require("../index")
   , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
   , Helpers   = new (require("./config/helpers"))(sequelize)
-  , QueryGenerator = require("../lib/query-generator")
+  , QueryGenerator = require("../lib/connectors/mysql/query-generator")
 
 describe('QueryGenerator', function() {
   beforeEach(function() { Helpers.sync() })
