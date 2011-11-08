@@ -1,5 +1,5 @@
 var assert = require("assert")
-  , QueryGenerator = require("../../lib/query-generator")
+  , QueryGenerator = require("../../lib/connectors/mysql/query-generator")
   , eql = assert.equal
 
 module.exports = {
