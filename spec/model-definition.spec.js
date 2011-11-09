@@ -3,7 +3,7 @@ var config    = require("./config/config")
   , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
   , Helpers   = new (require("./config/helpers"))(sequelize)
 
-describe('ModelDefinition', function() {
+describe('ModelFactory', function() {
   beforeEach(function() { Helpers.sync() })
   afterEach(function() { Helpers.drop() })
 
