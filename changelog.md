@@ -1,6 +1,7 @@
 # v1.3.0 #
 - [REFACTORING] Model#all is now a function and not a getter.
-
+- [REFACTORING] Renamed ModelDefinition to ModelFactory
+- [FEATURE] Association definition is chainable: Person.hasOne(House).hasMany(Address)
 
 # v1.2.1 #
 - [REFACTORING] renamed the global options for sync, query and define on sequelize; before: options.queryOptions; now: options.query
