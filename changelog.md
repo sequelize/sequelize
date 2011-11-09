@@ -1,3 +1,7 @@
+# v1.3.0 #
+- [REFACTORING] Model#all is now a function and not a getter.
+
+
 # v1.2.1 #
 - [REFACTORING] renamed the global options for sync, query and define on sequelize; before: options.queryOptions; now: options.query
 - [FEATURE] allow definition of charset via global define option in sequelize or via charset option in sequelize.define
