@@ -44,7 +44,7 @@ module.exports = {
   'it should add updatedAt and createdAt if timestamps is undefined or true': function() {
     var User1 = sequelize.define('User' + config.rand(), {})
     var User2 = sequelize.define('User' + config.rand(), {}, { timestamps: true })
-    
+
     assert.eql(User1.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
     assert.eql(User2.attributes, {id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
   },
@@ -72,7 +72,7 @@ module.exports = {
     assert.isDefined(User.doSmth)
     assert.eql(User.doSmth(), 1)
     assert.isUndefined(User.makeItSo)
-    
+
     assert.isDefined(User.build().makeItSo)
     assert.eql(User.build().makeItSo(), 2)
   },

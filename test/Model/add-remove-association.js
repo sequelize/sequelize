@@ -33,8 +33,8 @@ var initialize = function(options, callback) {
 module.exports = {
   'it should correctly add an association to the model': function(exit) {
     initialize({taskCount:5, userCount:2}, function(Task, User) {
-      User.all.on('success', function(users) {
-        Task.all.on('success', function(tasks) {
+      User.all().on('success', function(users) {
+        Task.all().on('success', function(tasks) {
           var user = users[0]
 
           user.getTasks().on('success', function(_tasks) {
@@ -53,8 +53,8 @@ module.exports = {
   },
   'it should correctly remove associated objects': function(exit) {
     initialize({taskCount:5, userCount:2}, function(Task, User) {
-      User.all.on('success', function(users) {
-        Task.all.on('success', function(tasks) {
+      User.all().on('success', function(users) {
+        Task.all().on('success', function(tasks) {
           var user = users[0]
 
           user.getTasks().on('success', function(_tasks) {

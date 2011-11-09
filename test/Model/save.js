@@ -9,10 +9,10 @@ module.exports = {
 
     User.sync({force: true}).on('success', function() {
       var u = User.build({name: 'hallo', bio: 'welt'})
-      User.all.on('success', function(users) {
+      User.all().on('success', function(users) {
         assert.eql(users.length, 0)
         u.save().on('success', function() {
-          User.all.on('success', function(users) {
+          User.all().on('success', function(users) {
             assert.eql(users.length, 1)
             assert.eql(users[0].name, 'hallo')
             exit(function(){})

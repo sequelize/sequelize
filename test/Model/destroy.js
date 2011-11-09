@@ -8,10 +8,10 @@ module.exports = {
     var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT })
     User.sync({force: true}).on('success', function() {
       User.create({name: 'hallo', bio: 'welt'}).on('success', function(u) {
-        User.all.on('success', function(users) {
+        User.all().on('success', function(users) {
           assert.eql(users.length, 1)
           u.destroy().on('success', function() {
-            User.all.on('success', function(users) {
+            User.all().on('success', function(users) {
               assert.eql(users.length, 0)
               exit(function(){})
             })

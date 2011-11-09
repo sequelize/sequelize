@@ -20,7 +20,7 @@ var initUsers = function(num, callback) {
 module.exports = {
   'all should return all created models': function(exit) {
     initUsers(2, function(_, User) {
-      User.all.on('success', function(users) {
+      User.all().on('success', function(users) {
         assert.eql(users.length, 2)
         exit(function(){})
       })

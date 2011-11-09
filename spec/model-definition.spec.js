@@ -18,7 +18,7 @@ describe('ModelDefinition', function() {
 
     it("should return all users", function() {
       Helpers.async(function(done) {
-        User.all.on('success', function(users) {
+        User.all().on('success', function(users) {
           done()
           expect(users.length).toEqual(2)
         }).on('failure', function(err) { console.log(err) })

@@ -17,7 +17,7 @@ module.exports = {
   'build should not create database entries': function(exit) {
     initUsers(10, function(users, User) {
       assert.eql(users.length, 10)
-      User.all.on('success', function(users) {
+      User.all().on('success', function(users) {
         assert.eql(users.length, 0)
         exit(function(){})
       })
