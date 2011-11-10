@@ -1,10 +1,11 @@
 {
-  "name": "sequelize",
-  "description": "MySQL ORM for Node.JS",
-  "version": "1.2.0",
-  "author": "Sascha Depold <sascha@depold.com>",
+  "name": "sqlize",
+  "description": "Modified version of sequelize - MySQL ORM for Node.JS",
+  "version": "0.1.0",
+  "author": "Meg Sharkey <meg@metamx.com>",
   "contributors": [
-    { "name": "Sascha Depold", "email": "sascha@depold.com" }
+    { "name": "Sascha Depold", "email": "sascha@depold.com" },
+    { "name": "Meg Sharkey", "email": "meg@metamx.com" }
   ],
   "dependencies": {
     "mysql": "=0.9.4",
@@ -16,7 +17,7 @@
     "jasmine-node": "=1.0.12",
     "expresso": "=0.9.2"
   },
-  "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
+  "keywords": [],
   "main": "index",
   "scripts": {},
   "bin": {},
