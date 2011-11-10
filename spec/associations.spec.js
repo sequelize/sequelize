@@ -21,6 +21,7 @@ describe('Associations', function() {
         expect(sequelize.modelManager.getModel('wp_table1swp_table2s')).toBeDefined()
       })
     })
+    // TODO add test for specifying join table name
   })
 
 })
