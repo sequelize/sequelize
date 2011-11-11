@@ -1,3 +1,5 @@
+Sequelize = require("../../index")
+
 var Helpers = module.exports = function(sequelize) {
   this.sequelize = sequelize
   this.Factories = new (require("./factories"))(this)

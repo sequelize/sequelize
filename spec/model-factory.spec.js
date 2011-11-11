@@ -33,8 +33,8 @@ describe('ModelFactory', function() {
 
     it('should allow the creation of an object with options as attribute', function() {
       var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
-      Helpers.Factories.Model('Person', {name: 'John Doe', options: options}, function(person) {
-        expect(person.options).toEqual(options)
+      Helpers.Factories.Model('Person', {name: 'John Doe', options: options}, function(people) {
+        expect(people[0].options).toEqual(options)
       })
     })
   })

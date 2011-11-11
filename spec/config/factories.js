@@ -6,16 +6,32 @@ var Factories = module.exports = function(helpers) {
 Factories.prototype.Model = function(modelName, options, callback, count) {
   count = count || 1
 
-  var self = this
+  var self   = this
+    , models = []
 
   this.helpers.async(function(done) {
-    self.sequelize.modelManager.getModel(modelName).create(options).on('success', function(model){
-      done()
-      --count ? self.Model(modelName, options, callback, count) : (callback && callback(model))
-    }).on('failure', function(err) {
-      console.log(err)
-      done()
-    })
+    var Model  = self.sequelize.modelManager.getModel(modelName)
+
+    var create = function(cb) {
+      Model.create(options).on('success', function(model) {
+        models.push(model)
+        cb && cb()
+      }).on('failure', function(err) {
+        console.log(err)
+        done()
+      })
+    }
+
+    var cb = function() {
+      if(--count) {
+        create(cb)
+      } else {
+        done()
+        callback && callback(models)
+      }
+    }
+
+    create(cb)
   })
 }
 
