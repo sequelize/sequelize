@@ -1,7 +1,7 @@
 {
   "name": "sqlize",
   "description": "Modified version of sequelize - MySQL ORM for Node.JS",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Meg Sharkey <meg@metamx.com>",
   "contributors": [
     { "name": "Sascha Depold", "email": "sascha@depold.com" },
