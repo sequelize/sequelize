@@ -7,7 +7,11 @@ var config    = require("./config/config")
 describe('Migrator', function() {
   describe('getLastMigrationId', function() {
     it("should correctly transform array into IN", function() {
-      new Migrator({ path: __dirname + '/assets/migrations'}).migrate()
+      Helpers.async(function(done) {
+        new Migrator(sequelize, { path: __dirname + '/assets/migrations'}).migrate().success(function() {
+          done()
+        })
+      })
     })
   })
 })

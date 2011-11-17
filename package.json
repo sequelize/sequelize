@@ -11,7 +11,8 @@
     "underscore": "=1.2.1",
     "underscore.string": "=1.2.0",
     "lingo": "=0.0.4",
-    "validator": "=0.3.5"
+    "validator": "=0.3.5",
+    "moment": "=1.1.1"
   },
   "devDependencies": {
     "jasmine-node": "=1.0.12",
