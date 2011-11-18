@@ -1,8 +1,8 @@
 module.exports = {
-  up: function() {
-
+  up: function(migrator) {
+    console.log(migrator.createTable)
   },
-  down: function() {
+  down: function(migrator) {
 
   }
 }
