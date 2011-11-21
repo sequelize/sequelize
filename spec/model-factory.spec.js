@@ -9,6 +9,23 @@ describe('ModelFactory', function() {
 
   var User = sequelize.define('User', { age: Sequelize.INTEGER, name: Sequelize.STRING, bio: Sequelize.TEXT })
 
+  //////////// find //////////////
+
+  describe('.find', function() {
+    beforeEach(function() {
+      Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
+    })
+
+    it("should make aliased attributes available", function() {
+      Helpers.async(function(done) {
+        User.find({ where: 'id = 1', attributes: ['id', ['name', 'username']] }).success(function(user) {
+          expect(user.username).toEqual('user')
+          done()
+        })
+      })
+    })
+  })
+
   //////////// all //////////////
 
   describe('.all', function() {

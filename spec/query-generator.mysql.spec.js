@@ -17,4 +17,14 @@ describe('QueryGenerator', function() {
       )
     })
   })
+
+  describe('selectQuery', function() {
+    it("should correctly convert arrays into aliases", function() {
+      expect(
+        QueryGenerator.selectQuery('foo', { attributes: [['count(*)', 'count']] })
+      ).toEqual(
+        'SELECT count(*) as `count` FROM `foo`;'
+      )
+    })
+  })
 })
