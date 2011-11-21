@@ -5,6 +5,7 @@
 - [FEATURE] Association definition is chainable: Person.hasOne(House).hasMany(Address)
 - [FEATURE] Validations (Thanks to [hiddentao](https://github.com/hiddentao))
 - [FEATURE] jQuery-like event listeners: .success(callback) and .error(callback)
+- [FEATURE] aliasing for select queries: Model.find({ where: 'id = 1', attributes: ['id', ['name', 'username']] }) ==> will return the user's name as username
 
 # v1.2.1 #
 - [REFACTORING] renamed the global options for sync, query and define on sequelize; before: options.queryOptions; now: options.query
