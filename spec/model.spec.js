@@ -7,12 +7,12 @@ describe('Model', function() {
   describe('Validations', function() {
     var checks = {
       is : {
-        spec : { args: [/[a-z]/,'i'] },
+        spec : { args: ["[a-z]",'i'] },
         fail: "0",
         pass: "a"
       }
     , not : {
-        spec: { args: [/[a-z]/,'i'] },
+        spec: { args: ["[a-z]",'i'] },
         fail: "a",
         pass: "0"
       }
@@ -88,12 +88,12 @@ describe('Model', function() {
         pass: "la"
       }
     , regex : {
-        spec : { args: [/[a-z]/,'i'] },
+        spec : { args: ["[a-z]",'i'] },
         fail: "0",
         pass: "a"
       }
     , notRegex : {
-        spec: { args: [/[a-z]/,'i'] },
+        spec: { args: ["[a-z]",'i'] },
         fail: "a",
         pass: "0"
       }
