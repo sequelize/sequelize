@@ -56,8 +56,16 @@ describe('Migrator', function() {
       })
     })
 
+    it("returns all files to options.to if no options.from is defined", function() {
+      setup({ to: 20111123060700 })
 
-    //it("returns")
+      Helpers.async(function(done) {
+        migrator.getUndoneMigrations(function(files) {
+          expect(files.length).toEqual(2)
+          done()
+        })
+      })
+    })
   })
 /*
 
