@@ -2,6 +2,7 @@
 - [REFACTORING] Model#all is now a function and not a getter.
 - [REFACTORING] Renamed ModelDefinition to ModelFactory
 - [REFACTORING] Private method scoping; Attributes are still public
+- [REFACTORING] Use the new util module for node 0.6.2
 - [FEATURE] Association definition is chainable: Person.hasOne(House).hasMany(Address)
 - [FEATURE] Validations (Thanks to [hiddentao](https://github.com/hiddentao))
 - [FEATURE] jQuery-like event listeners: .success(callback) and .error(callback)

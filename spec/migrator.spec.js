@@ -8,7 +8,11 @@ describe('Migrator', function() {
   describe('getLastMigrationId', function() {
     it("should correctly transform array into IN", function() {
       Helpers.async(function(done) {
-        new Migrator(sequelize, { path: __dirname + '/assets/migrations'}).migrate().success(function() {
+        new Migrator(sequelize, {
+          path: __dirname + '/assets/migrations',
+          from: 20111117063700,
+          to: 20111117063700
+        }).migrate().success(function() {
           done()
         })
       })
