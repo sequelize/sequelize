@@ -15,7 +15,7 @@
     "moment": "=1.1.1"
   },
   "devDependencies": {
-    "jasmine-node": "=1.0.12",
+    "jasmine-node": "=1.0.13",
     "expresso": "=0.9.2",
     "mocha": ">0"
   },
