@@ -6,14 +6,21 @@ var config    = require("./config/config")
 
 describe('Migrator', function() {
   describe('getUndoneMigrations', function() {
-    var migrator = null
+    var migrator      = null
+      , SequelizeMeta = null
 
     var setup = function(_options) {
-      var options = Sequelize.Utils._.extend({
-        path: __dirname + '/assets/migrations'
-      }, _options || {})
+      Helpers.async(function(done) {
+        var options = Sequelize.Utils._.extend({
+          path: __dirname + '/assets/migrations'
+        }, _options || {})
 
-      migrator = new Migrator(sequelize, options)
+        migrator = new Migrator(sequelize, options)
+        migrator.findOrCreateSequelizeMetaModel({ force: true }).success(function(_SequelizeMeta) {
+          SequelizeMeta = _SequelizeMeta
+          done()
+        })
+      })
     }
 
     beforeEach(function() { migrator = null })
@@ -71,10 +78,12 @@ describe('Migrator', function() {
       setup()
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(files) {
-          expect(files.length).toEqual(1)
-          expect(files[0]).toEqual('20111123060700-addBirthdateToPerson.js')
-          done()
+        SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
+          migrator.getUndoneMigrations(function(files) {
+            expect(files.length).toEqual(1)
+            expect(files[0]).toEqual('20111123060700-addBirthdateToPerson.js')
+            done()
+          })
         })
       })
     })
