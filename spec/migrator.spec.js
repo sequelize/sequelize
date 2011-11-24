@@ -66,6 +66,18 @@ describe('Migrator', function() {
         })
       })
     })
+
+    it("returns all files from last migration id stored in database", function() {
+      setup()
+
+      Helpers.async(function(done) {
+        migrator.getUndoneMigrations(function(files) {
+          expect(files.length).toEqual(1)
+          expect(files[0]).toEqual('20111123060700-addBirthdateToPerson.js')
+          done()
+        })
+      })
+    })
   })
 /*
 
