@@ -88,11 +88,19 @@ describe('Migrator', function() {
       })
     })
   })
-/*
 
-  describe('getLastMigrationId', function() {
-    it("should correctly transform array into IN", function() {
+  describe('migrate', function() {
+    afterEach(function() {
       Helpers.async(function(done) {
+        sequelize.getQueryInterface()
+          .dropAllTables()
+          .success(done)
+          .error(function(err) { console.log(err) })
+      })
+    })
+
+    it("should execute the migrations", function() {
+      /*Helpers.async(function(done) {
         new Migrator(sequelize, {
           path: __dirname + '/assets/migrations',
           from: 2011111706370020111117063700,
@@ -100,7 +108,7 @@ describe('Migrator', function() {
         }).migrate().success(function() {
           done()
         })
-      })
+      })*/
     })
-  })*/
+  })
 })
