@@ -3,6 +3,7 @@ var config    = require("./config/config")
   , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
   , Helpers   = new (require("./config/helpers"))(sequelize)
   , Migrator  = require("../lib/migrator")
+  , _         = Sequelize.Utils._
 
 describe('Migrator', function() {
   describe('getUndoneMigrations', function() {
@@ -31,8 +32,8 @@ describe('Migrator', function() {
       setup({ from: 20120101010101 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(files) {
-          expect(files.length).toEqual(0)
+        migrator.getUndoneMigrations(function(migrations) {
+          expect(migrations.length).toEqual(0)
           done()
         })
       })
@@ -42,9 +43,9 @@ describe('Migrator', function() {
       setup({ from: 19700101000000, to: 20111117063700 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(files) {
-          expect(files.length).toEqual(1)
-          expect(files[0]).toEqual('20111117063700-createPerson.js')
+        migrator.getUndoneMigrations(function(migrations) {
+          expect(migrations.length).toEqual(1)
+          expect(_.last(migrations).filename).toEqual('20111117063700-createPerson.js')
           done()
         })
       })
@@ -54,10 +55,10 @@ describe('Migrator', function() {
       setup({ from: 20111117063700, to: 20111123060700 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(files) {
-          expect(files.length).toEqual(2)
-          expect(files[0]).toEqual('20111117063700-createPerson.js')
-          expect(files[1]).toEqual('20111123060700-addBirthdateToPerson.js')
+        migrator.getUndoneMigrations(function(migrations) {
+          expect(migrations.length).toEqual(2)
+          expect(migrations[0].filename).toEqual('20111117063700-createPerson.js')
+          expect(migrations[1].filename).toEqual('20111123060700-addBirthdateToPerson.js')
           done()
         })
       })
@@ -67,8 +68,8 @@ describe('Migrator', function() {
       setup({ to: 20111123060700 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(files) {
-          expect(files.length).toEqual(2)
+        migrator.getUndoneMigrations(function(migrations) {
+          expect(migrations.length).toEqual(2)
           done()
         })
       })
@@ -79,9 +80,9 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
-          migrator.getUndoneMigrations(function(files) {
-            expect(files.length).toEqual(1)
-            expect(files[0]).toEqual('20111123060700-addBirthdateToPerson.js')
+          migrator.getUndoneMigrations(function(migrations) {
+            expect(migrations.length).toEqual(1)
+            expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
           })
         })
@@ -99,16 +100,23 @@ describe('Migrator', function() {
       })
     })
 
-    it("should execute the migrations", function() {
-      /*Helpers.async(function(done) {
-        new Migrator(sequelize, {
-          path: __dirname + '/assets/migrations',
-          from: 2011111706370020111117063700,
-          to: 20111117063700
-        }).migrate().success(function() {
+    xit("should execute the specified migration (and e.g. create a file)", function() {
+      var migrator = new Migrator(sequelize, {
+        path: __dirname + '/assets/migrations',
+        from: 20111117063700,
+        to: 20111117063700
+      })
+
+      Helpers.async(function(done) {
+        migrator.migrate().success(done).error(function(err) { console.log(err) })
+      })
+
+      Helpers.async(function(done) {
+        sequelize.getQueryInterface().showAllTables(function(tableName) {
+          expect(tableNames.length).toEqual(1)
           done()
         })
-      })*/
+      })
     })
   })
 })
