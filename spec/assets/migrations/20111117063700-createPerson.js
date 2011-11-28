@@ -4,7 +4,7 @@ module.exports = {
       name: DataTypes.STRING
     })
   },
-  down: function(migrator) {
+  down: function(Interface) {
     Interface.dropTable('Person')
   }
 }
