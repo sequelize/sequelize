@@ -100,7 +100,7 @@ describe('Migrator', function() {
       })
     })
 
-    xit("should execute the specified migration (and e.g. create a file)", function() {
+    it("should execute the specified migration (and e.g. create a file)", function() {
       var migrator = new Migrator(sequelize, {
         path: __dirname + '/assets/migrations',
         from: 20111117063700,
@@ -112,8 +112,10 @@ describe('Migrator', function() {
       })
 
       Helpers.async(function(done) {
-        sequelize.getQueryInterface().showAllTables(function(tableName) {
+        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          tableNames = tableNames.slice('SequelizeMeta', 1)
           expect(tableNames.length).toEqual(1)
+          expect(tableNames[0]).toEqual('Person')
           done()
         })
       })
