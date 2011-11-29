@@ -1,8 +1,8 @@
 module.exports = {
-  up: function(interface, DataTypes) {
+  up: function(migration, DataTypes) {
 
   },
-  down: function(interface, DataTypes) {
+  down: function(migration, DataTypes) {
 
   }
 }
