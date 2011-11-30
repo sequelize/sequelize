@@ -6,28 +6,27 @@ var config    = require("./config/config")
   , _         = Sequelize.Utils._
 
 describe('Migrator', function() {
-  describe('getUndoneMigrations', function() {
-    var migrator      = null
-      , SequelizeMeta = null
+  var migrator      = null
+    , SequelizeMeta = null
 
-    var setup = function(_options) {
-      Helpers.async(function(done) {
-        var options = Sequelize.Utils._.extend({
-          path: __dirname + '/assets/migrations'
-        }, _options || {})
+  var setup = function(_options) {
+    Helpers.async(function(done) {
+      var options = Sequelize.Utils._.extend({
+        path: __dirname + '/assets/migrations'
+      }, _options || {})
 
-        migrator = new Migrator(sequelize, options)
-        migrator.findOrCreateSequelizeMetaModel({ force: true }).success(function(_SequelizeMeta) {
-          SequelizeMeta = _SequelizeMeta
-          done()
-        })
+      migrator = new Migrator(sequelize, options)
+      migrator.findOrCreateSequelizeMetaModel({ force: true }).success(function(_SequelizeMeta) {
+        SequelizeMeta = _SequelizeMeta
+        done()
       })
-    }
+    })
+  }
 
-    beforeEach(function() { migrator = null })
+  beforeEach(function() { migrator = null })
+  afterEach(function() { migrator = null })
 
-    // specs
-
+  describe('getUndoneMigrations', function() {
     it("returns no files if timestamps are after the files timestamp", function() {
       setup({ from: 20120101010101 })
 
@@ -72,7 +71,6 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
-          console.log(err)
           expect(err).toBeFalsy()
           expect(migrations.length).toEqual(2)
           done()
@@ -97,14 +95,8 @@ describe('Migrator', function() {
   })
 
   describe('migrate', function() {
-    var migrator = null
-
     beforeEach(function() {
-      migrator = new Migrator(sequelize, {
-        path: __dirname + '/assets/migrations',
-        from: 20111117063700,
-        to: 20111117063700
-      })
+      setup({ from: 20111117063700, to: 20111117063700 })
 
       Helpers.async(function(done) {
         migrator.migrate().success(done).error(function(err) { console.log(err) })
