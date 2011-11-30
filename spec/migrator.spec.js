@@ -91,17 +91,10 @@ describe('Migrator', function() {
   })
 
   describe('migrate', function() {
-    afterEach(function() {
-      Helpers.async(function(done) {
-        sequelize.getQueryInterface()
-          .dropAllTables()
-          .success(done)
-          .error(function(err) { console.log(err) })
-      })
-    })
+    var migrator = null
 
-    it("should execute the specified migration (and e.g. create a file)", function() {
-      var migrator = new Migrator(sequelize, {
+    beforeEach(function() {
+      migrator = new Migrator(sequelize, {
         path: __dirname + '/assets/migrations',
         from: 20111117063700,
         to: 20111117063700
@@ -110,7 +103,16 @@ describe('Migrator', function() {
       Helpers.async(function(done) {
         migrator.migrate().success(done).error(function(err) { console.log(err) })
       })
+    })
 
+    afterEach(function() {
+      migrator = null
+      Helpers.async(function(done) {
+        sequelize.getQueryInterface().dropAllTables().success(done).error(function(err) { console.log(err) })
+      })
+    })
+
+    it("executes migration #20111117063700 and correctly creates the table", function() {
       Helpers.async(function(done) {
         sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           tableNames = tableNames.slice('SequelizeMeta', 1)
@@ -118,6 +120,26 @@ describe('Migrator', function() {
           expect(tableNames[0]).toEqual('Person')
           done()
         })
+      })
+    })
+
+    it("executes migration #20111117063700 correctly up (createTable) and downwards (dropTable)", function() {
+      Helpers.async(function(done) {
+        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          tableNames = tableNames.slice('SequelizeMeta', 1)
+          expect(tableNames.length).toEqual(1)
+          done()
+        })
+      })
+
+      Helpers.async(function(done) {
+        migrator.migrate({ method: 'down' }).success(function() {
+          sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+            tableNames = tableNames.slice('SequelizeMeta', 1)
+            expect(tableNames.length).toEqual(0)
+            done()
+          }).error(function(err){ console.log(err); done() })
+        }).error(function(err){ console.log(err); done() })
       })
     })
   })
