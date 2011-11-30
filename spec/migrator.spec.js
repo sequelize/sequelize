@@ -32,7 +32,8 @@ describe('Migrator', function() {
       setup({ from: 20120101010101 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(migrations) {
+        migrator.getUndoneMigrations(function(err, migrations) {
+          expect(err).toBeFalsy()
           expect(migrations.length).toEqual(0)
           done()
         })
@@ -43,7 +44,8 @@ describe('Migrator', function() {
       setup({ from: 19700101000000, to: 20111117063700 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(migrations) {
+        migrator.getUndoneMigrations(function(err, migrations) {
+          expect(err).toBeFalsy()
           expect(migrations.length).toEqual(1)
           expect(_.last(migrations).filename).toEqual('20111117063700-createPerson.js')
           done()
@@ -55,7 +57,8 @@ describe('Migrator', function() {
       setup({ from: 20111117063700, to: 20111123060700 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(migrations) {
+        migrator.getUndoneMigrations(function(err, migrations) {
+          expect(err).toBeFalsy()
           expect(migrations.length).toEqual(2)
           expect(migrations[0].filename).toEqual('20111117063700-createPerson.js')
           expect(migrations[1].filename).toEqual('20111123060700-addBirthdateToPerson.js')
@@ -68,7 +71,9 @@ describe('Migrator', function() {
       setup({ to: 20111123060700 })
 
       Helpers.async(function(done) {
-        migrator.getUndoneMigrations(function(migrations) {
+        migrator.getUndoneMigrations(function(err, migrations) {
+          console.log(err)
+          expect(err).toBeFalsy()
           expect(migrations.length).toEqual(2)
           done()
         })
@@ -80,7 +85,8 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
-          migrator.getUndoneMigrations(function(migrations) {
+          migrator.getUndoneMigrations(function(err, migrations) {
+            expect(err).toBeFalsy()
             expect(migrations.length).toEqual(1)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
