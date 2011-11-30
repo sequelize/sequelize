@@ -85,7 +85,7 @@ describe('Migrator', function() {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).toBeFalsy()
-            expect(migrations.length).toEqual(1)
+            expect(migrations.length).toEqual(2)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
           })
@@ -138,6 +138,19 @@ describe('Migrator', function() {
             done()
           }).error(function(err){ console.log(err); done() })
         }).error(function(err){ console.log(err); done() })
+      })
+    })
+
+    it("executes the empty migration #20111130161100", function() {
+      Helpers.async(function(done) {
+        setup({ from: 20111130161100, to: 20111130161100})
+        done()
+      })
+
+      Helpers.async(function(done) {
+        migrator.migrate().success(done).error(function(err) { console.log(err) })
+        // this migration isn't actually testing anything but
+        // should not timeout
       })
     })
   })
