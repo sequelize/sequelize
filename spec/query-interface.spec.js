@@ -25,7 +25,6 @@ describe('QueryInterface', function() {
 
       Helpers.async(function(done) {
         interface.showAllTables().success(function(tableNames) {
-          console.log(tableNames)
           expect(tableNames.length).toEqual(0)
           done()
         })

@@ -92,6 +92,10 @@ describe('Migrator', function() {
       Helpers.async(function(done) {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
+            migrations = migrations.sort(function(a,b){
+              return parseInt(a.filename.split('-')[0]) - parseInt(b.filename.split('-')[0])
+            })
+
             expect(err).toBeFalsy()
             expect(migrations.length).toEqual(4)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
