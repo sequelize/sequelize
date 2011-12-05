@@ -22,6 +22,7 @@ describe('Migrator', function() {
           SequelizeMeta = _SequelizeMeta
           done()
         })
+        .error(function(err) { console.log(err) })
     })
   }
 
@@ -92,7 +93,7 @@ describe('Migrator', function() {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).toBeFalsy()
-            expect(migrations.length).toEqual(3)
+            expect(migrations.length).toEqual(4)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
           })
@@ -101,7 +102,7 @@ describe('Migrator', function() {
     })
   })
 
-  describe('migrate', function() {
+  describe('migrations', function() {
     beforeEach(function() {
       setup({ from: 20111117063700, to: 20111117063700 })
 
@@ -110,74 +111,111 @@ describe('Migrator', function() {
       })
     })
 
-    it("executes migration #20111117063700 and correctly creates the table", function() {
-      Helpers.async(function(done) {
-        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-          expect(tableNames.length).toEqual(1)
-          expect(tableNames[0]).toEqual('Person')
-          done()
-        })
-      })
-    })
-
-    it("executes migration #20111117063700 correctly up (createTable) and downwards (dropTable)", function() {
-      Helpers.async(function(done) {
-        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-          expect(tableNames.length).toEqual(1)
-          done()
-        })
-      })
-
-      Helpers.async(function(done) {
-        migrator.migrate({ method: 'down' }).success(function() {
+    describe('executions', function() {
+      it("executes migration #20111117063700 and correctly creates the table", function() {
+        Helpers.async(function(done) {
           sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
             tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-            expect(tableNames.length).toEqual(0)
+            expect(tableNames.length).toEqual(1)
+            expect(tableNames[0]).toEqual('Person')
             done()
-          }).error(function(err){ console.log(err); done() })
-        }).error(function(err){ console.log(err); done() })
-      })
-    })
-
-    it("executes the empty migration #20111130161100", function() {
-      Helpers.async(function(done) {
-        setup({ from: 20111130161100, to: 20111130161100})
-        done()
-      })
-
-      Helpers.async(function(done) {
-        migrator.migrate().success(done).error(function(err) { console.log(err) })
-        // this migration isn't actually testing anything but
-        // should not timeout
-      })
-    })
-
-    it("executes migration #20111205064000 and renames a table", function() {
-      Helpers.async(function(done) {
-        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-          expect(tableNames.length).toEqual(1)
-          expect(tableNames[0]).toEqual('Person')
-          done()
+          })
         })
       })
 
-      setup({from: 20111205064000, to: 20111205064000})
+      it("executes migration #20111117063700 correctly up (createTable) and downwards (dropTable)", function() {
+        Helpers.async(function(done) {
+          sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+            tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+            expect(tableNames.length).toEqual(1)
+            done()
+          })
+        })
 
-      Helpers.async(function(done) {
-        migrator.migrate().success(done).error(function(err) { console.log(err) })
+        Helpers.async(function(done) {
+          migrator.migrate({ method: 'down' }).success(function() {
+            sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+              tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+              expect(tableNames.length).toEqual(0)
+              done()
+            }).error(function(err){ console.log(err); done() })
+          }).error(function(err){ console.log(err); done() })
+        })
       })
 
-      Helpers.async(function(done) {
-        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-          expect(tableNames.length).toEqual(1)
-          expect(tableNames[0]).toEqual('User')
+      it("executes the empty migration #20111130161100", function() {
+        Helpers.async(function(done) {
+          setup({ from: 20111130161100, to: 20111130161100})
           done()
+        })
+
+        Helpers.async(function(done) {
+          migrator.migrate().success(done).error(function(err) { console.log(err) })
+          // this migration isn't actually testing anything but
+          // should not timeout
+        })
+      })
+    })
+
+    describe('renameTable', function() {
+      it("executes migration #20111205064000 and renames a table", function() {
+        Helpers.async(function(done) {
+          sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+            tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+            expect(tableNames.length).toEqual(1)
+            expect(tableNames[0]).toEqual('Person')
+            done()
+          })
+        })
+
+        setup({from: 20111205064000, to: 20111205064000})
+
+        Helpers.async(function(done) {
+          migrator.migrate().success(done).error(function(err) { console.log(err) })
+        })
+
+        Helpers.async(function(done) {
+          sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+            tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+            expect(tableNames.length).toEqual(1)
+            expect(tableNames[0]).toEqual('User')
+            done()
+          })
+        })
+      })
+    })
+
+    describe('addColumn', function() {
+      it('adds a column to the user table', function() {
+        setup({from: 20111205064000, to: 20111205162700})
+
+        Helpers.async(function(done) {
+          migrator.migrate().success(done).error(function(err) { console.log(err) })
+        })
+
+        Helpers.async(function(done) {
+          sequelize.getQueryInterface().describeTable('User').success(function(data) {
+            var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
+              , isAdmin   = data.filter(function(hash){ return hash.Field == 'isAdmin' })[0]
+              , shopId    = data.filter(function(hash){ return hash.Field == 'shopId' })[0]
+
+            expect(signature.Field).toEqual('signature')
+            expect(signature.Null).toEqual('NO')
+
+            expect(isAdmin.Field).toEqual('isAdmin')
+            expect(isAdmin.Null).toEqual('NO')
+            expect(isAdmin.Default).toEqual('0')
+
+            expect(shopId.Field).toEqual('shopId')
+            expect(shopId.Null).toEqual('YES')
+
+            done()
+          }).error(function(err) {
+            console.log(err)
+          })
         })
       })
     })
   })
 })
+
