@@ -92,7 +92,7 @@ describe('Migrator', function() {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).toBeFalsy()
-            expect(migrations.length).toEqual(2)
+            expect(migrations.length).toEqual(3)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
           })
@@ -151,6 +151,27 @@ describe('Migrator', function() {
         migrator.migrate().success(done).error(function(err) { console.log(err) })
         // this migration isn't actually testing anything but
         // should not timeout
+      })
+    })
+
+    it("executes migration #20111205064000 and renames a table", function() {
+      Helpers.async(function(done) {
+        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+          expect(tableNames.length).toEqual(1)
+          expect(tableNames[0]).toEqual('Person')
+        })
+      })
+      Helpers.async(function(done) {
+        setup({from: 20111205064000, to: 20111205064000})
+        migrator.migrate().success(done).error(function(err) { console.log(err) })
+      })
+      Helpers.async(function(done) {
+        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+          expect(tableNames.length).toEqual(1)
+          expect(tableNames[0]).toEqual('User')
+        })
       })
     })
   })
