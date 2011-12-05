@@ -20,6 +20,10 @@ describe('QueryInterface', function() {
 
     it("should drop all tables", function() {
       Helpers.async(function(done) {
+        interface.dropAllTables().success(done).error(function(err) { console.log(err) })
+      })
+
+      Helpers.async(function(done) {
         interface.showAllTables().success(function(tableNames) {
           console.log(tableNames)
           expect(tableNames.length).toEqual(0)
