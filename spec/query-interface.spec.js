@@ -10,12 +10,13 @@ describe('QueryInterface', function() {
 
     beforeEach(function() {
       interface = sequelize.getQueryInterface()
-      Helpers.async(function(done) {
-        interface.dropAllTables().success(done).error(function(err) { console.log(err) })
-      })
+      Helpers.dropAllTables()
     })
 
-    afterEach(function() { interface = null })
+    afterEach(function() {
+      interface = null
+      Helpers.dropAllTables()
+    })
 
     it("should drop all tables", function() {
       Helpers.async(function(done) {
