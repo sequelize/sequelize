@@ -160,17 +160,22 @@ describe('Migrator', function() {
           tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
           expect(tableNames.length).toEqual(1)
           expect(tableNames[0]).toEqual('Person')
+          done()
         })
       })
+
+      setup({from: 20111205064000, to: 20111205064000})
+
       Helpers.async(function(done) {
-        setup({from: 20111205064000, to: 20111205064000})
         migrator.migrate().success(done).error(function(err) { console.log(err) })
       })
+
       Helpers.async(function(done) {
         sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
           expect(tableNames.length).toEqual(1)
           expect(tableNames[0]).toEqual('User')
+          done()
         })
       })
     })
