@@ -11,6 +11,8 @@ describe('Migration', function() {
     var migrator  = new Migrator(sequelize)
       , migration = new Migration(migrator, '/var/lib/20111117063700-asd.js')
 
+    // the syntax in the following tests are correct
+    // don't touch them! the functions will get stringified below
     var tests = [
       {
         topic: function(migration, DataTypes) {
@@ -26,19 +28,35 @@ describe('Migration', function() {
       },
       {
         topic: function(migration, DataTypes) {
-          migration.createTable()
+          migration
+            .createTable()
         },
         expectation: true
       },
       {
         topic: function(migration, DataTypes) {
-          migration.createTable()
+          migration.
+            createTable()
         },
         expectation: true
       },
       {
         topic: function(migration, DataTypes) {
-          migration.createTable()
+          migration . createTable ()
+        },
+        expectation: true
+      },
+      {
+        topic: function(migration, DataTypes) {
+          /*
+            migration . createTable()
+          */
+        },
+        expectation: false
+      },
+      {
+        topic: function(migration, DataTypes) {
+          migration/* noot noot */.createTable()
         },
         expectation: true
       }
