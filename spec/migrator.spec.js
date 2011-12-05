@@ -16,15 +16,22 @@ describe('Migrator', function() {
       }, _options || {})
 
       migrator = new Migrator(sequelize, options)
-      migrator.findOrCreateSequelizeMetaModel({ force: true }).success(function(_SequelizeMeta) {
-        SequelizeMeta = _SequelizeMeta
-        done()
-      })
+      migrator
+        .findOrCreateSequelizeMetaModel({ force: true })
+        .success(function(_SequelizeMeta) {
+          SequelizeMeta = _SequelizeMeta
+          done()
+        })
     })
   }
 
-  beforeEach(function() { migrator = null })
-  afterEach(function() { migrator = null })
+  var reset = function() {
+    migrator = null
+    Helpers.dropAllTables()
+  }
+
+  beforeEach(reset)
+  afterEach(reset)
 
   describe('getUndoneMigrations', function() {
     it("returns no files if timestamps are after the files timestamp", function() {
@@ -103,17 +110,10 @@ describe('Migrator', function() {
       })
     })
 
-    afterEach(function() {
-      migrator = null
-      Helpers.async(function(done) {
-        sequelize.getQueryInterface().dropAllTables().success(done).error(function(err) { console.log(err) })
-      })
-    })
-
     it("executes migration #20111117063700 and correctly creates the table", function() {
       Helpers.async(function(done) {
         sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          tableNames = tableNames.slice('SequelizeMeta', 1)
+          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
           expect(tableNames.length).toEqual(1)
           expect(tableNames[0]).toEqual('Person')
           done()
@@ -124,7 +124,7 @@ describe('Migrator', function() {
     it("executes migration #20111117063700 correctly up (createTable) and downwards (dropTable)", function() {
       Helpers.async(function(done) {
         sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          tableNames = tableNames.slice('SequelizeMeta', 1)
+          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
           expect(tableNames.length).toEqual(1)
           done()
         })
@@ -133,7 +133,7 @@ describe('Migrator', function() {
       Helpers.async(function(done) {
         migrator.migrate({ method: 'down' }).success(function() {
           sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-            tableNames = tableNames.slice('SequelizeMeta', 1)
+            tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
             expect(tableNames.length).toEqual(0)
             done()
           }).error(function(err){ console.log(err); done() })

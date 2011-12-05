@@ -26,21 +26,19 @@ describe('Migration', function() {
       },
       {
         topic: function(migration, DataTypes) {
-          migration
-            .createTable()
+          migration.createTable()
         },
         expectation: true
       },
       {
         topic: function(migration, DataTypes) {
-          migration.
-            createTable()
+          migration.createTable()
         },
         expectation: true
       },
       {
         topic: function(migration, DataTypes) {
-          migration . createTable ()
+          migration.createTable()
         },
         expectation: true
       }

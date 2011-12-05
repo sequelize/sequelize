@@ -25,6 +25,18 @@ Helpers.prototype.drop = function() {
   })
 }
 
+Helpers.prototype.dropAllTables = function() {
+  var self = this
+
+  this.async(function(done) {
+    self.sequelize
+      .getQueryInterface()
+      .dropAllTables()
+      .success(done)
+      .error(function(err) { console.log(err) })
+  })
+}
+
 Helpers.prototype.async = function(fct) {
   var done = false
   runs(function() {
