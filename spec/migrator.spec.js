@@ -97,7 +97,7 @@ describe('Migrator', function() {
             })
 
             expect(err).toBeFalsy()
-            expect(migrations.length).toEqual(5)
+            expect(migrations.length).toEqual(6)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
           })
@@ -250,6 +250,31 @@ describe('Migrator', function() {
           })
         })
 
+      })
+    })
+
+    describe('changeColumn', function() {
+      it('changes the signature column from user to default "" + notNull', function() {
+        setup({from: 20111205064000, to: 20111206063000})
+
+        Helpers.async(function(done) {
+          migrator.migrate().success(done).error(function(err) { console.log(err) })
+        })
+
+        Helpers.async(function(done) {
+          sequelize.getQueryInterface().describeTable('User').success(function(data) {
+            var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
+
+            expect(signature.Field).toEqual('signature')
+            expect(signature.Type).toEqual('varchar(255)')
+            expect(signature.Null).toEqual('NO')
+            expect(signature.Default).toEqual('Signature')
+
+            done()
+          }).error(function(err) {
+            console.log(err)
+          })
+        })
       })
     })
   })
