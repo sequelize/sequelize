@@ -97,7 +97,7 @@ describe('Migrator', function() {
             })
 
             expect(err).toBeFalsy()
-            expect(migrations.length).toEqual(4)
+            expect(migrations.length).toEqual(5)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
           })
@@ -218,6 +218,38 @@ describe('Migrator', function() {
             console.log(err)
           })
         })
+      })
+    })
+
+    describe('removeColumn', function() {
+      it('removes the shopId column from user', function() {
+        setup({from: 20111205064000, to: 20111206061400})
+
+        Helpers.async(function(done) {
+          migrator.migrate().success(done).error(function(err) { console.log(err) })
+        })
+
+        Helpers.async(function(done) {
+          sequelize.getQueryInterface().describeTable('User').success(function(data) {
+            var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
+              , isAdmin   = data.filter(function(hash){ return hash.Field == 'isAdmin' })[0]
+              , shopId    = data.filter(function(hash){ return hash.Field == 'shopId' })[0]
+
+            expect(signature.Field).toEqual('signature')
+            expect(signature.Null).toEqual('NO')
+
+            expect(isAdmin.Field).toEqual('isAdmin')
+            expect(isAdmin.Null).toEqual('NO')
+            expect(isAdmin.Default).toEqual('0')
+
+            expect(shopId).toBeFalsy()
+
+            done()
+          }).error(function(err) {
+            console.log(err)
+          })
+        })
+
       })
     })
   })
