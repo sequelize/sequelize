@@ -92,12 +92,8 @@ describe('Migrator', function() {
       Helpers.async(function(done) {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
-            migrations = migrations.sort(function(a,b){
-              return parseInt(a.filename.split('-')[0]) - parseInt(b.filename.split('-')[0])
-            })
-
             expect(err).toBeFalsy()
-            expect(migrations.length).toEqual(6)
+            expect(migrations.length).toEqual(7)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
           })
@@ -254,7 +250,7 @@ describe('Migrator', function() {
     })
 
     describe('changeColumn', function() {
-      it('changes the signature column from user to default "" + notNull', function() {
+      it('changes the signature column from user to default "signature" + notNull', function() {
         setup({from: 20111205064000, to: 20111206063000})
 
         Helpers.async(function(done) {
@@ -274,6 +270,30 @@ describe('Migrator', function() {
           }).error(function(err) {
             console.log(err)
           })
+        })
+      })
+    })
+  })
+
+  describe('renameColumn', function() {
+    it("renames the signature column from user to sig", function() {
+      setup({from: 20111117063700, to: 20111206163300})
+
+      Helpers.async(function(done) {
+        migrator.migrate().success(done).error(function(err) { console.log(err) })
+      })
+
+      Helpers.async(function(done) {
+        sequelize.getQueryInterface().describeTable('User').success(function(data) {
+          var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
+            , sig       = data.filter(function(hash){ return hash.Field == 'sig' })[0]
+
+          expect(signature).toBeFalsy()
+          expect(sig).toBeTruthy()
+
+          done()
+        }).error(function(err) {
+          console.log(err)
         })
       })
     })
