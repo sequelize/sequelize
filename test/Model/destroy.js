@@ -23,9 +23,9 @@ module.exports = {
   'destroy should mark the record as deleted if paranoid is activated': function(exit) {
     var User = sequelize.define('User' + config.rand(), { name: Sequelize.STRING, bio: Sequelize.TEXT }, {paranoid:true})
     User.sync({force: true}).on('success', function() {
-      User.create({name: 'asd', bio: 'asd'}).on('success', function(u) {
+      User.create({name: 'asd', bio: 'asd'}).success(function(u) {
         assert.isNull(u.deletedAt)
-        u.destroy().on('success', function(u) {
+        u.destroy().success(function(u) {
           assert.isNotNull(u.deletedAt)
           exit(function(){})
         })
