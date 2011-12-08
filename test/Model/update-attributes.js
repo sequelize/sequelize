@@ -52,8 +52,12 @@ module.exports = {
 
     User.sync({force:true}).on('success', function() {
       User.create({name: 'snafu', identifier: 'identifier'}).on('success', function(user) {
-        var query = user.updateAttributes({name: 'foobar'})
-        assert.match(query.sql, /WHERE `identifier`..identifier./)
+        var emitter = user.updateAttributes({name: 'foobar'})
+
+        emitter.success(function() {
+          assert.match(emitter.query.sql, /WHERE `identifier`..identifier./)
+        })
+
         exit(function(){})
       })
     })
