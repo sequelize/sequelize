@@ -127,7 +127,20 @@ describe('QueryGenerator', function() {
     'addIndexQuery': [
       {
         arguments: ['User', ['username', 'isAdmin']],
-        expectation: 'CREATE INDEX user_username_is_admin ON User username, isAdmin'
+        expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)'
+      }, {
+        arguments: [
+          'User', [
+            { attribute: 'username', length: 10, order: 'ASC'},
+            'isAdmin'
+          ]
+        ],
+        expectation: "CREATE INDEX user_username_is_admin ON User (username(10) ASC, isAdmin)"
+      }, {
+        arguments: [
+          'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}
+        ],
+        expectation: "CREATE FULLTEXT INDEX bar ON User (username, isAdmin) WITH PARSER foo"
       }
     ],
 
