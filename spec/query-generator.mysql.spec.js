@@ -124,12 +124,12 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'addIndexQuery': [
-      {
-        arguments: ['User', ['username', 'isAdmin']],
-        expectation: 'CREATE INDEX user_username_is_admin ON User username, isAdmin'
-      }
-    ],
+    //'addIndexQuery': [
+    //  {
+    //    arguments: ['User', ['username', 'isAdmin']],
+    //    expectation: 'CREATE INDEX user_username_is_admin ON User username, isAdmin'
+    //  }
+    //],
 
     'hashToWhereConditions': [
       {
