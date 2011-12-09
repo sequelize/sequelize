@@ -124,6 +124,13 @@ describe('QueryGenerator', function() {
       }
     ],
 
+    'addIndexQuery': [
+      {
+        arguments: ['User', ['username', 'isAdmin']],
+        expectation: 'CREATE INDEX user_username_is_admin ON User username, isAdmin'
+      }
+    ],
+
     'hashToWhereConditions': [
       {
         arguments: [{ id: [1,2,3] }],
@@ -143,14 +150,4 @@ describe('QueryGenerator', function() {
       })
     })
   })
-
-  // //describe('addIndexQuery', function() {
-  // //  it("only returns the basics if only necessary parameters are passed", function() {
-  // //    expect(
-  // //      QueryGenerator.addIndexQuery('User', ['username', 'isAdmin'])
-  // //    ).toEqual(
-  // //      'CREATE INDEX user_username_is_admin ON User username, isAdmin'
-  // //    )
-  // //  })
-  // //})
 })
