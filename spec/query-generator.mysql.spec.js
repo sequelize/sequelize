@@ -10,16 +10,124 @@ describe('QueryGenerator', function() {
   afterEach(function() { Helpers.drop() })
 
   var suites = {
+    'createTableQuery': [
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {engine: 'MyISAM'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {charset: 'latin1'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+      }
+    ],
+
+    'dropTableQuery': [
+      {
+        arguments: ['myTable'],
+        expectation: "DROP TABLE IF EXISTS `myTable`;"
+      }
+    ],
+
+    'selectQuery': [
+      {
+        arguments: ['myTable'],
+        expectation: "SELECT * FROM `myTable`;"
+      }, {
+        arguments: ['myTable', {attributes: ['id', 'name']}],
+        expectation: "SELECT `id`, `name` FROM `myTable`;"
+      }, {
+        arguments: ['myTable', {where: {id: 2}}],
+        expectation: "SELECT * FROM `myTable` WHERE `id`=2;"
+      }, {
+        arguments: ['myTable', {where: {name: 'foo'}}],
+        expectation: "SELECT * FROM `myTable` WHERE `name`='foo';"
+      }, {
+        arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
+        expectation: "SELECT * FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;';"
+      }, {
+        arguments: ['myTable', {where: 2}],
+        expectation: "SELECT * FROM `myTable` WHERE `id`=2;"
+      }, {
+        arguments: ['foo', { attributes: [['count(*)', 'count']] }],
+        expectation: 'SELECT count(*) as `count` FROM `foo`;'
+      }, {
+        arguments: ['myTable', {where: "foo='bar'"}],
+        expectation: "SELECT * FROM `myTable` WHERE foo='bar';"
+      }, {
+        arguments: ['myTable', {order: "id DESC"}],
+        expectation: "SELECT * FROM `myTable` ORDER BY id DESC;"
+      }, {
+        arguments: ['myTable', {group: "name"}],
+        expectation: "SELECT * FROM `myTable` GROUP BY `name`;"
+      }, {
+        arguments: ['myTable', {limit: 10}],
+        expectation: "SELECT * FROM `myTable` LIMIT 10;"
+      }, {
+        arguments: ['myTable', {limit: 10, offset: 2}],
+        expectation: "SELECT * FROM `myTable` LIMIT 2, 10;"
+      }, {
+        title: 'ignores offset if no limit was passed',
+        arguments: ['myTable', {offset: 2}],
+        expectation: "SELECT * FROM `myTable`;"
+      }
+    ],
+
+    'insertQuery': [
+      {
+        arguments: ['myTable', {name: 'foo'}],
+        expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo');"
+      }, {
+        arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
+        expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo\\';DROP TABLE myTable;');"
+      }, {
+        arguments: ['myTable', {name: 'foo', birthday: new Date(2011, 2, 27, 10, 1, 55)}],
+        expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55');"
+      }, {
+        arguments: ['myTable', {name: 'foo', foo: 1}],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);"
+      }
+    ],
+
+    'updateQuery': [
+      {
+        arguments: ['myTable', {name: 'foo', birthday: new Date(2011, 2, 27, 10, 1, 55)}, {id: 2}],
+        expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
+      }, {
+        arguments: ['myTable', {name: 'foo', birthday: new Date(2011, 2, 27, 10, 1, 55)}, 2],
+        expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
+      }, {
+        arguments: ['myTable', {bar: 2}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'"
+      }, {
+        arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `name`='foo\\';DROP TABLE myTable;' WHERE `name`='foo'"
+      }
+    ],
+
+    'deleteQuery': [
+      {
+        arguments: ['myTable', {name: 'foo'}],
+        expectation: "DELETE FROM `myTable` WHERE `name`='foo' LIMIT 1"
+      }, {
+        arguments: ['myTable', 1],
+        expectation: "DELETE FROM `myTable` WHERE `id`=1 LIMIT 1"
+      }, {
+        arguments: ['myTable', 1, {limit: 10}],
+        expectation: "DELETE FROM `myTable` WHERE `id`=1 LIMIT 10"
+      }, {
+        arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
+        expectation: "DELETE FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;' LIMIT 10"
+      }
+    ],
+
     'hashToWhereConditions': [
       {
         arguments: [{ id: [1,2,3] }],
         expectation: "`id` IN (1,2,3)"
-      }
-    ],
-    'selectQuery': [
-      {
-        arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-        expectation: 'SELECT count(*) as `count` FROM `foo`;'
       }
     ]
   }
@@ -27,7 +135,7 @@ describe('QueryGenerator', function() {
   Sequelize.Utils._.each(suites, function(tests, suiteTitle) {
     describe(suiteTitle, function() {
       tests.forEach(function(test) {
-        var title = 'correctly returns ' + test.expectation + ' for ' + test.arguments
+        var title = test.title || 'correctly returns ' + test.expectation + ' for ' + test.arguments
         it(title, function() {
           var conditions = QueryGenerator[suiteTitle].apply(null, test.arguments)
           expect(conditions).toEqual(test.expectation)
