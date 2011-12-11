@@ -165,7 +165,7 @@ describe('QueryGenerator', function() {
   Sequelize.Utils._.each(suites, function(tests, suiteTitle) {
     describe(suiteTitle, function() {
       tests.forEach(function(test) {
-        var title = test.title || 'correctly returns ' + test.expectation + ' for ' + test.arguments
+        var title = test.title || 'correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
         it(title, function() {
           var conditions = QueryGenerator[suiteTitle].apply(null, test.arguments)
           expect(conditions).toEqual(test.expectation)
