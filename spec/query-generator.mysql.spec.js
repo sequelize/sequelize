@@ -144,6 +144,16 @@ describe('QueryGenerator', function() {
       }
     ],
 
+    'showIndexQuery': [
+      {
+        arguments: ['User'],
+        expectation: 'SHOW INDEX FROM User'
+      }, {
+        arguments: ['User', { database: 'sequelize' }],
+        expectation: "SHOW INDEX FROM User FROM sequelize"
+      }
+    ],
+
     'hashToWhereConditions': [
       {
         arguments: [{ id: [1,2,3] }],
