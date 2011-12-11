@@ -10,7 +10,7 @@ describe('QueryGenerator', function() {
   afterEach(function() { Helpers.drop() })
 
   var suites = {
-    'createTableQuery': [
+    createTableQuery: [
       {
         arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
         expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;"
@@ -25,14 +25,14 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'dropTableQuery': [
+    dropTableQuery: [
       {
         arguments: ['myTable'],
         expectation: "DROP TABLE IF EXISTS `myTable`;"
       }
     ],
 
-    'selectQuery': [
+    selectQuery: [
       {
         arguments: ['myTable'],
         expectation: "SELECT * FROM `myTable`;"
@@ -76,7 +76,7 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'insertQuery': [
+    insertQuery: [
       {
         arguments: ['myTable', {name: 'foo'}],
         expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo');"
@@ -92,7 +92,7 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'updateQuery': [
+    updateQuery: [
       {
         arguments: ['myTable', {name: 'foo', birthday: new Date(2011, 2, 27, 10, 1, 55)}, {id: 2}],
         expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
@@ -108,7 +108,7 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'deleteQuery': [
+    deleteQuery: [
       {
         arguments: ['myTable', {name: 'foo'}],
         expectation: "DELETE FROM `myTable` WHERE `name`='foo' LIMIT 1"
@@ -124,7 +124,7 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'addIndexQuery': [
+    addIndexQuery: [
       {
         arguments: ['User', ['username', 'isAdmin']],
         expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)'
@@ -144,7 +144,7 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'showIndexQuery': [
+    showIndexQuery: [
       {
         arguments: ['User'],
         expectation: 'SHOW INDEX FROM User'
@@ -154,7 +154,17 @@ describe('QueryGenerator', function() {
       }
     ],
 
-    'hashToWhereConditions': [
+    removeIndexQuery: [
+      {
+        arguments: ['User', 'user_foo_bar'],
+        expectation: "DROP INDEX user_foo_bar ON User"
+      }, {
+        arguments: ['User', ['foo', 'bar']],
+        expectation: "DROP INDEX user_foo_bar ON User"
+      }
+    ],
+
+    hashToWhereConditions: [
       {
         arguments: [{ id: [1,2,3] }],
         expectation: "`id` IN (1,2,3)"
