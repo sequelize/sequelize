@@ -56,7 +56,7 @@ describe('QueryInterface', function() {
     })
   })
 
-  describe('addIndex', function() {
+  describe('indexes', function() {
     beforeEach(function(){
       Helpers.async(function(done) {
         interface.createTable('User', {
@@ -66,7 +66,7 @@ describe('QueryInterface', function() {
       })
     })
 
-    it('adds an index to the table', function() {
+    it('adds, reads and removes an index to the table', function() {
       Helpers.async(function(done) {
         interface.addIndex('User', ['username', 'isAdmin']).success(done).error(function(err) {
           console.log(err)
@@ -77,6 +77,20 @@ describe('QueryInterface', function() {
         interface.showIndex('User').success(function(indexes) {
           var indexColumns = indexes.map(function(index) { return index.Column_name }).sort()
           expect(indexColumns).toEqual(['isAdmin', 'username'])
+          done()
+        }).error(function(err) { console.log(err) })
+      })
+
+      Helpers.async(function(done) {
+        interface.removeIndex('User', ['username', 'isAdmin']).success(done).error(function(err) {
+          console.log(err)
+        })
+      })
+
+      Helpers.async(function(done) {
+        interface.showIndex('User').success(function(indexes) {
+          var indexColumns = indexes.map(function(index) { return index.Column_name }).sort()
+          expect(indexColumns).toEqual([])
           done()
         }).error(function(err) { console.log(err) })
       })
