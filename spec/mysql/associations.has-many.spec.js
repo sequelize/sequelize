@@ -1,7 +1,7 @@
-var config    = require("./config/config")
-  , Sequelize = require("../index")
+var config    = require("../config/config")
+  , Sequelize = require("../../index")
   , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
-  , Helpers   = new (require("./config/helpers"))(sequelize)
+  , Helpers   = new (require("../config/helpers"))(sequelize)
 
 describe('HasMany', function() {
   beforeEach(function() { Helpers.sync() })

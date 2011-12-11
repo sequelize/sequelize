@@ -1,8 +1,8 @@
-var config         = require("./config/config")
-  , Sequelize      = require("../index")
+var config         = require("../config/config")
+  , Sequelize      = require("../../index")
   , sequelize      = new Sequelize(config.database, config.username, config.password, { logging: false })
-  , Helpers        = new (require("./config/helpers"))(sequelize)
-  , QueryGenerator = require("../lib/connectors/mysql/query-generator")
+  , Helpers        = new (require("../config/helpers"))(sequelize)
+  , QueryGenerator = require("../../lib/connectors/mysql/query-generator")
   , util          = require("util")
 
 describe('QueryGenerator', function() {
