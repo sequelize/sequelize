@@ -5,19 +5,19 @@ var config         = require("./config/config")
   , QueryInterface = require("../lib/query-interface")
 
 describe('QueryInterface', function() {
+  var interface = null
+
+  beforeEach(function() {
+    interface = sequelize.getQueryInterface()
+    Helpers.dropAllTables()
+  })
+
+  afterEach(function() {
+    interface = null
+    Helpers.dropAllTables()
+  })
+
   describe('dropAllTables', function() {
-    var interface = null
-
-    beforeEach(function() {
-      interface = sequelize.getQueryInterface()
-      Helpers.dropAllTables()
-    })
-
-    afterEach(function() {
-      interface = null
-      Helpers.dropAllTables()
-    })
-
     it("should drop all tables", function() {
       Helpers.async(function(done) {
         interface.dropAllTables().success(done).error(function(err) { console.log(err) })
@@ -52,6 +52,33 @@ describe('QueryInterface', function() {
           expect(tableNames.length).toEqual(0)
           done()
         })
+      })
+    })
+  })
+
+  describe('addIndex', function() {
+    beforeEach(function(){
+      Helpers.async(function(done) {
+        interface.createTable('User', {
+          username: Sequelize.STRING,
+          isAdmin: Sequelize.BOOLEAN
+        }).success(done)
+      })
+    })
+
+    it('adds an index to the table', function() {
+      Helpers.async(function(done) {
+        interface.addIndex('User', ['username', 'isAdmin']).success(done).error(function(err) {
+          console.log(err)
+        })
+      })
+
+      Helpers.async(function(done) {
+        interface.showIndex('User').success(function(indexes) {
+          var indexColumns = indexes.map(function(index) { return index.Column_name }).sort()
+          expect(indexColumns).toEqual(['isAdmin', 'username'])
+          done()
+        }).error(function(err) { console.log(err) })
       })
     })
   })
