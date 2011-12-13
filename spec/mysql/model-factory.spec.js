@@ -77,8 +77,8 @@ describe('ModelFactory', function() {
       for(var i = 2; i <= 5; i++) Helpers.Factories.User({ age: i })
 
       Helpers.async(function(done) {
-        User.max('age').on('success', function(min) {
-          expect(min).toEqual(5); done()
+        User.max('age').on('success', function(max) {
+          expect(max).toEqual(5); done()
         })
       })
     })

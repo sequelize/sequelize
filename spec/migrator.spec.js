@@ -79,7 +79,6 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
-          console.log(err)
           expect(err).toBeNull()
           expect(migrations.length).toEqual(2)
           done()
