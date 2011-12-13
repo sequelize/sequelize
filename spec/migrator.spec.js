@@ -40,7 +40,7 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
-          expect(err).toBeFalsy()
+          expect(err).toBeNull()
           expect(migrations.length).toEqual(0)
           done()
         })
@@ -52,7 +52,7 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
-          expect(err).toBeFalsy()
+          expect(err).toBeNull()
           expect(migrations.length).toEqual(1)
           expect(_.last(migrations).filename).toEqual('20111117063700-createPerson.js')
           done()
@@ -65,7 +65,7 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
-          expect(err).toBeFalsy()
+          expect(err).toBeNull()
           expect(migrations.length).toEqual(2)
           expect(migrations[0].filename).toEqual('20111117063700-createPerson.js')
           expect(migrations[1].filename).toEqual('20111123060700-addBirthdateToPerson.js')
@@ -79,7 +79,8 @@ describe('Migrator', function() {
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
-          expect(err).toBeFalsy()
+          console.log(err)
+          expect(err).toBeNull()
           expect(migrations.length).toEqual(2)
           done()
         })
@@ -92,7 +93,7 @@ describe('Migrator', function() {
       Helpers.async(function(done) {
         SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
-            expect(err).toBeFalsy()
+            expect(err).toBeNull()
             expect(migrations.length).toEqual(7)
             expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
             done()
