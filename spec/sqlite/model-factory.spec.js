@@ -33,6 +33,7 @@ describe('ModelFactory', function() {
             return user.name
           })
           expect(usernames).toEqual(['John Wayne'])
+          done()
         }).error(function(err){ console.log(err) })
       })
     })
