@@ -37,6 +37,24 @@ describe('Utils', function() {
     })
   })
 
+  describe('argsArePrimaryKeys', function() {
+    it("doesn't detect primary keys if primareyKeys and values have different lengths", function() {
+      expect(Utils.argsArePrimaryKeys([1,2,3], [1])).toBeFalsy()
+    })
+
+    it("doesn't detect primary keys if primary keys are hashes or arrays", function() {
+      expect(Utils.argsArePrimaryKeys([[]], [1])).toBeFalsy()
+    })
+
+    it('detects primary keys if length is correct and data types are matching', function() {
+      expect(Utils.argsArePrimaryKeys([1,2,3], ["INT", "INT", "INT"])).toBeTruthy()
+    })
+
+    it("detects primary keys if primary keys are dates and lengths are matching", function() {
+      expect(Utils.argsArePrimaryKeys([new Date()], ['foo'])).toBeTruthy()
+    })
+  })
+
   describe('underscore', function() {
     describe('underscoredIf', function() {
       it('is defined', function() {
