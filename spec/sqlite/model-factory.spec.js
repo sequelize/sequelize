@@ -1,6 +1,6 @@
 var config    = require("../config/config")
   , Sequelize = require("../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, { logging: true, connector: 'sqlite' })
+  , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false, dialect: 'sqlite' })
   , Helpers   = new (require("../config/helpers"))(sequelize)
 
 describe('ModelFactory', function() {
@@ -107,29 +107,29 @@ describe('ModelFactory', function() {
 
   ////////// min //////////////
 
-  // describe('.min', function() {
-  //   it("should return the min value", function() {
-  //     for(var i = 2; i < 5; i++) Helpers.Factories.User({ age: i })
+  describe('.min', function() {
+    it("should return the min value", function() {
+      for(var i = 2; i < 5; i++) Helpers.Factories.User({ age: i })
 
-  //     Helpers.async(function(done) {
-  //       User.min('age').on('success', function(min) {
-  //         expect(min).toEqual(2); done()
-  //       })
-  //     })
-  //   })
-  // })
+      Helpers.async(function(done) {
+        User.min('age').on('success', function(min) {
+          expect(min).toEqual(2); done()
+        })
+      })
+    })
+  })
 
   ////////// max //////////////
-//
-  // describe('.max', function() {
-    // it("should return the max value", function() {
-      // for(var i = 2; i <= 5; i++) Helpers.Factories.User({ age: i })
-//
-      // Helpers.async(function(done) {
-        // User.max('age').on('success', function(min) {
-          // expect(min).toEqual(5); done()
-        // })
-      // })
-    // })
-  // })
+
+  describe('.max', function() {
+    it("should return the max value", function() {
+      for(var i = 2; i <= 5; i++) Helpers.Factories.User({ age: i })
+
+      Helpers.async(function(done) {
+        User.max('age').on('success', function(min) {
+          expect(min).toEqual(5); done()
+        })
+      })
+    })
+  })
 })
