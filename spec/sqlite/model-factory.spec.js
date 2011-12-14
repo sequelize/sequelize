@@ -23,13 +23,17 @@ describe('ModelFactory', function() {
       Helpers.async(function(done) {
         User
           .create({ age: 21, name: 'John Wayne', bio: 'noot noot' })
-          .success(function(user) {
-            console.log(user)
-            done()
+          .success(done)
+          .error(function(err) { console.log(err) })
+      })
+
+      Helpers.async(function(done) {
+        User.all().success(function(users) {
+          var usernames = users.map(function(user) {
+            return user.name
           })
-          .error(function(err) {
-            console.log(err)
-          })
+          expect(usernames).toEqual(['John Wayne'])
+        }).error(function(err){ console.log(err) })
       })
     })
   })
