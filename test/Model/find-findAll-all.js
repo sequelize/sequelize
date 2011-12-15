@@ -18,48 +18,6 @@ var initUsers = function(num, callback) {
 }
 
 module.exports = {
-  'all should return all created models': function(exit) {
-    initUsers(2, function(_, User) {
-      User.all().on('success', function(users) {
-        assert.eql(users.length, 2)
-        exit(function(){})
-      })
-    })
-  },
-  'find should return a single model': function(exit) {
-    initUsers(2, function(lastInsertedUser, User) {
-      User.find(lastInsertedUser.id).on('success', function(user) {
-        assert.eql(user.id, lastInsertedUser.id)
-        exit(function(){})
-      })
-    })
-  },
-  'find a specific user': function(exit) {
-    initUsers(2, function(_, User) {
-      var username = 'user1'
-      User.find({where: {name: username}}).on('success', function(user) {
-        assert.eql(user.name, username)
-        exit(function(){})
-      })
-    })
-  },
-  'should find no user with invalid conditions': function(exit) {
-    initUsers(2, function(_, User) {
-      User.find({where: {name: 'foo'}}).on('success', function(user) {
-        assert.eql(user, null)
-        exit(function(){})
-      })
-    })
-  },
-  'find should ignore passed limit': function(exit) {
-    initUsers(2, function(_, User) {
-      User.find({limit: 10}).on('success', function(user) {
-        // it returns an object instead of an array
-        assert.eql(user.hasOwnProperty('name'), true)
-        exit(function(){})
-      })
-    })
-  },
   'find should find records by primaryKeys': function(exit) {
     var User = sequelize.define('User' + config.rand(), {
       identifier: {type: Sequelize.STRING, primaryKey: true},

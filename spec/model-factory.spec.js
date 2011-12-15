@@ -201,14 +201,57 @@ describe('ModelFactory', function() {
   })
 
   describe('find', function() {
+    var users = []
+
     beforeEach(function() {
-      Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
+      Helpers.Factories.User({name: 'user', bio: 'foobar'}, function(_users) {
+        users = _users
+      }, 2)
     })
 
     it("should make aliased attributes available", function() {
       Helpers.async(function(done) {
         User.find({ where: 'id = 1', attributes: ['id', ['name', 'username']] }).success(function(user) {
           expect(user.username).toEqual('user')
+          done()
+        })
+      })
+    })
+
+    it('returns a single model', function() {
+      Helpers.async(function(done) {
+        User.find(users[0].id).success(function(user) {
+          expect(Array.isArray(user)).toBeFalsy()
+          expect(user.id).toEqual(users[0].id)
+          done()
+        })
+      })
+    })
+
+    it('finds a specific user via where option', function() {
+      Helpers.async(function(done) {
+        User.find({where: { name: 'user' }}).success(function(user) {
+          expect(user.name).toEqual('user')
+          done()
+        })
+      })
+    })
+
+    it("doesn't find a user if conditions are not matching", function() {
+      Helpers.async(function(done) {
+        User.find({ where: { name: 'foo' } }).success(function(user) {
+          expect(user).toBeNull()
+          done()
+        })
+      })
+    })
+
+    it('ignores passed limit option', function() {
+      Helpers.async(function(done) {
+        User.find({limit: 10}).success(function(user) {
+          // it returns an object instead of an array
+          expect(Array.isArray(user)).toBeFalsy()
+          expect(user.hasOwnProperty('name')).toBeTruthy()
           done()
         })
       })
