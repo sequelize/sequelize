@@ -9,8 +9,6 @@ describe('ModelFactory', function() {
 
   var User = sequelize.define('User', { age: Sequelize.INTEGER, name: Sequelize.STRING, bio: Sequelize.TEXT })
 
-  //////////// constructor ////////
-
   describe('constructor', function() {
     it("handles extended attributes (unique)", function() {
       var User = sequelize.define('User' + config.rand(), {
@@ -102,9 +100,7 @@ describe('ModelFactory', function() {
     })
   })
 
-  //////////// find //////////////
-
-  describe('.find', function() {
+  describe('find', function() {
     beforeEach(function() {
       Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
     })
@@ -119,9 +115,7 @@ describe('ModelFactory', function() {
     })
   })
 
-  //////////// all //////////////
-
-  describe('.all', function() {
+  describe('all', function() {
     beforeEach(function() {
       Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
     })
@@ -136,9 +130,7 @@ describe('ModelFactory', function() {
     })
   })
 
-  /////////// create ////////////
-
-  describe('.create with options', function() {
+  describe('create with options', function() {
     var Person = sequelize.define('Person', { name: Sequelize.STRING, options: Sequelize.TEXT })
 
     it('should allow the creation of an object with options as attribute', function() {
@@ -149,9 +141,7 @@ describe('ModelFactory', function() {
     })
   })
 
-  //////////// min //////////////
-
-  describe('.min', function() {
+  describe('min', function() {
     it("should return the min value", function() {
       for(var i = 2; i < 5; i++) Helpers.Factories.User({ age: i })
 
@@ -163,9 +153,7 @@ describe('ModelFactory', function() {
     })
   })
 
-  //////////// max //////////////
-
-  describe('.max', function() {
+  describe('max', function() {
     it("should return the max value", function() {
       for(var i = 2; i <= 5; i++) Helpers.Factories.User({ age: i })
 
