@@ -247,43 +247,4 @@ describe('Model', function() {
       });
     });
   })
-
-  describe('build', function() {
-    var User = null
-
-    var setup = function() {
-      Helpers.async(function(done) {
-        User = sequelize.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
-        User.sync({force: true}).success(done)
-      })
-    }
-
-    beforeEach(function() { Helpers.dropAllTables(); setup() })
-    afterEach(function() { Helpers.dropAllTables() })
-
-    it("doesn't create database entries", function() {
-      Helpers.async(function(done) {
-        User.build({ name: 'John Wayne', bio: 'noot' })
-        User.all().success(function(users) {
-          expect(users.length).toEqual(0)
-          done()
-        })
-      })
-    })
-
-    it("fills the objects with default values", function() {
-      var Task = sequelize.define('Task' + config.rand(), {
-        title:  {type: Sequelize.STRING, defaultValue: 'a task!'},
-        foo:    {type: Sequelize.INTEGER, defaultValue: 2},
-        bar:    {type: Sequelize.DATE},
-        foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
-        flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
-      })
-      expect(Task.build().title).toEqual('a task!')
-      expect(Task.build().foo).toEqual(2)
-      expect(Task.build().bar).toEqual(null)
-      expect(Task.build().foobar).toEqual('asd')
-      expect(Task.build().flag).toEqual(false)
-    })
-  })
 })

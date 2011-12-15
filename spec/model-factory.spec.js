@@ -1,13 +1,24 @@
-var config    = require("../config/config")
-  , Sequelize = require("../../index")
+var config    = require("./config/config")
+  , Sequelize = require("../index")
   , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
-  , Helpers   = new (require("../config/helpers"))(sequelize)
+  , Helpers   = new (require("./config/helpers"))(sequelize)
 
 describe('ModelFactory', function() {
-  beforeEach(function() { Helpers.sync() })
-  afterEach(function() { Helpers.drop() })
+  var User = null
 
-  var User = sequelize.define('User', { age: Sequelize.INTEGER, name: Sequelize.STRING, bio: Sequelize.TEXT })
+  var setup = function() {
+    Helpers.async(function(done) {
+      User = sequelize.define('User', {
+        age: Sequelize.INTEGER,
+        name: Sequelize.STRING,
+        bio: Sequelize.TEXT
+      })
+      User.sync({force: true}).success(done)
+    })
+  }
+
+  beforeEach(function() { Helpers.dropAllTables(); setup() })
+  afterEach(function() { Helpers.dropAllTables() })
 
   describe('constructor', function() {
     it("uses the passed model name as tablename if freezeTableName", function() {
@@ -44,6 +55,33 @@ describe('ModelFactory', function() {
     })
   })
 
+  describe('build', function() {
+    it("doesn't create database entries", function() {
+      Helpers.async(function(done) {
+        User.build({ name: 'John Wayne', bio: 'noot' })
+        User.all().success(function(users) {
+          expect(users.length).toEqual(0)
+          done()
+        })
+      })
+    })
+
+    it("fills the objects with default values", function() {
+      var Task = sequelize.define('Task' + config.rand(), {
+        title:  {type: Sequelize.STRING, defaultValue: 'a task!'},
+        foo:    {type: Sequelize.INTEGER, defaultValue: 2},
+        bar:    {type: Sequelize.DATE},
+        foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
+        flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
+      })
+      expect(Task.build().title).toEqual('a task!')
+      expect(Task.build().foo).toEqual(2)
+      expect(Task.build().bar).toEqual(null)
+      expect(Task.build().foobar).toEqual('asd')
+      expect(Task.build().flag).toEqual(false)
+    })
+  })
+
   describe('find', function() {
     beforeEach(function() {
       Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
@@ -76,6 +114,12 @@ describe('ModelFactory', function() {
 
   describe('create with options', function() {
     var Person = sequelize.define('Person', { name: Sequelize.STRING, options: Sequelize.TEXT })
+
+    beforeEach(function() {
+      Helpers.async(function(done) {
+        Person.sync({ force: true }).success(done)
+      })
+    })
 
     it('should allow the creation of an object with options as attribute', function() {
       var options = JSON.stringify({ foo: 'bar', bar: 'foo' })

@@ -10,8 +10,8 @@ Helpers.prototype.sync = function() {
   this.async(function(done) {
     self.sequelize
       .sync({force: true})
-      .on('success', done)
-      .on('failure', function(err) { console.log(err) })
+      .success(done)
+      .failure(function(err) { console.log(err) })
   })
 }
 
