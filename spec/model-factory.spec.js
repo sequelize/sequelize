@@ -6,18 +6,21 @@ var config    = require("./config/config")
 describe('ModelFactory', function() {
   var User = null
 
-  var setup = function() {
+  var setup = function(options) {
+    User = sequelize.define('User', options || {
+      age: Sequelize.INTEGER,
+      name: Sequelize.STRING,
+      bio: Sequelize.TEXT
+    })
+
+    Helpers.dropAllTables()
+
     Helpers.async(function(done) {
-      User = sequelize.define('User', {
-        age: Sequelize.INTEGER,
-        name: Sequelize.STRING,
-        bio: Sequelize.TEXT
-      })
       User.sync({force: true}).success(done)
     })
   }
 
-  beforeEach(function() { Helpers.dropAllTables(); setup() })
+  beforeEach(function() { setup() })
   afterEach(function() { Helpers.dropAllTables() })
 
   describe('constructor', function() {
@@ -83,14 +86,6 @@ describe('ModelFactory', function() {
   })
 
   describe('create', function() {
-    var setup = function(userOptions) {
-      Helpers.dropAllTables()
-      Helpers.async(function(done) {
-        User = sequelize.define('User', userOptions)
-        User.sync({ force: true }).success(done)
-      })
-    }
-
     it("doesn't allow duplicated records with unique:true", function() {
       setup({ username: {type: Sequelize.STRING, unique: true} })
 
@@ -289,5 +284,64 @@ describe('ModelFactory', function() {
         })
       })
     })
+  })
+
+  describe('equals', function() {
+    it("correctly determines equality of objects", function() {
+      setup({ name: Sequelize.STRING, bio: Sequelize.TEXT })
+
+      Helpers.async(function(done) {
+        User.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          expect(u.equals(u)).toBeTruthy()
+          done()
+        })
+      })
+    })
+
+    it("correctly determines equality with multiple primary keys", function() {
+      setup({
+        foo: {type: Sequelize.STRING, primaryKey: true},
+        bar: {type: Sequelize.STRING, primaryKey: true},
+        name: Sequelize.STRING, bio: Sequelize.TEXT
+      })
+
+      Helpers.async(function(done) {
+         User.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).success(function(u) {
+          expect(u.equals(u)).toBeTruthy()
+          done()
+        }).error(function(err) {
+          console.log(err)
+        })
+      })
+    })
+  })
+
+  describe('equalsOneOf', function() {
+    beforeEach(function() {
+      setup({
+        foo: {type: Sequelize.STRING, primaryKey: true},
+        bar: {type: Sequelize.STRING, primaryKey: true},
+        name: Sequelize.STRING, bio: Sequelize.TEXT
+      })
+    })
+
+    it('determines equality if one is matching', function() {
+      Helpers.async(function(done) {
+        User.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).success(function(u) {
+          expect(u.equalsOneOf([u, {a:1}])).toBeTruthy()
+          done()
+        })
+      })
+    })
+
+    it("doesn't determine equality if none is matching", function() {
+      Helpers.async(function(done) {
+        User.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).success(function(u) {
+          expect(u.equalsOneOf([{b:2}, {a:1}])).toBeFalsy()
+          done()
+        })
+      })
+    })
+
   })
 })
