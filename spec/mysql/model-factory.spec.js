@@ -9,6 +9,99 @@ describe('ModelFactory', function() {
 
   var User = sequelize.define('User', { age: Sequelize.INTEGER, name: Sequelize.STRING, bio: Sequelize.TEXT })
 
+  //////////// constructor ////////
+
+  describe('constructor', function() {
+    it("handles extended attributes (unique)", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        username: { type: Sequelize.STRING, unique: true }
+      }, { timestamps: false })
+      expect(User.attributes).toEqual({username:"VARCHAR(255) UNIQUE",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+    })
+
+    it("handles extended attributes (default)", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        username: {type: Sequelize.STRING, defaultValue: 'foo'}
+      }, { timestamps: false })
+      expect(User.attributes).toEqual({username:"VARCHAR(255) DEFAULT 'foo'",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+    })
+
+    it("handles extended attributes (null)", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        username: {type: Sequelize.STRING, allowNull: false}
+      }, { timestamps: false })
+      expect(User.attributes).toEqual({username:"VARCHAR(255) NOT NULL",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+    })
+
+    it("handles extended attributes (primaryKey)", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        username: {type: Sequelize.STRING, primaryKey: true}
+      }, { timestamps: false })
+      expect(User.attributes).toEqual({username:"VARCHAR(255) PRIMARY KEY"})
+    })
+
+    it("adds timestamps", function() {
+      var User1 = sequelize.define('User' + config.rand(), {})
+      var User2 = sequelize.define('User' + config.rand(), {}, { timestamps: true })
+
+      expect(User1.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+      expect(User2.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+    })
+
+    it("adds deletedAt if paranoid", function() {
+      var User = sequelize.define('User' + config.rand(), {}, { paranoid: true })
+      expect(User.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", deletedAt:"DATETIME", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+    })
+
+    it("underscores timestamps if underscored", function() {
+      var User = sequelize.define('User' + config.rand(), {}, { paranoid: true, underscored: true })
+      expect(User.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", deleted_at:"DATETIME", updated_at:"DATETIME NOT NULL", created_at:"DATETIME NOT NULL"})
+    })
+
+    it("uses the passed model name as tablename if freezeTableName", function() {
+      var User = sequelize.define('User', {}, {freezeTableName: true})
+      expect(User.tableName).toEqual('User')
+    })
+
+    it("uses the pluralized modelname as tablename unless freezeTableName", function() {
+      var User = sequelize.define('User', {}, {freezeTableName: false})
+      expect(User.tableName).toEqual('Users')
+    })
+
+    it("attaches class and instance methods", function() {
+      var User = sequelize.define('User', {}, {
+        classMethods: { doSmth: function(){ return 1 } },
+        instanceMethods: { makeItSo: function(){ return 2}}
+      })
+      expect(User.doSmth).toBeDefined()
+      expect(User.doSmth()).toEqual(1)
+      expect(User.makeItSo).toBeUndefined()
+
+      expect(User.build().makeItSo).toBeDefined()
+      expect(User.build().makeItSo()).toEqual(2)
+    })
+
+    it("throws an error if 2 autoIncrements are passed", function() {
+      expect(function () {
+        var User = sequelize.define('User', {
+          userid: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+          userscore: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+        })
+      }).toThrow('Invalid model definition. Only one autoincrement field allowed.')
+
+    })
+  })
+
+  describe('primaryKeys', function() {
+    it("determines the correct primaryKeys", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        foo: {type: Sequelize.STRING, primaryKey: true},
+        bar: Sequelize.STRING
+      })
+      expect(User.primaryKeys).toEqual({"foo":"VARCHAR(255) PRIMARY KEY"})
+    })
+  })
+
   //////////// find //////////////
 
   describe('.find', function() {
