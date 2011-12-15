@@ -129,6 +129,38 @@ describe('ModelFactory', function() {
     })
   })
 
+  describe('count', function() {
+    it('counts all created objects', function() {
+      Helpers.async(function(done) {
+        User.create({name: 'user1'}).success(function() {
+          User.create({name: 'user2'}).success(done)
+        })
+      })
+
+      Helpers.async(function(done) {
+        User.count().success(function(count) {
+          expect(count).toEqual(2)
+          done()
+        })
+      })
+    })
+
+    it('filters object', function() {
+      Helpers.async(function(done) {
+        User.create({name: 'user1'}).success(function() {
+          User.create({name: 'foo'}).success(done)
+        })
+      })
+
+      Helpers.async(function(done) {
+        User.count({where: "name LIKE '%us%'"}).success(function(count) {
+          expect(count).toEqual(1)
+          done()
+        })
+      })
+    })
+  })
+
   describe('min', function() {
     it("should return the min value", function() {
       for(var i = 2; i < 5; i++) Helpers.Factories.User({ age: i })
