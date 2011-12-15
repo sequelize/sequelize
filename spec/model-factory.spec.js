@@ -82,6 +82,69 @@ describe('ModelFactory', function() {
     })
   })
 
+  describe('create', function() {
+    var setup = function(userOptions) {
+      Helpers.dropAllTables()
+      Helpers.async(function(done) {
+        User = sequelize.define('User', userOptions)
+        User.sync({ force: true }).success(done)
+      })
+    }
+
+    it("doesn't allow duplicated records with unique:true", function() {
+      setup({ username: {type: Sequelize.STRING, unique: true} })
+
+      Helpers.async(function(done) {
+        User.create({ username:'foo' }).success(function() {
+          User.create({ username: 'foo' }).error(function(err) {
+            expect(err.message).toEqual("Duplicate entry 'foo' for key 'username'")
+            done()
+          })
+        })
+      })
+    })
+
+    it("raises an error if created object breaks definition contraints", function() {
+      setup({
+        username: {type: Sequelize.STRING, unique: true},
+        smth: {type: Sequelize.STRING, allowNull: false}
+      })
+
+      Helpers.async(function(done) {
+        User.create({ username: 'foo', smth: null }).error(function(err) {
+          expect(err.message).toEqual("Column 'smth' cannot be null")
+
+          User.create({username: 'foo', smth: 'foo'}).success(function() {
+            User.create({username: 'foo', smth: 'bar'}).error(function(err) {
+              expect(err.message).toEqual("Duplicate entry 'foo' for key 'username'")
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    it('sets auto increment fields', function() {
+      setup({
+        userid: {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false}
+      })
+
+      Helpers.async(function(done) {
+        User.create({}).on('success', function(user) {
+          expect(user.userid).toEqual(1)
+          done()
+        })
+      })
+
+      Helpers.async(function(done) {
+        User.create({}).on('success', function(user) {
+          expect(user.userid).toEqual(2)
+          done()
+        })
+      })
+    })
+  })
+
   describe('find', function() {
     beforeEach(function() {
       Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
