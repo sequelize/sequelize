@@ -143,6 +143,21 @@ describe('ModelFactory', function() {
         })
       })
     })
+
+    it('allows the usage of options as attribute', function() {
+      setup({ name: Sequelize.STRING, options: Sequelize.TEXT })
+
+      Helpers.async(function(done) {
+        var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
+
+        User
+          .create({ name: 'John Doe', options: options })
+          .success(function(user) {
+            expect(user.options).toEqual(options)
+            done()
+          })
+      })
+    })
   })
 
   describe('destroy', function() {
@@ -216,23 +231,6 @@ describe('ModelFactory', function() {
           done()
           expect(users.length).toEqual(2)
         }).on('failure', function(err) { console.log(err) })
-      })
-    })
-  })
-
-  describe('create with options', function() {
-    var Person = sequelize.define('Person', { name: Sequelize.STRING, options: Sequelize.TEXT })
-
-    beforeEach(function() {
-      Helpers.async(function(done) {
-        Person.sync({ force: true }).success(done)
-      })
-    })
-
-    it('should allow the creation of an object with options as attribute', function() {
-      var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
-      Helpers.Factories.Model('Person', {name: 'John Doe', options: options}, function(people) {
-        expect(people[0].options).toEqual(options)
       })
     })
   })
