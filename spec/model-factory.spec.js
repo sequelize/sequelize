@@ -145,6 +145,51 @@ describe('ModelFactory', function() {
     })
   })
 
+  describe('destroy', function() {
+    it('deletes a record from the database if model is not paranoid', function() {
+      Helpers.async(function(done) {
+        User = sequelize.define('User', {
+          name: Sequelize.STRING,
+          bio: Sequelize.TEXT
+        })
+        User.sync({force: true}).success(done)
+      })
+
+      Helpers.async(function(done) {
+        User.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          User.all().success(function(users) {
+            expect(users.length).toEqual(1)
+            u.destroy().success(function() {
+              User.all().success(function(users) {
+                expect(users.length).toEqual(0)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('marks the database entry as deleted if model is paranoid', function() {
+      Helpers.async(function(done) {
+        User = sequelize.define('User', {
+          name: Sequelize.STRING, bio: Sequelize.TEXT
+        }, { paranoid:true })
+        User.sync({ force: true }).success(done)
+      })
+
+      Helpers.async(function(done) {
+        User.create({ name: 'asd', bio: 'asd' }).success(function(u) {
+          expect(u.deletedAt).toBeNull()
+          u.destroy().success(function(u) {
+            expect(u.deletedAt).toBeTruthy()
+            done()
+          })
+        })
+      })
+    })
+  })
+
   describe('find', function() {
     beforeEach(function() {
       Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)
