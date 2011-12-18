@@ -256,6 +256,85 @@ describe('ModelFactory', function() {
         })
       })
     })
+
+    it('finds entries via primary keys', function() {
+      setup({
+        identifier: {type: Sequelize.STRING, primaryKey: true},
+        name: Sequelize.STRING
+      })
+      Helpers.async(function(done) {
+        User.create({identifier: 'an identifier', name: 'John'}).success(function(u) {
+          expect(u.id).toBeUndefined()
+
+          User.find('an identifier').success(function(u2) {
+            expect(u2.identifier).toEqual('an identifier')
+            expect(u2.name).toEqual('John')
+            done()
+          })
+        })
+      })
+    })
+  })
+
+  describe('findAll', function() {
+    var users = []
+
+    beforeEach(function() {
+      Helpers.Factories.User({name: 'user', bio: 'foobar'}, function(_users) {
+        users = _users
+      }, 2)
+    })
+
+    it("finds all entries", function() {
+      Helpers.async(function(done) {
+        User.findAll().on('success', function(_users) {
+          expect(_users.length).toEqual(2)
+          done()
+        })
+      })
+    })
+
+    it("finds all users matching the passed conditions", function() {
+      Helpers.async(function(done) {
+        User.findAll({where: "id != " + users[1].id}).success(function(_users) {
+          expect(_users.length).toEqual(1)
+          done()
+        })
+      })
+    })
+
+    it("can also handle array notation", function() {
+      Helpers.async(function(done){
+        User.findAll({where: ['id = ?', users[1].id]}).success(function(_users) {
+          expect(_users.length).toEqual(1)
+          expect(_users[0].id).toEqual(users[1].id)
+          done()
+        })
+      })
+    })
+
+    it("sorts the results", function() {
+      Helpers.async(function(done) {
+        User.findAll({ order: "id DESC" }).success(function(users) {
+          expect(users[0].id).toBeGreaterThan(users[1].id)
+          done()
+        })
+      })
+    })
+
+    it("handles offset and limit", function() {
+      setup()
+
+      Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 10)
+
+      Helpers.async(function(done) {
+        User.findAll({ limit: 2, offset: 2 }).success(function(users) {
+          expect(users.length).toEqual(2)
+          expect(users[0].id).toEqual(3)
+          done()
+        })
+      })
+    })
   })
 
   describe('all', function() {
