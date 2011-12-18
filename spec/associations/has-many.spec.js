@@ -60,6 +60,8 @@ describe('BelongsTo', function() {
     })
 
     it("sets and gets associated objects", function() {
+      var user, task1, task2;
+
       User.hasMany(Task, { as: 'Tasks' })
 
       Helpers.async(function(done) {
@@ -69,18 +71,23 @@ describe('BelongsTo', function() {
       })
 
       Helpers.async(function(done) {
-        User.create({username: 'name'}).success(function(user) {
-          Task.create({title: 'task1'}).success(function(task1) {
-            Task.create({title: 'task2'}).success(function(task2) {
-
-              user.setTasks([task1, task2]).success(function() {
-                user.getTasks().success(function(tasks) {
-                  expect(tasks.length).toEqual(2)
-                  done()
-                })
-              })
-
+        User.create({username: 'name'}).success(function(_user) {
+          Task.create({title: 'task1'}).success(function(_task1) {
+            Task.create({title: 'task2'}).success(function(_task2) {
+              user  = _user
+              task1 = _task1
+              task2 = _task2
+              done()
             })
+          })
+        })
+      })
+
+      Helpers.async(function(done) {
+        user.setTasks([task1, task2]).success(function() {
+          user.getTasks().success(function(tasks) {
+            expect(tasks.length).toEqual(2)
+            done()
           })
         })
       })
@@ -163,6 +170,96 @@ describe('BelongsTo', function() {
       var t = Task.build({ title: 'asd' })
       expect(t.setUsers).toBeDefined()
       expect(t.getUsers).toBeDefined()
+    })
+
+    it("sets and gets the corrected associated objects", function() {
+      var users = []
+        , tasks = []
+
+      User.hasMany(Task, {as: 'Tasks'})
+      Task.hasMany(User, {as: 'Users'})
+
+      Helpers.async(function(done) {
+        User.sync({force: true}).success(function() {
+          Task.sync({force: true}).success(done)
+        })
+      })
+
+      Helpers.async(function(done) {
+        User.create({username: 'name'}).success(function(user1) {
+          User.create({username: 'name2'}).success(function(user2) {
+            Task.create({title: 'task1'}).success(function(task1) {
+              Task.create({title: 'task2'}).success(function(task2) {
+                users.push(user1)
+                users.push(user2)
+                tasks.push(task1)
+                tasks.push(task2)
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      Helpers.async(function(done) {
+        users[0].setTasks(tasks).success(function() {
+          users[0].getTasks().success(function(_tasks) {
+            expect(_tasks.length).toEqual(2)
+
+            tasks[1].setUsers(users).success(function() {
+              tasks[1].getUsers().success(function(_users) {
+                expect(users.length).toEqual(2)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
+  it("build the connector models name", function() {
+    Helpers.async(function(done) {
+      var Person = sequelize.define('Person', { name: Sequelize.STRING })
+
+      Person.hasMany(Person, {as: 'Children'})
+      Person.hasMany(Person, {as: 'Friends'})
+      Person.hasMany(Person, {as: 'CoWorkers'})
+
+      Person.sync({force: true}).success(function() {
+        var modelNames  = sequelize.modelManager.models.map(function(model) { return model.tableName })
+          , expectation = ["Persons", "ChildrenPersons", "CoWorkersPersons", "FriendsPersons"]
+
+        expectation.forEach(function(ex) {
+          expect(modelNames.indexOf(ex) > -1).toBeTruthy()
+        })
+
+        done()
+      })
+    })
+  })
+
+  it("gets and sets the connector models", function() {
+    Helpers.async(function(done) {
+      var Person = sequelize.define('Person', { name: Sequelize.STRING })
+
+      Person.hasMany(Person, {as: 'Children'})
+      Person.hasMany(Person, {as: 'Friends'})
+      Person.hasMany(Person, {as: 'CoWorkers'})
+
+      Person.sync({force: true}).success(function() {
+        Person.create({name: 'foobar'}).success(function(person) {
+          Person.create({name: 'friend'}).success(function(friend) {
+            person.setFriends([friend]).success(function() {
+              person.getFriends().success(function(friends) {
+                expect(friends.length).toEqual(1)
+                expect(friends[0].name).toEqual('friend')
+                done()
+              })
+            })
+          })
+        })
+      })
     })
   })
 })
