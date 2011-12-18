@@ -247,4 +247,71 @@ describe('Model', function() {
       });
     });
   })
+
+  describe('isNewRecord', function() {
+    var User = null
+
+    var setup = function() {
+      Helpers.async(function(done) {
+        User = sequelize.define('User', { username: Sequelize.STRING })
+        User.sync({ force: true }).success(done)
+      })
+    }
+
+    beforeEach(function() { Helpers.dropAllTables(); setup() })
+    afterEach(function() { Helpers.dropAllTables() })
+
+    it('returns true for non-saved objects', function() {
+      var user = User.build({ username: 'user' })
+      expect(user.id).toBeNull()
+      expect(user.isNewRecord).toBeTruthy()
+    })
+
+    it("returns false for saved objects", function() {
+      Helpers.async(function(done) {
+        User.build({ username: 'user' }).save().success(function(user) {
+          expect(user.isNewRecord).toBeFalsy()
+          done()
+        })
+      })
+    })
+
+    it("returns false for created objects", function() {
+      Helpers.async(function(done) {
+        User.create({ username: 'user' }).success(function(user) {
+          expect(user.isNewRecord).toBeFalsy()
+          done()
+        })
+      })
+    })
+
+    it("returns false for objects found by find method", function() {
+      Helpers.async(function(done) {
+        User.create({ username: 'user' }).success(function(user) {
+          User.find(user.id).success(function(user) {
+            expect(user.isNewRecord).toBeFalsy()
+            done()
+          })
+        })
+      })
+    })
+
+    it("returns false for objects found by findAll method", function() {
+      var chainer = new Sequelize.Utils.QueryChainer
+
+      for(var i = 0; i < 10; i++)
+        chainer.add(User.create({ username: 'user' }))
+
+      Helpers.async(function(done) {
+        chainer.run().success(function() {
+          User.findAll().success(function(users) {
+            users.forEach(function(u) {
+              expect(u.isNewRecord).toBeFalsy()
+            })
+            done()
+          })
+        })
+      })
+    })
+  })
 })
