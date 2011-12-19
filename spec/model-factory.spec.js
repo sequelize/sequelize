@@ -475,4 +475,32 @@ describe('ModelFactory', function() {
       expect(ModelFactory.prototype.belongsTo).toBeDefined()
     })
   })
+
+  describe('sync', function() {
+    it('works with correct database credentials', function() {
+      Helpers.async(function(done) {
+        User.sync().success(done)
+      })
+    })
+
+    it("fails with incorrect database credentials", function() {
+      Helpers.async(function(done) {
+        var sequelize2 = new Sequelize('foo', 'bar', null, { logging: false })
+          , User2      = sequelize2.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
+
+        User2.sync().error(function(err) {
+          expect(err.message).toEqual("Access denied for user ''@'localhost' to database 'foo'")
+          done()
+        })
+      })
+    })
+  })
+
+  describe('drop should work', function() {
+    it('correctly succeeds', function() {
+      Helpers.async(function(done) {
+        User.drop().success(done)
+      })
+    })
+  })
 })
