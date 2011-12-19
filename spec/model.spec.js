@@ -4,6 +4,18 @@ var config    = require("./config/config")
   , Helpers   = new (require("./config/helpers"))(sequelize)
 
 describe('Model', function() {
+  var User = null
+
+  var setup = function() {
+    Helpers.async(function(done) {
+      User = sequelize.define('User', { username: Sequelize.STRING })
+      User.sync({ force: true }).success(done)
+    })
+  }
+
+  beforeEach(function() { Helpers.dropAllTables(); setup() })
+  afterEach(function() { Helpers.dropAllTables() })
+
   describe('Validations', function() {
     var checks = {
       is : {
@@ -249,18 +261,6 @@ describe('Model', function() {
   })
 
   describe('isNewRecord', function() {
-    var User = null
-
-    var setup = function() {
-      Helpers.async(function(done) {
-        User = sequelize.define('User', { username: Sequelize.STRING })
-        User.sync({ force: true }).success(done)
-      })
-    }
-
-    beforeEach(function() { Helpers.dropAllTables(); setup() })
-    afterEach(function() { Helpers.dropAllTables() })
-
     it('returns true for non-saved objects', function() {
       var user = User.build({ username: 'user' })
       expect(user.id).toBeNull()
@@ -311,6 +311,59 @@ describe('Model', function() {
             done()
           })
         })
+      })
+    })
+  })
+
+  describe('save', function() {
+    it("stores an entry in the database", function() {
+      var username = 'user'
+        , user     = User.build({ username: username })
+
+      Helpers.async(function(done) {
+        User.all().success(function(users) {
+          expect(users.length).toEqual(0)
+          done()
+        })
+      })
+
+      Helpers.async(function(done) {
+        user.save().success(done)
+      })
+
+      Helpers.async(function(done) {
+        User.all().success(function(users) {
+          expect(users.length).toEqual(1)
+          expect(users[0].username).toEqual(username)
+          done()
+        })
+      })
+    })
+
+    it("updates the timestamps", function() {
+      var now       = Date.now()
+        , user      = null
+        , updatedAt = null
+
+      Helpers.async(function(done) {
+        // timeout is needed, in order to check the update of the timestamp
+        setTimeout(function() {
+          user      = User.build({ username: 'user' })
+          updatedAt = user.updatedAt
+
+          expect(updatedAt.getTime()).toBeGreaterThan(now)
+
+          done()
+        }, 10)
+      })
+
+      Helpers.async(function(done) {
+        setTimeout(function() {
+          user.save().success(function() {
+            expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
+            done()
+          })
+        }, 10)
       })
     })
   })
