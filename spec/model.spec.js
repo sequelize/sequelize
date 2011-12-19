@@ -367,4 +367,83 @@ describe('Model', function() {
       })
     })
   })
+
+  describe('updateAttributes', function() {
+    it("updates attributes in the database", function() {
+      Helpers.async(function(done) {
+        User.create({ username: 'user' }).success(function(user) {
+          expect(user.username).toEqual('user')
+          user.updateAttributes({ username: 'person' }).success(function(user) {
+            expect(user.username).toEqual('person')
+            done()
+          })
+        })
+      })
+    })
+
+    it("ignores unknown attributes", function() {
+      Helpers.async(function(done) {
+        User.create({ username: 'user' }).success(function(user) {
+          user.updateAttributes({ username: 'person', foo: 'bar'}).success(function(user) {
+            expect(user.username).toEqual('person')
+            expect(user.foo).toBeUndefined()
+            done()
+          })
+        })
+      })
+    })
+
+    it("doesn't update primary keys or timestamps", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        name: Sequelize.STRING, bio: Sequelize.TEXT, identifier: {type: Sequelize.STRING, primaryKey: true}
+      })
+
+      Helpers.async(function(done) {
+        User.sync({ force: true }).success(done)
+      })
+
+      Helpers.async(function(done) {
+        User.create({
+          name: 'snafu',
+          identifier: 'identifier'
+        }).success(function(user) {
+          var oldCreatedAt  = user.createdAt
+            , oldIdentifier = user.identifier
+
+          user.updateAttributes({
+            name: 'foobar',
+            createdAt: new Date(2000, 1, 1),
+            identifier: 'another identifier'
+          }).success(function(user) {
+            expect(user.createdAt).toEqual(oldCreatedAt)
+            expect(user.identifier).toEqual(oldIdentifier)
+            done()
+          })
+        })
+      })
+    })
+
+    it("uses primary keys in where clause", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        name: Sequelize.STRING, bio: Sequelize.TEXT, identifier: {type: Sequelize.STRING, primaryKey: true}
+      })
+
+      Helpers.async(function(done) {
+        User.sync({ force:true }).success(done)
+      })
+
+      Helpers.async(function(done) {
+        User.create({
+          name: 'snafu',
+          identifier: 'identifier'
+        }).success(function(user) {
+          var emitter = user.updateAttributes({name: 'foobar'})
+          emitter.success(function() {
+            expect(emitter.query.sql).toMatch(/WHERE `identifier`..identifier./)
+            done()
+          })
+        })
+      })
+    })
+  })
 })
