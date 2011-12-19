@@ -446,4 +446,22 @@ describe('Model', function() {
       })
     })
   })
+
+  describe('values', function() {
+    it('returns all values', function() {
+      var User = sequelize.define('User', {
+        username: Sequelize.STRING
+      }, { timestamps: false, logging: false })
+
+      Helpers.async(function(done) {
+        User.sync({ force: true }).success(done)
+      })
+
+      Helpers.async(function(done) {
+        var user = User.build({ username: 'foo' })
+        expect(user.values).toEqual({ username: "foo", id: null })
+        done()
+      })
+    })
+  })
 })
