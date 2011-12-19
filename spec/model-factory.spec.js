@@ -464,6 +464,15 @@ describe('ModelFactory', function() {
         })
       })
     })
+  })
 
+  describe('Mixin', function() {
+    var ModelFactory = require("../lib/model-factory")
+
+    it("adds the mixed-in functions to the model", function() {
+      expect(ModelFactory.prototype.hasOne).toBeDefined()
+      expect(ModelFactory.prototype.hasMany).toBeDefined()
+      expect(ModelFactory.prototype.belongsTo).toBeDefined()
+    })
   })
 })
