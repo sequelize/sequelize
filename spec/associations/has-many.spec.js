@@ -25,7 +25,7 @@ describe('HasMany', function() {
   describe('mono-directional', function() {
     it("adds the foreign key", function() {
       User.hasMany(Task)
-      expect(Task.attributes.UserId).toEqual("INT")
+      expect(Task.attributes.UserId).toEqual("INTEGER")
     })
 
     it('adds the foreign key with underscore', function() {
@@ -39,7 +39,7 @@ describe('HasMany', function() {
 
     it('uses the passed foreign key', function() {
       User.hasMany(Task, { foreignKey: 'person_id' })
-      expect(Task.attributes.person_id).toEqual("INT")
+      expect(Task.attributes.person_id).toEqual("INTEGER")
     })
 
     it('defines getters and setters', function() {

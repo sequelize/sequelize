@@ -47,7 +47,7 @@ describe('Utils', function() {
     })
 
     it('detects primary keys if length is correct and data types are matching', function() {
-      expect(Utils.argsArePrimaryKeys([1,2,3], ["INT", "INT", "INT"])).toBeTruthy()
+      expect(Utils.argsArePrimaryKeys([1,2,3], ["INTEGER", "INTEGER", "INTEGER"])).toBeTruthy()
     })
 
     it("detects primary keys if primary keys are dates and lengths are matching", function() {

@@ -14,21 +14,21 @@ describe('ModelFactory', function() {
       var User = sequelize.define('User' + config.rand(), {
         username: { type: Sequelize.STRING, unique: true }
       }, { timestamps: false })
-      expect(User.attributes).toEqual({username:"VARCHAR(255) UNIQUE",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+      expect(User.attributes).toEqual({username:"VARCHAR(255) UNIQUE",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
     })
 
     it("handles extended attributes (default)", function() {
       var User = sequelize.define('User' + config.rand(), {
         username: {type: Sequelize.STRING, defaultValue: 'foo'}
       }, { timestamps: false })
-      expect(User.attributes).toEqual({username:"VARCHAR(255) DEFAULT 'foo'",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+      expect(User.attributes).toEqual({username:"VARCHAR(255) DEFAULT 'foo'",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
     })
 
     it("handles extended attributes (null)", function() {
       var User = sequelize.define('User' + config.rand(), {
         username: {type: Sequelize.STRING, allowNull: false}
       }, { timestamps: false })
-      expect(User.attributes).toEqual({username:"VARCHAR(255) NOT NULL",id:"INT NOT NULL auto_increment PRIMARY KEY"})
+      expect(User.attributes).toEqual({username:"VARCHAR(255) NOT NULL",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
     })
 
     it("handles extended attributes (primaryKey)", function() {
@@ -42,18 +42,18 @@ describe('ModelFactory', function() {
       var User1 = sequelize.define('User' + config.rand(), {})
       var User2 = sequelize.define('User' + config.rand(), {}, { timestamps: true })
 
-      expect(User1.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
-      expect(User2.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+      expect(User1.attributes).toEqual({id:"INTEGER NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+      expect(User2.attributes).toEqual({id:"INTEGER NOT NULL auto_increment PRIMARY KEY", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
     })
 
     it("adds deletedAt if paranoid", function() {
       var User = sequelize.define('User' + config.rand(), {}, { paranoid: true })
-      expect(User.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", deletedAt:"DATETIME", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
+      expect(User.attributes).toEqual({id:"INTEGER NOT NULL auto_increment PRIMARY KEY", deletedAt:"DATETIME", updatedAt:"DATETIME NOT NULL", createdAt:"DATETIME NOT NULL"})
     })
 
     it("underscores timestamps if underscored", function() {
       var User = sequelize.define('User' + config.rand(), {}, { paranoid: true, underscored: true })
-      expect(User.attributes).toEqual({id:"INT NOT NULL auto_increment PRIMARY KEY", deleted_at:"DATETIME", updated_at:"DATETIME NOT NULL", created_at:"DATETIME NOT NULL"})
+      expect(User.attributes).toEqual({id:"INTEGER NOT NULL auto_increment PRIMARY KEY", deleted_at:"DATETIME", updated_at:"DATETIME NOT NULL", created_at:"DATETIME NOT NULL"})
     })
   })
 

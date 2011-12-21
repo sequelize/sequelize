@@ -17,18 +17,18 @@ describe('BelongsTo', function() {
 
   it('adds the foreign key', function() {
     Task.belongsTo(User)
-    expect(Task.attributes['UserId']).toEqual("INT")
+    expect(Task.attributes['UserId']).toEqual("INTEGER")
   })
 
   it("underscores the foreign key", function() {
     Task = sequelize.define('Task', { title: Sequelize.STRING }, {underscored: true})
     Task.belongsTo(User)
-    expect(Task.attributes['user_id']).toEqual("INT")
+    expect(Task.attributes['user_id']).toEqual("INTEGER")
   })
 
   it("uses the passed foreign key", function() {
     Task.belongsTo(User, {foreignKey: 'person_id'})
-    expect(Task.attributes['person_id']).toEqual("INT")
+    expect(Task.attributes['person_id']).toEqual("INTEGER")
   })
 
   it("defines getters and setters", function() {

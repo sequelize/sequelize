@@ -17,7 +17,7 @@ describe('HasOne', function() {
 
   it("adds the foreign key", function() {
     User.hasOne(Task)
-    expect(Task.attributes.UserId).toEqual("INT")
+    expect(Task.attributes.UserId).toEqual("INTEGER")
   })
 
   it("adds an underscored foreign key", function() {
@@ -25,7 +25,7 @@ describe('HasOne', function() {
     Task = sequelize.define('Task', { title: Sequelize.STRING })
 
     User.hasOne(Task)
-    expect(Task.attributes.user_id).toEqual("INT")
+    expect(Task.attributes.user_id).toEqual("INTEGER")
   })
 
   it("uses the passed foreign key", function() {
@@ -33,7 +33,7 @@ describe('HasOne', function() {
     Task = sequelize.define('Task', { title: Sequelize.STRING })
 
     User.hasOne(Task, {foreignKey: 'person_id'})
-    expect(Task.attributes.person_id).toEqual("INT")
+    expect(Task.attributes.person_id).toEqual("INTEGER")
   })
 
   it("defines the getter and the setter", function() {
