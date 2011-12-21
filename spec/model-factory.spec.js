@@ -523,7 +523,7 @@ describe('ModelFactory', function() {
               , User2      = sequelize2.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
 
             User2.sync().error(function(err) {
-              expect(err.message).toEqual("Access denied for user ''@'localhost' to database 'foo'")
+              expect(err.message).toMatch(/.*denied.*foo.*/)
               done()
             })
           })
