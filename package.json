@@ -8,7 +8,6 @@
   ],
   "dependencies": {
     "mysql": "=0.9.4",
-    "sqlite3": "=2.1.1",
     "underscore": "=1.2.1",
     "underscore.string": "=2.0.0",
     "lingo": "=0.0.4",
@@ -17,7 +16,7 @@
   },
   "devDependencies": {
     "jasmine-node": "=1.0.13",
-    "expresso": "=0.9.2"
+    "sqlite3": "=2.1.1"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
