@@ -1,4 +1,3 @@
-
 var config    = require("./config/config")
   , Sequelize = require("../index")
   , dialects  = ['sqlite', 'mysql']
