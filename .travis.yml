@@ -4,7 +4,6 @@ before_script:
 
 script:
   - "node_modules/.bin/jasmine-node spec"
-  - "node_modules/.bin/expresso -s test/**/*"
 
 notifications:
   email:
