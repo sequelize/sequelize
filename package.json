@@ -21,6 +21,6 @@
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
   "scripts": {},
-  "bin": {},
+  "bin": "bin/sequelize",
   "engines": { "node": ">= 0.4.0" }
 }

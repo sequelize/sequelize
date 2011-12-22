@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+var path = require("path")
+
+if(path.existsSync(__dirname + '/../config/config.json')) {
+
+} else {
+  throw new Error('Please add a configuration file under config/config.json')
+}
