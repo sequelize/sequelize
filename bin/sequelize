@@ -1,9 +1,50 @@
 #!/usr/bin/env node
 
-var path = require("path")
+var path             = require("path")
+  , fs               = require("fs")
+  , program          = require("commander")
+  , configPath       = __dirname + '/../config'
+  , configFile       = configPath + '/config.json'
+  , configPathExists = path.existsSync(configPath)
+  , configFileExists = path.existsSync(configFile)
 
-if(path.existsSync(__dirname + '/../config/config.json')) {
+var writeConfig = function(config) {
+  !configPathExists && fs.mkdirSync(configPath)
 
+  config = JSON.stringify(config)
+  config = config.replace('{', '{\n')
+  config = config.replace(/,/g, ",\n")
+  config = config.replace('}', "\n}")
+
+  fs.writeFileSync(configFile, config)
+}
+
+program
+  .version('1.3.0')
+  .option('-i, --init', 'Initializes the project. Creates a config/config.json')
+  .option('-m, --migrate', 'Runs undone migrations')
+  .option('-f, --force', 'Forces the action to be done.')
+  .parse(process.argv)
+
+if(program.migrate) {
+  if(configFileExists) {
+
+  } else {
+    throw new Error('Please add a configuration file under config/config.json. You might run "sequelize --init".')
+  }
+} else if(program.init) {
+  if(!configFileExists || !!program.force) {
+    writeConfig({
+      username: "root",
+      password: null,
+      database: 'database',
+      host: '127.0.0.1'
+    })
+
+    console.log('Successfully created config.json')
+  } else {
+    console.log('A config.json already exists. Run "sequelize --init --force" to overwrite it.')
+  }
 } else {
-  throw new Error('Please add a configuration file under config/config.json')
+  console.log('Please define any params!')
 }
