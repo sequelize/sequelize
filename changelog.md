@@ -7,6 +7,9 @@
 - [FEATURE] Validations (Thanks to [hiddentao](https://github.com/hiddentao))
 - [FEATURE] jQuery-like event listeners: .success(callback) and .error(callback)
 - [FEATURE] aliasing for select queries: Model.find({ where: 'id = 1', attributes: ['id', ['name', 'username']] }) ==> will return the user's name as username
+- [FEATURE] cross-database support. currently supported: mysql, sqlite
+- [FEATURE] migrations
+- [TEST] removed all expresso tests and converted them to jasmine
 
 # v1.2.1 #
 - [REFACTORING] renamed the global options for sync, query and define on sequelize; before: options.queryOptions; now: options.query
