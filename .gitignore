@@ -2,3 +2,4 @@ test*.js
 .idea
 .DS_STORE
 node_modules
+config
