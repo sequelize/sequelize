@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "jasmine-node": "=1.0.13",
-    "sqlite3": "=2.1.1"
+    "sqlite3": "2.1.x | 2.0.x"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
