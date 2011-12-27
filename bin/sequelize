@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
-var path             = require("path")
-  , fs               = require("fs")
-  , program          = require("commander")
-  , configPath       = __dirname + '/../config'
+const path      = require("path")
+    , fs        = require("fs")
+    , program   = require("commander")
+    , Sequelize = require(__dirname + '/../index')
+    , _         = Sequelize.Utils._
+
+var configPath       = __dirname + '/../config'
   , configFile       = configPath + '/config.json'
   , configPathExists = path.existsSync(configPath)
   , configFileExists = path.existsSync(configFile)
@@ -12,11 +15,19 @@ var writeConfig = function(config) {
   !configPathExists && fs.mkdirSync(configPath)
 
   config = JSON.stringify(config)
-  config = config.replace('{', '{\n')
-  config = config.replace(/,/g, ",\n")
+  config = config.replace('{', '{\n  ')
+  config = config.replace(/,/g, ",\n  ")
   config = config.replace('}', "\n}")
 
   fs.writeFileSync(configFile, config)
+}
+
+var readConfig = function() {
+  try {
+    return JSON.parse(fs.readFileSync(configFile))
+  } catch(e) {
+    throw new Error('The config.json is not available or contains invalid JSON.')
+  }
 }
 
 program
@@ -28,7 +39,19 @@ program
 
 if(program.migrate) {
   if(configFileExists) {
+    var config = readConfig()
+      , options  = {}
 
+    _.each(config, function(value, key) {
+      if(['database', 'username', 'password'].indexOf(key) == -1) {
+        options[key] = value
+      }
+    })
+
+    options = _.extend(options, { logging: false })
+
+    var sequelize = new Sequelize(config.database, config.username, config.password, options)
+    sequelize.migrate({ path: __dirname + '/../spec/assets/migrations' })
   } else {
     throw new Error('Please add a configuration file under config/config.json. You might run "sequelize --init".')
   }
