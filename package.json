@@ -7,20 +7,25 @@
     { "name": "Sascha Depold", "email": "sascha@depold.com" }
   ],
   "dependencies": {
-    "mysql": "=0.9.4",
-    "underscore": "=1.2.1",
-    "underscore.string": "=2.0.0",
-    "lingo": "=0.0.4",
-    "validator": "=0.3.5",
-    "moment": "=1.1.1"
+    "mysql": "0.9.x",
+    "underscore": "1.2.x",
+    "underscore.string": "2.0.x",
+    "lingo": "0.0.x",
+    "validator": "0.3.x",
+    "moment": "1.1.x"
   },
   "devDependencies": {
-    "jasmine-node": "=1.0.13",
-    "sqlite3": "2.1.x | 2.0.x"
+    "jasmine-node": "1.0.x",
+    "sqlite3": "2.0.x | 2.1.x"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
   "scripts": {},
-  "bin": "bin/sequelize",
-  "engines": { "node": ">= 0.4.0" }
+  "bin": {
+    "sequelize": "bin/sequelize"
+  },
+  "engines": {
+    "node": "0.4.x | 0.5.x | 0.6.x"
+  },
+  "license": "MIT"
 }
