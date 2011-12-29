@@ -90,7 +90,7 @@ describe('Migrator', function() {
       setup()
 
       Helpers.async(function(done) {
-        SequelizeMeta.create({ lastMigrationId: '20111117063700' }).success(function() {
+        SequelizeMeta.create({ from: null, to: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).toBeNull()
             expect(migrations.length).toEqual(7)
