@@ -12,7 +12,8 @@
     "underscore.string": "2.0.x",
     "lingo": "0.0.x",
     "validator": "0.3.x",
-    "moment": "1.1.x"
+    "moment": "1.1.x",
+    "commander": "0.5.x"
   },
   "devDependencies": {
     "jasmine-node": "1.0.x",
