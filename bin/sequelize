@@ -34,6 +34,7 @@ program
   .version('1.3.0')
   .option('-i, --init', 'Initializes the project. Creates a config/config.json')
   .option('-m, --migrate', 'Runs undone migrations')
+  .option('-u, --undo', 'Redo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
   .parse(process.argv)
 
@@ -50,8 +51,22 @@ if(program.migrate) {
 
     options = _.extend(options, { logging: false })
 
-    var sequelize = new Sequelize(config.database, config.username, config.password, options)
-    sequelize.migrate({ path: __dirname + '/../spec/assets/migrations' })
+    var sequelize       = new Sequelize(config.database, config.username, config.password, options)
+      , migratorOptions = { path: __dirname + '/../spec/assets/migrations' }
+      , migrator        = sequelize.getMigrator(migratorOptions)
+
+    if(program.undo) {
+      sequelize.migrator.findOrCreateSequelizeMetaModel().success(function(Meta) {
+        Meta.find({ order: 'id DESC' }).success(function(meta) {
+          if(meta)
+            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
+
+          migrator.migrate({ method: 'down' })
+        })
+      })
+    } else {
+      sequelize.migrate()
+    }
   } else {
     throw new Error('Please add a configuration file under config/config.json. You might run "sequelize --init".')
   }
