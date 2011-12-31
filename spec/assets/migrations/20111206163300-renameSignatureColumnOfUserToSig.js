@@ -3,5 +3,7 @@ module.exports = {
     migration.renameColumn('User', 'signature', 'sig')
   },
 
-  down: function(migration, DataTypes) {}
+  down: function(migration, DataTypes) {
+    migration.renameColumn('User', 'sig', 'signature')
+  }
 }
