@@ -4,7 +4,6 @@ before_script:
 
 script:
   - "node_modules/.bin/jasmine-node spec"
-  - "node_modules/.bin/expresso -s test/**/*"
 
 notifications:
   email:
@@ -12,3 +11,10 @@ notifications:
 
 env:
   - DB=mysql
+
+language: node_js
+
+node_js:
+  - 0.4
+  - 0.5
+  - 0.6
