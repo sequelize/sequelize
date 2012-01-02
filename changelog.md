@@ -9,6 +9,7 @@
 - [FEATURE] aliasing for select queries: Model.find({ where: 'id = 1', attributes: ['id', ['name', 'username']] }) ==> will return the user's name as username
 - [FEATURE] cross-database support. currently supported: mysql, sqlite
 - [FEATURE] migrations
+- [FEATURE] QueryChainer can now run serially
 - [TEST] removed all expresso tests and converted them to jasmine
 
 # v1.2.1 #
