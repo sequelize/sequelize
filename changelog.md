@@ -3,13 +3,13 @@
 - [REFACTORING] Renamed ModelDefinition to ModelFactory
 - [REFACTORING] Private method scoping; Attributes are still public
 - [REFACTORING] Use the new util module for node 0.6.2
+- [FEATURE] QueryChainer can now run serially
 - [FEATURE] Association definition is chainable: Person.hasOne(House).hasMany(Address)
 - [FEATURE] Validations (Thanks to [hiddentao](https://github.com/hiddentao))
 - [FEATURE] jQuery-like event listeners: .success(callback) and .error(callback)
 - [FEATURE] aliasing for select queries: Model.find({ where: 'id = 1', attributes: ['id', ['name', 'username']] }) ==> will return the user's name as username
 - [FEATURE] cross-database support. currently supported: mysql, sqlite
 - [FEATURE] migrations
-- [FEATURE] QueryChainer can now run serially
 - [TEST] removed all expresso tests and converted them to jasmine
 
 # v1.2.1 #
