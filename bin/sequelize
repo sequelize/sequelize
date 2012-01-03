@@ -7,6 +7,7 @@ const path      = require("path")
     , _         = Sequelize.Utils._
 
 var configPath       = __dirname + '/../config'
+  , migrationsPath   = __dirname + '/../migrations'
   , configFile       = configPath + '/config.json'
   , configPathExists = path.existsSync(configPath)
   , configFileExists = path.existsSync(configFile)
@@ -20,6 +21,29 @@ var writeConfig = function(config) {
   config = config.replace('}', "\n}")
 
   fs.writeFileSync(configFile, config)
+}
+
+var createMigrationsFolder = function(force) {
+  if(force) {
+    console.log('Deleting the migrations folder.')
+    try {
+      fs.readdirSync(migrationsPath).forEach(function(filename) {
+        fs.unlinkSync(migrationsPath + '/' + filename)
+      })
+    } catch(e) {}
+    try {
+      fs.rmdirSync(migrationsPath)
+      console.log('Successfully deleted the migrations folder.')
+    } catch(e) {}
+  }
+
+  console.log('Creating migrations folder.')
+  try {
+    fs.mkdirSync(migrationsPath)
+    console.log('Successfully create migrations folder.')
+  } catch(e) {
+    console.log('Migrations folder already exist.')
+  }
 }
 
 var readConfig = function() {
@@ -58,8 +82,9 @@ if(program.migrate) {
     if(program.undo) {
       sequelize.migrator.findOrCreateSequelizeMetaModel().success(function(Meta) {
         Meta.find({ order: 'id DESC' }).success(function(meta) {
-          if(meta)
+          if(meta) {
             migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
+          }
 
           migrator.migrate({ method: 'down' })
         })
@@ -83,6 +108,8 @@ if(program.migrate) {
   } else {
     console.log('A config.json already exists. Run "sequelize --init --force" to overwrite it.')
   }
+
+  createMigrationsFolder(program.force)
 } else {
   console.log('Please define any params!')
 }
