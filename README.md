@@ -29,10 +29,8 @@ I'm glad to get pull request if any functionality is missing or something is bug
 
 ## Tests ##
 
-In order to run the tests, just do ```npm install```, which will install expresso and jasmine. I am switching from
-expresso to jasmine, so please add according tests to your pull requests. This is how you start the tests:
+In order to run the tests, just do ```npm install```, which will install jasmine. Please add tests to your pull requests. This is how you start the tests:
 
-    node_modules/.bin/expresso -s test/**/*
     node_modules/.bin/jasmine-node spec/
 
 Current build status on travis-ci: [![Build Status](https://secure.travis-ci.org/sdepold/sequelize.png)](http://travis-ci.org/sdepold/sequelize)
