@@ -6,8 +6,8 @@ const path      = require("path")
     , Sequelize = require(__dirname + '/../index')
     , _         = Sequelize.Utils._
 
-var configPath       = __dirname + '/../config'
-  , migrationsPath   = __dirname + '/../migrations'
+var configPath       = process.cwd() + '/config'
+  , migrationsPath   = process.cwd() + '/migrations'
   , configFile       = configPath + '/config.json'
   , configPathExists = path.existsSync(configPath)
   , configFileExists = path.existsSync(configFile)
