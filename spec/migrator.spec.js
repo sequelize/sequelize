@@ -12,7 +12,8 @@ describe('Migrator', function() {
   var setup = function(_options) {
     Helpers.async(function(done) {
       var options = Sequelize.Utils._.extend({
-        path: __dirname + '/assets/migrations'
+        path: __dirname + '/assets/migrations',
+        logging: false
       }, _options || {})
 
       migrator = new Migrator(sequelize, options)
