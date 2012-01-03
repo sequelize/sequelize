@@ -62,21 +62,21 @@ describe('Migrator', function() {
     })
 
     it("returns also the file which is exactly options.from or options.to", function() {
-      setup({ from: 20111117063700, to: 20111123060700 })
+      setup({ from: 20111117063700, to: 20111130161100 })
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
           expect(err).toBeNull()
           expect(migrations.length).toEqual(2)
           expect(migrations[0].filename).toEqual('20111117063700-createPerson.js')
-          expect(migrations[1].filename).toEqual('20111123060700-addBirthdateToPerson.js')
+          expect(migrations[1].filename).toEqual('20111130161100-emptyMigration.js')
           done()
         })
       })
     })
 
     it("returns all files to options.to if no options.from is defined", function() {
-      setup({ to: 20111123060700 })
+      setup({ to: 20111130161100 })
 
       Helpers.async(function(done) {
         migrator.getUndoneMigrations(function(err, migrations) {
@@ -94,8 +94,8 @@ describe('Migrator', function() {
         SequelizeMeta.create({ from: null, to: '20111117063700' }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).toBeNull()
-            expect(migrations.length).toEqual(7)
-            expect(migrations[0].filename).toEqual('20111123060700-addBirthdateToPerson.js')
+            expect(migrations.length).toEqual(6)
+            expect(migrations[0].filename).toEqual('20111130161100-emptyMigration.js')
             done()
           })
         })
@@ -119,6 +119,16 @@ describe('Migrator', function() {
             tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
             expect(tableNames.length).toEqual(1)
             expect(tableNames[0]).toEqual('Person')
+            done()
+          })
+        })
+      })
+
+      it("executes migration #20111117063700 and correctly adds isBetaMember", function() {
+        Helpers.async(function(done) {
+          sequelize.getQueryInterface().describeTable('Person').success(function(data) {
+            var beta = data.filter(function(d) { return d.Field == 'isBetaMember'})
+            expect(beta).toBeDefined()
             done()
           })
         })
