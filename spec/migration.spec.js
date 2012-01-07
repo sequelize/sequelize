@@ -8,9 +8,6 @@ var config    = require("./config/config")
 
 describe('Migration', function() {
   describe('migrationHasInterfaceCalls', function() {
-    var migrator  = new Migrator(sequelize)
-      , migration = new Migration(migrator, '/var/lib/20111117063700-asd.js')
-
     // the syntax in the following tests are correct
     // don't touch them! the functions will get stringified below
     var tests = [
@@ -64,7 +61,7 @@ describe('Migration', function() {
 
     tests.forEach(function(test) {
       it('correctly result in ' + test.expectation + ' for ' + test.topic.toString(), function() {
-        expect(migration.migrationHasInterfaceCalls(test.topic)).toEqual(test.expectation)
+        expect(Migration.migrationHasInterfaceCalls(test.topic)).toEqual(test.expectation)
       })
     })
   })
