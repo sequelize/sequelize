@@ -1,3 +1,6 @@
+# v1.3.1 #
+- [REFACTORING] renamed ModelManager to ModelFactoryManager
+
 # v1.3.0 #
 - [REFACTORING] Model#all is now a function and not a getter.
 - [REFACTORING] Renamed ModelDefinition to ModelFactory

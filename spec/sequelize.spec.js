@@ -36,9 +36,9 @@ describe('Sequelize', function() {
 
   describe('define', function() {
     it("adds a new model to the model manager", function() {
-      expect(sequelize.modelManager.all.length).toEqual(0)
+      expect(sequelize.modelFactoryManager.all.length).toEqual(0)
       sequelize.define('foo', { title: Sequelize.STRING })
-      expect(sequelize.modelManager.all.length).toEqual(1)
+      expect(sequelize.modelFactoryManager.all.length).toEqual(1)
     })
   })
 

@@ -102,7 +102,7 @@ describe('HasMany', function() {
       expect(Task.attributes.UserId).toBeUndefined()
       expect(User.attributes.UserId).toBeUndefined()
 
-      var models = sequelize.modelManager.models.filter(function(model) {
+      var models = sequelize.modelFactoryManager.models.filter(function(model) {
         return (model.tableName == (Task.tableName + User.tableName))
       })
 
@@ -122,7 +122,7 @@ describe('HasMany', function() {
       expect(Task.attributes.user_id).toBeUndefined()
       expect(User.attributes.user_id).toBeUndefined()
 
-      var models = sequelize.modelManager.models.filter(function(model) {
+      var models = sequelize.modelFactoryManager.models.filter(function(model) {
         return (model.tableName == (Task.tableName + User.tableName))
       })
 
@@ -136,7 +136,7 @@ describe('HasMany', function() {
       User.hasMany(Task, { foreignKey: 'person_id' })
       Task.hasMany(User, { foreignKey: 'work_item_id' })
 
-      var models = sequelize.modelManager.models.filter(function(model) {
+      var models = sequelize.modelFactoryManager.models.filter(function(model) {
         return (model.tableName == (Task.tableName + User.tableName))
       })
 
@@ -227,7 +227,7 @@ describe('HasMany', function() {
       Person.hasMany(Person, {as: 'CoWorkers'})
 
       Person.sync({force: true}).success(function() {
-        var modelNames  = sequelize.modelManager.models.map(function(model) { return model.tableName })
+        var modelNames  = sequelize.modelFactoryManager.models.map(function(model) { return model.tableName })
           , expectation = ["Persons", "ChildrenPersons", "CoWorkersPersons", "FriendsPersons"]
 
         expectation.forEach(function(ex) {

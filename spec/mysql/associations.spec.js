@@ -19,7 +19,7 @@ describe('Associations', function() {
 
       it("should create a table wp_table1wp_table2s", function() {
         Helpers.async(function(done) {
-          expect(sequelize.modelManager.getModel('wp_table1swp_table2s')).toBeDefined()
+          expect(sequelize.modelFactoryManager.getModel('wp_table1swp_table2s')).toBeDefined()
           done()
         })
       })

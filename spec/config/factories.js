@@ -10,7 +10,7 @@ Factories.prototype.Model = function(modelName, options, callback, count) {
     , models = []
 
   this.helpers.async(function(done) {
-    var Model  = self.sequelize.modelManager.getModel(modelName)
+    var Model  = self.sequelize.modelFactoryManager.getModel(modelName)
 
     var create = function(cb) {
       Model.create(options).on('success', function(model) {
