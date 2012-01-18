@@ -1,3 +1,5 @@
+Sequelize = require("../../index")
+
 var Helpers = module.exports = function(sequelize) {
   this.sequelize = sequelize
   this.Factories = new (require("./factories"))(this)
@@ -8,8 +10,8 @@ Helpers.prototype.sync = function() {
   this.async(function(done) {
     self.sequelize
       .sync({force: true})
-      .on('success', done)
-      .on('failure', function(err) { console.log(err) })
+      .success(done)
+      .failure(function(err) { console.log(err) })
   })
 }
 
@@ -20,6 +22,18 @@ Helpers.prototype.drop = function() {
       .drop()
       .on('success', done)
       .on('failure', function(err) { console.log(err) })
+  })
+}
+
+Helpers.prototype.dropAllTables = function() {
+  var self = this
+
+  this.async(function(done) {
+    self.sequelize
+      .getQueryInterface()
+      .dropAllTables()
+      .success(done)
+      .error(function(err) { console.log(err) })
   })
 }
 
