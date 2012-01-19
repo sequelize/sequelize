@@ -23,9 +23,7 @@
   "keywords": [],
   "main": "index",
   "scripts": {},
-  "bin": {
-    "sqlize": "bin/sqlize"
-  },
+  "bin": {},
   "engines": {
     "node": ">=0.4.6"
   },
