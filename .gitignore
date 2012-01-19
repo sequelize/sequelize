@@ -3,3 +3,4 @@ test*.js
 .DS_STORE
 node_modules
 config
+npm-debug.log
