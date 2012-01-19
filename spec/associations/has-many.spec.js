@@ -95,22 +95,6 @@ describe('HasMany', function() {
 
   })
 
-  describe("when a join table name is specified", function() {
-    var Table2 = sequelize.define('ms_table1', {foo: Sequelize.STRING})
-      , Table1 = sequelize.define('ms_table2', {foo: Sequelize.STRING})
-
-    Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'})
-    Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'})
-
-    it("should not use a combined name", function() {
-      expect(sequelize.modelManager.getModel('ms_table1sms_table2s')).toBeUndefined()
-    })
-
-    it("should use the specified name", function() {
-      expect(sequelize.modelManager.getModel('table1_to_table2')).toBeDefined()
-    })
-  })
-
   describe('bi-directional', function() {
     it('adds the foreign key', function() {
       Task.hasMany(User)

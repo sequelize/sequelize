@@ -32,10 +32,10 @@ describe('Associations', function() {
       Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'})
 
       it("should not use a combined name", function() {
-        expect(sequelize.modelManager.getModel('ms_table1sms_table2s')).toBeUndefined()
+        expect(sequelize.modelFactoryManager.getModel('ms_table1sms_table2s')).toBeUndefined()
       })
       it("should use the specified name", function() {
-        expect(sequelize.modelManager.getModel('table1_to_table2')).toBeDefined()
+        expect(sequelize.modelFactoryManager.getModel('table1_to_table2')).toBeDefined()
       })
     })
   })
