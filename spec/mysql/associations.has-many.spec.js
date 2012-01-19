@@ -7,8 +7,9 @@ describe('HasMany', function() {
   beforeEach(function() { Helpers.sync() })
   afterEach(function() { Helpers.drop() })
 
-  var User  = sequelize.define('User' + Math.random(), { name: Sequelize.STRING })
-    , Task  = sequelize.define('Task' + Math.random(), { name: Sequelize.STRING })
+  //prevent periods from occurring in the table name since they are used to delimit (table.column)
+  var User  = sequelize.define('User' + Math.ceil(Math.random()*10000000), { name: Sequelize.STRING })
+    , Task  = sequelize.define('Task' + Math.ceil(Math.random()*10000000), { name: Sequelize.STRING })
     , users = null
     , tasks = null
 
