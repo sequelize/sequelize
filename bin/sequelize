@@ -76,7 +76,7 @@ if(program.migrate) {
     options = _.extend(options, { logging: false })
 
     var sequelize       = new Sequelize(config.database, config.username, config.password, options)
-      , migratorOptions = { path: __dirname + '/../migrations' }
+      , migratorOptions = { path: migrationsPath }
       , migrator        = sequelize.getMigrator(migratorOptions)
 
     if(program.undo) {
