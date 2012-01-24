@@ -1,5 +1,8 @@
 # v1.3.1 #
 - [REFACTORING] renamed ModelManager to ModelFactoryManager
+- [IMPROVEMENT] decreased delay of CustomEventEmitter execution from 5ms to 1ms
+- [BUG] correctly delete existing SequelizeMeta entry from database after undoing migration
+- [BUG] fix path of migration files in executable
 
 # v1.3.0 #
 - [REFACTORING] Model#all is now a function and not a getter.
