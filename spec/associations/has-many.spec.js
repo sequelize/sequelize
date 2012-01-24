@@ -92,6 +92,7 @@ describe('HasMany', function() {
         })
       })
     })
+
   })
 
   describe('bi-directional', function() {
