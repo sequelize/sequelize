@@ -1,6 +1,9 @@
 # v1.3.1 #
 - [REFACTORING] renamed ModelManager to ModelFactoryManager
 - [IMPROVEMENT] decreased delay of CustomEventEmitter execution from 5ms to 1ms
+- [IMPROVEMENT] improved performance of association handling (many-to-many) (thanks to magshark)
+- [FEATURE] added possibility to specify name of the join table (thanks to magshark)
+- [FEATURE] mysql is emitting a 'sql'-event when executing a query
 - [BUG] correctly delete existing SequelizeMeta entry from database after undoing migration
 - [BUG] fix path of migration files in executable
 
