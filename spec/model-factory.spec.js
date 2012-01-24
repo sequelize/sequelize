@@ -343,10 +343,45 @@ describe('ModelFactory', function() {
           })
         })
 
-        it("sorts the results", function() {
+        it("sorts the results via id", function() {
+          Helpers.Factories.User({name: 'user', bio: 'foobar'}, function(_users) {
+            users = _users
+          }, 2)
+
+          Helpers.async(function(done) {
+            setTimeout(function() {
+              User.create({name: 'user', bio: 'foobar'}).success(function(user) {
+                users.push(user)
+                done()
+              })
+            }, 2000)
+          })
+
           Helpers.async(function(done) {
             User.findAll({ order: "id DESC" }).success(function(users) {
-              expect(users[0].id).toBeGreaterThan(users[1].id)
+              expect(users[0].id).toBeGreaterThan(users[2].id)
+              done()
+            })
+          })
+        })
+
+        it("sorts the results via createdAt", function() {
+          Helpers.Factories.User({name: 'user', bio: 'foobar'}, function(_users) {
+            users = _users
+          }, 2)
+
+          Helpers.async(function(done) {
+            setTimeout(function() {
+              User.create({name: 'user', bio: 'foobar'}).success(function(user) {
+                users.push(user)
+                done()
+              })
+            }, 2000)
+          })
+
+          Helpers.async(function(done) {
+            User.findAll({ order: 'createdAt DESC' }).success(function(users) {
+              expect(users[0].id).toBeGreaterThan(users[2].id)
               done()
             })
           })
