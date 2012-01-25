@@ -5,7 +5,7 @@
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     { "name": "Sascha Depold", "email": "sascha@depold.com" },
-    { "name": "Meg Sharkey" }
+    { "name": "Meg Sharkey", "email": "meg@metamarkets.com" }
   ],
   "dependencies": {
     "mysql": "0.9.x",
