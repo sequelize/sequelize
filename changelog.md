@@ -1,5 +1,5 @@
 # v1.3.2 #
-- [FEATURE] sqlite is now emitting the 'sql'-event as well
+- [FEATURE] sqlite is now emitting the 'sql'-event as well (thanks to megshark)
 
 # v1.3.1 #
 - [REFACTORING] renamed ModelManager to ModelFactoryManager
@@ -8,7 +8,7 @@
 - [FEATURE] added possibility to specify name of the join table (thanks to magshark)
 - [FEATURE] mysql is emitting a 'sql'-event when executing a query
 - [BUG] correctly delete existing SequelizeMeta entry from database after undoing migration
-- [BUG] fix path of migration files in executable
+- [BUG] fix path of migration files in executable (thanks to bcg)
 
 # v1.3.0 #
 - [REFACTORING] Model#all is now a function and not a getter.
