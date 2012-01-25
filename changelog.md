@@ -1,3 +1,6 @@
+# v1.3.2 #
+- [FEATURE] sqlite is now emitting the 'sql'-event as well
+
 # v1.3.1 #
 - [REFACTORING] renamed ModelManager to ModelFactoryManager
 - [IMPROVEMENT] decreased delay of CustomEventEmitter execution from 5ms to 1ms
