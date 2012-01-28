@@ -240,6 +240,45 @@ describe('HasMany', function() {
     })
   })
 
+  it("allows join table to be specified", function() {
+    Helpers.async(function(done) {
+      var Child = sequelize.define('Child', { name: Sequelize.STRING }, {underscore: true, freezeTableName: true})
+      var Parent = sequelize.define('Parent', { name: Sequelize.STRING }, {underscore: true, freezeTableName: true})
+      var ParentJoin = sequelize.define('ParentRelationship', { parent_id: Sequelize.INTEGER, child_id: Sequelize.INTEGER }, {underscore: true, freezeTableName: true})
+
+      Parent.hasMany(Child, {as: 'Children', foreignKey: 'child_id', joinTableName: 'ParentRelationship'})
+      Child.hasMany(Parent, {as: 'Parents', foreignKey: 'parent_id', joinTableName: 'ParentRelationship'})
+
+      var parents = []
+
+      ParentJoin.sync({force: true}).success(function() {
+        Parent.sync({force: true}).success(function() {
+          Child.sync({force: true}).success(function() {
+          Parent.create({name: 'mom'}).success(function(mom) {
+            parents.push(mom)
+            Parent.create({name: 'dad'}).success(function(dad) {
+              parents.push(dad)
+              Child.create({name: 'baby'}).success(function(baby) {
+                baby.setParents(parents).success(function(){
+                  parents[0].getChildren().success(function(children){
+                    expect(children).not.toBe(null)
+                    expect(children.length).toBeDefined()
+                    expect(children.length).toEqual(1)
+                    expect(children[0]).toBeDefined()
+                    expect(children[0].name).toEqual('baby')
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+       })
+      })
+    })
+  })
+
+
   it("gets and sets the connector models", function() {
     Helpers.async(function(done) {
       var Person = sequelize.define('Person', { name: Sequelize.STRING })
