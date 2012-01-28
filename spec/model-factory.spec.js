@@ -183,6 +183,19 @@ describe('ModelFactory', function() {
               })
           })
         })
+
+        it('allows sql logging', function() {
+          Helpers.async(function(done) {
+            User
+              .create({ name: 'Fluffy Bunny', smth: 'else' })
+              .on('sql', function(sql) {
+                expect(sql).toBeDefined()
+                expect(sql.toUpperCase().indexOf("INSERT")).toBeGreaterThan(-1)
+                done()
+              })
+          })
+        })
+
       })
 
       describe('destroy', function() {
@@ -210,6 +223,29 @@ describe('ModelFactory', function() {
           })
         })
 
+        it('allows sql logging of delete statements', function() {
+          Helpers.async(function(done) {
+            User = sequelize.define('User', {
+              name: Sequelize.STRING,
+              bio: Sequelize.TEXT
+            })
+            User.sync({force: true}).success(done)
+          })
+
+          Helpers.async(function(done) {
+            User.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+              User.all().success(function(users) {
+                expect(users.length).toEqual(1)
+                u.destroy().on('sql', function(sql) {
+                  expect(sql).toBeDefined()
+                  expect(sql.toUpperCase().indexOf("DELETE")).toBeGreaterThan(-1)
+                  done()
+                }).error(function(err) { console.log(err) })
+              }).error(function(err) { console.log(err) })
+            })
+          })
+        })
+
         it('marks the database entry as deleted if model is paranoid', function() {
           Helpers.async(function(done) {
             User = sequelize.define('User', {
@@ -223,6 +259,27 @@ describe('ModelFactory', function() {
               expect(u.deletedAt).toBeNull()
               u.destroy().success(function(u) {
                 expect(u.deletedAt).toBeTruthy()
+                done()
+              })
+            })
+          })
+        })
+
+        it('allows sql logging of update statements', function() {
+          Helpers.async(function(done) {
+            User = sequelize.define('User', {
+              name: Sequelize.STRING, bio: Sequelize.TEXT
+            }, { paranoid:true })
+            User.sync({ force: true }).success(done)
+          })
+
+          Helpers.async(function(done) {
+            User.create({ name: 'meg', bio: 'none' }).success(function(u) {
+              expect(u).toBeDefined()
+              expect(u).not.toBe(null)
+              u.destroy().on('sql', function(sql) {
+                expect(sql).toBeDefined()
+                expect(sql.toUpperCase().indexOf("UPDATE")).toBeGreaterThan(-1)
                 done()
               })
             })
@@ -273,6 +330,17 @@ describe('ModelFactory', function() {
               expect(user).toBeNull()
               done()
             })
+          })
+        })
+
+        it('allows sql logging', function() {
+          Helpers.async(function(done) {
+            User.find({ where: { name: 'foo' } })
+              .on('sql', function(sql) {
+                expect(sql).toBeDefined()
+                expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+                done()
+              })
           })
         })
 
@@ -433,6 +501,17 @@ describe('ModelFactory', function() {
           })
         })
 
+        it('allows sql logging', function() {
+          Helpers.async(function(done) {
+            User.count()
+              .on('sql', function(sql) {
+                expect(sql).toBeDefined()
+                expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+                done()
+              })
+          })
+        })
+
         it('filters object', function() {
           Helpers.async(function(done) {
             User.create({name: 'user1'}).success(function() {
@@ -459,6 +538,16 @@ describe('ModelFactory', function() {
             })
           })
         })
+        it('allows sql logging', function() {
+          Helpers.async(function(done) {
+            User.min('age')
+              .on('sql', function(sql) {
+                expect(sql).toBeDefined()
+                expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+                done()
+              })
+          })
+        })
       })
 
       describe('max', function() {
@@ -469,6 +558,16 @@ describe('ModelFactory', function() {
             User.max('age').on('success', function(max) {
               expect(max).toEqual(5); done()
             })
+          })
+        })
+        it('allows sql logging', function() {
+          Helpers.async(function(done) {
+            User.max('age')
+              .on('sql', function(sql) {
+                expect(sql).toBeDefined()
+                expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+                done()
+              })
           })
         })
       })
