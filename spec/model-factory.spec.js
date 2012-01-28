@@ -47,6 +47,16 @@ describe('ModelFactory', function() {
           expect(User.tableName).toEqual('Users')
         })
 
+        it("uses the lowercase model name as tablename if lowerCase", function() {
+          var User = sequelize.define('User', {}, {lowerCase: true})
+          expect(User.tableName).toEqual('users')
+        })
+
+        it("uses the lowercase passed model name as tablename if lowerCase and freezeTableName", function() {
+          var User = sequelize.define('User', {}, {freezeTableName: true, lowerCase: true})
+          expect(User.tableName).toEqual('user')
+        })
+
         it("attaches class and instance methods", function() {
           var User = sequelize.define('User', {}, {
             classMethods: { doSmth: function(){ return 1 } },
