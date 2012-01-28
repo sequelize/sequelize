@@ -1,3 +1,6 @@
+# v1.3.3 #
+- [BUG] fixed sql-event emitter in all possible locations (thanks to megshark)
+
 # v1.3.2 #
 - [FEATURE] sqlite is now emitting the 'sql'-event as well (thanks to megshark)
 
