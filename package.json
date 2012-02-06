@@ -22,7 +22,9 @@
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
-  "scripts": {},
+  "scripts": {
+      "test": "./node_modules/.bin/jasmine-node spec/"
+  },
   "bin": {
     "sequelize": "bin/sequelize"
   },
