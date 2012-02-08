@@ -41,8 +41,7 @@ Contributing to sequelize requires you to have
 [MySQL](http://www.mysql.com/) up and running in your local
 environment. The reason for that is that we have test cases that runs
 against an actual MySQL server and make sure everything is always
-working. Furthermore sequelize supports SQLite. So this should be working
-on your machine as well :)
+working. 
 
 That is also one of the reasons your features must come with tests:
 let's make sure sequelize will stay awesome as more features are added
@@ -58,6 +57,9 @@ $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
   without password. If you want to customize that just hack in the
   tests, but make sure to don't commit your credentials, we don't want
   to expose your personal data in sequelize codebase ;)
+
+**AND ONE LAST THING:** Sequelize also supports SQLite. So this should be working
+on your machine as well :)
 
 ### 2. Install the dependencies ###
 
