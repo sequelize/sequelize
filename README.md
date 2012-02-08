@@ -39,9 +39,10 @@ All the following steps consider you already have [npm](http://npmjs.org/) insta
 
 Contributing to sequelize requires you to have
 [MySQL](http://www.mysql.com/) up and running in your local
-environment, the reason for that is that we have test cases that runs
+environment. The reason for that is that we have test cases that runs
 against an actual MySQL server and make sure everything is always
-working.
+working. Furthermore sequelize supports SQLite. So this should be working
+on your machine as well :)
 
 That is also one of the reasons your features must come with tests:
 let's make sure sequelize will stay awesome as more features are added
