@@ -45,7 +45,7 @@ working.
 
 That is also one of the reasons your features must come with tests:
 let's make sure sequelize will stay awesome as more features are added
-as well as that fized bugs will never come back.
+as well as that fixed bugs will never come back.
 
 Well, after installing **MySQL** you also need to create the sequelize test database:
 
@@ -70,7 +70,7 @@ $ npm install
 ### 3. Run the tests ###
 
 In order to run the tests you got to run `jasmine-node` against the `spec` directory.
-By the way, [there](https://github.com/Yipit/sequelize/tree/master/spec) is where
+By the way, [there](https://github.com/sdepold/sequelize/tree/master/spec) is where
 you will write new tests if that's the case.
 
 All you need is to run `./node_modules/.bin/jasmine-node spec/`,
