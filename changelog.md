@@ -1,3 +1,8 @@
+# v1.3.4 #
+- [REFACTORING] renamed Model/ModelFactory/ModelFactoryManager to DAO/DAOFactory/DAOFactoryManager
+- [IMPROVEMENT] `npm test` will run the test suite (thanks to gabrielfalcao)
+- [IMPROVEMENT] documentation about setting up local development environment (thanks to gabrielfalcao)
+
 # v1.3.3 #
 - [BUG] fixed sql-event emitter in all possible locations (thanks to megshark)
 
@@ -5,7 +10,7 @@
 - [FEATURE] sqlite is now emitting the 'sql'-event as well (thanks to megshark)
 
 # v1.3.1 #
-- [REFACTORING] renamed ModelManager to DAOFactoryManager
+- [REFACTORING] renamed ModelManager to ModelFactoryManager
 - [IMPROVEMENT] decreased delay of CustomEventEmitter execution from 5ms to 1ms
 - [IMPROVEMENT] improved performance of association handling (many-to-many) (thanks to magshark)
 - [FEATURE] added possibility to specify name of the join table (thanks to magshark)
@@ -15,7 +20,7 @@
 
 # v1.3.0 #
 - [REFACTORING] Model#all is now a function and not a getter.
-- [REFACTORING] Renamed ModelDefinition to DAOFactory
+- [REFACTORING] Renamed ModelDefinition to ModelFactory
 - [REFACTORING] Private method scoping; Attributes are still public
 - [REFACTORING] Use the new util module for node 0.6.2
 - [FEATURE] QueryChainer can now run serially
