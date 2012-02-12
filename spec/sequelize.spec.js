@@ -22,8 +22,8 @@ describe('Sequelize', function() {
     it('should pass the global options correctly', function() {
       setup({ logging: false, define: { underscored:true } })
 
-      var Model = sequelize.define('model', {name: Sequelize.STRING})
-      expect(Model.options.underscored).toBeTruthy()
+      var DAO = sequelize.define('dao', {name: Sequelize.STRING})
+      expect(DAO.options.underscored).toBeTruthy()
     })
 
     it('should correctly set the host and the port', function() {
@@ -35,15 +35,15 @@ describe('Sequelize', function() {
   })
 
   describe('define', function() {
-    it("adds a new model to the model manager", function() {
-      expect(sequelize.modelFactoryManager.all.length).toEqual(0)
+    it("adds a new dao to the dao manager", function() {
+      expect(sequelize.daoFactoryManager.all.length).toEqual(0)
       sequelize.define('foo', { title: Sequelize.STRING })
-      expect(sequelize.modelFactoryManager.all.length).toEqual(1)
+      expect(sequelize.daoFactoryManager.all.length).toEqual(1)
     })
   })
 
   describe('sync', function() {
-    it("synchronizes all models", function() {
+    it("synchronizes all daos", function() {
       var Project = sequelize.define('project' + config.rand(), { title: Sequelize.STRING })
       var Task = sequelize.define('task' + config.rand(), { title: Sequelize.STRING })
 
@@ -58,7 +58,7 @@ describe('Sequelize', function() {
   })
 
   describe('import', function() {
-    it("imports a model definition from a file", function() {
+    it("imports a dao definition from a file", function() {
       var Project = sequelize.import(__dirname + "/assets/project")
       expect(Project).toBeDefined()
     })

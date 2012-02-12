@@ -103,13 +103,13 @@ describe('HasMany', function() {
       expect(Task.attributes.UserId).toBeUndefined()
       expect(User.attributes.UserId).toBeUndefined()
 
-      var models = sequelize.modelFactoryManager.models.filter(function(model) {
-        return (model.tableName == (Task.tableName + User.tableName))
+      var daos = sequelize.daoFactoryManager.daos.filter(function(dao) {
+        return (dao.tableName == (Task.tableName + User.tableName))
       })
 
-      models.forEach(function(model) {
-        expect(model.attributes.UserId).toBeDefined()
-        expect(model.attributes.TaskId).toBeDefined()
+      daos.forEach(function(dao) {
+        expect(dao.attributes.UserId).toBeDefined()
+        expect(dao.attributes.TaskId).toBeDefined()
       })
     })
 
@@ -123,13 +123,13 @@ describe('HasMany', function() {
       expect(Task.attributes.user_id).toBeUndefined()
       expect(User.attributes.user_id).toBeUndefined()
 
-      var models = sequelize.modelFactoryManager.models.filter(function(model) {
-        return (model.tableName == (Task.tableName + User.tableName))
+      var daos = sequelize.daoFactoryManager.daos.filter(function(dao) {
+        return (dao.tableName == (Task.tableName + User.tableName))
       })
 
-      models.forEach(function(model) {
-        expect(model.attributes.user_id).toBeDefined()
-        expect(model.attributes.TaskId).toBeDefined()
+      daos.forEach(function(dao) {
+        expect(dao.attributes.user_id).toBeDefined()
+        expect(dao.attributes.TaskId).toBeDefined()
       })
     })
 
@@ -137,13 +137,13 @@ describe('HasMany', function() {
       User.hasMany(Task, { foreignKey: 'person_id' })
       Task.hasMany(User, { foreignKey: 'work_item_id' })
 
-      var models = sequelize.modelFactoryManager.models.filter(function(model) {
-        return (model.tableName == (Task.tableName + User.tableName))
+      var daos = sequelize.daoFactoryManager.daos.filter(function(dao) {
+        return (dao.tableName == (Task.tableName + User.tableName))
       })
 
-      models.forEach(function(model) {
-        expect(model.attributes.person_id).toBeDefined()
-        expect(model.attributes.work_item_id).toBeDefined()
+      daos.forEach(function(dao) {
+        expect(dao.attributes.person_id).toBeDefined()
+        expect(dao.attributes.work_item_id).toBeDefined()
       })
     })
 
@@ -219,7 +219,7 @@ describe('HasMany', function() {
     })
   })
 
-  it("build the connector models name", function() {
+  it("build the connector daos name", function() {
     Helpers.async(function(done) {
       var Person = sequelize.define('Person', { name: Sequelize.STRING })
 
@@ -228,11 +228,11 @@ describe('HasMany', function() {
       Person.hasMany(Person, {as: 'CoWorkers'})
 
       Person.sync({force: true}).success(function() {
-        var modelNames  = sequelize.modelFactoryManager.models.map(function(model) { return model.tableName })
+        var daoNames  = sequelize.daoFactoryManager.daos.map(function(dao) { return dao.tableName })
           , expectation = ["Persons", "ChildrenPersons", "CoWorkersPersons", "FriendsPersons"]
 
         expectation.forEach(function(ex) {
-          expect(modelNames.indexOf(ex) > -1).toBeTruthy()
+          expect(daoNames.indexOf(ex) > -1).toBeTruthy()
         })
 
         done()
@@ -279,7 +279,7 @@ describe('HasMany', function() {
   })
 
 
-  it("gets and sets the connector models", function() {
+  it("gets and sets the connector daos", function() {
     Helpers.async(function(done) {
       var Person = sequelize.define('Person', { name: Sequelize.STRING })
 

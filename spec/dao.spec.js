@@ -2,7 +2,7 @@ var config    = require("./config/config")
   , Sequelize = require("../index")
   , dialects  = ['sqlite', 'mysql']
 
-describe('Model', function() {
+describe('DAO', function() {
   dialects.forEach(function(dialect) {
     describe('with dialect "' + dialect + '"', function() {
       var User      = null
