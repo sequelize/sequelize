@@ -2,6 +2,7 @@
 - [REFACTORING] renamed Model/ModelFactory/ModelFactoryManager to DAO/DAOFactory/DAOFactoryManager
 - [IMPROVEMENT] `npm test` will run the test suite (thanks to gabrielfalcao)
 - [IMPROVEMENT] documentation about setting up local development environment (thanks to gabrielfalcao)
+- [REFACTORING] removed updatedAt + createdAt from SequelizeMeta
 
 # v1.3.3 #
 - [BUG] fixed sql-event emitter in all possible locations (thanks to megshark)
