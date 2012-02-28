@@ -80,7 +80,7 @@ if(program.migrate) {
       , migrator        = sequelize.getMigrator(migratorOptions)
 
     if(program.undo) {
-      sequelize.migrator.findOrCreateSequelizeMetaModel().success(function(Meta) {
+      sequelize.migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
         Meta.find({ order: 'id DESC' }).success(function(meta) {
           if(meta) {
             migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
