@@ -1,3 +1,6 @@
+# v1.3.5 #
+- [BUT] fixed missed DAO renaming in migrations (thanks to nov)
+
 # v1.3.4 #
 - [REFACTORING] renamed Model/ModelFactory/ModelFactoryManager to DAO/DAOFactory/DAOFactoryManager
 - [IMPROVEMENT] `npm test` will run the test suite (thanks to gabrielfalcao)
