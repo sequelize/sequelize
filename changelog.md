@@ -1,5 +1,8 @@
+# v1.3.6 #
+- [BUG] don't update an existing updatedAt-attribute if timestamps option for a DAO is false
+
 # v1.3.5 #
-- [BUT] fixed missed DAO renaming in migrations (thanks to nov)
+- [BUG] fixed missed DAO renaming in migrations (thanks to nov)
 
 # v1.3.4 #
 - [REFACTORING] renamed Model/ModelFactory/ModelFactoryManager to DAO/DAOFactory/DAOFactoryManager

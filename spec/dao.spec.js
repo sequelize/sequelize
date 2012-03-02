@@ -374,6 +374,30 @@ describe('DAO', function() {
             }, 10)
           })
         })
+
+        describe('without timestamps option', function() {
+          var User2 = sequelize.define('User2', {
+            username: Sequelize.STRING,
+            updatedAt: Sequelize.DATE
+          }, {
+            timestamps: false
+          })
+
+          beforeEach(function() {
+            Helpers.async(function(done) {
+              User2.sync({ force: true }).success(done)
+            })
+          })
+
+          it("doesn't update the updatedAt column", function() {
+            Helpers.async(function(done) {
+              User2.create({ username: 'john doe' }).success(function(johnDoe) {
+                expect(johnDoe.updatedAt).toBeNull()
+                done()
+              })
+            })
+          })
+        })
       })
 
       describe('updateAttributes', function() {
