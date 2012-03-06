@@ -47,6 +47,17 @@ describe('BelongsTo', function() {
     expect(task.getPerson).toBeDefined()
   })
 
+  it("aliases associations to the same table according to the passed 'as' option", function() {
+    Task.belongsTo(User, {as: 'Poster'})
+    Task.belongsTo(User, {as: 'Owner'})
+
+    var task = Task.build({title: 'asd'})
+    expect(task.getPoster).toBeDefined()
+    expect(task.setPoster).toBeDefined()
+    expect(task.getOwner).toBeDefined()
+    expect(task.setOwner).toBeDefined()
+  })
+
   it("intializes the foreign key with null", function() {
     Task.belongsTo(User)
 
