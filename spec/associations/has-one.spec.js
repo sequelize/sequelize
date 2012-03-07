@@ -54,6 +54,17 @@ describe('HasOne', function() {
     expect(u.getWork).toBeDefined()
   })
 
+  it("aliases associations to the same table according to the passed 'as' option", function() {
+      User.hasOne(Task, {as: 'Work'});
+      User.hasOne(Task, {as: 'Play'});
+
+      var u = User.build({username: 'asd'})
+      expect(u.getWork).toBeDefined()
+      expect(u.setWork).toBeDefined()
+      expect(u.getPlay).toBeDefined()
+      expect(u.setPlay).toBeDefined()
+  })
+
   it("gets and sets the correct objects", function() {
     var user, task;
 

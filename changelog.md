@@ -1,3 +1,6 @@
+# v1.3.7 #
+- [BUG] fixed issue where multiple belongsTo or hasOne associations to the same table overwrite each other
+
 # v1.3.6 #
 - [BUG] don't update an existing updatedAt-attribute if timestamps option for a DAO is false
 
