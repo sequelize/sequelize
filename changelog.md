@@ -1,3 +1,21 @@
+# v1.3.7 #
+- [BUG] fixed issue where multiple belongsTo or hasOne associations to the same table overwrite each other
+
+# v1.3.6 #
+- [BUG] don't update an existing updatedAt-attribute if timestamps option for a DAO is false
+
+# v1.3.5 #
+- [BUG] fixed missed DAO renaming in migrations (thanks to nov)
+
+# v1.3.4 #
+- [REFACTORING] renamed Model/ModelFactory/ModelFactoryManager to DAO/DAOFactory/DAOFactoryManager
+- [IMPROVEMENT] `npm test` will run the test suite (thanks to gabrielfalcao)
+- [IMPROVEMENT] documentation about setting up local development environment (thanks to gabrielfalcao)
+- [REFACTORING] removed updatedAt + createdAt from SequelizeMeta
+
+# v1.3.3 #
+- [BUG] fixed sql-event emitter in all possible locations (thanks to megshark)
+
 # v1.3.2 #
 - [FEATURE] sqlite is now emitting the 'sql'-event as well (thanks to megshark)
 

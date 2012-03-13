@@ -2,7 +2,7 @@ var config    = require("./config/config")
   , Sequelize = require("../index")
   , dialects  = ['sqlite', 'mysql']
 
-describe('Model', function() {
+describe('DAO', function() {
   dialects.forEach(function(dialect) {
     describe('with dialect "' + dialect + '"', function() {
       var User      = null
@@ -372,6 +372,30 @@ describe('Model', function() {
                 done()
               })
             }, 10)
+          })
+        })
+
+        describe('without timestamps option', function() {
+          var User2 = sequelize.define('User2', {
+            username: Sequelize.STRING,
+            updatedAt: Sequelize.DATE
+          }, {
+            timestamps: false
+          })
+
+          beforeEach(function() {
+            Helpers.async(function(done) {
+              User2.sync({ force: true }).success(done)
+            })
+          })
+
+          it("doesn't update the updatedAt column", function() {
+            Helpers.async(function(done) {
+              User2.create({ username: 'john doe' }).success(function(johnDoe) {
+                expect(johnDoe.updatedAt).toBeNull()
+                done()
+              })
+            })
           })
         })
       })

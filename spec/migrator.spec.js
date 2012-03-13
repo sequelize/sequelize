@@ -18,7 +18,7 @@ describe('Migrator', function() {
 
       migrator = new Migrator(sequelize, options)
       migrator
-        .findOrCreateSequelizeMetaModel({ force: true })
+        .findOrCreateSequelizeMetaDAO({ force: true })
         .success(function(_SequelizeMeta) {
           SequelizeMeta = _SequelizeMeta
           done()

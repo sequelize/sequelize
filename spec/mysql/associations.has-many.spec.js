@@ -18,18 +18,18 @@ describe('HasMany', function() {
 
   beforeEach(function() {
     Helpers.async(function(_done) {
-      Helpers.Factories.Model(User.name, {name: 'User' + Math.random()}, function(_users) {
+      Helpers.Factories.DAO(User.name, {name: 'User' + Math.random()}, function(_users) {
         users = _users; _done()
       }, 5)
     })
     Helpers.async(function(_done) {
-      Helpers.Factories.Model(Task.name, {name: 'Task' + Math.random()}, function(_tasks) {
+      Helpers.Factories.DAO(Task.name, {name: 'Task' + Math.random()}, function(_tasks) {
         tasks = _tasks; _done()
       }, 2)
     })
   })
 
-  describe('addModel / getModel', function() {
+  describe('addDAO / getDAO', function() {
     var user = null
       , task = null
 
@@ -46,7 +46,7 @@ describe('HasMany', function() {
       })
     })
 
-    it('should correctly add an association to the model', function() {
+    it('should correctly add an association to the dao', function() {
       Helpers.async(function(done) {
         user.getTasks().on('success', function(_tasks) {
           expect(_tasks.length).toEqual(0)
@@ -61,7 +61,7 @@ describe('HasMany', function() {
     })
   })
 
-  describe('removeModel', function() {
+  describe('removeDAO', function() {
     var user  = null
       , tasks = null
 

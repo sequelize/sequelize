@@ -27,10 +27,72 @@ Also make sure to take a look at the examples in the repository. The website wil
 
 I'm glad to get pull request if any functionality is missing or something is buggy. But _please_ ... run the tests before you send me the pull request.
 
-## Tests ##
+Now if you want to contribute but don't really know where to begin
+don't worry, the steps below will guide you to have a sequelize
+contributor's environment running in a couple minutes.
 
-In order to run the tests, just do ```npm install```, which will install jasmine. Please add tests to your pull requests. This is how you start the tests:
+### 1. Prepare the environment ###
 
-    node_modules/.bin/jasmine-node spec/
+All the following steps consider you already have [npm](http://npmjs.org/) installed in your [node.js version 0.4.6 or higher](https://github.com/sdepold/sequelize/blob/master/package.json#L30)
 
-Current build status on travis-ci: [![Build Status](https://secure.travis-ci.org/sdepold/sequelize.png)](http://travis-ci.org/sdepold/sequelize)
+#### 1.1 MySQL and other external dependencies ####
+
+Contributing to sequelize requires you to have
+[MySQL](http://www.mysql.com/) up and running in your local
+environment. The reason for that is that we have test cases that runs
+against an actual MySQL server and make sure everything is always
+working. 
+
+That is also one of the reasons your features must come with tests:
+let's make sure sequelize will stay awesome as more features are added
+as well as that fixed bugs will never come back.
+
+Well, after installing **MySQL** you also need to create the sequelize test database:
+
+```console
+$ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
+```
+
+**CLEVER NOTE:** your local MySQL install must be with username `root`
+  without password. If you want to customize that just hack in the
+  tests, but make sure to don't commit your credentials, we don't want
+  to expose your personal data in sequelize codebase ;)
+
+**AND ONE LAST THING:** Sequelize also supports SQLite. So this should be working
+on your machine as well :)
+
+### 2. Install the dependencies ###
+
+Just "cd" into sequelize directory and run `npm install`, see an example below:
+
+```console
+$ cd path/to/sequelize
+$ npm install
+```
+
+### 3. Run the tests ###
+
+In order to run the tests you got to run `jasmine-node` against the `spec` directory.
+By the way, [there](https://github.com/sdepold/sequelize/tree/master/spec) is where
+you will write new tests if that's the case.
+
+All you need is to run `./node_modules/.bin/jasmine-node spec/`,
+although this is kinda long and boring, so we configures a NPM task
+and made that less laborious to you :)
+
+```console
+$ npm test
+```
+
+### 4. That's all ###
+
+Just commit and send pull requests.
+
+Happy hacking and thank you for contributing
+
+# Build status
+
+The automated tests we talk about just so much are running on
+[Travis public CI](http://travis-ci.org), here is its status:
+
+[![Build Status](https://secure.travis-ci.org/sdepold/sequelize.png)](http://travis-ci.org/sdepold/sequelize)

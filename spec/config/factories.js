@@ -3,18 +3,18 @@ var Factories = module.exports = function(helpers) {
   this.sequelize = this.helpers.sequelize
 }
 
-Factories.prototype.Model = function(modelName, options, callback, count) {
+Factories.prototype.DAO = function(daoName, options, callback, count) {
   count = count || 1
 
   var self   = this
-    , models = []
+    , daos = []
 
   this.helpers.async(function(done) {
-    var Model  = self.sequelize.modelFactoryManager.getModel(modelName)
+    var DAO  = self.sequelize.daoFactoryManager.getDAO(daoName)
 
     var create = function(cb) {
-      Model.create(options).on('success', function(model) {
-        models.push(model)
+      DAO.create(options).on('success', function(dao) {
+        daos.push(dao)
         cb && cb()
       }).on('failure', function(err) {
         console.log(err)
@@ -27,7 +27,7 @@ Factories.prototype.Model = function(modelName, options, callback, count) {
         create(cb)
       } else {
         done()
-        callback && callback(models)
+        callback && callback(daos)
       }
     }
 
@@ -36,5 +36,5 @@ Factories.prototype.Model = function(modelName, options, callback, count) {
 }
 
 Factories.prototype.User = function(options, callback, count) {
-  this.Model('User', options, callback, count)
+  this.DAO('User', options, callback, count)
 }

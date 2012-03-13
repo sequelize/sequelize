@@ -19,7 +19,7 @@ describe('Associations', function() {
 
       it("should create a table wp_table1wp_table2s", function() {
         Helpers.async(function(done) {
-          expect(sequelize.modelFactoryManager.getModel('wp_table1swp_table2s')).toBeDefined()
+          expect(sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).toBeDefined()
           done()
         })
       })
@@ -32,10 +32,10 @@ describe('Associations', function() {
       Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'})
 
       it("should not use a combined name", function() {
-        expect(sequelize.modelFactoryManager.getModel('ms_table1sms_table2s')).toBeUndefined()
+        expect(sequelize.daoFactoryManager.getDAO('ms_table1sms_table2s')).toBeUndefined()
       })
       it("should use the specified name", function() {
-        expect(sequelize.modelFactoryManager.getModel('table1_to_table2')).toBeDefined()
+        expect(sequelize.daoFactoryManager.getDAO('table1_to_table2')).toBeDefined()
       })
     })
   })

@@ -3,7 +3,7 @@ var config    = require("../config/config")
   , dbFile    = __dirname + '/test.sqlite'
   , storages  = [':memory:', dbFile]
 
-describe('ModelFactory', function() {
+describe('DAOFactory', function() {
   storages.forEach(function(storage) {
     describe('with storage "' + storage + '"', function() {
       var User      = null
@@ -68,7 +68,7 @@ describe('ModelFactory', function() {
 
           Helpers.async(function(done) {
             var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
-            Helpers.Factories.Model('Person', {
+            Helpers.Factories.DAO('Person', {
               name: 'John Doe',
               options: options
             }, function(people) {

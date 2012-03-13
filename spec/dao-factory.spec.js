@@ -2,7 +2,7 @@ var config    = require("./config/config")
   , Sequelize = require("../index")
   , dialects  = ['sqlite', 'mysql']
 
-describe('ModelFactory', function() {
+describe('DAOFactory', function() {
   dialects.forEach(function(dialect) {
     describe('with dialect "' + dialect + '"', function() {
       var User      = null
@@ -37,12 +37,12 @@ describe('ModelFactory', function() {
       afterEach(function() { Helpers.dropAllTables() })
 
       describe('constructor', function() {
-        it("uses the passed model name as tablename if freezeTableName", function() {
+        it("uses the passed dao name as tablename if freezeTableName", function() {
           var User = sequelize.define('User', {}, {freezeTableName: true})
           expect(User.tableName).toEqual('User')
         })
 
-        it("uses the pluralized modelname as tablename unless freezeTableName", function() {
+        it("uses the pluralized daoname as tablename unless freezeTableName", function() {
           var User = sequelize.define('User', {}, {freezeTableName: false})
           expect(User.tableName).toEqual('Users')
         })
@@ -66,7 +66,7 @@ describe('ModelFactory', function() {
               userid: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
               userscore: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
             })
-          }).toThrow('Invalid model definition. Only one autoincrement field allowed.')
+          }).toThrow('Invalid DAO definition. Only one autoincrement field allowed.')
 
         })
       })
@@ -199,7 +199,7 @@ describe('ModelFactory', function() {
       })
 
       describe('destroy', function() {
-        it('deletes a record from the database if model is not paranoid', function() {
+        it('deletes a record from the database if dao is not paranoid', function() {
           Helpers.async(function(done) {
             User = sequelize.define('User', {
               name: Sequelize.STRING,
@@ -246,7 +246,7 @@ describe('ModelFactory', function() {
           })
         })
 
-        it('marks the database entry as deleted if model is paranoid', function() {
+        it('marks the database entry as deleted if dao is paranoid', function() {
           Helpers.async(function(done) {
             User = sequelize.define('User', {
               name: Sequelize.STRING, bio: Sequelize.TEXT
@@ -305,7 +305,7 @@ describe('ModelFactory', function() {
           })
         })
 
-        it('returns a single model', function() {
+        it('returns a single dao', function() {
           Helpers.async(function(done) {
             User.find(users[0].id).success(function(user) {
               expect(Array.isArray(user)).toBeFalsy()
@@ -635,12 +635,12 @@ describe('ModelFactory', function() {
       })
 
       describe('Mixin', function() {
-        var ModelFactory = require("../lib/model-factory")
+        var DAOFactory = require("../lib/dao-factory")
 
-        it("adds the mixed-in functions to the model", function() {
-          expect(ModelFactory.prototype.hasOne).toBeDefined()
-          expect(ModelFactory.prototype.hasMany).toBeDefined()
-          expect(ModelFactory.prototype.belongsTo).toBeDefined()
+        it("adds the mixed-in functions to the dao", function() {
+          expect(DAOFactory.prototype.hasOne).toBeDefined()
+          expect(DAOFactory.prototype.hasMany).toBeDefined()
+          expect(DAOFactory.prototype.belongsTo).toBeDefined()
         })
       })
 
