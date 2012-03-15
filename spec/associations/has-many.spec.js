@@ -278,6 +278,49 @@ describe('HasMany', function() {
     })
   })
 
+    it("allows join table to be mapped and specified", function() {
+      var User = sequelize.define('User', { name: Sequelize.STRING }, {underscore: true, freezeTableName: true})
+      var Company = sequelize.define('Company', { name: Sequelize.STRING }, {underscore: true, freezeTableName: true})
+      var CompanyAccess = sequelize.define('CompanyAccess', { company_id: Sequelize.INTEGER, user_id: Sequelize.INTEGER, permission: Sequelize.STRING }, {underscore: true, freezeTableName: true})
+
+      CompanyAccess.belongsTo(User, {as: 'User', foreignKey: 'user_id'})
+      CompanyAccess.belongsTo(Company, {as: 'Company', foreignKey: 'company_id'})
+      User.hasMany(Company, {as: 'Companies', foreignKey: 'user_id', joinTableName: 'CompanyAccess'})
+      Company.hasMany(User, {as: 'Users', foreignKey: 'company_id', joinTableName: 'CompanyAccess'})
+
+      Helpers.async(function(done) {
+
+        var companies = []
+
+      CompanyAccess.sync({force: true}).success(function() {
+        User.sync({force: true}).success(function() {
+          Company.sync({force: true}).success(function() {
+
+            Company.create({name: 'IBM'}).success(function(ibm) {
+              companies.push(ibm)
+              Company.create({name: 'EA'}).success(function(ea) {
+                companies.push(ea)
+                User.create({name: 'joe@ibm.com'}).success(function(joe) {
+                  joe.setCompanies(companies).success(function(){
+                    User.find({where: {name: 'joe@ibm.com'}}).success(function(joe) {
+                      expect(joe).not.toEqual(null)
+                      joe.getCompanies().success(function(comps) {
+                        expect(comps).not.toEqual(null)
+                        expect(comps.length).toEqual(2)
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
+
 
   it("gets and sets the connector daos", function() {
     Helpers.async(function(done) {
