@@ -496,6 +496,56 @@ describe('DAO', function() {
           })
         })
       })
+      
+      describe('toJSON', function() {
+        it('returns an object containing all values', function() {
+          var User = sequelize.define('User', {
+            username: Sequelize.STRING, age: Sequelize.INTEGER, dob: Sequelize.DATE, isAdmin: Sequelize.BOOLEAN
+          }, { timestamps: false, logging: false })
+
+          Helpers.async(function(done) {
+            User.sync({ force: true }).success(done)
+          })
+
+          Helpers.async(function(done) {
+            var user = User.build({ username: 'test.user', age: 99, dob: new Date(1973,4,6), isAdmin: true })
+            expect(user.toJSON()).toEqual({ username: 'test.user', age: 99, dob: new Date(1973,4,6), isAdmin: true, id: null })
+            done()
+          })
+        })
+        
+        it('returns a response that can be stringified', function() {
+          var User = sequelize.define('User', {
+            username: Sequelize.STRING, age: Sequelize.INTEGER, dob: Sequelize.DATE, isAdmin: Sequelize.BOOLEAN
+          }, { timestamps: false, logging: false })
+
+          Helpers.async(function(done) {
+            User.sync({ force: true }).success(done)
+          })
+
+          Helpers.async(function(done) {
+            var user = User.build({ username: 'test.user', age: 99, dob: new Date(1973,4,6), isAdmin: true })
+            expect(JSON.stringify(user)).toEqual('{"username":"test.user","age":99,"dob":"1973-05-05T23:00:00.000Z","isAdmin":true,"id":null}')
+            done()
+          })
+        })
+        
+        it('returns a response that can be stringified and then parsed', function() {
+          var User = sequelize.define('User', {
+            username: Sequelize.STRING, age: Sequelize.INTEGER, dob: Sequelize.DATE, isAdmin: Sequelize.BOOLEAN
+          }, { timestamps: false, logging: false })
+
+          Helpers.async(function(done) {
+            User.sync({ force: true }).success(done)
+          })
+
+          Helpers.async(function(done) {
+            var user = User.build({ username: 'test.user', age: 99, dob: new Date(1973,4,6), isAdmin: true })
+            expect(JSON.parse(JSON.stringify(user))).toEqual({ username: 'test.user', age: 99, dob: "1973-05-05T23:00:00.000Z", isAdmin: true, id: null })
+            done()
+          })
+        })
+      })
     })
   })
 })
