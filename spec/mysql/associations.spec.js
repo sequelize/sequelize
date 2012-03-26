@@ -1,6 +1,6 @@
 var config    = require("../config/config")
   , Sequelize = require("../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
+  , sequelize = new Sequelize(config.database, config.username, config.password, { pool: config.pool, logging: false })
   , Helpers   = new (require("../config/helpers"))(sequelize)
 
 describe('Associations', function() {

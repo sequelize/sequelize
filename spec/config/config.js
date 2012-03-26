@@ -1,8 +1,9 @@
 module.exports = {
-  username: 'meg', //"root",
-  password: 'meg', //null,
-  database: 'test', //'sequelize_test',
+  username: "root",
+  password: null,
+  database: 'sequelize_test',
   host: '127.0.0.1',
+  pool: { maxConnections: 5, maxIdleTime: 30000},
   rand: function() {
     return parseInt(Math.random() * 999)
   }
