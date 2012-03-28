@@ -2,7 +2,6 @@ if(typeof require === 'function') {
   const buster = require("buster")
       , Sequelize = require("../../index")
       , config    = require("../config")
-      console.log(Sequelize)
 }
 
 buster.spec.expose()
@@ -12,7 +11,7 @@ describe('SQLite', function() {
     var self = this
 
     this.sequelize = new Sequelize(config.database, config.username, config.password, {
-      logging: false,
+      logging: true,
       dialect: 'sqlite'
     })
 
@@ -31,8 +30,26 @@ describe('SQLite', function() {
 
   describe('DAO', function() {
     describe('findAll', function() {
-      it("handles dates correctly", function() {
+      it("handles dates correctly", function(done) {
+        var self = this
 
+        this.User
+          .create({ username: 'user', createdAt: new Date(2011, 04, 04) })
+          .success(function(oldUser) {
+            self.User
+              .create({ username: 'new user' })
+              .success(function(newUser) {
+                console.log(oldUser.values)
+                console.log(newUser.values)
+
+                self.User.findAll({
+                  where: ['createdAt > ?', new Date(2012, 01, 01)]
+                }).success(function(users) {
+                  expect(users.length).toEqual(1)
+                  done()
+                })
+              })
+          })
       })
     })
   })
