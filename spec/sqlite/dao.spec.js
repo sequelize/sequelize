@@ -39,9 +39,6 @@ describe('SQLite', function() {
             self.User
               .create({ username: 'new user' })
               .success(function(newUser) {
-                console.log(oldUser.values)
-                console.log(newUser.values)
-
                 self.User.findAll({
                   where: ['createdAt > ?', new Date(2012, 01, 01)]
                 }).success(function(users) {
