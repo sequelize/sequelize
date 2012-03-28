@@ -19,12 +19,13 @@
   },
   "devDependencies": {
     "jasmine-node": "1.0.x",
-    "sqlite3": ">=2.0.0"
+    "sqlite3": ">=2.0.0",
+    "buster": "0.4.x"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
   "scripts": {
-      "test": "./node_modules/.bin/jasmine-node spec/"
+      "test": "./node_modules/.bin/jasmine-node spec-jasmine/"
   },
   "bin": {
     "sequelize": "bin/sequelize"
