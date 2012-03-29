@@ -9,6 +9,7 @@ notifications:
   email:
     - sascha@depold.com
 
+
 env:
   - DB=mysql
 
