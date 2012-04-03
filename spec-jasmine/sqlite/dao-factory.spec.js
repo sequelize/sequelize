@@ -23,7 +23,6 @@ describe('DAOFactory', function() {
           age: Sequelize.INTEGER,
           name: Sequelize.STRING,
           bio: Sequelize.TEXT,
-          is_admin : Sequelize.BOOLEAN
         })
         Helpers.sync()
       })
@@ -41,7 +40,7 @@ describe('DAOFactory', function() {
         it('creates a table entry', function() {
           Helpers.async(function(done) {
             User
-              .create({ age: 21, name: 'John Wayne', bio: 'noot noot'})
+              .create({ age: 21, name: 'John Wayne', bio: 'noot noot'} )
               .success(done)
               .error(function(err) { console.log(err) })
           })
