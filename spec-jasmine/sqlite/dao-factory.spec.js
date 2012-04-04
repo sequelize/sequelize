@@ -94,7 +94,7 @@ describe('DAOFactory', function() {
               name: 'John Doe',
               has_swag: true
             }, function(people) {
-              expect(people.has_swag).toBeTruthy()
+              expect(people[0].has_swag).toBeTruthy();
               done()
             })
           })
