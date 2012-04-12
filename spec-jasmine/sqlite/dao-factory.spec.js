@@ -22,8 +22,9 @@ describe('DAOFactory', function() {
         User = sequelize.define('User', {
           age: Sequelize.INTEGER,
           name: Sequelize.STRING,
-          bio: Sequelize.TEXT,
+          bio: Sequelize.TEXT
         })
+
         Helpers.sync()
       })
 
@@ -40,7 +41,7 @@ describe('DAOFactory', function() {
         it('creates a table entry', function() {
           Helpers.async(function(done) {
             User
-              .create({ age: 21, name: 'John Wayne', bio: 'noot noot'} )
+              .create({ age: 21, name: 'John Wayne', bio: 'noot noot' })
               .success(done)
               .error(function(err) { console.log(err) })
           })
@@ -78,7 +79,7 @@ describe('DAOFactory', function() {
           })
         })
 
-        it('should allow the creation of an object with a boolean as attribute', function() {
+        it('should allow the creation of an object with a boolean (true) as attribute', function() {
           var Person = sequelize.define('Person', {
             name: Sequelize.STRING,
             has_swag: Sequelize.BOOLEAN
@@ -89,12 +90,32 @@ describe('DAOFactory', function() {
           })
 
           Helpers.async(function(done) {
-            var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
             Helpers.Factories.DAO('Person', {
               name: 'John Doe',
               has_swag: true
             }, function(people) {
               expect(people[0].has_swag).toBeTruthy();
+              done()
+            })
+          })
+        })
+
+        it('should allow the creation of an object with a boolean (false) as attribute', function() {
+          var Person = sequelize.define('Person', {
+            name: Sequelize.STRING,
+            has_swag: Sequelize.BOOLEAN
+          })
+
+          Helpers.async(function(done) {
+            Person.sync({force: true}).success(done)
+          })
+
+          Helpers.async(function(done) {
+            Helpers.Factories.DAO('Person', {
+              name: 'John Doe',
+              has_swag: false
+            }, function(people) {
+              expect(people[0].has_swag).toBeFalsy();
               done()
             })
           })
