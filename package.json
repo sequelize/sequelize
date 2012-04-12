@@ -18,7 +18,7 @@
     "commander": "0.5.x"
   },
   "devDependencies": {
-    "jasmine-node": "1.0.x",
+    "jasmine-node": "1.0.22",
     "sqlite3": ">=2.0.0",
     "buster": "0.4.x"
   },
