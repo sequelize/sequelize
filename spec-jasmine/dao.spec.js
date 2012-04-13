@@ -498,23 +498,11 @@ describe('DAO', function() {
       })
 
       describe('toJSON', function() {
-        beforeEach(function() {
-          this.convertDateToUTC = function(date) {
-            return new Date(
-              date.getUTCFullYear(),
-              date.getUTCMonth(),
-              date.getUTCDate(),
-              date.getUTCHours(),
-              date.getUTCMinutes(),
-              date.getUTCSeconds());
-          }
-        })
-
         it('returns an object containing all values', function() {
           var self = this
 
           var User = sequelize.define('User', {
-            username: Sequelize.STRING, age: Sequelize.INTEGER, dob: Sequelize.DATE, isAdmin: Sequelize.BOOLEAN
+            username: Sequelize.STRING, age: Sequelize.INTEGER, isAdmin: Sequelize.BOOLEAN
           }, { timestamps: false, logging: false })
 
           Helpers.async(function(done) {
@@ -522,8 +510,8 @@ describe('DAO', function() {
           })
 
           Helpers.async(function(done) {
-            var user = User.build({ username: 'test.user', age: 99, dob: self.convertDateToUTC(new Date(1973,4,6)), isAdmin: true })
-            expect(user.toJSON()).toEqual({ username: 'test.user', age: 99, dob: self.convertDateToUTC(new Date(1973,4,6)), isAdmin: true, id: null })
+            var user = User.build({ username: 'test.user', age: 99, isAdmin: true })
+            expect(user.toJSON()).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
             done()
           })
         })
@@ -532,7 +520,7 @@ describe('DAO', function() {
           var self = this
 
           var User = sequelize.define('User', {
-            username: Sequelize.STRING, age: Sequelize.INTEGER, dob: Sequelize.DATE, isAdmin: Sequelize.BOOLEAN
+            username: Sequelize.STRING, age: Sequelize.INTEGER, isAdmin: Sequelize.BOOLEAN
           }, { timestamps: false, logging: false })
 
           Helpers.async(function(done) {
@@ -540,8 +528,8 @@ describe('DAO', function() {
           })
 
           Helpers.async(function(done) {
-            var user = User.build({ username: 'test.user', age: 99, dob: self.convertDateToUTC(new Date(1973,4,6)), isAdmin: true })
-            expect(JSON.stringify(user)).toEqual('{"username":"test.user","age":99,"dob":"1973-05-05T22:00:00.000Z","isAdmin":true,"id":null}')
+            var user = User.build({ username: 'test.user', age: 99, isAdmin: true })
+            expect(JSON.stringify(user)).toEqual('{"username":"test.user","age":99,"isAdmin":true,"id":null}')
             done()
           })
         })
@@ -549,7 +537,7 @@ describe('DAO', function() {
         it('returns a response that can be stringified and then parsed', function() {
           var self = this
           var User = sequelize.define('User', {
-            username: Sequelize.STRING, age: Sequelize.INTEGER, dob: Sequelize.DATE, isAdmin: Sequelize.BOOLEAN
+            username: Sequelize.STRING, age: Sequelize.INTEGER, isAdmin: Sequelize.BOOLEAN
           }, { timestamps: false, logging: false })
 
           Helpers.async(function(done) {
@@ -557,8 +545,8 @@ describe('DAO', function() {
           })
 
           Helpers.async(function(done) {
-            var user = User.build({ username: 'test.user', age: 99, dob: self.convertDateToUTC(new Date(1973,4,6)), isAdmin: true })
-            expect(JSON.parse(JSON.stringify(user))).toEqual({ username: 'test.user', age: 99, dob: "1973-05-05T22:00:00.000Z", isAdmin: true, id: null })
+            var user = User.build({ username: 'test.user', age: 99, isAdmin: true })
+            expect(JSON.parse(JSON.stringify(user))).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
             done()
           })
         })
