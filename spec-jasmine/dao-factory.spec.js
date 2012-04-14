@@ -1,15 +1,21 @@
 var config    = require("./config/config")
   , Sequelize = require("../index")
-  , dialects  = ['sqlite', 'mysql']
+  , dialects  = ['sqlite', 'mysql', 'postgres']
 
 describe('DAOFactory', function() {
   dialects.forEach(function(dialect) {
     describe('with dialect "' + dialect + '"', function() {
       var User      = null
-        , sequelize = new Sequelize(config.database, config.username, config.password, {
-          logging: false,
-          dialect: dialect
-        })
+        , sequelize = new Sequelize(
+            config[dialect].database,
+            config[dialect].username,
+            config[dialect].password,
+            {
+              logging: false,
+              dialect: dialect,
+              port: config[dialect].port
+            }
+          )
         , Helpers   = new (require("./config/helpers"))(sequelize)
 
       var setup = function(options) {
@@ -109,7 +115,8 @@ describe('DAOFactory', function() {
 
                 checkMatchForDialects(err.message, {
                   sqlite: /.*SQLITE_CONSTRAINT.*/,
-                  mysql: /.*Duplicate\ entry.*/
+                  mysql: /.*Duplicate\ entry.*/,
+                  postgres: /.*duplicate\ key\ value.*/
                 })
 
                 done()
@@ -130,7 +137,8 @@ describe('DAOFactory', function() {
 
               checkMatchForDialects(err.message, {
                 sqlite: /.*SQLITE_CONSTRAINT.*/,
-                mysql: "Column 'smth' cannot be null"
+                mysql: "Column 'smth' cannot be null",
+                postgres: /.*column "smth" violates not-null.*/
               })
 
               User.create({username: 'foo', smth: 'foo'}).success(function() {
@@ -139,7 +147,8 @@ describe('DAOFactory', function() {
 
                   checkMatchForDialects(err.message, {
                     sqlite: /.*SQLITE_CONSTRAINT.*/,
-                    mysql: "Duplicate entry 'foo' for key 'username'"
+                    mysql: "Duplicate entry 'foo' for key 'username'",
+                    postgres: /.*duplicate key value violates unique constraint.*/
                   })
 
                   done()

@@ -1,6 +1,6 @@
 var config    = require("../config/config")
   , Sequelize = require("../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
+  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { logging: false })
   , Helpers   = new (require("../config/helpers"))(sequelize)
 
 describe('HasMany', function() {
@@ -10,7 +10,7 @@ describe('HasMany', function() {
     , Helpers   = null
 
   var setup = function() {
-    sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
+    sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { logging: false })
     Helpers   = new (require("../config/helpers"))(sequelize)
 
     Helpers.dropAllTables()

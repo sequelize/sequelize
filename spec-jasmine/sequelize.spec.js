@@ -9,7 +9,7 @@ describe('Sequelize', function() {
 
   var setup = function(options) {
     options   = options || {logging: false}
-    sequelize = new Sequelize(config.database, config.username, config.password, options)
+    sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, options)
     Helpers   = new (require("./config/helpers"))(sequelize)
 
     return options

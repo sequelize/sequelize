@@ -1,6 +1,6 @@
 var config    = require("../config/config")
   , Sequelize = require("../../index")
-  , sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
+  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { logging: false })
   , Helpers   = new (require("../config/helpers"))(sequelize)
 
 describe('ConnectorManager', function() {

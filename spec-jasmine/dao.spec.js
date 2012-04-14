@@ -1,15 +1,21 @@
 var config    = require("./config/config")
   , Sequelize = require("../index")
-  , dialects  = ['sqlite', 'mysql']
+  , dialects  = ['sqlite', 'mysql', 'postgres']
 
 describe('DAO', function() {
   dialects.forEach(function(dialect) {
     describe('with dialect "' + dialect + '"', function() {
       var User      = null
-        , sequelize = new Sequelize(config.database, config.username, config.password, {
-          logging: false,
-          dialect: dialect
-        })
+        , sequelize = new Sequelize(
+            config[dialect].database,
+            config[dialect].username,
+            config[dialect].password,
+            {
+              logging: false,
+              dialect: dialect,
+              port: config[dialect].port
+            }
+          )
         , Helpers   = new (require("./config/helpers"))(sequelize)
 
       var setup = function() {
@@ -471,7 +477,7 @@ describe('DAO', function() {
             }).success(function(user) {
               var emitter = user.updateAttributes({name: 'foobar'})
               emitter.success(function() {
-                expect(emitter.query.sql).toMatch(/WHERE `identifier`..identifier./)
+                expect(emitter.query.sql).toMatch(/WHERE `?identifier`?..identifier./)
                 done()
               })
             })
