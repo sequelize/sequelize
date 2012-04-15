@@ -364,9 +364,7 @@ describe('DAO', function() {
             setTimeout(function() {
               user      = User.build({ username: 'user' })
               updatedAt = user.updatedAt
-
               expect(updatedAt.getTime()).toBeGreaterThan(now)
-
               done()
             }, 10)
           })
@@ -477,7 +475,7 @@ describe('DAO', function() {
             }).success(function(user) {
               var emitter = user.updateAttributes({name: 'foobar'})
               emitter.success(function() {
-                expect(emitter.query.sql).toMatch(/WHERE `?identifier`?..identifier./)
+                expect(emitter.query.sql).toMatch(/WHERE [`"]identifier[`"]..identifier./)
                 done()
               })
             })
