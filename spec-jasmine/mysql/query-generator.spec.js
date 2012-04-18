@@ -1,9 +1,9 @@
 var config         = require("../config/config")
   , Sequelize      = require("../../index")
-  , sequelize      = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { logging: false })
+  , sequelize      = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { pool: config.mysql.pool, logging: false })
   , Helpers        = new (require("../config/helpers"))(sequelize)
   , QueryGenerator = require("../../lib/dialects/mysql/query-generator")
-  , util          = require("util")
+  , util           = require("util")
 
 describe('QueryGenerator', function() {
   beforeEach(function() { Helpers.sync() })

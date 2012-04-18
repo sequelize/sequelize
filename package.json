@@ -15,7 +15,8 @@
     "lingo": "0.0.x",
     "validator": "0.3.x",
     "moment": "1.1.x",
-    "commander": "0.5.x"
+    "commander": "0.5.x",
+    "generic-pool": "1.0.9"
   },
   "devDependencies": {
     "jasmine-node": "1.0.22",
