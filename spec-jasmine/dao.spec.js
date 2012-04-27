@@ -20,7 +20,10 @@ describe('DAO', function() {
 
       var setup = function() {
         Helpers.async(function(done) {
-          User = sequelize.define('User', { username: Sequelize.STRING })
+          User = sequelize.define('User', {
+            username: Sequelize.STRING,
+            birthDate: Sequelize.DATE
+          })
           User.sync({ force: true }).success(done)
         })
       }
@@ -332,7 +335,10 @@ describe('DAO', function() {
       describe('save', function() {
         it("stores an entry in the database", function() {
           var username = 'user'
-            , user     = User.build({ username: username })
+            , user     = User.build({
+              username: username,
+              birthDate: new Date(1984, 8, 23)
+            })
 
           Helpers.async(function(done) {
             User.all().success(function(users) {
@@ -349,6 +355,8 @@ describe('DAO', function() {
             User.all().success(function(users) {
               expect(users.length).toEqual(1)
               expect(users[0].username).toEqual(username)
+              expect(users[0].birthDate instanceof Date).toBe(true)
+              expect(users[0].birthDate.getTime()).toEqual(new Date(1984, 8, 23).getTime())
               done()
             })
           })
