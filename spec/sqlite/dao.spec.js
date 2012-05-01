@@ -11,7 +11,7 @@ describe('SQLite', function() {
     var self = this
 
     this.sequelize = new Sequelize(config.database, config.username, config.password, {
-      logging: true,
+      logging: false,
       dialect: 'sqlite'
     })
 
