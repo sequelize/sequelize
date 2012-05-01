@@ -7,6 +7,7 @@
 - [FEATURE] postgresql support. (thanks to swoodtke)
 - [FEATURE] connection-pooling for mysql. (thanks to megshark)
 - [FEATURE] added possibility to define NOW as default value for date data-types. Use Sequelize.NOW as defaultValue
+- [BUG] Fixed date handling in sqlite (thanks to iizukanao)
 
 # v1.3.7 #
 - [BUG] fixed issue where multiple belongsTo or hasOne associations to the same table overwrite each other
