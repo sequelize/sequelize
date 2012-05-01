@@ -23,6 +23,11 @@ You can find the documentation and announcements of updates on the [project's we
 If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
 Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
 
+- [Documentation](http://www.sequelizejs.com)
+- [Twitter](http://twitter.com/sdepold)
+- [IRC](irc://irc.freenode.net/sequelizejs)
+- [XING](https://www.xing.com/net/priec1b5cx/sequelize)
+
 ## Collaboration ##
 
 I'm glad to get pull request if any functionality is missing or something is buggy. But _please_ ... run the tests before you send me the pull request.
