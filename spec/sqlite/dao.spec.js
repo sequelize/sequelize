@@ -1,5 +1,5 @@
 if(typeof require === 'function') {
-  const buster = require("buster")
+  const buster    = require("buster")
       , Sequelize = require("../../index")
       , config    = require("../config")
 }
