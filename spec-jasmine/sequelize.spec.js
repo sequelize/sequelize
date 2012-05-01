@@ -8,7 +8,7 @@ describe('Sequelize', function() {
 
 
   var setup = function(options) {
-    options   = options || {logging: false}
+    options   = options || {utcoffset: '+0:00', logging: false}
     sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, options)
     Helpers   = new (require("./config/helpers"))(sequelize)
 
@@ -20,10 +20,11 @@ describe('Sequelize', function() {
 
   describe('constructor', function() {
     it('should pass the global options correctly', function() {
-      setup({ logging: false, define: { underscored:true } })
+      setup({ utcoffset: '+1:00', logging: false, define: { underscored:true } })
 
       var DAO = sequelize.define('dao', {name: Sequelize.STRING})
       expect(DAO.options.underscored).toBeTruthy()
+      expect(sequelize.config.utcoffset).toEqual('+1:00')
     })
 
     it('should correctly set the host and the port', function() {
