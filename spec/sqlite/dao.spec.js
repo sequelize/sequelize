@@ -6,7 +6,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe('SQLite', function() {
+describe('DAO@sqlite', function() {
   before(function(done) {
     var self = this
 
@@ -28,26 +28,24 @@ describe('SQLite', function() {
       .error(function(err) { console.log(err) })
   })
 
-  describe('DAO', function() {
-    describe('findAll', function() {
-      it("handles dates correctly", function(done) {
-        var self = this
+  describe('findAll', function() {
+    it("handles dates correctly", function(done) {
+      var self = this
 
-        this.User
-          .create({ username: 'user', createdAt: new Date(2011, 04, 04) })
-          .success(function(oldUser) {
-            self.User
-              .create({ username: 'new user' })
-              .success(function(newUser) {
-                self.User.findAll({
-                  where: ['createdAt > ?', new Date(2012, 01, 01)]
-                }).success(function(users) {
-                  expect(users.length).toEqual(1)
-                  done()
-                })
+      this.User
+        .create({ username: 'user', createdAt: new Date(2011, 04, 04) })
+        .success(function(oldUser) {
+          self.User
+            .create({ username: 'new user' })
+            .success(function(newUser) {
+              self.User.findAll({
+                where: ['createdAt > ?', new Date(2012, 01, 01)]
+              }).success(function(users) {
+                expect(users.length).toEqual(1)
+                done()
               })
-          })
-      })
+            })
+        })
     })
   })
 })
