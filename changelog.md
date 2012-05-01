@@ -4,6 +4,7 @@
 - [FEATURE] objects are now compatible JSON.stringify. (thanks to grayt0r)
 - [FEATURE] When instantiating the sequelize object, you can now pass a function to logging. This allows you to customize the logging behavior. Default is now: console.log (thanks to kenperkins)
 - [FEATURE] postgresql support. (thanks to swoodtke)
+- [FEATURE] connection-pooling for mysql. (thanks to megshark)
 
 # v1.3.7 #
 - [BUG] fixed issue where multiple belongsTo or hasOne associations to the same table overwrite each other
