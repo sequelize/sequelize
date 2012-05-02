@@ -2,13 +2,16 @@ var config         = require("./config/config")
   , Sequelize      = require("../index")
   , QueryInterface = require("../lib/query-interface")
 
+// avoid warnings when we bind 'exit' from lots of these specs
+process.setMaxListeners( 50 );
+
 describe('Sequelize', function() {
   var sequelize = null
     , Helpers   = null
 
 
   var setup = function(options) {
-    options   = options || {utcoffset: '+0:00', logging: false}
+    options   = options || { port: config.mysql.port, utcoffset: '+0:00', logging: false }
     sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, options)
     Helpers   = new (require("./config/helpers"))(sequelize)
 
@@ -28,7 +31,7 @@ describe('Sequelize', function() {
     })
 
     it('should correctly set the host and the port', function() {
-      var options = setup({ host: '127.0.0.1', port: 1234 })
+      var options = setup({ host: '127.0.0.1', port: 1234, utcoffset: '+0:00' })
 
       expect(sequelize.config.host).toEqual(options.host)
       expect(sequelize.config.port).toEqual(options.port)

@@ -6,7 +6,7 @@ module.exports = {
   //make maxIdleTime small so that tests exit promptly
   mysql: {
     username: "root",
-    password: null,
+    password: process.env[ "SEQUELIZE_MYSQL_PASSWORD" ],
     database: 'sequelize_test',
     host: '127.0.0.1',
     port: 3306,
@@ -19,6 +19,7 @@ module.exports = {
   postgres: {
     database: 'sequelize_test',
     username: "postgres",
+    password: process.env[ "SEQUELIZE_POSTGRES_PASSWORD" ],
     port: 5432
   }
 }

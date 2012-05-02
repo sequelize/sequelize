@@ -42,5 +42,7 @@ Helpers.prototype.async = function(fct) {
   runs(function() {
     fct(function() { return done = true })
   })
-  waitsFor(function(){ return done })
+  waitsFor(function(){
+    return done
+  })
 }
