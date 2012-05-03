@@ -333,6 +333,51 @@ describe('DAO', function() {
       })
 
       describe('save', function() {
+        it('only updates fields in passed array', function() {
+          var user   = null
+            , user2  = null
+            , userId = null
+            , date   = new Date(1990, 01, 01)
+
+          Helpers.async(function(done) {
+            User.create({
+              username: 'foo',
+              birthDate: new Date()
+            }).success(function(_user) {
+              user = _user
+              done()
+            }).error(function(err) {
+              console.log(err)
+            })
+          })
+
+          Helpers.async(function(done) {
+            user.username = 'fizz'
+            user.birthDate = date
+
+            done()
+          })
+
+          Helpers.async(function(done) {
+            user.save(['username']).success(function(){
+              // re-select user
+              User.find(user.id).success(function(_user2) {
+                user2 = _user2
+                done()
+              })
+            })
+          })
+
+          Helpers.async(function(done) {
+            // name should have changed
+            expect(user2.username).toEqual('fizz')
+            // bio should be unchanged
+            expect(user2.birthDate).toNotEqual(date)
+
+            done()
+          })
+        })
+
         it("stores an entry in the database", function() {
           var username = 'user'
             , user     = User.build({
