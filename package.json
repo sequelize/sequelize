@@ -22,7 +22,7 @@
     "jasmine-node": "1.0.22",
     "sqlite3": ">=2.0.0",
     "pg": "0.6.x",
-    "buster": "0.5.x"
+    "buster": "0.5.1"
   },
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
