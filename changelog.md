@@ -1,3 +1,6 @@
+# v1.4.1 #
+- [FEATURE] added selective saving of instances (thanks to kioopi)
+
 # v1.4.0 #
 - [BUG] fixed booleans in sqlite (thanks to alexstrat)
 - [BUG] fixed forced sync of many-to-many associations (thanks to SirUli)
