@@ -1,4 +1,5 @@
 # v1.4.1 #
+- [DEPRECATION] Added deprecation warning for node < v0.6.
 - [FEATURE] added selective saving of instances (thanks to kioopi)
 
 # v1.4.0 #
