@@ -4,6 +4,7 @@ const path      = require("path")
     , fs        = require("fs")
     , program   = require("commander")
     , Sequelize = require(__dirname + '/../index')
+    , moment    = require("moment")
     , _         = Sequelize.Utils._
 
 var configPath       = process.cwd() + '/config'
@@ -60,6 +61,7 @@ program
   .option('-m, --migrate', 'Runs undone migrations')
   .option('-u, --undo', 'Redo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
+  .option('-c, --create-migration [migration-name]', 'Create a new migration skeleton file.')
   .parse(process.argv)
 
 if(program.migrate) {
@@ -110,6 +112,26 @@ if(program.migrate) {
   }
 
   createMigrationsFolder(program.force)
+} else if(program.createMigration) {
+  createMigrationsFolder()
+
+  var migrationName = [
+    moment().format('YYYYMMDDHHmmss'),
+    (typeof program.createMigration == 'string') ? program.createMigration : 'unnamed-migration'
+  ].join('-') + '.js'
+
+  var migrationContent = [
+    "module.exports = {",
+    "  up: function(migration, DataTypes) {",
+    "    // add altering commands here",
+    "  },",
+    "  down: function(migration) {",
+    "    // add reverting commands here",
+    "  }",
+    "}"
+  ].join('\n')
+
+  fs.writeFileSync(migrationsPath + '/' + migrationName, migrationContent)
 } else {
   console.log('Please define any params!')
 }

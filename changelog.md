@@ -1,6 +1,7 @@
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
 - [FEATURE] added selective saving of instances (thanks to kioopi)
+- [FEATURE] added command to binary for creating a migration skeleton with current timestamp
 
 # v1.4.0 #
 - [BUG] fixed booleans in sqlite (thanks to alexstrat)
