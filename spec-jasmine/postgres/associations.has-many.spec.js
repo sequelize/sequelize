@@ -2,6 +2,7 @@ var config    = require("../config/config")
   , Sequelize = require("../../index")
   , sequelize = new Sequelize(config.postgres.database, config.postgres.username, config.postgres.password, {
       logging: false,
+      utcoffset: '+0:00',
       port: config.postgres.port,
       dialect: 'postgres'
     })

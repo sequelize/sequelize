@@ -1,6 +1,6 @@
 var config    = require("./config/config")
   , Sequelize = require("../index")
-  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { logging: false })
+  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { port: config.mysql.port, utcoffset: '+0:00', logging: false })
   , Helpers   = new (require("./config/helpers"))(sequelize)
   , Migrator  = require("../lib/migrator")
   , _         = Sequelize.Utils._

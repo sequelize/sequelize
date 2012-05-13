@@ -14,7 +14,8 @@ describe('DAOFactory', function() {
         sequelize = new Sequelize(config.database, config.username, config.password, {
           logging: false,
           dialect: 'sqlite',
-          storage: storage
+          storage: storage,
+          utcoffset: '+0:00'
         })
 
         Helpers = new (require("../config/helpers"))(sequelize)

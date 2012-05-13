@@ -13,7 +13,8 @@ describe('DAOFactory', function() {
             {
               logging: false,
               dialect: dialect,
-              port: config[dialect].port
+              port: config[dialect].port,
+              utcoffset: '+0:00'
             }
           )
         , Helpers   = new (require("./config/helpers"))(sequelize)
@@ -662,7 +663,7 @@ describe('DAOFactory', function() {
 
         it("fails with incorrect database credentials", function() {
           Helpers.async(function(done) {
-            var sequelize2 = new Sequelize('foo', 'bar', null, { logging: false })
+            var sequelize2 = new Sequelize('foo', 'bar', null, { utcoffset: '+0:00', logging: false })
               , User2      = sequelize2.define('User', { name: Sequelize.STRING, bio: Sequelize.TEXT })
 
             User2.sync().error(function(err) {
