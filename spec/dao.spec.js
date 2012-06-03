@@ -1,7 +1,7 @@
 if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
-      , config    = require("./config")
+      , config    = require("./config/config")
       , dialects  = ['sqlite', 'mysql', 'postgres']
 }
 
@@ -47,6 +47,16 @@ dialects.forEach(function(dialect) {
 
           var user = this.User.build({ username: 'a user'})
           expect(+user.touchedAt).toBe(5000)
+        })
+      })
+    })
+
+    describe('complete', function() {
+      it("gets triggered if an error occurs", function(done) {
+        this.User.find({ where: "asdasdasd" }).complete(function(err, result) {
+          expect(err).toBeDefined()
+          expect(err.message).toBeDefined()
+          done()
         })
       })
     })

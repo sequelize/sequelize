@@ -1,7 +1,7 @@
 if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../../index")
-      , config    = require("../config")
+      , config    = require("../config/config")
 }
 
 buster.spec.expose()
