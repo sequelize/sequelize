@@ -27,7 +27,9 @@
   "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
   "main": "index",
   "scripts": {
-      "test": "./node_modules/.bin/jasmine-node spec-jasmine/"
+    "test": "npm run test-jasmine && npm run test-buster",
+    "test-jasmine": "./node_modules/.bin/jasmine-node spec-jasmine/",
+    "test-buster": "./node_modules/.bin/buster-test"
   },
   "bin": {
     "sequelize": "bin/sequelize"
