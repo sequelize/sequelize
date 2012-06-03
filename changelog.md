@@ -5,6 +5,7 @@
 - [FEATURE] added `complete` function for each finder method (thanks to sstoiana)
 - [BUG] fixed quotation for sqlite statements (thanks to vlmonk)
 - [BUG] fixed timestamp parsing in migratios (thanks to grn)
+- [FEATURE] added consistent logging behaviour to postgres (thanks to reacuna)
 
 # v1.4.0 #
 - [BUG] fixed booleans in sqlite (thanks to alexstrat)
