@@ -46,6 +46,9 @@ describe('DAO@sqlite', function() {
               })
             })
         })
+        .error(function(err) {
+          console.log(err)
+        })
     })
   })
 })
