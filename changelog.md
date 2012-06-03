@@ -2,7 +2,9 @@
 - [DEPRECATION] Added deprecation warning for node < v0.6.
 - [FEATURE] added selective saving of instances (thanks to kioopi)
 - [FEATURE] added command to binary for creating a migration skeleton with current timestamp
-- [FEATURE] added `complete` function for each finder method
+- [FEATURE] added `complete` function for each finder method (thanks to sstoiana)
+- [BUG] fixed quotation for sqlite statements (thanks to vlmonk)
+- [BUG] fixed timestamp parsing in migratios (thanks to grn)
 
 # v1.4.0 #
 - [BUG] fixed booleans in sqlite (thanks to alexstrat)
