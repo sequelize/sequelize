@@ -59,6 +59,14 @@ dialects.forEach(function(dialect) {
           done()
         })
       })
+
+      it("gets triggered if everything was ok", function(done) {
+        this.User.count().complete(function(err, result) {
+          expect(err).toBeNull()
+          expect(result).toBeDefined()
+          done()
+        })
+      })
     })
   })
 })
