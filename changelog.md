@@ -10,7 +10,7 @@
 # v1.4.0 #
 - [BUG] fixed booleans in sqlite (thanks to alexstrat)
 - [BUG] fixed forced sync of many-to-many associations (thanks to SirUli)
-- [FEATURE] objects are now compatible JSON.stringify. (thanks to grayt0r)
+- [FEATURE] objects are now compatible to JSON.stringify. (thanks to grayt0r)
 - [FEATURE] When instantiating the sequelize object, you can now pass a function to logging. This allows you to customize the logging behavior. Default is now: console.log (thanks to kenperkins)
 - [BUG] The default logging is still console.log but is wrapped after initialization as it crashes node < 0.6.x.
 - [FEATURE] postgresql support. (thanks to swoodtke)
