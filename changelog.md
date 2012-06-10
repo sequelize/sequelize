@@ -1,3 +1,6 @@
+# v1.5.0 #
+- [FEATURE] added possibility to set protocol and to remove port from postgresql connection uri (thanks to danielschwartz)
+
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
 - [FEATURE] added selective saving of instances (thanks to kioopi)
