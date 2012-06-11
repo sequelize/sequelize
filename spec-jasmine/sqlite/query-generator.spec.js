@@ -16,6 +16,12 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', { name: "'bar'" }],
         expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar''');"
+      }, {
+        arguments: ['myTable', { name: "bar", value: null }],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
+      }, {
+        arguments: ['myTable', { name: "bar", value: undefined }],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
       }
     ],
 
@@ -26,6 +32,12 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', { name: "'bar'" }, { id: 2 }],
         expectation: "UPDATE `myTable` SET `name`='''bar''' WHERE `id`=2"
+      }, {
+        arguments: ['myTable', { name: 'bar', value: null }, { id: 2 }],
+        expectation: "UPDATE `myTable` SET `name`='bar',`value`=NULL WHERE `id`=2"
+      }, {
+        arguments: ['myTable', { name: 'bar', value: undefined }, { id: 2 }],
+        expectation: "UPDATE `myTable` SET `name`='bar',`value`=NULL WHERE `id`=2"
       }
     ]
   };
