@@ -19,7 +19,7 @@
     "generic-pool": "1.0.9"
   },
   "devDependencies": {
-    "jasmine-node": "1.0.17",
+    "jasmine-node": "1.0.22",
     "sqlite3": ">=2.0.0",
     "pg": "0.6.x",
     "buster": "0.5.1"
