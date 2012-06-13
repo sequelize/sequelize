@@ -16,6 +16,18 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', { name: "'bar'" }],
         expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar''');"
+      }, {
+        arguments: ['myTable', { name: "bar", value: null }],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
+      }, {
+        arguments: ['myTable', { name: "bar", value: undefined }],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
+      }, {
+        arguments: ['myTable', { name: "foo", value: true }],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1);"
+      }, {
+        arguments: ['myTable', { name: "foo", value: false }],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',0);"
       }
     ],
 
@@ -26,6 +38,18 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', { name: "'bar'" }, { id: 2 }],
         expectation: "UPDATE `myTable` SET `name`='''bar''' WHERE `id`=2"
+      }, {
+        arguments: ['myTable', { name: 'bar', value: null }, { id: 2 }],
+        expectation: "UPDATE `myTable` SET `name`='bar',`value`=NULL WHERE `id`=2"
+      }, {
+        arguments: ['myTable', { name: 'bar', value: undefined }, { id: 2 }],
+        expectation: "UPDATE `myTable` SET `name`='bar',`value`=NULL WHERE `id`=2"
+      }, {
+        arguments: ['myTable', { flag: true }, { id: 2 }],
+        expectation: "UPDATE `myTable` SET `flag`=1 WHERE `id`=2"
+      }, {
+        arguments: ['myTable', { flag: false }, { id: 2 }],
+        expectation: "UPDATE `myTable` SET `flag`=0 WHERE `id`=2"
       }
     ]
   };
