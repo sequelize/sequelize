@@ -84,4 +84,32 @@ describe('Utils', function() {
       })
     })
   })
+  
+  describe('isHash', function() {
+    it('doesn\'t match arrays', function() {
+      expect(Utils.isHash([])).toBeFalsy();
+    });
+    it('doesn\'t match null', function() {
+      expect(Utils.isHash(null)).toBeFalsy();
+    });
+    it('matches plain objects', function() {
+    	var values = {
+    	  'name': {
+    	    'first': 'Foo',
+    	    'last': 'Bar'
+    	  }
+    	};
+      expect(Utils.isHash(values)).toBeTruthy();
+    });
+    it('matches plain objects with length property/key', function() {
+      var values = {
+    	  'name': {
+    	    'first': 'Foo',
+    	    'last': 'Bar'
+    	  },
+    	  'length': 1
+    	};
+    	expect(Utils.isHash(values)).toBeTruthy();
+    });
+  });
 })
