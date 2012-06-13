@@ -107,8 +107,8 @@ describe('HasMany', function() {
         done()
       })
     })
-    
-	var parent
+
+    var parent
     Helpers.async(function(done) {
       Comment.create({ content: 'parentComment' }).success(function(p) {
         parent = p
