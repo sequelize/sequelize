@@ -1,5 +1,7 @@
 # v1.5.0 #
 - [FEATURE] added possibility to set protocol and to remove port from postgresql connection uri (thanks to danielschwartz)
+- [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen)
+- [BUG] fixed booleans for sqlite (thanks to vlmonk)
 
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
