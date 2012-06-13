@@ -93,6 +93,67 @@ describe('HasMany', function() {
       })
     })
 
+  it("should allow selfAssociation to be single linked (only one DAO is created)", function() {
+    var oldLength = sequelize.daoFactoryManager.daos.length;
+    
+    var Comment = sequelize.define('Comment', { content: Sequelize.STRING })
+    Comment.belongsTo(Comment, {as: "Parent"});
+    Comment.hasMany(Comment, {as: 'Children', foreignKey: "ParentId", isManyMany: false})
+    
+    expect(sequelize.daoFactoryManager.daos.length).toEqual(oldLength + 1)
+    
+    Helpers.async(function(done) {
+      Comment.sync({force: true}).success(function() {
+        done()
+      })
+    })
+    
+    Helpers.async(function(done) {
+      Comment.create({ content: 'parentComment' }).success(function(p) {
+        parent = p
+        done()
+      })
+    })
+      
+    Helpers.async(function(done) {
+      Comment.create({ content: 'child1' }).success(function(child1) {
+      Comment.find({where: { content: 'parentComment' }}).success(function(parent) {
+        child1.setParent(parent).success(function() {
+            done()
+          })
+        })
+      })
+    })
+    
+    Helpers.async(function(done) {
+      Comment.create({ content: 'child2' }).success(function(child2) {
+        child2.setParent(parent).success(function() {
+          done()
+        })
+      })
+    })
+    Helpers.async(function(done) {
+      Comment.find({where: { content: 'parentComment' }}).success(function(parent) {
+          parent.getChildren().success(function(children) {
+            expect(children.length).toEqual(2)
+          done()
+          })
+        })
+      })
+    })
+  
+    it("should still use many to many for  selfAssociation by default (two DAOs are created)", function() {
+      Helpers.async(function(done) {
+        var oldLength = sequelize.daoFactoryManager.daos.length;
+    
+        var Comment = sequelize.define('Comment', { content: Sequelize.STRING })
+        Comment.belongsTo(Comment, {as: "Parent"})
+        Comment.hasMany(Comment, {as: 'Children'})
+    
+        expect(sequelize.daoFactoryManager.daos.length).toEqual(oldLength + 2)
+        done();
+      })
+    })
   })
 
   describe('bi-directional', function() {

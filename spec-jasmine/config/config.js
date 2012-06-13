@@ -19,6 +19,7 @@ module.exports = {
   postgres: {
     database: 'sequelize_test',
     username: "postgres",
+	password: 'abc',
     port: 5432
   }
 }
