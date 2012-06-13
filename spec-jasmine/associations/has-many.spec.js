@@ -108,6 +108,7 @@ describe('HasMany', function() {
       })
     })
     
+	var parent
     Helpers.async(function(done) {
       Comment.create({ content: 'parentComment' }).success(function(p) {
         parent = p
@@ -117,11 +118,9 @@ describe('HasMany', function() {
       
     Helpers.async(function(done) {
       Comment.create({ content: 'child1' }).success(function(child1) {
-      Comment.find({where: { content: 'parentComment' }}).success(function(parent) {
         child1.setParent(parent).success(function() {
             done()
           })
-        })
       })
     })
     
