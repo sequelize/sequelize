@@ -28,6 +28,21 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', { name: "foo", value: false }],
         expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',0);"
+      }, {
+        arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);"
+      }, {
+        arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);",
+        context: {options: {omitNull: false}}
+      }, {
+        arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
+        context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
+        context: {options: {omitNull: true}}
       }
     ],
 
@@ -50,6 +65,17 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', { flag: false }, { id: 2 }],
         expectation: "UPDATE `myTable` SET `flag`=0 WHERE `id`=2"
+      }, {
+        arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=2,`nullValue`=NULL WHERE `name`='foo'"
+      }, {
+        arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=2,`nullValue`=NULL WHERE `name`='foo'",
+        context: {options: {omitNull: false}}
+      }, {
+        arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'",
+        context: {options: {omitNull: true}}
       }
     ]
   };
@@ -59,7 +85,10 @@ describe('QueryGenerator', function() {
       tests.forEach(function(test) {
         var title = test.title || 'correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
         it(title, function() {
-          var conditions = QueryGenerator[suiteTitle].apply(null, test.arguments)
+          // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+          var context = test.context || {options: {}};
+          
+          var conditions = QueryGenerator[suiteTitle].apply(context, test.arguments)
           expect(conditions).toEqual(test.expectation)
         })
       })

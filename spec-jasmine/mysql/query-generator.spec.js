@@ -95,11 +95,15 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
         expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);",
-        context: {options: {ignoreNull: false}}
+        context: {options: {omitNull: false}}
       }, {
         arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
         expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
-        context: {options: {ignoreNull: true}}
+        context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
+        context: {options: {omitNull: true}}
       }
     ],
 
@@ -122,11 +126,11 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
         expectation: "UPDATE `myTable` SET `bar`=2,`nullValue`=NULL WHERE `name`='foo'",
-        context: {options: {ignoreNull: false}}
+        context: {options: {omitNull: false}}
       }, {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
         expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'",
-        context: {options: {ignoreNull: true}}
+        context: {options: {omitNull: true}}
       }
     ],
 
