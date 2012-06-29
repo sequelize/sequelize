@@ -1,7 +1,6 @@
 before_script:
   - "mysql -e 'create database sequelize_test;'"
   - "psql -c 'create database sequelize_test;' -U postgres"
-  - "npm install"
 
 script:
   - "node_modules/.bin/jasmine-node spec-jasmine"
