@@ -425,8 +425,8 @@ describe('DAO', function() {
           Helpers.async(function(done) {
             setTimeout(function() {
               user.save().success(function() {
-					  expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
-					  done()
+                expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
+                done()
               })
             }, 10)
           })
