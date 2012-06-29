@@ -3,6 +3,7 @@
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen)
 - [BUG] fixed booleans for sqlite (thanks to vlmonk)
 - [FEATURE] added possibility to not use a junction table for many-to-many associations on the same table (thanks to innofluence)
+- [FEATURE] results of the `import` method is now cached (thanks to janmeier)
 
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
