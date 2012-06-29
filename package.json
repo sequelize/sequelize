@@ -25,14 +25,13 @@
     "validator": "0.3.x",
     "moment": "1.1.x",
     "commander": "0.5.x",
-    "generic-pool": "1.0.9",
-    "buster": "~0.6.0"
+    "generic-pool": "1.0.9"
   },
   "devDependencies": {
     "jasmine-node": "1.0.22",
     "sqlite3": ">=2.0.0",
     "pg": "0.6.x",
-    "buster": "0.5.1"
+    "buster": "~0.6.0"
   },
   "keywords": [
     "mysql",
