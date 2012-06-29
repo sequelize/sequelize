@@ -4,9 +4,18 @@
   "version": "1.4.1",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
-    { "name": "Sascha Depold", "email": "sascha@depold.com" },
-    { "name": "Meg Sharkey", "email": "meg@metamarkets.com" },
-    { "name": "Chase Geigle", "email": "sky@skytrife.com" }
+    {
+      "name": "Sascha Depold",
+      "email": "sascha@depold.com"
+    },
+    {
+      "name": "Meg Sharkey",
+      "email": "meg@metamarkets.com"
+    },
+    {
+      "name": "Chase Geigle",
+      "email": "sky@skytrife.com"
+    }
   ],
   "dependencies": {
     "mysql": "0.9.x",
@@ -16,7 +25,8 @@
     "validator": "0.3.x",
     "moment": "1.1.x",
     "commander": "0.5.x",
-    "generic-pool": "1.0.9"
+    "generic-pool": "1.0.9",
+    "buster": "~0.6.0"
   },
   "devDependencies": {
     "jasmine-node": "1.0.22",
@@ -24,7 +34,12 @@
     "pg": "0.6.x",
     "buster": "0.5.1"
   },
-  "keywords": ["mysql", "orm", "nodejs", "object relational mapper"],
+  "keywords": [
+    "mysql",
+    "orm",
+    "nodejs",
+    "object relational mapper"
+  ],
   "main": "index",
   "scripts": {
     "test": "npm run test-jasmine && npm run test-buster",
@@ -39,4 +54,3 @@
   },
   "license": "MIT"
 }
-
