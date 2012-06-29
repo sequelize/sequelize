@@ -3,8 +3,7 @@ before_script:
   - "psql -c 'create database sequelize_test;' -U postgres"
 
 script:
-  - "node_modules/.bin/jasmine-node spec-jasmine"
-  - "node_modules/.bin/buster test"
+  - "npm test"
 
 notifications:
   email:
