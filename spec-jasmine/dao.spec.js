@@ -411,7 +411,7 @@ describe('DAO', function() {
           var now       = Date.now()
             , user      = null
             , updatedAt = null
-
+		
           Helpers.async(function(done) {
             // timeout is needed, in order to check the update of the timestamp
             setTimeout(function() {
@@ -425,8 +425,8 @@ describe('DAO', function() {
           Helpers.async(function(done) {
             setTimeout(function() {
               user.save().success(function() {
-                expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
-                done()
+					  expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
+					  done()
               })
             }, 10)
           })
