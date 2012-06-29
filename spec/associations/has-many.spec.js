@@ -27,10 +27,6 @@ describe('Testing \'has\' function', function() {
       
       this.Article = sequelize.define('Article', {
         'title': Sequelize.STRING
-      }, {
-        instanceMethods: {
-          item_key: 'article'
-        }        
       })
       this.Label = sequelize.define('Label', {
         'text': Sequelize.STRING
