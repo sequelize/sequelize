@@ -85,6 +85,21 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', {name: 'foo', foo: 1}],
         expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1) RETURNING *;"
+      }, {
+        arguments: ['myTable', {name: 'foo', nullValue: null}],
+        expectation: "INSERT INTO \"myTable\" (\"name\",\"nullValue\") VALUES ('foo',NULL) RETURNING *;"
+      }, {
+        arguments: ['myTable', {name: 'foo', nullValue: null}],
+        expectation: "INSERT INTO \"myTable\" (\"name\",\"nullValue\") VALUES ('foo',NULL) RETURNING *;",
+        context: {options: {omitNull: false}}
+      }, {
+        arguments: ['myTable', {name: 'foo', nullValue: null}],
+        expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;",
+        context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {name: 'foo', nullValue: undefined}],
+        expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;",
+        context: {options: {omitNull: true}}
       }
     ],
 
@@ -101,7 +116,22 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
         expectation: "UPDATE \"myTable\" SET \"name\"='foo\\';DROP TABLE myTable;' WHERE \"name\"='foo'"
-      }
+      }, {
+        arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\"='foo'"
+      }, {
+        arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\"='foo'",
+        context: {options: {omitNull: false}}
+      }, {
+        arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'",
+        context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {bar: 2, nullValue: undefined}, {name: 'foo'}],
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'",
+        context: {options: {omitNull: true}}
+      },  
     ],
 
     deleteQuery: [
@@ -174,7 +204,9 @@ describe('QueryGenerator', function() {
       tests.forEach(function(test) {
         var title = test.title || 'correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
         it(title, function() {
-          var conditions = QueryGenerator[suiteTitle].apply(null, test.arguments)
+          // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+          var context = test.context || {options: {}};
+          var conditions = QueryGenerator[suiteTitle].apply(context, test.arguments)
           expect(conditions).toEqual(test.expectation)
         })
       })
