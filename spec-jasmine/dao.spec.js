@@ -575,7 +575,7 @@ describe('DAO', function() {
 
         it('returns a response that can be stringified', function() {
           var self = this
-
+			 
           var User = sequelize.define('User', {
             username: Sequelize.STRING, age: Sequelize.INTEGER, isAdmin: Sequelize.BOOLEAN
           }, { timestamps: false, logging: false })
