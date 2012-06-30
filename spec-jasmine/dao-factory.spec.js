@@ -194,6 +194,11 @@ describe('DAOFactory', function() {
         })
 
         it('allows sql logging', function() {
+          setup({
+            name: {type: Sequelize.STRING, unique: true},
+            smth: {type: Sequelize.STRING, allowNull: false}
+          })
+
           Helpers.async(function(done) {
             User
               .create({ name: 'Fluffy Bunny', smth: 'else' })
@@ -489,7 +494,7 @@ describe('DAOFactory', function() {
             User.all().on('success', function(users) {
               done()
               expect(users.length).toEqual(2)
-            }).on('failure', function(err) { console.log(err) })
+            }).on('error', function(err) { console.log(err) })
           })
         })
       })
