@@ -21,7 +21,7 @@ Helpers.prototype.drop = function() {
     self.sequelize
       .drop()
       .on('success', done)
-      .on('failure', function(err) { console.log(err) })
+      .on('error', function(err) { console.log(err) })
   })
 }
 

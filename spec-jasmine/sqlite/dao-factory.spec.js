@@ -161,7 +161,7 @@ describe('DAOFactory', function() {
             User.all().on('success', function(users) {
               done()
               expect(users.length).toEqual(2)
-            }).on('failure', function(err) { console.log(err) })
+            }).on('error', function(err) { console.log(err) })
           })
         })
       })

@@ -16,7 +16,7 @@ Factories.prototype.DAO = function(daoName, options, callback, count) {
       DAO.create(options).on('success', function(dao) {
         daos.push(dao)
         cb && cb()
-      }).on('failure', function(err) {
+      }).on('error', function(err) {
         console.log(err)
         done()
       })
