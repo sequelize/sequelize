@@ -1,7 +1,8 @@
 # v1.5.0 #
-- [FEATURE] added possibility to set protocol and to remove port from postgresql connection uri (thanks to danielschwartz)
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen)
+- [REFACTORING] removed the 'failure' event and replaced it with 'error'
 - [BUG] fixed booleans for sqlite (thanks to vlmonk)
+- [FEATURE] added possibility to set protocol and to remove port from postgresql connection uri (thanks to danielschwartz)
 - [FEATURE] added possibility to not use a junction table for many-to-many associations on the same table (thanks to innofluence)
 - [FEATURE] results of the `import` method is now cached (thanks to janmeier)
 - [FEATURE] added possibility to check if a specific object or a whole bunch of objects is currently associated with another object (thanks to janmeier)
