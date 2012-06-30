@@ -5,6 +5,8 @@
 - [FEATURE] added possibility to not use a junction table for many-to-many associations on the same table (thanks to innofluence)
 - [FEATURE] results of the `import` method is now cached (thanks to janmeier)
 - [FEATURE] added possibility to check if a specific object or a whole bunch of objects is currently associated with another object (thanks to janmeier)
+- [FEATURE] added possibility to globally disable adding of NULL values to sql queries (thanks to janmeier)
+- [FEATURE] Model.create can now also be used to specify values for mass assignment (thanks to janmeier)
 
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
