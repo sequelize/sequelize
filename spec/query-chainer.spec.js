@@ -77,4 +77,48 @@ describe('QueryChainer', function() {
       emitter3.run()
     })
   })
+
+  describe('runSerially', function() {
+    it('finishes when all emitters are finished', function(done) {
+      var emitter1 = new CustomEventEmitter(function(e) { e.emit('success') })
+      var emitter2 = new CustomEventEmitter(function(e) { e.emit('success') })
+
+      this.queryChainer.add(emitter1, 'run')
+      this.queryChainer.add(emitter2, 'run')
+
+      this.queryChainer.runSerially().success(function() {
+        assert(true)
+        done()
+      })
+    })
+
+    it("returns the result of the passed emitters", function(done) {
+      var emitter1 = new CustomEventEmitter(function(e) { e.emit('success', 1) })
+
+      this.queryChainer.add(emitter1, 'run')
+
+      this.queryChainer.runSerially().success(function(results) {
+        expect(results).toBeDefined()
+        expect(results.length).toEqual(1)
+        expect(results[0]).toEqual(1)
+        done()
+      })
+    })
+
+    it("returns the result of the passed emitters in the order of the occurrence of adding the emitters", function(done) {
+      var emitter1 = new CustomEventEmitter(function(e) { e.emit('success', 1) })
+        , emitter2 = new CustomEventEmitter(function(e) { setTimeout(function() { e.emit('success', 2) }, 100) })
+        , emitter3 = new CustomEventEmitter(function(e) { e.emit('success', 3) })
+
+      this.queryChainer.add(emitter1, 'run')
+      this.queryChainer.add(emitter2, 'run')
+      this.queryChainer.add(emitter3, 'run')
+
+      this.queryChainer.runSerially().success(function(results) {
+        expect(results.length).toEqual(3)
+        expect(results).toEqual([1,2,3])
+        done()
+      })
+    })
+  })
 })
