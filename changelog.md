@@ -8,6 +8,7 @@
 - [FEATURE] added possibility to check if a specific object or a whole bunch of objects is currently associated with another object (thanks to janmeier)
 - [FEATURE] added possibility to globally disable adding of NULL values to sql queries (thanks to janmeier)
 - [FEATURE] Model.create can now also be used to specify values for mass assignment (thanks to janmeier)
+- [FEATURE] QueryChainer will now provide the results of the added emitters in the order the emitters have been added (thanks to LaurentZuijdwijk and me ;))
 
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
