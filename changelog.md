@@ -2,6 +2,7 @@
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen)
 - [REFACTORING] removed the 'failure' event and replaced it with 'error'
 - [BUG] fixed booleans for sqlite (thanks to vlmonk)
+- [BUG] obsolete reference attribute for many-to-many associations are removed correctly
 - [FEATURE] added possibility to set protocol and to remove port from postgresql connection uri (thanks to danielschwartz)
 - [FEATURE] added possibility to not use a junction table for many-to-many associations on the same table (thanks to innofluence)
 - [FEATURE] results of the `import` method is now cached (thanks to janmeier)
