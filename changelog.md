@@ -9,6 +9,7 @@
 - [FEATURE] added possibility to globally disable adding of NULL values to sql queries (thanks to janmeier)
 - [FEATURE] Model.create can now also be used to specify values for mass assignment (thanks to janmeier)
 - [FEATURE] QueryChainer will now provide the results of the added emitters in the order the emitters have been added (thanks to LaurentZuijdwijk and me ;))
+- [FEATURE] QueryChainer can now be initialized with serial items
 - [FEATURE] node 0.8 compatibility
 
 # v1.4.1 #
