@@ -76,6 +76,25 @@ describe('QueryChainer', function() {
       emitter1.run()
       emitter3.run()
     })
+
+    it("returns the result as an array and each result as part of the callback signature", function(done) {
+      var emitter1 = new CustomEventEmitter(function(e) { e.emit('success', 1) })
+        , emitter2 = new CustomEventEmitter(function(e) { e.emit('success', 2) })
+
+      this.queryChainer.add(emitter1)
+      this.queryChainer.add(emitter2)
+
+      this.queryChainer.run().success(function(results, result1, result2) {
+        expect(result1).toBeDefined()
+        expect(result2).toBeDefined()
+        expect(result1).toEqual(1)
+        expect(result2).toEqual(2)
+        done()
+      })
+
+      emitter2.run()
+      emitter1.run()
+    })
   })
 
   describe('runSerially', function() {
@@ -117,6 +136,22 @@ describe('QueryChainer', function() {
       this.queryChainer.runSerially().success(function(results) {
         expect(results.length).toEqual(3)
         expect(results).toEqual([1,2,3])
+        done()
+      })
+    })
+
+    it("returns the result as an array and each result as part of the callback signature", function(done) {
+      var emitter1 = new CustomEventEmitter(function(e) { e.emit('success', 1) })
+        , emitter2 = new CustomEventEmitter(function(e) { e.emit('success', 2) })
+
+      this.queryChainer.add(emitter1, 'run')
+      this.queryChainer.add(emitter2, 'run')
+
+      this.queryChainer.runSerially().success(function(results, result1, result2) {
+        expect(result1).toBeDefined()
+        expect(result2).toBeDefined()
+        expect(result1).toEqual(1)
+        expect(result2).toEqual(2)
         done()
       })
     })
