@@ -122,5 +122,18 @@ describe('Associations', function() {
         })
       })
     })
+
+    describe('many to many', function() {
+      it("removes the reference id, which was added in the first place", function() {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+          , Task = sequelize.define('Task', { title: Sequelize.STRING })
+
+        User.hasMany(Task)
+        expect(Task.attributes.UserId).toBeDefined()
+
+        Task.hasMany(User)
+        expect(Task.attributes.UserId).not.toBeDefined()
+      })
+    })
   })
 })
