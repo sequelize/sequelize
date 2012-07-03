@@ -167,19 +167,19 @@ describe('HasMany', function() {
       User.hasMany(Task)
       Task.hasMany(User)
 
-      sequelize.sync().success(function() {
+      console.log(sequelize.daoFactoryManager.daos.length)
+
+      sequelize.sync({ force: true }).success(function() {
         console.log('sync ok')
         User.create({ username: 'foo' }).success(function(user) {
           console.log('user was created')
-          Task.create({ title: 'task' }).run().success(function(task) {
+          Task.create({ title: 'task' }).success(function(task) {
             console.log('task was created')
-            expect(1).toEqual(1)
-            return done()
-            task.setUsers([ user ])
-              .success(function() {
+            task.setUsers([ user ]).success(function() {
                 console.log('set users done')
 
                 task.getUsers().success(function(_users) {
+                  console.log(_users.length)
                   expect(_users.length).toEqual(1)
 
                   task.setUsers(null).success(function() {
