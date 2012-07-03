@@ -3,7 +3,7 @@ if (typeof require === 'function') {
       , Sequelize = require("../../index")
       , config    = require("../config/config")
       , sequelize = new Sequelize(config.database, config.username, config.password, {
-          logging: true
+          logging: false
         })
 }
 
