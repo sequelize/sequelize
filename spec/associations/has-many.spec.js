@@ -20,7 +20,7 @@ describe('HasMany', function() {
       .error(function(err) { console.log(err) })
   })
 
-  describe('Many To One', function() {
+  describe('(1:N)', function() {
     describe('hasSingle', function() {
       before(function(done) {
         var self = this
@@ -143,6 +143,21 @@ describe('HasMany', function() {
 
       Task.hasMany(User)
       expect(Task.attributes.UserId).not.toBeDefined()
+    })
+
+    it("adds three items to the query chainer when calling sync", function() {
+      var User = sequelize.define('User', { username: Sequelize.STRING })
+        , Task = sequelize.define('Task', { title: Sequelize.STRING })
+
+      User.hasMany(Task)
+      Task.hasMany(User)
+
+      var add = this.spy()
+
+      this.stub(Sequelize.Utils, 'QueryChainer').returns({ add: add, run: function(){} })
+
+      sequelize.sync({ force: true })
+      expect(add).toHaveBeenCalledThrice()
     })
 
     it("=>clears associations when passing null to the set-method", function(done) {
