@@ -68,6 +68,51 @@ dialects.forEach(function(dialect) {
           })
         })
       })
+
+      describe('handle quoted data', function() {
+
+        it('saves data with single quote', function() {
+          setup({ data: {type: Sequelize.STRING} })
+          var quote = "single'quote"
+          Helpers.async(function(done) {
+            User.create({ data: quote}).success(function(user) {
+              expect(user.data).toEqual(quote, 'memory single quote')
+              User.find({where: { id: user.id }}).success(function(user) {
+                expect(user.data).toEqual(quote, 'SQL single quote')
+                done()
+              })
+            })
+          })
+        })
+
+        it('saves data with double quote', function() {
+          setup({ data: {type: Sequelize.STRING} })
+          var quote = 'double"quote'
+          Helpers.async(function(done) {
+            User.create({ data: quote}).success(function(user) {
+              expect(user.data).toEqual(quote, 'memory double quote')
+              User.find({where: { id: user.id }}).success(function(user) {
+                expect(user.data).toEqual(quote, 'SQL double quote')
+                done()
+              })
+            })
+          })
+        })
+
+        it('saves stringified JSON data', function() {
+          setup({ data: {type: Sequelize.STRING} })
+          var json = JSON.stringify({ key: 'value' })
+          Helpers.async(function(done) {
+            User.create({ data: json}).success(function(user) {
+              expect(user.data).toEqual(json, 'memory data')
+              User.find({where: { id: user.id }}).success(function(user) {
+                expect(user.data).toEqual(json, 'SQL data')
+                done()
+              })
+            })
+          })
+        })
+      })
     })
   })
 })
