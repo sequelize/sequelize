@@ -10,24 +10,36 @@ if (typeof require === 'function') {
 buster.spec.expose()
 buster.testRunner.timeout = 500
 
-describe('BelongsTo', function() {
+describe('HasOne', function() {
+  before(function(done) {
+    var self = this
+
+    sequelize.getQueryInterface()
+      .dropAllTables()
+      .success(function() {
+        sequelize.daoFactoryManager.daos = []
+        done()
+      })
+      .error(function(err) { console.log(err) })
+  })
+
   describe('setAssociation', function() {
     it('clears the association if null is passed', function(done) {
       var User = sequelize.define('User', { username: Sequelize.STRING })
         , Task = sequelize.define('Task', { title: Sequelize.STRING })
 
-      Task.belongsTo(User)
+      User.hasOne(Task)
 
       sequelize.sync({ force: true }).success(function() {
         User.create({ username: 'foo' }).success(function(user) {
           Task.create({ title: 'task' }).success(function(task) {
-            task.setUser(user).success(function() {
-              task.getUser().success(function(user) {
-                expect(user).not.toEqual(null)
+            user.setTask(task).success(function() {
+              user.getTask().success(function(task) {
+                expect(task).not.toEqual(null)
 
-                task.setUser(null).success(function() {
-                  task.getUser().success(function(user) {
-                    expect(user).toEqual(null)
+                user.setTask(null).success(function() {
+                  user.getTask().success(function(task) {
+                    expect(task).toEqual(null)
                     done()
                   })
                 })

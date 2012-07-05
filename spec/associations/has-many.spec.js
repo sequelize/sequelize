@@ -177,8 +177,6 @@ describe('HasMany', function() {
     })
 
     it("adds three items to the query chainer when calling sync", function() {
-      sequelize.daoFactoryManager.daos = []
-
       var User = sequelize.define('User', { username: Sequelize.STRING })
         , Task = sequelize.define('Task', { title: Sequelize.STRING })
 
