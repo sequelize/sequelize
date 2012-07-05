@@ -16,7 +16,10 @@ describe('HasMany', function() {
 
     sequelize.getQueryInterface()
       .dropAllTables()
-      .success(done)
+      .success(function() {
+        sequelize.daoFactoryManager.daos = []
+        done()
+      })
       .error(function(err) { console.log(err) })
   })
 
@@ -131,6 +134,34 @@ describe('HasMany', function() {
         })
       })
     })
+
+    describe('setAssociations', function() {
+      it("clears associations when passing null to the set-method", function(done) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+          , Task = sequelize.define('Task', { title: Sequelize.STRING })
+
+        Task.hasMany(User)
+
+        sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              task.setUsers([ user ]).success(function() {
+                task.getUsers().success(function(_users) {
+                  expect(_users.length).toEqual(1)
+
+                  task.setUsers(null).success(function() {
+                    task.getUsers().success(function(_users) {
+                      expect(_users.length).toEqual(0)
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('(N:M)', function() {
@@ -162,24 +193,26 @@ describe('HasMany', function() {
       expect(add).toHaveBeenCalledThrice()
     })
 
-    it("clears associations when passing null to the set-method", function(done) {
-      var User = sequelize.define('User', { username: Sequelize.STRING })
-        , Task = sequelize.define('Task', { title: Sequelize.STRING })
+    describe('setAssociations', function() {
+      it("clears associations when passing null to the set-method", function(done) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+          , Task = sequelize.define('Task', { title: Sequelize.STRING })
 
-      User.hasMany(Task)
-      Task.hasMany(User)
+        User.hasMany(Task)
+        Task.hasMany(User)
 
-      sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUsers([ user ]).success(function() {
-              task.getUsers().success(function(_users) {
-                expect(_users.length).toEqual(1)
+        sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              task.setUsers([ user ]).success(function() {
+                task.getUsers().success(function(_users) {
+                  expect(_users.length).toEqual(1)
 
-                task.setUsers(null).success(function() {
-                  task.getUsers().success(function(_users) {
-                    expect(_users.length).toEqual(0)
-                    done()
+                  task.setUsers(null).success(function() {
+                    task.getUsers().success(function(_users) {
+                      expect(_users.length).toEqual(0)
+                      done()
+                    })
                   })
                 })
               })
