@@ -32,8 +32,8 @@
     "generic-pool": "1.0.9"
   },
   "devDependencies": {
-    "jasmine-node": "1.0.22",
-    "sqlite3": ">=2.0.0",
+    "jasmine-node": "~1.0.26",
+    "sqlite3": "~2.1.5",
     "pg": "0.6.x",
     "buster": "~0.6.0"
   },
