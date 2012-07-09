@@ -162,6 +162,33 @@ describe('HasMany', function() {
         })
       })
     })
+
+    it("clears associations when passing null to the set-method with omitNull set to true", function(done) {
+      sequelize.options.omitNull = true;
+      var User = sequelize.define('User', { username: Sequelize.STRING })
+        , Task = sequelize.define('Task', { title: Sequelize.STRING })
+
+      Task.hasMany(User)
+
+      sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'foo' }).success(function(user) {
+          Task.create({ title: 'task' }).success(function(task) {
+            task.setUsers([ user ]).success(function() {
+              task.getUsers().success(function(_users) {
+                expect(_users.length).toEqual(1)
+
+                task.setUsers(null).success(function() {
+                  task.getUsers().success(function(_users) {
+                    expect(_users.length).toEqual(0)
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('(N:M)', function() {
