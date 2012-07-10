@@ -162,9 +162,91 @@ describe('HasMany', function() {
         })
       })
     })
+
+    describe("getting assocations with options", function() {
+      before(function(done) {
+        var self = this;
+
+        this.User = sequelize.define('User', { username: Sequelize.STRING })
+        this.Task = sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
+        
+        self.User.hasMany(self.Task)
+
+        sequelize.sync({ force: true }).done(function() {
+         var chainer = new Sequelize.Utils.QueryChainer([  
+            self.User.create({ username: 'John'}),
+            self.Task.create({ title: 'Get rich', active: true}),
+            self.Task.create({ title: 'Die trying', active: false})
+          ])
+
+          chainer.run().success(function (results, john, task1, task2) {
+            john.setTasks([task1, task2]).success(done)
+          })
+        })
+      })
+
+      it("gets all associated objects when no options are passed", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function (john) {
+          john.getTasks().success(function (tasks) {
+            expect(tasks.length).toEqual(2)
+            done();
+          })
+        })
+      })
+
+      it("only get objects that fullfil the options", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function (john) {
+          john.getTasks({where: {active: true}, limit: 10, order: 'ID DESC'}).success(function (tasks) {
+            expect(tasks.length).toEqual(1)
+            done();
+          })
+        })
+      })
+    })
   })
 
   describe('(N:M)', function() {
+    describe("getting assocations with options", function() {
+      before(function(done) {
+        var self = this;
+
+        this.User = sequelize.define('User', { username: Sequelize.STRING })
+        this.Task = sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
+        self.User.hasMany(self.Task)
+        self.Task.hasMany(self.User)
+
+        sequelize.sync({ force: true }).done(function() {
+         var chainer = new Sequelize.Utils.QueryChainer([  
+            self.User.create({ username: 'John'}),
+            self.Task.create({ title: 'Get rich', active: true}),
+            self.Task.create({ title: 'Die trying', active: false})
+          ])
+
+          chainer.run().success(function (results, john, task1, task2) {
+            john.setTasks([task1, task2]).success(done)
+          })
+        })
+      })
+
+      it("gets all associated objects when no options are passed", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function (john) {
+          john.getTasks().success(function (tasks) {
+            expect(tasks.length).toEqual(2)
+            done();
+          })
+        })
+      })
+
+      it("only get objects that fullfil the options", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function (john) {
+          john.getTasks({where: {active: true}}).success(function (tasks) {
+            expect(tasks.length).toEqual(1)
+            done();
+          })
+        })
+      })
+    })
+
     it("removes the reference id, which was added in the first place", function() {
       var User = sequelize.define('User', { username: Sequelize.STRING })
         , Task = sequelize.define('Task', { title: Sequelize.STRING })
