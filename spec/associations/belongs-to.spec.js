@@ -11,6 +11,18 @@ buster.spec.expose()
 buster.testRunner.timeout = 500
 
 describe('BelongsTo', function() {
+  before(function(done) {
+    var self = this
+
+    sequelize.getQueryInterface()
+      .dropAllTables()
+      .success(function() {
+        sequelize.daoFactoryManager.daos = []
+        done()
+      })
+      .error(function(err) { console.log(err) })
+  })
+
   describe('setAssociation', function() {
     it('clears the association if null is passed', function(done) {
       var User = sequelize.define('User', { username: Sequelize.STRING })
