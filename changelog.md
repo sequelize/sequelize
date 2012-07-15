@@ -15,6 +15,7 @@
 - [FEATURE] QueryChainer can now be initialized with serial items
 - [FEATURE] node 0.8 compatibility
 - [FEATURE] added options to hasMany getters (thanks to janmeier/innofluence)
+- [FEATURE] pooling option is now correctly passed to postgres (thanks to megshark)
 
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
