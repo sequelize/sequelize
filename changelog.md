@@ -14,6 +14,7 @@
 - [FEATURE] QueryChainer will now provide the results of the added emitters in the order the emitters have been added (thanks to LaurentZuijdwijk and me ;))
 - [FEATURE] QueryChainer can now be initialized with serial items
 - [FEATURE] node 0.8 compatibility
+- [FEATURE] added options to hasMany getters (thanks to janmeier/innofluence)
 
 # v1.4.1 #
 - [DEPRECATION] Added deprecation warning for node < v0.6.
