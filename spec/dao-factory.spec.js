@@ -17,8 +17,9 @@ dialects.forEach(function(dialect) {
         beforeComplete: function(sequelize, DataTypes) {
           self.sequelize = sequelize
           self.User      = sequelize.define('User', {
-            username:  { type: DataTypes.STRING },
-            touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+            username: DataTypes.STRING,
+            secretValue: DataTypes.STRING,
+            data: DataTypes.STRING
           })
         },
         onComplete: function(sequelize) {
@@ -28,20 +29,7 @@ dialects.forEach(function(dialect) {
     })
 
     describe('create', function() {
-      before(function(done) {
-        this.User = this.sequelize.define('User', {
-          username: Sequelize.STRING,
-          secretValue: Sequelize.STRING,
-          data: Sequelize.STRING
-        })
-
-        this.User
-          .sync({ force: true })
-          .success(done)
-          .error(function(err) { console.log(err) })
-      })
-
-      it('should only store the values passed in the witelist', function(done) {
+      it('=>should only store the values passed in the witelist', function(done) {
         var self = this
           , data = { username: 'Peter', secretValue: '42' }
 
