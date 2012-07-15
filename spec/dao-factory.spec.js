@@ -1,7 +1,7 @@
 if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
-      , config    = require("./config/config")
+      , Helpers   = require('./buster-helpers')
       , dialects  = ['sqlite', 'mysql', 'postgres']
 }
 
@@ -12,15 +12,19 @@ dialects.forEach(function(dialect) {
     before(function(done) {
       var self = this
 
-      this.sequelize = new Sequelize(config.database, config.username, config.password, { logging: false })
-      this.sequelize
-        .getQueryInterface()
-        .dropAllTables()
-        .success(function() {
-          self.sequelize.daoFactoryManager.daos = []
-          done()
-        })
-        .error(function(err) { console.log(err) })
+      Helpers.initTests({
+        dialect: dialect,
+        beforeComplete: function(sequelize, DataTypes) {
+          self.sequelize = sequelize
+          self.User      = sequelize.define('User', {
+            username:  { type: DataTypes.STRING },
+            touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+          })
+        },
+        onComplete: function(sequelize) {
+          self.User.sync({ force: true }).success(done)
+        }
+      })
     })
 
     describe('create', function() {
