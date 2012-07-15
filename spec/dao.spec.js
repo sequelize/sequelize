@@ -1,8 +1,7 @@
 if(typeof require === 'function') {
-  const buster    = require("buster")
-      , Sequelize = require("../index")
-      , config    = require("./config/config")
-      , dialects  = ['sqlite', 'mysql', 'postgres']
+  const buster   = require("buster")
+      , dialects = ['sqlite', 'mysql', 'postgres']
+      , Helpers  = require('./buster-helpers')
 }
 
 buster.spec.expose()
@@ -12,27 +11,19 @@ dialects.forEach(function(dialect) {
     before(function(done) {
       var self = this
 
-      this.sequelize = new Sequelize(config.database, config.username, config.password, {
-        logging: false
+      Helpers.initTests({
+        dialect: dialect,
+        beforeComplete: function(sequelize, DataTypes) {
+          self.sequelize = sequelize
+          self.User      = sequelize.define('User', {
+            username:  { type: DataTypes.STRING },
+            touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+          })
+        },
+        onComplete: function(sequelize) {
+          self.User.sync({ force: true }).success(done)
+        }
       })
-
-      this.User = this.sequelize.define('User', {
-        username: { type: Sequelize.STRING },
-        touchedAt: { type: Sequelize.DATE, defaultValue: Sequelize.NOW }
-      })
-
-      self.sequelize
-        .getQueryInterface()
-        .dropAllTables()
-        .success(function() {
-          self.User
-            .sync({ force: true })
-            .success(done)
-            .error(function(err) {
-              console.log(err)
-            })
-        })
-        .error(function(err) { console.log(err) })
     })
 
     describe('default values', function() {

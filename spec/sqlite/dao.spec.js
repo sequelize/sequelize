@@ -1,7 +1,6 @@
 if(typeof require === 'function') {
-  const buster    = require("buster")
-      , Sequelize = require("../../index")
-      , config    = require("../config/config")
+  const buster  = require("buster")
+      , Helpers = require('../buster-helpers')
 }
 
 buster.spec.expose()
@@ -10,22 +9,19 @@ describe('DAO@sqlite', function() {
   before(function(done) {
     var self = this
 
-    this.sequelize = new Sequelize(config.database, config.username, config.password, {
-      logging: false,
-      dialect: 'sqlite'
-    })
+    Helpers.initTests({
+      dialect: 'sqlite',
+      beforeComplete: function(sequelize, DataTypes) {
+        self.sequelize = sequelize
 
-    this.User = this.sequelize.define('User', {
-      username: Sequelize.STRING
-    })
-
-    self.sequelize
-      .getQueryInterface()
-      .dropAllTables()
-      .success(function() {
+        self.User = sequelize.define('User', {
+          username: DataTypes.STRING
+        })
+      },
+      onComplete: function(sequelize) {
         self.User.sync({ force: true }).success(done)
-      })
-      .error(function(err) { console.log(err) })
+      }
+    })
   })
 
   describe('findAll', function() {
