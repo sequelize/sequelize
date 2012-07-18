@@ -17,7 +17,8 @@ dialects.forEach(function(dialect) {
           self.sequelize = sequelize
           self.User      = sequelize.define('User', {
             username:  { type: DataTypes.STRING },
-            touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+            touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+            aNumber:   { type: DataTypes.INTEGER }
           })
         },
         onComplete: function(sequelize) {
@@ -55,6 +56,15 @@ dialects.forEach(function(dialect) {
         this.User.count().complete(function(err, result) {
           expect(err).toBeNull()
           expect(result).toBeDefined()
+          done()
+        })
+      })
+    })
+
+    describe('save', function() {
+      it('takes zero into account', function(done) {
+        this.User.build({ aNumber: 0 }).save([ 'aNumber' ]).success(function(user) {
+          expect(user.aNumber).toEqual(0)
           done()
         })
       })
