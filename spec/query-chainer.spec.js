@@ -5,6 +5,8 @@ if(typeof require === 'function') {
 }
 
 buster.spec.expose()
+buster.testRunner.timeout = 1000
+
 
 describe('QueryChainer', function() {
   before(function() {
@@ -36,6 +38,8 @@ describe('QueryChainer', function() {
       this.queryChainer.run().success(function() {
         assert(true)
         done()
+      }).error(function(err) {
+        console.log(err)
       })
 
       emitter1.run()
