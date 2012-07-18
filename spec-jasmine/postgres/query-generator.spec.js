@@ -43,7 +43,7 @@ describe('QueryGenerator', function() {
         expectation: "SELECT * FROM \"myTable\" WHERE \"name\"='foo';"
       }, {
         arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
-        expectation: "SELECT * FROM \"myTable\" WHERE \"name\"='foo\\';DROP TABLE myTable;';"
+        expectation: "SELECT * FROM \"myTable\" WHERE \"name\"='foo'';DROP TABLE myTable;';"
       }, {
         arguments: ['myTable', {where: 2}],
         expectation: "SELECT * FROM \"myTable\" WHERE \"id\"=2;"
@@ -78,7 +78,7 @@ describe('QueryGenerator', function() {
         expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
-        expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo\\';DROP TABLE myTable;') RETURNING *;"
+        expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;') RETURNING *;"
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}],
         expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.0') RETURNING *;"
@@ -115,7 +115,7 @@ describe('QueryGenerator', function() {
         expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'"
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo\\';DROP TABLE myTable;' WHERE \"name\"='foo'"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo'';DROP TABLE myTable;' WHERE \"name\"='foo'"
       }, {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
         expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\"='foo'"
@@ -131,7 +131,7 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {bar: 2, nullValue: undefined}, {name: 'foo'}],
         expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'",
         context: {options: {omitNull: true}}
-      },  
+      },
     ],
 
     deleteQuery: [
@@ -146,7 +146,7 @@ describe('QueryGenerator', function() {
         expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"id\"=1 LIMIT 10)"
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-        expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo\\';DROP TABLE myTable;' LIMIT 10)"
+        expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo'';DROP TABLE myTable;' LIMIT 10)"
       }
     ],
 
