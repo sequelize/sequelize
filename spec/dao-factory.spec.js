@@ -2,7 +2,7 @@ if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
       , Helpers   = require('./buster-helpers')
-      , dialects  = ['sqlite', 'mysql', 'postgres']
+      , dialects  = Helpers.getSupportedDialects()
 }
 
 buster.spec.expose()
@@ -17,9 +17,9 @@ dialects.forEach(function(dialect) {
         beforeComplete: function(sequelize, DataTypes) {
           self.sequelize = sequelize
           self.User      = sequelize.define('User', {
-            username: DataTypes.STRING,
-            secretValue: DataTypes.STRING,
-            data: DataTypes.STRING
+            username:     DataTypes.STRING,
+            secretValue:  DataTypes.STRING,
+            data:         DataTypes.STRING
           })
         },
         onComplete: function(sequelize) {
@@ -29,7 +29,7 @@ dialects.forEach(function(dialect) {
     })
 
     describe('create', function() {
-      it('=>should only store the values passed in the witelist', function(done) {
+      it('should only store the values passed in the witelist', function(done) {
         var self = this
           , data = { username: 'Peter', secretValue: '42' }
 
@@ -94,6 +94,13 @@ dialects.forEach(function(dialect) {
             expect(user.data).toEqual(json, 'SQL data')
             done()
           })
+        })
+      })
+
+      it('stores the current date in createdAt', function(done) {
+        this.User.create({ username: 'foo' }).success(function(user) {
+          expect(parseInt(+user.createdAt/1000)).toEqual(parseInt(+new Date()/1000))
+          done()
         })
       })
     })
