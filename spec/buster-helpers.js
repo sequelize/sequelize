@@ -1,6 +1,7 @@
 const Sequelize = require(__dirname + "/../index")
     , DataTypes = require(__dirname + "/../lib/data-types")
     , config    = require(__dirname + "/config/config")
+    , fs        = require('fs')
 
 var BusterHelpers = module.exports = {
   initTests: function(options) {
@@ -16,13 +17,14 @@ var BusterHelpers = module.exports = {
     options = options || {}
 
     options.dialect = options.dialect || 'mysql'
+    options.logging = (options.hasOwnProperty('logging') ? options.logging : false)
 
     return new Sequelize(
       config[options.dialect].database,
       config[options.dialect].username,
       config[options.dialect].password,
       {
-        logging:  false,
+        logging:  options.logging,
         dialect:  options.dialect,
         port:     config[options.dialect].port
       }
@@ -38,5 +40,11 @@ var BusterHelpers = module.exports = {
         callback && callback()
       })
       .error(function(err) { console.log(err) })
+  },
+
+  getSupportedDialects: function() {
+    return fs.readdirSync(__dirname + '/../lib/dialects').filter(function(file) {
+      return (file.indexOf('.js') === -1)
+    })
   }
 }
