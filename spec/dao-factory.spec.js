@@ -28,7 +28,7 @@ dialects.forEach(function(dialect) {
       })
     })
 
-    describe('getOrCreate', function () {
+    describe('findOrCreate', function () {
       it("Returns instace if already existent. Single find field.", function (done) {
         var self = this,
           data = {
@@ -36,7 +36,7 @@ dialects.forEach(function(dialect) {
           };
 
         this.User.create(data).success(function (user) {
-          self.User.getOrCreate({
+          self.User.findOrCreate({
             username: user.username
           }).success(function (_user) {
             expect(_user.id).toEqual(user.id)
@@ -54,7 +54,7 @@ dialects.forEach(function(dialect) {
           };
 
         this.User.create(data).success(function (user) {
-          self.User.getOrCreate(data).success(function (_user) {
+          self.User.findOrCreate(data).success(function (_user) {
             expect(_user.id).toEqual(user.id)
             expect(_user.username).toEqual('Username')
             expect(_user.data).toEqual('ThisIsData')
@@ -72,7 +72,7 @@ dialects.forEach(function(dialect) {
             data: 'ThisIsData'
           };
 
-        this.User.getOrCreate(data, default_values).success(function (user) {
+        this.User.findOrCreate(data, default_values).success(function (user) {
           expect(user.username).toEqual('Username')
           expect(user.data).toEqual('ThisIsData')
           done()
