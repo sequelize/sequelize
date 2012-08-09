@@ -5,6 +5,7 @@
 - [BUG] obsolete reference attribute for many-to-many associations are removed correctly
 - [BUG] associations can be cleared via passing null to the set method
 - [BUG] "fixed" quota handling (thanks to dgf)
+- [BUG] fixed destroy in postgresql (thanks to robraux)
 - [FEATURE] added possibility to set protocol and to remove port from postgresql connection uri (thanks to danielschwartz)
 - [FEATURE] added possibility to not use a junction table for many-to-many associations on the same table (thanks to janmeier/innofluence)
 - [FEATURE] results of the `import` method is now cached (thanks to janmeier/innofluence)
