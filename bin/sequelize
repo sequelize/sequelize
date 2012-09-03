@@ -56,7 +56,7 @@ var readConfig = function() {
 }
 
 program
-  .version('1.3.0')
+  .version('1.4.1')
   .option('-i, --init', 'Initializes the project. Creates a config/config.json')
   .option('-m, --migrate', 'Runs undone migrations')
   .option('-u, --undo', 'Redo the last migration.')
