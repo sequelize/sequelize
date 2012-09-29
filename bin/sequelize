@@ -9,9 +9,11 @@ const path      = require("path")
 
 var configPath       = process.cwd() + '/config'
   , migrationsPath   = process.cwd() + '/migrations'
+  , packageJsonPath  = __dirname + '/../package.json'
+  , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
   , configFile       = configPath + '/config.json'
-  , configPathExists = path.existsSync(configPath)
-  , configFileExists = path.existsSync(configFile)
+  , configPathExists = fs.existsSync(configPath)
+  , configFileExists = fs.existsSync(configFile)
 
 var writeConfig = function(config) {
   !configPathExists && fs.mkdirSync(configPath)
@@ -56,7 +58,7 @@ var readConfig = function() {
 }
 
 program
-  .version('1.3.0')
+  .version(packageJson.version)
   .option('-i, --init', 'Initializes the project. Creates a config/config.json')
   .option('-m, --migrate', 'Runs undone migrations')
   .option('-u, --undo', 'Redo the last migration.')
