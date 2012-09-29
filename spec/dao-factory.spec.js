@@ -99,7 +99,7 @@ dialects.forEach(function(dialect) {
 
       it('stores the current date in createdAt', function(done) {
         this.User.create({ username: 'foo' }).success(function(user) {
-          expect(parseInt(+user.createdAt/1000)).toEqual(parseInt(+new Date()/1000))
+          expect(parseInt(+user.createdAt/5000)).toEqual(parseInt(+new Date()/5000))
           done()
         })
       })
