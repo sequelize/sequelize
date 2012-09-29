@@ -26,7 +26,7 @@ var BusterHelpers = module.exports = {
       config[options.dialect].username,
       config[options.dialect].password,
       {
-        // logging:  options.logging,
+        logging:  options.logging,
         dialect:  options.dialect,
         port:     config[options.dialect].port
       }
