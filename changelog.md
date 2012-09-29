@@ -1,3 +1,6 @@
+# v1.5.1 #
+- [BUG] fixed wrong version in sequelize binary
+
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
 - [REFACTORING] removed the 'failure' event and replaced it with 'error'
