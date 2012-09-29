@@ -4,6 +4,8 @@ const Sequelize = require(__dirname + "/../index")
     , fs        = require('fs')
 
 var BusterHelpers = module.exports = {
+  Sequelize: Sequelize,
+
   initTests: function(options) {
     var sequelize = this.createSequelizeInstance(options)
 
@@ -24,7 +26,7 @@ var BusterHelpers = module.exports = {
       config[options.dialect].username,
       config[options.dialect].password,
       {
-        logging:  options.logging,
+        // logging:  options.logging,
         dialect:  options.dialect,
         port:     config[options.dialect].port
       }
