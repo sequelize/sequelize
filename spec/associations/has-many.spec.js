@@ -154,7 +154,7 @@ describe('HasMany', function() {
     })
 
     it("clears associations when passing null to the set-method with omitNull set to true", function(done) {
-      this.sequelize.options.omitNull = true;
+      this.sequelize.options.omitNull = true
 
       var User = this.sequelize.define('User', { username: Sequelize.STRING })
         , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
