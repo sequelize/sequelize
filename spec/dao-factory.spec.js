@@ -276,5 +276,113 @@ dialects.forEach(function(dialect) {
         })
       })
     })
+
+    describe('find', function find() {
+      before(function(done) {
+        this.User.create({
+          username: 'barfooz'
+        }).success(function(user) {
+          this.user = user
+          done()
+        }.bind(this))
+      })
+
+      it('returns a single dao', function(done) {
+        this.User.find(this.user.id).success(function(user) {
+          expect(Array.isArray(user)).toBeFalsy()
+          expect(user.id).toEqual(this.user.id)
+          expect(user.id).toEqual(1)
+          done()
+        }.bind(this))
+      })
+
+      it("should make aliased attributes available", function(done) {
+        this.User.find({
+          where: { id: 1 },
+          attributes: ['id', ['username', 'name']]
+        }).success(function(user) {
+          expect(user.name).toEqual('barfooz')
+          done()
+        })
+      })
+
+      it('finds a specific user via where option', function(done) {
+        this.User.find({ where: { username: 'barfooz' } }).success(function(user) {
+          expect(user.username).toEqual('barfooz')
+          done()
+        })
+      })
+
+      it("doesn't find a user if conditions are not matching", function(done) {
+        this.User.find({ where: { username: 'foo' } }).success(function(user) {
+          expect(user).toBeNull()
+          done()
+        })
+      })
+
+      it('allows sql logging', function(done) {
+        this.User.find({ where: { username: 'foo' } })
+          .on('sql', function(sql) {
+            expect(sql).toBeDefined()
+            expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+            done()
+          })
+      })
+
+      it('ignores passed limit option', function(done) {
+        this.User.find({ limit: 10 }).success(function(user) {
+          // it returns an object instead of an array
+          expect(Array.isArray(user)).toBeFalsy()
+          expect(user.hasOwnProperty('username')).toBeTruthy()
+          done()
+        })
+      })
+
+      it('finds entries via primary keys', function(done) {
+        var User = this.sequelize.define('UserWithPrimaryKey', {
+          identifier: {type: Sequelize.STRING, primaryKey: true},
+          name: Sequelize.STRING
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({
+            identifier: 'an identifier',
+            name: 'John'
+          }).success(function(u) {
+            expect(u.id).not.toBeDefined()
+
+            User.find('an identifier').success(function(u2) {
+              expect(u2.identifier).toEqual('an identifier')
+              expect(u2.name).toEqual('John')
+              done()
+            })
+          })
+        })
+      })
+
+      it('=>fetches associated objects for 1:1 associations', function(done) {
+        var Task = this.sequelize.define('Task', {
+          title: Sequelize.STRING
+        })
+
+        this.User.hasOne(Task)
+        Task.belongsTo(this.User)
+
+        this.sequelize.sync({ force: true }).success(function() {
+          Task.create({ title: 'task' }).success(function(task) {
+            this.user.setTask(task).success(function() {
+              this.User.find({
+                where: { id: 1 },
+                include: 'Task'
+              }).success(function(user) {
+                expect(user.task).toBeDefined()
+                expect(user.task).toEqual(task)
+                done()
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      })
+    })
   })
 })
