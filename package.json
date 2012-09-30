@@ -23,11 +23,11 @@
   ],
   "dependencies": {
     "mysql": "0.9.x",
-    "underscore": "1.2.x",
-    "underscore.string": "2.0.x",
-    "lingo": "0.0.x",
+    "underscore": "~1.4.0",
+    "underscore.string": "~2.3.0",
+    "lingo": "~0.0.5",
     "validator": "0.3.x",
-    "moment": "1.1.x",
+    "moment": "~1.7.0",
     "commander": "~0.6.0",
     "generic-pool": "1.0.9"
   },
