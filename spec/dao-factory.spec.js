@@ -94,6 +94,113 @@ dialects.forEach(function(dialect) {
     })
 
     describe('create', function() {
+      it("doesn't allow duplicated records with unique:true", function(done) {
+        var User = this.sequelize.define('UserWithUniqueUsername', {
+          username: { type: Sequelize.STRING, unique: true }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username:'foo' }).success(function() {
+            User.create({ username: 'foo' }).error(function(err) {
+              expect(err).toBeDefined()
+
+              Helpers.checkMatchForDialects(dialect, err.message, {
+                sqlite: /.*SQLITE_CONSTRAINT.*/,
+                mysql: /.*Duplicate\ entry.*/,
+                postgres: /.*duplicate\ key\ value.*/
+              })
+
+              done()
+            })
+          })
+        })
+      })
+
+      it("raises an error if created object breaks definition contraints", function(done) {
+        var User = this.sequelize.define('UserWithNonNullSmth', {
+          username: { type: Sequelize.STRING, unique: true },
+          smth:     { type: Sequelize.STRING, allowNull: false }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo', smth: null }).error(function(err) {
+            expect(err).toBeDefined()
+
+            Helpers.checkMatchForDialects(dialect, err.message, {
+              sqlite: /.*SQLITE_CONSTRAINT.*/,
+              mysql: "Column 'smth' cannot be null",
+              postgres: /.*column "smth" violates not-null.*/
+            })
+
+            User.create({ username: 'foo', smth: 'foo' }).success(function() {
+              User.create({ username: 'foo', smth: 'bar' }).error(function(err) {
+                expect(err).toBeDefined()
+
+                Helpers.checkMatchForDialects(dialect, err.message, {
+                  sqlite: /.*SQLITE_CONSTRAINT.*/,
+                  mysql: "Duplicate entry 'foo' for key 'username'",
+                  postgres: /.*duplicate key value violates unique constraint.*/
+                })
+
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      it('sets auto increment fields', function(done) {
+        var User = this.sequelize.define('UserWithAutoIncrementField', {
+          userid: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({}).on('success', function(user) {
+            expect(user.userid).toEqual(1)
+
+            User.create({}).on('success', function(user) {
+              expect(user.userid).toEqual(2)
+              done()
+            })
+          })
+        })
+      })
+
+      it('allows the usage of options as attribute', function(done) {
+        var User = this.sequelize.define('UserWithNameAndOptions', {
+          name: Sequelize.STRING,
+          options: Sequelize.TEXT
+        })
+
+        var options = JSON.stringify({ foo: 'bar', bar: 'foo' })
+
+        User.sync({ force: true }).success(function() {
+          User
+            .create({ name: 'John Doe', options: options })
+            .success(function(user) {
+              expect(user.options).toEqual(options)
+              done()
+            })
+        })
+      })
+
+      it('allows sql logging', function(done) {
+        var User = this.sequelize.define('UserWithUniqueNameAndNonNullSmth', {
+          name: {type: Sequelize.STRING, unique: true},
+          smth: {type: Sequelize.STRING, allowNull: false}
+        })
+
+        User.sync({ force: true }).success(function() {
+          User
+            .create({ name: 'Fluffy Bunny', smth: 'else' })
+            .on('sql', function(sql) {
+              expect(sql).toBeDefined()
+              expect(sql.toUpperCase().indexOf("INSERT")).toBeGreaterThan(-1)
+              done()
+            })
+          })
+      })
+
       it('should only store the values passed in the witelist', function(done) {
         var self = this
           , data = { username: 'Peter', secretValue: '42' }

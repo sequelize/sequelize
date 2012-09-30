@@ -48,5 +48,13 @@ var BusterHelpers = module.exports = {
     return fs.readdirSync(__dirname + '/../lib/dialects').filter(function(file) {
       return (file.indexOf('.js') === -1)
     })
+  },
+
+  checkMatchForDialects: function(dialect, value, expectations) {
+    if (!!expectations[dialect]) {
+      expect(value).toMatch(expectations[dialect])
+    } else {
+      throw new Error('Undefined expectation for "' + dialect + '"!')
+    }
   }
 }

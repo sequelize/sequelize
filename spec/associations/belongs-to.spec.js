@@ -9,10 +9,10 @@ buster.testRunner.timeout = 500
 
 describe('BelongsTo', function() {
   before(function(done) {
-    var self = this
-
     Helpers.initTests({
-      beforeComplete: function(sequelize) { self.sequelize = sequelize },
+      beforeComplete: function(sequelize) {
+        this.sequelize = sequelize
+      }.bind(this),
       onComplete: done
     })
   })
