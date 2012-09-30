@@ -1,4 +1,5 @@
-# v1.5.1 #
+# v1.6.0 #
+- [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [BUG] fixed wrong version in sequelize binary
 
 # v1.5.0 #
