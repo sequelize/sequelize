@@ -411,7 +411,7 @@ describe('DAO', function() {
           var now       = Date.now()
             , user      = null
             , updatedAt = null
-		
+
           Helpers.async(function(done) {
             // timeout is needed, in order to check the update of the timestamp
             setTimeout(function() {
@@ -554,60 +554,7 @@ describe('DAO', function() {
         })
       })
 
-      describe('toJSON', function() {
-        it('returns an object containing all values', function() {
-          var self = this
 
-          var User = sequelize.define('User', {
-            username: Sequelize.STRING, age: Sequelize.INTEGER, isAdmin: Sequelize.BOOLEAN
-          }, { timestamps: false, logging: false })
-
-          Helpers.async(function(done) {
-            User.sync({ force: true }).success(done)
-          })
-
-          Helpers.async(function(done) {
-            var user = User.build({ username: 'test.user', age: 99, isAdmin: true })
-            expect(user.toJSON()).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
-            done()
-          })
-        })
-
-        it('returns a response that can be stringified', function() {
-          var self = this
-			 
-          var User = sequelize.define('User', {
-            username: Sequelize.STRING, age: Sequelize.INTEGER, isAdmin: Sequelize.BOOLEAN
-          }, { timestamps: false, logging: false })
-
-          Helpers.async(function(done) {
-            User.sync({ force: true }).success(done)
-          })
-
-          Helpers.async(function(done) {
-            var user = User.build({ username: 'test.user', age: 99, isAdmin: true })
-            expect(JSON.stringify(user)).toEqual('{"username":"test.user","age":99,"isAdmin":true,"id":null}')
-            done()
-          })
-        })
-
-        it('returns a response that can be stringified and then parsed', function() {
-          var self = this
-          var User = sequelize.define('User', {
-            username: Sequelize.STRING, age: Sequelize.INTEGER, isAdmin: Sequelize.BOOLEAN
-          }, { timestamps: false, logging: false })
-
-          Helpers.async(function(done) {
-            User.sync({ force: true }).success(done)
-          })
-
-          Helpers.async(function(done) {
-            var user = User.build({ username: 'test.user', age: 99, isAdmin: true })
-            expect(JSON.parse(JSON.stringify(user))).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
-            done()
-          })
-        })
-      })
     })
   })
 })

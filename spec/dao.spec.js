@@ -69,5 +69,35 @@ dialects.forEach(function(dialect) {
         })
       })
     })
+
+    describe('toJSON', function toJSON() {
+      before(function(done) {
+        this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
+          username: Helpers.Sequelize.STRING,
+          age:      Helpers.Sequelize.INTEGER,
+          isAdmin:  Helpers.Sequelize.BOOLEAN
+        }, {
+          timestamps: false,
+          logging: true
+        })
+
+        this.User.sync({ force: true }).success(done)
+      })
+
+      it('returns an object containing all values', function() {
+        var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
+        expect(user.toJSON()).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
+      })
+
+      it('returns a response that can be stringified', function() {
+        var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
+        expect(JSON.stringify(user)).toEqual('{"username":"test.user","age":99,"isAdmin":true,"id":null}')
+      })
+
+      it('returns a response that can be stringified and then parsed', function() {
+        var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
+        expect(JSON.parse(JSON.stringify(user))).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
+      })
+    })
   })
 })
