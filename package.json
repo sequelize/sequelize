@@ -22,7 +22,7 @@
     }
   ],
   "dependencies": {
-    "mysql": "0.9.x",
+    "mysql": "~2.0.0-alpha3",
     "underscore": "~1.4.0",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
