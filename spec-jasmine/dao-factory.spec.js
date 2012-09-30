@@ -42,68 +42,6 @@ describe('DAOFactory', function() {
       beforeEach(function() { setup() })
       afterEach(function() { Helpers.dropAllTables() })
 
-      describe('constructor', function() {
-        it("uses the passed dao name as tablename if freezeTableName", function() {
-          var User = sequelize.define('User', {}, {freezeTableName: true})
-          expect(User.tableName).toEqual('User')
-        })
-
-        it("uses the pluralized daoname as tablename unless freezeTableName", function() {
-          var User = sequelize.define('User', {}, {freezeTableName: false})
-          expect(User.tableName).toEqual('Users')
-        })
-
-        it("attaches class and instance methods", function() {
-          var User = sequelize.define('User', {}, {
-            classMethods: { doSmth: function(){ return 1 } },
-            instanceMethods: { makeItSo: function(){ return 2}}
-          })
-          expect(User.doSmth).toBeDefined()
-          expect(User.doSmth()).toEqual(1)
-          expect(User.makeItSo).toBeUndefined()
-
-          expect(User.build().makeItSo).toBeDefined()
-          expect(User.build().makeItSo()).toEqual(2)
-        })
-
-        it("throws an error if 2 autoIncrements are passed", function() {
-          expect(function () {
-            var User = sequelize.define('User', {
-              userid: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-              userscore: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-            })
-          }).toThrow('Invalid DAO definition. Only one autoincrement field allowed.')
-
-        })
-      })
-
-      describe('build', function() {
-        it("doesn't create database entries", function() {
-          Helpers.async(function(done) {
-            User.build({ name: 'John Wayne', bio: 'noot' })
-            User.all().success(function(users) {
-              expect(users.length).toEqual(0)
-              done()
-            })
-          })
-        })
-
-        it("fills the objects with default values", function() {
-          var Task = sequelize.define('Task' + config.rand(), {
-            title:  {type: Sequelize.STRING, defaultValue: 'a task!'},
-            foo:    {type: Sequelize.INTEGER, defaultValue: 2},
-            bar:    {type: Sequelize.DATE},
-            foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
-            flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
-          })
-          expect(Task.build().title).toEqual('a task!')
-          expect(Task.build().foo).toEqual(2)
-          expect(Task.build().bar).toEqual(null)
-          expect(Task.build().foobar).toEqual('asd')
-          expect(Task.build().flag).toEqual(false)
-        })
-      })
-
       describe('create', function() {
         it("doesn't allow duplicated records with unique:true", function() {
           setup({ username: {type: Sequelize.STRING, unique: true} })

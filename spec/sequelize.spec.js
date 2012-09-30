@@ -15,12 +15,6 @@ describe('Sequelize', function() {
     })
   })
 
-  describe('query', function() {
-    it("returns the expected results as json", function() {
-      expect(1).toEqual(1)
-    })
-  })
-
   describe('isDefined', function() {
     it("returns false if the dao wasn't defined before", function() {
       expect(this.sequelize.isDefined('Project')).toBeFalse()
