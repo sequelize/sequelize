@@ -21,7 +21,7 @@ describe('HasMany', function() {
     describe('hasSingle', function() {
       before(function(done) {
         this.Article = this.sequelize.define('Article', { 'title': Sequelize.STRING })
-        this.Label = this.sequelize.define('Label', { 'text': Sequelize.STRING })
+        this.Label   = this.sequelize.define('Label', { 'text': Sequelize.STRING })
 
         this.Article.hasMany(this.Label)
 
