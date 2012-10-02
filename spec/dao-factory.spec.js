@@ -360,7 +360,9 @@ dialects.forEach(function(dialect) {
         })
       })
 
-      it('//fetches associated objects for 1:1 associations', function(done) {
+      if (dialect === 'mysql') {
+
+      it('fetches associated objects for 1:1 associations', function(done) {
         var Task = this.sequelize.define('Task', {
           title: Sequelize.STRING
         })
@@ -381,7 +383,7 @@ dialects.forEach(function(dialect) {
                   include: [ 'Task' ]
                 }).success(function(user) {
                   expect(user.task).toBeDefined()
-                  expect(user.task).toEqual(task)
+                  expect(user.task.id).toEqual(task.id)
                   done()
                 })
               }) //- setTask
@@ -389,6 +391,8 @@ dialects.forEach(function(dialect) {
           }) //- User.create
         }) //- sequelize.sync
       })
+
+      }
     })
   })
 })
