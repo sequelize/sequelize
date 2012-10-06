@@ -35,7 +35,8 @@
     "jasmine-node": "1.0.17",
     "sqlite3": "~2.1.5",
     "pg": "0.6.x",
-    "buster": "~0.6.0"
+    "buster": "~0.6.0",
+    "dox-foundation": "~0.2.0"
   },
   "keywords": [
     "mysql",
@@ -47,7 +48,8 @@
   "scripts": {
     "test": "npm run test-jasmine && npm run test-buster",
     "test-jasmine": "./node_modules/.bin/jasmine-node spec-jasmine/",
-    "test-buster": "./node_modules/.bin/buster-test"
+    "test-buster": "./node_modules/.bin/buster-test",
+    "generate-docs": "./node_modules/.bin/dox-foundation > docs.html"
   },
   "bin": {
     "sequelize": "bin/sequelize"
