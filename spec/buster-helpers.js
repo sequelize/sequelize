@@ -46,7 +46,7 @@ var BusterHelpers = module.exports = {
 
   getSupportedDialects: function() {
     return fs.readdirSync(__dirname + '/../lib/dialects').filter(function(file) {
-      return (file.indexOf('.js') === -1)
+      return ((file.indexOf('.js') === -1) && (file.indexOf('abstract') === -1))
     })
   },
 
