@@ -417,7 +417,7 @@ dialects.forEach(function(dialect) {
             }.bind(this)) //- sequelize.sync
           })
 
-          it('//fetches associated objects for 1:N associations (1st direction)', function(done) {
+          it('fetches associated objects for 1:N associations (1st direction)', function(done) {
             this.User.hasMany(this.Task)
             this.Task.belongsTo(this.User)
 
@@ -444,10 +444,7 @@ dialects.forEach(function(dialect) {
               }.bind(this)) //- User.create
             }.bind(this)) //- sequelize.sync
           })
-
         })
-
-
       }
     })
   })
