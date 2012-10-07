@@ -1,6 +1,7 @@
 # v1.6.0 #
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [BUG] fixed wrong version in sequelize binary
+- [FEATURE] added association prefetching for find and findAll
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
