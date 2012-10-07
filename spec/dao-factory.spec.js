@@ -444,6 +444,30 @@ dialects.forEach(function(dialect) {
               }.bind(this)) //- User.create
             }.bind(this)) //- sequelize.sync
           })
+
+          it('fetches associated objects for 1:N associations (2nd direction)', function(done) {
+            this.User.hasMany(this.Task)
+            this.Task.belongsTo(this.User)
+
+            this.sequelize.sync({ force: true }).success(function() {
+              this.User.create({ name: 'barfooz' }).success(function(user) {
+                this.Task.create({ title: 'task1' }).success(function(task1) {
+                  this.Task.create({ title: 'task2' }).success(function(task2) {
+                    user.setTasks([task1, task2]).success(function() {
+                      this.Task.find({
+                        where: { 'Tasks.id': 1 },
+                        include: [ 'UserWithName' ]
+                      }).success(function(task) {
+                        expect(task.userWithName).toBeDefined()
+                        expect(task.userWithName.name).toEqual(user.name)
+                        done()
+                      })
+                    }.bind(this)) //- setTask
+                  }.bind(this)) //- Task.create
+                }.bind(this)) //- Task.create
+              }.bind(this)) //- User.create
+            }.bind(this)) //- sequelize.sync
+          })
         })
       }
     })
