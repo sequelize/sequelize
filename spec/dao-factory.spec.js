@@ -468,6 +468,66 @@ dialects.forEach(function(dialect) {
               }.bind(this)) //- User.create
             }.bind(this)) //- sequelize.sync
           })
+
+          it('fetches associated objects for N:M associations (1st direction)', function(done) {
+            this.User.hasMany(this.Task)
+            this.Task.hasMany(this.User)
+
+            this.sequelize.sync({ force: true }).success(function() {
+              this.User.create({ name: 'barfooz' }).success(function(user1) {
+
+                this.Task.create({ title: 'task1' }).success(function(task1) {
+                  this.Task.create({ title: 'task2' }).success(function(task2) {
+                    user1.setTasks([task1, task2]).success(function() {
+                      this.User.find({
+                        where: { 'UserWithNames.id': user1.id },
+                        include: [ 'Task' ]
+                      }).success(function(user) {
+                        expect(user.tasks).toBeDefined()
+                        expect(
+                          user.tasks.map(function(t) { return t.id })
+                        ).toEqual(
+                          [ task1.id, task2.id ]
+                        )
+                        done()
+                      })
+                    }.bind(this)) //- setTask
+                  }.bind(this)) //- Task.create
+                }.bind(this)) //- Task.create
+
+              }.bind(this)) //- User.create
+            }.bind(this)) //- sequelize.sync
+          })
+
+          it('fetches associated objects for N:M associations (2nd direction)', function(done) {
+            this.User.hasMany(this.Task)
+            this.Task.hasMany(this.User)
+
+            this.sequelize.sync({ force: true }).success(function() {
+              this.User.create({ name: 'barfooz' }).success(function(user1) {
+
+                this.Task.create({ title: 'task1' }).success(function(task1) {
+                  this.Task.create({ title: 'task2' }).success(function(task2) {
+                    user1.setTasks([task1, task2]).success(function() {
+                      this.Task.find({
+                        where: { 'Tasks.id': task1.id },
+                        include: [ 'UserWithName' ]
+                      }).success(function(task) {
+                        expect(task.userWithNames).toBeDefined()
+                        expect(
+                          task.userWithNames.map(function(u) { return u.id })
+                        ).toEqual(
+                          [ user1.id ]
+                        )
+                        done()
+                      })
+                    }.bind(this)) //- setTask
+                  }.bind(this)) //- Task.create
+                }.bind(this)) //- Task.create
+
+              }.bind(this)) //- User.create
+            }.bind(this)) //- sequelize.sync
+          })
         })
       }
     })
