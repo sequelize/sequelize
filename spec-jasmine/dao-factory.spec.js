@@ -285,50 +285,6 @@ describe('DAOFactory', function() {
         })
       })
 
-      describe('min', function() {
-        it("should return the min value", function() {
-          for(var i = 2; i < 5; i++) Helpers.Factories.User({ age: i })
-
-          Helpers.async(function(done) {
-            User.min('age').on('success', function(min) {
-              expect(min).toEqual(2); done()
-            })
-          })
-        })
-        it('allows sql logging', function() {
-          Helpers.async(function(done) {
-            User.min('age')
-              .on('sql', function(sql) {
-                expect(sql).toBeDefined()
-                expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
-                done()
-              })
-          })
-        })
-      })
-
-      describe('max', function() {
-        it("should return the max value", function() {
-          for(var i = 2; i <= 5; i++) Helpers.Factories.User({ age: i })
-
-          Helpers.async(function(done) {
-            User.max('age').on('success', function(max) {
-              expect(max).toEqual(5); done()
-            })
-          })
-        })
-        it('allows sql logging', function() {
-          Helpers.async(function(done) {
-            User.max('age')
-              .on('sql', function(sql) {
-                expect(sql).toBeDefined()
-                expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
-                done()
-              })
-          })
-        })
-      })
-
       describe('equals', function() {
         it("correctly determines equality of objects", function() {
           setup({ name: Sequelize.STRING, bio: Sequelize.TEXT })

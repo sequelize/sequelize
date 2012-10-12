@@ -553,14 +553,11 @@ dialects.forEach(function(dialect) {
             this.sequelize.sync({ force: true }).success(function() {
               this.User.create({ name: 'barfooz' }).success(function(user) {
                 this.Task.create({ title: 'task' }).success(function(task) {
-                  console.log('task created')
                   user.setTask(task).success(function() {
-                    console.log('task set')
                     this.User.findAll({
                       where: { 'UserWithNames.id': 1 },
                       include: [ 'Task' ]
                     }).success(function(users) {
-                      console.log('boom')
                       expect(users[0].task).toBeDefined()
                       expect(users[0].task.id).toEqual(task.id)
                       done()
@@ -707,5 +704,63 @@ dialects.forEach(function(dialect) {
         })
       }
     }) //- describe: findAll
+
+    describe('min', function() {
+      before(function(done) {
+        this.UserWithAge = this.sequelize.define('UserWithAge', {
+          age: Sequelize.INTEGER
+        })
+
+        this.UserWithAge.sync({ force: true }).success(done)
+      })
+
+      it("should return the min value", function(done) {
+        this.UserWithAge.create({ age: 2 }).success(function() {
+          this.UserWithAge.create({ age: 3 }).success(function() {
+            this.UserWithAge.min('age').success(function(min) {
+              expect(min).toEqual(2)
+              done()
+            })
+          }.bind(this))
+        }.bind(this))
+      })
+
+      it('allows sql logging', function(done) {
+        this.UserWithAge.min('age').on('sql', function(sql) {
+          expect(sql).toBeDefined()
+          expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+          done()
+        })
+      })
+    }) //- describe: min
+
+    describe('max', function() {
+      before(function(done) {
+        this.UserWithAge = this.sequelize.define('UserWithAge', {
+          age: Sequelize.INTEGER
+        })
+
+        this.UserWithAge.sync({ force: true }).success(done)
+      })
+
+      it("should return the max value", function(done) {
+        this.UserWithAge.create({ age: 2 }).success(function() {
+          this.UserWithAge.create({ age: 3 }).success(function() {
+            this.UserWithAge.max('age').success(function(max) {
+              expect(max).toEqual(3)
+              done()
+            })
+          }.bind(this))
+        }.bind(this))
+      })
+
+      it('allows sql logging', function(done) {
+        this.UserWithAge.max('age').on('sql', function(sql) {
+          expect(sql).toBeDefined()
+          expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+          done()
+        })
+      })
+    }) //- describe: max
   })
 })
