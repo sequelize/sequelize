@@ -215,9 +215,9 @@ dialects.forEach(function(dialect) {
           })
         })
 
-        it("only get objects that fullfil the options", function(done) {
-          this.User.find({where: {username: 'John'}}).success(function (john) {
-            john.getTasks({where: {active: true}, limit: 10, order: 'ID DESC'}).success(function (tasks) {
+        it("only get objects that fulfill the options", function(done) {
+          this.User.find({ where: { username: 'John' } }).success(function (john) {
+            john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' }).success(function (tasks) {
               expect(tasks.length).toEqual(1)
               done();
             })
@@ -259,7 +259,7 @@ dialects.forEach(function(dialect) {
           })
         })
 
-        it("only get objects that fullfil the options", function(done) {
+        it("only get objects that fulfill the options", function(done) {
           this.User.find({where: {username: 'John'}}).success(function (john) {
             john.getTasks({where: {active: true}}).success(function (tasks) {
               expect(tasks.length).toEqual(1)
