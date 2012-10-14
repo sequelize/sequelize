@@ -360,7 +360,7 @@ dialects.forEach(function(dialect) {
         })
       })
 
-      if (dialect === 'mysql') {
+      if (['sqlite', 'mysql'].indexOf(dialect) !== -1) {
 
         describe('association fetching', function() {
           before(function() {
@@ -533,7 +533,7 @@ dialects.forEach(function(dialect) {
     }) //- describe: find
 
     describe('findAll', function findAll() {
-      if (dialect === 'mysql') {
+      if (['sqlite', 'mysql'].indexOf(dialect) !== -1) {
 
         describe('association fetching', function() {
           before(function() {
