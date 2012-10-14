@@ -50,6 +50,16 @@ var BusterHelpers = module.exports = {
     })
   },
 
+  getTestDialect: function() {
+    envDialect = process.env.DIALECT || 'mysql'
+
+    if (this.getSupportedDialects().indexOf(envDialect) === -1) {
+      throw new Error('The dialect you have passed is unknown. Did you really mean: ' + envDialect)
+    }
+
+    return envDialect
+  },
+
   checkMatchForDialects: function(dialect, value, expectations) {
     if (!!expectations[dialect]) {
       expect(value).toMatch(expectations[dialect])
