@@ -239,6 +239,30 @@ describe(dialect, function() {
           }
         }
       }
+
+      it('correctly validates using custom validation methods', function() {
+        var User = this.sequelize.define('User' + Math.random(), {
+          name: {
+            type: Sequelize.STRING,
+            validate: {
+              customFn: function(val) {
+                if (val !== "2") {
+                  throw new Error("name should equal '2'")
+                }
+              }
+            }
+          }
+        })
+
+        var failingUser = User.build({ name : "3" })
+          , errors      = failingUser.validate()
+
+        expect(errors).not.toBeNull(null)
+        expect(errors).toEqual({ name: ["name should equal '2'"] })
+
+        var successfulUser = User.build({ name : "2" })
+        expect(successfulUser.validate()).toBeNull()
+      })
     })
   })
 })
