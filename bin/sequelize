@@ -51,7 +51,11 @@ var createMigrationsFolder = function(force) {
 
 var readConfig = function() {
   try {
-    return JSON.parse(fs.readFileSync(configFile))
+    var config = JSON.parse(fs.readFileSync(configFile))
+    if (config[process.env.NODE_ENV]) {
+      config = config[process.env.NODE_ENV]
+    }
+    return config
   } catch(e) {
     throw new Error('The config.json is not available or contains invalid JSON.')
   }
@@ -105,7 +109,13 @@ if(program.migrate) {
       username: "root",
       password: null,
       database: 'database',
-      host: '127.0.0.1'
+      host: '127.0.0.1',
+      development: {
+        username: "root",
+        password: null,
+        database: 'database',
+        host: '127.0.0.1'
+      }
     })
 
     console.log('Successfully created config.json')
