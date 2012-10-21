@@ -35,7 +35,7 @@ describe('Sequelize', function() {
       this.User.sync().success(done)
     })
 
-    it('=>executes a query the internal way', function(done) {
+    it('executes a query the internal way', function(done) {
       var sql = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
       this.sequelize.query(sql, null, { raw: true }).success(function(result) {
         expect(result).toBeNull()
