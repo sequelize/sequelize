@@ -32,29 +32,29 @@ describe('Sequelize', function() {
         username: Helpers.Sequelize.STRING
       })
 
+      this.insertQuery = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
+
       this.User.sync().success(done)
     })
 
     it('executes a query the internal way', function(done) {
-      var sql = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
-      this.sequelize.query(sql, null, { raw: true }).success(function(result) {
+      this.sequelize.query(this.insertQuery, null, { raw: true }).success(function(result) {
         expect(result).toBeNull()
         done()
       })
     })
 
     it('executes a query if only the sql is passed', function(done) {
-      var sql = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
-      this.sequelize.query(sql).success(function(result) {
+      this.sequelize.query(this.insertQuery).success(function(result) {
         expect(result).toBeNull()
         done()
       })
     })
 
     it('executes select queries correctly', function(done) {
-      var sql = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
-      this.sequelize.query(sql).success(function() {
-        this.sequelize.query("select * from " + this.User.tableName)
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize
+          .query("select * from " + this.User.tableName)
           .success(function(users) {
             expect(users.map(function(u){ return u.username })).toEqual(['john'])
             done()
