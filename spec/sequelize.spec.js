@@ -50,5 +50,15 @@ describe('Sequelize', function() {
         done()
       })
     })
+
+    it('=>executes select queries correctly', function(done) {
+      var sql = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
+      this.sequelize.query(sql).success(function() {
+        this.sequelize.query("select * from " + this.User.tableName).success(function(users) {
+          expect(users.map(function(u){ return u.username })).toEqual(['john'])
+          done()
+        })
+      }.bind(this))
+    })
   })
 })
