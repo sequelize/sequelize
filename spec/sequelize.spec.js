@@ -28,7 +28,7 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
     })
   })
 
-  describe('query', function() {
+  describe('//query', function() {
     before(function(done) {
       this.User = this.sequelize.define('User', {
         username: Helpers.Sequelize.STRING
