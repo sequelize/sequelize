@@ -48,7 +48,10 @@
   "scripts": {
     "test": "npm run test-jasmine && npm run test-buster",
     "test-jasmine": "./node_modules/.bin/jasmine-node spec-jasmine/",
-    "test-buster": "./node_modules/.bin/buster-test",
+    "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-sqlite",
+    "test-buster-mysql": "DIALECT=mysql ./node_modules/.bin/buster-test",
+    "test-buster-postgres": "DIALECT=postgres ./node_modules/.bin/buster-test",
+    "test-buster-sqlite": "DIALECT=sqlite ./node_modules/.bin/buster-test",
     "generate-docs": "node_modules/.bin/dox-foundation --source ./lib --title Sequelize"
   },
   "bin": {

@@ -1,11 +1,13 @@
 if(typeof require === 'function') {
-  const buster    = require("buster")
-      , Helpers   = require('./buster-helpers')
+  const buster  = require("buster")
+      , Helpers = require('./buster-helpers')
+      , dialect = Helpers.getTestDialect()
+
 }
 
 buster.spec.expose()
 
-describe('Sequelize', function() {
+describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
   before(function(done) {
     Helpers.initTests({
       beforeComplete: function(sequelize) { this.sequelize = sequelize }.bind(this),
@@ -44,7 +46,7 @@ describe('Sequelize', function() {
       })
     })
 
-    it('executes a query if only the sql is passed', function(done) {
+    it('//executes a query if only the sql is passed', function(done) {
       this.sequelize.query(this.insertQuery).success(function(result) {
         expect(result).toBeNull()
         done()

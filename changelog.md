@@ -1,10 +1,12 @@
 # v1.6.0 #
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
+- [REFACTORING] separated tests for dialects
 - [BUG] fixed wrong version in sequelize binary
 - [FEATURE] added association prefetching for find and findAll
 - [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
 - [FEATURE] improved comfort of sequelize.query. just pass an sql string to it and wait for the result
 - [FEATURE] Migrations now understand NODE_ENV (thanks to gavri)
+- [FEATURE]
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
