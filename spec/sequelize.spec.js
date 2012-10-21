@@ -42,5 +42,13 @@ describe('Sequelize', function() {
         done()
       })
     })
+
+    it('executes a query if only the sql is passed', function(done) {
+      var sql = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
+      this.sequelize.query(sql).success(function(result) {
+        expect(result).toBeNull()
+        done()
+      })
+    })
   })
 })
