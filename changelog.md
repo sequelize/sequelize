@@ -2,6 +2,7 @@
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [BUG] fixed wrong version in sequelize binary
 - [FEATURE] added association prefetching for find and findAll
+- [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
