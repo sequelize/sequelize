@@ -28,7 +28,7 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
     })
   })
 
-  describe('//query', function() {
+  describe('query', function() {
     before(function(done) {
       this.User = this.sequelize.define('User', {
         username: Helpers.Sequelize.STRING
@@ -39,7 +39,7 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
       this.User.sync().success(done)
     })
 
-    it('executes a query the internal way', function(done) {
+    it('//executes a query the internal way', function(done) {
       this.sequelize.query(this.insertQuery, null, { raw: true }).success(function(result) {
         expect(result).toBeNull()
         done()
@@ -53,7 +53,7 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
       })
     })
 
-    it('executes select queries correctly', function(done) {
+    it('//executes select queries correctly', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
           .query("select * from " + this.User.tableName)
