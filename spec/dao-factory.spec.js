@@ -91,6 +91,11 @@ dialects.forEach(function(dialect) {
         expect(Task.build().foobar).toEqual('asd')
         expect(Task.build().flag).toEqual(false)
       })
+
+      it("stores the the passed values in a special variable", function() {
+        var user = this.User.build({ username: 'John Wayne' })
+        expect(user.selectedValues).toEqual({ username: 'John Wayne' })
+      })
     })
 
     describe('create', function() {
