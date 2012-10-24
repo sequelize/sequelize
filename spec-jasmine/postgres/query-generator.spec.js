@@ -19,12 +19,21 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
         expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));"
       },
+      {
+        arguments: ['mySchema.myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));"
+      },
+
     ],
 
     dropTableQuery: [
       {
         arguments: ['myTable'],
         expectation: "DROP TABLE IF EXISTS \"myTable\";"
+      },
+      {
+        arguments: ['mySchema.myTable'],
+        expectation: "DROP TABLE IF EXISTS \"mySchema\".\"myTable\";"
       }
     ],
 
@@ -69,6 +78,12 @@ describe('QueryGenerator', function() {
         title: 'uses offset even if no limit was passed',
         arguments: ['myTable', {offset: 2}],
         expectation: "SELECT * FROM \"myTable\" OFFSET 2;"
+      }, {
+        arguments: ['mySchema.myTable'],
+        expectation: "SELECT * FROM \"mySchema\".\"myTable\";"
+      }, {
+        arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
+        expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;';"
       }
     ],
 
@@ -100,6 +115,12 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {name: 'foo', nullValue: undefined}],
         expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;",
         context: {options: {omitNull: true}}
+      }, {
+        arguments: ['mySchema.myTable', {name: 'foo'}],
+        expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
+      }, {
+        arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}],
+        expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;') RETURNING *;"
       }
     ],
 
@@ -131,7 +152,13 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {bar: 2, nullValue: undefined}, {name: 'foo'}],
         expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'",
         context: {options: {omitNull: true}}
-      },
+      }, {
+        arguments: ['mySchema.myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
+        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2"
+      }, {
+        arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
+        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo'"
+      }
     ],
 
     deleteQuery: [
@@ -147,6 +174,12 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
         expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo'';DROP TABLE myTable;' LIMIT 10)"
+      }, {
+        arguments: ['mySchema.myTable', {name: 'foo'}],
+        expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo' LIMIT 1)"
+      }, {
+        arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
+        expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
       }
     ],
 
@@ -167,6 +200,9 @@ describe('QueryGenerator', function() {
           'User', ['username', 'isAdmin'], { indicesType: 'FULLTEXT', indexName: 'bar'}
         ],
         expectation: "CREATE FULLTEXT INDEX \"bar\" ON \"User\" (\"username\", \"isAdmin\")"
+      }, {
+        arguments: ['mySchema.User', ['username', 'isAdmin']],
+        expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"mySchema\".\"User\" (\"username\", \"isAdmin\")'
       }
     ],
 
@@ -188,6 +224,9 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['User', ['foo', 'bar']],
         expectation: "DROP INDEX IF EXISTS \"user_foo_bar\""
+      }, {
+        arguments: ['User', 'mySchema.user_foo_bar'],
+        expectation: "DROP INDEX IF EXISTS \"mySchema\".\"user_foo_bar\""
       }
     ],
 
