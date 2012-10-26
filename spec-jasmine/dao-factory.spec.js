@@ -131,6 +131,34 @@ describe('DAOFactory', function() {
         })
       })
 
+      describe('find', function() {
+        var user = null;
+
+        beforeEach(function() {
+          Helpers.Factories.User({name: 'user', bio: 'foobar'}, function(_users) {
+            user = _users[0]
+          }, 1)
+        })
+
+        it("finds entry by id when it's an integer", function() {
+          Helpers.async(function(done) {
+            User.find(user.id).on('success', function(_user) {
+              expect(_user.id).toBe(user.id)
+              done()
+            })
+          })
+        })
+
+        it("finds entry by id when it's a string", function() {
+          Helpers.async(function(done) {
+            User.find('1').on('success', function(_user) {
+              expect(_user.id).toBe(user.id)
+              done()
+            })
+          })
+        })
+      })
+
       describe('findAll', function() {
         var users = []
 
@@ -151,7 +179,7 @@ describe('DAOFactory', function() {
 
         it("finds all users matching the passed conditions", function() {
           Helpers.async(function(done) {
-            User.findAll({where: "id != " + users[1].id}).success(function(_users) {
+            User.findAll({where: ["id != ?", users[1].id]}).success(function(_users) {
               expect(_users.length).toEqual(1)
               done()
             })
@@ -277,7 +305,7 @@ describe('DAOFactory', function() {
           })
 
           Helpers.async(function(done) {
-            User.count({where: "name LIKE '%us%'"}).success(function(count) {
+            User.count({where: ["name LIKE ?", '%us%']}).success(function(count) {
               expect(count).toEqual(1)
               done()
             })

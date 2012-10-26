@@ -60,7 +60,7 @@ describe('QueryGenerator', function() {
         arguments: ['foo', { attributes: [['count(*)', 'count']] }],
         expectation: 'SELECT count(*) as \"count\" FROM \"foo\";'
       }, {
-        arguments: ['myTable', {where: "foo='bar'"}],
+        arguments: ['myTable', {where: ["foo=?",'bar']}],
         expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
       }, {
         arguments: ['myTable', {order: "id DESC"}],
