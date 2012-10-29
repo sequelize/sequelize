@@ -24,7 +24,8 @@ var BusterHelpers = module.exports = {
     var sequelizeOptions = {
       logging: options.logging,
       dialect: options.dialect,
-      port:    config[options.dialect].port
+      port:    config[options.dialect].port,
+      pool:     config[options.dialect].pool
     }
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -59,25 +60,11 @@ var BusterHelpers = module.exports = {
   getTestDialect: function() {
     var envDialect = process.env.DIALECT || 'mysql'
 
-    if (envDialect === 'postgres-native') {
-      envDialect = 'postgres'
-    }
-
     if (this.getSupportedDialects().indexOf(envDialect) === -1) {
       throw new Error('The dialect you have passed is unknown. Did you really mean: ' + envDialect)
     }
 
     return envDialect
-  },
-
-  getTestDialectTeaser: function() {
-    var dialect = this.getTestDialect()
-
-    if (process.env.DIALECT === 'postgres-native') {
-      dialect = 'postgres-native'
-    }
-
-    return dialect.toUpperCase()
   },
 
   checkMatchForDialects: function(dialect, value, expectations) {
