@@ -151,7 +151,7 @@ describe('DAOFactory', function() {
 
         it("finds entry by id when it's a string", function() {
           Helpers.async(function(done) {
-            User.find('1').on('success', function(_user) {
+            User.find(String(user.id)).on('success', function(_user) {
               expect(_user.id).toBe(user.id)
               done()
             })
