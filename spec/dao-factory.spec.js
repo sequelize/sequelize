@@ -550,7 +550,7 @@ describe("[" + dialect.toUpperCase() + "] DAOFactory", function() {
   }) //- describe: find
 
   describe('findAll', function findAll() {
-    describe('association fetching', function() {
+    describe('include', function() {
       before(function() {
         this.Task = this.sequelize.define('Task', {
           title: Sequelize.STRING
@@ -559,6 +559,31 @@ describe("[" + dialect.toUpperCase() + "] DAOFactory", function() {
         this.User = this.sequelize.define('UserWithName', {
           name: Sequelize.STRING
         })
+      })
+
+      it('fetches data only for the relevant where clause', function(done) {
+        this.User.hasOne(this.Task)
+        this.Task.belongsTo(this.User)
+
+        this.sequelize.sync({ force: true }).success(function() {
+          this.User.create({ name: 'barfooz' }).success(function(user1) {
+            this.User.create({ name: 'barfooz' }).success(function(user2) {
+              this.Task.create({ title: 'task' }).success(function(task) {
+                this.User.findAll({
+                  where: [
+                    Sequelize.Utils.addTicks(this.User.tableName) + ".`id`=?",
+                    user1.id
+                  ],
+                  include: [ 'Task' ]
+                }).success(function(users){
+                  expect(users.length).toEqual(1)
+                  // console.log(users[0])
+                  done()
+                }.bind(this))
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
       })
 
       it('fetches associated objects for 1:1 associations (1st direction)', function(done) {
