@@ -6,7 +6,7 @@ if (typeof require === 'function') {
 }
 
 buster.spec.expose()
-buster.testRunner.timeout = 500
+buster.testRunner.timeout = 1500
 
 describe("[" + dialect.toUpperCase() + "] HasOne", function() {
   before(function(done) {
@@ -27,23 +27,25 @@ describe("[" + dialect.toUpperCase() + "] HasOne", function() {
       User.hasOne(Task)
 
       this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            user.setTask(task).success(function() {
-              user.getTask().success(function(task) {
-                expect(task).not.toEqual(null)
+        setTimeout(function(){
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTask(task).success(function() {
+                user.getTask().success(function(task) {
+                  expect(task).not.toEqual(null)
 
-                user.setTask(null).success(function() {
-                  user.getTask().success(function(task) {
-                    expect(task).toEqual(null)
-                    done()
+                  user.setTask(null).success(function() {
+                    user.getTask().success(function(task) {
+                      expect(task).toEqual(null)
+                      done()
+                    })
                   })
-                })
 
+                })
               })
             })
           })
-        })
+        }.bind(this), 500)
       })
     })
   })
