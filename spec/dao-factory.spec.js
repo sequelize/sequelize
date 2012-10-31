@@ -300,6 +300,15 @@ describe("[" + dialect.toUpperCase() + "] DAOFactory", function() {
       }.bind(this))
     })
 
+    it('returns a single dao given a string id', function(done) {
+      this.User.find(this.user.id + '').success(function(user) {
+        expect(Array.isArray(user)).toBeFalsy()
+        expect(user.id).toEqual(this.user.id)
+        expect(user.id).toEqual(1)
+        done()
+      }.bind(this))
+    })
+
     it("should make aliased attributes available", function(done) {
       this.User.find({
         where: { id: 1 },
