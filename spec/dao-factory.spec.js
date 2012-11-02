@@ -569,11 +569,14 @@ describe("[" + dialect.toUpperCase() + "] DAOFactory", function() {
           this.User.create({ name: 'barfooz' }).success(function(user1) {
             this.User.create({ name: 'barfooz' }).success(function(user2) {
               this.Task.create({ title: 'task' }).success(function(task) {
+                var where = [Sequelize.Utils.addTicks(this.User.tableName) + ".`id`=?", user1.id]
+
+                if (dialect === 'postgres') {
+                  where = ['"' + this.User.tableName + '"."id"=?', user1.id]
+                }
+
                 this.User.findAll({
-                  where: [
-                    Sequelize.Utils.addTicks(this.User.tableName) + ".`id`=?",
-                    user1.id
-                  ],
+                  where: where,
                   include: [ 'Task' ]
                 }).success(function(users){
                   expect(users.length).toEqual(1)
