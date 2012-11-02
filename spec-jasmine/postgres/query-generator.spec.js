@@ -127,37 +127,37 @@ describe('QueryGenerator', function() {
     updateQuery: [
       {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, 2],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['myTable', {bar: 2}, {name: 'foo'}],
-        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'"
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *"
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo'';DROP TABLE myTable;' WHERE \"name\"='foo'"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo'';DROP TABLE myTable;' WHERE \"name\"='foo' RETURNING *"
       }, {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-        expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\"='foo'"
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\"='foo' RETURNING *"
       }, {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-        expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\"='foo'",
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\"='foo' RETURNING *",
         context: {options: {omitNull: false}}
       }, {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'",
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *",
         context: {options: {omitNull: true}}
       }, {
         arguments: ['myTable', {bar: 2, nullValue: undefined}, {name: 'foo'}],
-        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo'",
+        expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *",
         context: {options: {omitNull: true}}
       }, {
         arguments: ['mySchema.myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2"
+        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
-        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo'"
+        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo' RETURNING *"
       }
     ],
 
