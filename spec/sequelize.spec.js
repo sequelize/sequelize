@@ -34,7 +34,7 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
         username: Helpers.Sequelize.STRING
       })
 
-      this.insertQuery = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
+      this.insertQuery = "INSERT INTO " + this.User.tableName + " (username, createdAt, updatedAt) VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
       this.User.sync().success(done).error(function(err) {
         console(err)
