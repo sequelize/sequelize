@@ -44,11 +44,21 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
         expect(result).toBeNull()
         done()
       })
+      .error(function(err) {
+        console.log(err)
+        expect(err).not.toBeDefined()
+        done()
+      })
     })
 
     it('executes a query if only the sql is passed', function(done) {
       this.sequelize.query(this.insertQuery).success(function(result) {
         expect(result).not.toBeDefined()
+        done()
+      })
+      .error(function(err) {
+        console.log(err)
+        expect(err).not.toBeDefined()
         done()
       })
     })
