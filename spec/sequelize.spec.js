@@ -36,7 +36,10 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
 
       this.insertQuery = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
 
-      this.User.sync().success(done)
+      this.User.sync().success(done).error(function(err) {
+        console(err)
+        done()
+      })
     })
 
     it('executes a query the internal way', function(done) {
