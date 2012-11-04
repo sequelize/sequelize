@@ -43,7 +43,7 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
     })
 
     it('executes a query the internal way', function(done) {
-      this.sequelize.query(this.insertQuery, null, { raw: true }).success(function(result) {
+      this.sequelize.query(this.insertQuery, null, { raw: true }).success(function(result) {
         expect(result).toBeNull()
         done()
       })
