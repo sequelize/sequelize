@@ -34,26 +34,39 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
         username: Helpers.Sequelize.STRING
       })
 
-      this.insertQuery = "INSERT INTO " + this.User.tableName + " (username) VALUES ('john')"
+      this.insertQuery = "INSERT INTO " + this.User.tableName + " (username, createdAt, updatedAt) VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
-      this.User.sync().success(done)
-    })
-
-    it('//executes a query the internal way', function(done) {
-      this.sequelize.query(this.insertQuery, null, { raw: true }).success(function(result) {
-        expect(result).toBeNull()
+      this.User.sync().success(done).error(function(err) {
+        console(err)
         done()
       })
     })
 
-    it('//executes a query if only the sql is passed', function(done) {
+    it('executes a query the internal way', function(done) {
+      this.sequelize.query(this.insertQuery, null, { raw: true }).success(function(result) {
+        expect(result).toBeNull()
+        done()
+      })
+      .error(function(err) {
+        console.log(err)
+        expect(err).not.toBeDefined()
+        done()
+      })
+    })
+
+    it('executes a query if only the sql is passed', function(done) {
       this.sequelize.query(this.insertQuery).success(function(result) {
-        expect(result).toBeNull()
+        expect(result).not.toBeDefined()
+        done()
+      })
+      .error(function(err) {
+        console.log(err)
+        expect(err).not.toBeDefined()
         done()
       })
     })
 
-    it('//executes select queries correctly', function(done) {
+    it('executes select queries correctly', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
           .query("select * from " + this.User.tableName)
