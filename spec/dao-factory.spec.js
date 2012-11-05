@@ -364,13 +364,13 @@ describe("[" + dialect.toUpperCase() + "] DAOFactory", function() {
       })
     })
 
-    it('//returns the selected fields as instance.selectedValues', function(done) {
+    it('returns the selected fields as instance.selectedValues', function(done) {
       this.User.create({
         username: 'JohnXOXOXO'
       }).success(function() {
         this.User.find({
           where: { username: 'JohnXOXOXO' },
-          select: ['username']
+          attributes: ['username']
         }).success(function(user) {
           expect(user.selectedValues).toEqual({ username: 'JohnXOXOXO' })
           done()
