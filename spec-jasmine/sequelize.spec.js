@@ -46,6 +46,23 @@ describe('Sequelize', function() {
       var DAO = sequelize.define('foo', {bar: Sequelize.STRING}, {collate: 'utf8_bin'})
       expect(DAO.options.collate).toEqual('utf8_bin')
     })
+
+    it("inherits global classMethods and instanceMethods", function() {
+      setup({
+        define: {
+          classMethods : { globalClassMethod : function() {} },
+          instanceMethods : { globalInstanceMethod : function() {} }
+        }
+      })
+
+      var DAO = sequelize.define('foo', {bar: Sequelize.STRING}, {
+        classMethods : { localClassMethod : function() {} }
+      })
+
+      expect(typeof DAO.options.classMethods.globalClassMethod).toEqual('function')
+      expect(typeof DAO.options.classMethods.localClassMethod).toEqual('function')
+      expect(typeof DAO.options.instanceMethods.globalInstanceMethod).toEqual('function')
+    })
   })
 
   describe('sync', function() {
