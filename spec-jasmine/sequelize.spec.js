@@ -40,6 +40,12 @@ describe('Sequelize', function() {
       sequelize.define('foo', { title: Sequelize.STRING })
       expect(sequelize.daoFactoryManager.all.length).toEqual(1)
     })
+
+    it("overwrites global options", function() {
+      setup({ define: { collate: 'utf8_general_ci' } })
+      var DAO = sequelize.define('foo', {bar: Sequelize.STRING}, {collate: 'utf8_bin'})
+      expect(DAO.options.collate).toEqual('utf8_bin')
+    })
   })
 
   describe('sync', function() {
