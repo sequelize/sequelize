@@ -47,6 +47,12 @@ describe('Sequelize', function() {
       expect(DAO.options.collate).toEqual('utf8_bin')
     })
 
+    it("inherits global collate option", function() {
+      setup({ define: { collate: 'utf8_general_ci' } })
+      var DAO = sequelize.define('foo', {bar: Sequelize.STRING})
+      expect(DAO.options.collate).toEqual('utf8_general_ci')
+    })
+
     it("inherits global classMethods and instanceMethods", function() {
       setup({
         define: {
