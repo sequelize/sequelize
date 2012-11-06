@@ -110,11 +110,14 @@ $ # run the buster specs for postgresql:
 $ npm run test-buster-postgres
 ```
 
-### 4. That's all ###
+### 5. That's all ###
 
 Just commit and send pull requests.
+Happy hacking and thank you for contributing.
+Ah and one last thing: If you think you deserve it, feel free to add yourself to the
+`package.json`. Also I always look for projects which are using sequelize. If you have
+one of them, drop me a line!
 
-Happy hacking and thank you for contributing
 
 # Build status
 
