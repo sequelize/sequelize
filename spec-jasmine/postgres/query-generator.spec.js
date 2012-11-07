@@ -119,6 +119,9 @@ describe('QueryGenerator', function() {
         arguments: ['mySchema.myTable', {name: 'foo'}],
         expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
       }, {
+        arguments: ['mySchema.myTable', {name: JSON.stringify({info: 'Look ma a " quote'})}],
+        expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('{\"info\":\"Look ma a \\\" quote\"}') RETURNING *;"
+      }, {
         arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}],
         expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;') RETURNING *;"
       }
