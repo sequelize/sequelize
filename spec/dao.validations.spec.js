@@ -117,6 +117,12 @@ describe("[" + dialect.toUpperCase() + "] DAO", function() {
         pass: ["12", "123", "1234"],
         raw: true
       }
+    , len: {
+        spec: [2,4],
+        fail: ["1", "12345"],
+        pass: ["12", "123", "1234"],
+        raw: true
+    }
     , isUUID : {
         spec: { args: 4 },
         fail: "f47ac10b-58cc-3372-a567-0e02b2c3d479",
@@ -151,8 +157,18 @@ describe("[" + dialect.toUpperCase() + "] DAO", function() {
         fail: "24",
         pass: "23"
       }
+    , max : {
+        spec: 23,
+        fail: "24",
+        pass: "23"
+      }
     , min : {
         spec: { args: 23 },
+        fail: "22",
+        pass: "23"
+      }
+    , min : {
+        spec: 23,
         fail: "22",
         pass: "23"
       }
