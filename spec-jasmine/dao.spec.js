@@ -31,6 +31,30 @@ describe('DAO', function() {
       beforeEach(function() { Helpers.dropAllTables(); setup() })
       afterEach(function() { Helpers.dropAllTables() })
 
+      describe('Escaping', function() {
+        it('is done properly for special characters', function() {
+          var User = sequelize.define('User', {
+            bio: Sequelize.TEXT
+          }, { timestamps: false, logging: false })
+
+          Helpers.async(function(done) {
+            User.sync({ force: true }).success(done)
+          })
+
+          Helpers.async(function(done) {
+            // Ideally we should test more: "\0\n\r\b\t\\\'\"\x1a"
+            // But this causes sqlite to fail and exits the entire test suite immediately
+            var bio = dialect + "'\"\n"; // Need to add the dialect here so in case of failure I know what DB it failed for
+            User.create({ bio: bio }).success(function(u1) {
+              User.find(u1.id).success(function(u2) {
+                expect(u2.bio).toEqual(bio)
+                done()
+              })
+            })
+          })
+        })
+      })
+
       describe('isNewRecord', function() {
         it('returns true for non-saved objects', function() {
           var user = User.build({ username: 'user' })
@@ -309,7 +333,6 @@ describe('DAO', function() {
           })
         })
       })
-
 
     })
   })
