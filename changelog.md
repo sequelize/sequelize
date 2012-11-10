@@ -9,6 +9,7 @@
 - [FEATURE] Migrations now understand NODE_ENV (thanks to gavri)
 - [FEATURE] Performance improvements (thanks to Mick-Hansen and janmeier from innofluence)
 - [FEATURE] Model.find and Model.findAll can now take a String with an ID. (thanks to ghernandez345)
+- [FEATURE] Compatibility for JSON-like strings in Postgres (thanks to aslakhellesoy)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
