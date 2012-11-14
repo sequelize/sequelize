@@ -3,6 +3,7 @@
 - [REFACTORING] separated tests for dialects
 - [BUG] fixed wrong version in sequelize binary
 - [BUG] local options have higher priority than global options (thanks to guersam)
+- [BUG] fixed where clause when passing an empty array (thanks to kbackowski)
 - [FEATURE] added association prefetching for find and findAll
 - [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
 - [FEATURE] improved comfort of sequelize.query. just pass an sql string to it and wait for the result
