@@ -207,6 +207,10 @@ describe('QueryGenerator', function() {
       {
         arguments: [{ id: [1,2,3] }],
         expectation: "`id` IN (1,2,3)"
+      },
+      {
+        arguments: [{ id: [] }],
+        expectation: "`id` IN (NULL)"
       }
     ]
   }
