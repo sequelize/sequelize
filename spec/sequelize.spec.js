@@ -81,5 +81,20 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
           })
       }.bind(this))
     })
+
+    it('executes stored procedures', function(done) {
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
+          this.sequelize.query(
+            "CREATE PROCEDURE foo()\nSELECT * FROM " + this.User.tableName + ";"
+          ).success(function() {
+            this.sequelize.query('CALL foo()').success(function(users) {
+              expect(users.map(function(u){ return u.username })).toEqual(['john'])
+              done()
+            })
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
   })
 })
