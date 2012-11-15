@@ -86,7 +86,7 @@ describe("[" + dialect.toUpperCase() + "] DAOFactory", function() {
       })
       expect(Task.build().title).toEqual('a task!')
       expect(Task.build().foo).toEqual(2)
-      expect(Task.build().bar).toEqual(null)
+      expect(Task.build().bar).toEqual(undefined)
       expect(Task.build().foobar).toEqual('asd')
       expect(Task.build().flag).toEqual(false)
     })

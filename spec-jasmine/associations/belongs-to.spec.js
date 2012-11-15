@@ -62,7 +62,7 @@ describe('BelongsTo', function() {
     Task.belongsTo(User)
 
     var task = Task.build({title: 'asd'})
-    expect(task['UserId']).toBeNull()
+    expect(task['UserId']).not.toBeDefined();
   })
 
   it("sets and gets the correct objects", function() {
