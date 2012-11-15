@@ -426,20 +426,20 @@ describe("[" + dialect.toUpperCase() + "] DAOFactory", function() {
 
         this.sequelize.sync({ force: true }).success(function() {
           this.User.create({ name: 'barfooz' }).success(function(user) {
-          this.User.create({ name: 'another user' }).success(function(another_user) {
-            this.Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
-                this.Task.find({
-                  where: { 'Tasks.id': 1 },
-                  include: [ 'UserWithName' ]
-                }).success(function(task) {
-                  expect(task.userWithName).toBeDefined()
-                  expect(task.userWithName.id).toEqual(user.id)
-                  done()
-                })
-              }.bind(this)) //- setTask
-            }.bind(this)) //- Task.create
-          }.bind(this)) //- User.create
+            this.User.create({ name: 'another user' }).success(function(another_user) {
+              this.Task.create({ title: 'task' }).success(function(task) {
+                user.setTask(task).success(function() {
+                  this.Task.find({
+                    where: { 'Tasks.id': 1 },
+                    include: [ 'UserWithName' ]
+                  }).success(function(task) {
+                    expect(task.userWithName).toBeDefined()
+                    expect(task.userWithName.id).toEqual(user.id)
+                    done()
+                  })
+                }.bind(this)) //- setTask
+              }.bind(this)) //- Task.create
+            }.bind(this)) //- User.create
           }.bind(this)) //- User.create
         }.bind(this)) //- sequelize.sync
       })
