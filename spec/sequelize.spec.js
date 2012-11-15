@@ -96,5 +96,14 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
         }.bind(this))
       }.bind(this))
     })
+
+    it('uses the passed DAOFactory', function(done) {
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize.query("SELECT * FROM " + this.User.tableName + ";", this.User).success(function(users) {
+          expect(users[0].__factory).toEqual(this.User)
+          done()
+        }.bind(this))
+      }.bind(this))
+    })
   })
 })
