@@ -229,7 +229,8 @@ describe('DAO', function() {
           it("doesn't update the updatedAt column", function() {
             Helpers.async(function(done) {
               User2.create({ username: 'john doe' }).success(function(johnDoe) {
-                expect(johnDoe.updatedAt).toBeNull()
+                // sqlite and mysql return undefined, whereas postgres returns null
+                expect([undefined, null].indexOf(johnDoe.updatedAt)).not.toBe(-1);
                 done()
               })
             })
