@@ -74,6 +74,10 @@ describe('QueryGenerator', function() {
         expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
         context: QueryGenerator
       }, {
+        arguments: ['myTable', {group: "name", order: "id DESC"}],
+        expectation: "SELECT * FROM `myTable` GROUP BY `name` ORDER BY id DESC;",
+        context: QueryGenerator
+      }, {
         arguments: ['myTable', {limit: 10}],
         expectation: "SELECT * FROM `myTable` LIMIT 10;",
         context: QueryGenerator
