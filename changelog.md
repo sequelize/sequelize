@@ -14,6 +14,7 @@
 - [FEATURE] honor maxConcurrentQueries option (thanks to dchester)
 - [FEATURE] added support for stored procedures (inspired by wuyuntao)
 - [FEATURE] added possibility to use pg lib's native api (thanks to denysonique)
+- [FEATURE] added possibility to define the attributes of received associations (thanks to joshm)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
