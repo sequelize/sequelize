@@ -13,6 +13,7 @@
 - [FEATURE] Compatibility for JSON-like strings in Postgres (thanks to aslakhellesoy)
 - [FEATURE] honor maxConcurrentQueries option (thanks to dchester)
 - [FEATURE] added support for stored procedures (inspired by wuyuntao)
+- [FEATURE] added possibility to use pg lib's native api (thanks to denysonique)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
