@@ -70,6 +70,16 @@ var BusterHelpers = module.exports = {
     return envDialect
   },
 
+  getTestDialectTeaser: function() {
+    var dialect = this.getTestDialect()
+
+    if (process.env.DIALECT === 'postgres-native') {
+      dialect = 'postgres-native'
+    }
+
+    return dialect.toUpperCase()
+  },
+
   checkMatchForDialects: function(dialect, value, expectations) {
     if (!!expectations[dialect]) {
       expect(value).toMatch(expectations[dialect])

@@ -6,7 +6,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe("[" + dialect.toUpperCase() + "] DAO", function() {
+describe("[" + Helpers.getTestDialectTeaser() + "] DAO", function() {
   before(function(done) {
     var self = this
 
