@@ -88,7 +88,11 @@ describe('HasOne', function() {
       user.setTask(task).on('success', function() {
         user.getTask().on('success', function(task2) {
           expect(task.title).toEqual(task2.title)
-          done()
+          user.getTask({attributes: ['title']}).on('success', function(task2) {
+            expect(task2.selectedValues.title).toEqual('snafu')
+            expect(task2.selectedValues.id).toEqual(null)
+            done()
+          })
         })
       })
     })
