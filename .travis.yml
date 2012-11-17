@@ -3,18 +3,22 @@ before_script:
   - "psql -c 'create database sequelize_test;' -U postgres"
 
 script:
-  - "npm test"
+  - "npm run test-buster-travis"
+  - "npm run test-jasmine"
 
 notifications:
   email:
     - sascha@depold.com
 
 env:
-  - DB=mysql
+  - DB=mysql DIALECT=mysql
+  - DB=mysql DIALECT=postgres
+  - DB=mysql DIALECT=postgres-native
+  - DB=mysql DIALECT=sqlite
 
 language: node_js
 
 node_js:
-  - 0.6
   - 0.8
+  - 0.9
 

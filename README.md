@@ -30,31 +30,33 @@ Also make sure to take a look at the examples in the repository. The website wil
 - [IRC](irc://irc.freenode.net/sequelizejs)
 - [XING](https://www.xing.com/net/priec1b5cx/sequelize)
 
-## Collaboration ##
+## Collaboration 2.0 ##
 
 I'm glad to get pull request if any functionality is missing or something is buggy. But _please_ ... run the tests before you send me the pull request.
 
-Now if you want to contribute but don't really know where to begin
-don't worry, the steps below will guide you to have a sequelize
-contributor's environment running in a couple minutes.
+Still interested? Coolio! Here is how to get started:
 
-### 1. Prepare the environment ###
+### 1. Prepare your environment ###
 
-All the following steps consider you already have [npm](http://npmjs.org/) installed in your [node.js version 0.4.6 or higher](https://github.com/sdepold/sequelize/blob/master/package.json#L30)
+Here comes a little surprise: You need [Node.JS](http://nodejs.org). In order to be
+a productive developer, I would recommend the latest v0.8 (or a stable 0.9 if
+already out). Also I usually recommend [NVM](https://github.com/creationix/nvm).
 
-#### 1.1 MySQL and other external dependencies ####
+Once Node.JS is installed on your computer, you will also have access to the lovely
+Node Package Manager (NPM).
 
-Contributing to sequelize requires you to have
-[MySQL](http://www.mysql.com/) up and running in your local
-environment. The reason for that is that we have test cases that runs
-against an actual MySQL server and make sure everything is always
-working. 
+### 2. Database... Come to me! ###
 
-That is also one of the reasons your features must come with tests:
-let's make sure sequelize will stay awesome as more features are added
-as well as that fixed bugs will never come back.
+First class citizen of Sequelize was MySQL. Over time, Sequelize began to
+become compatible to SQLite and PostgreSQL. In order to provide a fully
+featured pull request, you would most likely want to install of them. Give
+it a try, it's not that hard.
 
-Well, after installing **MySQL** you also need to create the sequelize test database:
+If you are too lazy or just don't know how to get this work,
+feel free to join the IRC channel (freenode@#sequelizejs).
+
+For MySQL and PostgreSQL you'll need to create a DB called `sequelize_test`.
+For MySQL this would look like this:
 
 ```console
 $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
@@ -65,10 +67,11 @@ $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
   tests, but make sure to don't commit your credentials, we don't want
   to expose your personal data in sequelize codebase ;)
 
-**AND ONE LAST THING:** Sequelize also supports SQLite. So this should be working
-on your machine as well :)
+**AND ONE LAST THING:** Once `npm install` worked for you (see below), you'll
+get SQLite tests for free :)
 
-### 2. Install the dependencies ###
+
+### 3. Install the dependencies ###
 
 Just "cd" into sequelize directory and run `npm install`, see an example below:
 
@@ -77,25 +80,44 @@ $ cd path/to/sequelize
 $ npm install
 ```
 
-### 3. Run the tests ###
+### 4. Run the tests ###
 
-In order to run the tests you got to run `jasmine-node` against the `spec` directory.
-By the way, [there](https://github.com/sdepold/sequelize/tree/master/spec) is where
-you will write new tests if that's the case.
+Right now, the test base is split into the `spec` folder (which contains the
+lovely [BusterJS](http://busterjs.org) tests) and the `spec-jasmine` folder
+(which contains the ugly and awkward node-jasmine based tests). A main goal
+is to get rid of the jasmine tests!
 
-All you need is to run `./node_modules/.bin/jasmine-node spec/`,
-although this is kinda long and boring, so we configures a NPM task
-and made that less laborious to you :)
+As you might haven't installed all of the supported SQL dialects, here is how
+to run the test suites for your development environment:
 
 ```console
+$ # run all tests at once:
 $ npm test
+
+$ # run only the jasmine tests (for all dialects):
+$ npm run test-jasmine
+
+$ # run all of the buster specs (for all dialects):
+$ npm run test-buster
+
+$ # run the buster specs for mysql:
+$ npm run test-buster-mysql
+
+$ # run the buster specs for sqlite:
+$ npm run test-buster-sqlite
+
+$ # run the buster specs for postgresql:
+$ npm run test-buster-postgres
 ```
 
-### 4. That's all ###
+### 5. That's all ###
 
 Just commit and send pull requests.
+Happy hacking and thank you for contributing.
+Ah and one last thing: If you think you deserve it, feel free to add yourself to the
+`package.json`. Also I always look for projects which are using sequelize. If you have
+one of them, drop me a line!
 
-Happy hacking and thank you for contributing
 
 # Build status
 

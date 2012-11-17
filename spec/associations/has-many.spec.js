@@ -2,16 +2,18 @@ if (typeof require === 'function') {
   const buster    = require("buster")
       , Helpers   = require('../buster-helpers')
       , Sequelize = require('../../index')
+      , dialect   = Helpers.getTestDialect()
 }
 
 buster.spec.expose()
 buster.testRunner.timeout = 500
 
-describe('HasMany', function() {
+describe("[" + Helpers.getTestDialectTeaser() + "] HasMany", function() {
   before(function(done) {
     var self = this
 
     Helpers.initTests({
+      dialect: dialect,
       beforeComplete: function(sequelize) { self.sequelize = sequelize },
       onComplete: done
     })
@@ -21,7 +23,7 @@ describe('HasMany', function() {
     describe('hasSingle', function() {
       before(function(done) {
         this.Article = this.sequelize.define('Article', { 'title': Sequelize.STRING })
-        this.Label = this.sequelize.define('Label', { 'text': Sequelize.STRING })
+        this.Label   = this.sequelize.define('Label', { 'text': Sequelize.STRING })
 
         this.Article.hasMany(this.Label)
 
@@ -154,7 +156,7 @@ describe('HasMany', function() {
     })
 
     it("clears associations when passing null to the set-method with omitNull set to true", function(done) {
-      this.sequelize.options.omitNull = true;
+      this.sequelize.options.omitNull = true
 
       var User = this.sequelize.define('User', { username: Sequelize.STRING })
         , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
@@ -212,9 +214,9 @@ describe('HasMany', function() {
         })
       })
 
-      it("only get objects that fullfil the options", function(done) {
-        this.User.find({where: {username: 'John'}}).success(function (john) {
-          john.getTasks({where: {active: true}, limit: 10, order: 'ID DESC'}).success(function (tasks) {
+      it("only get objects that fulfill the options", function(done) {
+        this.User.find({ where: { username: 'John' } }).success(function (john) {
+          john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' }).success(function (tasks) {
             expect(tasks.length).toEqual(1)
             done();
           })
@@ -256,7 +258,7 @@ describe('HasMany', function() {
         })
       })
 
-      it("only get objects that fullfil the options", function(done) {
+      it("only get objects that fulfill the options", function(done) {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks({where: {active: true}}).success(function (tasks) {
             expect(tasks.length).toEqual(1)

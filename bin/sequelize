@@ -9,9 +9,11 @@ const path      = require("path")
 
 var configPath       = process.cwd() + '/config'
   , migrationsPath   = process.cwd() + '/migrations'
+  , packageJsonPath  = __dirname + '/../package.json'
+  , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
   , configFile       = configPath + '/config.json'
-  , configPathExists = path.existsSync(configPath)
-  , configFileExists = path.existsSync(configFile)
+  , configPathExists = fs.existsSync(configPath)
+  , configFileExists = fs.existsSync(configFile)
 
 var writeConfig = function(config) {
   !configPathExists && fs.mkdirSync(configPath)
@@ -49,14 +51,21 @@ var createMigrationsFolder = function(force) {
 
 var readConfig = function() {
   try {
-    return JSON.parse(fs.readFileSync(configFile))
+    var config = JSON.parse(fs.readFileSync(configFile))
+      , env    = process.env.NODE_ENV || 'development'
+
+    if (config[env]) {
+      config = config[env]
+    }
+
+    return config
   } catch(e) {
     throw new Error('The config.json is not available or contains invalid JSON.')
   }
 }
 
 program
-  .version('1.3.0')
+  .version(packageJson.version)
   .option('-i, --init', 'Initializes the project. Creates a config/config.json')
   .option('-m, --migrate', 'Runs undone migrations')
   .option('-u, --undo', 'Redo the last migration.')
@@ -100,10 +109,24 @@ if(program.migrate) {
 } else if(program.init) {
   if(!configFileExists || !!program.force) {
     writeConfig({
-      username: "root",
-      password: null,
-      database: 'database',
-      host: '127.0.0.1'
+      development: {
+        username: "root",
+        password: null,
+        database: 'database_development',
+        host: '127.0.0.1'
+      },
+      test: {
+        username: "root",
+        password: null,
+        database: 'database_test',
+        host: '127.0.0.1'
+      },
+      production: {
+        username: "root",
+        password: null,
+        database: 'database_production',
+        host: '127.0.0.1'
+      }
     })
 
     console.log('Successfully created config.json')

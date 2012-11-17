@@ -35,44 +35,61 @@ describe('QueryGenerator', function() {
     selectQuery: [
       {
         arguments: ['myTable'],
-        expectation: "SELECT * FROM `myTable`;"
+        expectation: "SELECT * FROM `myTable`;",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {attributes: ['id', 'name']}],
-        expectation: "SELECT `id`, `name` FROM `myTable`;"
+        expectation: "SELECT `id`, `name` FROM `myTable`;",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {where: {id: 2}}],
-        expectation: "SELECT * FROM `myTable` WHERE `id`=2;"
+        expectation: "SELECT * FROM `myTable` WHERE `myTable`.`id`=2;",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {where: {name: 'foo'}}],
-        expectation: "SELECT * FROM `myTable` WHERE `name`='foo';"
+        expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name`='foo';",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
-        expectation: "SELECT * FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;';"
+        expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name`='foo\\';DROP TABLE myTable;';",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {where: 2}],
-        expectation: "SELECT * FROM `myTable` WHERE `id`=2;"
+        expectation: "SELECT * FROM `myTable` WHERE `myTable`.`id`=2;",
+        context: QueryGenerator
       }, {
         arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-        expectation: 'SELECT count(*) as `count` FROM `foo`;'
+        expectation: 'SELECT count(*) as `count` FROM `foo`;',
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {where: "foo='bar'"}],
-        expectation: "SELECT * FROM `myTable` WHERE foo='bar';"
+        expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {order: "id DESC"}],
-        expectation: "SELECT * FROM `myTable` ORDER BY id DESC;"
+        expectation: "SELECT * FROM `myTable` ORDER BY id DESC;",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {group: "name"}],
-        expectation: "SELECT * FROM `myTable` GROUP BY `name`;"
+        expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
+        context: QueryGenerator
+      }, {
+        arguments: ['myTable', {group: "name", order: "id DESC"}],
+        expectation: "SELECT * FROM `myTable` GROUP BY `name` ORDER BY id DESC;",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {limit: 10}],
-        expectation: "SELECT * FROM `myTable` LIMIT 10;"
+        expectation: "SELECT * FROM `myTable` LIMIT 10;",
+        context: QueryGenerator
       }, {
         arguments: ['myTable', {limit: 10, offset: 2}],
-        expectation: "SELECT * FROM `myTable` LIMIT 2, 10;"
+        expectation: "SELECT * FROM `myTable` LIMIT 2, 10;",
+        context: QueryGenerator
       }, {
         title: 'ignores offset if no limit was passed',
         arguments: ['myTable', {offset: 2}],
-        expectation: "SELECT * FROM `myTable`;"
+        expectation: "SELECT * FROM `myTable`;",
+        context: QueryGenerator
       }
     ],
 
@@ -194,6 +211,10 @@ describe('QueryGenerator', function() {
       {
         arguments: [{ id: [1,2,3] }],
         expectation: "`id` IN (1,2,3)"
+      },
+      {
+        arguments: [{ id: [] }],
+        expectation: "`id` IN (NULL)"
       }
     ]
   }
@@ -206,7 +227,7 @@ describe('QueryGenerator', function() {
           // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
           var context = test.context || {options: {}};
           var conditions = QueryGenerator[suiteTitle].apply(context, test.arguments)
-          
+
           expect(conditions).toEqual(test.expectation)
         })
       })

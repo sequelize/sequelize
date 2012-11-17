@@ -1,3 +1,21 @@
+# v1.6.0 #
+- [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
+- [REFACTORING] separated tests for dialects
+- [BUG] fixed wrong version in sequelize binary
+- [BUG] local options have higher priority than global options (thanks to guersam)
+- [BUG] fixed where clause when passing an empty array (thanks to kbackowski)
+- [FEATURE] added association prefetching for find and findAll
+- [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
+- [FEATURE] improved comfort of sequelize.query. just pass an sql string to it and wait for the result
+- [FEATURE] Migrations now understand NODE_ENV (thanks to gavri)
+- [FEATURE] Performance improvements (thanks to Mick-Hansen and janmeier from innofluence)
+- [FEATURE] Model.find and Model.findAll can now take a String with an ID. (thanks to ghernandez345)
+- [FEATURE] Compatibility for JSON-like strings in Postgres (thanks to aslakhellesoy)
+- [FEATURE] honor maxConcurrentQueries option (thanks to dchester)
+- [FEATURE] added support for stored procedures (inspired by wuyuntao)
+- [FEATURE] added possibility to use pg lib's native api (thanks to denysonique)
+- [FEATURE] added possibility to define the attributes of received associations (thanks to joshm)
+
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
 - [REFACTORING] removed the 'failure' event and replaced it with 'error'
@@ -5,6 +23,7 @@
 - [BUG] obsolete reference attribute for many-to-many associations are removed correctly
 - [BUG] associations can be cleared via passing null to the set method
 - [BUG] "fixed" quota handling (thanks to dgf)
+- [BUG] fixed destroy in postgresql (thanks to robraux)
 - [FEATURE] added possibility to set protocol and to remove port from postgresql connection uri (thanks to danielschwartz)
 - [FEATURE] added possibility to not use a junction table for many-to-many associations on the same table (thanks to janmeier/innofluence)
 - [FEATURE] results of the `import` method is now cached (thanks to janmeier/innofluence)
