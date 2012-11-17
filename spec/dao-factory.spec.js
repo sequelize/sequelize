@@ -97,6 +97,58 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
     })
   })
 
+  describe('findOrCreate', function () {
+    it("Returns instace if already existent. Single find field.", function (done) {
+      var self = this,
+        data = {
+          username: 'Username'
+        };
+
+      this.User.create(data).success(function (user) {
+        self.User.findOrCreate({
+          username: user.username
+        }).success(function (_user) {
+          expect(_user.id).toEqual(user.id)
+          expect(_user.username).toEqual('Username')
+          done()
+        })
+      })
+    })
+
+    it("Returns instace if already existent. Multiple find fields.", function (done) {
+      var self = this,
+        data = {
+          username: 'Username',
+          data: 'ThisIsData'
+        };
+
+      this.User.create(data).success(function (user) {
+        self.User.findOrCreate(data).success(function (_user) {
+          expect(_user.id).toEqual(user.id)
+          expect(_user.username).toEqual('Username')
+          expect(_user.data).toEqual('ThisIsData')
+          done()
+        })
+      })
+    })
+
+    it("Creates new instance with default value.", function (done) {
+      var self = this,
+        data = {
+          username: 'Username'
+        },
+        default_values = {
+          data: 'ThisIsData'
+        };
+
+      this.User.findOrCreate(data, default_values).success(function (user) {
+        expect(user.username).toEqual('Username')
+        expect(user.data).toEqual('ThisIsData')
+        done()
+      })
+    })
+  })
+
   describe('create', function() {
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
