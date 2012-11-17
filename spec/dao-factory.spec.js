@@ -97,28 +97,6 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
     })
   })
 
-            done()
-          })
-        })
-      })
-
-      it("Creates new instance with default value.", function (done) {
-        var self = this,
-          data = {
-            username: 'Username'
-          },
-          default_values = {
-            data: 'ThisIsData'
-          };
-
-        this.User.findOrCreate(data, default_values).success(function (user) {
-          expect(user.username).toEqual('Username')
-          expect(user.data).toEqual('ThisIsData')
-          done()
-        })
-      })
-    })
-
   describe('create', function() {
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
