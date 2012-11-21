@@ -450,51 +450,79 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
         })
       })
 
-      it('fetches associated objects for 1:1 associations (1st direction)', function(done) {
-        this.User.hasOne(this.Task)
-        this.Task.belongsTo(this.User)
+      describe('1:1 associations', function() {
+        it('fetches associated objects (1st direction)', function(done) {
+          this.User.hasOne(this.Task)
+          this.Task.belongsTo(this.User)
 
-        this.sequelize.sync({ force: true }).success(function() {
-          this.User.create({ name: 'barfooz' }).success(function(user) {
-            this.Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
-                this.User.find({
-                  where: { 'UserWithNames.id': 1 },
-                  include: [ 'Task' ]
-                }).success(function(user) {
-                  expect(user.task).toBeDefined()
-                  expect(user.task.id).toEqual(task.id)
-                  done()
-                })
-              }.bind(this)) //- setTask
-            }.bind(this)) //- Task.create
-          }.bind(this)) //- User.create
-        }.bind(this)) //- sequelize.sync
-      })
-
-      it('fetches associated objects for 1:1 associations (2nd direction)', function(done) {
-        this.User.hasOne(this.Task)
-        this.Task.belongsTo(this.User)
-
-        this.sequelize.sync({ force: true }).success(function() {
-          this.User.create({ name: 'barfooz' }).success(function(user) {
-            this.User.create({ name: 'another user' }).success(function(another_user) {
+          this.sequelize.sync({ force: true }).success(function() {
+            this.User.create({ name: 'barfooz' }).success(function(user) {
               this.Task.create({ title: 'task' }).success(function(task) {
                 user.setTask(task).success(function() {
-                  this.Task.find({
-                    where: { 'Tasks.id': 1 },
-                    include: [ 'UserWithName' ]
-                  }).success(function(task) {
-                    expect(task.userWithName).toBeDefined()
-                    expect(task.userWithName.id).toEqual(user.id)
+                  this.User.find({
+                    where: { 'UserWithNames.id': 1 },
+                    include: [ 'Task' ]
+                  }).success(function(user) {
+                    expect(user.task).toBeDefined()
+                    expect(user.task.id).toEqual(task.id)
                     done()
                   })
                 }.bind(this)) //- setTask
               }.bind(this)) //- Task.create
             }.bind(this)) //- User.create
-          }.bind(this)) //- User.create
-        }.bind(this)) //- sequelize.sync
+          }.bind(this)) //- sequelize.sync
+        })
+
+        it('fetches associated objects via "as" param (1st direction)', function(done) {
+          this.User.hasOne(this.Task, { as: 'Homework' })
+          this.Task.belongsTo(this.User)
+
+          this.sequelize.sync({ force: true }).success(function() {
+            this.User.create({ name: 'barfooz' }).success(function(user) {
+              this.Task.create({ title: 'task' }).success(function(task) {
+                user.setHomework(task).success(function() {
+                  this.User.find({
+                    where: { 'UserWithNames.id': 1 },
+                    include: [ 'Homework' ]
+                  }).success(function(user) {
+                    expect(user.homework).toBeDefined()
+                    expect(user.homework.id).toEqual(task.id)
+                    done()
+                  })
+                }.bind(this)) //- setTask
+              }.bind(this)) //- Task.create
+            }.bind(this)) //- User.create
+          }.bind(this)) //- sequelize.sync
+        })
+
+        it('fetches associated object (2nd direction)', function(done) {
+          this.User.hasOne(this.Task)
+          this.Task.belongsTo(this.User)
+
+          this.sequelize.sync({ force: true }).success(function() {
+            this.User.create({ name: 'barfooz' }).success(function(user) {
+              this.User.create({ name: 'another user' }).success(function(another_user) {
+                this.Task.create({ title: 'task' }).success(function(task) {
+                  user.setTask(task).success(function() {
+                    this.Task.find({
+                      where: { 'Tasks.id': 1 },
+                      include: [ 'UserWithName' ]
+                    }).success(function(task) {
+                      expect(task.userWithName).toBeDefined()
+                      expect(task.userWithName.id).toEqual(user.id)
+                      done()
+                    })
+                  }.bind(this)) //- setTask
+                }.bind(this)) //- Task.create
+              }.bind(this)) //- User.create
+            }.bind(this)) //- User.create
+          }.bind(this)) //- sequelize.sync
+        })
       })
+
+
+
+
 
       it('fetches associated objects for 1:N associations (1st direction)', function(done) {
         this.User.hasMany(this.Task)
