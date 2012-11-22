@@ -34,7 +34,7 @@
   "devDependencies": {
     "jasmine-node": "1.0.17",
     "sqlite3": "~2.1.5",
-    "pg": "~0.8.6",
+    "pg": "~0.8.7",
     "buster": "~0.6.0",
     "dox-foundation": "~0.3.0"
   },
