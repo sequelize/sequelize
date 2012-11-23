@@ -846,8 +846,8 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
                   where: { 'UserWithNames.id': 1 },
                   include: [ 'Homework' ]
                 }).success(function(users) {
-                  expect(users[0].task).toBeDefined()
-                  expect(users[0].task.id).toEqual(task.id)
+                  expect(users[0].homework).toBeDefined()
+                  expect(users[0].homework.id).toEqual(task.id)
                   done()
                 })
               }.bind(this)) //- setTask
@@ -890,8 +890,8 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
                   where: { 'Tasks.id': 1 },
                   include: [ 'Owner' ]
                 }).success(function(tasks) {
-                  expect(tasks[0].userWithName).toBeDefined()
-                  expect(tasks[0].userWithName.id).toEqual(user.id)
+                  expect(tasks[0].owner).toBeDefined()
+                  expect(tasks[0].owner.id).toEqual(user.id)
                   done()
                 })
               }.bind(this)) //- setTask
@@ -941,7 +941,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
                     where: { 'UserWithNames.id': 1 },
                     include: [ 'Homeworks' ]
                   }).success(function(users) {
-                    expect(users[0].tasks).toBeDefined()
+                    expect(users[0].homeworks).toBeDefined()
                     expect(
                       users[0].homeworks.map(function(t) { return t.id })
                     ).toEqual(
