@@ -16,6 +16,7 @@
 - [FEATURE] added possibility to use pg lib's native api (thanks to denysonique)
 - [FEATURE] added possibility to define the attributes of received associations (thanks to joshm)
 - [FEATURE] added findOrCreate, which returns a the already existing instance or creates one (thanks to eveiga)
+- [FEATURE] minConnections option for MySQL pooling (thanks to dominiklessel)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
