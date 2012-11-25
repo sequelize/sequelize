@@ -48,6 +48,20 @@ if (dialect === 'sqlite') {
             console.log(err)
           })
       })
+    it("escapes strings properly in where clauses", function(done) {
+      var self = this
+
+      this.User
+        .create({ username: "user'name" })
+        .success(function(user) {
+          self.User.findAll({
+            where: { username: "user'name" }
+          }).success(function(users) {
+            expect(users.length).toEqual(1)
+            done()
+          })
+        })
+      })
     })
   })
 }
