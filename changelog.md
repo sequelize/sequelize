@@ -3,6 +3,7 @@
 - [REFACTORING] separated tests for dialects
 - [BUG] fixed wrong version in sequelize binary
 - [BUG] local options have higher priority than global options (thanks to guersam)
+- [BUG] fixed where clause when passing an empty array (thanks to kbackowski)
 - [FEATURE] added association prefetching for find and findAll
 - [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
 - [FEATURE] improved comfort of sequelize.query. just pass an sql string to it and wait for the result
@@ -11,6 +12,11 @@
 - [FEATURE] Model.find and Model.findAll can now take a String with an ID. (thanks to ghernandez345)
 - [FEATURE] Compatibility for JSON-like strings in Postgres (thanks to aslakhellesoy)
 - [FEATURE] honor maxConcurrentQueries option (thanks to dchester)
+- [FEATURE] added support for stored procedures (inspired by wuyuntao)
+- [FEATURE] added possibility to use pg lib's native api (thanks to denysonique)
+- [FEATURE] added possibility to define the attributes of received associations (thanks to joshm)
+- [FEATURE] added findOrCreate, which returns a the already existing instance or creates one (thanks to eveiga)
+- [FEATURE] minConnections option for MySQL pooling (thanks to dominiklessel)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)

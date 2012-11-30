@@ -7,7 +7,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
+describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
   before(function(done) {
     Helpers.initTests({
       beforeComplete: function(sequelize) { this.sequelize = sequelize }.bind(this),
@@ -79,6 +79,30 @@ describe("[" + dialect.toUpperCase() + "] Sequelize", function() {
             expect(err).not.toBeDefined()
             done()
           })
+      }.bind(this))
+    })
+
+    it('executes stored procedures', function(done) {
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
+          this.sequelize.query(
+            "CREATE PROCEDURE foo()\nSELECT * FROM " + this.User.tableName + ";"
+          ).success(function() {
+            this.sequelize.query('CALL foo()').success(function(users) {
+              expect(users.map(function(u){ return u.username })).toEqual(['john'])
+              done()
+            })
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it('uses the passed DAOFactory', function(done) {
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize.query("SELECT * FROM " + this.User.tableName + ";", this.User).success(function(users) {
+          expect(users[0].__factory).toEqual(this.User)
+          done()
+        }.bind(this))
       }.bind(this))
     })
   })

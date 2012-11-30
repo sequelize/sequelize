@@ -8,7 +8,7 @@ if (typeof require === 'function') {
 buster.spec.expose()
 buster.testRunner.timeout = 500
 
-describe("[" + dialect.toUpperCase() + "] BelongsTo", function() {
+describe("[" + Helpers.getTestDialectTeaser() + "] BelongsTo", function() {
   before(function(done) {
     Helpers.initTests({
       beforeComplete: function(sequelize) {
