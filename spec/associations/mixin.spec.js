@@ -7,7 +7,7 @@ if (typeof require === 'function') {
 
 buster.spec.expose()
 
-describe("[" + dialect.toUpperCase() + "] Mixin", function() {
+describe("[" + Helpers.getTestDialectTeaser() + "] Mixin", function() {
   before(function(done) {
     Helpers.initTests({
       dialect: dialect,

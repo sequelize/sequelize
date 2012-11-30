@@ -87,7 +87,11 @@ describe('HasMany', function() {
         user.setTasks([task1, task2]).success(function() {
           user.getTasks().success(function(tasks) {
             expect(tasks.length).toEqual(2)
-            done()
+            user.getTasks({attributes: ['title']}).success(function(tasks) {
+              expect(tasks[0].selectedValues.title).toEqual('task1')
+              expect(tasks[0].selectedValues.id).toEqual(null)
+              done()
+            })
           })
         })
       })

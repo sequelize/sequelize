@@ -6,7 +6,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe("[" + dialect.toUpperCase() + "] DAO", function() {
+describe("[" + Helpers.getTestDialectTeaser() + "] DAO", function() {
   before(function(done) {
     var self = this
 
@@ -96,6 +96,40 @@ describe("[" + dialect.toUpperCase() + "] DAO", function() {
     it('returns a response that can be stringified and then parsed', function() {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
       expect(JSON.parse(JSON.stringify(user))).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
+    })
+  })
+
+  describe('findAll', function findAll() {
+    it("escapes a single single quotes properly in where clauses", function(done) {
+      var self = this
+
+      this.User
+        .create({ username: "user'name" })
+        .success(function() {
+          self.User.findAll({
+            where: { username: "user'name" }
+          }).success(function(users) {
+            expect(users.length).toEqual(1)
+            expect(users[0].username).toEqual("user'name")
+            done()
+          })
+        })
+    })
+
+    it("escapes two single quotes properly in where clauses", function(done) {
+      var self = this
+
+      this.User
+        .create({ username: "user''name" })
+        .success(function() {
+          self.User.findAll({
+            where: { username: "user''name" }
+          }).success(function(users) {
+            expect(users.length).toEqual(1)
+            expect(users[0].username).toEqual("user''name")
+            done()
+          })
+        })
     })
   })
 })

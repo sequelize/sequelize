@@ -21,15 +21,21 @@ var BusterHelpers = module.exports = {
     options.dialect = options.dialect || 'mysql'
     options.logging = (options.hasOwnProperty('logging') ? options.logging : false)
 
+    var sequelizeOptions = {
+      logging: options.logging,
+      dialect: options.dialect,
+      port:    config[options.dialect].port
+    }
+
+    if (process.env.DIALECT === 'postgres-native') {
+      sequelizeOptions.native = true
+    }
+
     return new Sequelize(
       config[options.dialect].database,
       config[options.dialect].username,
       config[options.dialect].password,
-      {
-        logging: options.logging,
-        dialect: options.dialect,
-        port:    config[options.dialect].port
-      }
+      sequelizeOptions
     )
   },
 
@@ -53,11 +59,25 @@ var BusterHelpers = module.exports = {
   getTestDialect: function() {
     var envDialect = process.env.DIALECT || 'mysql'
 
+    if (envDialect === 'postgres-native') {
+      envDialect = 'postgres'
+    }
+
     if (this.getSupportedDialects().indexOf(envDialect) === -1) {
       throw new Error('The dialect you have passed is unknown. Did you really mean: ' + envDialect)
     }
 
     return envDialect
+  },
+
+  getTestDialectTeaser: function() {
+    var dialect = this.getTestDialect()
+
+    if (process.env.DIALECT === 'postgres-native') {
+      dialect = 'postgres-native'
+    }
+
+    return dialect.toUpperCase()
   },
 
   checkMatchForDialects: function(dialect, value, expectations) {
