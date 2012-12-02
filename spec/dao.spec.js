@@ -70,7 +70,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAO", function() {
 
     it('emits preSave event with daoInstance and factory arguments', function(done) {
       var user = this.User.build({ username: 'someone1' })
-      this.User.once('preSave', function (daoInstance, daoFactory) {
+      this.User.once('preSave', function(daoInstance, daoFactory) {
         expect(daoInstance).toEqual(user)
         expect(daoFactory).toEqual(this.User)
         done()
@@ -80,7 +80,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAO", function() {
 
     it('emits postSave event with daoInstance and factory arguments', function(done) {
       var user = this.User.build({ username: 'someone2' })
-      this.User.once('postSave', function (daoInstance, daoFactory) {
+      this.User.once('postSave', function(daoInstance, daoFactory) {
         expect(daoInstance).toEqual(user)
         expect(daoFactory).toEqual(this.User)
         done()
