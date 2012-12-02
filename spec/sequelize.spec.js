@@ -125,5 +125,27 @@ describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
       }.bind(this))
       user.save()
     })
+
+    it('emits preDestroy event with daoInstance and factory arguments for any DAO destroy', function(done) {
+      this.User.create({ username: 'someone3' }).success(function(user) {
+        this.sequelize.once('preDestroy', function(daoInstance, daoFactory) {
+          expect(daoInstance).toEqual(user)
+          expect(daoFactory).toEqual(this.User)
+          done()
+        }.bind(this))
+        user.destroy()
+      }.bind(this))
+    })
+
+    it('emits postDestroy event with null and factory arguments for any DAO destroy', function(done) {
+      this.User.create({ username: 'someone4' }).success(function(user) {
+        this.sequelize.once('postDestroy', function(daoInstance, daoFactory) {
+          expect(daoInstance).toEqual(null)
+          expect(daoFactory).toEqual(this.User)
+          done()
+        }.bind(this))
+        user.destroy()
+      }.bind(this))
+    })
   })
 })
