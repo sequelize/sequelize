@@ -95,6 +95,26 @@ describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).toEqual({ username: 'John Wayne' })
     })
+
+    it('emits preBuild event with null and factory arguments', function(done) {
+      this.User.once('preBuild', function(daoInstance, daoFactory) {
+        expect(daoInstance).toEqual(null)
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      this.User.create({ username: 'someone5' })
+    })
+
+    it('emits postBuild event with daoInstance and factory arguments', function(done) {
+      this.User.once('postBuild', function(daoInstance, daoFactory) {
+        expect(daoInstance).toMatch(function(obj) {
+          return obj instanceof this.User.DAO
+        }.bind(this))
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      this.User.create({ username: 'someone6' })
+    })
   })
 
   describe('findOrCreate', function () {

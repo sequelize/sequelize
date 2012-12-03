@@ -106,6 +106,26 @@ describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
       }.bind(this))
     })
 
+    it('emits preBuild event with null and factory arguments for any DAO build', function(done) {
+      this.sequelize.once('preBuild', function(daoInstance, daoFactory) {
+        expect(daoInstance).toEqual(null)
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      this.User.create({ username: 'someone5' })
+    })
+
+    it('emits postBuild event with daoInstance and factory arguments for any DAO build', function(done) {
+      this.sequelize.once('postBuild', function(daoInstance, daoFactory) {
+        expect(daoInstance).toMatch(function(obj) {
+          return obj instanceof this.User.DAO
+        }.bind(this))
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      this.User.create({ username: 'someone6' })
+    })
+
     it('emits preSave event with daoInstance and factory arguments for any DAO save', function(done) {
       var user = this.User.build({ username: 'someone1' })
       this.sequelize.once('preSave', function(daoInstance, daoFactory) {
