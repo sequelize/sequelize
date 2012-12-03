@@ -112,7 +112,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
         expect(daoFactory).toEqual(this.User)
         done()
       }.bind(this))
-      this.User.create({ username: 'someone5' })
+      this.User.create({ username: 'someone' })
     })
 
     it('emits postBuild event with daoInstance and factory arguments for any DAO build', function(done) {
@@ -123,7 +123,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
         expect(daoFactory).toEqual(this.User)
         done()
       }.bind(this))
-      this.User.create({ username: 'someone6' })
+      this.User.create({ username: 'someone' })
     })
 
     it('emits preSave event with daoInstance and factory arguments for any DAO save', function(done) {
@@ -137,7 +137,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
     })
 
     it('emits postSave event with daoInstance and factory arguments for any DAO save', function(done) {
-      var user = this.User.build({ username: 'someone2' })
+      var user = this.User.build({ username: 'someone' })
       this.sequelize.once('postSave', function(daoInstance, daoFactory) {
         expect(daoInstance).toEqual(user)
         expect(daoFactory).toEqual(this.User)
@@ -147,7 +147,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
     })
 
     it('emits preDestroy event with daoInstance and factory arguments for any DAO destroy', function(done) {
-      this.User.create({ username: 'someone3' }).success(function(user) {
+      this.User.create({ username: 'someone' }).success(function(user) {
         this.sequelize.once('preDestroy', function(daoInstance, daoFactory) {
           expect(daoInstance).toEqual(user)
           expect(daoFactory).toEqual(this.User)
@@ -158,7 +158,7 @@ describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
     })
 
     it('emits postDestroy event with null and factory arguments for any DAO destroy', function(done) {
-      this.User.create({ username: 'someone4' }).success(function(user) {
+      this.User.create({ username: 'someone' }).success(function(user) {
         this.sequelize.once('postDestroy', function(daoInstance, daoFactory) {
           expect(daoInstance).toEqual(null)
           expect(daoFactory).toEqual(this.User)
