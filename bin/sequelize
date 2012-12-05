@@ -5,6 +5,7 @@ const path      = require("path")
     , program   = require("commander")
     , Sequelize = require(__dirname + '/../index')
     , moment    = require("moment")
+    , url       = require("url")
     , _         = Sequelize.Utils._
 
 var configPath       = process.cwd() + '/config'
@@ -50,17 +51,32 @@ var createMigrationsFolder = function(force) {
 }
 
 var readConfig = function() {
-  try {
-    var config = JSON.parse(fs.readFileSync(configFile))
-      , env    = process.env.NODE_ENV || 'development'
-
-    if (config[env]) {
-      config = config[env]
+  if(process.env.DATABASE_URL) {
+    var urlParts = url.parse(process.env.DATABASE_URL);
+    var config = {
+      username: urlParts.auth.split(':')[0],
+      password: urlParts.auth.split(':')[1],
+      database: urlParts.pathname.substring(1),
+      dialect: urlParts.protocol.slice(0, -1),
+      protocol: urlParts.protocol.slice(0, -1),
+      host: urlParts.hostname,
+      port: urlParts.port 
     }
+    return config;
 
-    return config
-  } catch(e) {
-    throw new Error('The config.json is not available or contains invalid JSON.')
+  } else {
+    try {
+      var config = JSON.parse(fs.readFileSync(configFile))
+        , env    = process.env.NODE_ENV || 'development'
+
+      if (config[env]) {
+        config = config[env]
+      }
+
+      return config
+    } catch(e) {
+      throw new Error('The config.json is not available or contains invalid JSON.')
+    }
   }
 }
 
@@ -74,7 +90,7 @@ program
   .parse(process.argv)
 
 if(program.migrate) {
-  if(configFileExists) {
+  if(process.env.DATABASE_URL || configFileExists) {
     var config = readConfig()
       , options  = {}
 
@@ -104,7 +120,8 @@ if(program.migrate) {
       sequelize.migrate()
     }
   } else {
-    throw new Error('Please add a configuration file under config/config.json. You might run "sequelize --init".')
+    throw new Error('Please add a DATABASE_URL environment variable or a configuration file under config/config.json.'+
+      ' You might run "sequelize --init".');
   }
 } else if(program.init) {
   if(!configFileExists || !!program.force) {
