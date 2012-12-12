@@ -7,7 +7,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe("[" + Helpers.getTestDialectTeaser() + "] DAOFactory", function() {
+describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   before(function(done) {
     Helpers.initTests({
       dialect: dialect,

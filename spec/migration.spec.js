@@ -1,12 +1,17 @@
-var config    = require("./config/config")
-  , Sequelize = require("../index")
-  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { logging: false })
-  , Helpers   = new (require("./config/helpers"))(sequelize)
-  , Migrator  = require("../lib/migrator")
-  , Migration = require("../lib/migration")
-  , _         = Sequelize.Utils._
+if(typeof require === 'function') {
+  const buster             = require("buster")
+      , QueryChainer       = require("../lib/query-chainer")
+      , CustomEventEmitter = require("../lib/emitters/custom-event-emitter")
+      , Helpers            = require('./buster-helpers')
+      , dialect            = Helpers.getTestDialect()
+      , Migrator           = require("../lib/migrator")
+      , Migration          = require("../lib/migration")
+}
 
-describe('Migration', function() {
+buster.spec.expose()
+buster.testRunner.timeout = 1000
+
+describe(Helpers.getTestDialectTeaser("Migration"), function() {
   describe('migrationHasInterfaceCalls', function() {
     // the syntax in the following tests are correct
     // don't touch them! the functions will get stringified below

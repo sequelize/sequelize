@@ -7,7 +7,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe("[" + Helpers.getTestDialectTeaser() + "] Sequelize", function() {
+describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
   before(function(done) {
     Helpers.initTests({
       beforeComplete: function(sequelize) { this.sequelize = sequelize }.bind(this),

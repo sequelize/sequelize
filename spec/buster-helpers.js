@@ -10,8 +10,17 @@ var BusterHelpers = module.exports = {
     var sequelize = this.createSequelizeInstance(options)
 
     this.clearDatabase(sequelize, function() {
-      options.beforeComplete && options.beforeComplete(sequelize, DataTypes)
-      options.onComplete && options.onComplete(sequelize, DataTypes)
+      if (options.context) {
+        options.context.sequelize = sequelize
+      }
+
+      if (options.beforeComplete) {
+        options.beforeComplete(sequelize, DataTypes)
+      }
+
+      if (options.onComplete) {
+        options.onComplete(sequelize, DataTypes)
+      }
     })
   },
 
@@ -70,14 +79,14 @@ var BusterHelpers = module.exports = {
     return envDialect
   },
 
-  getTestDialectTeaser: function() {
+  getTestDialectTeaser: function(moduleName) {
     var dialect = this.getTestDialect()
 
     if (process.env.DIALECT === 'postgres-native') {
       dialect = 'postgres-native'
     }
 
-    return dialect.toUpperCase()
+    return "[" + dialect.toUpperCase() + "] " + moduleName
   },
 
   checkMatchForDialects: function(dialect, value, expectations) {
