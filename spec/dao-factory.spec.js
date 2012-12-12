@@ -205,6 +205,19 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
+    it('sets a 64 bit int in bigint', function(done) {
+      var User = this.sequelize.define('UserWithBigIntFields', {
+        big: Sequelize.BIGINT
+      })
+
+      User.sync({ force: true }).success(function() {
+        User.create({ big: '9223372036854775807' }).on('success', function(user) {
+          expect(user.big).toEqual( '9223372036854775807' )
+          done()
+        })
+      })
+    })
+
     it('sets auto increment fields', function(done) {
       var User = this.sequelize.define('UserWithAutoIncrementField', {
         userid: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false }
