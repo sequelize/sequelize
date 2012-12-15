@@ -37,7 +37,7 @@
     "pg": "~0.8.7",
     "buster": "~0.6.0",
     "dox-foundation": "~0.3.0",
-    "watchr": "~2.1.6"
+    "watchr": "~2.2.0"
   },
   "keywords": [
     "mysql",
