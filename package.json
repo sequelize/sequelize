@@ -23,6 +23,8 @@
   ],
   "dependencies": {
     "mysql": "~2.0.0-alpha3",
+    "sqlite3": "~2.1.5",
+    "pg": "~0.8.7",
     "underscore": "~1.4.0",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
@@ -33,8 +35,6 @@
   },
   "devDependencies": {
     "jasmine-node": "1.0.17",
-    "sqlite3": "~2.1.5",
-    "pg": "~0.8.7",
     "buster": "~0.6.0",
     "dox-foundation": "~0.3.0",
     "watchr": "~2.2.0"
