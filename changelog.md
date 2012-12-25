@@ -17,7 +17,8 @@
 - [FEATURE] added possibility to define the attributes of received associations (thanks to joshm)
 - [FEATURE] added findOrCreate, which returns a the already existing instance or creates one (thanks to eveiga)
 - [FEATURE] minConnections option for MySQL pooling (thanks to dominiklessel)
-- [FEATURe] added BIGINT data type which is treated like a string (thanks to adamsch1)
+- [FEATURE] added BIGINT data type which is treated like a string (thanks to adamsch1)
+- [FEATURE] https://github.com/sdepold/sequelize/pull/345
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
