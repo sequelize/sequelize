@@ -205,6 +205,20 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
+    it('raises an error if you mess up the datatype', function(done)  {
+
+      try {
+        var User = this.sequelize.define('UserBadDataType', {
+          activity_date: Sequelize.DATe
+        });
+        done()
+      }
+      catch( e ) { 
+        expect(e.message).toEqual('Unrecognized data type for field activity_date')
+        done()
+      }
+    })
+
     it('sets a 64 bit int in bigint', function(done) {
       var User = this.sequelize.define('UserWithBigIntFields', {
         big: Sequelize.BIGINT
