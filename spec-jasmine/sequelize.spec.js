@@ -69,6 +69,17 @@ describe('Sequelize', function() {
       expect(typeof DAO.options.classMethods.localClassMethod).toEqual('function')
       expect(typeof DAO.options.instanceMethods.globalInstanceMethod).toEqual('function')
     })
+
+    it("uses the passed tableName", function(done) {
+      var Photo = sequelize.define('Foto', { name: Sequelize.STRING }, { tableName: 'photos' })
+
+      Photo.sync({ force: true }).success(function() {
+        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          expect(tableNames).toInclude('photos')
+          done
+        })
+      })
+    })
   })
 
   describe('sync', function() {

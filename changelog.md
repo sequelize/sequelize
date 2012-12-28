@@ -19,6 +19,7 @@
 - [FEATURE] minConnections option for MySQL pooling (thanks to dominiklessel)
 - [FEATURE] added BIGINT data type which is treated like a string (thanks to adamsch1)
 - [FEATURE] https://github.com/sdepold/sequelize/pull/345
+- [FEATURE] allow definition of a models table name (thanks to slamkajs)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)

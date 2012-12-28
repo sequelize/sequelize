@@ -10,7 +10,7 @@ if(typeof require === 'function') {
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
-describe('=>'+Helpers.getTestDialectTeaser("Migrator"), function() {
+describe(Helpers.getTestDialectTeaser("Migrator"), function() {
   before(function(done) {
     this.init = function(options, callback) {
       options = Helpers.Sequelize.Utils._.extend({
