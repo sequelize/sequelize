@@ -67,6 +67,48 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         done()
       })
     })
+
+    it('emits preSave event with daoInstance and factory arguments', function(done) {
+      var user = this.User.build({ username: 'someone' })
+      user.once('preSave', function(daoInstance, daoFactory) {
+        expect(daoInstance).toEqual(user)
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      user.save()
+    })
+
+    it('emits postSave event with daoInstance and factory arguments', function(done) {
+      var user = this.User.build({ username: 'someone' })
+      user.once('postSave', function(daoInstance, daoFactory) {
+        expect(daoInstance).toEqual(user)
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      user.save()
+    })
+
+    it('emits preDestroy event with daoInstance and factory arguments', function(done) {
+      this.User.create({ username: 'someone' }).success(function(user) {
+        user.once('preDestroy', function(daoInstance, daoFactory) {
+          expect(daoInstance).toEqual(user)
+          expect(daoFactory).toEqual(this.User)
+          done()
+        }.bind(this))
+        user.destroy()
+      }.bind(this))
+    })
+
+    it('emits postDestroy event with null and factory arguments', function(done) {
+      this.User.create({ username: 'someone' }).success(function(user) {
+        user.once('postDestroy', function(daoInstance, daoFactory) {
+          expect(daoInstance).toEqual(null)
+          expect(daoFactory).toEqual(this.User)
+          done()
+        }.bind(this))
+        user.destroy()
+      }.bind(this))
+    })
   })
 
   describe('toJSON', function toJSON() {

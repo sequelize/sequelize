@@ -65,6 +65,48 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         expect(e.message).toEqual('Invalid DAO definition. Only one autoincrement field allowed.')
       }
     })
+
+    it('emits preSave event with daoInstance and factory arguments', function(done) {
+      var user = this.User.build({ username: 'someone' })
+      this.User.once('preSave', function(daoInstance, daoFactory) {
+        expect(daoInstance).toEqual(user)
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      user.save()
+    })
+
+    it('emits postSave event with daoInstance and factory arguments', function(done) {
+      var user = this.User.build({ username: 'someone' })
+      this.User.once('postSave', function(daoInstance, daoFactory) {
+        expect(daoInstance).toEqual(user)
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      user.save()
+    })
+
+    it('emits preDestroy event with daoInstance and factory arguments', function(done) {
+      this.User.create({ username: 'someone' }).success(function(user) {
+        this.User.once('preDestroy', function(daoInstance, daoFactory) {
+          expect(daoInstance).toEqual(user)
+          expect(daoFactory).toEqual(this.User)
+          done()
+        }.bind(this))
+        user.destroy()
+      }.bind(this))
+    })
+
+    it('emits postDestroy event with null and factory arguments', function(done) {
+      this.User.create({ username: 'someone' }).success(function(user) {
+        this.User.once('postDestroy', function(daoInstance, daoFactory) {
+          expect(daoInstance).toEqual(null)
+          expect(daoFactory).toEqual(this.User)
+          done()
+        }.bind(this))
+        user.destroy()
+      }.bind(this))
+    })
   })
 
   describe('build', function() {
@@ -94,6 +136,26 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     it("stores the the passed values in a special variable", function() {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).toEqual({ username: 'John Wayne' })
+    })
+
+    it('emits preBuild event with null and factory arguments', function(done) {
+      this.User.once('preBuild', function(daoInstance, daoFactory) {
+        expect(daoInstance).toEqual(null)
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      this.User.create({ username: 'someone5' })
+    })
+
+    it('emits postBuild event with daoInstance and factory arguments', function(done) {
+      this.User.once('postBuild', function(daoInstance, daoFactory) {
+        expect(daoInstance).toMatch(function(obj) {
+          return obj instanceof this.User.DAO
+        }.bind(this))
+        expect(daoFactory).toEqual(this.User)
+        done()
+      }.bind(this))
+      this.User.create({ username: 'someone6' })
     })
   })
 
