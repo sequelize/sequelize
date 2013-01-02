@@ -51,6 +51,37 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       expect(User.build().makeItSo()).toEqual(2)
     })
 
+    it("attaches getter and setter methods unless method name conflicts property name", function() {
+      try {
+        var Product = this.sequelize.define('ProductWithSettersAndGetters', {
+          priceInCents: {
+            type: Sequelize.INTEGER
+          }
+        },{
+          setterMethods: {
+            price: function(value) {
+              this.priceInCents = value * 100;
+            }
+          },
+          getterMethods: {
+            price: function() {
+              return this.priceInCents / 100;
+            },
+            //this one should fail, as it would lead to a loop
+            priceInCents: function() {
+              return this.priceInCents;
+            }
+          }
+        });
+
+        expect(Product.build({price: 20}).priceInCents).toEqual(20 * 100);
+        expect(Product.build({priceInCents: 30 * 100}).price).toEqual(30);
+
+      } catch(e) {
+        expect(e.message).toEqual('Cannot create setter "priceInCents" - property already exists.');
+      }
+    })
+
     it("throws an error if 2 autoIncrements are passed", function() {
       try {
         var User = this.sequelize.define('UserWithTwoAutoIncrements', {
