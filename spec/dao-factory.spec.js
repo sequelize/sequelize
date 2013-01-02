@@ -78,7 +78,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         expect(Product.build({priceInCents: 30 * 100}).price).toEqual(30);
 
       } catch(e) {
-        expect(e.message).toEqual('Cannot create setter "priceInCents" - property already exists.');
+        expect(e.message).toEqual('Cannot create getter "priceInCents" - property already exists.');
       }
     })
 
