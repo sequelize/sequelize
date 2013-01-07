@@ -19,9 +19,17 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
           aNumber:   { type: DataTypes.INTEGER }
         })
+
+        self.HistoryLog = sequelize.define('HistoryLog', {
+          someText:  { type: DataTypes.STRING },
+          aNumber:   { type: DataTypes.INTEGER },
+          aRandomId: { type: DataTypes.INTEGER }
+        })
       },
       onComplete: function() {
-        self.User.sync({ force: true }).success(done)
+        self.User.sync({ force: true }).success(function(){
+          self.HistoryLog.sync({ force: true }).success(done)
+        })
       }
     })
   })
@@ -65,6 +73,15 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       this.User.build({ aNumber: 0 }).save([ 'aNumber' ]).success(function(user) {
         expect(user.aNumber).toEqual(0)
         done()
+      })
+    })
+
+    it('saves a record with no primary key', function(done){
+      this.HistoryLog.create({ someText: 'Some random text', aNumber: 3, aRandomId: 5 }).success(function(log) {
+        log.updateAttributes({ aNumber: 5 }).success(function(newLog){
+          expect(newLog.aNumber).toEqual(5)
+          done()
+        })
       })
     })
   })
