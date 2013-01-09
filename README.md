@@ -31,7 +31,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Support for update of tables without primary key
 - MariaDB support
 - Support for update and delete calls for whole tables without previous loading of instances
-- Eager loading of nested associations #388
+- Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
 
 ### 1.7.x
 - Complete support for non-id primary keys
