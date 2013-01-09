@@ -21,6 +21,8 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 
 ## Roadmap
 
+A very basic roadmap. Chances aren't too bad, that not mentioned things are implemented as well. Don't panic :)
+
 ### 1.6.0 (ToDo)
 - Fix last issues with eager loading of associated data
 
@@ -29,6 +31,7 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 - Support for update of tables without primary key
 - MariaDB support
 - Support for update and delete calls for whole tables without previous loading of instances
+- Eager loading of nested associations #388
 
 ### 1.7.x
 - Complete support for non-id primary keys
