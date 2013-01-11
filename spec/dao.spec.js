@@ -182,7 +182,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       });
     });
   });
-/*
+
   describe('default values', function() {
     describe('current date', function() {
       it('should store a date in touchedAt', function() {
@@ -318,5 +318,4 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       }.bind(this))
     })
   })
-  */
 })
