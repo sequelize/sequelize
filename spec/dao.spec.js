@@ -32,12 +32,27 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       this.User.create({ id: 1, aNumber: 0 }).done(done)
     });
 
-    it('', function (done) {
+    it('with array', function (done) {
       var self = this;
 
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.increment(['aNumber'], 2).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(user1.aNumber + 2);
+            done();
+          });
+        });
+      });
+    });
+
+    it('with single field', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.increment('aNumber', 2).done(function (err, user2) {
 
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(user1.aNumber + 2);
@@ -91,12 +106,27 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       this.User.create({ id: 1, aNumber: 0 }).done(done)
     });
 
-    it('', function (done) {
+    it('with array', function (done) {
       var self = this;
 
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.decrement(['aNumber'], 2).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(user1.aNumber - 2);
+            done();
+          });
+        });
+      });
+    });
+
+    it('with single field', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.decrement('aNumber', 2).done(function (err, user2) {
 
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(user1.aNumber - 2);
