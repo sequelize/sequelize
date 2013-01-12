@@ -75,8 +75,8 @@ describe('Sequelize', function() {
 
       Photo.sync({ force: true }).success(function() {
         sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          expect(tableNames).toInclude('photos')
-          done
+          expect(tableNames).toContain('photos')
+          done()
         })
       })
     })
