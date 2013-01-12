@@ -109,7 +109,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     });
   });
 
-/*
+
   describe('decrement', function () {
     before(function (done) {
       this.User.create({ id: 1, aNumber: 0 }).done(done)
@@ -184,9 +184,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     });
   });
 
-*/
-
-/*
   describe('default values', function() {
     describe('current date', function() {
       it('should store a date in touchedAt', function() {
@@ -322,5 +319,4 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       }.bind(this))
     })
   })
-  */
 })
