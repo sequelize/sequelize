@@ -109,7 +109,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     });
   });
 
-
   describe('decrement', function () {
     before(function (done) {
       this.User.create({ id: 1, aNumber: 0 }).done(done)
@@ -123,7 +122,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         user1.decrement(['aNumber'], 2).done(function (err, user2) {
 
           self.User.find(1).done(function (err, user3) {
-            expect(user3.aNumber).toBe(user1.aNumber - 2);
+            expect(user3.aNumber).toBe(-2);
             done();
           });
         });
@@ -138,7 +137,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         user1.decrement('aNumber', 2).done(function (err, user2) {
 
           self.User.find(1).done(function (err, user3) {
-            expect(user3.aNumber).toBe(user1.aNumber - 2);
+            expect(user3.aNumber).toBe(-2);
             done();
           });
         });
@@ -157,7 +156,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
             user1.decrement(['aNumber'], 2).done(function (err, user4) {
 
               self.User.find(1).done(function (err, user5) {
-                expect(user5.aNumber).toBe(user1.aNumber -1);
+                expect(user5.aNumber).toBe(-1);
                 done();
               });
             });
