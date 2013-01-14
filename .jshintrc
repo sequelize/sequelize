@@ -1,0 +1,22 @@
+{
+    "globals": {
+        "jasmine": false,
+        "spyOn": false,
+        "it": false,
+        "console": false,
+        "describe": false,
+        "expect": false,
+        "beforeEach": false,
+        "waits": false,
+        "waitsFor": false,
+        "runs": false
+    },
+    "camelcase": true,
+    "curly": true,
+    "forin": true,
+    "indent": 2,
+    "unused": true,
+    "asi": true,
+    "evil": false,
+    "laxcomma": true
+}
