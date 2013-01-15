@@ -158,7 +158,7 @@ project. Here are my rules of thumb:
 - Spacing. Indentation = 2 spaces. Also I add a lot of spaces where possible. See below.
 - Anonymous functions over names functions. Usually I declare a function and assign it to a variable: `var foo = function() {}`
 
-#### Spaces ####
+#### 6.1. Spaces ####
 
 Use spaces when defining functions.
 
@@ -178,7 +178,7 @@ if (condition) {
 }
 ```
 
-#### JSHint options ####
+#### 6.2. JSHint options ####
 
 ```js
 {
