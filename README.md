@@ -145,6 +145,53 @@ Ah and one last thing: If you think you deserve it, feel free to add yourself to
 `package.json`. Also I always look for projects which are using sequelize. If you have
 one of them, drop me a line!
 
+### 6. Some words about coding style ###
+
+As people are regularly complaining about missing semi-colons and strangely formatted
+things, I just want to explain the way I code JavaScript (including Sequelize
+... obviously). I won't reject any pull-request because of having a different code
+style than me but it would be good to have a consistent way of coding in the whole
+project. Here are my rules of thumb:
+
+- No semi-colons. Where possible I try to avoid semi-colons. Please don't discuss this topic with me. Thanks.
+- Curly braces for single line if blocks. I always add curly braces to if blocks. Same for loops and other places.
+- Spacing. Indentation = 2 spaces. Also I add a lot of spaces where possible. See below.
+- Anonymous functions over names functions. Usually I declare a function and assign it to a variable: `var foo = function() {}`
+
+#### Spaces ####
+
+Use spaces when defining functions.
+
+```js
+function(arg1, arg2, arg3) {
+  return 1
+}
+```
+
+Use spaces for if statements.
+
+```js
+if (condition) {
+  // do something
+} else {
+  // something else
+}
+```
+
+#### JSHint options ####
+
+```js
+{
+  "camelcase": true,
+  "curly": true,
+  "forin": true,
+  "indent": 2,
+  "unused": true,
+  "asi": true,
+  "evil": false,
+  "laxcomma": true
+}
+```
 
 # Build status
 
