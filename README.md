@@ -157,6 +157,7 @@ project. Here are my rules of thumb:
 - Curly braces for single line if blocks. I always add curly braces to if blocks. Same for loops and other places.
 - Spacing. Indentation = 2 spaces. Also I add a lot of spaces where possible. See below.
 - Anonymous functions over names functions. Usually I declare a function and assign it to a variable: `var foo = function() {}`
+- Variable declarations. If multiple variables are defined, I use a leading comma for separation.
 
 #### 6.1. Spaces ####
 
@@ -178,7 +179,15 @@ if (condition) {
 }
 ```
 
-#### 6.2. JSHint options ####
+#### 6.2. Variable declarations ####
+
+```js
+var num  = 1
+  , user = new User()
+  , date = new Date()
+```
+
+#### 6.3. JSHint options ####
 
 ```js
 {
