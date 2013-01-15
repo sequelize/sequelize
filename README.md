@@ -19,6 +19,33 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 - Associations
 - Importing definitions from single files
 
+## Roadmap
+
+A very basic roadmap. Chances aren't too bad, that not mentioned things are implemented as well. Don't panic :)
+
+### 1.6.0 (ToDo)
+- Fix last issues with eager loading of associated data
+- Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person
+
+### 1.7.0
+- Transactions
+- Support for update of tables without primary key
+- MariaDB support
+- Support for update and delete calls for whole tables without previous loading of instances
+- Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
+
+### 1.7.x
+- Complete support for non-id primary keys
+
+### 1.8.0
+- API sugar (like Model.select().where().group().include().all())
+- Schema dumping
+- enum support
+- attributes / values of a dao instance should be scoped
+
+### 2.0.0
+- save datetimes in UTC
+
 ## Documentation, Examples and Updates ##
 
 You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
