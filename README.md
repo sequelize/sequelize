@@ -158,6 +158,8 @@ project. Here are my rules of thumb:
 - Spacing. Indentation = 2 spaces. Also I add a lot of spaces where possible. See below.
 - Anonymous functions over names functions. Usually I declare a function and assign it to a variable: `var foo = function() {}`
 - Variable declarations. If multiple variables are defined, I use a leading comma for separation.
+- Camelcased variable names. No underscores.
+- Make sure that key is in objects when iterating over it. See below.
 
 #### 6.1. Spaces ####
 
@@ -187,7 +189,17 @@ var num  = 1
   , date = new Date()
 ```
 
-#### 6.3. JSHint options ####
+#### 6.3. For-In-loops ####
+
+```js
+for (var key in obj) {
+  if (obj.hasOwnProperty(key)) {
+    console.log(obj[key])
+  }
+}
+```
+
+#### 6.4. JSHint options ####
 
 ```js
 {
