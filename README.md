@@ -19,6 +19,33 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 - Associations
 - Importing definitions from single files
 
+## Roadmap
+
+A very basic roadmap. Chances aren't too bad, that not mentioned things are implemented as well. Don't panic :)
+
+### 1.6.0 (ToDo)
+- Fix last issues with eager loading of associated data
+- Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person
+
+### 1.7.0
+- Transactions
+- Support for update of tables without primary key
+- MariaDB support
+- Support for update and delete calls for whole tables without previous loading of instances
+- Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
+
+### 1.7.x
+- Complete support for non-id primary keys
+
+### 1.8.0
+- API sugar (like Model.select().where().group().include().all())
+- Schema dumping
+- enum support
+- attributes / values of a dao instance should be scoped
+
+### 2.0.0
+- save datetimes in UTC
+
 ## Documentation, Examples and Updates ##
 
 You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
@@ -118,6 +145,74 @@ Ah and one last thing: If you think you deserve it, feel free to add yourself to
 `package.json`. Also I always look for projects which are using sequelize. If you have
 one of them, drop me a line!
 
+### 6. Some words about coding style ###
+
+As people are regularly complaining about missing semi-colons and strangely formatted
+things, I just want to explain the way I code JavaScript (including Sequelize
+... obviously). I won't reject any pull-request because of having a different code
+style than me but it would be good to have a consistent way of coding in the whole
+project. Here are my rules of thumb:
+
+- No semi-colons. Where possible I try to avoid semi-colons. Please don't discuss this topic with me. Thanks.
+- Curly braces for single line if blocks. I always add curly braces to if blocks. Same for loops and other places.
+- Spacing. Indentation = 2 spaces. Also I add a lot of spaces where possible. See below.
+- Anonymous functions over names functions. Usually I declare a function and assign it to a variable: `var foo = function() {}`
+- Variable declarations. If multiple variables are defined, I use a leading comma for separation.
+- Camelcased variable names. No underscores.
+- Make sure that key is in objects when iterating over it. See below.
+
+#### 6.1. Spaces ####
+
+Use spaces when defining functions.
+
+```js
+function(arg1, arg2, arg3) {
+  return 1
+}
+```
+
+Use spaces for if statements.
+
+```js
+if (condition) {
+  // do something
+} else {
+  // something else
+}
+```
+
+#### 6.2. Variable declarations ####
+
+```js
+var num  = 1
+  , user = new User()
+  , date = new Date()
+```
+
+#### 6.3. For-In-loops ####
+
+```js
+for (var key in obj) {
+  if (obj.hasOwnProperty(key)) {
+    console.log(obj[key])
+  }
+}
+```
+
+#### 6.4. JSHint options ####
+
+```js
+{
+  "camelcase": true,
+  "curly": true,
+  "forin": true,
+  "indent": 2,
+  "unused": true,
+  "asi": true,
+  "evil": false,
+  "laxcomma": true
+}
+```
 
 # Build status
 

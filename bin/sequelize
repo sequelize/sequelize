@@ -68,7 +68,7 @@ program
   .version(packageJson.version)
   .option('-i, --init', 'Initializes the project. Creates a config/config.json')
   .option('-m, --migrate', 'Runs undone migrations')
-  .option('-u, --undo', 'Redo the last migration.')
+  .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
   .option('-c, --create-migration [migration-name]', 'Create a new migration skeleton file.')
   .parse(process.argv)
