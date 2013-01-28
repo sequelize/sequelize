@@ -148,5 +148,25 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           })
         })
     })
+
+    it("returns the timestamps if no attributes have been specified", function(done) {
+      this.User.create({ username: 'fnord' }).success(function() {
+        this.User.findAll().success(function(users) {
+          expect(users[0].createdAt).toBeDefined()
+          done()
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("does not return the timestamps if the username attribute has been specified", function(done) {
+      this.User.create({ username: 'fnord' }).success(function() {
+        this.User.findAll({ attributes: ['username'] }).success(function(users) {
+          expect(users[0].createdAt).not.toBeDefined()
+          expect(users[0].username).toBeDefined()
+
+          done()
+        }.bind(this))
+      }.bind(this))
+    })
   })
 })
