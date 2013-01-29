@@ -1,10 +1,13 @@
 # v1.6.0 #
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [REFACTORING] separated tests for dialects
+- [OTHERS] code was formatted to fit the latest code style guidelines (thanks to durango)
 - [BUG] fixed wrong version in sequelize binary
 - [BUG] local options have higher priority than global options (thanks to guersam)
 - [BUG] fixed where clause when passing an empty array (thanks to kbackowski)
 - [BUG] fixed updateAttributes for models/tables without primary key (thanks to durango)
+- [BUG] fixed the location of the foreign key when using belongsTo (thanks to ricardograca)
+- [BUG] don't return timestamps if only specific attributes have been seleceted (thanks to ricardograca)
 - [FEATURE] added association prefetching for find and findAll
 - [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
 - [FEATURE] improved comfort of sequelize.query. just pass an sql string to it and wait for the result
