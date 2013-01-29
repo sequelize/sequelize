@@ -25,7 +25,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 
 ### 1.6.0 (ToDo)
 - Fix last issues with eager loading of associated data
-- Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person
+- ~~Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person~~
 
 ### 1.7.0
 - Transactions
