@@ -23,6 +23,7 @@
   ],
   "dependencies": {
     "mysql": "~2.0.0-alpha3",
+    "mysql-libmysqlclient": "~1.5",
     "underscore": "~1.4.0",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
@@ -52,6 +53,7 @@
     "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite",
     "test-buster-travis": "./node_modules/.bin/buster-test",
     "test-buster-mysql": "DIALECT=mysql ./node_modules/.bin/buster-test",
+    "test-buster-mysql-native": "DIALECT=mysql-native ./node_modules/.bin/buster-test",
     "test-buster-postgres": "DIALECT=postgres ./node_modules/.bin/buster-test",
     "test-buster-postgres-native": "DIALECT=postgres-native ./node_modules/.bin/buster-test",
     "test-buster-sqlite": "DIALECT=sqlite ./node_modules/.bin/buster-test",

@@ -36,7 +36,7 @@ var BusterHelpers = module.exports = {
       port:    config[options.dialect].port
     }
 
-    if (process.env.DIALECT === 'postgres-native') {
+    if (process.env.DIALECT === 'postgres-native' || process.env.DIALECT === 'mysql-native') {
       sequelizeOptions.native = true
     }
 
@@ -70,6 +70,9 @@ var BusterHelpers = module.exports = {
 
     if (envDialect === 'postgres-native') {
       envDialect = 'postgres'
+    }
+    if (envDialect === 'mysql-native') {
+      envDialect = 'mysql'
     }
 
     if (this.getSupportedDialects().indexOf(envDialect) === -1) {
