@@ -51,6 +51,23 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       expect(User.build().makeItSo()).toEqual(2)
     })
 
+    it("attaches behaviors methods", function() {
+      var MyBehavior = function() {
+        this.foo = true;
+      }
+      MyBehavior.prototype.bar = function() {
+        return 'bar'
+      }
+      var User = this.sequelize.define('UserWithBehavior', {}, {
+        behaviors: [MyBehavior]
+      })
+
+      expect(User.build().foo).toBeDefined()
+      expect(User.build().foo).toEqual(true)
+      expect(User.build().bar).toBeDefined()
+      expect(User.build().bar()).toEqual('bar')
+    })
+
     it("throws an error if 2 autoIncrements are passed", function() {
       try {
         var User = this.sequelize.define('UserWithTwoAutoIncrements', {
@@ -213,7 +230,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         });
         done()
       }
-      catch( e ) { 
+      catch( e ) {
         expect(e.message).toEqual('Unrecognized data type for field activity_date')
         done()
       }
