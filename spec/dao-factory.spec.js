@@ -55,6 +55,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       var MyBehavior = function() {
         this.foo = true;
       }
+      MyBehavior.hello = function() {
+        return 'world';
+      }
       MyBehavior.prototype.bar = function() {
         return 'bar'
       }
@@ -62,6 +65,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         behaviors: [MyBehavior]
       })
 
+      expect(User.hello).toBeDefined()
+      expect(User.hello()).toEqual('world')
       expect(User.build().foo).toBeDefined()
       expect(User.build().foo).toEqual(true)
       expect(User.build().bar).toBeDefined()
