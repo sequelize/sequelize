@@ -10,6 +10,7 @@ buster.spec.expose()
 describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
   before(function(done) {
     Helpers.initTests({
+      dialect: dialect,
       beforeComplete: function(sequelize) { this.sequelize = sequelize }.bind(this),
       onComplete: done
     })
