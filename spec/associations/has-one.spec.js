@@ -39,7 +39,7 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
                       expect(task).toEqual(null)
                       done()
                     })
-                  }, 0);
+                  }, 0)
                 })
               })
             })
