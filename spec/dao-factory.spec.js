@@ -61,6 +61,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       MyBehavior.prototype.bar = function() {
         return 'bar'
       }
+      MyBehavior.drop = function(oldDropFunction) {
+        return oldDropFunction;
+      }
       var User = this.sequelize.define('UserWithBehavior', {});
       User.addBehavior(MyBehavior);
 
@@ -70,6 +73,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       expect(User.build().foo).toEqual(true)
       expect(User.build().bar).toBeDefined()
       expect(User.build().bar()).toEqual('bar')
+      expect(User.drop()).toBeFunction();
     })
 
     it("throws an error if 2 autoIncrements are passed", function() {
