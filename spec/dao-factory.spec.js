@@ -61,9 +61,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       MyBehavior.prototype.bar = function() {
         return 'bar'
       }
-      var User = this.sequelize.define('UserWithBehavior', {}, {
-        behaviors: [MyBehavior]
-      })
+      var User = this.sequelize.define('UserWithBehavior', {});
+      User.addBehavior(MyBehavior);
 
       expect(User.hello).toBeDefined()
       expect(User.hello()).toEqual('world')
