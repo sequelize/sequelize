@@ -33,6 +33,7 @@
   "devDependencies": {
     "jasmine-node": "1.0.17",
     "sqlite3": "~2.1.5",
+    "mysql": "~2.0.0-alpha3",
     "pg": "~0.10.2",
     "buster": "~0.6.0",
     "dox-foundation": "~0.3.0",
