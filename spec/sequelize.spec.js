@@ -35,7 +35,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         username: Helpers.Sequelize.STRING
       })
 
-      this.insertQuery = "INSERT INTO " + this.User.tableName + " (username, createdAt, updatedAt) VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
+      this.insertQuery = "INSERT INTO \"" + this.User.tableName + "\" (username, \"createdAt\", \"updatedAt\") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
       this.User.sync().success(done).error(function(err) {
         console(err)
@@ -70,7 +70,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     it('executes select queries correctly', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
-          .query("select * from " + this.User.tableName)
+          .query("select * from \"" + this.User.tableName+ "\"")
           .success(function(users) {
             expect(users.map(function(u){ return u.username })).toEqual(['john'])
             done()
@@ -83,7 +83,8 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
 
-    it('executes stored procedures', function(done) {
+    if (dialect == 'mysql')
+     it('executes stored procedures', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
           this.sequelize.query(
@@ -96,11 +97,11 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
           }.bind(this))
         }.bind(this))
       }.bind(this))
-    })
+     })
 
     it('uses the passed DAOFactory', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
-        this.sequelize.query("SELECT * FROM " + this.User.tableName + ";", this.User).success(function(users) {
+        this.sequelize.query("SELECT * FROM \"" + this.User.tableName + "\";", this.User).success(function(users) {
           expect(users[0].__factory).toEqual(this.User)
           done()
         }.bind(this))
