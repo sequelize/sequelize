@@ -25,7 +25,7 @@
     "underscore": "~1.4.0",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
-    "validator": "0.3.x",
+    "validator": "0.4.x",
     "moment": "~1.7.0",
     "commander": "~0.6.0",
     "generic-pool": "1.0.9"
