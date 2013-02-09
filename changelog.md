@@ -2,6 +2,7 @@
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [REFACTORING] separated tests for dialects
 - [OTHERS] code was formatted to fit the latest code style guidelines (thanks to durango)
+- [OTHERS] Explicitly target ./docs folder for generate-docs script. #444 (thanks to carsondarling)
 - [BUG] fixed wrong version in sequelize binary
 - [BUG] local options have higher priority than global options (thanks to guersam)
 - [BUG] fixed where clause when passing an empty array (thanks to kbackowski)
