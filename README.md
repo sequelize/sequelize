@@ -19,6 +19,18 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 - Associations
 - Importing definitions from single files
 
+## Documentation, Examples and Updates ##
+
+You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
+If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
+Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
+
+- [Documentation](http://www.sequelizejs.com)
+- [Twitter](http://twitter.com/sdepold)
+- [IRC](irc://irc.freenode.net/sequelizejs)
+- [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
+- [XING](https://www.xing.com/net/priec1b5cx/sequelize) (pretty much inactive, but you might want to name it on your profile)
+
 ## Roadmap
 
 A very basic roadmap. Chances aren't too bad, that not mentioned things are implemented as well. Don't panic :)
@@ -46,17 +58,6 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 
 ### 2.0.0
 - save datetimes in UTC
-
-## Documentation, Examples and Updates ##
-
-You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
-If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
-Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
-
-- [Documentation](http://www.sequelizejs.com)
-- [Twitter](http://twitter.com/sdepold)
-- [IRC](irc://irc.freenode.net/sequelizejs)
-- [XING](https://www.xing.com/net/priec1b5cx/sequelize)
 
 ## Collaboration 2.0 ##
 
