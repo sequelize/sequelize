@@ -121,7 +121,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         })
       })
 
-      it("executes migration #20111117063700 and correctly adds isBetaMember", function(done) {
+      ;(dialect === 'sqlite' ? itEventually : it)("executes migration #20111117063700 and correctly adds isBetaMember", function(done) {
         this.sequelize.getQueryInterface().describeTable('Person').success(function(data) {
           var fields = data.map(function(d) { return d.Field }).sort()
           expect(fields).toEqual([ 'isBetaMember', 'name' ])
@@ -167,7 +167,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         }.bind(this))
       })
 
-      it("executes migration #20111205064000 and renames a table", function(done) {
+      ;(dialect === 'sqlite' ? itEventually : it)("executes migration #20111205064000 and renames a table", function(done) {
         this.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
           expect(tableNames).toEqual([ 'Person' ])
@@ -213,7 +213,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('removeColumn', function() {
-      it('removes the shopId column from user', function(done) {
+      (dialect === 'mysql' ? it : itEventually)('removes the shopId column from user', function(done) {
         this.init({ to: 20111206061400 }, function(migrator) {
           migrator.migrate().success(function(){
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
@@ -238,7 +238,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('changeColumn', function() {
-      it('changes the signature column from user to default "signature" + notNull', function(done) {
+      (dialect === 'mysql' ? it : itEventually)('changes the signature column from user to default "signature" + notNull', function(done) {
         this.init({ to: 20111206063000 }, function(migrator) {
           migrator.migrate().success(function() {
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
@@ -258,7 +258,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
   })
 
   describe('renameColumn', function() {
-    it("renames the signature column from user to sig", function(done) {
+    (dialect === 'mysql' ? it : itEventually)("renames the signature column from user to sig", function(done) {
       this.init({ to: 20111206163300 }, function(migrator) {
         migrator.migrate().success(function(){
           this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
