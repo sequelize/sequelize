@@ -28,7 +28,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         .error(function(err) { console.log(err) })
     }.bind(this)
 
-    Helpers.initTests({ onComplete: done, context: this })
+    Helpers.initTests({ dialect: dialect, onComplete: done, context: this })
   })
 
   it("as", function() {
