@@ -177,14 +177,14 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           expect(users[0].username).toEqual('fnord')
 
           this.User.findAll(query).success(function(users) {
-	        expect(users[0].username).toEqual('fnord')
-	        done()
-	      }.bind(this))
+            expect(users[0].username).toEqual('fnord')
+            done()
+          }.bind(this))
         }.bind(this))
       }.bind(this))
     })
   })
-  
+
   describe('find', function find() {
     it("can reuse query option objects", function(done) {
       this.User.create({ username: 'fnord' }).success(function() {
@@ -194,9 +194,9 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           expect(user.username).toEqual('fnord')
 
           this.User.find(query).success(function(user) {
-	        expect(user.username).toEqual('fnord')
-	        done()
-	      }.bind(this))
+            expect(user.username).toEqual('fnord')
+            done()
+          }.bind(this))
         }.bind(this))
       }.bind(this))
     })
