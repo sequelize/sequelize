@@ -352,7 +352,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
-    it('stores the current date in createdAt', function(done) {
+    ;(dialect.match(/^postgres/) ? itEventually : it)('stores the current date in createdAt', function(done) {
       this.User.create({ username: 'foo' }).success(function(user) {
         expect(parseInt(+user.createdAt/5000)).toEqual(parseInt(+new Date()/5000))
         done()
