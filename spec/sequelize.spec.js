@@ -6,10 +6,12 @@ if(typeof require === 'function') {
 }
 
 var qq = function(str) {
-    if (dialect == 'postgres')
-        return '"' + str + '"';
-    return str;
-};
+  if (dialect == 'postgres') {
+    return '"' + str + '"'
+  } else {
+    return str
+  }
+}
 
 buster.spec.expose()
 
@@ -139,6 +141,13 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
             done()
           })
         }.bind(this))
+      })
+
+      itEventually("doesn't save an instance if value is not in the range of enums", function(done) {
+        this.Review.create({ status: 'fnord' }).error(function(err) {
+          expect(1).toEqual(1)
+          done()
+        })
       })
     })
   })
