@@ -213,7 +213,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         });
         done()
       }
-      catch( e ) { 
+      catch( e ) {
         expect(e.message).toEqual('Unrecognized data type for field activity_date')
         done()
       }
@@ -795,8 +795,6 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         }.bind(this)) //- sequelize.sync
       })
     })
-
-
   }) //- describe: find
 
   describe('findAll', function findAll() {

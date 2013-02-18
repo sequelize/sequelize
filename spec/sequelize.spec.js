@@ -114,4 +114,32 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
   })
+
+  describe('define', function() {
+    describe('enum', function() {
+      before(function(done) {
+        this.Review = this.sequelize.define('review', {
+          status: { type: Helpers.Sequelize.ENUM, values: ['scheduled', 'active', 'finished']}
+        })
+
+        this.Review.sync({ force: true }).success(done)
+      })
+
+      it('correctly stores values', function(done) {
+        this.Review.create({ status: 'active' }).success(function(review) {
+          expect(review.status).toEqual('active')
+          done()
+        })
+      })
+
+      it('correctly loads values', function(done) {
+        this.Review.create({ status: 'active' }).success(function() {
+          this.Review.findAll().success(function(reviews) {
+            expect(reviews[0].status).toEqual('active')
+            done()
+          })
+        }.bind(this))
+      })
+    })
+  })
 })
