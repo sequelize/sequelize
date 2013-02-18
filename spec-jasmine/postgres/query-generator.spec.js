@@ -23,7 +23,10 @@ describe('QueryGenerator', function() {
         arguments: ['mySchema.myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
         expectation: "CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));"
       },
-
+      {
+        arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TYPE \"enum_myTable_title\" AS ENUM(\"A\", \"B\", \"C\"); CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" \"enum_myTable_title\", \"name\" VARCHAR(255));"
+      }
     ],
 
     dropTableQuery: [
