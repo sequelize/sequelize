@@ -1,6 +1,7 @@
 # v1.6.0 #
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [REFACTORING] separated tests for dialects
+- [REFACTORING] reduced number of sql queries used for adding an element to a N:M association #449 (thanks to innofluence/janmeier)
 - [OTHERS] code was formatted to fit the latest code style guidelines (thanks to durango)
 - [OTHERS] Explicitly target ./docs folder for generate-docs script. #444 (thanks to carsondarling)
 - [BUG] fixed wrong version in sequelize binary
