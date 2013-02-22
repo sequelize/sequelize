@@ -91,6 +91,22 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
 
+    it('executes select query and parses dot notation results', function(done) {
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize
+          .query("select username as `user.username` from " + qq(this.User.tableName) + "")
+          .success(function(users) {
+            expect(users.map(function(u){ return u.user })).toEqual([{'username':'john'}])
+            done()
+          })
+          .error(function(err) {
+            console.log(err)
+            expect(err).not.toBeDefined()
+            done()
+          })
+      }.bind(this))
+    })
+
     if (dialect == 'mysql')
      it('executes stored procedures', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
