@@ -5,11 +5,20 @@ if(typeof require === 'function') {
 
 }
 
+var qq = function(str) {
+  if (dialect == 'postgres') {
+    return '"' + str + '"'
+  } else {
+    return str
+  }
+}
+
 buster.spec.expose()
 
 describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
   before(function(done) {
     Helpers.initTests({
+      dialect: dialect,
       beforeComplete: function(sequelize) { this.sequelize = sequelize }.bind(this),
       onComplete: done
     })
@@ -34,7 +43,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         username: Helpers.Sequelize.STRING
       })
 
-      this.insertQuery = "INSERT INTO " + this.User.tableName + " (username, createdAt, updatedAt) VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
+      this.insertQuery = "INSERT INTO " + qq(this.User.tableName) + " (username, " + qq("createdAt") + ", " + qq("updatedAt") + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
       this.User.sync().success(done).error(function(err) {
         console(err)
@@ -69,7 +78,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     it('executes select queries correctly', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
-          .query("select * from " + this.User.tableName)
+          .query("select * from " + qq(this.User.tableName) + "")
           .success(function(users) {
             expect(users.map(function(u){ return u.username })).toEqual(['john'])
             done()
@@ -82,7 +91,8 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
 
-    it('executes stored procedures', function(done) {
+    if (dialect == 'mysql')
+     it('executes stored procedures', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
           this.sequelize.query(
@@ -95,15 +105,50 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
           }.bind(this))
         }.bind(this))
       }.bind(this))
-    })
+     })
 
     it('uses the passed DAOFactory', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
-        this.sequelize.query("SELECT * FROM " + this.User.tableName + ";", this.User).success(function(users) {
+        this.sequelize.query("SELECT * FROM " + qq(this.User.tableName) + ";", this.User).success(function(users) {
           expect(users[0].__factory).toEqual(this.User)
           done()
         }.bind(this))
       }.bind(this))
+    })
+  })
+
+  describe('define', function() {
+    describe('enum', function() {
+      before(function(done) {
+        this.Review = this.sequelize.define('review', {
+          status: { type: Helpers.Sequelize.ENUM, values: ['scheduled', 'active', 'finished']}
+        })
+
+        this.Review.sync({ force: true }).success(done)
+      })
+
+      it('correctly stores values', function(done) {
+        this.Review.create({ status: 'active' }).success(function(review) {
+          expect(review.status).toEqual('active')
+          done()
+        })
+      })
+
+      it('correctly loads values', function(done) {
+        this.Review.create({ status: 'active' }).success(function() {
+          this.Review.findAll().success(function(reviews) {
+            expect(reviews[0].status).toEqual('active')
+            done()
+          })
+        }.bind(this))
+      })
+
+      itEventually("doesn't save an instance if value is not in the range of enums", function(done) {
+        this.Review.create({ status: 'fnord' }).error(function(err) {
+          expect(1).toEqual(1)
+          done()
+        })
+      })
     })
   })
 })

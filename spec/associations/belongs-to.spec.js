@@ -11,6 +11,7 @@ buster.testRunner.timeout = 500
 describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
   before(function(done) {
     Helpers.initTests({
+      dialect: dialect,
       beforeComplete: function(sequelize) {
         this.sequelize = sequelize
       }.bind(this),
