@@ -34,12 +34,13 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
                 expect(task).not.toEqual(null)
 
                 user.setTaskXYZ(null).success(function() {
-                  user.getTaskXYZ().success(function(task) {
-                    expect(task).toEqual(null)
-                    done()
-                  })
+                  setTimeout(function() {
+                    user.getTaskXYZ().success(function(task) {
+                      expect(task).toEqual(null)
+                      done()
+                    })
+                  }, 0)
                 })
-
               })
             })
           })
