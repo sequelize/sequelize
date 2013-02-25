@@ -28,6 +28,7 @@
 - [FEATURE] allow definition of a models table name (thanks to slamkajs)
 - [FEATURE] allow usage of enums. #440 (thanks to KevinMartin)
 - [FEATURE] allows updateAttributes to target specific fields only (thanks to Pasvaz)
+- [DEPENDENCIES] mysql is now an optional dependency
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
