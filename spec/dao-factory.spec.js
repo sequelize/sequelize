@@ -51,6 +51,31 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       expect(User.build().makeItSo()).toEqual(2)
     })
 
+    it("attaches behaviors methods", function() {
+      var MyBehavior = function() {
+        this.foo = true;
+      }
+      MyBehavior.hello = function() {
+        return 'world';
+      }
+      MyBehavior.prototype.bar = function() {
+        return 'bar'
+      }
+      MyBehavior.drop = function(oldDropFunction) {
+        return oldDropFunction;
+      }
+      var User = this.sequelize.define('UserWithBehavior', {});
+      User.addBehavior(MyBehavior);
+
+      expect(User.hello).toBeDefined()
+      expect(User.hello()).toEqual('world')
+      expect(User.build().foo).toBeDefined()
+      expect(User.build().foo).toEqual(true)
+      expect(User.build().bar).toBeDefined()
+      expect(User.build().bar()).toEqual('bar')
+      expect(User.drop()).toBeFunction();
+    })
+
     it("throws an error if 2 autoIncrements are passed", function() {
       try {
         var User = this.sequelize.define('UserWithTwoAutoIncrements', {
