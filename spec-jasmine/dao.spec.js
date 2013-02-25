@@ -181,7 +181,7 @@ describe('DAO', function() {
               expect(users.length).toEqual(1)
               expect(users[0].username).toEqual(username)
               expect(users[0].birthDate instanceof Date).toBe(true)
-              expect(users[0].birthDate.getTime()).toEqual(new Date(1984, 8, 23).getTime())
+              expect(users[0].birthDate).toEqual(new Date(1984, 8, 23))
               done()
             })
           })
