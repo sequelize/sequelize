@@ -1,3 +1,6 @@
+# v2.0.0 #
+- [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
+
 # v1.6.0 #
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [REFACTORING] separated tests for dialects
