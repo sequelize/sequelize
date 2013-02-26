@@ -472,7 +472,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         this.Worker   = this.sequelize.define('Worker', { name: Sequelize.STRING })
       })
 
-      describe('=>belongsTo only', function() {
+      describe('=>belongsTo', function() {
         before(function(done) {
           this.Task.belongsTo(this.Worker)
 
@@ -520,7 +520,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
       })
 
-      describe('=>hasOne only', function() {
+      describe('=>hasOne', function() {
         before(function(done) {
           this.Worker.hasOne(this.Task)
 
@@ -556,7 +556,49 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
       })
 
-      describe('=>hasMany only', function() {
+      describe('=>hasOne with alias', function() {
+        before(function(done) {
+          this.Worker.hasOne(this.Task, { as: 'ToDo' })
+
+          this.sequelize.sync({ force: true }).complete(function() {
+            this.Worker.create({ name: 'worker' }).success(function(worker) {
+              this.Task.create({ title: 'homework' }).success(function(task) {
+                this.worker  = worker
+                this.task    = task
+
+                this.worker.setToDo(this.task).success(done)
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        })
+
+        it('throws an error if included DaoFactory is not referenced by alias', function() {
+          Helpers.assertException(function() {
+            this.Worker.find({ include: [ this.Task ] })
+          }.bind(this), 'Task is not associated to Worker!')
+        })
+
+        it('throws an error if alias is not associated', function() {
+          Helpers.assertException(function() {
+            this.Worker.find({ include: [ { daoFactory: this.Task, as: 'Work' } ] })
+          }.bind(this), 'Task (Work) is not associated to Worker!')
+        })
+
+        it('returns the associated task via worker.task', function(done) {
+          this.Worker.find({
+            where:   { id: this.worker.id },
+            include: [ { daoFactory: this.Task, as: 'ToDo' } ]
+          }).complete(function(err, worker) {
+            expect(err).toBeNull()
+            expect(worker).toBeDefined()
+            expect(worker.toDo).toBeDefined()
+            expect(worker.toDo.title).toEqual('homework')
+            done()
+          }.bind(this))
+        })
+      })
+
+      describe('=>hasMany', function() {
         before(function(done) {
           this.Worker.hasMany(this.Task)
 
