@@ -633,6 +633,48 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           }.bind(this))
         })
       })
+
+      describe('=>hasMany with alias', function() {
+        before(function(done) {
+          this.Worker.hasMany(this.Task, { as: 'ToDos' })
+
+          this.sequelize.sync({ force: true }).complete(function() {
+            this.Worker.create({ name: 'worker' }).success(function(worker) {
+              this.Task.create({ title: 'homework' }).success(function(task) {
+                this.worker  = worker
+                this.task    = task
+
+                this.worker.setToDos([ this.task ]).success(done)
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        })
+
+        it('throws an error if included DaoFactory is not referenced by alias', function() {
+          Helpers.assertException(function() {
+            this.Worker.find({ include: [ this.Task ] })
+          }.bind(this), 'Task is not associated to Worker!')
+        })
+
+        it('throws an error if alias is not associated', function() {
+          Helpers.assertException(function() {
+            this.Worker.find({ include: [ { daoFactory: this.Task, as: 'Work' } ] })
+          }.bind(this), 'Task (Work) is not associated to Worker!')
+        })
+
+        it('returns the associated task via worker.task', function(done) {
+          this.Worker.find({
+            where:   { id: this.worker.id },
+            include: [ { daoFactory: this.Task, as: 'ToDos' } ]
+          }).complete(function(err, worker) {
+            expect(err).toBeNull()
+            expect(worker).toBeDefined()
+            expect(worker.toDos).toBeDefined()
+            expect(worker.toDos[0].title).toEqual('homework')
+            done()
+          }.bind(this))
+        })
+      })
     })
 
     // describe('association fetching', function() {
