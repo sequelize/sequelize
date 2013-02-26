@@ -99,7 +99,7 @@ describe('QueryGenerator', function() {
         expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;') RETURNING *;"
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}],
-        expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.0') RETURNING *;"
+        expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.0Z') RETURNING *;"
       }, {
         arguments: ['myTable', {name: 'foo', foo: 1}],
         expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1) RETURNING *;"
@@ -133,10 +133,10 @@ describe('QueryGenerator', function() {
     updateQuery: [
       {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2 RETURNING *"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0Z' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, 2],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2 RETURNING *"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0Z' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['myTable', {bar: 2}, {name: 'foo'}],
         expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *"
@@ -160,7 +160,7 @@ describe('QueryGenerator', function() {
         context: {options: {omitNull: true}}
       }, {
         arguments: ['mySchema.myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0' WHERE \"id\"=2 RETURNING *"
+        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0Z' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
         expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo' RETURNING *"
@@ -251,7 +251,7 @@ describe('QueryGenerator', function() {
   Sequelize.Utils._.each(suites, function(tests, suiteTitle) {
     describe(suiteTitle, function() {
       tests.forEach(function(test) {
-        var title = test.title || 'correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
+        var title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
         it(title, function() {
           // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
           var context = test.context || {options: {}};

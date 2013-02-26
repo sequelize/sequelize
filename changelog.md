@@ -1,7 +1,11 @@
+# v2.0.0 #
+- [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
+
 # v1.6.0 #
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
+- [DEPENDENCIES] mysql is now an optional dependency. #355 (thanks to clkao)
 - [REFACTORING] separated tests for dialects
-- [REFACTORING] reduced number of sql queries used for adding an element to a N:M association #449 (thanks to innofluence/janmeier)
+- [REFACTORING] reduced number of sql queries used for adding an element to a N:M association. #449 (thanks to innofluence/janmeier)
 - [OTHERS] code was formatted to fit the latest code style guidelines (thanks to durango)
 - [OTHERS] Explicitly target ./docs folder for generate-docs script. #444 (thanks to carsondarling)
 - [BUG] fixed wrong version in sequelize binary
@@ -28,7 +32,7 @@
 - [FEATURE] allow definition of a models table name (thanks to slamkajs)
 - [FEATURE] allow usage of enums. #440 (thanks to KevinMartin)
 - [FEATURE] allows updateAttributes to target specific fields only (thanks to Pasvaz)
-- [DEPENDENCIES] mysql is now an optional dependency
+- [FEATURE] timestamps are now stored as UTC. #461 (thanks to innofluence/janmeier)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
