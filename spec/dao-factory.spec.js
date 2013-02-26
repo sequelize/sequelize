@@ -489,21 +489,21 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
 
         it('throws an error about unexpected input if include contains a non-object', function() {
-          expect(function() {
+          Helpers.assertException(function() {
             this.Worker.find({ include: [ 1 ] })
-          }.bind(this)).toThrow()
+          }.bind(this), 'Include unexpected. Element has to be either an instance of DAOFactory or an object.')
         })
 
         it('throws an error about missing attributes if include contains an object with daoFactory', function() {
-          expect(function() {
+          Helpers.assertException(function() {
             this.Worker.find({ include: [ { daoFactory: this.Worker } ] })
-          }.bind(this)).toThrow()
+          }.bind(this), 'Include malformed. Expected attributes: daoFactory, as!')
         })
 
         it('throws an error if included DaoFactory is not associated', function() {
-          expect(function() {
+          Helpers.assertException(function() {
             this.Worker.find({ include: [ this.Task ] })
-          }.bind(this)).toThrow()
+          }.bind(this), 'Task is not associated to Worker!')
         })
 
         it('returns the associated worker via task.worker', function(done) {
@@ -537,9 +537,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
 
         it('throws an error if included DaoFactory is not associated', function() {
-          expect(function() {
+          Helpers.assertException(function() {
             this.Task.find({ include: [ this.Worker ] })
-          }.bind(this)).toThrow()
+          }.bind(this), 'Worker is not associated to Task!')
         })
 
         it('returns the associated task via worker.task', function(done) {
@@ -573,9 +573,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
 
         it('throws an error if included DaoFactory is not associated', function() {
-          expect(function() {
+          Helpers.assertException(function() {
             this.Task.find({ include: [ this.Worker ] })
-          }.bind(this)).toThrow()
+          }.bind(this), 'Worker is not associated to Task!')
         })
 
         it('returns the associated tasks via worker.tasks', function(done) {
