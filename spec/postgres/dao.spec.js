@@ -18,7 +18,7 @@ if (dialect.match(/^postgres/)) {
 
           self.User = sequelize.define('User', {
             username: DataTypes.STRING,
-            email: {type: 'text[]'}
+            email: {type: DataTypes.ARRAY(DataTypes.TEXT)}
           })
         },
         onComplete: function() {
