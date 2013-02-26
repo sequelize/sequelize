@@ -2,6 +2,12 @@
 
 The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databases by mapping database entries to objects and vice versa. To put it in a nutshell... it's an ORM (Object-Relational-Mapper). The library is written entirely in JavaScript and can be used in the Node.JS environment.
 
+## Important Notes ##
+
+### 1.6.0 ###
+
+- We changed the way timestamps are handled. From v1.6.0 on timestamps are stored and loaded as UTC.
+
 ## Blogposts/Changes ##
 - [v1.4.1](http://blog.sequelizejs.com/post/24403298792/changes-in-sequelize-1-4-1): deprecation of node < 0.6, logging customization, ...
 - [v1.4.0](http://blog.sequelizejs.com/post/24345409723/changes-in-sequelize-1-4-0): postgresql, connection pooling, ...
