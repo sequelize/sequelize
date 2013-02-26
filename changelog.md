@@ -27,6 +27,7 @@
 - [FEATURE] https://github.com/sdepold/sequelize/pull/345
 - [FEATURE] allow definition of a models table name (thanks to slamkajs)
 - [FEATURE] allow usage of enums. #440 (thanks to KevinMartin)
+- [FEATURE] allows updateAttributes to target specific fields only (thanks to Pasvaz)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
