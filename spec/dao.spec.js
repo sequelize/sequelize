@@ -1,4 +1,4 @@
-if(typeof require === 'function') {
+if (typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
