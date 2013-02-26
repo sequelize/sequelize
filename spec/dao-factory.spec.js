@@ -52,18 +52,12 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     it("throws an error if 2 autoIncrements are passed", function() {
-      try {
-        var User = this.sequelize.define('UserWithTwoAutoIncrements', {
+      Helpers.assertException(function() {
+        this.sequelize.define('UserWithTwoAutoIncrements', {
           userid:    { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           userscore: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true }
         })
-        // the parse shouldn't execute the following line
-        // this tests needs to be refactored...
-        // we need to use expect.toThrow when a later version than 0.6 was released
-        expect(1).toEqual(2)
-      } catch(e) {
-        expect(e.message).toEqual('Invalid DAO definition. Only one autoincrement field allowed.')
-      }
+      }.bind(this), 'Invalid DAO definition. Only one autoincrement field allowed.')
     })
   })
 
@@ -205,18 +199,12 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
-    it('raises an error if you mess up the datatype', function(done)  {
-
-      try {
-        var User = this.sequelize.define('UserBadDataType', {
+    it('raises an error if you mess up the datatype', function() {
+      Helpers.assertException(function() {
+        this.sequelize.define('UserBadDataType', {
           activity_date: Sequelize.DATe
-        });
-        done()
-      }
-      catch( e ) {
-        expect(e.message).toEqual('Unrecognized data type for field activity_date')
-        done()
-      }
+        })
+      }.bind(this), 'Unrecognized data type for field activity_date')
     })
 
     it('sets a 64 bit int in bigint', function(done) {
@@ -468,23 +456,28 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
     describe('eager loading', function() {
       before(function() {
-        this.Task     = this.sequelize.define('Task', { title: Sequelize.STRING })
-        this.Worker   = this.sequelize.define('Worker', { name: Sequelize.STRING })
+        this.Task        = this.sequelize.define('Task', { title: Sequelize.STRING })
+        this.Worker      = this.sequelize.define('Worker', { name: Sequelize.STRING })
+
+        this.init = function(callback) {
+          this.sequelize.sync({ force: true }).complete(function() {
+            this.Worker.create({ name: 'worker' }).success(function(worker) {
+              this.Task.create({ title: 'homework' }).success(function(task) {
+                this.worker    = worker
+                this.task      = task
+
+                callback()
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        }.bind(this)
       })
 
       describe('belongsTo', function() {
         before(function(done) {
           this.Task.belongsTo(this.Worker)
-
-          this.sequelize.sync({ force: true }).complete(function() {
-            this.Worker.create({ name: 'worker' }).success(function(worker) {
-              this.Task.create({ title: 'homework' }).success(function(task) {
-                this.worker  = worker
-                this.task    = task
-
-                this.task.setWorker(this.worker).success(done)
-              }.bind(this))
-            }.bind(this))
+          this.init(function() {
+            this.task.setWorker(this.worker).success(done)
           }.bind(this))
         })
 
@@ -517,6 +510,43 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
             expect(task.worker.name).toEqual('worker')
             done()
           }.bind(this))
+        })
+
+        it('returns the private and public ip', function(done) {
+          var Domain      = this.sequelize.define('Domain', { ip: Sequelize.STRING })
+          var Environment = this.sequelize.define('Environment', { name: Sequelize.STRING })
+
+          Environment
+            .belongsTo(Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' })
+            .belongsTo(Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' })
+
+          this.sequelize.sync({ force: true }).complete(function() {
+            Domain.create({ ip: '192.168.0.1' }).success(function(privateIp) {
+              Domain.create({ ip: '91.65.189.19' }).success(function(publicIp) {
+                Environment.create({ name: 'environment' }).success(function(env) {
+                  env.setPrivateDomain(privateIp).success(function() {
+                    env.setPublicDomain(publicIp).success(function() {
+                      Environment.find({
+                        where:   { name: 'environment' },
+                        include: [
+                          { daoFactory: Domain, as: 'PrivateDomain' },
+                          { daoFactory: Domain, as: 'PublicDomain' }
+                        ]
+                      }).complete(function(err, environment) {
+                        expect(err).toBeNull()
+                        expect(environment).toBeDefined()
+                        expect(environment.privateDomain).toBeDefined()
+                        expect(environment.privateDomain.ip).toEqual('192.168.0.1')
+                        expect(environment.publicDomain).toBeDefined()
+                        expect(environment.publicDomain.ip).toEqual('91.65.189.19')
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
         })
       })
 
