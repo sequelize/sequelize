@@ -14,7 +14,7 @@
 - [BUG] fixed updateAttributes for models/tables without primary key (thanks to durango)
 - [BUG] fixed the location of the foreign key when using belongsTo (thanks to ricardograca)
 - [BUG] don't return timestamps if only specific attributes have been seleceted (thanks to ricardograca)
-- [FEATURE] added association prefetching for find and findAll
+- [FEATURE] added association prefetching /eager loading for find and findAll. #465
 - [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
 - [FEATURE] improved comfort of sequelize.query. just pass an sql string to it and wait for the result
 - [FEATURE] Migrations now understand NODE_ENV (thanks to gavri)
