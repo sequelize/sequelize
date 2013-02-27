@@ -54,25 +54,25 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     })
 
     it('executes a query the internal way', function(done) {
-      this.sequelize.query(this.insertQuery, null, { raw: true }).success(function(result) {
+      this.sequelize.query(this.insertQuery, null, { raw: true })
+      .complete(function(err, result) {
+        if (err) {
+          console.log(err)
+        }
+        expect(err).toBeNull()
         expect(result).toBeNull()
-        done()
-      })
-      .error(function(err) {
-        console.log(err)
-        expect(err).not.toBeDefined()
         done()
       })
     })
 
     it('executes a query if only the sql is passed', function(done) {
-      this.sequelize.query(this.insertQuery).success(function(result) {
+      this.sequelize.query(this.insertQuery)
+      .complete(function(err, result) {
+        if (err) {
+          console.log(err)
+        }
+        expect(err).toBeNull()
         expect(result).not.toBeDefined()
-        done()
-      })
-      .error(function(err) {
-        console.log(err)
-        expect(err).not.toBeDefined()
         done()
       })
     })
@@ -81,13 +81,12 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
           .query("select * from " + qq(this.User.tableName) + "")
-          .success(function(users) {
+          .complete(function(err, users) {
+            if (err) {
+              console.log(err)
+            }
+            expect(err).toBeNull()
             expect(users.map(function(u){ return u.username })).toEqual(['john'])
-            done()
-          })
-          .error(function(err) {
-            console.log(err)
-            expect(err).not.toBeDefined()
             done()
           })
       }.bind(this))
@@ -96,14 +95,13 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     it('executes select query and parses dot notation results', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
-          .query("select username as " + qq("user.username") + " from " + qq(this.User.tableName) + "")          
-          .success(function(users) {
+          .query("select username as " + qq("user.username") + " from " + qq(this.User.tableName) + "")
+          .complete(function(err, users) {
+            if (err) {
+              console.log(err)
+            }
+            expect(err).toBeNull()
             expect(users.map(function(u){ return u.user })).toEqual([{'username':'john'}])
-            done()
-          })
-          .error(function(err) {
-            console.log(err)
-            expect(err).not.toBeDefined()
             done()
           })
       }.bind(this))
