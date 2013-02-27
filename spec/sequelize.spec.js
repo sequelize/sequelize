@@ -6,8 +6,10 @@ if(typeof require === 'function') {
 }
 
 var qq = function(str) {
-  if (dialect == 'postgres') {
+  if (dialect == 'postgres' || dialect == 'sqlite') {
     return '"' + str + '"'
+  } else if (dialect == 'mysql') {
+    return '`' + str + '`'
   } else {
     return str
   }
@@ -81,6 +83,22 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
           .query("select * from " + qq(this.User.tableName) + "")
           .success(function(users) {
             expect(users.map(function(u){ return u.username })).toEqual(['john'])
+            done()
+          })
+          .error(function(err) {
+            console.log(err)
+            expect(err).not.toBeDefined()
+            done()
+          })
+      }.bind(this))
+    })
+
+    it('executes select query and parses dot notation results', function(done) {
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize
+          .query("select username as " + qq("user.username") + " from " + qq(this.User.tableName) + "")          
+          .success(function(users) {
+            expect(users.map(function(u){ return u.user })).toEqual([{'username':'john'}])
             done()
           })
           .error(function(err) {
