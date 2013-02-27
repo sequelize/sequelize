@@ -33,6 +33,7 @@
 - [FEATURE] allow usage of enums. #440 (thanks to KevinMartin)
 - [FEATURE] allows updateAttributes to target specific fields only (thanks to Pasvaz)
 - [FEATURE] timestamps are now stored as UTC. #461 (thanks to innofluence/janmeier)
+- [FEATURE] results of raw queries are parsed with dottie. (thanks to kozze89)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
