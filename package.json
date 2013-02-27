@@ -36,8 +36,8 @@
     "mysql": "~2.0.0-alpha7",
     "pg": "~0.10.2",
     "buster": "~0.6.0",
-    "dox-foundation": "~0.3.0",
-    "watchr": "~2.2.0"
+    "watchr": "~2.2.0",
+    "yuidocjs": "~0.3.36"
   },
   "keywords": [
     "mysql",
@@ -55,7 +55,7 @@
     "test-buster-postgres": "DIALECT=postgres ./node_modules/.bin/buster-test",
     "test-buster-postgres-native": "DIALECT=postgres-native ./node_modules/.bin/buster-test",
     "test-buster-sqlite": "DIALECT=sqlite ./node_modules/.bin/buster-test",
-    "generate-docs": "node_modules/.bin/dox-foundation --source ./lib --target ./docs --title Sequelize"
+    "docs": "node_modules/.bin/yuidoc . -o docs"
   },
   "bin": {
     "sequelize": "bin/sequelize"
