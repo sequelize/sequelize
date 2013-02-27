@@ -2,6 +2,7 @@ if (typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
+      , _ = require('underscore')
 }
 
 buster.spec.expose()
@@ -17,7 +18,8 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         self.User      = sequelize.define('User', {
           username:  { type: DataTypes.STRING },
           touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-          aNumber:   { type: DataTypes.INTEGER }
+          aNumber:   { type: DataTypes.INTEGER },
+          bNumber:   { type: DataTypes.INTEGER }
         })
 
         self.HistoryLog = sequelize.define('HistoryLog', {
@@ -33,6 +35,186 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       }
     })
   })
+
+  describe('increment', function () {
+    before(function (done) {
+      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done)
+    });
+
+    it('with array', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.increment(['aNumber'], 2).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(2);
+            done();
+          });
+        });
+      });
+    });
+
+    it('with single field', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.increment('aNumber', 2).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(2);
+            done();
+          });
+        });
+      });
+    });
+
+    it('should still work right with other concurrent updates', function (done) {
+      var self = this;
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        // Select the user again (simulating a concurrent query)
+        self.User.find(1).done(function (err, user2) {
+          user2.updateAttributes({
+            aNumber: user2.aNumber + 1
+          }).done(function (err, user3) {
+            user1.increment(['aNumber'], 2).done(function (err, user4) {
+
+              self.User.find(1).done(function (err, user5) {
+                expect(user5.aNumber).toBe(3);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should still work right with other concurrent increments', function (done) {
+      var self = this;
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        var _done = _.after(3, function () {
+          self.User.find(1).done(function (err, user2) {
+            expect(user2.aNumber).toEqual(6);
+            done();
+          })
+        });
+
+        user1.increment(['aNumber'], 2).done(_done);
+        user1.increment(['aNumber'], 2).done(_done);
+        user1.increment(['aNumber'], 2).done(_done);
+      });
+    });
+
+    it('with key value pair', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.increment({ 'aNumber': 1, 'bNumber': 2}).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(1);
+            expect(user3.bNumber).toBe(2);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  describe('decrement', function () {
+    before(function (done) {
+      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done)
+    });
+
+    it('with array', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.decrement(['aNumber'], 2).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(-2);
+            done();
+          });
+        });
+      });
+    });
+
+    it('with single field', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.decrement('aNumber', 2).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(-2);
+            done();
+          });
+        });
+      });
+    });
+
+    it('should still work right with other concurrent updates', function (done) {
+      var self = this;
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        // Select the user again (simulating a concurrent query)
+        self.User.find(1).done(function (err, user2) {
+          user2.updateAttributes({
+            aNumber: user2.aNumber + 1
+          }).done(function (err, user3) {
+            user1.decrement(['aNumber'], 2).done(function (err, user4) {
+
+              self.User.find(1).done(function (err, user5) {
+                expect(user5.aNumber).toBe(-1);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should still work right with other concurrent increments', function (done) {
+      var self = this;
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        var _done = _.after(3, function () {
+          self.User.find(1).done(function (err, user2) {
+            expect(user2.aNumber).toEqual(-6);
+            done();
+          })
+        });
+
+        user1.decrement(['aNumber'], 2).done(_done);
+        user1.decrement(['aNumber'], 2).done(_done);
+        user1.decrement(['aNumber'], 2).done(_done);
+      });
+    });
+
+    it('with key value pair', function (done) {
+      var self = this;
+
+      // Select something
+      this.User.find(1).done(function (err, user1) {
+        user1.decrement({ 'aNumber': 1, 'bNumber': 2}).done(function (err, user2) {
+
+          self.User.find(1).done(function (err, user3) {
+            expect(user3.aNumber).toBe(-1);
+            expect(user3.bNumber).toBe(-2);
+            done();
+          });
+        });
+      });
+    });
+  });
 
   describe('default values', function() {
     describe('current date', function() {
