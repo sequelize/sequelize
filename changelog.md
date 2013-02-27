@@ -35,7 +35,7 @@
 - [FEATURE] timestamps are now stored as UTC. #461 (thanks to innofluence/janmeier)
 - [FEATURE] results of raw queries are parsed with dottie. #468 (thanks to kozze89)
 - [FEATURE] support for array serialization. pg only. #443 (thanks to clkao)
-- [FEATURE] add increment and decrement methods on dao (thanks to janmeier/innofluence)
+- [FEATURE] add increment and decrement methods on dao. #408 (thanks to janmeier/innofluence)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
