@@ -29,7 +29,7 @@
     "moment": "~1.7.0",
     "commander": "~0.6.0",
     "generic-pool": "1.0.9",
-	"dottie": "0.0.6-1"
+    "dottie": "0.0.6-1"
   },
   "devDependencies": {
     "jasmine-node": "1.0.17",
