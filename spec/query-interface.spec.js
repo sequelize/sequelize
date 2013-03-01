@@ -54,7 +54,7 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
     })
   })
 
-  describe('=>indexes', function() {
+  describe('indexes', function() {
     before(function(done) {
       this.interface.createTable('User', {
         username: Helpers.Sequelize.STRING,
@@ -69,7 +69,7 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
         this.interface.showIndex('User').complete(function(err, indexes) {
           expect(err).toBeNull()
 
-          var indexColumns = Helpers.Sequelize.Utils._.uniq(indexes.map(function(index) { return index.Key_name }))
+          var indexColumns = Helpers.Sequelize.Utils._.uniq(indexes.map(function(index) { return index.name }))
           expect(indexColumns).toEqual(['user_username_is_admin'])
 
           this.interface.removeIndex('User', ['username', 'isAdmin']).complete(function(err) {
@@ -78,7 +78,7 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
             this.interface.showIndex('User').complete(function(err, indexes) {
               expect(err).toBeNull()
 
-              indexColumns = Helpers.Sequelize.Utils._.uniq(indexes.map(function(index) { return index.Key_name }))
+              indexColumns = Helpers.Sequelize.Utils._.uniq(indexes.map(function(index) { return index.name }))
               expect(indexColumns).toEqual([])
 
               done()
@@ -90,6 +90,32 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
   })
 
   describe('describeTable', function() {
+    before(function(done) {
+      this.interface.createTable('User', {
+        username: Helpers.Sequelize.STRING,
+        isAdmin: Helpers.Sequelize.BOOLEAN
+      }).success(done)
+    })
 
+    it('reads the metadata of the table', function(done) {
+      this.interface.describeTable('User').complete(function(err, metadata) {
+        expect(err).toBeNull()
+
+        var username = metadata.filter(function(m) { return m.attribute === 'username' })[0]
+        var isAdmin  = metadata.filter(function(m) { return m.attribute === 'isAdmin' })[0]
+
+        expect(username.attribute).toEqual('username')
+        expect(username.type).toEqual(dialect === 'postgres' ? 'CHARACTER VARYING' : 'VARCHAR(255)')
+        expect(username.allowNull).toBeTrue()
+        expect(username.defaultValue).toBeNull()
+
+        expect(isAdmin.attribute).toEqual('isAdmin')
+        expect(isAdmin.type).toEqual(dialect === 'postgres' ? 'BOOLEAN' : 'TINYINT(1)')
+        expect(isAdmin.allowNull).toBeTrue()
+        expect(isAdmin.defaultValue).toBeNull()
+
+        done()
+      })
+    })
   })
 })

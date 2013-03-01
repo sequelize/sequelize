@@ -121,9 +121,9 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         })
       })
 
-      ;(dialect === 'sqlite' ? itEventually : it)("executes migration #20111117063700 and correctly adds isBetaMember", function(done) {
+      it("executes migration #20111117063700 and correctly adds isBetaMember", function(done) {
         this.sequelize.getQueryInterface().describeTable('Person').success(function(data) {
-          var fields = data.map(function(d) { return d.Field }).sort()
+          var fields = data.map(function(d) { return d.attribute }).sort()
           expect(fields).toEqual([ 'isBetaMember', 'name' ])
           done()
         })
@@ -190,7 +190,6 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         this.init({ from: 20111117063700, to: 20111205162700 }, function(migrator) {
           migrator.migrate().success(function() {
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-              console.log(data)
               var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
                 , isAdmin   = data.filter(function(hash){ return hash.Field == 'isAdmin' })[0]
                 , shopId    = data.filter(function(hash){ return hash.Field == 'shopId' })[0]
@@ -217,16 +216,16 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         this.init({ to: 20111206061400 }, function(migrator) {
           migrator.migrate().success(function(){
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-              var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
-                , isAdmin   = data.filter(function(hash){ return hash.Field == 'isAdmin' })[0]
-                , shopId    = data.filter(function(hash){ return hash.Field == 'shopId' })[0]
+              var signature = data.filter(function(hash){ return hash.attribute == 'signature' })[0]
+                , isAdmin   = data.filter(function(hash){ return hash.attribute == 'isAdmin' })[0]
+                , shopId    = data.filter(function(hash){ return hash.attribute == 'shopId' })[0]
 
-              expect(signature.Field).toEqual('signature')
-              expect(signature.Null).toEqual('NO')
+              expect(signature.attribute).toEqual('signature')
+              expect(signature.allowNull).toEqual(false)
 
-              expect(isAdmin.Field).toEqual('isAdmin')
-              expect(isAdmin.Null).toEqual('NO')
-              expect(isAdmin.Default).toEqual('0')
+              expect(isAdmin.attribute).toEqual('isAdmin')
+              expect(isAdmin.allowNull).toEqual(false)
+              expect(isAdmin.defaultValue).toEqual('0')
 
               expect(shopId).toBeFalsy()
 
@@ -242,12 +241,12 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         this.init({ to: 20111206063000 }, function(migrator) {
           migrator.migrate().success(function() {
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-              var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
+              var signature = data.filter(function(hash){ return hash.attribute == 'signature' })[0]
 
-              expect(signature.Field).toEqual('signature')
-              expect(signature.Type).toEqual('varchar(255)')
-              expect(signature.Null).toEqual('NO')
-              expect(signature.Default).toEqual('Signature')
+              expect(signature.attribute).toEqual('signature')
+              expect(signature.type).toEqual('VARCHAR(255)')
+              expect(signature.allowNull).toEqual(false)
+              expect(signature.defaultValue).toEqual('Signature')
 
               done()
             })
@@ -262,8 +261,8 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
       this.init({ to: 20111206163300 }, function(migrator) {
         migrator.migrate().success(function(){
           this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-            var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
-              , sig       = data.filter(function(hash){ return hash.Field == 'sig' })[0]
+            var signature = data.filter(function(hash){ return hash.attribute === 'signature' })[0]
+              , sig       = data.filter(function(hash){ return hash.attribute === 'sig' })[0]
 
             expect(signature).toBeFalsy()
             expect(sig).toBeTruthy()
