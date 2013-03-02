@@ -123,7 +123,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
 
       it("executes migration #20111117063700 and correctly adds isBetaMember", function(done) {
         this.sequelize.getQueryInterface().describeTable('Person').success(function(data) {
-          var fields = data.map(function(d) { return d.attribute }).sort()
+          var fields = Helpers.Sequelize.Utils._.keys(data).sort()
           expect(fields).toEqual([ 'isBetaMember', 'name' ])
           done()
         })
@@ -190,9 +190,9 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         this.init({ from: 20111117063700, to: 20111205162700 }, function(migrator) {
           migrator.migrate().success(function() {
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-              var signature = data.filter(function(hash){ return hash.Field == 'signature' })[0]
-                , isAdmin   = data.filter(function(hash){ return hash.Field == 'isAdmin' })[0]
-                , shopId    = data.filter(function(hash){ return hash.Field == 'shopId' })[0]
+              var signature = data.signature
+                , isAdmin   = data.isAdmin
+                , shopId    = data.shopId
 
               expect(signature.Field).toEqual('signature')
               expect(signature.Null).toEqual('NO')
@@ -212,20 +212,17 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('removeColumn', function() {
-      (dialect === 'mysql' ? it : itEventually)('removes the shopId column from user', function(done) {
+      it('removes the shopId column from user', function(done) {
         this.init({ to: 20111206061400 }, function(migrator) {
           migrator.migrate().success(function(){
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-              var signature = data.filter(function(hash){ return hash.attribute == 'signature' })[0]
-                , isAdmin   = data.filter(function(hash){ return hash.attribute == 'isAdmin' })[0]
-                , shopId    = data.filter(function(hash){ return hash.attribute == 'shopId' })[0]
+              var signature = data.signature
+                , isAdmin   = data.isAdmin
+                , shopId    = data.shopId
 
-              expect(signature.attribute).toEqual('signature')
-              expect(signature.allowNull).toEqual(false)
-
-              expect(isAdmin.attribute).toEqual('isAdmin')
+              expect(signature.allowNull).toEqual(true)
               expect(isAdmin.allowNull).toEqual(false)
-              expect(isAdmin.defaultValue).toEqual('0')
+              expect(isAdmin.defaultValue).toEqual(false)
 
               expect(shopId).toBeFalsy()
 
@@ -241,9 +238,8 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         this.init({ to: 20111206063000 }, function(migrator) {
           migrator.migrate().success(function() {
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-              var signature = data.filter(function(hash){ return hash.attribute == 'signature' })[0]
+              var signature = data.signature
 
-              expect(signature.attribute).toEqual('signature')
               expect(signature.type).toEqual('VARCHAR(255)')
               expect(signature.allowNull).toEqual(false)
               expect(signature.defaultValue).toEqual('Signature')
@@ -261,8 +257,8 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
       this.init({ to: 20111206163300 }, function(migrator) {
         migrator.migrate().success(function(){
           this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
-            var signature = data.filter(function(hash){ return hash.attribute === 'signature' })[0]
-              , sig       = data.filter(function(hash){ return hash.attribute === 'sig' })[0]
+            var signature = data.signature
+              , sig       = data.sig
 
             expect(signature).toBeFalsy()
             expect(sig).toBeTruthy()

@@ -101,15 +101,13 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
       this.interface.describeTable('User').complete(function(err, metadata) {
         expect(err).toBeNull()
 
-        var username = metadata.filter(function(m) { return m.attribute === 'username' })[0]
-        var isAdmin  = metadata.filter(function(m) { return m.attribute === 'isAdmin' })[0]
+        var username = metadata.username
+        var isAdmin  = metadata.isAdmin
 
-        expect(username.attribute).toEqual('username')
         expect(username.type).toEqual(dialect === 'postgres' ? 'CHARACTER VARYING' : 'VARCHAR(255)')
         expect(username.allowNull).toBeTrue()
         expect(username.defaultValue).toBeNull()
 
-        expect(isAdmin.attribute).toEqual('isAdmin')
         expect(isAdmin.type).toEqual(dialect === 'postgres' ? 'BOOLEAN' : 'TINYINT(1)')
         expect(isAdmin.allowNull).toBeTrue()
         expect(isAdmin.defaultValue).toBeNull()
