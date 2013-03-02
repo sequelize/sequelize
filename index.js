@@ -1,5 +1,5 @@
 /**
   The entry point.
-  @module sequelize
+  @module Sequelize
 **/
 module.exports = require("./lib/sequelize")
