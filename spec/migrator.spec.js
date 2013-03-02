@@ -167,7 +167,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
         }.bind(this))
       })
 
-      ;(dialect === 'sqlite' ? itEventually : it)("executes migration #20111205064000 and renames a table", function(done) {
+      it("executes migration #20111205064000 and renames a table", function(done) {
         this.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
           expect(tableNames).toEqual([ 'Person' ])
