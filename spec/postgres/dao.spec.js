@@ -10,7 +10,7 @@ if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] DAO', function() {
     before(function(done) {
       var self = this
-      console.log("to init");
+
       Helpers.initTests({
         dialect: dialect,
         beforeComplete: function(sequelize, DataTypes) {

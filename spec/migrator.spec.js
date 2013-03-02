@@ -170,7 +170,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
       it("executes migration #20111205064000 and renames a table", function(done) {
         this.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-          expect(tableNames).toEqual([ 'Person' ])
+          expect(tableNames).toContain('Person')
 
           this.init({ from: 20111205064000, to: 20111205064000 }, function(migrator) {
             migrator.migrate().success(function() {
@@ -234,13 +234,17 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('changeColumn', function() {
-      (dialect === 'mysql' ? it : itEventually)('changes the signature column from user to default "signature" + notNull', function(done) {
+      it('changes the signature column from user to default "signature" + notNull', function(done) {
         this.init({ to: 20111206063000 }, function(migrator) {
           migrator.migrate().success(function() {
             this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
               var signature = data.signature
 
-              expect(signature.type).toEqual('VARCHAR(255)')
+              if (dialect === 'postgres') {
+                expect(signature.type).toEqual('CHARACTER VARYING')
+              } else {
+                expect(signature.type).toEqual('VARCHAR(255)')
+              }
               expect(signature.allowNull).toEqual(false)
               expect(signature.defaultValue).toEqual('Signature')
 
@@ -253,7 +257,7 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
   })
 
   describe('renameColumn', function() {
-    (dialect === 'mysql' ? it : itEventually)("renames the signature column from user to sig", function(done) {
+    it("renames the signature column from user to sig", function(done) {
       this.init({ to: 20111206163300 }, function(migrator) {
         migrator.migrate().success(function(){
           this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
