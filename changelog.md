@@ -14,6 +14,7 @@
 - [BUG] fixed updateAttributes for models/tables without primary key (thanks to durango)
 - [BUG] fixed the location of the foreign key when using belongsTo (thanks to ricardograca)
 - [BUG] don't return timestamps if only specific attributes have been seleceted (thanks to ricardograca)
+- [BUG] fixed removeColumn for sqlite
 - [FEATURE] added association prefetching /eager loading for find and findAll. #465
 - [FEATURE] it's now possible to use callbacks of async functions inside migrations (thanks to mphilpot)
 - [FEATURE] improved comfort of sequelize.query. just pass an sql string to it and wait for the result
@@ -36,6 +37,7 @@
 - [FEATURE] results of raw queries are parsed with dottie. #468 (thanks to kozze89)
 - [FEATURE] support for array serialization. pg only. #443 (thanks to clkao)
 - [FEATURE] add increment and decrement methods on dao. #408 (thanks to janmeier/innofluence)
+- [FEATURE] unified the result of describeTable
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
