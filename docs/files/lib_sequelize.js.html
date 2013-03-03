@@ -106,8 +106,21 @@ module.exports = (function() {
 
     @param {String} database The name of the database.
     @param {String} username The username which is used to authenticate against the database.
-    @param {String} [password] The password which is used to authenticate against the database.
-    @param {Object} [options] An object with options.
+    @param {String} [password=null] The password which is used to authenticate against the database.
+    @param {Object} [options={}] An object with options.
+      @param {String} [options.dialect=&#x27;mysql&#x27;] The dialect of the relational database.
+      @param {String} [options.host=&#x27;localhost&#x27;] The host of the relational database.
+      @param {Integer} [options.port=3306] The port of the relational database.
+      @param {String} [options.protocol=&#x27;tcp&#x27;] The protocol of the relational database.
+      @param {Object} [options.define={}] Options, which shall be default for every model definition.
+      @param {Object} [options.query={}] I have absolutely no idea.
+      @param {Object} [options.sync={}] Options, which shall be default for every &#x60;sync&#x60; call.
+      @param {Function} [options.logging=console.log] A function that gets executed everytime Sequelize would log something.
+      @param {Boolean} [options.omitNull=false] A flag that defines if null values should be passed to SQL queries or not.
+      @param {Boolean} [options.queue=true] I have absolutely no idea.
+      @param {Boolean} [options.native=false] A flag that defines if native library shall be used or not.
+      @param {Boolean} [options.replication=false] I have absolutely no idea.
+      @param {Object} [options.pool={}] Something.
 
     @example
         &#x2F;&#x2F; without password and options
@@ -178,13 +191,28 @@ module.exports = (function() {
     Sequelize[dataType] = DataTypes[dataType]
   }
 
+  &#x2F;**
+   Returns an instance of QueryInterface.
+
+   @method getQueryInterface
+   @return {QueryInterface} An instance (singleton) of QueryInterface.
+   *&#x2F;
   Sequelize.prototype.getQueryInterface = function() {
     this.queryInterface = this.queryInterface || new QueryInterface(this)
     return this.queryInterface
   }
 
+  &#x2F;**
+   Returns an instance (singleton) of Migrator.
+
+   @method getMigrator
+   @param {Object} [options={}] Some options
+   @param {Boolean} [force=false] A flag that defines if the migrator should get instantiated or not.
+   @return {Migrator} An instance of Migrator.
+   *&#x2F;
   Sequelize.prototype.getMigrator = function(options, force) {
     var Migrator = require(&quot;.&#x2F;migrator&quot;)
+
     if (force) {
       this.migrator = new Migrator(this, options)
     } else {
@@ -232,10 +260,9 @@ module.exports = (function() {
     this.getMigrator().migrate(options)
   }
 
-  Sequelize.prototype.query = function(sql, callee, options) {
+  Sequelize.prototype.query = function(sql, callee, options, replacements) {
     if (arguments.length === 4) {
-      values.unshift(sql)
-      sql = Utils.format(values)
+      sql = Utils.format([sql].concat(replacements))
     } else if (arguments.length === 3) {
       options = options
     } else if (arguments.length === 2) {

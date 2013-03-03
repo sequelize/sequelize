@@ -103,13 +103,108 @@
                     "name": "password",
                     "description": "The password which is used to authenticate against the database.",
                     "type": "String",
-                    "optional": true
+                    "optional": true,
+                    "optdefault": "null"
                 },
                 {
                     "name": "options",
                     "description": "An object with options.",
                     "type": "Object",
-                    "optional": true
+                    "optional": true,
+                    "optdefault": "{}",
+                    "props": [
+                        {
+                            "name": "dialect",
+                            "description": "The dialect of the relational database.",
+                            "type": "String",
+                            "optional": true,
+                            "optdefault": "'mysql'"
+                        },
+                        {
+                            "name": "host",
+                            "description": "The host of the relational database.",
+                            "type": "String",
+                            "optional": true,
+                            "optdefault": "'localhost'"
+                        },
+                        {
+                            "name": "port",
+                            "description": "The port of the relational database.",
+                            "type": "Integer",
+                            "optional": true,
+                            "optdefault": "3306"
+                        },
+                        {
+                            "name": "protocol",
+                            "description": "The protocol of the relational database.",
+                            "type": "String",
+                            "optional": true,
+                            "optdefault": "'tcp'"
+                        },
+                        {
+                            "name": "define",
+                            "description": "Options, which shall be default for every model definition.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        },
+                        {
+                            "name": "query",
+                            "description": "I have absolutely no idea.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        },
+                        {
+                            "name": "sync",
+                            "description": "Options, which shall be default for every `sync` call.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        },
+                        {
+                            "name": "logging",
+                            "description": "A function that gets executed everytime Sequelize would log something.",
+                            "type": "Function",
+                            "optional": true,
+                            "optdefault": "console.log"
+                        },
+                        {
+                            "name": "omitNull",
+                            "description": "A flag that defines if null values should be passed to SQL queries or not.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "false"
+                        },
+                        {
+                            "name": "queue",
+                            "description": "I have absolutely no idea.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "true"
+                        },
+                        {
+                            "name": "native",
+                            "description": "A flag that defines if native library shall be used or not.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "false"
+                        },
+                        {
+                            "name": "replication",
+                            "description": "I have absolutely no idea.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "false"
+                        },
+                        {
+                            "name": "pool",
+                            "description": "Something.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        }
+                    ]
                 }
             ],
             "example": [
@@ -359,8 +454,48 @@
         },
         {
             "file": "lib/sequelize.js",
-            "line": 80,
+            "line": 93,
             "description": "Reference to Utils",
+            "class": "Sequelize"
+        },
+        {
+            "file": "lib/sequelize.js",
+            "line": 102,
+            "description": "Returns an instance of QueryInterface.",
+            "itemtype": "method",
+            "name": "getQueryInterface",
+            "return": {
+                "description": "An instance (singleton) of QueryInterface.",
+                "type": "QueryInterface"
+            },
+            "class": "Sequelize"
+        },
+        {
+            "file": "lib/sequelize.js",
+            "line": 113,
+            "description": "Returns an instance (singleton) of Migrator.",
+            "itemtype": "method",
+            "name": "getMigrator",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "Some options",
+                    "type": "Object",
+                    "optional": true,
+                    "optdefault": "{}"
+                },
+                {
+                    "name": "force",
+                    "description": "A flag that defines if the migrator should get instantiated or not.",
+                    "type": "Boolean",
+                    "optional": true,
+                    "optdefault": "false"
+                }
+            ],
+            "return": {
+                "description": "An instance of Migrator.",
+                "type": "Migrator"
+            },
             "class": "Sequelize"
         }
     ],
@@ -419,7 +554,7 @@
         },
         {
             "message": "Missing item type\nReference to Utils",
-            "line": " lib/sequelize.js:80"
+            "line": " lib/sequelize.js:93"
         }
     ]
 }
