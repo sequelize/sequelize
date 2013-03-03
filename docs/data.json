@@ -216,13 +216,13 @@
         },
         {
             "file": "lib/dialects/abstract/query.js",
-            "line": 333,
+            "line": 345,
             "description": "The function takes the result of the query execution and groups\nthe associated data by the callee.\n\nExample:\n  groupDataByCalleeFactory([\n    {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 1 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 2 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 3 }\n    }\n  ])\n\nResult:\n  Something like this:\n\n  [\n    {\n      callee:  { some: 'data', id: 1 },\n      association: [\n        { foo: 'bar', id: 1 },\n        { foo: 'bar', id: 2 },\n        { foo: 'bar', id: 3 }\n      ]\n    }\n  ]",
             "class": "QueryInterface"
         },
         {
             "file": "lib/dialects/abstract/query.js",
-            "line": 393,
+            "line": 405,
             "description": "This function will prepare the result of select queries with joins.",
             "params": [
                 {
@@ -407,11 +407,11 @@
         },
         {
             "message": "Missing item type\nThe function takes the result of the query execution and groups\nthe associated data by the callee.\n\nExample:\n  groupDataByCalleeFactory([\n    {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 1 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 2 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 3 }\n    }\n  ])\n\nResult:\n  Something like this:\n\n  [\n    {\n      callee:  { some: 'data', id: 1 },\n      association: [\n        { foo: 'bar', id: 1 },\n        { foo: 'bar', id: 2 },\n        { foo: 'bar', id: 3 }\n      ]\n    }\n  ]",
-            "line": " lib/dialects/abstract/query.js:333"
+            "line": " lib/dialects/abstract/query.js:345"
         },
         {
             "message": "Missing item type\nThis function will prepare the result of select queries with joins.",
-            "line": " lib/dialects/abstract/query.js:393"
+            "line": " lib/dialects/abstract/query.js:405"
         },
         {
             "message": "Missing item type\nSearch for an instance.",

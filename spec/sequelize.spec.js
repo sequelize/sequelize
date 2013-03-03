@@ -107,21 +107,24 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
 
-    if (dialect == 'mysql')
-     it('executes stored procedures', function(done) {
-      this.sequelize.query(this.insertQuery).success(function() {
-        this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
-          this.sequelize.query(
-            "CREATE PROCEDURE foo()\nSELECT * FROM " + this.User.tableName + ";"
-          ).success(function() {
-            this.sequelize.query('CALL foo()').success(function(users) {
-              expect(users.map(function(u){ return u.username })).toEqual(['john'])
-              done()
-            })
+    if (dialect == 'mysql') {
+      it('executes stored procedures', function(done) {
+        this.sequelize.query(this.insertQuery).success(function() {
+          this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
+            this.sequelize.query(
+              "CREATE PROCEDURE foo()\nSELECT * FROM " + this.User.tableName + ";"
+            ).success(function() {
+              this.sequelize.query('CALL foo()').success(function(users) {
+                expect(users.map(function(u){ return u.username })).toEqual(['john'])
+                done()
+              })
+            }.bind(this))
           }.bind(this))
         }.bind(this))
-      }.bind(this))
-     })
+      })
+    } else {
+      console.log('FIXME: I want to be supported in this dialect as well :-(')
+    }
 
     it('uses the passed DAOFactory', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
@@ -130,6 +133,16 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
           done()
         }.bind(this))
       }.bind(this))
+    })
+
+    it('destructs dot separated attributes when doing a raw query', function(done) {
+      var tickChar = (dialect === 'postgres') ? '"' : '`'
+        , sql      = "select 1 as " + Utils.addTicks('foo.bar.baz', tickChar)
+
+      this.sequelize.query(sql, null, { raw: true }).success(function(result) {
+        expect(result).toEqual([ { foo: { bar: { baz: 1 } } } ])
+        done()
+      })
     })
   })
 
