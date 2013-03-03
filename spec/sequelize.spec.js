@@ -143,7 +143,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         this.Review.sync({ force: true }).success(done)
       })
 
-      it('=>raises an error if no values are defined', function() {
+      it('raises an error if no values are defined', function() {
         Helpers.assertException(function() {
           this.sequelize.define('omnomnom', {
             bla: { type: Helpers.Sequelize.ENUM }
@@ -167,7 +167,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         }.bind(this))
       })
 
-      it("=>doesn't save an instance if value is not in the range of enums", function() {
+      it("doesn't save an instance if value is not in the range of enums", function() {
         Helpers.assertException(function() {
           this.Review.create({ status: 'fnord' })
         }.bind(this), 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')

@@ -346,6 +346,28 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         done()
       })
     })
+
+    describe('enums', function() {
+      before(function(done) {
+        this.Item = this.sequelize.define('Item', {
+          state: { type: Helpers.Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] }
+        })
+
+        this.sequelize.sync({ force: true }).success(function() {
+          this.Item.create({ state: 'available' }).success(function(item) {
+            this.item = item
+            done()
+          }.bind(this))
+        }.bind(this))
+      })
+
+      it('correctly restores enum values', function(done) {
+        this.Item.find({ where: { state: 'available' }}).success(function(item) {
+          expect(item.id).toEqual(this.item.id)
+          done()
+        }.bind(this))
+      })
+    })
   })
 
   describe('find', function find() {
