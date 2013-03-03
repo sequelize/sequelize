@@ -59,7 +59,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 ### 1.8.0
 - API sugar (like Model.select().where().group().include().all())
 - Schema dumping
-- enum support
+- ~~enum support~~
 - attributes / values of a dao instance should be scoped
 
 ### 2.0.0
