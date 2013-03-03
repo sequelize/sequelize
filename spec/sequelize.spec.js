@@ -144,6 +144,13 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         done()
       })
     })
+
+    it('replaces token with the passed array', function(done) {
+      this.sequelize.query('select ? as foo, ? as bar', null, { raw: true }, [ 1, 2 ]).success(function(result) {
+        expect(result).toEqual([{ foo: 1, bar: 2 }])
+        done()
+      })
+    })
   })
 
   describe('define', function() {
