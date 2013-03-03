@@ -54,6 +54,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
 - Model#delete
 - Validate a model before it gets saved. (Move validation of enum attribute value to validate method)
+- BLOB [#99](https://github.com/sdepold/sequelize/issues/99)
 
 ### 1.7.x
 - Complete support for non-id primary keys
