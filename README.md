@@ -7,6 +7,7 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 ### 1.6.0 ###
 
 - We changed the way timestamps are handled. From v1.6.0 on timestamps are stored and loaded as UTC.
+- Support for synchronous migrations has been dropped. `up` and `down` methods in migrations do have a third parameter which is the callback parameter. Pass an error or an error message as first parameter to the callback if something went wrong in the migration.
 
 ## Blogposts/Changes ##
 - [v1.4.1](http://blog.sequelizejs.com/post/24403298792/changes-in-sequelize-1-4-1): deprecation of node < 0.6, logging customization, ...
@@ -42,7 +43,7 @@ Also make sure to take a look at the examples in the repository. The website wil
 A very basic roadmap. Chances aren't too bad, that not mentioned things are implemented as well. Don't panic :)
 
 ### 1.6.0 (ToDo)
-- Fix last issues with eager loading of associated data
+- ~~Fix last issues with eager loading of associated data~~
 - ~~Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person~~
 
 ### 1.7.0
@@ -52,6 +53,8 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Support for update and delete calls for whole tables without previous loading of instances
 - Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
 - Model#delete
+- Validate a model before it gets saved. (Move validation of enum attribute value to validate method)
+- BLOB [#99](https://github.com/sdepold/sequelize/issues/99)
 
 ### 1.7.x
 - Complete support for non-id primary keys
