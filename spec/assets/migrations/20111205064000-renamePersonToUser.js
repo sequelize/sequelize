@@ -1,9 +1,9 @@
 module.exports = {
-  up: function(migration, DataTypes) {
-    migration.renameTable('Person', 'User')
+  up: function(migration, DataTypes, done) {
+    migration.renameTable('Person', 'User').complete(done)
   },
 
-  down: function(migration, DataTypes) {
-    migration.renameTable('User', 'Person')
+  down: function(migration, DataTypes, done) {
+    migration.renameTable('User', 'Person').complete(done)
   }
 }

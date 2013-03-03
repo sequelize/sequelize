@@ -159,7 +159,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         }.bind(this))
       })
 
-      itEventually("doesn't save an instance if value is not in the range of enums", function(done) {
+      it("//doesn't save an instance if value is not in the range of enums", function(done) {
         this.Review.create({ status: 'fnord' }).error(function(err) {
           expect(1).toEqual(1)
           done()

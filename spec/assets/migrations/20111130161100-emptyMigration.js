@@ -1,4 +1,4 @@
 module.exports = {
-  up: function() {},
-  down: function() {}
+  up: function(migration, DataTypes, done) { done() },
+  down: function(migration, DataTypes, done) { done() }
 }

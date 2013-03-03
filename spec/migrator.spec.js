@@ -8,7 +8,7 @@ if(typeof require === 'function') {
 }
 
 buster.spec.expose()
-buster.testRunner.timeout = 1000
+buster.testRunner.timeout = 10000
 
 describe(Helpers.getTestDialectTeaser("Migrator"), function() {
   before(function(done) {
@@ -186,23 +186,18 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('addColumn', function() {
-      it('//adds a column to the user table', function(done) {
+      it('adds a column to the user table', function(done) {
         this.init({ from: 20111117063700, to: 20111205162700 }, function(migrator) {
-          migrator.migrate().success(function() {
-            this.sequelize.getQueryInterface().describeTable('User').success(function(data) {
+          migrator.migrate().complete(function(err) {
+            this.sequelize.getQueryInterface().describeTable('User').complete(function(err, data) {
               var signature = data.signature
                 , isAdmin   = data.isAdmin
                 , shopId    = data.shopId
 
-              expect(signature.Field).toEqual('signature')
-              expect(signature.Null).toEqual('NO')
-
-              expect(isAdmin.Field).toEqual('isAdmin')
-              expect(isAdmin.Null).toEqual('NO')
-              expect(isAdmin.Default).toEqual('0')
-
-              expect(shopId.Field).toEqual('shopId')
-              expect(shopId.Null).toEqual('YES')
+              expect(signature.allowNull).toEqual(true)
+              expect(isAdmin.allowNull).toEqual(false)
+              expect(isAdmin.defaultValue).toEqual(false)
+              expect(shopId.allowNull).toEqual(true)
 
               done()
             })
