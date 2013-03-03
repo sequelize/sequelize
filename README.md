@@ -74,8 +74,8 @@ Still interested? Coolio! Here is how to get started:
 ### 1. Prepare your environment ###
 
 Here comes a little surprise: You need [Node.JS](http://nodejs.org). In order to be
-a productive developer, I would recommend the latest v0.8 (or a stable 0.9 if
-already out). Also I usually recommend [NVM](https://github.com/creationix/nvm).
+a productive developer, I would recommend the latest v0.8. Also I usually recommend
+[NVM](https://github.com/creationix/nvm).
 
 Once Node.JS is installed on your computer, you will also have access to the lovely
 Node Package Manager (NPM).
