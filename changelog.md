@@ -6,6 +6,7 @@
 - [DEPENDENCIES] mysql is now an optional dependency. #355 (thanks to clkao)
 - [REFACTORING] separated tests for dialects
 - [REFACTORING] reduced number of sql queries used for adding an element to a N:M association. #449 (thanks to innofluence/janmeier)
+- [REFACTORING] dropped support for synchronous migrations. added third parameter which needs to get called once the migration has been finished.
 - [OTHERS] code was formatted to fit the latest code style guidelines (thanks to durango)
 - [OTHERS] Explicitly target ./docs folder for generate-docs script. #444 (thanks to carsondarling)
 - [BUG] fixed wrong version in sequelize binary
