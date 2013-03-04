@@ -2,7 +2,6 @@ if(typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
-
 }
 
 var qq = function(str) {
@@ -137,7 +136,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
 
     it('destructs dot separated attributes when doing a raw query', function(done) {
       var tickChar = (dialect === 'postgres') ? '"' : '`'
-        , sql      = "select 1 as " + Utils.addTicks('foo.bar.baz', tickChar)
+        , sql      = "select 1 as " + Helpers.Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
       this.sequelize.query(sql, null, { raw: true }).success(function(result) {
         expect(result).toEqual([ { foo: { bar: { baz: 1 } } } ])
