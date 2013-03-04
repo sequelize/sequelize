@@ -274,12 +274,14 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         username: Helpers.Sequelize.STRING,
         age:      Helpers.Sequelize.INTEGER,
         isAdmin:  Helpers.Sequelize.BOOLEAN
-      }, {
-        timestamps: false,
-        logging: true
-      })
+      }, { timestamps: false })
 
-      this.User.sync({ force: true }).success(done)
+      this.Project = this.sequelize.define('NiceProject', { title: Helpers.Sequelize.STRING }, { timestamps: false })
+
+      this.User.hasMany(this.Project, { as: 'Projects' })
+      this.Project.belongsTo(this.User, { as: 'LovelyUser' })
+
+      this.sequelize.sync({ force: true }).success(done)
     })
 
     it('returns an object containing all values', function() {
@@ -295,6 +297,30 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     it('returns a response that can be stringified and then parsed', function() {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
       expect(JSON.parse(JSON.stringify(user))).toEqual({ username: 'test.user', age: 99, isAdmin: true, id: null })
+    })
+
+    it('includes the eagerly loaded associations', function(done) {
+      this.User.create({ username: 'fnord', age: 1, isAdmin: true }).success(function(user) {
+        this.Project.create({ title: 'fnord' }).success(function(project) {
+          user.setProjects([ project ]).success(function() {
+            this.User.findAll({include: [ { model: this.Project, as: 'Projects' } ]}).success(function(users) {
+              var _user = users[0]
+
+              expect(_user.projects).toBeDefined()
+              expect(JSON.parse(JSON.stringify(_user)).projects).toBeDefined()
+
+              this.Project.findAll({include: [ { model: this.User, as: 'LovelyUser' } ]}).success(function(projects) {
+                var _project = projects[0]
+
+                expect(_project.lovelyUser).toBeDefined()
+                expect(JSON.parse(JSON.stringify(_project)).lovelyUser).toBeDefined()
+
+                done()
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
     })
   })
 
