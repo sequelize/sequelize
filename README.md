@@ -47,6 +47,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - ~~Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person~~
 
 ### 1.7.0
+- Check if lodash is a proper alternative to current underscore usage.
 - Transactions
 - Support for update of tables without primary key
 - MariaDB support
