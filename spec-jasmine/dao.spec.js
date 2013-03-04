@@ -334,7 +334,6 @@ describe('DAO', function() {
           })
         })
       })
-
     })
   })
 })
