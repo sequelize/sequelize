@@ -410,9 +410,14 @@ module.exports = (function() {
         dao[accessor] = isEmpty ? null : daoInstance
       } else {
         dao[accessor] = dao[accessor] || []
-        if (! isEmpty)
+
+        if (!isEmpty) {
           dao[accessor].push(daoInstance)
+        }
       }
+
+      &#x2F;&#x2F; add the accessor to the eagerly loaded associations array
+      dao.__eagerlyLoadedAssociations = Utils._.uniq(dao.__eagerlyLoadedAssociations.concat([accessor]))
     })
   }
 
