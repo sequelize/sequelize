@@ -21,6 +21,13 @@
       "email": "jam@innofluence.com"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sdepold/sequelize.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sdepold/sequelize/issues"
+  },
   "dependencies": {
     "underscore": "~1.4.0",
     "underscore.string": "~2.3.0",
