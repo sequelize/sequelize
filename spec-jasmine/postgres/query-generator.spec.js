@@ -72,6 +72,12 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {group: "name"}],
         expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\";"
       }, {
+        arguments: ['myTable', {group: ["name"]}],
+        expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\";"
+      }, {
+        arguments: ['myTable', {group: ["name","title"]}],
+        expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\", \"title\";"
+      }, {
         arguments: ['myTable', {limit: 10}],
         expectation: "SELECT * FROM \"myTable\" LIMIT 10;"
       }, {
