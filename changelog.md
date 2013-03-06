@@ -39,6 +39,7 @@
 - [FEATURE] support for array serialization. pg only. #443 (thanks to clkao)
 - [FEATURE] add increment and decrement methods on dao. #408 (thanks to janmeier/innofluence)
 - [FEATURE] unified the result of describeTable
+- [FEATURE] add support for decimals (thanks to alexyoung)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
