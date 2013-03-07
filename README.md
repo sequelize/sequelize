@@ -67,7 +67,8 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - attributes / values of a dao instance should be scoped
 
 ### 2.0.0
-- save datetimes in UTC
+- ~~save datetimes in UTC~~
+- encapsulate attributes if a dao inside the attributes property + add getters and setters
 
 ## Collaboration 2.0 ##
 
