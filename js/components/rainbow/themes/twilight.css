@@ -1,0 +1,83 @@
+/**
+ * Twilight theme
+ *
+ * Adapted from Michael Sheets' TextMate theme of the same name
+ *
+ * @author Michael Sheets
+ * @author Jesse Farmer <jesse@20bits.com>
+ * @version 1.0.1
+ */
+pre {
+    background: #141414;
+    word-wrap: break-word;
+    margin: 0px;
+    padding: 0px;
+    padding: 10px;
+    color: #F8F8F8;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+pre, code {
+    font-family: 'Monaco', courier, monospace;
+}
+
+pre .comment {
+    color: #5F5A60;
+}
+
+pre .constant.numeric {
+    color: #D87D50;
+}
+
+pre .constant {
+    color: #889AB4;
+}
+
+pre .constant.symbol, pre .constant.language {
+    color: #D87D50;
+}
+
+pre .storage {
+    color: #F9EE98;
+}
+
+pre .string {
+    color: #8F9D6A;
+}
+
+pre .string.regexp {
+    color: #E9C062;
+}
+
+pre .keyword, pre .selector, pre .storage {
+    color: #CDA869;
+}
+
+pre .inherited-class {
+    color: #9B5C2E;
+}
+
+pre .entity {
+    color: #FF6400;
+}
+
+pre .support {
+    color: #9B859D;
+}
+
+pre .support.magic {
+    color: #DAD69A;
+}
+
+pre .variable {
+    color: #7587A6;
+}
+
+pre .function, pre .entity.class {
+    color: #9B703F;
+}
+
+pre .support.class-name, pre .support.type {
+    color: #AB99AC;
+}

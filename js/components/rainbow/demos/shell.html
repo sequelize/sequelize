@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ruby-build</title>
+    <link href="../themes/blackboard.css" rel="stylesheet">
+  </head>
+  <body>
+    <pre>
+<code data-language="shell">#!/usr/bin/env bash
+# Copyright (c) 2011 Sam Stephenson
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# &quot;Software&quot;), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+RUBY_BUILD_VERSION=&quot;20120216&quot;
+
+set -E
+exec 3&lt;&amp;2 # preserve original stderr at fd 3
+
+resolve_link() {
+  $(type -p greadlink readlink | head -1) &quot;$1&quot;
+}
+
+abs_dirname() {
+  local cwd=&quot;$(pwd)&quot;
+  local path=&quot;$1&quot;
+
+  while [ -n &quot;$path&quot; ]; do
+    cd &quot;${path%/*}&quot;
+    local name=&quot;${path##*/}&quot;
+    path=&quot;$(resolve_link &quot;$name&quot; || true)&quot;
+  done
+
+  pwd
+  cd &quot;$cwd&quot;
+}
+
+build_failed() {
+  { echo
+    echo &quot;BUILD FAILED&quot;
+    echo
+
+    if ! rmdir &quot;${TEMP_PATH}&quot; 2&gt;/dev/null; then
+      echo &quot;Inspect or clean up the working tree at ${TEMP_PATH}&quot;
+
+      if file_is_not_empty &quot;$LOG_PATH&quot;; then
+        echo &quot;Results logged to ${LOG_PATH}&quot;
+        echo
+        echo &quot;Last 10 log lines:&quot;
+        tail -n 10 &quot;$LOG_PATH&quot;
+      fi
+    fi
+  } &gt;&amp;3
+  exit 1
+}
+
+file_is_not_empty() {
+  local filename=&quot;$1&quot;
+  local line_count=&quot;$(wc -l &quot;$filename&quot; 2&gt;/dev/null || true)&quot;
+
+  if [ -n &quot;$line_count&quot; ]; then
+    words=( $line_count )
+    [ &quot;${words[0]}&quot; -gt 0 ]
+  else
+    return 1
+  fi
+}
+
+install_package() {
+  install_package_using &quot;tarball&quot; 1 $*
+}
+
+install_git() {
+  install_package_using &quot;git&quot; 2 $*
+}
+
+install_package_using() {
+  local package_type=&quot;$1&quot;
+  local package_type_nargs=&quot;$2&quot;
+  local package_name=&quot;$3&quot;
+  shift 3
+
+  pushd &quot;$TEMP_PATH&quot; &gt;&amp;4
+  &quot;fetch_${package_type}&quot; &quot;$package_name&quot; $*
+  shift $(($package_type_nargs))
+  make_package &quot;$package_name&quot; $*
+  popd &gt;&amp;4
+
+  echo &quot;Installed ${package_name} to ${PREFIX_PATH}&quot; &gt;&amp;2
+}
+
+make_package() {
+  local package_name=&quot;$1&quot;
+  shift
+
+  pushd &quot;$package_name&quot; &gt;&amp;4
+  before_install_package &quot;$package_name&quot;
+  build_package &quot;$package_name&quot; $*
+  after_install_package &quot;$package_name&quot;
+  fix_directory_permissions
+  popd &gt;&amp;4
+}
+
+fetch_tarball() {
+  local package_name=&quot;$1&quot;
+  local package_url=&quot;$2&quot;
+
+  echo &quot;Downloading ${package_url}...&quot; &gt;&amp;2
+  { curl &quot;$package_url&quot; &gt; &quot;${package_name}.tar.gz&quot;
+    tar xzvf &quot;${package_name}.tar.gz&quot;
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+fetch_git() {
+  local package_name=&quot;$1&quot;
+  local git_url=&quot;$2&quot;
+  local git_ref=&quot;$3&quot;
+
+  echo &quot;Cloning ${git_url}...&quot; &gt;&amp;2
+  { git clone --depth 1 --branch &quot;$git_ref&quot; &quot;$git_url&quot; &quot;${package_name}&quot;
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+build_package() {
+  local package_name=&quot;$1&quot;
+  shift
+
+  if [ &quot;$#&quot; -eq 0 ]; then
+    local commands=&quot;standard&quot;
+  else
+    local commands=&quot;$*&quot;
+  fi
+
+  echo &quot;Installing ${package_name}...&quot; &gt;&amp;2
+
+  for command in $commands; do
+    &quot;build_package_${command}&quot;
+  done
+}
+
+build_package_standard() {
+  local package_name=&quot;$1&quot;
+
+  if [ -z &quot;${MAKEOPTS+defined}&quot; ]; then
+    MAKE_OPTS=&quot;$MAKEOPTS&quot;
+  elif [ -z &quot;${MAKE_OPTS+defined}&quot; ]; then
+    MAKE_OPTS=&quot;-j 2&quot;
+  fi
+
+  { ./configure --prefix=&quot;$PREFIX_PATH&quot; $CONFIGURE_OPTS
+    make $MAKE_OPTS
+    make install
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+build_package_autoconf() {
+  { autoconf
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+build_package_ruby() {
+  local package_name=&quot;$1&quot;
+
+  { &quot;$RUBY_BIN&quot; setup.rb
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+build_package_ree_installer() {
+  local options=&quot;&quot;
+  if [[ &quot;Darwin&quot; = &quot;$(uname)&quot; ]]; then
+    options=&quot;--no-tcmalloc&quot;
+  fi
+
+  # Work around install_useful_libraries crash with --dont-install-useful-gems
+  mkdir -p &quot;$PREFIX_PATH/lib/ruby/gems/1.8/gems&quot;
+
+  { ./installer --auto &quot;$PREFIX_PATH&quot; --dont-install-useful-gems $options $CONFIGURE_OPTS
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+build_package_rbx() {
+  local package_name=&quot;$1&quot;
+
+  { ./configure --prefix=&quot;$PREFIX_PATH&quot; --gemsdir=&quot;$PREFIX_PATH&quot;
+    rake install
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+build_package_maglev() {
+  build_package_copy
+
+  { cd &quot;${PREFIX_PATH}&quot;
+    ./install.sh
+    cd &quot;${PREFIX_PATH}/bin&quot;
+    echo &quot;Creating symlink for ruby*&quot;
+    ln -fs maglev-ruby ruby
+    echo &quot;Creating symlink for irb*&quot;
+    ln -fs maglev-irb irb
+  } &gt;&amp;4 2&gt;&amp;1
+  echo
+  echo &quot;Run &#39;maglev start&#39; to start up the stone before using &#39;ruby&#39; or &#39;irb&#39;&quot;
+}
+
+build_package_jruby() {
+  build_package_copy
+  cd &quot;${PREFIX_PATH}/bin&quot;
+  ln -fs jruby ruby
+  install_jruby_launcher
+  remove_windows_files
+}
+
+install_jruby_launcher() {
+  cd &quot;${PREFIX_PATH}/bin&quot;
+  { ./ruby gem install jruby-launcher
+  } &gt;&amp;4 2&gt;&amp;1
+}
+
+remove_windows_files() {
+  cd &quot;$PREFIX_PATH&quot;
+  rm -f bin/*.exe bin/*.dll bin/*.bat bin/jruby.sh
+}
+
+build_package_copy() {
+  mkdir -p &quot;$PREFIX_PATH&quot;
+  cp -R . &quot;$PREFIX_PATH&quot;
+}
+
+before_install_package() {
+  local stub=1
+}
+
+after_install_package() {
+  local stub=1
+}
+
+fix_directory_permissions() {
+  # Ensure installed directories are not world-writable to avoid Bundler warnings
+  find &quot;$PREFIX_PATH&quot; -type d -exec chmod go-w {} \;
+}
+
+require_gcc() {
+  local gcc=&quot;$(locate_gcc || true)&quot;
+  if [ -z &quot;$gcc&quot; ]; then
+    { echo
+      echo &quot;ERROR: This package must be compiled with GCC, and we&quot;
+      echo &quot;couldn&#39;t find a suitable \`gcc&#39; binary on your system.&quot;
+      echo &quot;Please install GCC and try again.&quot;
+      echo
+
+      if [ &quot;$(uname -s)&quot; = &quot;Darwin&quot; ]; then
+        echo &quot;As of version 4.2, Xcode is LLVM-only and no longer&quot;
+        echo &quot;includes GCC. You can install GCC with these binary&quot;
+        echo &quot;packages on Mac OS X:&quot;
+        echo
+        echo &quot;https://github.com/kennethreitz/osx-gcc-installer/downloads&quot;
+        echo
+      fi
+    } &gt;&amp;3
+    return 1
+  fi
+
+  export CC=&quot;$gcc&quot;
+}
+
+locate_gcc() {
+  local gcc gccs
+  IFS=: gccs=($(gccs_in_path))
+
+  verify_gcc &quot;$CC&quot; ||
+  verify_gcc &quot;$(command -v gcc || true)&quot; || {
+    for gcc in &quot;${gccs[@]}&quot;; do
+      verify_gcc &quot;$gcc&quot; &amp;&amp; break || true
+    done
+  }
+
+  return 1
+}
+
+gccs_in_path() {
+  local gcc path paths
+  local gccs=()
+  IFS=: paths=($PATH)
+
+  shopt -s nullglob
+  for path in &quot;${paths[@]}&quot;; do
+    for gcc in &quot;$path&quot;/gcc-*; do
+      gccs[&quot;${#gccs[@]}&quot;]=&quot;$gcc&quot;
+    done
+  done
+  shopt -u nullglob
+
+  printf :%s &quot;${gccs[@]}&quot;
+}
+
+verify_gcc() {
+  local gcc=&quot;$1&quot;
+  if [ -z &quot;$gcc&quot; ]; then
+    return 1
+  fi
+
+  local version=&quot;$(&quot;$gcc&quot; --version || true)&quot;
+  if [ -z &quot;$version&quot; ]; then
+    return 1
+  fi
+
+  if echo &quot;$version&quot; | grep LLVM &gt;/dev/null; then
+    return 1
+  fi
+
+  echo &quot;$gcc&quot;
+}
+
+version() {
+  echo &quot;ruby-build ${RUBY_BUILD_VERSION}&quot;
+}
+
+usage() {
+  { version
+    echo &quot;usage: ruby-build [-v|--verbose] definition prefix&quot;
+    echo &quot;       ruby-build --definitions&quot;
+  } &gt;&amp;2
+
+  if [ -z &quot;$1&quot; ]; then
+    exit 1
+  fi
+}
+
+list_definitions() {
+  { for definition in &quot;${RUBY_BUILD_ROOT}/share/ruby-build/&quot;*; do
+      echo &quot;${definition##*/}&quot;
+    done
+  } | sort
+}
+
+
+
+unset VERBOSE
+RUBY_BUILD_ROOT=&quot;$(abs_dirname &quot;$0&quot;)/..&quot;
+
+case &quot;$1&quot; in
+&quot;-h&quot; | &quot;--help&quot; )
+  usage without_exiting
+  { echo
+    echo &quot;  -v/--verbose     Verbose mode: print compilation status to stdout&quot;
+    echo &quot;  --definitions    List all built-in definitions&quot;
+    echo
+  } &gt;&amp;2
+  exit 0
+  ;;
+&quot;--definitions&quot; )
+  list_definitions
+  exit 0
+  ;;
+&quot;--version&quot; )
+  version
+  exit 0
+  ;;
+&quot;-v&quot; | &quot;--verbose&quot; )
+  VERBOSE=true
+  shift
+  ;;
+esac
+
+
+DEFINITION_PATH=&quot;$1&quot;
+if [ -z &quot;$DEFINITION_PATH&quot; ]; then
+  usage
+elif [ ! -e &quot;$DEFINITION_PATH&quot; ]; then
+  BUILTIN_DEFINITION_PATH=&quot;${RUBY_BUILD_ROOT}/share/ruby-build/${DEFINITION_PATH}&quot;
+  if [ -e &quot;$BUILTIN_DEFINITION_PATH&quot; ]; then
+    DEFINITION_PATH=&quot;$BUILTIN_DEFINITION_PATH&quot;
+  else
+    echo &quot;ruby-build: definition not found: ${DEFINITION_PATH}&quot; &gt;&amp;2
+    exit 1
+  fi
+fi
+
+PREFIX_PATH=&quot;$2&quot;
+if [ -z &quot;$PREFIX_PATH&quot; ]; then
+  usage
+fi
+
+if [ -z &quot;$TMPDIR&quot; ]; then
+  TMP=&quot;/tmp&quot;
+else
+  TMP=&quot;${TMPDIR%/}&quot;
+fi
+
+SEED=&quot;$(date &quot;+%Y%m%d%H%M%S&quot;).$$&quot;
+LOG_PATH=&quot;${TMP}/ruby-build.${SEED}.log&quot;
+TEMP_PATH=&quot;${TMP}/ruby-build.${SEED}&quot;
+RUBY_BIN=&quot;${PREFIX_PATH}/bin/ruby&quot;
+CWD=&quot;$(pwd)&quot;
+
+exec 4&lt;&gt; &quot;$LOG_PATH&quot; # open the log file at fd 4
+if [ -n &quot;$VERBOSE&quot; ]; then
+  tail -f &quot;$LOG_PATH&quot; &amp;
+  trap &quot;kill 0&quot; SIGINT SIGTERM EXIT
+fi
+
+export LDFLAGS=&quot;-L&#39;${PREFIX_PATH}/lib&#39; ${LDFLAGS}&quot;
+export CPPFLAGS=&quot;-I&#39;${PREFIX_PATH}/include&#39; ${CPPFLAGS}&quot;
+
+unset RUBYOPT
+unset RUBYLIB
+
+trap build_failed ERR
+mkdir -p &quot;$TEMP_PATH&quot;
+source &quot;$DEFINITION_PATH&quot;
+rm -fr &quot;$TEMP_PATH&quot;
+trap - ERR
+</code></pre>
+    <script src="../js/rainbow.js"></script>
+    <script src="../js/language/generic.js"></script>
+    <script src="../js/language/shell.js"></script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<div class="page-header">
+  <h2>Installation</h2>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <p>You have two options to install Sequelize:</p>
+    <p>
+      1. Install it via NPM:
+      <pre><code class="language-javascript">
+        // Use npm on the commandline:
+        npm install sequelize
+
+        // Then require the installed library in your application code:
+        var Sequelize = require("sequelize")
+      </code></pre>
+    </p>
+    <p>
+      2. Download the code from the git repository and require it's entry file index.js:
+      <pre><code class="language-javascript">
+        // Checkout the current code from the repository using the commandline
+        cd path/to/lib
+        git clone git://github.com/sdepold/sequelize.git
+
+        // Then require the installed library in your application code:
+        var Sequelize = require(__dirname + "/lib/sequelize/index")
+      </code></pre>
+    </p>
+    <p>This will make the class <code>Sequelize</code> available.</p>
+  </div>
+</div>

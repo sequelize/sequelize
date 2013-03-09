@@ -1,0 +1,39 @@
+{
+  "name": "bootstrap",
+  "description": "AMD version of Twitter Bootstrap JavaScript modules. Converted with bootstrap-amd npm package.",
+  "version": "2.3.0",
+  "keywords": [
+    "bootstrap",
+    "twitter",
+    "modules",
+    "ready to use",
+    "modals",
+    "affix",
+    "tooltips",
+    "collapse",
+    "dropdowns",
+    "popovers",
+    "carousel",
+    "scrollspy",
+    "alert messages",
+    "typeahead",
+    "togglable tabs",
+    "buttons",
+    "transitions"
+  ],
+  "homepage": "http://twitter.github.com/bootstrap/",
+  "author": "Twitter Inc.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/twitter/bootstrap.git"
+  },
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
+  "dependencies": {
+    "jquery": ">1.5.0"
+  }
+}

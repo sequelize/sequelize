@@ -1,0 +1,8 @@
+{
+  "name": "rainbow",
+  "version": "1.1.8",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ccampbell/rainbow.git"
+  }
+}

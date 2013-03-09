@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Syntax Highlighting</title>
+<link href="../themes/blackboard.css" rel="stylesheet" type="text/css" media="screen">
+<body>
+<style type="text/css">
+</style>
+<pre>
+<code data-language="html">&lt;!-- inline styles! --&gt;
+&lt;style type="text/css"&gt;
+    body span.blah {
+        background: #000;
+        color: #fff;
+    }
+&lt;/style&gt;
+
+&lt;body&gt;
+    &lt;span class="blah" width="200" height="200"&gt;test code goes here&lt;/span&gt;
+&lt;/body&gt;
+
+&lt;!-- inline php! --&gt;
+&lt;?php
+    $test = true;
+
+    /**
+     * test
+     */
+    function what($test) {
+        return $test;
+    }
+?&gt;
+
+&lt;!-- inline javascript! --&gt;
+&lt;script type="text/javascript"&gt;
+    function prettyCool() {
+        doSomeJQueryOrWhatever();
+    }
+&lt;/script&gt;
+
+&lt;article title="&lt;?= $user->name ?&gt;"&gt;test&lt;/article&gt;</code>
+</pre>
+
+    <script src="../js/rainbow.js"></script>
+    <script src="../js/language/generic.js"></script>
+    <script src="../js/language/html.js"></script>
+    <script src="../js/language/css.js"></script>
+    <script src="../js/language/php.js"></script>
+    <script src="../js/language/javascript.js"></script>
+
+</body>

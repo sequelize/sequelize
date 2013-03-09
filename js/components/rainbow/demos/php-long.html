@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Syntax Highlighting</title>
+<link href="../themes/blackboard.css" rel="stylesheet" type="text/css" media="screen">
+<body>
+
+<!-- <pre>
+<code data-language="php">// this is some sample php code
+$i = 0;
+for ($i = 0; $i &lt; 25; ++$i) {
+    echo $i;
+}
+
+# comment like this
+function customFunction()
+{
+    return mt_rand(1, 100);
+}
+
+while($test) {
+    echo 'blah' . "\n";
+};
+
+$fruits = array('banana', 'strawberry', 'blueberry', 'apple', 'blackberry');
+
+asort($fruits);
+
+foreach ($fruits as $key => $value) {
+    echo $value;
+}</code>
+</pre> -->
+
+<pre>
+<code data-language="php">&lt;?php
+namespace Sonic;
+
+/**
+ * App singleton
+ *
+ * @category Sonic
+ * @package App
+ * @author Craig Campbell
+ */
+final class App
+{
+    /**
+     * @var string
+     */
+    const WEB = 'www';
+
+    /**
+     * @var string
+     */
+    const COMMAND_LINE = 'cli';
+
+    /**
+     * @var float
+     */
+    const VERSION = '1.1.2';
+
+    /**
+     * @var App
+     */
+    protected static $_instance;
+
+    /**
+     * @var Request
+     */
+    protected $_request;
+
+    /**
+     * @var Delegate
+     */
+    protected $_delegate;
+
+    /**
+     * @var array
+     */
+    protected $_paths = array();
+
+    /**
+     * @var array
+     */
+    protected $_controllers = array();
+
+    /**
+     * @var array
+     */
+    protected $_queued = array();
+
+    /**
+     * @var bool
+     */
+    protected $_layout_processed = false;
+
+    /**
+     * @var array
+     */
+    protected $_configs = array();
+
+    /**
+     * @var array
+     */
+    protected $_included = array();
+
+    /**
+     * @var string
+     */
+    protected $_base_path;
+
+    /**
+     * constants for settings
+     */
+    const MODE = 0;
+    const ENVIRONMENT = 1;
+    const AUTOLOAD = 2;
+    const CONFIG_FILE = 3;
+    const DEVS = 4;
+    const DISABLE_APC = 5;
+    const TURBO = 6;
+    const TURBO_PLACEHOLDER = 7;
+    const DEFAULT_SCHEMA = 8;
+    const EXTENSION_DATA = 9;
+    const EXTENSIONS_LOADED = 10;
+    const URI_PREFIX = 11;
+
+    /**
+     * @var array
+     */
+    protected $_settings = array(
+        self::MODE => self::WEB,
+        self::AUTOLOAD => false,
+        self::CONFIG_FILE => 'ini',
+        self::DEVS => array('dev', 'development'),
+        self::DISABLE_APC => false,
+        self::TURBO => false,
+        self::EXTENSIONS_LOADED => array()
+    );
+
+    /**
+     * constructor
+     *
+     * @return void
+     */
+    private function __construct() {}
+
+    /**
+     * magic call for methods added at runtime
+     *
+     * @param string $name
+     * @param array $args
+     */
+    public function __call($name, $args)
+    {
+        return $this->callIfExists($name, $args, __CLASS__, get_class($this));
+    }
+
+    /**
+     * magic static call for methods added at run time
+     *
+     * @param string $name
+     * @param array $args
+     */
+    public static function __callStatic($name, $args)
+    {
+        return self::getInstance()->callIfExists($name, $args, __CLASS__, get_called_class(), true);
+    }
+
+    /**
+     * calls method if it exists
+     *
+     * @param string $name
+     * @param array $args
+     * @param string $class
+     * @param instance $class_name
+     */
+    public function callIfExists($name, $args, $class, $class_name, $static = false)
+    {
+        if (count($this->getSetting(self::EXTENSIONS_LOADED)) == 0) {
+            return trigger_error('Call to undefined method ' . $class_name . '::' . $name . '()', E_USER_ERROR);
+        }
+        $this->includeFile('Sonic/Extension/Transformation.php');
+        $method = $static ? 'callStatic' : 'call';
+        return Extension\Transformation::$method($name, $args, $class, $class_name);
+    }
+
+    /**
+     * gets instance of App class
+     *
+     * @return App
+     */
+    public static function getInstance()
+    {
+        if (self::$_instance === null) {
+            self::$_instance = new App();
+        }
+        return self::$_instance;
+    }
+
+    /**
+     * handles autoloading
+     *
+     * @param string $class_name
+     * @return void
+     */
+    public function autoloader($class_name)
+    {
+        $path = str_replace('\\', '/', $class_name) . '.php';
+        return $this->includeFile($path);
+    }
+
+    /**
+     * includes a file at the given path
+     *
+     * @param string
+     * @return bool
+     */
+    public function includeFile($path)
+    {
+        // replace / with directory separator for windows
+        $path = str_replace('/', DIRECTORY_SEPARATOR, $path);
+
+        if (isset($this->_included[$path])) {
+            return false;
+        }
+
+        // if the path starts with / or C: then it is an absolute path
+        // otherwise pull it from the libs directory
+        include $path[0] == '/' || $path[1] == ':' ? $path : $this->getPath('libs') . DIRECTORY_SEPARATOR . $path;
+        $this->_included[$path] = true;
+
+        return true;
+    }
+
+    /**
+     * initializes autoloader
+     *
+     * @return void
+     */
+    public function autoload()
+    {
+        spl_autoload_register(array($this, 'autoloader'));
+    }
+
+    /**
+     * sets a setting
+     *
+     * @param string $key
+     * @param mixed $value
+     */
+    public function addSetting($key, $value)
+    {
+        $this->_settings[$key] = $value;
+    }
+
+    /**
+     * gets a setting
+     *
+     * @param string $name
+     * @return mixed
+     */
+    public function getSetting($name)
+    {
+        if (!isset($this->_settings[$name])) {
+            return null;
+        }
+
+        return $this->_settings[$name];
+    }
+
+    /**
+     * returns the config
+     *
+     * first tries to grab it from APC then tries to grab it from instance cache
+     * if neither of those succeed then it will instantiate the config object
+     * and add it to instance cache and/or APC
+     *
+     * @param string $path path to config path
+     * @param string $type (php || ini)
+     * @return Config
+     */
+    public static function getConfig($path = null)
+    {
+        $app = self::getInstance();
+        $environment = $app->getEnvironment();
+
+        $type = $app->getSetting(self::CONFIG_FILE);
+
+        // get the config path
+        if ($path === null) {
+            $path = $app->getPath('configs') . '/app.' . $type;
+        }
+
+        // cache key
+        $cache_key =  'config_' . $path . '_' . $environment;
+
+        // if the config is in instance cache return it
+        if (isset($app->_configs[$cache_key])) {
+            return $app->_configs[$cache_key];
+        }
+
+        // we need to load the util and config object before it fetches it from APC
+        $app->includeFile('Sonic/Util.php');
+        $app->includeFile('Sonic/Config.php');
+
+        // if we are not dev let's try to grab it from APC
+        if (!self::isDev() &amp;&amp; !$app->getSetting(self::DISABLE_APC) &amp;&amp; ($config = apc_fetch($cache_key))) {
+            $app->_configs[$cache_key] = $config;
+            return $config;
+        }
+
+        // if we have gotten here then that means the config exists so we
+        // now need to get the environment name and load the config
+        $config = new Config($path, $environment, $type);
+        $app->_configs[$cache_key] = $config;
+
+        if (!self::isDev() &amp;&amp; !$app->getSetting(self::DISABLE_APC)) {
+            apc_store($cache_key, $config, Util::toSeconds('24 hours'));
+        }
+
+        return $config;
+    }
+
+    /**
+     * is this dev mode?
+     *
+     * @return bool
+     */
+    public static function isDev()
+    {
+        $app = self::getInstance();
+        return in_array($app->getEnvironment(), $app->getSetting(self::DEVS));
+    }
+
+    /**
+     * gets apache/unix environment name
+     *
+     * @return string
+     */
+    public function getEnvironment()
+    {
+        if ($env = $this->getSetting(self::ENVIRONMENT)) {
+            return $env;
+        }
+
+        if ($env = getenv('ENVIRONMENT')) {
+            $this->addSetting(self::ENVIRONMENT, $env);
+            return $env;
+        }
+
+        throw new Exception('ENVIRONMENT variable is not set! check your apache config');
+    }
+
+    /**
+     * gets the request object
+     *
+     * @return Request
+     */
+    public function getRequest()
+    {
+        if (!$this->_request) {
+            $this->_request = new Request();
+        }
+        return $this->_request;
+    }
+
+    /**
+     * overrides base path
+     *
+     * @param string $dir
+     * @return void
+     */
+    public function setBasePath($path)
+    {
+        $this->_base_path = $path;
+    }
+
+    /**
+     * gets base path of the app
+     *
+     * @return string
+     */
+    public function getBasePath()
+    {
+        if ($this->_base_path) {
+            return $this->_base_path;
+        }
+
+        throw new \Exception('base path must be set before App::start() is called');
+    }
+
+    /**
+     * overrides a default path
+     *
+     * @param string $dir
+     * @param string $path
+     * @return void
+     */
+    public function setPath($dir, $path)
+    {
+        $this->_paths['path_' . $dir] = $path;
+    }
+
+    /**
+     * gets the absolute path to a directory
+     *
+     * @param string $dir (views || controllers || lib) etc
+     * @return string
+     */
+    public function getPath($dir = null)
+    {
+        $cache_key =  'path_' . $dir;
+
+        if (isset($this->_paths[$cache_key])) {
+            return $this->_paths[$cache_key];
+        }
+
+        $base_path = $this->getBasePath();
+
+        if ($dir !== null) {
+            $base_path .= DIRECTORY_SEPARATOR . $dir;
+        }
+
+        $this->_paths[$cache_key] = $base_path;
+        return $this->_paths[$cache_key];
+    }
+
+    /**
+     * globally disables layout
+     *
+     * @return void
+     */
+    public function disableLayout()
+    {
+        $this->_layout_processed = true;
+    }
+
+    /**
+     * gets a controller by name
+     *
+     * @param string $name
+     * @return Controller
+     */
+    public function getController($name)
+    {
+        $name = strtolower($name);
+
+        // controller has not been instantiated yet
+        if (!isset($this->_controllers[$name])) {
+            $path = $this->getPath('controllers') . '/' . str_replace('\\', DIRECTORY_SEPARATOR, $name) . '.php';
+            $success = include $path;
+            if (!$success) {
+                throw new Exception('controller does not exist at path: ' . $path);
+            }
+            $class_name = '\Controllers\\' . $name;
+            $this->_controllers[$name] = new $class_name;
+            $this->_controllers[$name]->name($name);
+        }
+
+        return $this->_controllers[$name];
+    }
+
+    /**
+     * runs a controller and action combination
+     *
+     * @param string $controller_name controller to use
+     * @param string $action method within controller to execute
+     * @param array $args arguments to be added to the Request object and view
+     * @param bool $json should we render json
+     * @param string $id view id for if we are in turbo mode an exception is thrown
+     * @return void
+     */
+    protected function _runController($controller_name, $action, $args = array(), $json = false, $id = null)
+    {
+        $this->getRequest()->addParams($args);
+
+        $controller = $this->getController($controller_name);
+        $controller->setView($action, false);
+
+        // if we are requesting JSON that means this is being processed from the turbo queue
+        // if we are not in turbo mode then we run the action normally
+        $can_run = $json || !$this->getSetting(self::TURBO);
+
+        if ($this->_delegate) {
+            $this->_delegate->actionWasCalled($controller, $action, $args);
+        }
+
+        if ($can_run) {
+            $this->_runAction($controller, $action, $args);
+        }
+
+        $view = null;
+        if ($controller->hasView()) {
+            $view = $controller->getView();
+            $view->setAction($action);
+            $view->addVars($args);
+        }
+
+        // process the layout if we can
+        // this takes care of handling this view
+        if ($this->_processLayout($controller, $view, $args)) {
+            return;
+        }
+
+        if (!$view) {
+            return;
+        }
+
+        if ($this->_delegate) {
+            $this->_delegate->viewStartedRendering($view, $json);
+        }
+
+        // output the view contents
+        $view->output($json, $id);
+
+        if ($this->_delegate) {
+            $this->_delegate->viewFinishedRendering($view, $json);
+        }
+    }
+
+    /**
+     * processes the layout if it needs to be processed
+     *
+     * @param Controller $controller
+     * @param View $view
+     * @param array $args
+     * @return bool
+     */
+    protected function _processLayout(Controller $controller, View $view = null, $args)
+    {
+        // if the layout was already processed ignore this call
+        if ($this->_layout_processed) {
+            return false;
+        }
+
+        // if the controller doesn't have a layout ignore this call
+        if (!$controller->hasLayout()) {
+            return false;
+        }
+
+        // if this is not the first controller and not an exception, ignore
+        if (count($this->_controllers) != 1 &amp;&amp; !isset($args['exception'])) {
+            return false;
+        }
+
+        // process the layout!
+        $this->_layout_processed = true;
+        $layout = $controller->getLayout();
+
+        $layout->topView($view ?: new View);
+
+        if ($this->_delegate) {
+            $this->_delegate->layoutStartedRendering($layout);
+        }
+
+        $layout->output();
+
+        if ($this->_delegate) {
+            $this->_delegate->layoutFinishedRendering($layout);
+        }
+
+        return true;
+    }
+
+    /**
+     * runs a specific action in a controller
+     *
+     * @param Controller $controller
+     * @param string $action
+     * @return void
+     */
+    protected function _runAction(Controller $controller, $action, array $args = array())
+    {
+        if ($this->_delegate) {
+            $this->_delegate->actionStartedRunning($controller, $action, $args);
+        }
+
+        $controller->$action();
+        $controller->actionComplete($action);
+
+        if ($this->_delegate) {
+            $this->_delegate->actionFinishedRunning($controller, $action, $args);
+        }
+    }
+
+    /**
+     * public access to run a controller (handles exceptions)
+     *
+     * @param string $controller_name controller to use
+     * @param string $action method within controller to execute
+     * @param array $args arguments to be added to the Request object and view
+     * @param bool $json should we render json?
+     * @param string $controller_name
+     */
+    public function runController($controller_name, $action, $args = array(), $json = false)
+    {
+        try {
+            $this->_runController($controller_name, $action, $args, $json);
+        } catch (\Exception $e) {
+            $this->handleException($e, $controller_name, $action);
+            return;
+        }
+    }
+
+    /**
+     * queues up a view for later processing
+     *
+     * only happens in turbo mode
+     *
+     * @param string
+     * @param string
+     * @return void
+     */
+    public function queueView($controller, $name)
+    {
+        $this->_queued[] = array($controller, $name);
+    }
+
+    /**
+     * processes queued up views for turbo mode
+     *
+     * @return void
+     */
+    public function processViewQueue()
+    {
+        if (!$this->getSetting(self::TURBO)) {
+            return;
+        }
+
+        while (count($this->_queued)) {
+            foreach ($this->_queued as $key => $queue) {
+                $this->runController($queue[0], $queue[1], array(), true);
+                unset($this->_queued[$key]);
+            }
+        }
+    }
+
+    /**
+     * handles an exception when loading a page
+     *
+     * @param Exception $e
+     * @param string $controller name of controller
+     * @param string $action name of action
+     * @return void
+     */
+    public function handleException(\Exception $e, $controller = null, $action = null)
+    {
+        if ($this->_delegate) {
+            $this->_delegate->appCaughtException($e, $controller, $action);
+        }
+
+        // turn other exceptions into sonic exceptions
+        if (!$e instanceof Exception) {
+            $e = new Exception($e->getMessage(), Exception::INTERNAL_SERVER_ERROR, $e);
+        }
+
+        // only set the http code if output hasn't started
+        if (!headers_sent()) {
+            header($e->getHttpCode());
+        }
+
+        $json = false;
+        $id = null;
+
+        // in turbo mode we have to write the exception markup out to the
+        // same div created before the exception was triggered.  this means
+        // we have to get the id based on the controller and action that the
+        // exception came from
+        if ($this->getSetting(self::TURBO) &amp;&amp; $this->_layout_processed) {
+            $json = true;
+            $id = View::generateId($controller, $action);
+        }
+
+        $completed = false;
+
+        // controller and action are only null if this is a page not found
+        // because we were not able to match any routes.  in all other cases
+        // we can get the initial controller and action to determine if it has
+        // completed
+        if ($controller !== null &amp;&amp; $action !== null) {
+            $req = $this->getRequest();
+            $first_controller = $req->getControllerName();
+            $first_action = $req->getAction();
+            $completed = $this->getController($first_controller)->hasCompleted($first_action);
+        }
+
+        $args = array(
+            'exception' => $e,
+            'top_level_exception' => !$completed,
+            'from_controller' => $controller,
+            'from_action' => $action
+        );
+
+        return $this->_runController('main', 'error', $args, $json, $id);
+    }
+
+    /**
+     * determines if we should turn off turbo mode
+     *
+     * @return bool
+     */
+    protected function _robotnikWins()
+    {
+        if ($this->getRequest()->isAjax() || isset($_COOKIE['noturbo']) || isset($_COOKIE['bot'])) {
+            return true;
+        }
+
+        if (isset($_GET['noturbo'])) {
+            setcookie('noturbo', true, time() + 86400);
+            return true;
+        }
+
+        if (isset($_SERVER['HTTP_USER_AGENT']) &amp;&amp; strpos($_SERVER['HTTP_USER_AGENT'], 'Googlebot') !== false) {
+            setcookie('bot', true, time() + 86400);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * sets a delegate class to receive events as the application runs
+     *
+     * @param string $delegate name of delegate class
+     * @return \Sonic\App
+     */
+    public function setDelegate($delegate)
+    {
+        $this->includeFile('Sonic/App/Delegate.php');
+        $this->autoloader($delegate);
+
+        $delegate = new $delegate;
+
+        if (!$delegate instanceof App\Delegate) {
+            throw new \Exception('app delegate of class ' . get_class($delegate) . ' must be instance of \Sonic\App\Delegate');
+        }
+
+        $this->_delegate = $delegate;
+        $this->_delegate->setApp($this);
+        return $this;
+    }
+
+    /**
+     * loads an extension by name
+     *
+     * @param string $name
+     * @return App
+     */
+    public function loadExtension($name)
+    {
+        // if this is already loaded don't do anything
+        if ($this->extensionLoaded($name)) {
+            return $this;
+        }
+
+        $name = strtolower($name);
+
+        // first grab the extension installation data
+        $extensions = $this->getSetting(self::EXTENSION_DATA);
+        if (!$extensions) {
+            $path = $this->getPath('extensions/installed.json');
+
+            if (file_exists($path)) {
+                $extensions = json_decode(file_get_contents($path), true);
+                $this->addSetting(self::EXTENSION_DATA, $extensions);
+            }
+        }
+
+        if (!isset($extensions[$name])) {
+            throw new Exception('trying to load extension "' . $name . '" which is not installed!');
+        }
+
+        // get the data related to this extension
+        $data = $extensions[$name];
+
+        // create a delegate object if this extension has one
+        $delegate = null;
+        if (isset($data['delegate_path']) &amp;&amp; isset($data['delegate'])) {
+            $this->includeFile('Sonic/Extension/Delegate.php');
+            $this->includeFile($this->getPath($data['delegate_path']));
+            $delegate = new $data['delegate'];
+        }
+
+        if ($delegate) {
+            $delegate->extensionStartedLoading();
+        }
+
+        $base_path = $this->getPath();
+
+        $core = 'extensions/' . $name . '/Core.php';
+        $has_core = isset($data['has_core']) &amp;&amp; $data['has_core'];
+        $dev = isset($data['dev']) &amp;&amp; $data['dev'];
+
+        foreach ($data['files'] as $file) {
+
+            // if the file is not in the extensions or libs directory then skip it
+            // we don't want to load controllers/views/etc. here
+            $lib_file = strpos($file, 'libs') === 0;
+
+            // don't load libs files unless the extension says to explicitly
+            if ($lib_file &amp;&amp; !$data['load_libs']) {
+                continue;
+            }
+
+            if (strpos($file, 'extensions') !== 0 &amp;&amp; !$lib_file) {
+                continue;
+            }
+
+            // if this is not a PHP file then skip it
+            if (substr($file, -4) != '.php') {
+                continue;
+            }
+
+            // skip core in dev mode
+            if ($dev &amp;&amp; $file == $core) {
+                continue;
+            }
+
+            // if this is a file that is not in libs and not core then skip it
+            if (!$dev &amp;&amp; !$lib_file &amp;&amp; $has_core &amp;&amp; $file != $core) {
+                continue;
+            }
+
+            $this->includeFile($base_path . '/' . $file);
+
+            if ($delegate) {
+                $delegate->extensionLoadedFile($file);
+            }
+        }
+
+        $loaded = $this->getSetting(self::EXTENSIONS_LOADED);
+        $loaded[] = $name;
+        $this->addSetting(self::EXTENSIONS_LOADED, $loaded);
+
+        if ($delegate) {
+            $delegate->extensionFinishedLoading();
+        }
+
+        return $this;
+    }
+
+    /**
+     * determines if an extension is loaded
+     *
+     * @param string $name
+     * @return bool
+     */
+    public function extensionLoaded($name)
+    {
+        $loaded = $this->getSetting(self::EXTENSIONS_LOADED);
+        return in_array(strtolower($name), $loaded);
+    }
+
+    /**
+     * gets an extension helper for this extension
+     *
+     * @param string $name
+     * @return \Sonic\Extension\Helper
+     */
+    public function extension($name)
+    {
+        $this->includeFile('Sonic/Extension/Helper.php');
+        return Extension\Helper::forExtension($name);
+    }
+
+    /**
+     * pushes over the first domino
+     *
+     * @param string $mode
+     * @return void
+     */
+    public function start($mode = self::WEB)
+    {
+        $lib = $this->getPath('libs') . DIRECTORY_SEPARATOR . 'Sonic' . DIRECTORY_SEPARATOR;
+        try {
+            if ($this->_delegate) {
+                $this->_delegate->appStartedLoading($mode);
+            }
+
+            $this->addSetting(self::MODE, $mode);
+
+            require_once $lib . 'Exception.php';
+            require_once $lib . 'Request.php';
+            require_once $lib . 'Router.php';
+            require_once $lib . 'Controller.php';
+            require_once $lib . 'View.php';
+            require_once $lib . 'Layout.php';
+
+            if ($this->getSetting(self::AUTOLOAD)) {
+                $this->autoload();
+            }
+
+            if ($this->_delegate) {
+                $this->_delegate->appFinishedLoading();
+            }
+
+            // if we are calling this app from command line then all we want to do
+            // is load the core application files
+            if ($mode != self::WEB) {
+                return;
+            }
+
+            if ($this->getSetting(self::TURBO) &amp;&amp; $this->_robotnikWins()) {
+                $this->addSetting(self::TURBO, false);
+            }
+
+            // try to get the controller and action
+            // if an exception is thrown that means the page requested does not exist
+            $controller = $this->getRequest()->getControllerName();
+            $action = $this->getRequest()->getAction();
+
+            if ($this->_delegate) {
+                $this->_delegate->appStartedRunning();
+            }
+
+            $this->runController($controller, $action);
+
+            if ($this->_delegate) {
+                $this->_delegate->appFinishedRunning();
+            }
+        } catch (\Exception $e) {
+            $this->handleException($e);
+        }
+    }
+}
+</code>
+</pre>
+
+    <script src="../js/rainbow.js"></script>
+    <script src="../js/language/generic.js"></script>
+    <script src="../js/language/php.js"></script>
+</body>

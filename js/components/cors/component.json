@@ -1,0 +1,20 @@
+{
+  "name": "cors",
+  "version": "0.0.0",
+  "main": [
+    "./src/main/resources/com/ovea/cors/jquery.ie.cors.js"
+  ],
+  "dependencies": {
+    "jquery": ">=1.7.0"
+  },
+  "gitHead": "e954aaef0847ce8cd06dc421ae2305b1bfc197e5",
+  "readme": "jQuery plugin which transparently adds Cross Origin Resource Sharing (CORS) amongst browsers, including IE8+, to allow cross-domain Ajax requests with cookies and headers support.\n\nSee old GIST at https://gist.github.com/1114981 for history\n\nMaven builds: http://repo1.maven.org/maven2/com/ovea/ovea-cors/\n",
+  "readmeFilename": "README",
+  "_id": "cors@1.9.0",
+  "description": "jQuery plugin which transparently adds Cross Origin Resource Sharing (CORS) amongst browsers, including IE8+, to allow cross-domain Ajax requests with cookies and headers support.",
+  "commit": "e954aaef0847ce8cd06dc421ae2305b1bfc197e5",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sdepold/cors.git"
+  }
+}

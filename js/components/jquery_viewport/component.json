@@ -1,0 +1,18 @@
+{
+  "name": "jquery_viewport",
+  "version": "0.1.0",
+  "main": [
+    "./jquery.viewport.js"
+  ],
+  "dependencies": {
+    "jquery": ">=1.8.0"
+  },
+  "gitHead": "7137c22f8784ec504ea29f1d4626ae5e0655d8f1",
+  "_id": "jquery.viewport@0.1.0",
+  "readme": "ERROR: No README.md file found!",
+  "description": "ERROR: No README.md file found!",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sdepold/jquery_viewport.git"
+  }
+}

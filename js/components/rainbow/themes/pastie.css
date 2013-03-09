@@ -1,0 +1,102 @@
+/**
+ * Pastie theme
+ *
+ * @author pygments.org
+ * @author pastie.org
+ * @author Simon Potter
+ * @version 1.0
+ */
+
+pre {
+    /* original is white background with no border */
+    background-color: #F8F8FF;
+    border: 1px solid #DEDEDE;
+    word-wrap: break-word;
+    margin: 0;
+    padding: 0;
+    color: #000;
+    font-size: 13px;
+    line-height: 16px;
+    margin-bottom: 20px
+}
+
+pre, code {
+    font-family: monospace;
+}
+
+pre .comment {
+    color: #888;
+}
+
+pre .keyword, pre .selector, pre .storage.module, pre .storage.class, pre .storage.function {
+    color: #080;
+    font-weight: bold;
+}
+
+pre .keyword.operator {
+    color: #000;
+    font-weight: normal;
+}
+
+pre .constant.language {
+    color: #038;
+    font-weight:bold;
+}
+
+pre .constant.symbol, pre .class, pre .constant {
+    color: #036;
+    font-weight: bold;
+}
+
+pre .keyword.namespace, pre .entity.name.class {
+    color: #B06;
+    font-weight: bold;
+}
+
+pre .constant.numeric {
+    color: #00D;
+    font-weight: bold;
+}
+
+pre .string, pre .comment.docstring {
+    color: #D20;
+    background-color: #FFF0F0;
+}
+
+pre .string.regexp {
+    background-color: #FFF0FF;
+    color: #808;
+}
+
+pre .variable.instance {
+    color: #33B;
+}
+
+pre .entity.name.function {
+    color: #06B;
+    font-weight: bold;
+}
+
+pre .support.tag-name, pre .entity.tag.script, pre .entity.tag.style {
+    color: #070;
+}
+
+pre .support.attribute {
+    color: #007;
+    font-style: italic;
+}
+
+pre .entity.name.tag, pre .storage.type {
+    color: #070;
+    font-weight: bold;
+}
+
+pre .variable.self, pre .support.function {
+    color: #038;
+    font-weight: bold;
+}
+
+pre .entity.function, pre .support.magic, pre.support.method {
+    color: #C00;
+    font-weight: bold;
+}

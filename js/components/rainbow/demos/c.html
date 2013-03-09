@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Syntax Highlighting</title>
+<link href="../themes/blackboard.css" rel="stylesheet" type="text/css" media="screen">
+<body>
+
+<pre>
+<code data-language="c">
+#ifndef type_h
+#define type_h
+
+typedef int type_id;
+
+#define typeid(TYPE) type_find(#TYPE)
+#define type_name(TYPE) #TYPE
+
+type_id type_find(const char* type);
+const char* type_id_name(int id);
+
+#endif
+
+</code>
+</pre>
+
+<pre>
+<code data-language="c">
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+#include "error.h"
+
+#include "type.h"
+
+#define MAX_TYPE_LEN 512
+#define MAX_NUM_TYPES 1024
+
+/* Store Table of type names */
+typedef char type_string[MAX_TYPE_LEN];
+type_string type_table[MAX_NUM_TYPES];
+int type_index = 0;
+
+/* Dynamically enter types into table */
+int type_find(const char* type) {
+  
+  if (strlen(type) >= MAX_TYPE_LEN) {
+    error("Type name %s is too long to index into type table.", type);
+  }
+  if (type_index >= MAX_NUM_TYPES) {
+    error("Too many types in type table already. Cannot add %s.", type);
+  }
+  
+  for (int i = 0; i &lt; type_index; i++) {
+    // Return type index if found
+    if (strcmp(type, type_table[i]) == 0) {
+      return i;
+    }
+  }
+  
+  // If not found add to table and return
+  strcpy(type_table[type_index], type);
+  type_index++;
+  
+  return type_index-1;
+}
+
+const char* type_id_name(int id) {
+  return type_table[id];
+}
+</code>
+</pre>
+
+<pre>
+<code data-language="c">
+#ifndef sound_h
+#define sound_h
+
+#include "SDL/SDL.h"
+
+typedef struct {
+  char* data;
+  int length;
+} sound;
+
+sound* wav_load_file(char* filename);
+void sound_delete(sound* s);
+
+#endif
+</code>
+</pre>
+
+<pre>
+<code data-language="c">
+#include "error.h"
+
+#include "assets/sound.h"
+
+static void flip_endian(char* data, int length) {
+  for(int i = 0; i &lt; length; i += 2) {
+    int x = data[i];
+    data[i] = data[i + 1];
+    data[i + 1] = x;
+  }
+}
+
+sound* wav_load_file(char* filename) {
+  
+  sound* s = malloc(sizeof(sound));
+  
+  SDL_AudioSpec spec;
+  
+  if( SDL_LoadWAV(filename, &amp;spec, (Uint8**)&amp;s->data, (Uint32*)&amp;s->length) == NULL) {
+    error("Unable to load sound file %s", filename);
+  }
+  
+  if ((spec.format != AUDIO_S16LSB) &amp;&amp;
+      (spec.format != AUDIO_S16MSB)) {
+    error("Unsupported sound format for file %s, id %i.", filename, spec.format);
+  }
+  
+  if (spec.format != AUDIO_S16SYS) {
+    flip_endian(s-&gt;data, s-&gt;length);
+  }
+  
+  return s;
+}
+
+void sound_delete(sound* s) {
+  SDL_FreeWAV((Uint8*)s-&gt;data);
+  free(s);
+}
+</code>
+</pre>
+
+    <script src="../js/rainbow.js"></script>
+    <script src="../js/language/generic.js"></script>
+    <script src="../js/language/c.js"></script>
+</body>

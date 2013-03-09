@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Rainbow tests</title>
+<link href="../themes/blackboard.css" rel="stylesheet">
+<link href="tests.css" rel="stylesheet">
+<body>
+    <h1>Rainbow Tests</h1>
+    <form method="get">
+        <fieldset>
+            <legend>Select Language(s)</legend>
+            <select multiple name="languages">
+                <option selected value="css">css</option>
+                <option selected value="generic">generic</option>
+                <option selected value="html">html</option>
+                <option selected value="javascript">javascript</option>
+                <option selected value="php">php</option>
+                <option selected value="python">python</option>
+                <option selected value="ruby">ruby</option>
+                <option selected value="shell">shell</option>
+            </select>
+            <label><input type="checkbox" name="min"> Use rainbow.min.js</label>
+            <input type="button" id="run_tests" value="Run Tests">
+        </fieldset>
+    </form>
+    <a href="#" class="global_toggle">expand all</a>
+    <div id="results">
+    </div>
+    <script src="jquery-1.7.2.min.js"></script>
+    <script>
+        var RAINBOW_PATH = '../js';
+    </script>
+    <script src="tests.js"></script>
+</body>

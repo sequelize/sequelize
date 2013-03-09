@@ -1,0 +1,12 @@
+.*
+*.custom.*
+*.md
+*.txt
+build.js
+index.js
+build/
+doc/
+node_modules/
+perf/
+test/
+vendor/

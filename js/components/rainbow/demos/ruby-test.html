@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ruby Test</title>
+    <link href="../themes/blackboard.css" rel="stylesheet">
+  </head>
+  <body>
+    <pre>
+<code data-language="ruby"># Comments
+not_comment # comment
+
+=begin
+comment
+=end
+
+  =begin
+  not_comment
+  =end
+
+# Strings
+&#39;string&#39;
+&quot;string&quot;
+%q(string)
+%q[string]
+%q{string}
+%q&lt;string&gt;
+%q|string|
+%Q(string)
+%Q[string]
+%Q{string}
+%Q&lt;string&gt;
+%Q|string|
+
+foo(&#39;string&#39;, &#39;string&#39;)
+
+&quot;unsupported\&quot;string&quot;
+
+# Heredocs
+if true
+  DOC = foo(&lt;&lt;-DOC)
+heredoc
+  xxx
+    xxx
+  DOC
+  # ^heredoc ends here
+DOC
+end
+
+if true
+  DOC = foo(&lt;&lt;DOC)
+heredoc
+  xxx
+    xxx
+  DOC
+DOC
+# ^heredoc ends here
+end
+
+# Symbols
+:symbol
+:&#39;long symbol&#39;
+:&quot;long symbol&quot;
+
+# Regular Expressions
+/regex/xxx
+%r(regex)xxx
+%r[regex]xxx
+%r{regex}xxx
+%r&lt;regex&gt;xxx
+%r|regex|xxx
+
+foo(/regex/xxx, /regex/xxx)
+@path.sub(/^#{@root}/, '')
+
+/unsupported\/regex/
+
+# Classes
+class Test &lt; Object
+  attr_accessor :z
+end
+
+x = Test.method(1, 2)
+x = Test::method(1, 2)
+x = Test::CONSTANT
+
+# Methods
+def method(x, y)
+  z = 3
+end
+
+def self.method(x, y)
+  z = 3
+end
+
+# Sigils
+$stderr.puts 3
+@@foo = 3
+@foo = 3
+
+# Data Structures
+[:value]
+[&#39;value&#39;]
+{:key=&gt;&#39;value&#39;}
+{:key =&gt; &#39;value&#39;}
+{&#39;key&#39; =&gt; &#39;value&#39;}
+{key: &#39;value&#39;}
+foo(:key =&gt; &#39;value&#39;)
+foo(key: &#39;value&#39;)
+
+# Classes, modules, etc.
+module Foo
+  CONSTANT = 'An \'escaped\' string'
+  class Bar
+    def self.something
+    begin
+      1 + 1
+    rescue StandardError => e
+      puts "Whoa buddy!"
+    end
+
+    class &lt;&lt; self
+      def something
+        1 + 1
+      end
+    end
+
+    def something
+    end
+  end
+end
+
+class MyClass &lt; ::Foo::Bar
+end
+
+foo(::Foo::Bar.something)
+
+
+</code></pre>
+    <script src="../js/rainbow.js"></script>
+    <script src="../js/language/generic.js"></script>
+    <script src="../js/language/ruby.js"></script>
+  </body>
+</html>

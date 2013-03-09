@@ -1,0 +1,116 @@
+ul, li, h1, h2, h3, h4, h5, h6 {
+    margin: 0px;
+    padding: 0px;
+}
+
+h1 {
+    margin-bottom: 15px;
+}
+
+body {
+    font-family: helvetica;
+}
+
+a {
+    text-decoration: none;
+    color: #666;
+}
+
+select {
+    width: 200px;
+    height: 200px;
+    font-size: 14px;
+}
+
+form label {
+    display: block;
+    margin-top: 10px;
+}
+
+form input {
+    margin-top: 10px;
+}
+
+ul {
+    padding-left: 20px;
+    margin-left: 20px;
+}
+
+.global_toggle {
+    position: relative;
+    float: right;
+    top: 15px;
+    display: none;
+}
+
+h3 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+li {
+    font-size: 30px;
+}
+
+.success a:hover, .failure a:hover, a:hover {
+    color: #000;
+}
+
+a:active {
+    color: #ff8009 !important;
+}
+
+pre {
+    margin-bottom: 10px;
+}
+
+li h5 {
+    font-size: 16px;
+    color: #000;
+}
+
+.success, .success a {
+    color: green;
+}
+
+.success .code, .failure .code {
+    display: none;
+}
+
+.failure, .failure a {
+    color: red;
+}
+
+.failure .code {
+    margin-top: 5px;
+}
+
+h6 {
+    font-size: 14px;
+    color: #666;
+}
+
+table {
+    margin-top: 25px;
+    margin-bottom: 25px;
+    /*border: 2px solid #000;*/
+    border-collapse: collapse;
+}
+
+table th {
+    text-align: left;
+    padding: 5px 20px 5px 5px;
+}
+
+table td {
+    border: 1px solid #999;
+    padding: 4px;
+}
+
+table tr td:first-child {
+    /*border: 0px;*/
+}
+
+table tr:last-child td:first-child {
+    /*border-bottom: 0px;*/
+}

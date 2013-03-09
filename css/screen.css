@@ -1,0 +1,42 @@
+body {
+  padding-top: 100px;
+}
+
+h1 {
+  font-size: 60px;
+}
+
+h1 small {
+  font-size: 15px;
+}
+
+h2 {
+  font-size: 38.5px;
+}
+
+h3 {
+  font-size: 24.5px;
+}
+
+section {
+  margin-top: 60px;
+}
+
+.subhead .row {
+  padding-bottom: 50px;
+}
+
+body > .container {
+  font-size: 16px;
+}
+
+
+/* prism */
+code[class*="language-"] {
+  background: rgba(42,99,105,0.9) none;
+  box-shadow: -.3em 0 0 .3em rgba(42,99,105,0.9), .3em 0 0 .3em rgba(42,99,105,0.9);
+}
+
+.token.atrule, .token.attr-value, .token.keyword {
+  color: rgb(255, 142, 203)
+}

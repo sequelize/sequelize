@@ -1,0 +1,8 @@
+{
+  "name": "lodash",
+  "version": "1.0.0-rc.3",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bestiejs/lodash.git"
+  }
+}

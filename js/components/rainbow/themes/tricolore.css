@@ -1,0 +1,60 @@
+/**
+ * Tricolore theme
+ *
+ * @author Jean Nicolas
+ * @version 1.0.1
+ */
+pre {
+    background: #FFF;
+    word-wrap: break-word;
+    margin: 0px;
+    padding: 0px;
+    padding: 10px;
+    color: #000;
+    font-size: 12px;
+    margin-bottom: 20px;
+	line-height: 16px;
+}
+
+pre, code {
+    font-family: 'Monaco', 'Consolas', monospace;
+}
+
+pre .comment {
+    color: #7E7E7E;
+	font-style: italic;
+}
+
+pre .constant {
+    color: #18838A;
+	font-weight: bold;
+}
+
+pre .storage {
+    color: #0000A1;
+}
+
+pre .string {
+    color: #8E0022;
+}
+
+pre .keyword, pre .selector {
+    color: #0000A1;
+	font-weight: bold;
+}
+
+pre .inherited-class {
+    font-style: italic;
+}
+
+pre .entity {
+    color: #3E853F;
+}
+
+pre .support {
+    color: #192140;
+}
+
+pre .variable.global, pre .variable.class, pre .variable.instance {
+    color: #3E853F;
+}

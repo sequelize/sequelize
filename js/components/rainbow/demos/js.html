@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Syntax Highlighting</title>
+<link href="../themes/blackboard.css" rel="stylesheet" type="text/css" media="screen">
+<body>
+    <pre>
+<code data-language="javascript">/**
+ * test function
+ *
+ * @param string
+ * @return string
+ */
+function blah(foo, blah) {
+    var test = 25;
+
+    console.log(test.length);
+
+    // if foo is true then return this string
+    if (foo === true) {
+        return 'foo is true';
+    }
+    return 'foo is false';
+}
+
+$(document).ready(function() {
+    $("table").on("click", "td", function() {
+        console.log('td click');
+    });
+});
+</code>
+</pre>
+
+<pre>
+<code data-language="javascript">window.Rainbow = {
+    whatever: function(param) {
+
+    },
+
+    another: function(param) {
+
+    }
+};</code>
+</pre>
+
+<pre>
+<code data-language="javascript">window.Rainbow = window.Rainbow || {};
+
+Rainbow.extend('javascript', [
+    {
+        'name': 'selector',
+        'pattern': /\$(?=\.|\()/g
+    }
+]);</code>
+</pre>
+
+<pre>
+<code data-language="javascript">/**
+ * cross browser get attribute for an element
+ *
+ * @see http://stackoverflow.com/questions/3755227/cross-browser-javascript-getattribute-method
+ *
+ * @param {Element} el
+ * @param {string} attr     attribute you are trying to get
+ * @returns {string}
+ */
+function _attr(el, attr) {
+    var result = (el.getAttribute &amp;&amp; el.getAttribute(attr)) || null;
+
+    if (!result) {
+        var attrs = el.attributes,
+            length = attrs.length,
+            i;
+
+        for (i = 0; i &lt; length; ++i) {
+            if (attr[i].nodeName === attr) {
+                result = attr[i].nodeValue;
+            }
+        }
+    }
+
+    return result;
+}</code>
+</pre>
+
+    <script src="../js/rainbow.js"></script>
+    <script src="../js/language/generic.js"></script>
+    <script src="../js/language/javascript.js"></script>
+</body>

@@ -1,0 +1,50 @@
+/**
+ * All Hallows Eve theme
+ *
+ * Adapted from Ultraviolet RubyGem
+ *
+ * @author Flinn Mueller
+ * @version 1.0.1
+ */
+pre {
+    background: #000;
+    word-wrap: break-word;
+    margin: 0px;
+    padding: 0px;
+    padding: 10px;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+pre, code {
+    font-family: 'Monaco', courier, monospace;
+}
+
+pre .comment {
+    color: #9933CC;
+}
+
+pre .constant {
+    color: #3387CC;
+}
+
+pre .storage {
+    color: #CC7833;
+}
+
+pre .string {
+    color: #66CC33;
+}
+
+pre .keyword, pre .selector {
+    color: #CC7833;
+}
+
+pre .inherited-class {
+    font-style: italic;
+}
+
+pre .support {
+    color: #C83730;
+}

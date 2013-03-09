@@ -1,0 +1,87 @@
+/**
+ * Solarized Dark theme
+ *
+ * Adaptation of Solarized Dark from ethanschoonover.com/solarized
+ *
+ * @author Ethan Schoonover
+ * @author David Litmark
+ * @version 1.0.0
+ */
+pre {
+    background: #002b36; /* base03 */
+    word-wrap: break-word;
+    margin: 0px;
+    padding: 0px;
+    padding: 10px;
+    color: #839496; /* base0 */
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+pre, code {
+    font-family: 'Monaco', courier, monospace;
+}
+
+pre .comment {
+    color: #586e75; /* base01 */
+}
+
+pre .constant {
+    color: #839496; /* base0 */
+}
+
+pre .constant.language {
+    color: #268bd2; /* blue */
+}
+
+pre .constant.regexp {
+    color: #2aa198; /* cyan */
+}
+
+pre .storage {
+    color: #268bd2; /* blue */
+}
+
+pre .string, pre .comment.docstring {
+    color: #2aa198; /* cyan */
+}
+
+pre .support.tag.script, pre .support.tag.style {
+    color: #2aa198; /* cyan */
+}
+
+pre .string.regexp {
+    color: #2aa198; /* cyan */
+}
+
+pre .string.regexp.open, pre .string.regexp.close {
+    color: #2aa198; /* cyan */
+}
+
+pre .keyword, pre .selector {
+    color: #859900; /* green */
+}
+
+pre .inherited-class {
+    font-style: italic;
+}
+
+pre .entity {
+    color: #b58900; /* yellow */
+}
+
+pre .support, *[data-language="c"] .function.call {
+    color: #859900; /* green */
+}
+
+pre .support.method {
+    color: #839496; /* base0 */
+}
+
+pre .support.property {
+    color: #839496; /* base0 */
+}
+
+pre .variable.global, pre .variable.class, pre .variable.instance {
+    color: #839496; /* base0 */
+}

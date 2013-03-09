@@ -1,0 +1,55 @@
+{
+  "name": "es5-shim",
+  "version": "2.0.5",
+  "description": "ES5 as implementable on previous engines",
+  "homepage": "http://github.com/kriskowal/es5-shim/",
+  "contributors": [
+    {
+      "name": "Kris Kowal",
+      "email": "kris@cixar.com",
+      "url": "http://github.com/kriskowal/"
+    },
+    {
+      "name": "Sami Samhuri",
+      "email": "sami.samhuri@gmail.com",
+      "url": "http://samhuri.net/"
+    },
+    {
+      "name": "Florian Schäfer",
+      "email": "florian.schaefer@gmail.com",
+      "url": "http://github.com/fschaefer"
+    },
+    {
+      "name": "Irakli Gozalishvili",
+      "email": "rfobic@gmail.com",
+      "url": "http://jeditoolkit.com"
+    },
+    {
+      "name": "Kit Cambridge",
+      "email": "kitcambridge@gmail.com",
+      "url": "http://kitcambridge.github.com"
+    }
+  ],
+  "bugs": {
+    "mail": "kris@cixar.com",
+    "url": "http://github.com/kriskowal/es5-shim/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/kriskowal/es5-shim/raw/master/LICENSE"
+    }
+  ],
+  "main": "es5-shim.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kriskowal/es5-shim"
+  },
+  "engines": {
+    "node": ">=0.2.0"
+  },
+  "gitHead": "12adafe3552d3a3d69a8216314614140569387e2",
+  "readme": "\n`es5-shim.js` and `es5-shim.min.js` monkey-patch a JavaScript context to\ncontain all EcmaScript 5 methods that can be faithfully emulated with a\nlegacy JavaScript engine.\n\n`es5-sham.js` and `es5-sham.min.js` monkey-patch other ES5 methods as\nclosely as possible.  For these methods, as closely as possible to ES5\nis not very close.  Many of these shams are intended only to allow code\nto be written to ES5 without causing run-time errors in older engines.\nIn many cases, this means that these shams cause many ES5 methods to\nsilently fail.  Decide carefully whether this is what you want.\n\n\n## Tests\n\nThe tests are written with the Jasmine BDD test framework.\nTo run the tests, navigate to <root-folder>/tests/. \n\nIn order to run against the shim-code, the tests attempt to kill the current \nimplementation of the missing methods. This happens in <root-folder>/tests/helpers/h-kill.js.\nSo in order to run the tests against the build-in methods, invalidate that file somehow\n(comment-out, delete the file, delete the script-tag, etc.).\n\n## Shims\n\n### Complete tests ###\n\n* Array.prototype.every\n* Array.prototype.filter\n* Array.prototype.forEach\n* Array.prototype.indexOf\n* Array.prototype.lastIndexOf\n* Array.prototype.map\n* Array.prototype.some\n* Array.prototype.reduce\n* Array.prototype.reduceRight\n* Array.isArray\n* Date.now\n* Date.prototype.toJSON\n* Function.prototype.bind\n    * /!\\ Caveat: the bound function's length is always 0.\n    * /!\\ Caveat: the bound function has a prototype property.\n    * /!\\ Caveat: bound functions do not try too hard to keep you\n      from manipulating their ``arguments`` and ``caller`` properties.\n    * /!\\ Caveat: bound functions don't have checks in ``call`` and\n      ``apply`` to avoid executing as a constructor.\n* Object.keys\n* String.prototype.trim\n\n### Untested ###\n\n* Date.parse (for ISO parsing)\n* Date.prototype.toISOString\n\n## Shams\n\n* /?\\ Object.create\n\n    For the case of simply \"begetting\" an object that\n    inherits prototypically from another, this should work\n    fine across legacy engines.\n\n    /!\\ Object.create(null) will work only in browsers that\n    support prototype assignment.  This creates an object\n    that does not have any properties inherited from\n    Object.prototype.  It will silently fail otherwise.\n\n    /!\\ The second argument is passed to\n    Object.defineProperties which will probably fail\n    silently.\n\n* /?\\ Object.getPrototypeOf\n\n    This will return \"undefined\" in some cases.  It uses\n    __proto__ if it's available.  Failing that, it uses\n    constructor.prototype, which depends on the constructor\n    property of the object's prototype having not been\n    replaced.  If your object was created like this, it\n    won't work:\n\n        function Foo() {\n        }\n        Foo.prototype = {};\n\n    Because the prototype reassignment destroys the\n    constructor property.\n\n    This will work for all objects that were created using\n    `Object.create` implemented with this library.\n\n* /!\\ Object.getOwnPropertyNames\n\n    This method uses Object.keys, so it will not be accurate\n    on legacy engines.\n\n* Object.isSealed\n\n    Returns \"false\" in all legacy engines for all objects,\n    which is conveniently guaranteed to be accurate.\n\n* Object.isFrozen\n\n    Returns \"false\" in all legacy engines for all objects,\n    which is conveniently guaranteed to be accurate.\n\n* Object.isExtensible\n\n    Works like a charm, by trying very hard to extend the\n    object then redacting the extension.\n\n### Fail silently\n\n* /!\\ Object.getOwnPropertyDescriptor\n    \n    The behavior of this shim does not conform to ES5.  It\n    should probably not be used at this time, until its\n    behavior has been reviewed and been confirmed to be\n    useful in legacy engines.\n\n* /!\\ Object.defineProperty\n\n    This method will silently fail to set \"writable\",\n    \"enumerable\", and \"configurable\" properties.\n    \n    Providing a getter or setter with \"get\" or \"set\" on a\n    descriptor will silently fail on engines that lack\n    \"__defineGetter__\" and \"__defineSetter__\", which include\n    all versions of IE up to version 8 so far.\n\n    IE 8 provides a version of this method but it only works\n    on DOM objects.  Thus, the shim will not get installed\n    and attempts to set \"value\" properties will fail\n    silently on non-DOM objects.\n\n    https://github.com/kriskowal/es5-shim/issues#issue/5\n\n* /!\\ Object.defineProperties\n\n    This uses the Object.defineProperty shim\n\n* Object.seal\n\n    Silently fails on all legacy engines.  This should be\n    fine unless you are depending on the safety and security\n    provisions of this method, which you cannot possibly\n    obtain in legacy engines.\n\n* Object.freeze\n\n    Silently fails on all legacy engines.  This should be\n    fine unless you are depending on the safety and security\n    provisions of this method, which you cannot possibly\n    obtain in legacy engines.\n\n* Object.preventExtensions\n\n    Silently fails on all legacy engines.  This should be\n    fine unless you are depending on the safety and security\n    provisions of this method, which you cannot possibly\n    obtain in legacy engines.\n\n",
+  "readmeFilename": "README.md",
+  "_id": "es5-shim@2.0.5"
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>rack/directory.rb</title>
+    <link href="../themes/blackboard.css" rel="stylesheet">
+  </head>
+  <body>
+    <pre>
+<code data-language="ruby"># Copyright (c) 2007, 2008, 2009, 2010 Christian Neukirchen &lt;purl.org/net/chneukirchen&gt;
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the &quot;Software&quot;), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+require &#39;time&#39;
+require &#39;rack/utils&#39;
+require &#39;rack/mime&#39;
+
+module Rack
+  # Rack::Directory serves entries below the +root+ given, according to the
+  # path info of the Rack request. If a directory is found, the file&#39;s contents
+  # will be presented in an html based index. If a file is found, the env will
+  # be passed to the specified +app+.
+  #
+  # If +app+ is not specified, a Rack::File of the same +root+ will be used.
+
+  class Directory
+    DIR_FILE = &quot;&lt;tr&gt;&lt;td class=&#39;name&#39;&gt;&lt;a href=&#39;%s&#39;&gt;%s&lt;/a&gt;&lt;/td&gt;&lt;td class=&#39;size&#39;&gt;%s&lt;/td&gt;&lt;td class=&#39;type&#39;&gt;%s&lt;/td&gt;&lt;td class=&#39;mtime&#39;&gt;%s&lt;/td&gt;&lt;/tr&gt;&quot;
+    DIR_PAGE = &lt;&lt;-PAGE
+&lt;html&gt;&lt;head&gt;
+  &lt;title&gt;%s&lt;/title&gt;
+  &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+  &lt;style type=&#39;text/css&#39;&gt;
+table { width:100%%; }
+.name { text-align:left; }
+.size, .mtime { text-align:right; }
+.type { width:11em; }
+.mtime { width:15em; }
+  &lt;/style&gt;
+&lt;/head&gt;&lt;body&gt;
+&lt;h1&gt;%s&lt;/h1&gt;
+&lt;hr /&gt;
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th class=&#39;name&#39;&gt;Name&lt;/th&gt;
+    &lt;th class=&#39;size&#39;&gt;Size&lt;/th&gt;
+    &lt;th class=&#39;type&#39;&gt;Type&lt;/th&gt;
+    &lt;th class=&#39;mtime&#39;&gt;Last Modified&lt;/th&gt;
+  &lt;/tr&gt;
+%s
+&lt;/table&gt;
+&lt;hr /&gt;
+&lt;/body&gt;&lt;/html&gt;
+    PAGE
+
+    attr_reader :files
+    attr_accessor :root, :path
+
+    def initialize(root, app=nil)
+      @root = F.expand_path(root)
+      @app = app || Rack::File.new(@root)
+    end
+
+    def call(env)
+      dup._call(env)
+    end
+
+    F = ::File
+
+    def _call(env)
+      @env = env
+      @script_name = env[&#39;SCRIPT_NAME&#39;]
+      @path_info = Utils.unescape(env[&#39;PATH_INFO&#39;])
+
+      if forbidden = check_forbidden
+        forbidden
+      else
+        @path = F.join(@root, @path_info)
+        list_path
+      end
+    end
+
+    def check_forbidden
+      return unless @path_info.include? &quot;..&quot;
+
+      body = &quot;Forbidden\n&quot;
+      size = Rack::Utils.bytesize(body)
+      return [403, {&quot;Content-Type&quot; =&gt; &quot;text/plain&quot;,
+        &quot;Content-Length&quot; =&gt; size.to_s,
+        &quot;X-Cascade&quot; =&gt; &quot;pass&quot;}, [body]]
+    end
+
+    def list_directory
+      @files = [[&#39;../&#39;,&#39;Parent Directory&#39;,&#39;&#39;,&#39;&#39;,&#39;&#39;]]
+      glob = F.join(@path, &#39;*&#39;)
+
+      url_head = ([@script_name] + @path_info.split(&#39;/&#39;)).map do |part|
+        Rack::Utils.escape part
+      end
+
+      Dir[glob].sort.each do |node|
+        stat = stat(node)
+        next  unless stat
+        basename = F.basename(node)
+        ext = F.extname(node)
+
+        url = F.join(*url_head + [Rack::Utils.escape(basename)])
+        size = stat.size
+        type = stat.directory? ? &#39;directory&#39; : Mime.mime_type(ext)
+        size = stat.directory? ? &#39;-&#39; : filesize_format(size)
+        mtime = stat.mtime.httpdate
+        url &lt;&lt; &#39;/&#39;  if stat.directory?
+        basename &lt;&lt; &#39;/&#39;  if stat.directory?
+
+        @files &lt;&lt; [ url, basename, size, type, mtime ]
+      end
+
+      return [ 200, {&#39;Content-Type&#39;=&gt;&#39;text/html; charset=utf-8&#39;}, self ]
+    end
+
+    def stat(node, max = 10)
+      F.stat(node)
+    rescue Errno::ENOENT, Errno::ELOOP
+      return nil
+    end
+
+    # TODO: add correct response if not readable, not sure if 404 is the best
+    #       option
+    def list_path
+      @stat = F.stat(@path)
+
+      if @stat.readable?
+        return @app.call(@env) if @stat.file?
+        return list_directory if @stat.directory?
+      else
+        raise Errno::ENOENT, &#39;No such file or directory&#39;
+      end
+
+    rescue Errno::ENOENT, Errno::ELOOP
+      return entity_not_found
+    end
+
+    def entity_not_found
+      body = &quot;Entity not found: #{@path_info}\n&quot;
+      size = Rack::Utils.bytesize(body)
+      return [404, {&quot;Content-Type&quot; =&gt; &quot;text/plain&quot;,
+        &quot;Content-Length&quot; =&gt; size.to_s,
+        &quot;X-Cascade&quot; =&gt; &quot;pass&quot;}, [body]]
+    end
+
+    def each
+      show_path = @path.sub(/^#{@root}/,&#39;&#39;)
+      files = @files.map{|f| DIR_FILE % f }*&quot;\n&quot;
+      page  = DIR_PAGE % [ show_path, show_path , files ]
+      page.each_line{|l| yield l }
+    end
+
+    # Stolen from Ramaze
+
+    FILESIZE_FORMAT = [
+      [&#39;%.1fT&#39;, 1 &lt;&lt; 40],
+      [&#39;%.1fG&#39;, 1 &lt;&lt; 30],
+      [&#39;%.1fM&#39;, 1 &lt;&lt; 20],
+      [&#39;%.1fK&#39;, 1 &lt;&lt; 10],
+    ]
+
+    def filesize_format(int)
+      FILESIZE_FORMAT.each do |format, size|
+        return format % (int.to_f / size) if int &gt;= size
+      end
+
+      int.to_s + &#39;B&#39;
+    end
+  end
+end
+</code></pre>
+    <script src="../js/rainbow.js"></script>
+    <script src="../js/language/generic.js"></script>
+    <script src="../js/language/ruby.js"></script>
+  </body>
+</html>

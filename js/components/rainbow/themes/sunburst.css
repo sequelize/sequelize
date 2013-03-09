@@ -1,0 +1,95 @@
+/**
+ * Sunburst theme
+ *
+ * Adapted from the Textmate Sunburst theme by Stanley Rost
+ *
+ * @author Stanley Rost
+ * @author Rachel Baker
+ * @version 1.0.0
+ */
+pre {
+    background-color: #000;
+    word-wrap: break-word;
+    margin: 0px;
+    padding: 0px;
+    padding: 10px;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+pre, code {
+    font-family: 'Monaco', courier, monospace;
+}
+
+pre .comment {
+    color: #AEAEAE; font-style: italic;
+}
+
+pre .constant {
+    color: #3387CC;
+}
+
+pre .storage {
+    color: #99CF50;
+}
+
+pre .string, pre .entity.name.class, pre .comment.docstring {
+color: #65B042;
+/* green */
+}
+
+pre .string.regexp {
+ color: #E9C062;
+    }
+
+pre .string.constant {
+    color: #DDF2A4;
+}
+
+pre .constant.hex-color {
+    color: #DD7B3B;
+    /* orange */
+}
+pre .support, pre .tag.script, pre .function.call {
+    color: #dad085;
+}
+pre .support.css-property {
+    color: #C5AF75;
+}
+pre .support.tag.style {
+    color: #fff;
+}
+pre .keyword, pre .selector {
+    color: #E28964;
+    /* dark pink */
+}
+
+pre .keyword.namespace {
+    color: #3387CC;
+    font-weight: bold;
+}
+
+pre .inherited-class {
+    font-style: italic;
+}
+
+pre .entity, pre .variable.instance, pre .support.namespace, pre .support.tag, pre .support.tag-name {
+    color: #89BDFF;
+}
+
+pre .entity.name.id {
+    color: #8693A5;
+}
+
+*[data-language="c"] .function.call {
+    color: #8DA6CE;
+}
+
+pre .variable, pre .variable.global {
+    color: #3E87E3;
+    }
+pre .variable.class {
+
+    }
+

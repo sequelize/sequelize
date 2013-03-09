@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.png" />
+<title>IE8 ▲ Prism plugins</title>
+<base href="../.." />
+<!--[if lte IE 8]><script>(function(){
+	var a = document.createElement('a'), base = document.getElementsByTagName('base')[0];
+	a.href = base.href;
+	base.href = a.href;
+})()</script><![endif]-->
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="prism.css" data-noprefix />
+<link rel="stylesheet" href="plugins/ie8/prism-ie8.css" data-noprefix />
+<script src="prefixfree.min.js"></script>
+
+<script>var _gaq = [['_setAccount', 'UA-33746269-1'], ['_trackPageview']];</script>
+<script src="http://www.google-analytics.com/ga.js" async></script>
+</head>
+<body>
+
+<header>
+	<div class="intro" data-src="templates/header-plugins.html" data-type="text/html"></div>
+
+	<h2>IE8 (Work in progress)</h2>
+	<p>Adds basic IE8 <a href="">support</a> to Prism through a series of polyfills.</p>
+</header>
+
+<section>
+	<h1>How to use</h1>
+	
+</section>
+
+<section>
+	<h1>Examples</h1>
+	
+	<h2>JavaScript</h2>
+	<pre><code class="language-javascript">/**
+ * This is a multiline comment
+ */
+var foo = 5; // this is a single line comment
+var str = "A string",
+    r = /and a regex/;</code></pre>
+ 	
+ 	<h2>CSS</h2>
+ 	<pre><code class="language-css">@font-face {
+	src: url(http://lea.verou.me/logo.otf);
+	font-family: 'LeaVerou';
+}</code></pre>
+	
+	<h2>HTML</h2>
+	<pre><code class="language-markup">&lt;!-- A comment -->
+&lt;img src="http://prismjs.com/img/spectrum.png" alt="" />
+&lt;p>Some text&lt;/p></code></pre>
+</section>
+
+<footer data-src="templates/footer.html" data-type="text/html"></footer>
+
+<script src="prism.js"></script>
+<script src="plugins/ie8/prism-ie8.js"></script>
+<script src="utopia.js"></script>
+<script src="code.js"></script>
+
+</body>
+</html>

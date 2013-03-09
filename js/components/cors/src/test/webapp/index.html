@@ -1,0 +1,89 @@
+<!--
+
+    Copyright (C) 2011 Ovea <dev@ovea.com>
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>CORS Test</title>
+    <script type="text/javascript" src="json2.js"></script>
+    <script type="text/javascript" src="jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="jquery.json-2.2.js"></script>
+    <script type="text/javascript">
+
+        document.domain = '@{System.getProperty("domain", "mycila.intra")}';
+
+        XDR_SESSION_COOKIE_NAME = 'id';
+        XDR_COOKIE_HEADERS = ['rmb', 'locale'];
+        XDR_HEADERS = ['Content-Type'];
+        XDR_DEBUG = true;
+
+        jQuery.ajaxSetup({
+            cache:false,
+            xhrFields:{
+                withCredentials:true
+            }
+        });
+
+        jQuery(function ($) {
+            $('button').click(function () {
+                if ('GET' == $(this).attr('method')) {
+                    $.ajax({
+                        type:'GET',
+                        url:'http://service.mycila.intra/echo',
+                        data:{
+                            msg:$('#msg').val()
+                        },
+                        dataType:'json',
+                        success:function (d) {
+                            console.log(d);
+                            if (d) {
+                                $('#response').append('<pre>' + d['val'] + '</pre>');
+                            }
+                        }
+                    });
+                } else {
+                    var ct = $(this).attr('ct');
+                    $.ajax({
+                        type:'POST',
+                        url:'http://service.mycila.intra/echo',
+                        data:ct.indexOf('json') == -1 ? {msg:$('#msg').val()} : $.toJSON({msg:$('#msg').val()}),
+                        dataType:'json',
+                        contentType:ct,
+                        success:function (d) {
+                            console.log(d);
+                            if (d) {
+                                $('#response').append('<pre>' + d['val'] + '</pre>');
+                            }
+                        }
+                    });
+
+                }
+            });
+        });
+    </script>
+    <script type="text/javascript" src="file/src/main/resources/com/ovea/cors/jquery.ie.cors.js"></script>
+    <!--<script type="text/javascript" src="file/target/classes/com/ovea/cors/jquery.ie.cors-min.js"></script>-->
+</head>
+<body>
+<label for="msg">Message: </label><input id="msg" type="text" value="some text">
+<button method="GET">GET</button>
+<button method="POST" ct="application/x-www-form-urlencoded; charset=UTF-8">POST (form)</button>
+<button method="POST" ct="application/json; charset=UTF-8">POST (json)</button>
+<div id="response"></div>
+</body>
+</html>

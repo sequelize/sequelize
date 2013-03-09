@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2011 Ovea <dev@ovea.com>
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0">
+
+    <display-name>CORS Test</display-name>
+
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <!-- for jetty to not lock resources -->
+    <context-param>
+        <param-name>org.eclipse.jetty.servlet.Default.useFileMappedBuffer</param-name>
+        <param-value>false</param-value>
+    </context-param>
+
+    <!-- ie browser -->
+    <filter>
+        <filter-name>IeCorsFilter</filter-name>
+        <filter-class>com.ovea.cors.IeCorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>IeCorsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- non IE browsers -->
+    <filter>
+        <filter-name>CrossOriginFilter</filter-name>
+        <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
+        <init-param>
+            <param-name>allowedHeaders</param-name>
+            <param-value>Origin,X-Requested-With,Content-Type,Accept</param-value>
+        </init-param>
+        <init-param>
+            <param-name>preflightMaxAge</param-name>
+            <param-value>43200</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowCredentials</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowedMethods</param-name>
+            <param-value>GET,POST</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowedOrigins</param-name>
+            <param-value>http://www.mycila.intra</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CrossOriginFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- test servlet -->
+    <servlet>
+        <servlet-name>EchoServlet</servlet-name>
+        <servlet-class>EchoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EchoServlet</servlet-name>
+        <url-pattern>/echo</url-pattern>
+    </servlet-mapping>
+
+    <!-- to process markups -->
+    <servlet>
+        <servlet-name>MarkupServlet</servlet-name>
+        <servlet-class>com.ovea.markup.web.MarkupServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MarkupServlet</servlet-name>
+        <url-pattern>*.html</url-pattern>
+    </servlet-mapping>
+
+    <!-- just to access JS script -->
+    <servlet>
+        <servlet-name>ResourceServlet</servlet-name>
+        <servlet-class>ResourceServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ResourceServlet</servlet-name>
+        <url-pattern>/file/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+

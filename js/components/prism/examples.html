@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.png" />
+<title>Examples ▲ Prism</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="prism.css" data-noprefix />
+<script src="prefixfree.min.js"></script>
+
+<script>var _gaq = [['_setAccount', 'UA-33746269-1'], ['_trackPageview']];</script>
+<script src="http://www.google-analytics.com/ga.js" async></script>
+</head>
+<body>
+
+<header>
+	<div class="intro" data-src="templates/header-main.html" data-type="text/html"></div>
+
+	<h2>Examples</h2>
+	<p>The examples in this page serve a dual purpose: They act as unit tests, making it easy to spot bugs, and at the same time demonstrate what Prism can do, on simple and on edge cases.</p>
+</header>
+
+<section class="language-markup">
+	<h1>Different markup</h1>
+
+	<h2>code.language-css</h2>
+	<code class="language-css">p { color: red; }</code>
+
+	<h2>pre.language-css > code</h2>
+	<pre class="language-css"><code>p { color: red; }</code></pre>
+
+	<h2>pre > code.language-css</h2>
+	<pre><code class="language-css">p { color: red; }</code></pre>
+
+	<h2>pre.language-css > code.language-*</h2>
+	<pre class="language-css"><code class="language-*">p { color: red; }</code></pre>
+
+	<h2>code.lang-css</h2>
+	<code class="lang-css">p { color: red; }</code>
+
+	<h2>pre.lang-css > code</h2>
+	<pre class="lang-css"><code>p { color: red; }</code></pre>
+
+	<h2>pre > code</h2>
+	<p>No language, should inherit .language-markup</p>
+	<pre><code>&lt;p>hi!&lt;/p></code></pre>
+
+	<h2>code.language-*</h2>
+	<p>No language, should inherit .language-markup</p>
+	<code class="language-*">&lt;p>hi!&lt;/p></code>
+
+	<h2>code.language-none</h2>
+	<p>Should not be highlighted.</p>
+	<code class="language-none">&lt;p>hi!&lt;/p></code>
+</section>
+
+<section class="language-markup">
+	<h1>Markup</h1>
+
+	<h2>Empty tag</h2>
+	<pre><code>&lt;p>&lt;/p></code></pre>
+
+	<h2>Tag that spans multiple lines</h2>
+	<pre><code>&lt;p
+>hello!
+&lt;/p></code></pre>
+
+	<h2>Name-attribute pair</h2>
+	<pre><code>&lt;p>&lt;/p></code></pre>
+
+	<h2>Name-attribute pair without quotes</h2>
+	<pre><code>&lt;p class=prism>&lt;/p></code></pre>
+
+	<h2>Attribute without value</h2>
+	<pre><code>&lt;p data-foo>&lt;/p></code></pre>
+	<pre><code>&lt;p data-foo >&lt;/p></code></pre>
+
+	<h2>Namespaces</h2>
+	<pre><code>&lt;html:p foo:bar="baz" foo:weee>&lt;/html:p></code></pre>
+
+	<h2>XML prolog</h2>
+	<pre><code>&lt;?xml version="1.0" encoding="utf-8"?>
+&lt;svg>&lt;/svg></code></pre>
+
+	<h2>DOCTYPE</h2>
+	<pre><code>&lt;!DOCTYPE html>
+&lt;html>&lt;/html></code></pre>
+
+	<h2>CDATA section</h2>
+	<pre><code>&lt;ns1:description>&lt;![CDATA[
+  CDATA is &lt;not> magical.
+]]>&lt;/ns1:description></code></pre>
+
+	<h2>Comment</h2>
+	<pre><code>&lt;!-- I'm a comment -->
+And i'm not</code></pre>
+
+	<h2>Entities</h2>
+	<pre><code>&amp;amp; &amp;#x2665; &amp;#160; &amp;#x152;</code></pre>
+
+	<h2>Embedded JS and CSS</h2>
+	<pre><code>&lt;!DOCTYPE html>
+&lt;html lang="en">
+&lt;head>
+	&lt;meta charset="utf-8" />
+	&lt;title>I can haz embedded CSS and JS&lt;/title>
+	&lt;style>
+		@media print {
+			p { color: red !important; }
+		}
+	&lt;/style>
+&lt;/head>
+&lt;body>
+	&lt;h1>I can haz embedded CSS and JS&lt;/h1>
+	&lt;script>
+	if (true) {
+		console.log('foo');
+	}
+	&lt;/script>
+
+&lt;/body>
+&lt;/html></code></pre>
+
+	<h2>Invalid HTML</h2>
+	<pre><code>&lt;l &lt;/ul></code></pre>
+
+	<h2>Multi-line attribute values</h2>
+	<pre><code>&lt;p title="foo
+bar
+baz"></code></pre>
+</section>
+
+<section class="language-css">
+	<h1>CSS</h1>
+
+	<h2>Empty rule</h2>
+	<pre><code>*{} * {} p {}</code></pre>
+	<pre><code>ul,
+ol {}</code></pre>
+
+	<h2>Simple rule</h2>
+	<pre><code>p { color: red; }</code></pre>
+
+	<h2>Important rule</h2>
+	<pre><code>p { color: red !important; }</code></pre>
+
+	<h2>@ rule</h2>
+	<pre><code>@media screen and (min-width: 100px) {}</code></pre>
+
+	<h2>Comment</h2>
+	<pre><code>/* Simple comment here */</code></pre>
+
+	<h2>String</h2>
+	<pre><code>content: 'foo';</code></pre>
+
+	<h2>URL</h2>
+	<pre><code>content: url(foo.png);</code></pre>
+</pre>
+</section>
+
+<section class="language-javascript">
+	<h1>JavaScript</h1>
+
+	<h2>Variable assignment</h2>
+	<pre><code>var foo = "bar", baz = 5;</code></pre>
+
+	<h2>Operators</h2>
+	<pre><code>(1 + 2 * 3)/4 >= 3 &amp;&amp; 4 &lt; 5 || 6 > 7</code></pre>
+
+	<h2>Indented code</h2>
+	<pre><code>if (true) {
+	while (true) {
+		doSomething();
+	}
+}</code></pre>
+
+	<h2>Regex with slashes</h2>
+	<pre><code>var foo = /([^/])\/(\\?.|\[.+?])+?\/[gim]{0,3}/g;</code></pre>
+
+	<h2>Regex that ends with double slash</h2>
+	<pre><code>var bar = /\/\*[\w\W]*?\*\//g;</code></pre>
+
+	<h2>Single line comments &amp; regexes</h2>
+	<pre><code>// http://lea.verou.me
+var comment = /\/\*[\w\W]*?\*\//g;</code></pre>
+
+	<h2>Link in comment</h2>
+	<pre><code>// http://lea.verou.me
+/* http://lea.verou.me */</code></pre>
+
+	<h2>Nested strings</h2>
+	<pre><code>var foo = "foo", bar = "He \"said\" 'hi'!"</code></pre>
+
+	<h2>Strings inside comments</h2>
+	<pre><code>// "foo"</code></pre>
+	<pre><code>/* "foo" */</code></pre>
+
+	<h2>Strings with slashes</h2>
+	<pre><code>env.content + '&lt;/' + env.tag + '>'</code></pre>
+	<pre><code>var foo = "/" + "/";</code></pre>
+
+	<h2>Regex inside single line comment</h2>
+	<pre><code>// hey, /this doesn’t fail!/ :D</code></pre>
+
+	<h2>Two or more division operators on the same line</h2>
+	<pre><code>var foo = 5 / 6 / 7;</code></pre>
+
+	<h2>A division operator on the same line as a regex</h2>
+	<pre><code>var foo = 1/2, bar = /a/g;</code></pre>
+	<pre><code>var foo = /a/, bar = 3/4;</code></pre>
+</section>
+
+<section class="language-java">
+	<h1>Java</h1>
+
+	<h2>Java Language Keywords</h2>
+	<pre><code>
+abstract continue for        new       switch
+assert   default  goto       package   synchronized
+boolean  do       if         private   this
+break    double   implements protected throw
+byte     else     import     public    throws
+case     enum     instanceof return    transient
+catch    extends  int        short     try
+char     final    interface  static    void
+class    finally  long       strictfp  volatile
+const    float    native     super     while
+
+	</code></pre>
+
+	<h2>Operators</h2>
+	<pre><code>// postfix
+expr++ expr--
+// unary
+++expr --expr +expr -expr ~ !
+// multiplicative
+* / %
+// additive
++ -
+// shift
+<< >> >>>
+// relational
+< > <= >= instanceof
+// equality
+== !=
+// bitwise AND
+&
+// bitwise exclusive OR
+^
+// bitwise inclusive OR
+|
+// logical AND
+&&
+// logical OR
+||
+// ternary
+? :
+// assignment
+= += -= *= /= %= &= ^= |= <<= >>= >>>=
+	</code></pre>
+
+	<h2>Simple class example</h2>
+
+	<pre><code>package com.prismjs;
+
+import java.io.*;
+
+@SuppressWarnings("unchecked")
+public class PrismJS {
+
+	public static Integer test = 0;
+
+	/**
+	 * Javadoc style comment
+	 *
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// Let's create some variables
+		int numArgs = args.length;
+		Integer a = 0x1;
+		String test = "" + "Hello" + " \"World\"!";
+		double dvalue = 1.23;
+		int optest = 0;
+		optest += 321 - 45 * 1247 / 425 % 123;
+
+		/*
+		 * Multiline comment
+		 */
+		for (int i = 0; i < numArgs; i++) {
+			// Simple line comment
+			System.out.println("Arg value= " + args[i]);
+		}
+
+		do {
+			System.out.println("Do while ok!");
+		} while (false);
+	}
+}
+
+	</code></pre>
+	<p>As you can notice String keyword is not highlighted because it's not a Java language keyword (cf. <a href="http://docs.oracle.com/javase/tutorial/java/nutsandbolts/_keywords.html">Java Language Keywords</a>). The main reason is that String is not a primitive type such as <em>int</em> but a class type like <em>Integer</em>.</p>
+</section>
+
+
+
+<section class="language-coffeescript">
+	<h1>Coffeescript</h1>
+
+	<h2>Variable assignment</h2>
+	<pre><code>foo = "bar"</code></pre>
+
+	<h2>Operators</h2>
+	<pre><code>(1 + 2 * 3)/4 >= 3 &amp;&amp; 4 &lt; 5 || 6 > 7</code></pre>
+
+	<h2>Indented code</h2>
+	<pre><code>if true
+	while true
+		doSomething()
+	</code></pre>
+
+	<h2>Regex with slashes</h2>
+	<pre><code>var foo = /([^/])\/(\\?.|\[.+?])+?\/[gim]{0,3}/g;</code></pre>
+
+	<h2>Single line comments</h2>
+	<pre><code># This is a comment</code></pre>
+
+	<h2>Link in comment</h2>
+	<pre><code># http://lea.verou.me
+###
+Block Comment
+### </code></pre>
+
+	<h2>Nested strings</h2>
+	<pre><code>var foo = "foo", bar = "He \"said\" 'hi'!"</code></pre>
+
+	<h2>String inside comment</h2>
+	<pre><code># "foo"</code></pre>
+
+
+	<h2>Strings with slashes</h2>
+	<pre><code>env.content + '&lt;/' + env.tag + '>'</code></pre>
+	<pre><code>var foo = "/" + "/";</code></pre>
+
+	<h2>Two or more division operators on the same line</h2>
+	<pre><code>foo = 5 / 6 / 7;</code></pre>
+
+	<h2>A division operator on the same line as a regex</h2>
+	<pre><code>foo = 1/2, bar = /a/g;</code></pre>
+	<pre><code>foo = /a/, bar = 3/4;</code></pre>
+
+	<h2>A function</h2>
+	<pre><code>
+_buttonClick: (a, b) ->
+	@hide()
+	</code></pre>
+
+	<h2>An Object</h2>
+	<pre><code>
+code = {
+	css: "Cascading Style Sheets"
+	cs: "CoffeeScript"
+}
+	</code></pre>
+
+		<h2>Class Definition</h2>
+	<pre><code>
+class CoffeeScript extends Prism.Javascript
+	</code></pre>
+</section>
+
+<section id="failures" class="language-javascript">
+	<h1>Known failures (JavaScript)</h1>
+	<p>There are certain edge cases where Prism will fail.
+	There are always such cases in every regex-based syntax highlighter.
+	However, Prism dares to be open and honest about them.
+	If a failure is listed here, it doesn’t mean it will never be fixed. This is more of a “known bugs” list, just with a certain type of bug.
+	</p>
+
+	<h2>Comment-like substrings</h2>
+	<pre><code>"foo /* bar */ baz"; "foo // bar";</code></pre>
+
+	<h2>Two quotes of the same type (i.e. both single or both double) inside a regex</h2>
+	<pre><code>foo = /"foo"/;</code></pre>
+</section>
+
+<footer data-src="templates/footer.html" data-type="text/html"></footer>
+
+<script src="prism.js"></script>
+<script src="utopia.js"></script>
+<script src="code.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "master",
+  "main": "",
+  "version": "0.0.0",
+  "repository": {
+    "type": "asset",
+    "url": "https://nodeload.github.com/FortAwesome/Font-Awesome/zip/master"
+  }
+}

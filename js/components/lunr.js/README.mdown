@@ -1,0 +1,67 @@
+# Lunr.js
+
+A bit like Solr, but much smaller and not as bright.
+
+## Example
+
+A very simple search index can be created using the following:
+
+    var idx = lunr(function () {
+        this.field('title', 10)
+        this.field('body')
+    })
+    
+Adding documents to be indexed is as simple as:
+
+    var doc = {
+        "title": "Twelfth-Night",
+        "body": "If music be the food of love, play on: Give me excess of it…",
+        "author": "William Shakespeare",
+        "id": 1
+    }
+    
+    idx.add(doc)
+
+
+Then searching is as simple:
+
+    idx.search("love")
+
+This returns a list of matching documents with a score of how closely they match the search query:
+
+    [{
+        "ref": 1,
+        "score": 0.87533
+    }]
+
+API documentation is available, as well as a full working example.
+
+## Description
+
+Lunr.js is a small, full-text search library for use in the browser.  It indexes JSON documents and provides a simple search interface for retrieving documents that best match text queries.
+
+## Why
+
+For web applications with all their data already sitting in the client, it makes sense to be able to search that data on the client too.  It saves adding extra, compacted services on the server.  A local search index will be quicker, there is no network overhead, and will remain available and useable even without a network connection.
+
+## Installation
+
+Simply include the lunr.js source file in the page that you want to use it.  Lunr.js is supported in all modern browsers.
+
+Browsers that do not support ES5 will require a JavaScript shim for Lunr to work. You can either use [Augment.js](http://augmentjs.com), [ES5-Shim]() or any library that patches old browsers to provide an ES5 compatible JavaScript environment.
+
+## Contributing
+
+Contributions are very welcome, to make the process as easy as possible please follow these steps:
+
+* Open an issue detailing the bug you've found, or the feature you wish to add.  Simplified working examples using something like [jsFiddle](http://jsfiddle.com) make it easier to diagnose your problem.
+* Add tests for your code (so I don't accidentally break it in the future)
+* Don't change version numbers or make new builds as part of your changes
+
+### Developer Dependencies
+
+A JavaScript runtime is required for building the library.  A browser is required for running the tests.  A simple server is provided for running the tests:
+
+    make test
+
+This will start a local test server on port 3000, to run the tests point a browser at `http://localhost:3000/`

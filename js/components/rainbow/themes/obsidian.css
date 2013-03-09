@@ -1,0 +1,73 @@
+/**
+ * Obsidian theme
+ *
+ * Adapted from a theme based on:
+ * http://studiostyl.es/schemes/son-of-obsidian
+ *
+ * @author Dan Stewart <dan@stewshack.com>
+ * @version 1.0
+ */
+pre {
+    background: #22282A;
+    word-wrap: break-word;
+    margin: 0px;
+    padding: 0px;
+    padding: 10px;
+    color: #F1F2F3;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+pre, code {
+    font-family: 'Monaco', courier, monospace;
+}
+
+pre .comment {
+	color: #66747B;
+}
+
+pre .constant {
+	color: #EC7600;
+}
+
+pre .storage {
+	color: #EC7600;
+}
+
+pre .string, pre .comment.docstring {
+	color: #EC7600;
+}
+
+pre .string.regexp, pre .support.tag.script, pre .support.tag.style {
+    color: #fff;
+}
+
+
+pre .keyword, pre .selector {
+	color: #93C763;
+}
+
+pre .inherited-class {
+    font-style: italic;
+}
+
+pre .entity {
+	color: #93C763;
+}
+
+pre .integer {
+	color: #FFCD22;
+}
+
+pre .support, *[data-language="csharp"] .function.call {
+	color: #FACD22;
+}
+
+pre .variable.global, pre .variable.class, pre .variable.instance {
+	color: #CCC;
+}
+
+/* C# specific rule */
+pre .preprocessor {
+	color: #66747B;
+}

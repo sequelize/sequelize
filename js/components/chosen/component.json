@@ -1,0 +1,8 @@
+{
+  "name": "chosen",
+  "version": "0.9.11",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/harvesthq/chosen.git"
+  }
+}

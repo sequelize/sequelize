@@ -1,0 +1,28 @@
+{
+  "name": "i18next",
+  "version": "1.6.0",
+  "main": "./release/i18next-1.6.0.min.js",
+  "dependencies": {},
+  "ignore": [
+    "test/",
+    "spec/",
+    "src/",
+    "sample/",
+    "report/",
+    "buildtasks/",
+    ".gitignore",
+    "grunt.js",
+    "package.json",
+    "testem.yml",
+    "**/*.zip"
+  ],
+  "gitHead": "a776db8aa287f4403db71e887e4ca87a53655423",
+  "readme": "# Introduction\n\nProject goal is to provide an easy way to translate a website on clientside:\n\n- fetch resources from server\n- fetch each resource file individually (static) or all once via dynamicRoute\n- apply translation to HTML tags with the _data-i18n_ attribute\n- post missing key-value pairs to server (for easy development -> just translate the new keys)\n- search for key _en-US_ first, then in _en_, then in fallback language (or de-DE, de , fallback)\n\nCheck out the [documentation](http://i18next.com)\n\n# Usage\n\nAssuming we loaded __en-US__, __en__ and __dev__ resources for two namespaces ('ns.special' and 'ns.common'):\n\n\t// given loaded and merged dictionaries in i18next.js to:\n\t{\n\t    \"en_US\": {\n\t        \"ns.special\": {\n\t            \"app\": {\n\t                \"name\": \"i18n\",\n\t                \"insert\": \"you are __youAre__\",\n\t                \"child\": \"__count__ child\",\n\t                \"child_plural\": \"__count__ children\"\n\t            }\n\t        },\n\t        \"ns.common\": {}\n\t    },\n\t    \"en\": {\n\t        \"ns.special\": {\n\t            \"app\": {\n\t                \"area\": \"Area 51\"\n\t            }\n\t        },\n\t        \"ns.common\": {}\n\t    },\n\t    \"dev\": {\n\t        \"ns.common\": {\n\t            \"app\": {\n\t                \"company\": {\n\t                    \"name\": \"my company\"\n\t                }\n\t            },\n\t            \"add\": \"add\"\n\t        },\n\t        \"ns.special\": {\n\t            \"nav\": {\n\t                \"1\": \"link1\",\n\t                \"2\": \"link2\",\n\t                \"home\": \"home\"\n\t            }\n\t        }\n\t    }\n\t}\n\n## you can translate using `$.t(key, [options])`\n\n\t$.i18n.init({\n\t    lng: 'en-US',\n\t    ns: { namespaces: ['ns.common', 'ns.special'], defaultNs: 'ns.special'}\n\t}, function() {\n\t    $.t('app.name'); // -> i18n (from en-US resourcefile)\n\t    $.t('app.area'); // -> Area 51 (from en resourcefile)\n\t    $.t('ns.common:app.company.name'); // -> my company (from dev resourcefile)\n\t    $.t('ns.common:add'); // -> add (from dev resourcefile)\n\t});\n\n### insert values into your translation\n\n\t$.t('app.insert', {youAre: 'great'}) // -> you are great\n\n### support for plurals\n\n\t$.t('app.child', {count: 1}) // -> 1 child\n\t$.t('app.child', {count: 3}) // -> 3 children\n\n## or you can just `$('.mySelector').i18n()` assuming you have added the `data-i18n=\"key\"` attribute to your elements\n\n\t// given\n\t<ul class=\"nav\">\n\t\t<li class=\"active\"><a href=\"#\" data-i18n=\"nav.home\">home</a></li>\n\t\t<li><a href=\"#\" data-i18n=\"nav.1\">link1</a></li>\n\t\t<li><a href=\"#\" data-i18n=\"nav.2\">link2</a></li>\n\t</ul>\n\n\t// Run the following javascript to translate all elements having the _data-i18n_ attribute:\n\t$.i18n.init({\n\t    lng: 'en-US',\n\t    ns: { namespaces: ['ns.common', 'ns.special'], defaultNs: 'ns.special'}\n\t}, function() {\n\t    $('.nav').i18n();\n\t});\n\nFor missing keys (if the option 'addMissing' is set to true) will be send to server with actual text as defaultValue.\n\n# Sample usage\n\nIn the folder you find one static sample.\n\n# serverside integrations\n\n[i18next-node](https://github.com/jamuhl/i18next-node) is bringing i18next to node.js\n\n# Inspiration\n\n- [jsperanto](https://github.com/jpjoyal/jsperanto).\n\n# Building\nTo build your own copy of i18next, check out the repository and:\n\n\tgit clone https://github.com/jamuhl/i18next.git\n    cd i18next\n    npm install grunt -g\n    npm install\n    grunt\n    \nThe grunt command will build i18next into the bin/ and release/ folders.\n\n# License\n\nCopyright (c) 2011 Jan Mühlemann\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n",
+  "readmeFilename": "README.md",
+  "_id": "i18next@1.6.0",
+  "description": "Project goal is to provide an easy way to translate a website on clientside:",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jamuhl/i18next"
+  }
+}
