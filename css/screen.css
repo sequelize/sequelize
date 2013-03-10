@@ -40,3 +40,8 @@ code[class*="language-"] {
 .token.atrule, .token.attr-value, .token.keyword {
   color: rgb(255, 142, 203)
 }
+
+p > code {
+  color: rgb(255, 255, 255);
+  background: rgba(42,99,105,0.9) none;
+}
