@@ -32,6 +32,11 @@ body > .container {
 
 
 /* prism */
+pre[class*="language-"] {
+  background: url('data:image/svg+xml;charset=utf-8,<svg%20version%3D"1.1"%20xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg"%20width%3D"100"%20height%3D"100"%20fill%3D"rgba(0%2C0%2C0%2C.1)">%0D%0A<polygon%20points%3D"0%2C50%2050%2C0%200%2C0"%20%2F>%0D%0A<polygon%20points%3D"0%2C100%2050%2C100%20100%2C50%20100%2C0"%20%2F>%0D%0A<%2Fsvg>');
+  background-size: 1em 1em;
+}
+
 code[class*="language-"] {
   background: rgba(42,99,105,0.9) none;
   box-shadow: -.3em 0 0 .3em rgba(42,99,105,0.9), .3em 0 0 .3em rgba(42,99,105,0.9);
