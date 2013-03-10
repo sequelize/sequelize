@@ -26,13 +26,13 @@ define([
           ids.forEach(function(id, i) {
             var html = ViewHelper.fixCodeIndentation($(templates[i]))
             $('section#' + id).html(html)
+
+            // wait a tiny bit and highlight the code
+            window.setTimeout(function() {
+              Prism.highlightAll()
+            }, 50)
           })
         })
-
-        // wait a tiny bit and highlight the code
-        window.setTimeout(function() {
-          Prism.highlightAll()
-        }, 50)
       })
     }
   })
