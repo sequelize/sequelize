@@ -217,7 +217,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
   });
 
   describe('refresh', function () {
-    it("should return a refrence to the same DAO instead of creating a new one", function (done) {
+    it("should return a reference to the same DAO instead of creating a new one", function (done) {
       this.User.create({ username: 'John Doe' }).done(function (err, originalUser) {
 
         originalUser.updateAttributes({ username: 'Doe John' }).done(function () {
