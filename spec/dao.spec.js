@@ -216,6 +216,63 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     });
   });
 
+  describe('refresh', function () {
+    it("should return a refrence to the same DAO instead of creating a new one", function (done) {
+      this.User.create({ username: 'John Doe' }).done(function (err, originalUser) {
+
+        originalUser.updateAttributes({ username: 'Doe John' }).done(function () {
+          originalUser.reload().done(function (err, updatedUser) {
+            expect(originalUser === updatedUser).toBeTrue()
+            done();
+          })
+        })
+      })
+    })
+
+    it("should update the values on all references to the DAO", function (done) {
+      var self = this
+
+      this.User.create({ username: 'John Doe' }).done(function (err, originalUser) {
+        self.User.find(originalUser.id).done(function (err, updater) {
+          updater.updateAttributes({ username: 'Doe John' }).done(function () {
+            // We used a different refernce when calling updateAttributes, so originalUser is now out of sync
+            expect(originalUser.username).toEqual('John Doe')
+
+            originalUser.reload().done(function (err, updatedUser) {
+              expect(originalUser.username).toEqual('Doe John')
+              expect(updatedUser.username).toEqual('Doe John')
+
+              done();
+            })
+          })
+        })        
+      })
+    })
+
+    it("should update read only attributes as well (updatedAt)", function (done) {
+      var self = this
+      this.timeout = 2000;
+
+      this.User.create({ username: 'John Doe' }).done(function (err, originalUser) {
+        var originallyUpdatedAt = originalUser.updatedAt
+
+        // Wait for a second, so updatedAt will actually be different
+        setTimeout(function () {
+          self.User.find(originalUser.id).done(function (err, updater) {
+            updater.updateAttributes({ username: 'Doe John' }).done(function () {
+              originalUser.reload().done(function (err, updatedUser) {
+                expect(originalUser.updatedAt).toBeGreaterThan(originallyUpdatedAt)
+                expect(updatedUser.updatedAt).toBeGreaterThan(originallyUpdatedAt)
+
+                done();
+              })
+            })
+          })
+        }, 1000)
+      })
+    })
+  });
+
   describe('default values', function() {
     describe('current date', function() {
       it('should store a date in touchedAt', function() {

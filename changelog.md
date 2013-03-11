@@ -1,7 +1,5 @@
-# v2.0.0 #
-- [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
-
 # v1.6.0 #
+- [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
 - [DEPENDENCIES] upgraded most dependencies. most important: mysql was upgraded to 2.0.0-alpha-3
 - [DEPENDENCIES] mysql is now an optional dependency. #355 (thanks to clkao)
 - [REFACTORING] separated tests for dialects
@@ -40,6 +38,7 @@
 - [FEATURE] add increment and decrement methods on dao. #408 (thanks to janmeier/innofluence)
 - [FEATURE] unified the result of describeTable
 - [FEATURE] add support for decimals (thanks to alexyoung)
+- [FEATURE] added DAO.refresh(), which updates the attributes of the DAO in-place (as opposed to doing having to do a find() and returning a new model)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
