@@ -118,29 +118,46 @@
   <div class="span12">
     <h3>Dialects</h3>
     <p>
-      To get the ball rollin' you first have to create an instance of Sequelize. Use it the following way:
-
-      <pre><code class="language-javascript">
-        var sequelize = new Sequelize('database', 'username'[, 'password'])
-      </code></pre>
+      With the release of Sequelize <code>v1.6.0</code>, the library got independent from specific dialects. That mean, that you'll have to add the respective dialect library yourself. Another option is the use of the sequelize packages that ship the dialect libraries as well.
     </p>
+
+    <h4>MySQL</h4>
     <p>
-      This will save the passed database credentials and provide all further methods. Furthermore you can specify a non-default host/port:
+      In order to get Sequelize working nicely together with MySQL, you'll need to install <code>mysql @ ~2.0.0-alpha7</code>. Once that's done you can use it like this:
 
       <pre><code class="language-javascript">
         var sequelize = new Sequelize('database', 'username', 'password', {
-          host: "my.server.tld",
-          port: 12345
+          // we want mysql!
+          dialect: 'mysql'
         })
       </code></pre>
     </p>
+
+    <h4>SQLite</h4>
     <p>
-      If you just don't have a password:
+      For SQLite compatibility you'll need <code>sqlite3 @ ~2.1.5</code>. Configure Sequelize like this:
 
       <pre><code class="language-javascript">
-        var sequelize = new Sequelize('database', 'username')
-        // or
-        var sequelize = new Sequelize('database', 'username', null)
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // sqlite! now!
+          dialect: 'sqlite',
+
+          // the storage engine for sqlite
+          // - default ':memory:'
+          storage: 'path/to/database.sqlite'
+        })
+      </code></pre>
+    </p>
+
+    <h4>PostgreSQL</h4>
+    <p>
+      The library for PostgreSQL is <code>pg @ ~0.10.2</code>. You'll just need to define the dialect:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // gimme postgres, please!
+          dialect: 'postgres'
+        })
       </code></pre>
     </p>
   </div>
