@@ -38,7 +38,7 @@
 - [FEATURE] add increment and decrement methods on dao. #408 (thanks to janmeier/innofluence)
 - [FEATURE] unified the result of describeTable
 - [FEATURE] add support for decimals (thanks to alexyoung)
-- [FEATURE] added DAO.refresh(), which updates the attributes of the DAO in-place (as opposed to doing having to do a find() and returning a new model)
+- [FEATURE] added DAO.reload(), which updates the attributes of the DAO in-place (as opposed to doing having to do a find() and returning a new model)
 
 # v1.5.0 #
 - [REFACTORING] use underscore functions for Utils.isHash (thanks to Mick-Hansen/innofluence)
