@@ -18,6 +18,7 @@ h2 {
 
 h3 {
   font-size: 24.5px;
+  margin-top: 100px;
 }
 
 body > .container {
@@ -184,8 +185,4 @@ code[class*="language-"] {
 p > code {
   color: rgb(255, 255, 255);
   background: rgba(42,99,105,0.9) none;
-}
-
-section > .row {
-  padding-top: 100px;
 }
