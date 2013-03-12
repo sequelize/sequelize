@@ -27,6 +27,13 @@ h2 {
 h3 {
   font-size: 24.5px;
   margin-top: 100px;
+  border-bottom: 1px solid #333;
+}
+
+h4 {
+  margin-top: 30px;
+  border-bottom: 1px dotted #333;
+  padding-bottom: 5px;
 }
 
 .page-header {
