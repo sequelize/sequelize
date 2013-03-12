@@ -56,6 +56,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Model#delete
 - Validate a model before it gets saved. (Move validation of enum attribute value to validate method)
 - BLOB [#99](https://github.com/sdepold/sequelize/issues/99)
+- Support for foreign keys
 
 ### 1.7.x
 - Complete support for non-id primary keys
