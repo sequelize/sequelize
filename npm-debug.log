@@ -1,0 +1,30 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'start' ]
+2 info using npm@1.1.66
+3 info using node@v0.8.15
+4 verbose read json /Users/sdepold/Projects/sequelize/package.json
+5 warn package.json sequelize@0.0.0 No README.md file found!
+6 verbose run-script [ 'prestart', 'start', 'poststart' ]
+7 info prestart sequelize@0.0.0
+8 info start sequelize@0.0.0
+9 verbose unsafe-perm in lifecycle true
+10 silly exec sh "-c" "pkill -f static; node_modules/.bin/static -c 1"
+11 silly sh,-c,pkill -f static; node_modules/.bin/static -c 1,/Users/sdepold/Projects/sequelize spawning
+12 info sequelize@0.0.0 Failed to exec start script
+13 error sequelize@0.0.0 start: `pkill -f static; node_modules/.bin/static -c 1`
+13 error `sh "-c" "pkill -f static; node_modules/.bin/static -c 1"` failed with 1
+14 error Failed at the sequelize@0.0.0 start script.
+14 error This is most likely a problem with the sequelize package,
+14 error not with npm itself.
+14 error Tell the author that this fails on your system:
+14 error     pkill -f static; node_modules/.bin/static -c 1
+14 error You can get their info via:
+14 error     npm owner ls sequelize
+14 error There is likely additional logging output above.
+15 error System Darwin 12.2.1
+16 error command "/usr/local/bin/node" "/usr/local/bin/npm" "start"
+17 error cwd /Users/sdepold/Projects/sequelize
+18 error node -v v0.8.15
+19 error npm -v 1.1.66
+20 error code ELIFECYCLE
+21 verbose exit [ 1, true ]

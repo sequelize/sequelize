@@ -23,7 +23,7 @@ define([
       this.initControllers()
 
       // Register all routes and start routing
-      this.initRouter(routes)
+      this.initRouter(routes, { pushState: false })
       // You might pass Router/History options as the second parameter.
       // Chaplin enables pushState per default and Backbone uses / as
       // the root per default. You might change that in the options

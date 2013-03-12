@@ -2,6 +2,14 @@ body {
   padding-top: 100px;
 }
 
+.jumbotron, .documentation.index > section {
+  margin-bottom: 70px;
+}
+
+.jumbotron .lead {
+  margin-bottom: 0;
+}
+
 h1 {
   font-size: 60px;
 }
@@ -12,7 +20,7 @@ h1 small {
 
 h2 {
   font-size: 38.5px;
-  border-bottom: 4px solid rgba(255,255,255,0.9);
+  border-bottom: 4px solid #333;
   padding-bottom: 10px;
 }
 
@@ -21,9 +29,17 @@ h3 {
   margin-top: 100px;
 }
 
-body > .container {
-  font-size: 16px;
+.page-header {
+  border-bottom: none;
 }
+
+section > .page-header {
+  margin-bottom: 0px;
+}
+
+/**********/
+/* subnav */
+/**********/
 
 .subnav {
   margin-bottom: 60px;
@@ -42,6 +58,11 @@ body > .container {
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
+}
+
+.subnav-shadow {
+  display: none;
+  height: 62px;
 }
 
 .subnav .nav {
@@ -146,6 +167,10 @@ body > .container {
     filter: progid:DXImageTransform.Microsoft.gradient(enabled=false); /* IE6-9 */
   }
 
+  .subnav-fixed + .subnav-shadow {
+    display: block;
+  }
+
   .subnav-fixed .nav {
     width: 938px;
     margin: 0 auto;
@@ -164,25 +189,4 @@ body > .container {
   .subnav-fixed .nav {
     width: 1168px; /* 2px less to account for left/right borders being removed when in fixed mode */
   }
-}
-
-/* prism */
-
-pre[class*="language-"] {
-  background: url('data:image/svg+xml;charset=utf-8,<svg%20version%3D"1.1"%20xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg"%20width%3D"100"%20height%3D"100"%20fill%3D"rgba(0%2C0%2C0%2C.1)">%0D%0A<polygon%20points%3D"0%2C50%2050%2C0%200%2C0"%20%2F>%0D%0A<polygon%20points%3D"0%2C100%2050%2C100%20100%2C50%20100%2C0"%20%2F>%0D%0A<%2Fsvg>');
-  background-size: 1em 1em;
-}
-
-code[class*="language-"] {
-  background: rgba(42,99,105,0.9) none;
-  box-shadow: -.3em 0 0 .3em rgba(42,99,105,0.9), .3em 0 0 .3em rgba(42,99,105,0.9);
-}
-
-.token.atrule, .token.attr-value, .token.keyword {
-  color: rgb(255, 142, 203)
-}
-
-p > code {
-  color: rgb(255, 255, 255);
-  background: rgba(42,99,105,0.9) none;
 }
