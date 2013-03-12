@@ -1,0 +1,412 @@
+<div class="page-header">
+  <h2>Models</h2>
+  <div class="subnav">
+    <ul class="nav nav-pills">
+      <li><a href="#models-definition">Definition</a></li>
+      <li><a href="#models-data-types">Data types</a></li>
+      <li><a href="#models-validations">Validations</a></li>
+      <li><a href="#models-configuration">Configuration</a></li>
+      <li><a href="#models-import">Import</a></li>
+      <li><a href="#models-database-synchronization">Database synchronization</a></li>
+      <li><a href="#models-expansion">Expansion</a></li>
+      <li><a href="#models-finders">Finders</a></li>
+    </ul>
+  </div>
+  <div class="subnav-shadow"></div>
+</div>
+
+<div class="row" id="models-definition">
+  <div class="span12">
+    <h3>Definition</h3>
+    <p>
+      To define mappings between a model and a table, use the <code>define</code> method. Sequelize will then automatically add the attributes <code>createdAt</code> and <code>updatedAt</code> to it. So you will be able to know when the database entry went into the db and when it was updated the last time.
+
+      <pre><code class="language-javascript">
+        var Project = sequelize.define('Project', {
+          title: Sequelize.STRING,
+          description: Sequelize.TEXT
+        })
+
+        var Task = sequelize.define('Task', {
+          title: Sequelize.STRING,
+          description: Sequelize.TEXT,
+          deadline: Sequelize.DATE
+        })
+      </code></pre>
+    </p>
+    <p>
+      You can also set some options:
+
+      <pre><code class="language-javascript">
+        var Foo = sequelize.define('Foo', {
+          // instantiating will automatically set the flag to true if not set
+          flag: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
+          // default values for dates => current time
+          myDate: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
+          // setting no title will throw an error when trying to save
+          title: { type: Sequelize.STRING, allowNull: false},
+          // Creating two objects with the same value will throw an error. Currently composite unique
+          // keys can only be created 'addIndex' from the migration-section below
+          someUnique: {type: Sequelize.STRING, unique: true},
+          // Go on reading for further information about primary keys
+          identifier: { type: Sequelize.STRING, primaryKey: true},
+          // autoIncrement can be used to create auto_incrementing integer columns
+          incrementMe: { type: Sequelize.INTEGER, autoIncrement: true }
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="models-data-types">
+  <div class="span12">
+    <h3>Data types</h3>
+    <p>
+      Sequelize currently supports the following datatypes:
+
+      <pre><code class="language-javascript">
+        Sequelize.STRING  ===> VARCHAR(255)
+        Sequelize.TEXT    ===> TEXT
+        Sequelize.INTEGER ===> INTEGER
+        Sequelize.DATE    ===> DATETIME
+        Sequelize.BOOLEAN ===> TINYINT(1)
+        Sequelize.FLOAT   ===> FLOAT
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="models-validations">
+  <div class="span12">
+    <h3>Validations</h3>
+    <p>
+      In <code>v1.3.0</code> model validations have been added. They allow you to specify format/content/inheritance validations for each attribute of the model. You can perform the validation by calling the <code>validate()</code> method on an instance before saving.
+
+      <pre><code class="language-javascript">
+        var ValidateMe = sequelize.define('Foo', {
+          foo: {
+            type: Sequelize.STRING,
+            validate: {
+              is: ["[a-z]",'i'],        // will only allow letters
+              not: ["[a-z]",'i'],       // will not allow letters
+              isEmail: true,            // checks for email format (foo@bar.com)
+              isUrl: true,              // checks for url format (http://foo.com)
+              isIP: true,               // checks for IPv4 format (129.89.23.1)
+              isAlpha: true,            // will only allow letters
+              isAlphanumeric: true      // will only allow alphanumeric characters, so "_abc" will fail
+              isNumeric: true           // will only allow numbers
+              isInt: true,              // checks for valid integers
+              isFloat: true,            // checks for valid floating point numbers
+              isDecimal: true,          // checks for any numbers
+              isLowercase: true,        // checks for lowercase
+              isUppercase: true,        // checks for uppercase
+              notNull: true,            // won't allow null
+              isNull: true,             // only allows null
+              notEmpty: true,           // don't allow empty strings
+              equals: 'specific value', // only allow a specific value
+              contains: 'foo',          // force specific substrings
+              notIn: 'foo',             // force specific substrings
+              isIn: "foo",              // force specific substrings
+              notContains: 'bar',       // don't allow specific substrings
+              len: [2,10],              // only allow values with length between 2 and 10
+              isUUID: 4,                // only allow uuids
+              isDate: true,             // only allow date strings
+              isAfter: "2011-11-05",    // only allow date strings after a specific date
+              isBefore: "2011-11-05",   // only allow date strings before a specific date
+              max: 23,                  // only allow values <= 23
+              min: 23,                  // only allow values >= 23
+              isArray: true,            // only allow arrays
+              isCreditCard: true,       // check for valid credit card numbers
+
+              // custom validations are also possible:
+              isEven: function(value) {
+                if(parseInt(value) % 2 != 0)
+                  throw new Error('Only even values are allowed!')
+              }
+            }
+          }
+        })
+      </code></pre>
+    </p>
+    <p><strong>Hint:</strong> You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.</p>
+  </div>
+</div>
+
+<div class="row" id="models-configuration">
+  <div class="span12">
+    <h3>Configuration</h3>
+    <p>
+      You can also take influence of the way, Sequelize handles your column names:
+
+      <pre><code class="language-javascript">
+        var Bar = sequelize.define('Bar', { /* bla */ }, {
+          // don't add the timestamp attributes (updatedAt, createdAt)
+          timestamps: false,
+          // don't delete database entries but set the newly added attribute deletedAt
+          // to the current date (when deletion was done). paranoid will only work if
+          // timestamps are not disabled
+          paranoid: true,
+          // don't use camelcase for automatically added attributes but underscore style
+          // so updatedAt will be updated_at
+          underscored: true,
+          // disable the modification of tablenames; By default, sequelize will automatically
+          // transform all passed model names (first parameter of define) into plural.
+          // if you don't want that, set the following
+          freezeTableName: true
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="models-import">
+  <div class="span12">
+    <h3>Import</h3>
+    <p>
+      You can also store your model definitions in a single file using the <code>import</code>-method. The returned object is exactly the same as defined in the imported file's function. Since <code>v1.5.0</code> of Sequelize the import is cached, so you won't run into troubles when calling the import of a file twice or more often.
+
+      <pre><code class="language-javascript">
+        // in your server file - e.g. app.js
+        var Project = sequelize.import(__dirname + "/path/to/models/project")
+
+        // The model definition is done in /path/to/models/project.js
+        // As you might notice, the DataTypes are the very same as explained above
+        module.exports = function(sequelize, DataTypes) {
+          return sequelize.define("Project", {
+            name: DataTypes.STRING,
+            description: DataTypes.TEXT
+          })
+        }
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="models-database-synchronization">
+  <div class="span12">
+    <h3>Database synchronization</h3>
+    <p>
+      When starting a new project you won't have a database structure and using Sequelize you won't need to. Just specify your model structures and let the library do the rest. Currently supported is the creation and deletion of tables:
+
+      <pre><code class="language-javascript">
+        // Create the tables:
+        Project.sync() // will emit success or failure event
+        Task.sync() // will emit success or failure event
+
+        // Force the creation!
+        Project.sync({force: true}) // this will drop the table first and re-create it afterwards
+
+        // drop the tables:
+        Project.drop() // will emit success or failure event
+        Task.drop() // will emit success or failure event
+
+        // event handling:
+        Project.[sync|drop]().success(function() {
+          // ok ... everything is nice!
+        }).error(function(error) {
+          // oooh, did you entered wrong database credentials?
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      Because synchronizing and dropping all of your tables might be a lot of lines to write, you can also let Sequelize do the work for you:
+
+      <pre><code class="language-javascript">
+        // create all tables... now!
+        sequelize.sync() // will emit success or failure
+
+        // force it!
+        sequelize.sync({force: true}) // emit ... nomnomnom
+
+        // want to drop 'em all?
+        sequelize.drop() // I guess you've got it (emit)
+
+        // emit handling:
+        sequelize.[sync|drop]().success(function() {
+          // woot woot
+        }).error(function(error) {
+          // whooops
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="models-expansion">
+  <div class="span12">
+    <h3>Expansion of models</h3>
+    <p>
+      Sequelize allows you to pass custom methods to a model and it's instances. Just do the following:
+
+      <pre><code class="language-javascript">
+        var Foo = sequelize.define('Foo', { /* attributes */}, {
+          classMethods: {
+            method1: function(){ return 'smth' }
+          },
+          instanceMethods: {
+            method2: function() { return 'foo' }
+          }
+        })
+
+        // Example:
+        Foo.method1()
+        Foo.build().method2()
+      </code></pre>
+    </p>
+
+    <p>
+      Of course you can also access the instance's data and generate virtual getters:
+
+      <pre><code class="language-javascript">
+        var User = sequelize.define('User', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
+          instanceMethods: {
+            getFullname: function() {
+              return [this.firstname, this.lastname].join(' ')
+            }
+          }
+        })
+
+        // Example:
+        User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
+      </code></pre>
+    </p>
+
+    <p>
+      You can also set custom methods to all of your models during the instantiation:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // Other options during the initialization could be here
+          define: {
+            classMethods: {
+              method1: function() {},
+              method2: function() {}
+            },
+            instanceMethods: {
+              method3: function() {}
+            }
+          }
+        })
+
+        // Example:
+        var Foo = sequelize.define('Foo', { /* attributes */});
+        Foo.method1()
+        Foo.method2()
+        Foo.build().method3()
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="models-finders">
+  <div class="span12">
+    <h3>Finders</h3>
+    <p>
+      Finder methods are designed to get data from the database. The returned data isn't just a plain object, but instances of one of the defined classes. Check the next major chapter about instances for further information. But as those things are instances, you can e.g. use the just describe expanded instance methods. So, here is what you can do:
+
+      <pre><code class="language-javascript">
+        // search for known ids
+        Project.find(123).success(function(project) {
+          // project will be an instance of Project and stores the content of the table entry
+          // with id 123. if such an entry is not defined you will get null
+        })
+
+        // search for attributes
+        Project.find({ where: {title: 'aProject'} }).success(function(project) {
+          // project will be the first entry of the Projects table with the title 'aProject' || null
+        })
+
+        // since v1.3.0: only select some attributes and rename one
+        Project.find({
+          where: {title: 'aProject'},
+          attributes: ['id', ['name', 'title']]
+        }).success(function(project) {
+          // project will be the first entry of the Projects table with the title 'aProject' || null
+          // project.title will contain the name of the project
+        })
+
+        // find multiple entries
+        Project.findAll().success(function(projects) {
+          // projects will be an array of all Project instances
+        })
+
+        // also possible:
+        Project.all().success(function(projects) {
+          // projects will be an array of all Project instances
+        })
+
+        // search for specific attributes - hash usage
+        Project.findAll({where: {name: 'A Project'}}).success(function(projects) {
+          // projects will be an array of Project instances with the specified name
+        })
+
+        // search with string replacements
+        Project.findAll({where: ["id > ?", 25]}).success(function(projects) {
+          // projects will be an array of Projects having a greater id than 25
+        })
+
+        // search within a specific range
+        Project.findAll({where: { id: [1,2,3] }}).success(function(projects) {
+          // projects will be an array of Projects having the id 1, 2 or 3
+          // this is actually doing an IN query
+        })
+
+        // or
+        Project.findAll({where: "name = 'A Project'"}).success(function(projects) {
+          // the difference between this and the usage of hashes (objects) is, that string usage
+          // is not sql injection safe. so make sure you know what you are doing!
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      Of course you can pass a some options to the finder methods, to get more relevant data:
+
+      <pre><code class="language-javascript">
+        // define the order of the queried data
+        Project.findAll({order: 'title DESC'})
+
+        // limit the results of the query
+        Project.findAll({limit: 10})
+
+        // step over some elements
+        // this only works with a specified limit
+        Project.findAll({offset: 10, limit: 2})
+      </code></pre>
+    </p>
+
+    <p>
+      There is also a method for counting database objects:
+
+      <pre><code class="language-javascript">
+        Project.count().success(function(c) {
+          console.log("There are " + c + " projects!")
+        })
+
+        Project.count({where: ["id > ?", 25]}).success(function(c) {
+          console.log("There are " + c + " projects with an id greater than 25.")
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      And here is a method for getting the min and the max value of an attribute:
+
+      <pre><code class="language-javascript">
+        /*
+          Let's assume 3 person objects with an attribute age.
+          The first one is 10 years old,
+          the second one is 5 years old,
+          the third one is 40 years old.
+        */
+        Project.min('age').success(function(min) {
+          // this will return 5
+        })
+        Project.max('age').success(function(max) {
+          // this will return 40
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
