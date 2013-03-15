@@ -9,6 +9,13 @@ define([
   return View.extend({
     template: template,
     className: 'documentation navigation',
-    container: 'body > nav'
+    container: 'body > nav',
+    autoRender: false,
+
+    listen: {
+      'documentation.index.skeleton_rendered mediator': function() {
+        this.render()
+      }
+    }
   })
 })

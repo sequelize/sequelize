@@ -4,14 +4,11 @@
   "dependencies": {
     "backbone": "~0.9.10",
     "bootstrap": "git://github.com/sdepold/bootstrap.git#~v2.3.1",
-    "chaplin": "~0.6.1",
+    "chaplin": "~0.7.0",
     "requirejs": "~2.1.4",
     "requirejs-text": "~2.0.5",
     "lodash": "~1.0.0-rc.3",
-    "jquery-serialize-object": "~1.0.0",
     "es5-shim": "~2.0.5",
-    "json2": "latest",
-    "rainbow": "git://github.com/ccampbell/rainbow.git#~1.1.8",
     "prism": "latest"
   }
 }

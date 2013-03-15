@@ -10,6 +10,7 @@ doh.registerUrl("simple", "../simple.html");
 doh.registerUrl("baseUrl", "../baseUrl.html");
 
 doh.registerUrl("toUrl", "../toUrl/toUrl.html");
+doh.registerUrl("urlArgsToUrl", "../urlArgsToUrl.html");
 
 doh.registerUrl("config", "../config.html");
 doh.registerUrl("configRequirejs", "../configRequirejs.html");

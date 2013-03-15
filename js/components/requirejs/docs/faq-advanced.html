@@ -121,7 +121,7 @@ with the "namespace" optimization demonstrated above.</p>
 
 <p>Knowing when the file is loaded  is important because you may only want to grab the dimensions of a DOM element once the style sheet has loaded.</p>
 
-<p>Some people have implemented an approach where they look for a well known style to be applied to a specific HTML element to know if a style sheet is loaded. Due to the specificity of that solution, it is not something that would fit will with RequireJS. Knowing when the link element has loaded the referenced file would be the most robust solution.</p>
+<p>Some people have implemented an approach where they look for a well known style to be applied to a specific HTML element to know if a style sheet is loaded. Due to the specificity of that solution, it is not something that would fit well with RequireJS. Knowing when the link element has loaded the referenced file would be the most robust solution.</p>
 
 <p>Since knowing when the file has loaded is not reliable, it does not make sense to explicitly support CSS files in RequireJS loading, since it will lead to bug reports due to browser behavior. If you do not care when the file is loaded, you can easily write your own function to load CSS on demand by doing the following:</p>
 

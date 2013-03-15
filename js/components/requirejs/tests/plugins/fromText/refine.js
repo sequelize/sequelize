@@ -1,11 +1,11 @@
 
 /*jslint strict: false, plusplus: false */
 /*global define: false, require: false,  XMLHttpRequest: false, ActiveXObject: false,
-  window: false, Packages: false, java: false, process: false */
+  window: false, Packages: false, java: false, process: false, Components, FileUtils */
 
 (function () {
     //Load the text plugin, so that the XHR calls can be made.
-    var buildMap = {}, fetchText, fs,
+    var buildMap = {}, fetchText, fs, Cc, Ci,
         progIds = ['Msxml2.XMLHTTP', 'Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.4.0'];
 
     function createXhr() {
@@ -93,6 +93,37 @@
                 input.close();
             }
             callback(content);
+        };
+    } else if (typeof Components !== 'undefined' && Components.classes &&
+            Components.interfaces) {
+        //Avert your gaze!
+        Cc = Components.classes,
+        Ci = Components.interfaces;
+        Components.utils['import']('resource://gre/modules/FileUtils.jsm');
+
+        fetchText = function (url, callback) {
+            var inStream, convertStream,
+                readData = {},
+                fileObj = new FileUtils.File(url);
+
+            //XPCOM, you so crazy
+            try {
+                inStream = Cc['@mozilla.org/network/file-input-stream;1']
+                           .createInstance(Ci.nsIFileInputStream);
+                inStream.init(fileObj, 1, 0, false);
+
+                convertStream = Cc['@mozilla.org/intl/converter-input-stream;1']
+                                .createInstance(Ci.nsIConverterInputStream);
+                convertStream.init(inStream, "utf-8", inStream.available(),
+                Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+
+                convertStream.readString(inStream.available(), readData);
+                convertStream.close();
+                inStream.close();
+                callback(readData.value);
+            } catch (e) {
+                throw new Error((fileObj && fileObj.path || '') + ': ' + e);
+            }
         };
     }
 

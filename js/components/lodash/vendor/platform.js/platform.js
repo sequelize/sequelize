@@ -1,6 +1,6 @@
 /*!
  * Platform.js v1.0.0 <http://mths.be/platform>
- * Copyright 2010-2012 John-David Dalton <http://allyoucanleet.com/>
+ * Copyright 2010-2013 John-David Dalton <http://allyoucanleet.com/>
  * Available under MIT license <http://mths.be/mit>
  */
 ;(function(window) {
@@ -885,7 +885,7 @@
            * The CPU architecture the OS is built for.
            *
            * @memberOf platform.os
-           * @type String|Null
+           * @type Number|Null
            */
           'architecture': null,
 

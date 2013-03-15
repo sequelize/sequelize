@@ -1,6 +1,6 @@
 /*!
  * Benchmark.js v1.0.0 <http://benchmarkjs.com/>
- * Copyright 2010-2012 Mathias Bynens <http://mths.be/>
+ * Copyright 2010-2013 Mathias Bynens <http://mths.be/>
  * Based on JSLitmus.js, copyright Robert Kieffer <http://broofa.com/>
  * Modified by John-David Dalton <http://allyoucanleet.com/>
  * Available under MIT license <http://mths.be/mit>
@@ -990,7 +990,7 @@
       result = String(fn);
     } else if (support.decompilation) {
       // escape the `{` for Firefox 1
-      result = (/^[^{]+\{([\s\S]*)}\s*$/.exec(fn) || 0)[1];
+      result = (/^[^{]+\{([\s\S]*)\}\s*$/.exec(fn) || 0)[1];
     }
     // trim string
     result = (result || '').replace(/^\s+|\s+$/g, '');
@@ -1648,7 +1648,10 @@
   function interpolate(string, object) {
     forOwn(object, function(value, key) {
       // escape regexp special characters in `key`
-      string = string.replace(RegExp('#\\{' + key.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1') + '\\}', 'g'), value);
+      string = string.replace(
+        RegExp('#\\{' + key.replace(/([.*+?^${}()|[\]\\])/g, '\\$1') + '\\}', 'g'),
+        value.replace(/\$/g, '$$$$')
+      );
     });
     return string;
   }

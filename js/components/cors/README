@@ -1,5 +1,0 @@
-jQuery plugin which transparently adds Cross Origin Resource Sharing (CORS) amongst browsers, including IE8+, to allow cross-domain Ajax requests with cookies and headers support.
-
-See old GIST at https://gist.github.com/1114981 for history
-
-Maven builds: http://repo1.maven.org/maven2/com/ovea/ovea-cors/

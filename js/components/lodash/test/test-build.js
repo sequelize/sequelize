@@ -11,8 +11,25 @@
       _ = require('../lodash.js');
 
   /** The unit testing framework */
-  var QUnit = global.QUnit = require('../vendor/qunit/qunit/qunit.js');
-  require('../vendor/qunit-clib/qunit-clib.js');
+  var QUnit = (
+    global.addEventListener || (global.addEventListener = Function.prototype),
+    global.QUnit = require('../vendor/qunit/qunit/qunit.js'),
+    require('../vendor/qunit-clib/qunit-clib.js'),
+    global.addEventListener === Function.prototype && delete global.addEventListener,
+    global.QUnit
+  );
+
+  /** The time limit for the tests to run (milliseconds) */
+  var timeLimit = process.argv.reduce(function(result, value, index) {
+    if (/--time-limit/.test(value)) {
+      return parseInt(process.argv[index + 1].replace(/(\d+h)?(\d+m)?(\d+s)?/, function(match, h, m, s) {
+        return ((parseInt(h) || 0) * 3600000) +
+               ((parseInt(m) || 0) * 60000) +
+               ((parseInt(s) || 0) * 1000);
+      })) || result;
+    }
+    return result;
+  }, 0);
 
   /** Used to associate aliases with their real names */
   var aliasToRealMap = {
@@ -56,7 +73,8 @@
   /** List of all Lo-Dash methods */
   var allMethods = _.functions(_)
     .filter(function(methodName) { return !/^_/.test(methodName); })
-    .concat('chain');
+    .concat('chain')
+    .sort();
 
   /** List of "Arrays" category methods */
   var arraysMethods = [
@@ -95,6 +113,7 @@
   var collectionsMethods = [
     'all',
     'any',
+    'at',
     'collect',
     'contains',
     'countBy',
@@ -139,6 +158,7 @@
     'memoize',
     'once',
     'partial',
+    'partialRight',
     'throttle',
     'wrap'
   ];
@@ -249,13 +269,14 @@
 
   /** List of methods used by Underscore */
   var underscoreMethods = _.without.apply(_, [allMethods].concat([
+    'at',
     'bindKey',
     'cloneDeep',
     'forIn',
     'forOwn',
     'isPlainObject',
     'merge',
-    'partial'
+    'partialRight'
   ]));
 
   /*--------------------------------------------------------------------------*/
@@ -349,6 +370,7 @@
         object = { 'a': 1, 'b': 2, 'c': 3 },
         noop = function() {},
         string = 'abc',
+        template = '<%= a %>',
         func = lodash[methodName];
 
     try {
@@ -386,6 +408,10 @@
           func(array);
           func(object);
         }
+        else if (methodName == 'at') {
+          func(array, 0, 2);
+          func(object, 'a', 'c');
+        }
         else if (methodName == 'invoke') {
           func(array, 'slice');
           func(object, 'toFixed');
@@ -406,7 +432,7 @@
           func({ 'noop': noop });
         } else if (methodName == 'bindKey') {
           func(lodash, 'identity', array, string);
-        } else if (/^(?:bind|partial)$/.test(methodName)) {
+        } else if (/^(?:bind|partial(?:Right)?)$/.test(methodName)) {
           func(noop, object, array, string);
         } else if (/^(?:compose|memoize|wrap)$/.test(methodName)) {
           func(noop, noop);
@@ -436,6 +462,9 @@
       else if (utilityMethods.indexOf(methodName) > -1) {
         if (methodName == 'result') {
           func(object, 'b');
+        } else if (methodName == 'template') {
+          func(template, object);
+          func(template, null, { 'imports': object })(object);
         } else if (methodName == 'times') {
           func(2, noop, object);
         } else {
@@ -458,12 +487,12 @@
     var start = _.once(QUnit.start);
 
     asyncTest('`lodash`', function() {
-      build(['-s'], function(source, filePath) {
+      build(['-s'], function(data) {
         // used by r.js build optimizer
         var defineHasRegExp = /typeof\s+define\s*==(=)?\s*['"]function['"]\s*&&\s*typeof\s+define\.amd\s*==(=)?\s*['"]object['"]\s*&&\s*define\.amd/g,
-            basename = path.basename(filePath, '.js');
+            basename = path.basename(data.outputPath, '.js');
 
-        ok(!!defineHasRegExp.exec(source), basename);
+        ok(!!defineHasRegExp.exec(data.source), basename);
         start();
       });
     });
@@ -479,22 +508,22 @@
     asyncTest('`lodash template=*.jst`', function() {
       var start = _.after(2, _.once(QUnit.start));
 
-      build(['-s', 'template=' + templatePath + '/*.jst'], function(source, filePath) {
-        var basename = path.basename(filePath, '.js'),
+      build(['-s', 'template=' + templatePath + '/*.jst'], function(data) {
+        var basename = path.basename(data.outputPath, '.js'),
             context = createContext();
 
-        var data = {
+        var object = {
           'a': { 'people': ['moe', 'larry', 'curly'] },
           'b': { 'epithet': 'stooge' },
           'c': { 'name': 'ES6' }
         };
 
         context._ = _;
-        vm.runInContext(source, context);
+        vm.runInContext(data.source, context);
 
-        equal(_.templates.a(data.a).replace(/[\r\n]+/g, ''), '<ul><li>moe</li><li>larry</li><li>curly</li></ul>', basename);
-        equal(_.templates.b(data.b), 'Hello stooge.', basename);
-        equal(_.templates.c(data.c), 'Hello ES6!', basename);
+        equal(_.templates.a(object.a).replace(/[\r\n]+/g, ''), '<ul><li>moe</li><li>larry</li><li>curly</li></ul>', basename);
+        equal(_.templates.b(object.b), 'Hello stooge.', basename);
+        equal(_.templates.c(object.c), 'Hello ES6!', basename);
         delete _.templates;
         start();
       });
@@ -506,12 +535,14 @@
     ];
 
     commands.forEach(function(command) {
-      asyncTest('`lodash template=*.jst` exports=amd' + (command ? ' ' + command : ''), function() {
+      var expectedId = /underscore/.test(command) ? 'underscore' : 'lodash';
+
+      asyncTest('`lodash template=*.jst exports=amd' + (command ? ' ' + command : '') + '`', function() {
         var start = _.after(2, _.once(QUnit.start));
 
-        build(['-s', 'template=' + templatePath + '/*.jst', 'exports=amd'].concat(command || []), function(source, filePath) {
+        build(['-s', 'template=' + templatePath + '/*.jst', 'exports=amd'].concat(command || []), function(data) {
           var moduleId,
-              basename = path.basename(filePath, '.js'),
+              basename = path.basename(data.outputPath, '.js'),
               context = createContext();
 
           context.define = function(requires, factory) {
@@ -520,24 +551,26 @@
           };
 
           context.define.amd = {};
-          vm.runInContext(source, context);
+          vm.runInContext(data.source, context);
 
-          equal(moduleId, (command ? 'underscore' : 'lodash'), basename);
+          equal(moduleId, expectedId, basename);
           ok('a' in _.templates && 'b' in _.templates, basename);
+          equal(_.templates.a({ 'people': ['moe', 'larry'] }), '<ul>\n<li>moe</li><li>larry</li>\n</ul>', basename);
+
           delete _.templates;
           start();
         });
       });
 
-      asyncTest('`lodash settings=...`' + (command ? ' ' + command : ''), function() {
+      asyncTest('`lodash settings=...' + (command ? ' ' + command : '') + '`', function() {
         var start = _.after(2, _.once(QUnit.start));
 
-        build(['-s', 'template=' + templatePath + '/*.tpl', 'settings={interpolate:/\\{\\{([\\s\\S]+?)\\}\\}/}'].concat(command || []), function(source, filePath) {
+        build(['-s', 'template=' + templatePath + '/*.tpl', 'settings={interpolate:/{{([\\s\\S]+?)}}/}'].concat(command || []), function(data) {
           var moduleId,
-              basename = path.basename(filePath, '.js'),
+              basename = path.basename(data.outputPath, '.js'),
               context = createContext();
 
-          var data = {
+          var object = {
             'd': { 'name': 'Mustache' }
           };
 
@@ -547,10 +580,10 @@
           };
 
           context.define.amd = {};
-          vm.runInContext(source, context);
+          vm.runInContext(data.source, context);
 
-          equal(moduleId, (command ? 'underscore' : 'lodash'), basename);
-          equal(_.templates.d(data.d), 'Hello Mustache!', basename);
+          equal(moduleId, expectedId, basename);
+          equal(_.templates.d(object.d), 'Hello Mustache!', basename);
           delete _.templates;
           start();
         });
@@ -563,23 +596,23 @@
   QUnit.module('independent builds');
 
   (function() {
-    var reComment = /\/\*![\s\S]+?\*\//,
-        reCustom = /Custom Build/;
+    var reCustom = /Custom Build/,
+        reLicense = /^\/\**\s+\* @license[\s\S]+?\*\/\n/;
 
     asyncTest('debug only', function() {
       var start = _.once(QUnit.start);
-      build(['-d', '-s'], function(source, filePath) {
-        equal(path.basename(filePath, '.js'), 'lodash');
+      build(['-d', '-s'], function(data) {
+        equal(path.basename(data.outputPath, '.js'), 'lodash');
         start();
       });
     });
 
     asyncTest('debug custom', function() {
       var start = _.once(QUnit.start);
-      build(['-d', '-s', 'backbone'], function(source, filePath) {
-        equal(path.basename(filePath, '.js'), 'lodash.custom');
+      build(['-d', '-s', 'backbone'], function(data) {
+        equal(path.basename(data.outputPath, '.js'), 'lodash.custom');
 
-        var comment = source.match(reComment);
+        var comment = data.source.match(reLicense);
         ok(reCustom.test(comment));
         start();
       });
@@ -587,20 +620,65 @@
 
     asyncTest('minified only', function() {
       var start = _.once(QUnit.start);
-      build(['-m', '-s'], function(source, filePath) {
-        equal(path.basename(filePath, '.js'), 'lodash.min');
+      build(['-m', '-s'], function(data) {
+        equal(path.basename(data.outputPath, '.js'), 'lodash.min');
         start();
       });
     });
 
     asyncTest('minified custom', function() {
       var start = _.once(QUnit.start);
-      build(['-m', '-s', 'backbone'], function(source, filePath) {
-        equal(path.basename(filePath, '.js'), 'lodash.custom.min');
+      build(['-m', '-s', 'backbone'], function(data) {
+        equal(path.basename(data.outputPath, '.js'), 'lodash.custom.min');
 
-        var comment = source.match(reComment);
+        var comment = data.source.match(reLicense);
         ok(reCustom.test(comment));
         start();
+      });
+    });
+  }());
+
+  /*--------------------------------------------------------------------------*/
+
+  QUnit.module('source maps');
+
+  (function() {
+    var mapCommands = [
+      '-p',
+      '-p custom.map',
+      '--source-map',
+      '--source-map custom.map'
+    ];
+
+    var outputCommands = [
+      '',
+      '-o foo.js',
+      '-m -o bar.js'
+    ];
+
+    mapCommands.forEach(function(mapCommand) {
+      outputCommands.forEach(function(outputCommand) {
+        asyncTest('`lodash ' + mapCommand + (outputCommand ? ' ' + outputCommand : '') + '`', function() {
+          var callback = _.once(function(data) {
+            var basename = path.basename(data.outputPath, '.js'),
+                comment = (/(\s*\/\/.*\s*|\s*\/\*[^*]*\*+(?:[^\/][^*]*\*+)*\/\s*)$/.exec(data.source) || [])[0],
+                sources = /foo.js/.test(outputCommand) ? ['foo.js'] : ['lodash' + (outputCommand.length ? '' : '.custom') + '.js'],
+                sourceMap = JSON.parse(data.sourceMap),
+                sourceMapURL = (/\w+(?=\.map$)/.exec(mapCommand) || [basename])[0];
+
+            ok(RegExp('/\\*\\n//@ sourceMappingURL=' + sourceMapURL + '.map\\n\\*/').test(comment), basename);
+            equal(sourceMap.file, basename + '.js', basename);
+            deepEqual(sourceMap.sources, sources, basename);
+
+            QUnit.start();
+          });
+
+          outputCommand = outputCommand ? outputCommand.split(' ') : [];
+          if (outputCommand.indexOf('-m') < 0) {
+            callback = _.after(2, callback);
+          }
+          build(['-s'].concat(mapCommand.split(' '), outputCommand), callback);
+        });
       });
     });
   }());
@@ -612,10 +690,15 @@
   (function() {
     var object = Object.freeze({
       'a': _.identity,
-      'b': null
+      'b': undefined
     });
 
-    ['non-strict', 'strict'].forEach(function(strictMode, index) {
+    var modes = [
+      'non-strict',
+      'strict'
+    ];
+
+    modes.forEach(function(strictMode, index) {
       asyncTest(strictMode + ' should ' + (index ? 'error': 'silently fail') + ' attempting to overwrite read-only properties', function() {
         var commands = ['-s', 'include=bindAll,defaults,extend'],
             start = _.after(2, _.once(QUnit.start));
@@ -623,11 +706,11 @@
         if (index) {
           commands.push('strict');
         }
-        build(commands, function(source, filePath) {
-          var basename = path.basename(filePath, '.js'),
+        build(commands, function(data) {
+          var basename = path.basename(data.outputPath, '.js'),
               context = createContext();
 
-          vm.runInContext(source, context);
+          vm.runInContext(data.source, context);
           var lodash = context._;
 
           var actual = _.every([
@@ -665,11 +748,11 @@
       asyncTest('`lodash ' + command +'`', function() {
         var start = _.after(2, _.once(QUnit.start));
 
-        build(['-s', command], function(source, filePath) {
-          var basename = path.basename(filePath, '.js'),
+        build(['-s', command], function(data) {
+          var basename = path.basename(data.outputPath, '.js'),
               context = createContext();
 
-          vm.runInContext(source, context);
+          vm.runInContext(data.source, context);
           var lodash = context._;
 
           ok(lodash.chain(1) instanceof lodash, '_.chain: ' + basename);
@@ -703,28 +786,48 @@
     asyncTest('modified methods should work correctly', function() {
       var start = _.after(2, _.once(QUnit.start));
 
-      build(['-s', 'underscore'], function(source, filePath) {
+      build(['-s', 'underscore'], function(data) {
         var last,
             array = [{ 'a': 1, 'b': 2 }, { 'a': 2, 'b': 2 }],
-            basename = path.basename(filePath, '.js'),
+            basename = path.basename(data.outputPath, '.js'),
             context = createContext();
 
-        vm.runInContext(source, context);
+        vm.runInContext(data.source, context);
         var lodash = context._;
 
-        var object = { 'fn': lodash.bind(function(foo) { return foo + this.bar; }, { 'bar': 1 }, 1) };
+        var object = {
+          'fn': lodash.bind(function(foo) {
+            return foo + this.bar;
+          }, { 'bar': 1 }, 1)
+        };
+
         equal(object.fn(), 2, '_.bind: ' + basename);
 
-        strictEqual(lodash.clone(array, true)[0], array[0], '_.clone should be shallow: ' + basename);
-        ok(lodash.contains({ 'a': 1, 'b': 2 }, 1), '_.contains should work with objects: ' + basename);
-        ok(lodash.contains([1, 2, 3], 1, 2), '_.contains should ignore `fromIndex`: ' + basename);
-        ok(!lodash.every([true, false, true]), '_.every: ' + basename);
+        var actual = lodash.clone('a', function() {
+          return this.a;
+        }, { 'a': 'A' });
+
+        equal(actual, 'a', '_.clone should ignore `callback` and `thisArg`: ' + basename);
+        strictEqual(lodash.clone(array, true)[0], array[0], '_.clone should ignore `deep`: ' + basename);
+
+        strictEqual(lodash.contains({ 'a': 1, 'b': 2 }, 1), true, '_.contains should work with objects: ' + basename);
+        strictEqual(lodash.contains([1, 2, 3], 1, 2), true, '_.contains should ignore `fromIndex`: ' + basename);
+        strictEqual(lodash.every([true, false, true]), false, '_.every: ' + basename);
 
         function Foo() {}
         Foo.prototype = { 'a': 1 };
 
+        actual = lodash.defaults({ 'a': null }, { 'a': 1 });
+        strictEqual(actual.a, 1, '_.defaults should overwrite `null` values: ' + basename);
+
         deepEqual(lodash.defaults({}, new Foo), Foo.prototype, '_.defaults should assign inherited `source` properties: ' + basename);
         deepEqual(lodash.extend({}, new Foo), Foo.prototype, '_.extend should assign inherited `source` properties: ' + basename);
+
+        actual = lodash.extend({}, { 'a': 0 }, function(a, b) {
+          return this[b];
+        }, [2]);
+
+        strictEqual(actual.a, 0, '_.extend should ignore `callback` and `thisArg`: ' + basename);
 
         actual = lodash.find(array, function(value) {
           return 'a' in value;
@@ -746,20 +849,38 @@
         object = { 'a': 1, 'b': 2, 'c': 3 };
         equal(lodash.isEqual(object, { 'a': 1, 'b': 0, 'c': 3 }), false, '_.isEqual: ' + basename);
 
+        actual = lodash.isEqual('a', 'b', function(a, b) {
+          return this[a] == this[b];
+        }, { 'a': 1, 'b': 1 });
+
+        strictEqual(actual, false, '_.isEqual should ignore `callback` and `thisArg`: ' + basename);
+
         equal(lodash.max('abc'), -Infinity, '_.max should return `-Infinity` for strings: ' + basename);
         equal(lodash.min('abc'), Infinity, '_.min should return `Infinity` for strings: ' + basename);
 
         // avoid issues comparing objects with `deepEqual`
         object = { 'a': 1, 'b': 2, 'c': 3 };
-        var actual = lodash.omit(object, function(value) { return value == 3; });
+        actual = lodash.omit(object, function(value) { return value == 3; });
         deepEqual(_.keys(actual).sort(), ['a', 'b', 'c'], '_.omit should not accept a `callback`: ' + basename);
 
         actual = lodash.pick(object, function(value) { return value != 3; });
         deepEqual(_.keys(actual), [], '_.pick should not accept a `callback`: ' + basename);
 
-        ok(lodash.some([false, true, false]), '_.some: ' + basename);
+        strictEqual(lodash.result(), null, '_.result should return `null` for falsey `object` arguments: ' + basename);
+        strictEqual(lodash.some([false, true, false]), true, '_.some: ' + basename);
         equal(lodash.template('${a}', object), '${a}', '_.template should ignore ES6 delimiters: ' + basename);
-        equal(lodash.uniqueId(0), '1', '_.uniqueId should ignore a prefix of `0`: ' + basename);
+        equal('imports' in lodash.templateSettings, false, '_.templateSettings should not have an "imports" property: ' + basename);
+        strictEqual(lodash.uniqueId(0), '1', '_.uniqueId should ignore a prefix of `0`: ' + basename);
+
+        var collection = [{ 'a': { 'b': 1, 'c': 2 } }];
+        deepEqual(lodash.where(collection, { 'a': { 'b': 1 } }), [], '_.where performs shallow comparisons: ' + basename);
+
+        collection = [{ 'a': 1 }, { 'a': 1 }];
+        deepEqual(lodash.where(collection, { 'a': 1 }, true), collection[0], '_.where supports a `first` argument: ' + basename);
+        deepEqual(lodash.where(collection, {}, true), null, '_.where should return `null` when passed `first` and falsey `properties`: ' + basename);
+
+        deepEqual(lodash.findWhere(collection, { 'a': 1 }), collection[0], '_.findWhere: ' + basename);
+        strictEqual(lodash.findWhere(collection, {}), null, '_.findWhere should return `null` for falsey `properties`: ' + basename);
 
         start();
       });
@@ -768,21 +889,22 @@
     asyncTest('should not have any Lo-Dash-only methods', function() {
       var start = _.after(2, _.once(QUnit.start));
 
-      build(['-s', 'underscore'], function(source, filePath) {
-        var basename = path.basename(filePath, '.js'),
+      build(['-s', 'underscore'], function(data) {
+        var basename = path.basename(data.outputPath, '.js'),
             context = createContext();
 
-        vm.runInContext(source, context);
+        vm.runInContext(data.source, context);
         var lodash = context._;
 
         _.each([
           'assign',
+          'at',
           'bindKey',
           'forIn',
           'forOwn',
           'isPlainObject',
           'merge',
-          'partial'
+          'partialRight'
         ], function(methodName) {
           equal(lodash[methodName], undefined, '_.' + methodName + ' should not exist: ' + basename);
         });
@@ -791,14 +913,31 @@
       });
     });
 
+    asyncTest('`lodash underscore include=findWhere`', function() {
+      var start = _.after(2, _.once(QUnit.start));
+
+      build(['-s', 'underscore', 'include=findWhere'], function(data) {
+        var basename = path.basename(data.outputPath, '.js'),
+            context = createContext();
+
+        vm.runInContext(data.source, context);
+        var lodash = context._;
+
+        var collection = [{ 'a': 1 }, { 'a': 1 }];
+        deepEqual(lodash.findWhere(collection, { 'a': 1 }), collection[0], '_.findWhere: ' + basename);
+
+        start();
+      });
+    });
+
     asyncTest('`lodash underscore include=partial`', function() {
       var start = _.after(2, _.once(QUnit.start));
 
-      build(['-s', 'underscore', 'include=partial'], function(source, filePath) {
-        var basename = path.basename(filePath, '.js'),
+      build(['-s', 'underscore', 'include=partial'], function(data) {
+        var basename = path.basename(data.outputPath, '.js'),
             context = createContext();
 
-        vm.runInContext(source, context);
+        vm.runInContext(data.source, context);
         var lodash = context._;
 
         equal(lodash.partial(_.identity, 2)(), 2, '_.partial: ' + basename);
@@ -809,17 +948,17 @@
     asyncTest('`lodash underscore plus=clone`', function() {
       var start = _.after(2, _.once(QUnit.start));
 
-      build(['-s', 'underscore', 'plus=clone'], function(source, filePath) {
+      build(['-s', 'underscore', 'plus=clone'], function(data) {
         var array = [{ 'value': 1 }],
-            basename = path.basename(filePath, '.js'),
+            basename = path.basename(data.outputPath, '.js'),
             context = createContext();
 
-        vm.runInContext(source, context);
+        vm.runInContext(data.source, context);
         var lodash = context._,
             clone = lodash.clone(array, true);
 
-        deepEqual(array, clone, basename);
-        notEqual(array, clone, basename);
+        ok(_.isEqual(array, clone), basename);
+        notEqual(array[0], clone[0], basename);
         start();
       });
     });
@@ -842,10 +981,11 @@
       asyncTest('`lodash ' + command +'`', function() {
         var start = _.after(2, _.once(QUnit.start));
 
-        build(['-s', command], function(source, filePath) {
-          var basename = path.basename(filePath, '.js'),
+        build(['-s', command], function(data) {
+          var basename = path.basename(data.outputPath, '.js'),
               context = createContext(),
-              pass = false;
+              pass = false,
+              source = data.source;
 
           switch(index) {
             case 0:
@@ -902,8 +1042,8 @@
       asyncTest('`lodash ' + command +'`', function() {
         var start = _.after(2, _.once(QUnit.start));
 
-        build(['-s', 'exports=none', command], function(source, filePath) {
-          var basename = path.basename(filePath, '.js'),
+        build(['-s', 'exports=none', command], function(data) {
+          var basename = path.basename(data.outputPath, '.js'),
               context = createContext();
 
           context.define = function(func) {
@@ -911,7 +1051,7 @@
           };
 
           try {
-            vm.runInContext(source, context);
+            vm.runInContext(data.source, context);
           } catch(e) {
             console.log(e);
           }
@@ -936,10 +1076,11 @@
 
     commands.forEach(function(command, index) {
       asyncTest('`lodash ' + command +'`', function() {
-        var start = _.once(QUnit.start);
+        var counter = -1,
+            start = _.after(2, _.once(QUnit.start));
 
-        build(['-s'].concat(command.split(' ')), function(source, filePath) {
-          equal(path.basename(filePath, '.js'), 'a', command);
+        build(['-s'].concat(command.split(' ')), function(data) {
+          equal(path.basename(data.outputPath, '.js'), (++counter ? 'a.min' : 'a'), command);
           start();
         });
       });
@@ -953,7 +1094,8 @@
   (function() {
     var commands = [
       '-c',
-      '--stdout'
+      '-c -d',
+      '--stdout',
     ];
 
     commands.forEach(function(command, index) {
@@ -966,41 +1108,12 @@
           written = string;
         };
 
-        build([command, 'exports=', 'include='], function(source) {
+        build(['exports=', 'include='].concat(command.split(' ')), function(data) {
           process.stdout.write = write;
-          equal(written, source);
+          equal(written, data.source);
           equal(arguments.length, 1);
           start();
         });
-      });
-    });
-  }());
-
-  /*--------------------------------------------------------------------------*/
-
-  QUnit.module('minify underscore');
-
-  (function() {
-    asyncTest('`node minify underscore.js`', function() {
-      var source = fs.readFileSync(path.join(__dirname, '..', 'vendor', 'underscore', 'underscore.js'), 'utf8'),
-          start = _.once(QUnit.start);
-
-      minify(source, {
-        'isSilent': true,
-        'workingName': 'underscore.min',
-        'onComplete': function(result) {
-          var context = createContext();
-
-          try {
-            vm.runInContext(result, context);
-          } catch(e) {
-            console.log(e);
-          }
-          var underscore = context._ || {};
-          ok(_.isString(underscore.VERSION));
-          ok(!/Lo-Dash/.test(result) && result.match(/\n/g).length < source.match(/\n/g).length);
-          start();
-        }
       });
     });
   }());
@@ -1013,12 +1126,12 @@
     asyncTest('`lodash mobile`', function() {
       var start = _.after(2, _.once(QUnit.start));
 
-      build(['-s', 'mobile'], function(source, filePath) {
-        var basename = path.basename(filePath, '.js'),
+      build(['-s', 'mobile'], function(data) {
+        var basename = path.basename(data.outputPath, '.js'),
             context = createContext();
 
         try {
-          vm.runInContext(source, context);
+          vm.runInContext(data.source, context);
         } catch(e) {
           console.log(e);
         }
@@ -1036,12 +1149,30 @@
 
         deepEqual(lodash.merge(object1, object2), object3, basename);
         deepEqual(lodash.sortBy([3, 2, 1], _.identity), array, basename);
-        ok(lodash.isEqual(circular1, circular2), basename);
+        strictEqual(lodash.isEqual(circular1, circular2), true, basename);
 
-        var actual = lodash.clone(circular1, true);
+        var actual = lodash.cloneDeep(circular1);
         ok(actual != circular1 && actual.b == actual, basename);
         start();
       });
+    });
+
+    asyncTest('`lodash csp`', function() {
+      var sources = [];
+
+      var check = _.after(2, _.once(function() {
+        equal(sources[0], sources[1]);
+        QUnit.start();
+      }));
+
+      var callback = function(data) {
+        // remove copyright header and append source
+        sources.push(data.source.replace(/^\/\**[\s\S]+?\*\/\n/, ''));
+        check();
+      };
+
+      build(['-s', '-d', 'csp'], callback);
+      build(['-s', '-d', 'mobile'], callback);
     });
   }());
 
@@ -1055,6 +1186,7 @@
       'csp',
       'legacy',
       'mobile',
+      'modern',
       'strict',
       'underscore',
       'category=arrays',
@@ -1067,8 +1199,9 @@
       'include=each,filter,map',
       'include=once plus=bind,Chaining',
       'category=collections,functions',
-      'underscore backbone',
       'backbone legacy category=utilities minus=first,last',
+      'legacy include=defer',
+      'legacy underscore',
       'underscore include=debounce,throttle plus=after minus=throttle',
       'underscore mobile strict category=functions exports=amd,global plus=pick,uniq',
     ]
@@ -1078,81 +1211,114 @@
       })
     );
 
-    commands.forEach(function(command) {
-      asyncTest('`lodash ' + command +'`', function() {
-        var start = _.after(2, _.once(QUnit.start));
+    commands.forEach(function(origCommand) {
+      _.times(4, function(index) {
+        var command = origCommand;
 
-        build(['--silent'].concat(command.split(' ')), function(source, filePath) {
-          var methodNames,
-              basename = path.basename(filePath, '.js'),
-              context = createContext(),
-              isUnderscore = /underscore/.test(command),
-              exposeAssign = !isUnderscore;
+        if (index == 1) {
+          if (/legacy|mobile/.test(command)) {
+            return;
+          }
+          command = 'mobile ' + command;
+        }
+        if (index == 2) {
+          if (/legacy|modern/.test(command)) {
+            return;
+          }
+          command = 'modern ' + command;
+        }
+        if (index == 3) {
+          if (/category|legacy|underscore/.test(command)) {
+            return;
+          }
+          command = 'underscore ' + command;
+        }
+        asyncTest('`lodash ' + command +'`', function() {
+          var start = _.after(2, _.once(QUnit.start));
 
-          try {
-            vm.runInContext(source, context);
-          } catch(e) {
-            console.log(e);
-          }
-          // add method names explicitly
-          if (/include/.test(command)) {
-            methodNames = command.match(/include=(\S*)/)[1].split(/, */);
-          }
-          // add method names required by Backbone and Underscore builds
-          if (/backbone/.test(command) && !methodNames) {
-            methodNames = backboneDependencies.slice();
-          }
-          if (isUnderscore) {
-            if (methodNames) {
-              exposeAssign = methodNames.indexOf('assign') > -1;
-            } else {
-              methodNames = underscoreMethods.slice();
+          build(['--silent'].concat(command.split(' ')), function(data) {
+            var methodNames,
+                basename = path.basename(data.outputPath, '.js'),
+                context = createContext(),
+                isUnderscore = /backbone|underscore/.test(command),
+                exposeAssign = !isUnderscore;
+
+            try {
+              vm.runInContext(data.source, context);
+            } catch(e) {
+              console.log(e);
             }
-          }
-          // add method names explicitly by category
-          if (/category/.test(command)) {
-            // resolve method names belonging to each category (case-insensitive)
-            methodNames = command.match(/category=(\S*)/)[1].split(/, */).reduce(function(result, category) {
-              var capitalized = category[0].toUpperCase() + category.toLowerCase().slice(1);
-              return result.concat(getMethodsByCategory(capitalized));
-            }, methodNames || []);
-          }
-          // init `methodNames` if it hasn't been inited
-          if (!methodNames) {
-            methodNames = allMethods.slice();
-          }
-          if (/plus/.test(command)) {
-            methodNames = methodNames.concat(command.match(/plus=(\S*)/)[1].split(/, */));
-          }
-          if (/minus/.test(command)) {
-            methodNames = _.without.apply(_, [methodNames]
-              .concat(expandMethodNames(command.match(/minus=(\S*)/)[1].split(/, */))));
-          }
-          if (/exclude/.test(command)) {
-            methodNames = _.without.apply(_, [methodNames]
-              .concat(expandMethodNames(command.match(/exclude=(\S*)/)[1].split(/, */))));
-          }
+            // add method names explicitly
+            if (/include/.test(command)) {
+              methodNames = command.match(/include=(\S*)/)[1].split(/, */);
+            }
+            // add method names required by Backbone and Underscore builds
+            if (/backbone/.test(command) && !methodNames) {
+              methodNames = backboneDependencies.slice();
+            }
+            if (isUnderscore) {
+              if (methodNames) {
+                exposeAssign = methodNames.indexOf('assign') > -1;
+              } else {
+                methodNames = underscoreMethods.slice();
+              }
+            }
+            // add method names explicitly by category
+            if (/category/.test(command)) {
+              // resolve method names belonging to each category (case-insensitive)
+              methodNames = command.match(/category=(\S*)/)[1].split(/, */).reduce(function(result, category) {
+                var capitalized = category[0].toUpperCase() + category.toLowerCase().slice(1);
+                return result.concat(getMethodsByCategory(capitalized));
+              }, methodNames || []);
+            }
+            // init `methodNames` if it hasn't been inited
+            if (!methodNames) {
+              methodNames = allMethods.slice();
+            }
+            if (/plus/.test(command)) {
+              methodNames = methodNames.concat(command.match(/plus=(\S*)/)[1].split(/, */));
+            }
+            if (/minus/.test(command)) {
+              methodNames = _.without.apply(_, [methodNames]
+                .concat(expandMethodNames(command.match(/minus=(\S*)/)[1].split(/, */))));
+            }
+            if (/exclude/.test(command)) {
+              methodNames = _.without.apply(_, [methodNames]
+                .concat(expandMethodNames(command.match(/exclude=(\S*)/)[1].split(/, */))));
+            }
 
-          // expand aliases and categories to real method names
-          methodNames = expandMethodNames(methodNames).reduce(function(result, methodName) {
-            return result.concat(methodName, getMethodsByCategory(methodName));
-          }, []);
+            // expand aliases and categories to real method names
+            methodNames = expandMethodNames(methodNames).reduce(function(result, methodName) {
+              return result.concat(methodName, getMethodsByCategory(methodName));
+            }, []);
 
-          // remove nonexistent and duplicate method names
-          methodNames = _.uniq(_.intersection(allMethods, expandMethodNames(methodNames)));
+            // remove nonexistent and duplicate method names
+            methodNames = _.uniq(_.intersection(allMethods, expandMethodNames(methodNames)));
 
-          if (!exposeAssign) {
-            methodNames = _.without(methodNames, 'assign');
-          }
-          var lodash = context._ || {};
-          methodNames.forEach(function(methodName) {
-            testMethod(lodash, methodName, basename);
+            if (!exposeAssign) {
+              methodNames = _.without(methodNames, 'assign');
+            }
+            var lodash = context._ || {};
+            methodNames.forEach(function(methodName) {
+              testMethod(lodash, methodName, basename);
+            });
+
+            start();
           });
-
-          start();
         });
       });
     });
   }());
 
+  /*--------------------------------------------------------------------------*/
+
+  if (timeLimit > 0) {
+    setTimeout(function() {
+      process.exit(QUnit.config.stats.bad ? 1 : 0);
+    }, timeLimit);
+  }
+  // explicitly call `QUnit.start()` for Narwhal, Node.js, Rhino, and RingoJS
+  if (!global.document) {
+    QUnit.start();
+  }
 }());

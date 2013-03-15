@@ -77,11 +77,12 @@ information.</p>
 
 <p>Instead of using require() to get dependencies inside the function passed to define(), you can also specify them via a dependency array argument to define(). The order of the names in the dependency array match the order of arguments passed to the definition function passed to define(). So the above example that uses the module <strong>foo</strong>:</p>
 
-<p>define(['foo'], function (foo) {
+<pre><code>define(['foo'], function (foo) {
     return function () {
         foo.doSomething();
     };
-});</p>
+});
+</code></pre>
 
 <p>See the <a href="api.html">API docs</a> for more information on that syntax.</p>
 </div>

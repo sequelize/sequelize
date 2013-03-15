@@ -1,0 +1,151 @@
+<div class="page-header">
+  <h2>Instances</h2>
+  <div class="subnav">
+    <ul class="nav nav-pills">
+      <li><a href="#instances-build">Build</a></li>
+      <li><a href="#instances-create">Create</a></li>
+      <li><a href="#instances-update">Update / Save</a></li>
+      <li><a href="#instances-destroy">Destroy</a></li>
+    </ul>
+  </div>
+  <div class="subnav-shadow"></div>
+</div>
+
+<div class="row" id="instances-build">
+  <div class="span12">
+    <h3>Building a not-persistant instance</h3>
+    <p>
+      In order to create instances of defined classes just do as follows. You might recognize the syntax if you coded Ruby in the past. Using the <code>build</code>-method will return an unsaved object, which you explicitly have to save.
+
+      <pre><code class="language-javascript">
+        var project = Project.build({
+          title: 'my awesome project',
+          description: 'woot woot. this will make me a rich man'
+        })
+
+        var task = Task.build({
+          title: 'specify the project idea',
+          description: 'bla',
+          deadline: new Date()
+        })
+      </code></pre>
+    </p>
+    <p>
+      Built instances will automatically get default values when they were defined:
+
+      <pre><code class="language-javascript">
+        // first define the model
+        var Task = sequelize.define('Project', {
+          title: Sequelize.STRING,
+          rating: { type: Sequelize.STRING, defaultValue: 3 }
+        })
+
+        // now instantiate an object
+        var task = Task.build({title: 'very important task'})
+
+        task.title  // ==> 'very important task'
+        task.rating // ==> 3
+      </code></pre>
+    </p>
+    <p>
+      To get it stored in the database, use the <code>save</code>-method and catch the events … if needed:
+
+      <pre><code class="language-javascript">
+        project.save().success(function() {
+          // my nice callback stuff
+        })
+
+        task.save().error(function(error) {
+          // mhhh, wth!
+        })
+
+        // you can also build, save and access the object with chaining:
+        Task
+          .build({ title: 'foo', description: 'bar', deadline: new Date() })
+          .save()
+          .success(function(anotherTask) {
+            // you can now access the currently saved task with the variable anotherTask... nice!
+          }).error(function(error) {
+            // Ooops, do some error-handling
+          })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="instances-create">
+  <div class="span12">
+    <h3>Creating persistant instances</h3>
+    <p>
+      Besides constructing objects, that needs an explicit save call to get stored in the database, there is also the possibility to do all those steps with one single command. It's called <code>create</code>.
+
+
+      <pre><code class="language-javascript">
+        Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).success(function(task) {
+          // you can now access the newly created task via the variable task
+        })
+      </code></pre>
+    </p>
+    <p>
+      Sequelize <code>v1.5.0</code> introduced the possibility to define attributes which can be set via the create method. This can be especially very handy if you create database entries based on a form which can be filled by a user. Using that would for example allow you to restrict the <code>User</code> model to set only a username and an address but not an admin flag:
+
+      <pre><code class="language-javascript">
+        User.create({ username: 'barfooz', isAdmin: true }, [ 'username' ]).success(function(user) {
+          // let's assume the default of isAdmin is false:
+          console.log(user.values) // => { username: 'barfooz', isAdmin: false }
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="instances-update">
+  <div class="span12">
+    <h3>Updating / Saving / Persisting an instance</h3>
+    <p>
+      Now lets change some values and save changes to the database... There are two ways to do that:
+
+      <pre><code class="language-javascript">
+        // way 1
+        task.title = 'a very different title now'
+        task.save().success(function() {})
+
+        // way 2
+        task.updateAttributes({
+          title: 'a very different title now'
+        }).success(function() {})
+      </code></pre>
+    </p>
+
+    <p>
+      Since <code>v1.4.1</code> it's also possible to define which attributes should be saved when calling <code>save</code>. This is useful when you set attributes based on a previously defined object. E.g. if you get the values of an object via a form of a web app. Furthermore this is used internally for <code>updateAttributes</code>. This is how it looks like:
+
+      <pre><code class="language-javascript">
+        task.title = 'foooo'
+        task.description = 'baaaaaar'
+        task.save(['title']).success(function() {
+         // title will now be 'foooo' but description is the very same as before
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="instances-destroy">
+  <div class="span12">
+    <h3>Destroying / Deleting persistant instances</h3>
+    <p>
+      Once you created an object and got a reference to it, you can delete it from the database. The relevant method is <code>destroy</code>:
+
+      <pre><code class="language-javascript">
+        Task.create({ title: 'a task' }).success(function(task) {
+          // now you see me...
+
+          task.destroy().success(function() {
+            // now i'm gone :)
+          })
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>

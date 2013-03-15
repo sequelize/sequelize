@@ -491,16 +491,21 @@ This example specifies some dependencies to load as soon as require.js defines r
 
 <p>Supported configuration options:</p>
 
-<p id="config-baseUrl"><strong><a href="#config-baseUrl">baseUrl</a></strong>: the root path to use for all module lookups. So in the above example, "my/module"'s script tag will have a src="/another/path/my/module.js". baseUrl is <strong>not</strong> used when loading plain .js files, those strings are used as-is, so a.js and b.js will be loaded from the same directory as the HTML page that contains the above snippet.</p>
+<p id="config-baseUrl"><strong><a href="#config-baseUrl">baseUrl</a></strong>: the root path to use for all module lookups. So in the above example, "my/module"'s script tag will have a src="/another/path/my/module.js". baseUrl is <strong>not</strong> used when loading plain .js files (indicated by a dependency string <a href="#jsfiles">starting with a slash, has a protocol, or ends in .js</a>), those strings are used as-is, so a.js and b.js will be loaded from the same directory as the HTML page that contains the above snippet.</p>
 
 <p>If no baseUrl is explicitly set in the configuration, the default value will be the location of the HTML page that loads require.js. If a <strong>data-main</strong> attribute is used, that path will become the baseUrl.</p>
 
 <p>The baseUrl can be a URL on a different domain as the page that will load require.js. RequireJS script loading works across domains. The only restriction is on text content loaded by text! plugins: those paths should be on the same domain as the page, at least during development. The optimization tool will inline text! plugin resources so after using the optimization tool, you can use resources that reference text! plugin resources from another domain.</p>
 
-<p id="config-paths"><strong><a href="#config-paths">paths</a></strong>: path mappings for module names not found directly under baseUrl. The path settings are assumed to be relative to baseUrl, unless the paths setting starts with a "/" or has a URL protocol in it ("like http:"). Using the above sample config, "some/module"'s script tag will be src="/another/path/some/v1.0/module.js". The path that is used for a module name should <strong>not</strong> include the .js extension, since the path mapping could be for a directory. The path mapping code will automatically add the .js extension when mapping the module name to a path.</p>
+<p id="config-paths"><strong><a href="#config-paths">paths</a></strong>: path mappings for module names not found directly under baseUrl. The path settings are assumed to be relative to baseUrl, unless the paths setting starts with a "/" or has a URL protocol in it ("like http:"). Using the above sample config, "some/module"'s script tag will be src="/another/path/some/v1.0/module.js".</p>
 
-<p id="config-shim"><strong><a href="#config-shim">shim</a></strong>: Configure the dependencies and exports for older, traditional "browser globals" scripts that do not use define() to declare the dependencies and set a module value. Example (RequireJS 2.1.0+):</p>
+<p>The path that is used for a module name should <strong>not</strong> include an extension, since the path mapping could be for a directory. The path mapping code will automatically add the .js extension when mapping the module name to a path. If <a href="#modulenotes-urls">require.toUrl()</a> is used, it will add the appropriate extension, if it is for something like a text template.</p>
 
+<p>When run in a browser, <a href="#pathsfallbacks">paths fallbacks</a> can be specified, to allow trying a load from a CDN location, but falling back to a local location if the CDN location fails to load.</p>
+
+<p id="config-shim"><strong><a href="#config-shim">shim</a></strong>: Configure the dependencies and exports for older, traditional "browser globals" scripts that do not use define() to declare the dependencies and set a module value.</p>
+
+<p>Here is an example. It requires RequireJS 2.1.0+, and assumes backbone.js, underscore.js and jquery.js have been installed in the baseUrl directory. If not, then you may need to set a paths config for them:</p>
 
 <pre><code>requirejs.config({
     shim: {
@@ -511,6 +516,9 @@ This example specifies some dependencies to load as soon as require.js defines r
             //Once loaded, use the global 'Backbone' as the
             //module value.
             exports: 'Backbone'
+        },
+        'underscore': {
+            exports: '_'
         },
         'foo': {
             deps: ['bar'],
@@ -644,7 +652,7 @@ still need to cooperate with each other.</p>
 and when 'some/oldmodule' does `require('foo')` it will get the foo1.0.js file.</p>
 
 <p>This feature only works well for scripts that are real AMD modules that call
-define() and register as anonymous modules.</p>
+define() and register as anonymous modules. Also, <strong>only use absolute module IDs</strong> for map config. Relative IDs (like <code>'../some/thing'</code>) do not work.</p>
 
 <p>There is also support for a "*" map value which means "for all modules loaded, use this map config". If there is a more specific map config, that one will take precedence over the star config. Example:</p>
 
@@ -763,13 +771,6 @@ define(['module'], function (module) {
 <li>project-directory/
 <ul>
 <li>project.html</li>
-<li>scripts/
-<ul>
-<li>omega/
-<ul>
-<li>main.js</li>
-</ul></li>
-</ul></li>
 <li>cart/
 <ul>
 <li>main.js</li>

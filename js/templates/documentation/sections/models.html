@@ -156,6 +156,43 @@
         })
       </code></pre>
     </p>
+
+    <p>
+      In order to define the encoding of a table you can do this:
+
+      <pre><code class="language-javascript">
+        // charset only
+        var Person = sequelize.define('Person', { /* attributes */ }, {
+          charset: 'latin1'
+        })
+
+        // charset + collate
+        var Person = sequelize.define('Person', { /* attributes */ }, {
+          charset: 'utf8',
+          collate: 'utf8_general_ci'
+        })
+
+        // or globally
+        var sequelize = new Sequelize(db, user, pw, {
+          define: { charset: 'latin1' }
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      You can also change the database engine, e.g. to MyISAM. InnoDB is default since <code>v1.2.1</code> of Sequelize.
+
+      <pre><code class="language-javascript">
+        var Person = sequelize.define('Person', { /* attributes */ }, {
+          engine: 'MYISAM'
+        })
+
+        // or globally
+        var sequelize = new Sequelize(db, user, pw, {
+          define: { engine: 'MYISAM' }
+        })
+      </code></pre>
+    </p>
   </div>
 </div>
 

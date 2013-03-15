@@ -7,6 +7,7 @@
 
   /** Used to minify variables embedded in compiled strings */
   var compiledVars = [
+    'args',
     'argsIndex',
     'argsLength',
     'callback',
@@ -17,15 +18,15 @@
     'hasOwnProperty',
     'index',
     'isArguments',
+    'isArray',
     'isString',
-    'iteratee',
+    'iterable',
     'length',
     'nativeKeys',
     'object',
     'objectTypes',
     'ownIndex',
     'ownProps',
-    'propertyIsEnumerable',
     'result',
     'skipProto',
     'source',
@@ -35,18 +36,18 @@
   /** Used to minify `compileIterator` option properties */
   var iteratorOptions = [
     'args',
-    'arrayLoop',
+    'arrays',
     'bottom',
     'firstArg',
     'hasDontEnumBug',
+    'hasEnumPrototype',
     'isKeysFast',
-    'objectLoop',
+    'loop',
     'nonEnumArgs',
     'noCharByIndex',
     'shadowed',
     'top',
-    'useHas',
-    'useStrict'
+    'useHas'
   ];
 
   /** Used to minify variables and string values to a single character */
@@ -64,10 +65,12 @@
     'amd',
     'any',
     'assign',
+    'at',
     'attachEvent',
     'bind',
     'bindAll',
     'bindKey',
+    'clearTimeout',
     'clone',
     'cloneDeep',
     'collect',
@@ -104,6 +107,7 @@
     'groupBy',
     'has',
     'head',
+    'imports',
     'identity',
     'include',
     'index',
@@ -150,6 +154,7 @@
     'opera',
     'pairs',
     'partial',
+    'partialRight',
     'pick',
     'pluck',
     'random',
@@ -160,6 +165,8 @@
     'rest',
     'result',
     'select',
+    'setImmediate',
+    'setTimeout',
     'shuffle',
     'size',
     'some',
@@ -191,10 +198,7 @@
     // properties used by the `backbone` and `underscore` builds
     '__chain__',
     'chain',
-
-    // properties used by underscore.js
-    '_chain',
-    '_wrapped'
+    'findWhere'
   ];
 
   /*--------------------------------------------------------------------------*/
@@ -216,9 +220,6 @@
     if (options.isTemplate) {
       return source;
     }
-    // remove copyright/license header to add later in post-compile.js
-    source = source.replace(/\/\*![\s\S]+?\*\//, '');
-
     // add brackets to whitelisted properties so the Closure Compiler won't mung them
     // http://code.google.com/closure/compiler/docs/api-tutorial3.html#export
     source = source.replace(RegExp('\\.(' + propWhitelist.join('|') + ')\\b', 'g'), function(match, prop) {
@@ -228,9 +229,6 @@
     // remove brackets from `_.escape()` in `_.template`
     source = source.replace(/__e *= *_\['escape']/g, '__e=_.escape');
 
-    // remove brackets from `_.escape()` in underscore.js `_.template`
-    source = source.replace(/_\['escape'\]\(__t'/g, '_.escape(__t');
-
     // remove brackets from `collection.indexOf` in `_.contains`
     source = source.replace("collection['indexOf'](target)", 'collection.indexOf(target)');
 
@@ -238,27 +236,21 @@
     source = source.replace("result[length]['value']", 'result[length].value');
 
     // remove whitespace from string literals
-    source = source.replace(/^([ "'\w]+:)? *"(?:(?=(\\?))\2.)*?"|'(?:(?=(\\?))\3.)*?'/gm, function(string, captured) {
+    source = source.replace(/^([ "'\w]+:)? *"[^"\\\n]*(?:\\.[^"\\\n]*)*"|'[^'\\\n]*(?:\\.[^'\\\n]*)*'/gm, function(string, captured) {
       // remove object literal property name
       if (/:$/.test(captured)) {
         string = string.slice(captured.length);
       }
       // avoids removing the '\n' of the `stringEscapes` object
-      string = string.replace(/\[object |delete |else |function | in |return\s+[\w"']|throw |typeof |use strict|var |@ |(["'])\\n\1|\\\\n|\\n|\s+/g, function(match) {
+      string = string.replace(/\[object |delete |else (?!{)|function | in |return\s+[\w"']|throw |typeof |use strict|var |@ |(["'])\\n\1|\\\\n|\\n|\s+/g, function(match) {
         return match == false || match == '\\n' ? '' : match;
       });
       // prepend object literal property name
       return (captured || '') + string;
     });
 
-    // add newline to `+"__p+='"` in underscore.js `_.template`
-    source = source.replace(/\+"__p\+='"/g, '+"\\n__p+=\'"');
-
-    // add newline to `body + '}'` in `createFunction`
-    source = source.replace(/body *\+ *'}'/, 'body+"\\n}"');
-
     // remove whitespace from `_.template` related regexes
-    source = source.replace(/(?:reEmptyString\w+|reInsertVariable) *=.+/g, function(match) {
+    source = source.replace(/reEmptyString\w+ *=.+/g, function(match) {
       return match.replace(/ |\\n/g, '');
     });
 
@@ -266,9 +258,6 @@
     source = source
       .replace('"__p += \'"', '"__p+=\'"')
       .replace('"\';\n"', '"\';"')
-
-    // remove `useSourceURL` variable
-    source = source.replace(/(?:\n +\/\*[^*]*\*+(?:[^\/][^*]*\*+)*\/)?\n *try *\{(?:\s*\/\/.*)*\n *var useSourceURL[\s\S]+?catch[^}]+}\n/, '');
 
     // remove debug sourceURL use in `_.template`
     source = source.replace(/(?:\s*\/\/.*\n)* *var sourceURL[^;]+;|\+ *sourceURL/g, '');
@@ -286,14 +275,15 @@
 
         // minify properties
         properties.forEach(function(property, index) {
-          var reBracketProp = RegExp("\\['(" + property + ")'\\]", 'g'),
+          var minName = minNames[index],
+              reBracketProp = RegExp("\\['(" + property + ")'\\]", 'g'),
               reDotProp = RegExp('\\.' + property + '\\b', 'g'),
               rePropColon = RegExp("([^?\\s])\\s*([\"'])?\\b" + property + "\\2 *:", 'g');
 
           modified = modified
-            .replace(reBracketProp, "['" + minNames[index] + "']")
-            .replace(reDotProp, "['" + minNames[index] + "']")
-            .replace(rePropColon, "$1'" + minNames[index] + "':");
+            .replace(reBracketProp, "['" + minName + "']")
+            .replace(reDotProp, "['" + minName + "']")
+            .replace(rePropColon, "$1'" + minName + "':");
         });
 
         // replace with modified snippet
@@ -331,36 +321,30 @@
       });
 
       if (isCreateIterator) {
-        // replace with modified snippet early and clip snippet to the `factory`
-        // call so other arguments aren't minified
+        // clip before the `factory` call to avoid minifying its arguments
         source = source.replace(snippet, modified);
-        snippet = modified = modified.replace(/factory\([\s\S]+$/, '');
+        snippet = modified = modified.replace(/return factory\([\s\S]+$/, '');
       }
+      // minify `createIterator` option property names
+      iteratorOptions.forEach(function(property, index) {
+        var minName = minNames[index];
+
+        // minify variables in `iteratorTemplate` or property names in everything else
+        modified = isIteratorTemplate
+          ? modified.replace(RegExp('\\b' + property + '\\b', 'g'), minName)
+          : modified.replace(RegExp("'" + property + "'", 'g'), "'" + minName + "'");
+      });
 
       // minify snippet variables / arguments
       compiledVars.forEach(function(variable, index) {
+        var minName = minNames[index];
+
         // ensure properties in compiled strings aren't minified
-        modified = modified.replace(RegExp('([^.]\\b)' + variable + '\\b(?!\' *[\\]:])', 'g'), '$1' + minNames[index]);
+        modified = modified.replace(RegExp('([^.]\\b)' + variable + '\\b(?!\' *[\\]:])', 'g'), '$1' + minName);
 
         // correct `typeof` values
         if (/^(?:boolean|function|object|number|string|undefined)$/.test(variable)) {
-          modified = modified.replace(RegExp("(typeof [^']+')" + minNames[index] + "'", 'g'), '$1' + variable + "'");
-        }
-      });
-
-      // minify `createIterator` option property names
-      iteratorOptions.forEach(function(property, index) {
-        if (isIteratorTemplate) {
-          // minify property names as interpolated template variables
-          modified = modified.replace(RegExp('\\b' + property + '\\b', 'g'), minNames[index]);
-        }
-        else {
-          // minify property name strings
-          modified = modified.replace(RegExp("'" + property + "'", 'g'), "'" + minNames[index] + "'");
-          // minify property names in accessors
-          if (isCreateIterator) {
-            modified = modified.replace(RegExp('\\.' + property + '\\b' , 'g'), '.' + minNames[index]);
-          }
+          modified = modified.replace(RegExp("(typeof [^']+')" + minName + "'", 'g'), '$1' + variable + "'");
         }
       });
 

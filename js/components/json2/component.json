@@ -1,9 +1,0 @@
-{
-  "name": "json2",
-  "version": "0.0.0",
-  "commit": "43d7836c8ec9b31a02a31ae0c400bdae04d3650d",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/douglascrockford/JSON-js.git"
-  }
-}

@@ -22,7 +22,7 @@ $(document).ready(function() {
     equal(answers.join(", "), 'one, two, three', 'iterating over objects works, and ignores the object prototype.');
     delete obj.constructor.prototype.four;
 
-    answer = null;
+    var answer = null;
     _.each([1, 2, 3], function(num, index, arr){ if (_.include(arr, num)) answer = true; });
     ok(answer, 'can reference the original collection from inside the iterator');
 
@@ -258,6 +258,14 @@ $(document).ready(function() {
     result = _.where(list, {b: 2});
     equal(result.length, 2);
     equal(result[0].a, 1);
+  });
+
+  test('findWhere', function() {
+    var list = [{a: 1, b: 2}, {a: 2, b: 2}, {a: 1, b: 3}, {a: 1, b: 4}, {a: 2, b: 4}];
+    var result = _.findWhere(list, {a: 1});
+    deepEqual(result, {a: 1, b: 2});
+    result = _.findWhere(list, {b: 4});
+    deepEqual(result, {a: 1, b: 4});
   });
 
   test('max', function() {

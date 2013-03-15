@@ -1,15 +1,15 @@
 {
   "name": "chaplin",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "main": "amd/chaplin.js",
   "dependencies": {
-    "backbone": ">= 0.9.9"
+    "backbone": ">= 0.9.10"
   },
-  "gitHead": "e0f31858c96fb47d1b9c0e9f7e55b3265a5a574c",
-  "readme": "ERROR: No README.md file found!",
+  "gitHead": "7dc6b747c68f54fdab713fb1f7dbbe61e99db4eb",
+  "readme": "# Chaplin downloads\n\nStable versions of Chaplin.\n",
   "readmeFilename": "README.md",
-  "_id": "chaplin@0.6.1",
-  "description": "ERROR: No README.md file found!",
+  "_id": "chaplin@0.7.0",
+  "description": "Stable versions of Chaplin.",
   "repository": {
     "type": "git",
     "url": "git://github.com/chaplinjs/downloads.git"

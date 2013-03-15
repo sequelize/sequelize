@@ -12,5 +12,8 @@
   "license": "BSD",
   "devDependencies": {
     "node-static": "~0.6.7"
+  },
+  "dependencies": {
+    "bootstrap-amd": "~1.0.3"
   }
 }

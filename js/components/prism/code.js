@@ -47,6 +47,10 @@ var components = {
 		'coffeescript': {
 			title: 'CoffeeScript',
 			require: 'javascript'
+		},
+		'scss': {
+			title: 'Sass (Scss)',
+			require: 'css'
 		}
 	},
 	plugins: {

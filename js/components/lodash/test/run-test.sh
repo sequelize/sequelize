@@ -1,9 +1,13 @@
 cd "$(dirname "$0")"
-for cmd in rhino ringo narwhal node; do
-  echo ""
+
+for cmd in rhino narwhal ringo phantomjs; do
   echo "Testing in $cmd..."
-  $cmd test.js
+  $cmd test.js ../dist/lodash.compat.js && $cmd test.js ../dist/lodash.compat.min.js
+  echo ""
 done
+
+echo "Testing in node..."
+node test.js ../dist/lodash.js && node test.js ../dist/lodash.min.js
 
 echo ""
 echo "Testing build..."

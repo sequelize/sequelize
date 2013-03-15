@@ -8,7 +8,7 @@ requirejs.config({
   // Specify the paths of vendor libraries
   paths: {
     jquery:            'components/jquery/jquery.min',
-    underscore:        'components/lodash/lodash.underscore.min',
+    underscore:        'components/lodash/dist/lodash.underscore.min',
     backbone:          'components/backbone/backbone-min',
     text:              'components/requirejs-text/text',
     chaplin:           'components/chaplin/amd/chaplin.min',
@@ -34,8 +34,7 @@ requirejs.config({
 
 // load shims and polyfills
 require([
-  'components/es5-shim/es5-shim.min',
-  'components/json2/json2'
+  'components/es5-shim/es5-shim.min'
 ], function() {
   var match  = document.location.href.match(/#(.+)/)
     , anchor = !!match ? match[1] : null
@@ -53,8 +52,6 @@ require([
     // load jquery plugins
     require([
       'components/jquery/jquery-migrate.min',
-      'components/jquery-serialize-object/jquery.serialize-object',
-      'components/jquery.cookie/jquery.cookie',
       'components/jquery_viewport/jquery.viewport'
     ], function() {
       new Sequelize().initialize()
