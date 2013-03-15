@@ -6,6 +6,7 @@
       <li><a href="#instances-create">Create</a></li>
       <li><a href="#instances-update">Update / Save</a></li>
       <li><a href="#instances-destroy">Destroy</a></li>
+      <li><a href="#instances-values">Values</a></li>
     </ul>
   </div>
   <div class="subnav-shadow"></div>
@@ -146,6 +147,36 @@
           })
         })
       </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="instances-values">
+  <div class="span12">
+    <h3>Values of an instance</h3>
+    <p>
+      If you log an instance you will notice, that there is a lot of additional stuff. In order to hide such stuff and reduce it to the very interesting information, you can use the <code>values</code>-attribute. Calling it will return only the values of an instance.
+
+      <pre><code class="language-javascript">
+        Person.create({
+          name: 'Rambow',
+          firstname: 'John'
+        }).success(function(john) {
+          console.log(john.values)
+        })
+
+        // result:
+
+        // { name: 'Rambow',
+        //   firstname: 'John',
+        //   id: 1,
+        //   createdAt: Tue, 01 May 2012 19:12:16 GMT,
+        //   updatedAt: Tue, 01 May 2012 19:12:16 GMT
+        // }
+      </code></pre>
+    </p>
+    <p>
+      <strong>Hint:</strong> You can also transform an instance into JSON by using <code>JSON.stringify(instance)</code>. This will basically return the very same as <code>values</code>.
     </p>
   </div>
 </div>
