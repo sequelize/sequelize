@@ -2,13 +2,15 @@
   "name": "js",
   "version": "0.0.0",
   "dependencies": {
-    "backbone": "~0.9.10",
-    "bootstrap": "git://github.com/sdepold/bootstrap.git#~v2.3.1",
-    "chaplin": "~0.7.0",
-    "requirejs": "~2.1.4",
-    "requirejs-text": "~2.0.5",
-    "lodash": "~1.0.0-rc.3",
-    "es5-shim": "~2.0.5",
-    "prism": "latest"
+    "backbone": "git://github.com/documentcloud/backbone.git#0.9.10",
+    "bootstrap": "git://github.com/sdepold/bootstrap.git#~2.3.1",
+    "chaplin": "git://github.com/chaplinjs/downloads.git#0.7.0",
+    "requirejs": "git://github.com/jrburke/requirejs#2.1.5",
+    "requirejs-text": "git://github.com/requirejs/text#2.0.5",
+    "lodash": "git://github.com/bestiejs/lodash.git#1.0.1",
+    "es5-shim": "git://github.com/kriskowal/es5-shim#2.0.5",
+    "prism": "git://github.com/LeaVerou/prism.git",
+    "Font-Awesome": "git://github.com/FortAwesome/Font-Awesome.git#3.0.2",
+    "jquery_viewport": "git://github.com/sdepold/jquery_viewport.git#0.1.0"
   }
 }

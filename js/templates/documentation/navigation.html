@@ -11,16 +11,16 @@
         <ul class="nav" id="main-menu-left">
           <% elements.forEach(function(element) { %>
             <% if (element.entries.length === 0) { %>
-              <li><a href="/<%= element.url %>"><%= element.title %></a></li>
+              <li><a href="<%= element.url %>"><%= element.title %></a></li>
             <% } else { %>
               <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                   <%= element.title %>
                   <b class="caret"></b>
                 </a>
-                <ul class="dropdown-menu" id="swatch-menu">
+                <ul class="dropdown-menu">
                   <% element.entries.forEach(function(entry) { %>
-                    <li><a href="/<%= entry.url %>"><%= entry.title %></a></li>
+                    <li><a href="<%= entry.url %>"><%= entry.title %></a></li>
                   <% }) %>
                 </ul>
               </li>
