@@ -1,4 +1,4 @@
-/*global requirejs:false, require:false*/
+/*global requirejs:false, require:false, document:false, window:false*/
 
 // Configure the AMD module loader
 requirejs.config({
@@ -37,6 +37,14 @@ require([
   'components/es5-shim/es5-shim.min',
   'components/json2/json2'
 ], function() {
+  var match  = document.location.href.match(/#(.+)/)
+    , anchor = !!match ? match[1] : null
+
+  if (anchor) {
+    document.location.href = document.location.href.replace('#' + anchor, '#')
+    window.anchor          = anchor
+  }
+
   // load the actual application + jquery
   require([
     'sequelize',
