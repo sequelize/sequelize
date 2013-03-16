@@ -67,32 +67,40 @@ define([
 
     enableSubNavs: function() {
       // fix sub nav on scroll
-      var $win = $(window)
-        , $body = $('body')
-        , $nav = $('.subnav')
-        , navHeight = $('.navbar').first().height()
-        , subnavHeight = $('.subnav').first().height()
-        , subnavTop = $('.subnav').length && $('.subnav').offset().top - navHeight
-        , marginTop = parseInt($body.css('margin-top'), 10)
-        , isFixed = 0
+      var $window      = $(window)
+        , $body        = $('body')
+        , $nav         = $('.subnav')
+        , navHeight    = $('.navbar').first().height()
+        , subnavHeight = $nav.first().height()
+        , marginTop    = parseInt($body.css('margin-top'), 10)
 
-      processScroll();
+      var processScroll = function(nav, subnavTop, sectionBottom, isFixed) {
+        var scrollTop = $window.scrollTop()
 
-      $win.on('scroll', processScroll);
-
-      function processScroll() {
-        var scrollTop = $win.scrollTop();
-
-        if (scrollTop >= subnavTop && !isFixed) {
-          isFixed = 1;
-          $nav.addClass('subnav-fixed');
-          $body.css('margin-top', marginTop + subnavHeight + 'px');
-        } else if (scrollTop <= subnavTop && isFixed) {
-          isFixed = 0;
-          $nav.removeClass('subnav-fixed');
-          $body.css('margin-top', marginTop + 'px');
+        if (((scrollTop >= subnavTop) && (scrollTop <= sectionBottom)) && !isFixed) {
+          isFixed = true
+          nav.addClass('subnav-fixed')
+          $body.css('margin-top', marginTop + subnavHeight + 'px')
+        } else if (((scrollTop <= subnavTop) || (scrollTop >= sectionBottom)) && isFixed) {
+          isFixed = false
+          nav.removeClass('subnav-fixed')
+          $body.css('margin-top', marginTop + 'px')
         }
+
+        return isFixed
       }
+
+      $nav.each(function() {
+        var nav           = $(this)
+          , section       = nav.parents('section')
+          , subnavTop     = nav.length && nav.offset().top - navHeight
+          , sectionBottom = section.offset().top + section.height()
+          , isFixed       = processScroll(nav, subnavTop, sectionBottom, false)
+
+        $window.scroll(function() {
+          isFixed = processScroll(nav, subnavTop, sectionBottom, isFixed)
+        })
+      })
     },
 
     jumpToAnchor: function() {
