@@ -1,0 +1,104 @@
+<div class="page-header">
+  <h2>Utils</h2>
+  <div class="subnav">
+    <ul class="nav nav-pills">
+      <li><a href="#utils-query-chainer">QueryChainer</a></li>
+    </ul>
+  </div>
+  <div class="subnav-shadow"></div>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <p>
+      Sequelize comes with some handy utils including references to <code>underscore</code> as well as some individual helpers.
+      You can access them via <code>Sequelize.Utils</code>.
+    </p>
+  </div>
+</div>
+
+<div class="row" id="utils-query-chainer">
+  <div class="span12">
+    <h3>QueryChainer</h3>
+
+    <p>
+      Because you will want to save/create/delete several items at once and just go on after all of them are saved, Sequelize provides the <code>QueryChainer</code> module. It can be used like this:
+
+      <pre><code class="language-javascript">
+        var chainer = new Sequelize.Utils.QueryChainer
+        chainer.add(/* Query | EventEmitter */)
+        chainer.run().success(function(){}).error(function(errors){})
+      </code></pre>
+    </p>
+
+    <p>
+      And a real world example:
+
+      <pre><code class="language-javascript">
+        var chainer = new Sequelize.Utils.QueryChainer
+        var Task    = sequelize.define('Task', /* ... */)
+
+        chainer
+          .add(Task.drop())
+          .add(Task.sync())
+
+        for(var i = 0; i < 20; i++)
+          chainer.add(Task.create({}))
+
+        chainer
+          .run()
+          .success(function(){})
+          .error(function(errors){})
+      </code></pre>
+    </p>
+
+    <p>
+      It is also possible to force a serial run of the query chainer by using the following syntax:
+
+      <pre><code class="language-javascript">
+        new Sequelize.Utils.QueryChainer()
+          .add(Model, 'function', [param1, param2])
+          .add(Model, 'function2', [param1, param2])
+          .runSerially()
+          .success(function() { /* no problems :) */ })
+          .error(function(err) { /* hmm not good :> */ })
+
+        // and with options:
+
+        new Sequelize.Utils.QueryChainer()
+          .add(Model, 'function', [param1, param2], {
+            // Will be executed before Model#function is called
+            before: function(model) {},
+
+            /*
+              Will be executed after Model#function was called
+              and the function emitted a success or error event.
+              If the following success option is passed, the function
+              will be executed after the success function.
+            */
+            after: function(migration) {},
+
+            // Will be executed if Model#function emits a success event.
+            success: function(migration, callback) {}
+          })
+          // skipOnError: don't execute functions once one has emitted an failure event.
+          .runSerially({ skipOnError: true })
+          .success(function() { /* no problems :) */ })
+          .error(function(err) { /* hmm not good :> */ })
+      </code></pre>
+    </p>
+
+    <p>
+      If the success callbacks of the added methods are passing values, they can be utilized in the actual <code>success</code> method of the query chainer:
+
+      <pre><code class="language-javascript">
+        chainer.add(Project.getTasks())
+        chainer.add(Project.getTeam())
+        chainer.run().success(function(results){
+          var tasks = results[0]
+          var team = results[1]
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>

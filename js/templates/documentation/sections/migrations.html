@@ -2,8 +2,28 @@
   <h2>Migrations</h2>
   <div class="subnav">
     <ul class="nav nav-pills">
-      <li><a href="#migrations-the-binary">The binary</a></li>
+      <li><a href="#migrations-the-binary">bin/sequelize</a></li>
       <li><a href="#migrations-skeleton">Skeleton</a></li>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+          Functions
+          <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a href="#migrations-functions-create-table">createTable</a></li>
+          <li><a href="#migrations-functions-drop-table">dropTable</a></li>
+          <li><a href="#migrations-functions-drop-all-tables">dropAllTables</a></li>
+          <li><a href="#migrations-functions-rename-table">renameTable</a></li>
+          <li><a href="#migrations-functions-show-all-tables">showAllTables</a></li>
+          <li><a href="#migrations-functions-describe-table">describeTable</a></li>
+          <li><a href="#migrations-functions-add-column">addColumn</a></li>
+          <li><a href="#migrations-functions-remove-column">removeColumn</a></li>
+          <li><a href="#migrations-functions-change-column">changeColumn</a></li>
+          <li><a href="#migrations-functions-rename-column">renameColumn</a></li>
+          <li><a href="#migrations-functions-add-index">addIndex</a></li>
+          <li><a href="#migrations-functions-show-index">removeIndex</a></li>
+        </ul>
+      </li>
     </ul>
   </div>
   <div class="subnav-shadow"></div>
@@ -89,51 +109,227 @@
   </div>
 </div>
 
-<div class="row" id="usage-dialects">
+<div class="row" id="migrations-functions">
   <div class="span12">
-    <h3>Dialects</h3>
+    <h3>Functions</h3>
     <p>
-      With the release of Sequelize <code>v1.6.0</code>, the library got independent from specific dialects. That mean, that you'll have to add the respective dialect library yourself. Another option is the use of the sequelize packages that ship the dialect libraries as well.
+      Using the <code>migration</code> object describe before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
     </p>
 
-    <h4>MySQL</h4>
-    <p>
-      In order to get Sequelize working nicely together with MySQL, you'll need to install <code>mysql @ ~2.0.0-alpha7</code>. Once that's done you can use it like this:
+    <div id="migrations-functions-create-table">
+      <h4>createTable(tableName, attributes, options)</h4>
+      <p>
+        This method allows creation of new tables. It is allowed to pass simple or complex attribute definitions. You can define the encoding of the table and the table's engine via options.
 
-      <pre><code class="language-javascript">
-        var sequelize = new Sequelize('database', 'username', 'password', {
-          // we want mysql!
-          dialect: 'mysql'
-        })
-      </code></pre>
-    </p>
+        <pre><code class="language-javascript">
+          migration.createTable(
+            'nameOfTheNewTable',
+            {
+              attr1: DataTypes.STRING,
+              attr2: DataTypes.INTEGER,
+              attr3: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+                allowNull: false
+              }
+            },
+            {
+              engine: 'MYISAM', // default: 'InnoDB'
+              charset: 'latin1' // default: null
+            }
+          )
+        </code></pre>
+      </p>
+    </div>
 
-    <h4>SQLite</h4>
-    <p>
-      For SQLite compatibility you'll need <code>sqlite3 @ ~2.1.5</code>. Configure Sequelize like this:
+    <div id="migrations-functions-drop-table">
+      <h4>dropTable(tableName)</h4>
+      <p>
+        This method allows deletion of an existing table.
 
-      <pre><code class="language-javascript">
-        var sequelize = new Sequelize('database', 'username', 'password', {
-          // sqlite! now!
-          dialect: 'sqlite',
+        <pre><code class="language-javascript">
+          migration.dropTable('nameOfTheExistingTable')
+        </code></pre>
+      </p>
+    </div>
 
-          // the storage engine for sqlite
-          // - default ':memory:'
-          storage: 'path/to/database.sqlite'
-        })
-      </code></pre>
-    </p>
+    <div id="migrations-functions-drop-all-tables">
+      <h4>dropAllTables()</h4>
+      <p>
+        This method allows deletion of all existing tables in the database.
 
-    <h4>PostgreSQL</h4>
-    <p>
-      The library for PostgreSQL is <code>pg @ ~0.10.2</code>. You'll just need to define the dialect:
+        <pre><code class="language-javascript">
+          migration.dropAllTables()
+        </code></pre>
+      </p>
+    </div>
 
-      <pre><code class="language-javascript">
-        var sequelize = new Sequelize('database', 'username', 'password', {
-          // gimme postgres, please!
-          dialect: 'postgres'
-        })
-      </code></pre>
-    </p>
+    <div id="migrations-functions-rename-table">
+      <h4>renameTable(before, after)</h4>
+      <p>
+        This method allows renaming of an existing table.
+
+        <pre><code class="language-javascript">
+          migration.renameTable('Person', 'User')
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-show-all-tables">
+      <h4>showAllTables()</h4>
+      <p>
+        This method returns the name of all existing tables in the database.
+
+        <pre><code class="language-javascript">
+          migration.showAllTables().success(function(tableNames) {})
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-describe-table">
+      <h4>describeTable(tableName)</h4>
+      <p>
+        This method returns an array of hashes containing information about all attributes in the table.
+
+        <pre><code class="language-javascript">
+          migration.describeTable('Person').success(function(attributes) {
+            /*
+              tableNames will be something like:
+              [ { Field: 'name',
+                Type: 'varchar(255)',
+                Null: 'YES',
+                Key: '',
+                Default: null,
+                Extra: '' },
+              { Field: 'isBetaMember',
+                Type: 'tinyint(1)',
+                Null: 'NO',
+                Key: '',
+                Default: '0',
+                Extra: '' } ]
+            */
+          })
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-add-column">
+      <h4>addColumn(tableName, attributeName, dataTypeOrOptions)</h4>
+      <p>
+        This method allows adding columns to an existing table. The data type can be simple or complex.
+
+        <pre><code class="language-javascript">
+          migration.addColumn(
+            'nameOfAnExistingTable',
+            'nameOfTheNewAttribute',
+            DataTypes.STRING
+          )
+
+          // or
+
+          migration.addColumn(
+            'nameOfAnExistingTable',
+            'nameOfTheNewAttribute',
+            {
+              type: DataTypes.STRING,
+              allowNull: false
+            }
+          )
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-remove-column">
+      <h4>removeColumn(tableName, attributeName)</h4>
+      <p>
+        This method allows deletion of a specific column of an existing table.
+
+        <pre><code class="language-javascript">
+          migration.removeColumn('Person', 'signature')
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-change-column">
+      <h4>changeColumn(tableName, attributeName, dataTypeOrOptions)</h4>
+      <p>
+        This method changes the meta data of an attribute. It is possible to change the default value, allowance of null or the data type. Please make sure, that you are completely describing the new data type. Missing information are expected to be defaults.
+
+        <pre><code class="language-javascript">
+          migration.changeColumn(
+            'nameOfAnExistingTable',
+            'nameOfAnExistingAttribute',
+            DataTypes.STRING
+          )
+
+          // or
+
+          migration.changeColumn(
+            'nameOfAnExistingTable',
+            'nameOfAnExistingAttribute',
+            {
+              type: DataTypes.FLOAT,
+              allowNull: false,
+              default: 0.0
+            }
+          )
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-rename-column">
+      <h4>renameColumn(tableName, attrNameBefore, attrNameAfter)</h4>
+      <p>
+        This methods allows renaming attributes.
+
+        <pre><code class="language-javascript">
+          migration.renameColumn('Person', 'signature', 'sig')
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-add-index">
+      <h4>addIndex(tableName, attributes, options)</h4>
+      <p>
+        This methods creates indexes for specific attributes of a table. The index name will be automatically generated if it is not passed via in the options (see below).
+
+        <pre><code class="language-javascript">
+          // This example will create the index person_firstname_lastname
+          migration.addIndex('Person', ['firstname', 'lastname'])
+        </code></pre>
+
+        <pre><code class="language-javascript">
+          // This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
+          // Possible options:
+          // - indicesType: UNIQUE|FULLTEXT|SPATIAL
+          // - indexName: The name of the index. Default is <tableName>_<attrName1>_<attrName2>
+          // - parser: For FULLTEXT columns set your parser
+          // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
+          migration.addIndex(
+            'Person',
+            ['firstname', 'lastname'],
+            {
+              indexName: 'SuperDuperIndex',
+              indicesType: 'UNIQUE'
+            }
+          )
+        </code></pre>
+      </p>
+    </div>
+
+    <div id="migrations-functions-show-index">
+      <h4>removeIndex(tableName, indexNameOrAttributes)</h4>
+      <p>
+        This method deletes an existing index of a table.
+
+        <pre><code class="language-javascript">
+          migration.removeIndex('Person', 'SuperDuperIndex')
+
+          // or
+
+          migration.removeIndex('Person', ['firstname', 'lastname'])
+        </code></pre>
+      </p>
+    </div>
   </div>
 </div>
