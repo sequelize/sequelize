@@ -1,0 +1,139 @@
+<div class="page-header">
+  <h2>Migrations</h2>
+  <div class="subnav">
+    <ul class="nav nav-pills">
+      <li><a href="#migrations-the-binary">The binary</a></li>
+      <li><a href="#migrations-skeleton">Skeleton</a></li>
+    </ul>
+  </div>
+  <div class="subnav-shadow"></div>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <p>
+      Sequelize <code>v1.3.0</code> introduced migrations. With those mechanism you can transform your existing database into another state and vice versa. Those state transitions are saved in migration files, which describe the way how to get to the new state and how to revert the changes in order to get back to the old state.
+    </p>
+  </div>
+</div>
+
+<div class="row" id="migrations-the-binary">
+  <div class="span12">
+    <h3>The binary</h3>
+    <p>
+      In order to run migrations, sequelize comes with a handy binary file which can setup your project and run migrations. The following snippet shows the possible things:
+
+      <pre><code class="language-javascript">
+        sequelize -h
+        sequelize --help
+        --> prints the help
+
+        sequelize -V
+        sequelize --version
+        --> prints the version
+
+        sequelize -i
+        sequelize --init
+        --> creates a migration folder
+        --> creates a config folder
+        --> saves a config.json inside the config folder
+
+        sequelize -i -f
+        sequelize --init --force
+        --> forced creation of migration and config folder
+        --> existing data will be deleted first
+
+        sequelize -m
+        sequelize --migrate
+        --> needs a valid config.json
+        --> runs pending migrations
+        --> saves successfully executed migrations inside the database
+
+        sequelize -m -u
+        sequelize --migrate --undo
+        --> needs a valid config.json
+        --> reverts the last successfull migration
+        --> when there were multiple executed migrations, all of them are reverted
+
+        sequelize -c [migration-name]
+        sequelize --create-migration [migration-name]
+        --> creates the migrations folder
+        --> creates a file with current timestamp + migration-name
+        --> migration-name has the default 'unnamed-migration'
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="migrations-skeleton">
+  <div class="span12">
+    <h3>Skeleton</h3>
+    <p>
+      The following skeleton shows a typical migration file. All migrations are expected to be located in a folder called <code>migrations</code> at the very top of the project. Sequelize <code>1.4.1</code> added the possibility to let the sequelize binary generate a migration skeleton. See the aboves section for more details.
+
+      <pre><code class="language-javascript">
+        module.exports = {
+          up: function(migration, DataTypes) {
+            // logic for transforming into the new state
+          },
+
+          down: function(migration, DataTypes) {
+            // logic for reverting the changes
+          }
+        }
+      </code></pre>
+    </p>
+    <p>
+      The passed <code>migration</code> object can be used to modify the database. The <code>DataTypes</code> object stores the available data types such as <code>STRING</code> or <code>INTEGER</code>. The available methods of the migration object are the following.
+    </p>
+  </div>
+</div>
+
+<div class="row" id="usage-dialects">
+  <div class="span12">
+    <h3>Dialects</h3>
+    <p>
+      With the release of Sequelize <code>v1.6.0</code>, the library got independent from specific dialects. That mean, that you'll have to add the respective dialect library yourself. Another option is the use of the sequelize packages that ship the dialect libraries as well.
+    </p>
+
+    <h4>MySQL</h4>
+    <p>
+      In order to get Sequelize working nicely together with MySQL, you'll need to install <code>mysql @ ~2.0.0-alpha7</code>. Once that's done you can use it like this:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // we want mysql!
+          dialect: 'mysql'
+        })
+      </code></pre>
+    </p>
+
+    <h4>SQLite</h4>
+    <p>
+      For SQLite compatibility you'll need <code>sqlite3 @ ~2.1.5</code>. Configure Sequelize like this:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // sqlite! now!
+          dialect: 'sqlite',
+
+          // the storage engine for sqlite
+          // - default ':memory:'
+          storage: 'path/to/database.sqlite'
+        })
+      </code></pre>
+    </p>
+
+    <h4>PostgreSQL</h4>
+    <p>
+      The library for PostgreSQL is <code>pg @ ~0.10.2</code>. You'll just need to define the dialect:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // gimme postgres, please!
+          dialect: 'postgres'
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
