@@ -42,6 +42,7 @@ define([
         this.enableScrollSpy()
         this.enableSubNavs()
         this.jumpToAnchor()
+        this.renderMiniBrowsers()
       }
     },
 
@@ -107,6 +108,17 @@ define([
       if (!!window.anchor && !!document.location.href.match(/#$/)) {
         document.location.href = document.location.href.replace('#', '#' + window.anchor)
       }
+    },
+
+    renderMiniBrowsers: function() {
+      $('.mini-browser').each(function() {
+        var $browser = $(this)
+
+        $browser
+          .append($('<img src="/img/mini-browser.png">'))
+          .css('background', 'transparent url(' + $browser.data('img-url') + ') no-repeat left 42px')
+      })
+
     }
   })
 })

@@ -197,3 +197,22 @@ section > .page-header {
     width: 1168px; /* 2px less to account for left/right borders being removed when in fixed mode */
   }
 }
+
+.company-or-project {
+  margin-top: 50px;
+}
+
+.company-or-project h4 {
+  margin-top: 0px;
+  line-height: 36px;
+}
+
+.company-or-project .mini-browser-container {
+  text-align: right;
+}
+
+.company-or-project .mini-browser {
+  height: 252px;
+  width: 246px;
+  display: inline-block;
+}
