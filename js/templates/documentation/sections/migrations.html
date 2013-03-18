@@ -93,18 +93,38 @@
 
       <pre><code class="language-javascript">
         module.exports = {
-          up: function(migration, DataTypes) {
+          up: function(migration, DataTypes, done) {
             // logic for transforming into the new state
           },
 
-          down: function(migration, DataTypes) {
+          down: function(migration, DataTypes, done) {
             // logic for reverting the changes
           }
         }
       </code></pre>
     </p>
+
     <p>
-      The passed <code>migration</code> object can be used to modify the database. The <code>DataTypes</code> object stores the available data types such as <code>STRING</code> or <code>INTEGER</code>. The available methods of the migration object are the following.
+      The passed <code>migration</code> object can be used to modify the database. The <code>DataTypes</code> object stores the available data types such as <code>STRING</code> or <code>INTEGER</code>. The third parameter is a callback function which needs to be called once everything was executed. The first parameter of the callback function can be used to pass a possible error. In that case, the migration will be marked as failed. Here is some code:
+
+      <pre><code class="language-javascript">
+        module.exports = {
+          up: function(migration, DataTypes, done) {
+            migration.dropAllTables().complete(done)
+
+            // equals:
+            migration.dropAllTables().complete(function(err) {
+              if (err) {
+                done(err)
+              } else {
+                done(null)
+              }
+            })
+          }
+        }
+      </code></pre>
+
+      The available methods of the migration object are the following.
     </p>
   </div>
 </div>
