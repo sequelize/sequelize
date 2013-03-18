@@ -23,7 +23,7 @@ define([
           elements.push({
             title:   $this.find('h2').text(),
             url:     '#' + $this.attr('id'),
-            entries: $this.find('.subnav li a').map(function() {
+            entries: $this.find('.subnav ul.nav-pills > li > a').map(function() {
               var $this = $(this)
               return { url: $this.attr('href'), title: $this.text() }
             }).toArray()
