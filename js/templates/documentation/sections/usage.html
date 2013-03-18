@@ -128,7 +128,24 @@
 
       <pre><code class="language-javascript">
         var sequelize = new Sequelize('database', 'username', 'password', {
-          // we want mysql!
+          // mysql is the default dialect, but you know...
+          // for demo purporses we are defining it nevertheless :)
+          // so: we want mysql!
+          dialect: 'mysql'
+        })
+      </code></pre>
+
+      Also possible is the use of <code>sequelize-mysql</code>. Just install it via
+      <code>npm install sequelize-mysql</code> and use it like this:
+
+      <pre><code class="language-javascript">
+        var Sequelize = require('sequelize-mysql').sequelize
+        var mysql     = require('sequelize-mysql').mysql
+
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // mysql is the default dialect, but you know...
+          // for demo purporses we are defining it nevertheless :)
+          // so: we want mysql!
           dialect: 'mysql'
         })
       </code></pre>
@@ -148,6 +165,18 @@
           storage: 'path/to/database.sqlite'
         })
       </code></pre>
+
+      If you want to use the bundled version, run <code>npm install sequelize-sqlite</code> and use the following code:
+
+      <pre><code class="language-javascript">
+        var Sequelize = require('sequelize-sqlite').sequelize
+        var sqlite    = require('sequelize-sqlite').sqlite
+
+         var sequelize = new Sequelize('database', 'username', 'password', {
+          dialect: 'sqlite',
+          storage: 'path/to/database.sqlite'
+        })
+      </code></pre>
     </p>
 
     <h4>PostgreSQL</h4>
@@ -157,6 +186,17 @@
       <pre><code class="language-javascript">
         var sequelize = new Sequelize('database', 'username', 'password', {
           // gimme postgres, please!
+          dialect: 'postgres'
+        })
+      </code></pre>
+
+      In order to use the bundled version, use this <code>npm install sequelize-postgres</code> and require the lib this way:
+
+      <pre><code class="language-javascript">
+        var Sequelize = require('sequelize-postgres').sequelize
+        var postgres  = require('sequelize-postgres').postgres
+
+         var sequelize = new Sequelize('database', 'username', 'password', {
           dialect: 'postgres'
         })
       </code></pre>
