@@ -9,7 +9,18 @@
       <li><a href="#models-import">Import</a></li>
       <li><a href="#models-database-synchronization">Database synchronization</a></li>
       <li><a href="#models-expansion">Expansion</a></li>
-      <li><a href="#models-finders">Finders</a></li>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+          Data retrieval
+          <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a href="#models-data-retrieval-find">find</a></li>
+          <li><a href="#models-data-retrieval-find-all">findAll</a></li>
+          <li><a href="#models-data-retrieval-count">count</a></li>
+          <li><a href="#models-data-retrieval-min">min</a></li>
+          <li><a href="#models-data-retrieval-max">max</a></li>
+        </ul>
     </ul>
   </div>
   <div class="subnav-shadow"></div>
@@ -336,114 +347,163 @@
   </div>
 </div>
 
-<div class="row" id="models-finders">
+<div class="row" id="models-data-retrieval">
   <div class="span12">
-    <h3>Finders</h3>
+    <h3>Data retrieval a.k.a. finders</h3>
     <p>
       Finder methods are designed to get data from the database. The returned data isn't just a plain object, but instances of one of the defined classes. Check the next major chapter about instances for further information. But as those things are instances, you can e.g. use the just describe expanded instance methods. So, here is what you can do:
-
-      <pre><code class="language-javascript">
-        // search for known ids
-        Project.find(123).success(function(project) {
-          // project will be an instance of Project and stores the content of the table entry
-          // with id 123. if such an entry is not defined you will get null
-        })
-
-        // search for attributes
-        Project.find({ where: {title: 'aProject'} }).success(function(project) {
-          // project will be the first entry of the Projects table with the title 'aProject' || null
-        })
-
-        // since v1.3.0: only select some attributes and rename one
-        Project.find({
-          where: {title: 'aProject'},
-          attributes: ['id', ['name', 'title']]
-        }).success(function(project) {
-          // project will be the first entry of the Projects table with the title 'aProject' || null
-          // project.title will contain the name of the project
-        })
-
-        // find multiple entries
-        Project.findAll().success(function(projects) {
-          // projects will be an array of all Project instances
-        })
-
-        // also possible:
-        Project.all().success(function(projects) {
-          // projects will be an array of all Project instances
-        })
-
-        // search for specific attributes - hash usage
-        Project.findAll({where: {name: 'A Project'}}).success(function(projects) {
-          // projects will be an array of Project instances with the specified name
-        })
-
-        // search with string replacements
-        Project.findAll({where: ["id > ?", 25]}).success(function(projects) {
-          // projects will be an array of Projects having a greater id than 25
-        })
-
-        // search within a specific range
-        Project.findAll({where: { id: [1,2,3] }}).success(function(projects) {
-          // projects will be an array of Projects having the id 1, 2 or 3
-          // this is actually doing an IN query
-        })
-
-        // or
-        Project.findAll({where: "name = 'A Project'"}).success(function(projects) {
-          // the difference between this and the usage of hashes (objects) is, that string usage
-          // is not sql injection safe. so make sure you know what you are doing!
-        })
-      </code></pre>
     </p>
 
-    <p>
-      Of course you can pass a some options to the finder methods, to get more relevant data:
+    <div id="models-data-retrieval-find" class="row">
+      <div class="span12">
+        <h4>find - Search for one specific element in the database</h4>
 
-      <pre><code class="language-javascript">
-        // define the order of the queried data
-        Project.findAll({order: 'title DESC'})
+        <p>
+          <pre><code class="language-javascript">
+            // search for known ids
+            Project.find(123).success(function(project) {
+              // project will be an instance of Project and stores the content of the table entry
+              // with id 123. if such an entry is not defined you will get null
+            })
 
-        // limit the results of the query
-        Project.findAll({limit: 10})
+            // search for attributes
+            Project.find({ where: {title: 'aProject'} }).success(function(project) {
+              // project will be the first entry of the Projects table with the title 'aProject' || null
+            })
 
-        // step over some elements
-        // this only works with a specified limit
-        Project.findAll({offset: 10, limit: 2})
-      </code></pre>
-    </p>
+            // since v1.3.0: only select some attributes and rename one
+            Project.find({
+              where: {title: 'aProject'},
+              attributes: ['id', ['name', 'title']]
+            }).success(function(project) {
+              // project will be the first entry of the Projects table with the title 'aProject' || null
+              // project.title will contain the name of the project
+            })
+          </code></pre>
+        </p>
+      </div>
+    </div>
 
-    <p>
-      There is also a method for counting database objects:
+    <div id="models-data-retrieval-find-all" class="row">
+      <div class="span12">
+        <h4>findAll - Search for multiple elements in the database</h4>
 
-      <pre><code class="language-javascript">
-        Project.count().success(function(c) {
-          console.log("There are " + c + " projects!")
-        })
+        <p>
+          <pre><code class="language-javascript">
+            // find multiple entries
+            Project.findAll().success(function(projects) {
+              // projects will be an array of all Project instances
+            })
 
-        Project.count({where: ["id > ?", 25]}).success(function(c) {
-          console.log("There are " + c + " projects with an id greater than 25.")
-        })
-      </code></pre>
-    </p>
+            // also possible:
+            Project.all().success(function(projects) {
+              // projects will be an array of all Project instances
+            })
 
-    <p>
-      And here is a method for getting the min and the max value of an attribute:
+            // search for specific attributes - hash usage
+            Project.findAll({ where: { name: 'A Project' } }).success(function(projects) {
+              // projects will be an array of Project instances with the specified name
+            })
 
-      <pre><code class="language-javascript">
-        /*
-          Let's assume 3 person objects with an attribute age.
-          The first one is 10 years old,
-          the second one is 5 years old,
-          the third one is 40 years old.
-        */
-        Project.min('age').success(function(min) {
-          // this will return 5
-        })
-        Project.max('age').success(function(max) {
-          // this will return 40
-        })
-      </code></pre>
-    </p>
+            // search with string replacements
+            Project.findAll({ where: ["id > ?", 25] }).success(function(projects) {
+              // projects will be an array of Projects having a greater id than 25
+            })
+
+            // search within a specific range
+            Project.findAll({ where: { id: [1,2,3] } }).success(function(projects) {
+              // projects will be an array of Projects having the id 1, 2 or 3
+              // this is actually doing an IN query
+            })
+
+            // or
+            Project.findAll({ where: "name = 'A Project'" }).success(function(projects) {
+              // the difference between this and the usage of hashes (objects) is, that string usage
+              // is not sql injection safe. so make sure you know what you are doing!
+            })
+          </code></pre>
+        </p>
+
+        <p>
+          Of course you can pass a some options to the finder methods, to get more relevant data:
+
+          <pre><code class="language-javascript">
+            // define the order of the queried data
+            Project.findAll({order: 'title DESC'})
+
+            // limit the results of the query
+            Project.findAll({limit: 10})
+
+            // step over some elements
+            // this only works with a specified limit
+            Project.findAll({offset: 10, limit: 2})
+          </code></pre>
+        </p>
+      </div>
+    </div>
+
+    <div id="models-data-retrieval-count" class="row">
+      <div class="span12">
+        <h4>count - Count the occurences of elements in the database</h4>
+
+        <p>
+          There is also a method for counting database objects:
+
+          <pre><code class="language-javascript">
+            Project.count().success(function(c) {
+              console.log("There are " + c + " projects!")
+            })
+
+            Project.count({ where: ["id > ?", 25] }).success(function(c) {
+              console.log("There are " + c + " projects with an id greater than 25.")
+            })
+          </code></pre>
+        </p>
+      </div>
+    </div>
+
+    <div id="models-data-retrieval-min" class="row">
+      <div class="span12">
+        <h4>min - Get the smallest value of a specific attribute within a specific table</h4>
+
+        <p>
+          And here is a method for getting the min value of an attribute:
+
+          <pre><code class="language-javascript">
+            /*
+              Let's assume 3 person objects with an attribute age.
+              The first one is 10 years old,
+              the second one is 5 years old,
+              the third one is 40 years old.
+            */
+            Project.min('age').success(function(min) {
+              // this will return 5
+            })
+          </code></pre>
+        </p>
+      </div>
+    </div>
+
+    <div id="models-data-retrieval-max" class="row">
+      <div class="span12">
+        <h4>max - Get the greatest value of a specific attribute within a specific table</h4>
+
+        <p>
+          And here is a method for getting the max value of an attribute:
+
+          <pre><code class="language-javascript">
+            /*
+              Let's assume 3 person objects with an attribute age.
+              The first one is 10 years old,
+              the second one is 5 years old,
+              the third one is 40 years old.
+            */
+            Project.max('age').success(function(max) {
+              // this will return 40
+            })
+          </code></pre>
+        </p>
+      </div>
+    </div>
   </div>
 </div>
