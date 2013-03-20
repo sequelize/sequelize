@@ -25,7 +25,7 @@ define([
             url:     '#' + $this.attr('id'),
             entries: $this.find('.subnav ul.nav-pills > li > a').map(function() {
               var $this = $(this)
-              return { url: $this.attr('href'), title: $this.text() }
+              return { url: $this.data('navigation-target') || $this.attr('href'), title: $this.text() }
             }).toArray()
           })
         })
