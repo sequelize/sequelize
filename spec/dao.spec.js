@@ -409,4 +409,17 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       }.bind(this))
     })
   })
+
+  describe('equals', function find() {
+    it("can compare records with Date field", function(done) {
+      this.User.create({ username: 'fnord' }).success(function(user1) {
+        var query = { where: { username: 'fnord' }}
+
+        this.User.find(query).success(function(user2) {
+          expect(user1.equals(user2)).toEqual(true)
+          done()
+        }.bind(this))
+      }.bind(this))
+    })
+  })
 })
