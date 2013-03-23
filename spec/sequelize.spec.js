@@ -153,43 +153,45 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
   })
 
   describe('define', function() {
-    describe('enum', function() {
-      before(function(done) {
-        this.Review = this.sequelize.define('review', {
-          status: { type: Helpers.Sequelize.ENUM, values: ['scheduled', 'active', 'finished']}
+    [
+      { type: Helpers.Sequelize.ENUM, values: ['scheduled', 'active', 'finished']},
+      Helpers.Sequelize.ENUM('scheduled', 'active', 'finished')
+    ].forEach(function(status) {
+      describe('enum', function() {
+        before(function(done) {
+          this.Review = this.sequelize.define('review', { status: status })
+          this.Review.sync({ force: true }).success(done)
         })
 
-        this.Review.sync({ force: true }).success(done)
-      })
-
-      it('raises an error if no values are defined', function() {
-        Helpers.assertException(function() {
-          this.sequelize.define('omnomnom', {
-            bla: { type: Helpers.Sequelize.ENUM }
-          })
-        }.bind(this), 'Values for ENUM haven\'t been defined.')
-      })
-
-      it('correctly stores values', function(done) {
-        this.Review.create({ status: 'active' }).success(function(review) {
-          expect(review.status).toEqual('active')
-          done()
+        it('raises an error if no values are defined', function() {
+          Helpers.assertException(function() {
+            this.sequelize.define('omnomnom', {
+              bla: { type: Helpers.Sequelize.ENUM }
+            })
+          }.bind(this), 'Values for ENUM haven\'t been defined.')
         })
-      })
 
-      it('correctly loads values', function(done) {
-        this.Review.create({ status: 'active' }).success(function() {
-          this.Review.findAll().success(function(reviews) {
-            expect(reviews[0].status).toEqual('active')
+        it('correctly stores values', function(done) {
+          this.Review.create({ status: 'active' }).success(function(review) {
+            expect(review.status).toEqual('active')
             done()
           })
-        }.bind(this))
-      })
+        })
 
-      it("doesn't save an instance if value is not in the range of enums", function() {
-        Helpers.assertException(function() {
-          this.Review.create({ status: 'fnord' })
-        }.bind(this), 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
+        it('correctly loads values', function(done) {
+          this.Review.create({ status: 'active' }).success(function() {
+            this.Review.findAll().success(function(reviews) {
+              expect(reviews[0].status).toEqual('active')
+              done()
+            })
+          }.bind(this))
+        })
+
+        it("doesn't save an instance if value is not in the range of enums", function() {
+          Helpers.assertException(function() {
+            this.Review.create({ status: 'fnord' })
+          }.bind(this), 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
+        })
       })
     })
   })
