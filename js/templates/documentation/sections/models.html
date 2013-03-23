@@ -16,6 +16,7 @@
         </a>
         <ul class="dropdown-menu">
           <li><a href="#models-data-retrieval-find">find</a></li>
+          <li><a href="#models-data-retrieval-find-or-create">findOrCreate</a></li>
           <li><a href="#models-data-retrieval-find-all">findAll</a></li>
           <li><a href="#models-data-retrieval-count">count</a></li>
           <li><a href="#models-data-retrieval-min">min</a></li>
@@ -84,6 +85,7 @@
         Sequelize.DATE    ===> DATETIME
         Sequelize.BOOLEAN ===> TINYINT(1)
         Sequelize.FLOAT   ===> FLOAT
+        Sequelize.BIGINT  ===> BIGINT
       </code></pre>
     </p>
   </div>
@@ -382,6 +384,65 @@
               // project.title will contain the name of the project
             })
           </code></pre>
+        </p>
+      </div>
+    </div>
+
+    <div id="models-data-retrieval-find-or-create" class="row">
+      <div class="span12">
+        <h4>findOrCreate - Search for a specific element or create it if not available</h4>
+
+        <p>
+          The method <code>findOrCreate</code> can be used to check if a certain element is already existing in the database.
+          If that is the case the method will result in a respective instance. If the element does not yet exist, it will be
+          created.
+        </p>
+
+        <p>
+          Let's assume we have an empty database with a <code>User</code> model which
+          has a <code>username</code> and a <code>job</code>.
+
+          <pre><code class="language-javascript">
+            User.findOrCreate({ username: 'sdepold' }, { job: 'Technical Lead JavaScript' }).success(function(user) {
+              console.log(user.values)
+
+              /*
+                {
+                  username: 'sdepold',
+                  job: 'Technical Lead JavaScript',
+                  id: 1,
+                  createdAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET),
+                  updatedAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET)
+                }
+              */
+            })
+          </code></pre>
+
+          The code created a just created instance.
+        </p>
+
+        <p>
+          So when we already have an instance ...
+
+          <pre><code class="language-javascript">
+            User.create({ username: 'fnord', job: 'omnomnom' }).success(function() {
+              User.findOrCreate({ username: 'fnord' }, { job: 'something else' }).success(function(user) {
+                console.log(user.values)
+
+                /*
+                  {
+                    username: 'fnord',
+                    job: 'omnomnom',
+                    id: 2,
+                    createdAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET),
+                    updatedAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET)
+                  }
+                */
+              })
+            })
+          </code></pre>
+
+          ... the existing entry will not be changed. See the <code>job</code> of the second user.
         </p>
       </div>
     </div>
