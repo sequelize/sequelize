@@ -5,6 +5,7 @@
       <li><a href="#usage-basic-usage">Basic Usage</a></li>
       <li><a href="#usage-options">Options</a></li>
       <li><a href="#usage-dialects">Dialects</a></li>
+      <li><a href="#usage-raw-queries">Raw Queries</a></li>
     </ul>
   </div>
   <div class="subnav-shadow"></div>
@@ -204,3 +205,41 @@
   </div>
 </div>
 
+<div class="row" id="usage-raw-queries">
+  <div class="span12">
+    <h3>Executing raw SQL queries</h3>
+
+    <p>
+      As there are often use cases in which it is just easier to execute raw / already prepared SQL queries, you can utilize the function <code>sequelize.query</code>.
+      <br><br>
+      Here is how it works:
+
+      <pre><code class="language-javascript">
+        sequelize.query("SELECT * FROM myTable").success(function(myTableRows) {
+          console.log(myTableRows)
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      <strong>One note</strong>: If the attribute names of the table contain dots, the
+      resulting objects will get a nesting:
+
+      <pre><code class="language-javascript">
+        sequelize.query('select 1 as `foo.bar.baz`').success(function(rows) {
+          console.log(JSON.stringify(rows))
+
+          /*
+            [{
+              "foo": {
+                "bar": {
+                  "baz": 1
+                }
+              }
+            }]
+          */
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
