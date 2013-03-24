@@ -199,7 +199,7 @@ describe('DAO', function() {
               updatedAt = user.updatedAt
               expect(updatedAt.getTime()).toBeGreaterThan(now)
               done()
-            }, 10)
+            }, 1000)
           })
 
           Helpers.async(function(done) {
@@ -208,7 +208,7 @@ describe('DAO', function() {
                 expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
                 done()
               })
-            }, 10)
+            }, 1000)
           })
         })
 
