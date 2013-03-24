@@ -214,19 +214,20 @@
         <pre><code class="language-javascript">
           migration.describeTable('Person').success(function(attributes) {
             /*
-              tableNames will be something like:
-              [ { Field: 'name',
-                Type: 'varchar(255)',
-                Null: 'YES',
-                Key: '',
-                Default: null,
-                Extra: '' },
-              { Field: 'isBetaMember',
-                Type: 'tinyint(1)',
-                Null: 'NO',
-                Key: '',
-                Default: '0',
-                Extra: '' } ]
+              attributes will be something like:
+
+              {
+                name: {
+                  type:         'VARCHAR(255)', // this will be 'CHARACTER VARYING' for pg!
+                  allowNull:    true,
+                  defaultValue: null
+                },
+                isBetaMember: {
+                  type:         'TINYINT(1)', // this will be 'BOOLEAN' for pg!
+                  allowNull:    false,
+                  defaultValue: false
+                }
+              }
             */
           })
         </code></pre>
