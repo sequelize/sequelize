@@ -416,7 +416,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         var query = { where: { username: 'fnord' }}
 
         this.User.find(query).success(function(user2) {
-          expect(user1.equals(user2)).toEqual(true)
+          expect(user1.equals(user2)).toBeTrue()
           done()
         }.bind(this))
       }.bind(this))
