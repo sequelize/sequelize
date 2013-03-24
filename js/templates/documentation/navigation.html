@@ -20,7 +20,11 @@
                 </a>
                 <ul class="dropdown-menu">
                   <% element.entries.forEach(function(entry) { %>
-                    <li><a href="<%= entry.url %>"><%= entry.title %></a></li>
+                    <% if (entry.divider) { %>
+                      <li class="divider"></li>
+                    <% } else { %>
+                      <li><a href="<%= entry.url %>"><%= entry.title %></a></li>
+                    <% } %>
                   <% }) %>
                 </ul>
               </li>

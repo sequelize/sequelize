@@ -7,6 +7,9 @@
       <li><a href="#instances-update">Update / Save</a></li>
       <li><a href="#instances-destroy">Destroy</a></li>
       <li><a href="#instances-values">Values</a></li>
+      <li class="divider"></li>
+      <li><a href="#instances-increment">Increment</a></li>
+      <li><a href="#instances-decrement">Decrement</a></li>
     </ul>
   </div>
   <div class="subnav-shadow"></div>
@@ -177,6 +180,88 @@
     </p>
     <p>
       <strong>Hint:</strong> You can also transform an instance into JSON by using <code>JSON.stringify(instance)</code>. This will basically return the very same as <code>values</code>.
+    </p>
+  </div>
+</div>
+
+<div class="row" id="instances-increment">
+  <div class="span12">
+    <h3>Incrementing certain values of an instance</h3>
+    <p>
+      In order to increment values of an instance without running into concurrency issues, you may use <code>increment</code>.
+    </p>
+    <p>
+      First of all you can define a field and the value you want to add to it.
+
+      <pre><code class="language-javascript">
+        User.find(1).success(function(user) {
+          user.increment('my-integer-field', 2).success(/* ... */)
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      Second, you can define multiple fields and the value you want to add to them.
+
+      <pre><code class="language-javascript">
+        User.find(1).success(function(user) {
+          user.increment([ 'my-integer-field', 'my-very-other-field' ], 2).success(/* ... */)
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      Third, you can define an object containing fields and its increment values.
+
+      <pre><code class="language-javascript">
+        User.find(1).success(function(user) {
+          user.increment({
+            'my-integer-field':    2,
+            'my-very-other-field': 3
+          }).success(/* ... */)
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="instances-decrement">
+  <div class="span12">
+    <h3>Decrementing certain values of an instance</h3>
+    <p>
+      In order to decrement values of an instance without running into concurrency issues, you may use <code>decrement</code>.
+    </p>
+    <p>
+      First of all you can define a field and the value you want to add to it.
+
+      <pre><code class="language-javascript">
+        User.find(1).success(function(user) {
+          user.decrement('my-integer-field', 2).success(/* ... */)
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      Second, you can define multiple fields and the value you want to add to them.
+
+      <pre><code class="language-javascript">
+        User.find(1).success(function(user) {
+          user.decrement([ 'my-integer-field', 'my-very-other-field' ], 2).success(/* ... */)
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      Third, you can define an object containing fields and its decrement values.
+
+      <pre><code class="language-javascript">
+        User.find(1).success(function(user) {
+          user.decrement({
+            'my-integer-field':    2,
+            'my-very-other-field': 3
+          }).success(/* ... */)
+        })
+      </code></pre>
     </p>
   </div>
 </div>

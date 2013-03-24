@@ -23,9 +23,15 @@ define([
           elements.push({
             title:   $this.find('h2').text(),
             url:     '#' + $this.attr('id'),
-            entries: $this.find('.subnav ul.nav-pills > li > a').map(function() {
+            entries: $this.find('.subnav ul.nav-pills > li').map(function() {
               var $this = $(this)
-              return { url: $this.data('navigation-target') || $this.attr('href'), title: $this.text() }
+
+              if ($this.hasClass('divider')) {
+                return { divider: true }
+              } else {
+                $this = $this.find('> a')
+                return { url: $this.data('navigation-target') || $this.attr('href'), title: $this.text() }
+              }
             }).toArray()
           })
         })
