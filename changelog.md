@@ -9,6 +9,7 @@
 - [REFACTORING] dropped support for synchronous migrations. added third parameter which needs to get called once the migration has been finished. also this adds support for asynchronous actions in migrations.
 - [OTHERS] code was formatted to fit the latest code style guidelines (thanks to durango)
 - [OTHERS] Explicitly target ./docs folder for generate-docs script. #444 (thanks to carsondarling)
+- [OTHERS] Overwrite existing daoFactoryDefinition if there already has been one. (thanks to robraux)
 - [BUG] fixed wrong version in sequelize binary
 - [BUG] local options have higher priority than global options (thanks to guersam)
 - [BUG] fixed where clause when passing an empty array (thanks to kbackowski)
