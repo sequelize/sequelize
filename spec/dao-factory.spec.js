@@ -36,6 +36,16 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       expect(User.tableName).toEqual('SuperUsers')
     })
 
+    it("uses checks to make sure dao factory isnt leaking on multiple define", function() {
+      var User = this.sequelize.define('SuperUser', {}, { freezeTableName: false })
+      var factorySize = this.sequelize.daoFactoryManager.all.length
+
+      var User2 = this.sequelize.define('SuperUser', {}, { freezeTableName: false })   
+      var factorySize2 = this.sequelize.daoFactoryManager.all.length
+
+      expect(factorySize).toEqual(factorySize2)
+    })
+
     it("attaches class and instance methods", function() {
       var User = this.sequelize.define('UserWithClassAndInstanceMethods', {}, {
         classMethods: { doSmth: function(){ return 1 } },
