@@ -216,7 +216,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     });
   });
 
-  describe('refresh', function () {
+  describe('reload', function () {
     it("should return a reference to the same DAO instead of creating a new one", function (done) {
       this.User.create({ username: 'John Doe' }).done(function (err, originalUser) {
 
@@ -245,7 +245,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
               done();
             })
           })
-        })        
+        })
       })
     })
 
@@ -270,6 +270,39 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           })
         }, 1000)
       })
+    })
+
+    it("should update the associations as well", function(done) {
+      var Book = this.sequelize.define('Book', { title:   Helpers.Sequelize.STRING })
+        , Page = this.sequelize.define('Page', { content: Helpers.Sequelize.TEXT })
+
+      Book.hasMany(Page)
+      Page.belongsTo(Book)
+
+      this.sequelize.sync({ force: true }).success(function() {
+        Book.create({ title: 'A very old book' }).success(function(book) {
+          Page.create({ content: 'om nom nom' }).success(function(page) {
+            book.setPages([ page ]).success(function() {
+              Book.find({
+                where: (dialect === 'postgres' ? '"Books"."id"=' : '`Books`.`id`=') + book.id,
+                include: [Page]
+              }).success(function(leBook) {
+                page.updateAttributes({ content: 'something totally different' }).success(function(page) {
+                  expect(leBook.pages[0].content).toEqual('om nom nom')
+                  expect(page.content).toEqual('something totally different')
+
+                  leBook.reload().success(function(leBook) {
+                    expect(leBook.pages[0].content).toEqual('something totally different')
+                    expect(page.content).toEqual('something totally different')
+
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        }.bind(this))
+      }.bind(this))
     })
   });
 
