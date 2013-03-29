@@ -7,7 +7,7 @@
       <li><a href="#instances-update">Update / Save</a></li>
       <li><a href="#instances-destroy">Destroy</a></li>
       <li><a href="#instances-values">Values</a></li>
-      <li class="divider"></li>
+      <li><a href="#instances-reload">Reload</a></li>
       <li><a href="#instances-increment">Increment</a></li>
       <li><a href="#instances-decrement">Decrement</a></li>
     </ul>
@@ -180,6 +180,27 @@
     </p>
     <p>
       <strong>Hint:</strong> You can also transform an instance into JSON by using <code>JSON.stringify(instance)</code>. This will basically return the very same as <code>values</code>.
+    </p>
+  </div>
+</div>
+
+<div class="row" id="instances-reload">
+  <div class="span12">
+    <h3>Reloading instances</h3>
+    <p>
+      If you need to get your instance in sync, you can use the method <code>reload</code>. It will fetch the current data
+      from the database and overwrite the attributes of the model on which the method has been called on.
+
+      <pre><code class="language-javascript">
+        Person.find({ where: { name: 'john' } }).success(function(person) {
+          person.name = 'jane'
+          console.log(person.name) // 'jane'
+
+          person.reload().success(function() {
+            console.log(person.name) // 'john'
+          })
+        })
+      </code></pre>
     </p>
   </div>
 </div>
