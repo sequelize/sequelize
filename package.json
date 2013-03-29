@@ -4,8 +4,9 @@
   "description": "ERROR: No README.md file found!",
   "main": "index.js",
   "scripts": {
-    "start": "pkill -f static; node_modules/.bin/static -c 1",
-    "amdify-bootstrap": "node_modules/.bin/bootstrap-amd js/components/bootstrap"
+    "start": "node app.js",
+    "amdify-bootstrap": "node_modules/.bin/bootstrap-amd js/components/bootstrap",
+    "deploy": "git push heroku web:master"
   },
   "repository": "",
   "author": "",
