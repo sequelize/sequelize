@@ -4,6 +4,7 @@ define(function() {
   'use strict';
 
   return function(match) {
-    match('', 'documentation#index')
+    match('',              'home#index')
+    match('documentation', 'documentation#index')
   }
 })
