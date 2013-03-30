@@ -260,9 +260,9 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         name: {
           type: Sequelize.STRING,
           validate: {
-            customFn: function(val) {
+            customFn: function(val, field) {
               if (val !== "2") {
-                throw new Error("name should equal '2'")
+                throw new Error("Should equal '2': " + field)
               }
             }
           }
@@ -273,7 +273,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         , errors      = failingUser.validate()
 
       expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ name: ["name should equal '2'"] })
+      expect(errors).toEqual({ name: ["Should equal '2': name"] })
 
       var successfulUser = User.build({ name : "2" })
       expect(successfulUser.validate()).toBeNull()
