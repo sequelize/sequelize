@@ -6,5 +6,6 @@ define(function() {
   return function(match) {
     match('',              'home#index')
     match('documentation', 'documentation#index')
+    match('changelog',     'changelog#index')
   }
 })

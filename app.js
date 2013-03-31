@@ -3,12 +3,19 @@
 var nodeStatic = require('node-static')
   , http       = require('http')
   , fileServer = new nodeStatic.Server('./')
+  , helpers    = require('./app-helpers')
 
 http.createServer(function (request, response) {
   request.addListener('end', function () {
     var url = request.url
 
-    if (!!url.match(/^\/[^\.]+$/)) {
+    if (url.match(/changelog\.json/)) {
+      helpers.Changelog.load(function(changelog) {
+        response.writeHead(200, {"Content-Type": "application/json"})
+        response.write(JSON.stringify(changelog))
+        response.end()
+      })
+    } else if (!!url.match(/^\/[^\.]+$/)) {
       // is it a normal route ?
       // render the index.html... backbone will do the rest for us
 

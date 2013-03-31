@@ -7,11 +7,11 @@ The documentation is hosted on heroku.
 
 ```
 npm install
-node app.js
+npm start
 ```
 
 ## Deployment
 
 ```
-git push heroku web:master
+npm run reploy
 ```

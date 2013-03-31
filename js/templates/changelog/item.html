@@ -1,0 +1,13 @@
+<section>
+  <h3>v<%= version %></h3>
+  <ul>
+    <% changes.forEach(function(change) { %>
+      <li>
+        <% if (change.type) { %>
+          <span class="label label-success"><%= change.type %></span>
+        <% } %>
+        <%= change.description %>
+      </li>
+    <% }) %>
+  </ul>
+</section>

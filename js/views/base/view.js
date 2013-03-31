@@ -18,7 +18,8 @@ define([
 
       if (typeof template === 'string') {
         templateFunc = function(obj) {
-          return _.template(template, $.extend({}, ViewHelpers, obj, this.options))
+          var locals = $.extend({}, ViewHelpers, obj, this.options, { collection: this.collection })
+          return _.template(template, _.extend({}, locals, { locals: locals }))
         }.bind(this)
 
         this.constructor.prototype.template = templateFunc

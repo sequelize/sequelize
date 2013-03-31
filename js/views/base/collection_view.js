@@ -1,3 +1,5 @@
+/*global define:false, window:false*/
+
 define([
   'chaplin',
   'views/base/view'
@@ -5,9 +7,18 @@ define([
   'use strict';
 
   var CollectionView = Chaplin.CollectionView.extend({
-    // This class doesn’t inherit from the application-specific View class,
-    // so we need to borrow the method from the View prototype:
-    getTemplateFunction: View.prototype.getTemplateFunction
+    autoRender:          true,
+    getTemplateFunction: View.prototype.getTemplateFunction,
+    container:           'body > .container',
+
+    render: function() {
+      Chaplin.CollectionView.prototype.render.apply(this, arguments)
+
+      window.setTimeout(function() {
+        this.trigger('render')
+      }.bind(this), 1)
+    }
+
   })
 
   return CollectionView

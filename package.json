@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "bootstrap-amd": "~1.0.3",
-    "node-static": "~0.6.7"
+    "node-static": "~0.6.7",
+    "request": "~2.16.6"
   },
   "engines": {
     "node": "0.8.x",
