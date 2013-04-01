@@ -18,7 +18,7 @@ define([
         'views/documentation/navigation',
         'bootstrap'
       ], function(IndexView, NavigationView) {
-        new NavigationView()
+        new NavigationView({ controller: 'documentation' })
         new IndexView()
       })
     }

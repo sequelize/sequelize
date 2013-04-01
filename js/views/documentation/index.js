@@ -20,6 +20,8 @@ define([
         var ids       = this.$('section').map(function() { return $(this).attr('id') }).toArray()
           , filenames = ids.map(function(id) { return 'text!templates/documentation/sections/' + id + '.html' })
 
+        this.renderedSections = []
+
         // require the templates ...
         require(filenames, function() {
           var templates = arguments

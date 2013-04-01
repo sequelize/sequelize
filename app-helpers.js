@@ -32,7 +32,7 @@ module.exports = {
             version = match[1]
           } else {
             if (line.trim() !== '') {
-              var parsed = line.match(/-\s(\[.+\])?\s?(.+)/)
+              var parsed = line.match(/-\s(\[.+?\])?\s?(.+)/)
 
               changes.push({
                 type:        (parsed[1] || "").replace('[', '').replace(']', '').toLowerCase(),

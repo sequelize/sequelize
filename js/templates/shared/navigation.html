@@ -38,8 +38,8 @@
               <b class="caret"></b>
             </a>
             <ul class="dropdown-menu">
-              <li><a href="/documentation">Documentation</a></li>
-              <li><a href="/changelog">Changelog</a></li>
+              <li class="<%= (controller === 'documentation') ? 'current' : '' %>"><a href="/documentation">Documentation</a></li>
+              <li class="<%= (controller === 'changelog') ? 'current' : '' %>"><a href="/changelog">Changelog</a></li>
               <li class="divider"></li>
               <li>
                 <a href="https://github.com/sequelize/sequelize" target="_blank" rel="nofollow">

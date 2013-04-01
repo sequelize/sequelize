@@ -18,9 +18,14 @@ define([
         success: function(collection) {
           require([
             'views/changelog/index',
+            'views/changelog/navigation',
             'bootstrap'
-          ], function(View) {
-            new View({ collection: collection })
+          ], function(IndexView, NavigationView) {
+            new IndexView({ collection: collection })
+              .on('render', function() {
+                new NavigationView({ controller: 'changelog' })
+              })
+              .render()
           })
         }
       })

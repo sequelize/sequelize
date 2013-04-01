@@ -2,16 +2,23 @@
 
 define([
   'views/base/collection_view',
-  'views/changelog/item'
-], function(View, ItemView) {
+  'views/changelog/item',
+  'jquery'
+], function(View, ItemView, $) {
   'use strict';
 
   return View.extend({
-    className: 'changelog index',
-    itemView:  ItemView,
+    className:  'changelog index',
+    itemView:   ItemView,
+    autoRender: false,
+
+    listen: {
+      'render': function() {
+        this.$el.prepend($('<h1>Changelog</h1>'))
+      }
+    },
 
     render: function () {
-      console.log(this)
       View.prototype.render.apply(this, arguments)
     }
   })

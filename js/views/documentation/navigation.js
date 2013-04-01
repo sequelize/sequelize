@@ -2,7 +2,7 @@
 
 define([
   'views/base/view',
-  'text!templates/documentation/navigation.html',
+  'text!templates/shared/navigation.html',
   'jquery'
 ], function(View, template, $) {
   'use strict';
