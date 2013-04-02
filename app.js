@@ -1,7 +1,5 @@
 /*global require:false, process:false, console:false*/
 
-
-
 var env        = process.env.NODE_ENV || 'development'
   , nodeStatic = require('node-static')
   , http       = require('http')

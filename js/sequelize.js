@@ -1,4 +1,4 @@
-/*global define:false*/
+/*global define:false, document:false, window:false*/
 
 define([
   'chaplin',
@@ -54,6 +54,11 @@ define([
       // Add additional application-specific properties and methods
       // Seal the mediator
       Chaplin.mediator.seal()
+
+      Chaplin.mediator.subscribe('!router:route', function() {
+        var route = document.location.href.match(/http.?:\/\/.+?(\/.+)/)[1]
+        window._gaq.push(['_trackPageview', route])
+      })
     }
   })
 })
