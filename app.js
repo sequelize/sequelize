@@ -1,8 +1,11 @@
 /*global require:false, process:false, console:false*/
 
-var nodeStatic = require('node-static')
+
+
+var env        = process.env.NODE_ENV || 'development'
+  , nodeStatic = require('node-static')
   , http       = require('http')
-  , fileServer = new nodeStatic.Server('./')
+  , fileServer = new nodeStatic.Server(env === 'development' ? './' : './build/')
   , helpers    = require('./app-helpers')
 
 http.createServer(function (request, response) {
