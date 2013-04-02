@@ -1,0 +1,1 @@
+define(["two","three"],function(e,t){return{name:"four",twoName:e.name,threeName:t.name}});

@@ -1,0 +1,309 @@
+<div class="page-header">
+  <h2>Associations</h2>
+  <div class="subnav">
+    <ul class="nav nav-pills">
+      <li><a href="#associations-one-to-one">One-To-One</a></li>
+      <li><a href="#associations-one-to-many">One-To-Many</a></li>
+      <li><a href="#associations-many-to-many">Many-To-Many</a></li>
+      <li><a href="#associations-associating-objects">Associating objects</a></li>
+      <li><a href="#associations-check-associations">Check associations</a></li>
+    </ul>
+  </div>
+  <div class="subnav-shadow"></div>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <p>
+      With Sequelize you can also specify associations between multiple classes. Doing so will help you to easily access and set those associated objects. The library therefore provides for each defined class different methods, which are explained in the following chapters.
+    </p>
+    <p>
+      <strong>NOTE</strong>: Associations with models that use custom primaryKeys (so not the field 'id') are currently unsupported.
+    </p>
+  </div>
+</div>
+
+<div class="row" id="associations-one-to-one">
+  <div class="span12">
+    <h3>One-To-One associations</h3>
+    <p>
+      One-To-One associations are connecting one source with exactly one target. In order to define a proper database schema, Sequelize utilizes the methods <code>belongsTo</code> and <code>hasOne</code>. You can use them as follows:
+
+      <pre><code class="language-javascript">
+        var User = sequelize.define('User', {/* ... */})
+        var Project = sequelize.define('Project', {/* ... */})
+
+        // One-way associations
+        Project.hasOne(User)
+
+        /*
+          In this example hasOne will add an attribute ProjectId to the User model!
+          Furthermore, Project.prototype will gain the methods getUser and setUser according
+          to the first parameter passed to define. If you have underscore style
+          enabled, the added attribute will be project_id instead of ProjectId.
+
+          You can also define the foreign key, e.g. if you already have an existing
+          database and want to work on it:
+        */
+
+        Project.hasOne(User, { foreignKey: 'initiator_id' })
+
+        /*
+          Because Sequelize will use the model's name (first parameter of define) for
+          the accessor methods, it is also possible to pass a special option to hasOne:
+        */
+
+        Project.hasOne(User, { as: 'Initiator' })
+        // Now you will get Project#getInitiator and Project#setInitiator
+
+        // Or let's define some self references
+        var Person = sequelize.define('Person', { /* ... */})
+
+        Person.hasOne(Person, {as: 'Father'})
+        // this will add the attribute FatherId to Person
+
+        // also possible:
+        Person.hasOne(Person, {as: 'Father', foreignKey: 'DadId'})
+        // this will add the attribute DadId to Person
+
+        // In both cases you will be able to do:
+        Person#setFather
+        Person#getFather
+
+        // If you need to join a table twice you can double join the same table
+        Team.hasOne(Game, {foreignKey : 'homeTeamId'});
+            .hasOne(Game, {foreignKey , 'awayTeamId'});
+        Game.belongsTo(Team);
+
+
+        // Since v1.3.0 you can also chain associations:
+        Project
+          .hasOne(User)
+          .hasOne(Deadline)
+          .hasOne(Attachment)
+      </code></pre>
+    </p>
+    <p>
+      To get the association working the other way around (so from <code>User</code> to <code>Project</code>), it's necessary to do this:
+
+
+      <pre><code class="language-javascript">
+        var User = sequelize.define('User', {/* ... */})
+        var Project = sequelize.define('Project', {/* ... */})
+
+        // One-way back associations
+        Project.belongsTo(User)
+
+        /*
+          In this example belongsTo will add an attribute UserId to the Project model!
+          That's the only difference to hasMany. Self references are working the very same way!
+        */
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="associations-one-to-many">
+  <div class="span12">
+    <h3>One-To-Many associations</h3>
+    <p>
+      One-To-Many associations are connecting one source with multiple targets. The targets however are again connected to exactly one specific source.
+
+
+      <pre><code class="language-javascript">
+        var User = sequelize.define('User', {/* ... */})
+        var Project = sequelize.define('Project', {/* ... */})
+
+        // OK. Now things get more complicated (not really visible to the user :)).
+        // First let's define a hasMany association
+        Project.hasMany(User, {as: 'Workers'})
+
+        /*
+          This will add the attribute ProjectId or project_id to User.
+          Instances of Project will get the accessors getWorkers and setWorkers.
+
+          We could just leave it the way it is and let it be a one-way association.
+          But we want more! Let's define the other way around:
+        */
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="associations-many-to-many">
+  <div class="span12">
+    <h3>Many-To-Many associations</h3>
+    <p>
+      Many-To-Many associations are connecting sources with multiple targets. Furthermore the targets can also have connections to multiple sources.
+
+      <pre><code class="language-javascript">
+        // again the Project association to User
+        Project.hasMany(User, { as: 'Workers' })
+
+        // now comes the association between User and Project
+        User.hasMany(Project)
+
+        /*
+          This will remove the attribute ProjectId (or project_id) from User and create
+          a new model called ProjectsUsers with the equivalent foreign keys ProjectId
+          (or project_id) and UserId (or user_id). If the attributes are camelcase or
+          not depends on the Model it represents.
+
+          Now you can use Project#getWorkers, Project#setWorkers, User#getTasks and
+          User#setTasks.
+        */
+
+        // Of course you can also define self references with hasMany:
+
+        Person.hasMany(Person, { as: 'Children' })
+        // This will create the table ChildrenPersons which stores the ids of the objects.
+
+        // Since v1.5.0 you can also reference the same Model without creating a junction
+        // table (but only if each object will have just one 'parent'). If you need that,
+        // use the option foreignKey and useJunctionTable:
+        Person.hasMany(Person, { as: 'Children', foreignKey: 'ParentId', useJunctionTable: false })
+
+        // You can also use a predefined junction table using the option joinTableName:
+        Project.hasMany(User, {joinTableName: 'project_has_users'})
+        User.hasMany(Project, {joinTableName: 'project_has_users'})
+
+        // If you need your association table to have additional attributes, an alternative
+        // way to do this would be to define the table and then use two hasMany relationship.
+
+        UserProject = sequelize.define('user_projects',{
+           count : Sequelize.INTEGER
+        })
+
+        Project.hasMany(UserProjects);
+        User.hasMany(UserProjects);
+        UserProject.belongsTo(User);
+        UserProject.belongsTo(Project);
+
+        // NOTE : this does NOT allow you direct access from Project to User. You can access
+        // UserProject which will give you access to the User, but it is not a direct relationship
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="associations-associating-objects">
+  <div class="span12">
+    <h3>Associating objects</h3>
+    <p>
+      Because Sequelize is doing a lot of magic, you have to call <code>Sequelize#sync</code> after setting the associations! Doing so will allow you the following:
+
+      <pre><code class="language-javascript">
+        Project.hasMany(Task)
+        Task.hasMany(Project)
+
+        Project.create()...
+        Task.create()...
+        Task.create()...
+
+        // save them... and then:
+        project.setTasks([task1, task2]).success(function() {
+          // saved!
+        })
+
+        // ok now they are save... how do I get them later on?
+        project.getTasks().success(function(associatedTasks) {
+          // associatedTasks is an array of tasks
+        })
+
+        // You can also pass filters to the getter method.
+        // They are equal to the options you can pass to a usual finder method.
+        project.getTasks({ where: 'id > 10' }).success(function(tasks) {
+          // tasks with an id greater than 10 :)
+        })
+
+        // You can also only retrieve certain fields of a associated object.
+        // This example will retrieve the attibutes <code>title</code> and <code>id</code>
+        project.getTasks({attributes: ['title']}).success(function(tasks) {
+          // tasks with an id greater than 10 :)
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      To remove created associations you can just call the set method without a specific id:
+
+      <pre><code class="language-javascript">
+        // remove the association with task1
+        project.setTasks([task2]).success(function(associatedTasks) {
+          // you will get task2 only
+        })
+
+        // remove 'em all
+        projects.setTasks([]).success(function(associatedTasks) {
+          // you will get an empty array
+        })
+
+        // or remove 'em more directly
+        projects.removeTask(task1).success(function() {
+          // it's gone
+        })
+
+        // and add 'em again
+        projects.addTask(task1).success(function() {
+          // it's back again
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      You can of course also do it vice versa:
+
+      <pre><code class="language-javascript">
+        // project is associated with task1 and task2
+        task2.setProject(null).success(function() {
+          // and it's gone
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      For hasOne/belongsTo its basically the same:
+
+      <pre><code class="language-javascript">
+        Task.hasOne(User, {as: "Author"})
+        Task#setAuthor(anAuthor)
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="associations-check-associations">
+  <div class="span12">
+    <h3>Check associations</h3>
+    <p>
+      Sequelize <code>v1.5.0</code> introduced methods which allows you, to check if an object is already associated with another one (N:M only). Here is how you'd do it:
+
+      <pre><code class="language-javascript">
+        // check if an object is one of associated ones:
+        Project.create({ /* */ }).success(function(project) {
+          User.create({ /* */ }).success(function(user) {
+            project.hasUser(user).success(function(result) {
+              // result would be false
+              project.addUser(user).success(function() {
+                project.hasUser(user).success(function(result) {
+                  // result would be true
+                })
+              })
+            })
+          })
+        })
+
+        // check if all associated objects are as expected:
+        // let's assume we have already a project and two users
+        project.setUsers([user1, user2]).success(function() {
+          project.hasUsers([user1]).success(function(result) {
+            // result would be false
+            project.hasUsers([user1, user2]).success(function(result) {
+              // result would be true
+            })
+          })
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>

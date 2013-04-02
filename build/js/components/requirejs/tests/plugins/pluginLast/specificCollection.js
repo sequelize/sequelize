@@ -1,0 +1,1 @@
+define(["collection","text!specificCollection.html"],function(e,t){return{name:"specificCollection",html:t,collection:e}});

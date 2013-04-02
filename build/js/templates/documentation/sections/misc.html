@@ -1,0 +1,166 @@
+<div class="page-header">
+  <h2>Misc</h2>
+  <div class="subnav">
+    <ul class="nav nav-pills">
+      <li><a href="#misc-compatibility">Compatibility</a></li>
+      <li><a href="#misc-asynchronicity">Asynchronicity</a></li>
+      <li><a href="#misc-links">Additional links</a></li>
+      <li><a href="#misc-companies-and-projects">Companies & Projects</a></li>
+    </ul>
+  </div>
+  <div class="subnav-shadow"></div>
+</div>
+
+<div class="row" id="misc-compatibility">
+  <div class="span12">
+    <h3>Compatibility</h3>
+    <p>
+      Sequelize is compatible to the following versions of Node.JS:
+
+      <ul>
+        <li>0.8.x</li>
+        <li>0.6.x</li>
+        <li style="text-decoration: line-through">0.5.10</li>
+        <li style="text-decoration: line-through">0.4.12</li>
+      </ul>
+    </p>
+    <p>
+      <strong>HINT: </strong>
+      Compatibility for versions <code>< 0.6</code> was dropped with Sequelize <code>v1.4.1</code>. It might still work with Node.JS v0.4.x but as tests were moved to BusterJS, total test coverage for <code>< v0.6</code> was not possible anymore.
+    </p>
+  </div>
+</div>
+
+<div class="row" id="misc-asynchronicity">
+  <div class="span12">
+    <h3>Asynchronicity</h3>
+    <p>
+      Since <code>v1.3.0</code> there are multiple ways of adding listeners to asynchronous requests. First of all, each time you call a finder method or save an object, sequelize triggers asynchronous logic. To react to the success or the failure (or both) of the request, you can do the following:
+
+      <pre><code class="language-javascript">
+        // the old, pre-v1.3.0 way
+        Model.findAll().on('success', function(models) { /* foo */ })
+        Model.findAll().on('failure', function(err) { /* bar */ })
+
+        // the new, >=v1.3.0 way
+        // each one is valid
+        Model.findAll().on('success', function(models) { /* foo */ })
+        Model.findAll().success(function(models) { /* foo */ })
+        Model.findAll().ok(function(models) { /* foo */ })
+
+        // Model.findAll().on('failure', function(err) { /* bar */ }) ==> invalid since v1.5.0
+        Model.findAll().on('error', function(err) { /* bar */ }) //   ==> new since v1.5.0
+        Model.findAll().error(function(err) { /* bar */ })
+        Model.findAll().failure(function(err) { /* bar */ })
+        Model.findAll().fail(function(err) { /* bar */ })
+
+        Model.findAll().complete(function(err, result) { /* bar */ })
+        Model.findAll().done(function(err, result) { /* bar */ })
+
+        /*
+          Please notice:
+          Since v1.5.0 the 'error' event is used to notify about errors.
+          If such events aren't caught however, Node.JS will throw an error.
+          So you would probably like to catch them :D
+        */
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="misc-links">
+  <div class="span12">
+    <h3>Additional links</h3>
+    <p>
+      If you want to keep track about latest development of sequelize or to just discuss things with other sequelize users you might want to take a look at the following resources:
+
+      <ul>
+        <li><a href="http://twitter.com/sdepold" target="_blank">Twitter @sdepold</a></li>
+        <li><a href="http://twitter.com/sequelizejs" target="_blank">Twitter @sequelizejs</a></li>
+        <li><a href="https://alpha.app.net/sdepold" target="_blank">ADN @sdepold</a></li>
+        <li><a href="irc://irc.freenode.net/sequelizejs" target="_blank">IRC sequelizejs@freenode.net</a></li>
+        <li><a href="https://www.xing.com/net/priec1b5cx/sequelize" target="_blank">XING</a></li>
+        <li><a href="https://www.facebook.com/sequelize" target="_blank">Facebook</a></li>
+      </ul>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="misc-companies-and-projects">
+  <div class="span12">
+    <h3>Company & Projects</h3>
+    <p>
+      Here is a list of companies and projects that are using sequelize in real world applications:
+
+      <div class="company-or-project">
+        <span class="row-fluid">
+          <span class="span9">
+            <h4><a href="http://www.shutterstock.com" rel="nofollow" target="_blank">Shutterstock</a></h4>
+            <p>
+              Shutterstock Images LLC is a leading global provider of high-quality stock footage, stock photography, vectors and illustrations to creative industry professionals around the world. Shutterstock works closely with its growing contributor community of artists, photographers, videographers and illustrators to curate a global marketplace for royalty-free, top-quality imagery. Shutterstock adds tens of thousands of rights-cleared images and footage clips each week, with more than 18 million files currently available.
+            </p>
+          </span>
+          <span class="span3 mini-browser-container">
+            <div class="mini-browser" data-img-url="/img/shutterstock.jpg"></div>
+          </span>
+        </span>
+      </div>
+
+      <div class="company-or-project">
+        <span class="row-fluid">
+          <span class="span9">
+            <h4><a href="https://innofluence.com" rel="nofollow" target="_blank">Innofluence</a></h4>
+            <p>
+              On Innofluence, people meet and engage in challenges, questions, and dilemmas – big and small – to be inspired, to explore, and to find better solutions and answers. Together. Ask the network a question, and they will in return reply with Input, exciting points of view, and new reflections. Or help and inspire others in need of your input.
+            </p>
+          </span>
+          <span class="span3 mini-browser-container">
+            <div class="mini-browser" data-img-url="/img/innofluence.jpg"></div>
+          </span>
+        </span>
+      </div>
+
+      <div class="company-or-project">
+        <span class="row-fluid">
+          <span class="span9">
+            <h4><a href="http://moxboxx.com" rel="nofollow" target="_blank">moxboxx</a></h4>
+            <p>
+              moxboxx is a playlist sharing service that utilizes Youtube, Vimeo and Soundcloud. It’s a pretty fun project to hack on and is in constant development as more things are added and removed via testing and feedback. Kudos go to <a href="http://ednapiranha.com/" rel="nofollow" target="_blank">ednapiranha</a>.
+            </p>
+          </span>
+          <span class="span3 mini-browser-container">
+            <div class="mini-browser" data-img-url="/img/moxboxx.jpg"></div>
+          </span>
+        </span>
+      </div>
+
+      <div class="company-or-project">
+        <span class="row-fluid">
+          <span class="span9">
+            <h4><a href="http://metamarkets.com/" rel="nofollow" target="_blank">Metamarkets</a></h4>
+            <p>
+              Metamarkets enables buyers and sellers of digital media to visualize insights and make decisions with real-time pricing, performance, and audience data.
+            </p>
+          </span>
+          <span class="span3 mini-browser-container">
+            <div class="mini-browser" data-img-url="/img/metamarkets.jpg"></div>
+          </span>
+        </span>
+      </div>
+
+      <div class="company-or-project">
+        <span class="row-fluid">
+          <span class="span9">
+            <h4><a href="https://github.com/sequelize/sequelize/tree/gh-pages" rel="nofollow" target="_blank">Using sequelize?</a></h4>
+            <p>
+              If you want to get listed here, just drop me a line or send me a pull-request on Github!
+            </p>
+          </span>
+          <span class="span3 mini-browser-container">
+            <div class="mini-browser" data-img-url="/img/github.jpg"></div>
+          </span>
+        </span>
+      </div>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,1 @@
+(function(){function e(e){e.fn.gamma=function(){return"gamma"},e(function(){doh.is("gamma",e("body").gamma()),readyFired()})}typeof define!="undefined"&&define.amd?define(["jquery"],e):typeof jQuery!="undefined"&&e(jQuery)})();

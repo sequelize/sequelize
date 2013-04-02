@@ -1,0 +1,28 @@
+{
+  "name": "sequelize",
+  "version": "0.0.0",
+  "description": "ERROR: No README.md file found!",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "amdify-bootstrap": "node_modules/.bin/bootstrap-amd js/components/bootstrap",
+    "deploy": "git push heroku web:master",
+    "build": "cd build && node ../node_modules/.bin/r.js -o build.js && cd .."
+  },
+  "repository": "",
+  "author": "",
+  "license": "BSD",
+  "devDependencies": {
+    "node-static": "~0.6.7"
+  },
+  "dependencies": {
+    "bootstrap-amd": "~1.0.3",
+    "node-static": "~0.6.7",
+    "request": "~2.16.6",
+    "requirejs": "~2.1.5"
+  },
+  "engines": {
+    "node": "0.8.x",
+    "npm": "1.1.x"
+  }
+}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.png" />
+<title>Download ▲ Prism</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="prism.css" data-noprefix />
+<style>
+form label {
+	display: block;
+	padding: .2em;
+}
+
+form input {
+	margin-right: .7em;
+}
+
+form > p:first-of-type > label {
+	font-size: 150%;
+}
+
+	form > p:first-of-type > label input {
+		vertical-align: .3em;
+	}
+	
+.filesize:empty {
+	display: none;
+}
+
+.filesize::before,
+.filesize::after {
+	font-weight: normal;
+}
+
+.filesize::before {
+	content: '(';
+}
+
+.filesize::after {
+	content: ')';
+}
+
+#components {
+	overflow: hidden;
+}
+
+section.options {
+	width: 33.3%;
+	float: left;
+}
+
+section.download {
+	width: 50%;
+	float: left;
+}
+
+#download {
+	overflow: hidden;
+	padding: .3em;
+}
+
+	#download pre {
+		height: 20em;
+		word-wrap: break-word;
+	}
+
+	#download-js .download-button {
+		border-top-right-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+	
+	#download-css .download-button {
+		background-color: #dc9e23;
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+</style>
+<script src="prefixfree.min.js"></script>
+
+<script>var _gaq = [['_setAccount', 'UA-33746269-1'], ['_trackPageview']];</script>
+<script src="http://www.google-analytics.com/ga.js" async></script>
+</head>
+<body>
+
+<header>
+	<div class="intro" data-src="templates/header-main.html" data-type="text/html"></div>
+	
+	<h2>Customize your download</h2>
+	<p>Select your compression level, as well as the languages and plugins you need.</p>
+</header>
+
+<section>
+	<form>
+		<p>
+			Compression level:
+			<label><input type="radio" name="compression" value="0" /> Development version</label>
+			<label><input type="radio" name="compression" value="1" checked /> Minified version</label>
+		</p>
+		
+		<section id="components"></section>
+		
+		<p>
+			Total filesize: <strong id="filesize"></strong> (<strong id="percent-js"></strong> JavaScript + <strong id="percent-css"></strong> CSS)
+		</p>
+		<p><strong>Note:</strong> The filesizes displayed refer to non-gizipped files and include any CSS code required. The CSS code is not minified.</p>
+		
+		<section id="download">
+			<section id="download-js" class="download">
+				<pre><code class="language-javascript"></code></pre>
+				<a href="#" class="download-button" download="prism.js" target="_blank">Download JS</a>
+			</section>
+			
+			<section id="download-css" class="download">
+				<pre><code class="language-css"></code></pre>
+				<a href="#" class="download-button" download="prism.css" target="_blank">Download CSS</a>
+			</section>
+		</section>
+		
+	</form>
+	
+</section>
+
+<footer data-src="templates/footer.html" data-type="text/html"></footer>
+
+<script src="prism.js"></script>
+<script src="utopia.js"></script>
+<script src="code.js"></script>
+<script src="download.js"></script>
+
+</body>
+</html>

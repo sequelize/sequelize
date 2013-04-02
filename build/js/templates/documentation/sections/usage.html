@@ -1,0 +1,245 @@
+<div class="page-header">
+  <h2>Usage</h2>
+  <div class="subnav">
+    <ul class="nav nav-pills">
+      <li><a href="#usage-basic-usage">Basic Usage</a></li>
+      <li><a href="#usage-options">Options</a></li>
+      <li><a href="#usage-dialects">Dialects</a></li>
+      <li><a href="#usage-raw-queries">Raw Queries</a></li>
+    </ul>
+  </div>
+  <div class="subnav-shadow"></div>
+</div>
+
+<div class="row" id="usage-basic-usage">
+  <div class="span12">
+    <h3>Basic usage</h3>
+    <p>
+      To get the ball rollin' you first have to create an instance of Sequelize. Use it the following way:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username'[, 'password'])
+      </code></pre>
+    </p>
+    <p>
+      This will save the passed database credentials and provide all further methods. Furthermore you can specify a non-default host/port:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          host: "my.server.tld",
+          port: 12345
+        })
+      </code></pre>
+    </p>
+    <p>
+      If you just don't have a password:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username')
+        // or
+        var sequelize = new Sequelize('database', 'username', null)
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="usage-options">
+  <div class="span12">
+    <h3>Options</h3>
+    <p>
+      Besides the host and the port, Sequelize comes with a whole bunch of options. Here they are:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // custom host; default: localhost
+          host: 'my.server.tld',
+
+          // custom port; default: 3306
+          port: 12345,
+
+          // custom protocol
+          // - default: 'tcp'
+          // - added in: v1.5.0
+          // - postgres only, useful for heroku
+          protocol: null,
+
+          // disable logging; default: console.log
+          logging: false,
+
+          // max concurrent database requests; default: 50
+          maxConcurrentQueries: 100,
+
+          // the sql dialect of the database
+          // - default is 'mysql'
+          // - currently supported: 'mysql', 'sqlite', 'postgres'
+          dialect: 'mysql',
+
+          // the storage engine for sqlite
+          // - default ':memory:'
+          storage: 'path/to/database.sqlite',
+
+          // disable inserting undefined values as NULL
+          // - default: false
+          omitNull: true,
+
+          // Specify options, which are used when sequelize.define is called.
+          // The following example:
+          //   define: {timestamps: false}
+          // is basically the same as:
+          //   sequelize.define(name, attributes, { timestamps: false })
+          // so defining the timestamps for each model will be not necessary
+          // Below you can see the possible keys for settings. All of them are explained on this page
+          define: {
+            underscored: false
+            freezeTableName: false,
+            syncOnAssociation: true,
+            charset: 'utf8',
+            collate: 'utf8_general_ci',
+            classMethods: {method1: function() {}},
+            instanceMethods: {method2: function() {}},
+            timestamps: true
+          },
+
+          // similiar for sync: you can define this to always force sync for models
+          sync: { force: true }
+
+          // sync after each association (see below). If set to false, you need to sync manually after setting all associations. Default: true
+          syncOnAssociation: true
+
+          // use pooling in order to reduce db connection overload and to increase speed
+          // currently only for mysql and postgresql (since v1.5.0)
+          pool: { maxConnections: 5, maxIdleTime: 30}
+        })
+      </code></pre>
+    </p>
+    <p><strong>Hint:</strong> You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.</p>
+  </div>
+</div>
+
+<div class="row" id="usage-dialects">
+  <div class="span12">
+    <h3>Dialects</h3>
+    <p>
+      With the release of Sequelize <code>v1.6.0</code>, the library got independent from specific dialects. That mean, that you'll have to add the respective dialect library yourself. Another option is the use of the sequelize packages that ship the dialect libraries as well.
+    </p>
+
+    <h4>MySQL</h4>
+    <p>
+      In order to get Sequelize working nicely together with MySQL, you'll need to install <code>mysql @ ~2.0.0-alpha7</code>. Once that's done you can use it like this:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // mysql is the default dialect, but you know...
+          // for demo purporses we are defining it nevertheless :)
+          // so: we want mysql!
+          dialect: 'mysql'
+        })
+      </code></pre>
+
+      Also possible is the use of <code>sequelize-mysql</code>. Just install it via
+      <code>npm install sequelize-mysql</code> and use it like this:
+
+      <pre><code class="language-javascript">
+        var Sequelize = require('sequelize-mysql').sequelize
+        var mysql     = require('sequelize-mysql').mysql
+
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // mysql is the default dialect, but you know...
+          // for demo purporses we are defining it nevertheless :)
+          // so: we want mysql!
+          dialect: 'mysql'
+        })
+      </code></pre>
+    </p>
+
+    <h4>SQLite</h4>
+    <p>
+      For SQLite compatibility you'll need <code>sqlite3 @ ~2.1.5</code>. Configure Sequelize like this:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // sqlite! now!
+          dialect: 'sqlite',
+
+          // the storage engine for sqlite
+          // - default ':memory:'
+          storage: 'path/to/database.sqlite'
+        })
+      </code></pre>
+
+      If you want to use the bundled version, run <code>npm install sequelize-sqlite</code> and use the following code:
+
+      <pre><code class="language-javascript">
+        var Sequelize = require('sequelize-sqlite').sequelize
+        var sqlite    = require('sequelize-sqlite').sqlite
+
+         var sequelize = new Sequelize('database', 'username', 'password', {
+          dialect: 'sqlite',
+          storage: 'path/to/database.sqlite'
+        })
+      </code></pre>
+    </p>
+
+    <h4>PostgreSQL</h4>
+    <p>
+      The library for PostgreSQL is <code>pg @ ~0.10.2</code>. You'll just need to define the dialect:
+
+      <pre><code class="language-javascript">
+        var sequelize = new Sequelize('database', 'username', 'password', {
+          // gimme postgres, please!
+          dialect: 'postgres'
+        })
+      </code></pre>
+
+      In order to use the bundled version, use this <code>npm install sequelize-postgres</code> and require the lib this way:
+
+      <pre><code class="language-javascript">
+        var Sequelize = require('sequelize-postgres').sequelize
+        var postgres  = require('sequelize-postgres').postgres
+
+         var sequelize = new Sequelize('database', 'username', 'password', {
+          dialect: 'postgres'
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>
+
+<div class="row" id="usage-raw-queries">
+  <div class="span12">
+    <h3>Executing raw SQL queries</h3>
+
+    <p>
+      As there are often use cases in which it is just easier to execute raw / already prepared SQL queries, you can utilize the function <code>sequelize.query</code>.
+      <br><br>
+      Here is how it works:
+
+      <pre><code class="language-javascript">
+        sequelize.query("SELECT * FROM myTable").success(function(myTableRows) {
+          console.log(myTableRows)
+        })
+      </code></pre>
+    </p>
+
+    <p>
+      <strong>One note</strong>: If the attribute names of the table contain dots, the
+      resulting objects will get a nesting:
+
+      <pre><code class="language-javascript">
+        sequelize.query('select 1 as `foo.bar.baz`').success(function(rows) {
+          console.log(JSON.stringify(rows))
+
+          /*
+            [{
+              "foo": {
+                "bar": {
+                  "baz": 1
+                }
+              }
+            }]
+          */
+        })
+      </code></pre>
+    </p>
+  </div>
+</div>

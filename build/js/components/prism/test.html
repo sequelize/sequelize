@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.png" />
+<title>Test drive ▲ Prism</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="prism.css" data-noprefix />
+<style>
+#theme {
+	margin-right: -9em;
+}
+textarea {
+	width: 100%;
+	height: 10em;
+	padding: 1em;
+	box-sizing: border-box;
+	margin: .5em 0;
+	background: #f5f2f0;
+	color: black;
+	text-shadow: 0 1px white;
+	tab-size: 4;
+	font: 100% Consolas, Monaco, monospace;
+	white-space: pre;
+	word-wrap: normal;
+}
+
+#language label {
+	display: inline-block;
+	padding: .5em;
+}
+
+	#language input {
+		margin-right: .3em;
+	}
+
+</style>
+<script src="prefixfree.min.js"></script>
+
+<script>var _gaq = [['_setAccount', 'UA-33746269-1'], ['_trackPageview']];</script>
+<script src="http://www.google-analytics.com/ga.js" async></script>
+</head>
+<body>
+
+<header>
+	<div class="intro" data-src="templates/header-main.html" data-type="text/html"></div>
+	
+	<h2>Test drive</h2>
+	<p>Take Prism for a spin!</p>
+</header>
+
+<section>
+	<form>
+		<p>
+			<textarea>&lt;p class="hey">Type some code here&lt;/p></textarea>
+		</p>
+		
+		<p id="language">Language:
+		</p>
+		
+		<p>
+			<label>
+				<input type="checkbox" name="async" value="1" />
+				Asynchronously
+			</label>
+		</p>
+		
+		<p>Result:</p>
+		<pre><code></code></pre>
+	</form>
+</section>
+
+<footer data-src="templates/footer.html" data-type="text/html"></footer>
+
+<script src="prism.js"></script>
+<script src="utopia.js"></script>
+<script src="code.js"></script>
+<script>
+(function() {
+var form = $('form'), code = $('code', form),
+    languages = components.languages;
+
+for (var id in languages) {
+	if (id == 'meta') {
+		continue;
+	}
+	
+	var name = languages[id].title || languages[id];
+	
+	$u.element.create('label', {
+		contents: [
+			{
+				tag: 'input',
+				properties: {
+					type: 'radio',
+					name: 'language',
+					value: id,
+					onclick: function () {
+						code.className = 'language-' + this.value;
+						Prism.highlightElement(code, form.elements.async.checked);
+					}
+				}
+			}, name
+		],
+		inside: '#language'
+	});
+}
+
+var radios = $$('input[name=language]');
+radios[0].checked = true;
+radios[0].onclick();
+
+var textarea = $('textarea', form);
+(textarea.oninput = function() {
+	code.textContent = this.value || '';
+	Prism.highlightElement(code, form.elements.async.checked);
+}).call(textarea);
+
+})();
+
+</script>
+
+</body>
+</html>

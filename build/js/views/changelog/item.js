@@ -1,0 +1,1 @@
+define(["views/base/view","text!templates/changelog/item.html"],function(e,t){return e.extend({template:t,className:"changelog item",listen:{render:function(){console.log("rendered")}}})});

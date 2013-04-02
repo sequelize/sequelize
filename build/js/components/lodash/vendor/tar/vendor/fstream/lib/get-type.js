@@ -1,0 +1,1 @@
+function getType(e){var t=["Directory","File","SymbolicLink","Link","BlockDevice","CharacterDevice","FIFO","Socket"],n;if(e.type&&-1!==t.indexOf(e.type))return e[e.type]=!0,e.type;for(var r=0,i=t.length;r<i;r++){n=t[r];var s=e[n]||e["is"+n];typeof s=="function"&&(s=s.call(e));if(s)return e[n]=!0,e.type=n,n}return null}module.exports=getType;

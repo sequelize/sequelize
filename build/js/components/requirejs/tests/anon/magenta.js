@@ -1,0 +1,1 @@
+define(["require","exports","module","red","./blue","text!./message.txt"],function(e,t,n){var r=e("red"),i=e("./blue"),s=e("text!./message.txt");t.name=r.name+i.name,t.path=e.toUrl("./foo.html"),t.message=s});

@@ -1,0 +1,52 @@
+{
+  "name": "lodash",
+  "version": "1.0.1",
+  "description": "An alternative to Underscore.js, delivering consistency, customization, performance, and extra features.",
+  "homepage": "http://lodash.com",
+  "main": "./dist/lodash",
+  "keywords": [
+    "browser",
+    "client",
+    "functional",
+    "performance",
+    "server",
+    "speed",
+    "util"
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://lodash.com/license"
+    }
+  ],
+  "author": {
+    "name": "John-David Dalton",
+    "email": "john.david.dalton@gmail.com",
+    "web": "http://allyoucanleet.com/"
+  },
+  "bugs": {
+    "url": "https://github.com/bestiejs/lodash/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bestiejs/lodash.git"
+  },
+  "bin": {
+    "lodash": "./build.js"
+  },
+  "directories": {
+    "doc": "./doc",
+    "test": "./test"
+  },
+  "engines": [
+    "node",
+    "rhino"
+  ],
+  "jam": {
+    "main": "./lodash.js"
+  },
+  "scripts": {
+    "build": "node ./build.js",
+    "test": "node ./test/test.js ./dist/lodash.js && node ./test/test.js ./dist/lodash.min.js && node ./test/test-build.js"
+  }
+}

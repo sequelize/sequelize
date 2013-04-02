@@ -1,0 +1,1 @@
+define(["./pane"],function(e){return{name:"dojox/window",paneName:e.name}});

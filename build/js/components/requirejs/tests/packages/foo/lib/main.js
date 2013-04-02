@@ -1,0 +1,1 @@
+define(["require","exports","module","alpha"],function(e,t){t.name="foo",t.alphaName=e("alpha").name});

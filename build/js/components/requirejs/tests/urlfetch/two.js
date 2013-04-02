@@ -1,0 +1,1 @@
+define("one",{name:"one"}),define("two",["one"],function(e){return{name:"two",oneName:"one"}});

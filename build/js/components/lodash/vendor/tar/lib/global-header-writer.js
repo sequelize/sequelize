@@ -1,0 +1,1 @@
+function GlobalHeaderWriter(e){if(!(this instanceof GlobalHeaderWriter))return new GlobalHeaderWriter(e);ExtendedHeaderWriter.call(this,e),this.props.type="g"}module.exports=GlobalHeaderWriter;var ExtendedHeaderWriter=require("./extended-header-writer.js"),inherits=require("../vendor/inherits/inherits.js");inherits(GlobalHeaderWriter,ExtendedHeaderWriter);

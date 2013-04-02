@@ -1,0 +1,1 @@
+define({load:function(e,t,n,r){t([e],n)}});

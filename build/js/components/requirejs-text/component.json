@@ -1,0 +1,8 @@
+{
+  "name": "requirejs-text",
+  "version": "2.0.5",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/requirejs/text"
+  }
+}

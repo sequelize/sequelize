@@ -1,0 +1,1 @@
+require({baseUrl:requirejs.isBrowser?"./":"./exports/"},["am"],function(e){doh.register("moduleAndExports",[function(n){n.is("am",e.name),n.is("bm",e.bName),n.is("cm",e.cName)}]),doh.run()});

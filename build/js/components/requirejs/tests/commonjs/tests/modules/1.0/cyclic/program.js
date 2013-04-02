@@ -1,0 +1,1 @@
+define(["require","exports","module","test","a","b"],function(e,t,n){var r=e("test"),i=e("a"),s=e("b");r.assert(i.a,"a exists"),r.assert(s.b,"b exists"),r.assert(i.a().b===s.b,"a gets b"),r.assert(s.b().a===i.a,"b gets a"),r.print("DONE","info")});

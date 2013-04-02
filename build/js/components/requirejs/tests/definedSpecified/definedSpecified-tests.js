@@ -1,0 +1,1 @@
+var master=new doh.Deferred;doh.register("definedSpecified",[{name:"definedSpecified",timeout:5e3,runTest:function(){return master}}]),doh.run(),require.config({baseUrl:"./"}),define("tests",["require","a","b"],function(e,t,n){doh.is(!0,e.specified("a")),doh.is(!0,e.specified("b")),doh.is(!0,e.defined("a")),doh.is(!0,e.defined("b")),master.callback(!0)}),require(["tests"]);

@@ -1,0 +1,1 @@
+define(["require"],function(e){e(["./b"])});

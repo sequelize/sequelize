@@ -1,0 +1,1 @@
+require({baseUrl:"./scripts/",paths:{jquery:"http://ajax.microsoft.com/ajax/jQuery/jquery-1.7.1.min"},priority:["jquery"]}),define(["jquery.gamma","jquery.epsilon"],function(){$(function(){doh.is("epsilon",$("body").epsilon()),doh.is("epsilon",$("body").epsilon()),readyFired()})});

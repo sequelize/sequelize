@@ -1,0 +1,1 @@
+define(["require","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"],function(e){function t(){}return e("https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"),{isFunction:jQuery.isFunction(t)}});

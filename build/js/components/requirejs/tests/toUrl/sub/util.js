@@ -1,0 +1,1 @@
+define(["require","text!./util.html","text!../auxil.html","./nested/thing"],function(e){return{dotPath:e.toUrl("."),html:e("text!./util.html"),auxHtml:e("text!../auxil.html"),thing:e("./nested/thing")}});

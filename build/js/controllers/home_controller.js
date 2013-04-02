@@ -1,0 +1,1 @@
+define(["controllers/base/controller"],function(e){return e.extend({title:"Home",historyURL:function(){return""},index:function(e){this.redirectTo("/documentation")}})});

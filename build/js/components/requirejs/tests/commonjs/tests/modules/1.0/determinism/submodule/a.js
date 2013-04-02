@@ -1,0 +1,1 @@
+define(["require","exports","module","test","test","a"],function(e,t,n){var r=e("test"),i=!1,r=e("test");try{e("a")}catch(s){i=!0}r.assert(i,"require does not fall back to relative modules when absolutes are not available.")});

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Lo-Dash Test Suite</title>
+		<link rel="stylesheet" href="../vendor/qunit/qunit/qunit.css">
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<script src="../vendor/platform.js/platform.js"></script>
+		<script src="../vendor/qunit/qunit/qunit.js"></script>
+		<script src="test-ui.js"></script>
+		<script>
+			// set a bad shim
+			Object._keys = Object.keys;
+			Object.keys = function() { return []; };
+
+			// load Lo-Dash and expose it to the bad `Object.keys` shim
+			document.write('<script src="../' + ui.buildPath + '"><\/script>');
+		</script>
+		<script>
+			// store Lo-Dash to test for bad shim detection
+			var lodashBadShim = _;
+
+			// restore nativeKeys
+			Object.keys = Object._keys;
+			delete Object._keys;
+
+			// load Lo-Dash again to overwrite the existing `_` value
+			document.write('<script src="../' + ui.buildPath + '"><\/script>');
+
+			// load test.js if not using require.js
+			document.write(QUnit.urlParams.norequire
+				? '<script src="test.js"><\/script>'
+				: '<script src="../vendor/requirejs/require.js"><\/script>'
+			);
+		</script>
+		<script>
+			// load Lo-Dash as a module
+			var lodashModule,
+			    shimmedModule,
+			    underscoreModule;
+
+			window.require && require(
+			(function() {
+				var modulePath = ui.buildPath.replace(/\.js$/, '');
+				return {
+					'baseUrl': '../vendor/requirejs/',
+					'urlArgs': 't=' + (+new Date),
+					'paths': {
+						'lodash': '../../' + modulePath,
+						'shimmed': './../../' + modulePath,
+						'underscore': '../underscore/../../' + modulePath
+					},
+					'shim': {
+						'shimmed': {
+						    'exports': '_'
+						}
+					}
+				};
+			}()),
+			['lodash', 'shimmed', 'underscore'], function(lodash, shimmed, underscore) {
+				if (lodash && lodash.noConflict) {
+					lodashModule = lodash.noConflict();
+					lodashModule.moduleName = 'lodash';
+				}
+				if (shimmed.noConflict) {
+					shimmedModule = shimmed.noConflict();
+					shimmedModule.moduleName = 'shimmed';
+				}
+				if (underscore && underscore.noConflict) {
+					underscoreModule = underscore.noConflict();
+					underscoreModule.moduleName = 'underscore';
+				}
+				require(['test.js']);
+			});
+
+			// set a more readable browser name
+			window.onload = function() {
+				var timeoutId = setInterval(function() {
+					var ua = document.getElementById('qunit-userAgent');
+					if (ua) {
+						ua.innerHTML = platform;
+						clearInterval(timeoutId);
+					}
+				}, 15);
+			};
+		</script>
+	</body>
+</html>

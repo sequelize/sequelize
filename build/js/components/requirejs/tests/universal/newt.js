@@ -1,0 +1,1 @@
+(function(e){e(["require","tail","eye"],function(e){var t=e("tail"),n=e("eye");return{name:"newt",eyeName:n.name,tailName:t.name}})})(typeof define=="function"&&define.amd?define:function(e,t){typeof module!="undefined"&&module.exports?module.exports=t(require):window.myGlobal=t(function(e){return window[e]})});

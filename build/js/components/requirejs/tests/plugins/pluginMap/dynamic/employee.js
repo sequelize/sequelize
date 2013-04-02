@@ -1,0 +1,1 @@
+define("employee",["plugin!person"],function(e){return{name:"employed "+e.name}});

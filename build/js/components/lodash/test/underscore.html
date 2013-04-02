@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Underscore Test Suite</title>
+		<link rel="stylesheet" href="../vendor/qunit/qunit/qunit.css">
+		<style>
+			iframe {
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture">
+			<div id="map-test">
+				<div id="id1"></div>
+				<div id="id2"></div>
+			</div>
+			<img id="chart_image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+		</div>
+		<script src="../vendor/jquery/jquery.js"></script>
+		<script src="../vendor/platform.js/platform.js"></script>
+		<script src="../vendor/qunit/qunit/qunit.js"></script>
+		<script src="test-ui.js"></script>
+		<script>
+			document.write('<script src="../' + ui.buildPath + '"><\/script>');
+		</script>
+		<script>
+			(function() {
+				var arrayProto = Array.prototype,
+				    concat = arrayProto.concat,
+				    pop = arrayProto.pop,
+				    push = arrayProto.push,
+				    slice = arrayProto.slice;
+
+				if (_.chain) {
+					return;
+				}
+				_.mixin = function(object) {
+					_.forEach(_.functions(object), function(methodName) {
+						var func = _[methodName] = object[methodName];
+						_.prototype[methodName] = function() {
+							var args = [this.__wrapped__];
+							push.apply(args, arguments);
+
+							var result = func.apply(_, args);
+							if (this.__chain__) {
+								result = new _(result);
+								result.__chain__ = true;
+							}
+							return result;
+						};
+					});
+				};
+
+				_.mixin(_);
+
+				_.mixin({
+					'findWhere': _.find
+				});
+
+				_.chain = function(value) {
+					value = new _(value);
+					value.__chain__ = true;
+					return value;
+				};
+
+				_.prototype.chain = function() {
+					this.__chain__ = true;
+					return this;
+				};
+
+				_.prototype.concat = function() {
+					var result = concat.apply(this.__wrapped__, arguments);
+					if (this.__chain__) {
+						result = new _(result);
+						result.__chain__ = true;
+					}
+					return result;
+				};
+
+				_.prototype.pop = function() {
+					pop.apply(this.__wrapped__, arguments);
+					return this;
+				};
+			}());
+		</script>
+		<script src="../vendor/underscore/test/collections.js"></script>
+		<script src="../vendor/underscore/test/arrays.js"></script>
+		<script src="../vendor/underscore/test/functions.js"></script>
+		<script src="../vendor/underscore/test/objects.js"></script>
+		<script src="../vendor/underscore/test/utility.js"></script>
+		<script src="../vendor/underscore/test/chaining.js"></script>
+		<script type="text/html" id="template">
+			<%
+			// a comment
+			if (data) { data += 12345; }; %>
+			<li><%= data %></li>
+		</script>
+	</body>
+</html>

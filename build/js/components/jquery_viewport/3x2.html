@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Viewport Selectors Demo</title>
+<meta name="generator" content="Mephisto" />
+<link href="http://www.appelsiini.net/stylesheets/main2.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="http://static.taevas.ee/facebox/facebox.css" type="text/css" media="screen" title="no title" charset="utf-8">
+<link rel="alternate" type="application/atom+xml" href="http://feeds.feedburner.com/tuupola" title="Atom feed" />
+<script src="/mint/?js" type="text/javascript"></script>
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+<script type="text/javascript">
+  _uacct = "UA-190966-1";
+  urchinTracker();
+</script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="http://static.taevas.ee/facebox/facebox.js" type="text/javascript" charset="utf-8"></script>
+<script src="jquery.viewport.js" type="text/javascript" charset="utf-8"></script>
+
+<script type="text/javascript" charset="utf-8">
+$(function() {
+    var previous = "";
+    $(window).bind("scroll", function(event) {
+        var message = "<h3>Images in viewport:</h3> ";
+        
+        $("#photos img:in-viewport").each(function() {
+          message = message + $(this).attr("src") + "<br />";
+        });
+        
+        if (message != previous) {
+            $.facebox(message);
+            previous = message;
+        }        
+    });
+});
+</script>  
+
+
+<style type="text/css">
+#sidebar {
+  width: 0px;
+}
+#content {
+  width: 4750px;
+}
+</style>
+
+</head>
+
+<body>
+  <div id="wrap"> 
+    <div id="header">
+      <p>
+        <h1>Viewport</h1><br />
+        <small>Selectors which tell if element (or part of it) is in viewport.</small>
+        <ul id="nav">
+          <li id="first"><a href="/" class="active">weblog</a></li>
+          <li><a href="/projects" class="last">projects</a></li>
+          <!--
+          <li><a href="/cv" class="last">cv</a></li>
+        -->
+        </ul>
+      </p>
+    </div>
+    <div id="content">
+      
+  <h2>Selector test on 3x2 grid.</h2>
+  <div class="entry" id="photos">
+    
+    <p>
+      Make your browser window bit smaller than usual. Then scroll around
+      page. Small window will tell you which photos are inside the viewport.
+
+    </p>
+
+    <table><tr><td>
+    <img src="img/bmw_m1_hood.jpg" width="765" height="574" alt="BMW M1 Hood">
+    <img src="img/bmw_m1_side.jpg" width="765" height="574" alt="BMW M1 Side">
+    <img src="img/viper_1.jpg" width="765" height="574" alt="Viper 1">
+    </td></tr>
+    <tr><td>
+    <img src="img/viper_corner.jpg" width="765" height="574" alt="Viper Corner">
+    <img src="img/bmw_m3_gt.jpg" width="765" height="574" alt="BMW M3 GT">
+    <img src="img/corvette_pitstop.jpg" width="765" height="574" alt="Corvette Pitstop">
+    </td></tr>
+    </table>
+    
+    </div>
+    <div id="sidebar">
+
+  </div>
+  
+  <div id="footer">
+  </div>
+
+</body>
+</html>

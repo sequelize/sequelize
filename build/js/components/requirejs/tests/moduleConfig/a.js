@@ -1,0 +1,1 @@
+define(["module"],function(e){return{type:e.config().id}});

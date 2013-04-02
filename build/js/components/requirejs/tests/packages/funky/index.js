@@ -1,0 +1,1 @@
+define(["./lib/monkey"],function(e){return{name:"funky",monkeyName:e.name}});

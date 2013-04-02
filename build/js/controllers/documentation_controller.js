@@ -1,0 +1,1 @@
+define(["controllers/base/controller"],function(e){return e.extend({title:"Documentation",historyURL:function(){return""},index:function(){require(["views/documentation/index","views/documentation/navigation","bootstrap"],function(e,t){new t({controller:"documentation"}),new e})}})});

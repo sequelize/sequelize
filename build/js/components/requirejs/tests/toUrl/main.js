@@ -1,0 +1,1 @@
+define(["require","text!./main.html","text!sub/noext","text!.hidden.html","sub/util"],function(e){return{html:e("text!./main.html"),noext:e("text!sub/noext"),hidden:e("text!.hidden.html"),util:e("sub/util")}});

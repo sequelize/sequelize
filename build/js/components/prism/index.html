@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+	// Just a lil’ script to show off that inline JS gets highlighted
+	window.console && console.log('foo');
+</script>
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.png" />
+<title>Prism</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="prism.css" data-noprefix />
+<script src="prefixfree.min.js"></script>
+
+<script>var _gaq = [['_setAccount', 'UA-33746269-1'], ['_trackPageview']];</script>
+<script src="http://www.google-analytics.com/ga.js" async></script>
+</head>
+<body>
+
+<header>
+	<div class="intro" data-src="templates/header-main.html" data-type="text/html"></div>
+	
+	<ul id="features">
+		<li>
+			<strong>Dead simple</strong>
+			Include prism.css and prism.js, use proper HTML5 code tags (<code>code.language-xxxx</code>), done!
+		</li>
+		<li>
+			<strong>Intuitive</strong>
+			Language classes are inherited so you can only define the language once for multiple code snippets.
+		</li>
+		<li>
+			<strong>Light as a feather</strong>
+			The core is 1.6KB minified &amp; gzipped. Languages add 0.3-0.5KB each, themes are around 1KB.
+		</li>
+		<li>
+			<strong>Blazing fast</strong>
+			Supports parallelism with Web Workers, if available.
+		</li>
+		<li>
+			<strong>Extensible</strong>
+			Define new languages or extend existing ones.
+			Add new features thanks to Prism’s plugin architecture. 
+		</li>
+		<li>
+			<strong>Easy styling</strong>
+			All styling is done through CSS, with sensible class names like <code>.comment</code>, <code>.string</code>, <code>.property</code> etc
+		</li>
+	</ul>
+	
+</header>
+
+<section id="examples">
+	<h1>Examples</h1>
+	
+	<p>The Prism source, highlighted with Prism (don’t you just love how meta this is?):</p>
+	<pre data-src="prism.js"></pre>
+	
+	<p>This page’s CSS code, highlighted with Prism:</p>
+	<pre data-src="style.css"></pre>
+	
+	<p>This page’s HTML, highlighted with Prism:</p>
+	<pre data-src="index.html"></pre>
+	
+	<p>This page’s logo (SVG), highlighted with Prism:</p>
+	<pre data-src="logo.svg"></pre>
+	
+	<p>If you’re still not sold, you can <a href="examples.html">view more examples</a> or <a href="test.html">try it out for yourself</a>.</p>
+</section>
+
+<section id="features-full">
+	<h1>Full list of features</h1>
+	<ul>
+		<li><strong>Only 1.6KB</strong> minified &amp; gzipped (core). Each language definition adds roughly 300-500 bytes.</li>
+		<li>Encourages good author practices. Other highlighters encourage or even force you to use elements that are semantically wrong, 
+			like <code>&lt;pre></code> (on its own) or <code>&lt;script></code>. 
+			Prism forces you to use the correct element for marking up code: <code>&lt;code></code>. 
+			On its own for inline code, or inside a &lt;pre> for blocks of code.
+			In addition, the language is defined through the way recommended in the HTML5 draft: through a language-xxxx class.</li>
+		<li>The language definition is inherited. This means that if multiple code snippets have the same language, you can just define it once, in one of their common ancestors.</li>
+		<li>Supports <strong>parallelism with Web Workers</strong>, if available. Disabled by default (<a href="faq.html#why-is-asynchronous-highlighting-disabled-by-default">why?</a>).</li>
+		<li>Very easy to extend without modifying the code, due to Prism’s <a href="#plugins">plugin architecture</a>. Multiple hooks are scattered throughout the source.</li>
+		<li>Very easy to <a href="extending.html#language-definitions">define new languages</a>. Only thing you need is a good understanding of regular expressions</li>
+		<li>All styling is done through CSS, with <a href="faq.html#how-do-i-know-which-tokens-i-can-style-for">sensible class names</a> rather than ugly namespaced abbreviated nonsense.</li>
+		<li>Wide browser support: IE9+, Firefox, Chrome, Safari, <a href="faq.html#this-page-doesnt-work-in-opera">Opera</a>, most Mobile browsers</li>
+		<li>Highlights embedded languages (e.g. CSS inside HTML, JavaScript inside HTML)</li>
+		<li>Highlights inline code as well, not just code blocks</li>
+		<li>Highlights nested languages (CSS in HTML, JavaScript in HTML</li>
+		<li>It doesn’t force you to use any Prism-specific markup, not even a Prism-specific class name, only standard markup you should be using anyway. So, you can just try it for a while, remove it if you don’t like it and leave no traces behind.</li>
+		<li>Highlight specific lines and/or line ranges (requires <a href="plugins/line-highlight/">plugin</a>)</li>
+		<li>Show invisible characters like tabs, line breaks etc (requires <a href="plugins/show-invisibles/">plugin</a>)</li>
+		<li>Autolink URLs and emails, use Markdown links in comments (requires <a href="plugins/autolinker/">plugin</a>)</li>
+	</ul>
+</section>
+
+<section id="limitations">
+	<h1>Limitations</h1>
+	<ul>
+		<li>Any pre-existing HTML in the code will be stripped off. <a href="faq.html#if-pre-existing-html-is-stripped-off-how-can-i-highlight">There are ways around it though</a>.</li>
+		<li>Regex-based so it *will* fail on <a href="examples.html#failures">certain edge cases</a>.</li>
+		<li>No IE 6-8 support. If someone can read code, they are probably in the 85% of the population with a modern browser.</li>
+	</ul>
+</section>
+
+<section id="basic-usage" class="language-markup">
+	<h1>Basic usage</h1>
+	
+	<p>You will need to include the <code>prism.css</code> and <code>prism.js</code> files you downloaded in your page. Example:
+	<pre><code>&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	...</code>
+	<code class="highlight">&lt;link href="prism.css" rel="stylesheet" /></code>
+<code>&lt;/head>
+&lt;body>
+	...</code>
+	<code class="highlight">&lt;script src="prism.js">&lt;/script></code>
+<code>&lt;/body>
+&lt;/html></code></pre>
+	
+	<p>Prism does its best to encourage good authoring practices. Therefore, it only works with <code>&lt;code></code> elements, since marking up code without a <code>&lt;code></code> element is semantically invalid. 
+	<a href="http://www.w3.org/TR/html5/text-level-semantics.html#the-code-element">According to the HTML5 spec</a>, the recommended way to define a code language is a <code>language-xxxx</code> class, which is what Prism uses.
+	To make things easier however, Prism assumes that this language definition is inherited. Therefore, if multiple <code>&lt;code></code> elements have the same language, you can add the <code>language-xxxx</code> class on one of their common ancestors.
+	This way, you can also define a document-wide default language, by adding a <code>language-xxxx</code> class on the <code>&lt;body></code> or <code>&lt;html></code> element.
+	
+	<p>If you want to opt-out of highlighting for a <code>&lt;code></code> element that is a descendant of an element with a declared code language, you can add the class <code>language-none</code> to it (or any non-existing language, really).</p>
+	
+	<p>The <a href="http://www.w3.org/TR/html5/grouping-content.html#the-pre-element">recommended way to mark up a code block</a> 
+	(both for semantics and for Prism) is a <code>&lt;pre></code> element with a <code>&lt;code></code> element inside, like so:</p>
+	<pre><code>&lt;pre>&lt;code class="language-css">p { color: red }&lt;/code>&lt;/pre></code></pre>
+	<p>If you use that pattern, the <code>&lt;pre></code> will automatically get the <code>language-xxxx</code> class (if it doesn’t already have it) and will be styled as a code block.</p>
+	
+	<p>If you want to prevent any elements from being automatically highlighted, you can use the attribute <code>data-manual</code> on the <code>&lt;script></code> element you used for prism.
+	Example:</p>
+	<pre><code>&lt;script src="prism.js" data-manual>&lt;/script></code></pre>
+</p>
+</section>
+
+<section id="plugins">
+	<h1>Plugins</h1>
+	<p>Plugins are additional scripts (and CSS code) that extend Prism’s functionality. Many of the following plugins are official, but are released as plugins to keep the Prism Core small for those who don’t need the extra functionality.</p>
+	<ul class="plugin-list"></ul>
+	
+	<p>No assembly required to use them. Just select them in the <a href="download.html">download</a> page.</p>
+	<p>It’s very easy to <a href="extending.html#writing-plugins">write your own Prism plugins</a>. Did you write a plugin for Prism that you want added to this list? <a href="https://github.com/LeaVerou/prism" target="_blank">Send a pull request</a>!</p>
+</section>
+
+<section id="credits">
+	<h1>Credits</h1>
+	<ul>
+		<li>To <a href="http://twitter.com/kizmarh">Roman Komarov</a> for his contributions, feedback and testing.</li>
+		<li>To <a href="https://twitter.com/zdfs">Zachary Forrest</a> for <a href="https://twitter.com/zdfs/statuses/217834980871639041">coming up with the name “Prism”</a></li>
+		<li>To <a href="http://stellarr.deviantart.com/">stellarr</a> for the <a href="http://stellarr.deviantart.com/art/Spectra-Wallpaper-Pack-97785901?q=gallery%3Astellarr%2F185512&qo=2">spectrum background</a> used on this page</li>
+		<li>To <a href="https://twitter.com/thecodezombie">Jason Hobbs</a> for <a href="https://twitter.com/thecodezombie/status/217663703825399809">encouraging me</a> to release this script as standalone</li>
+	</ul>
+</section>
+
+<footer data-src="templates/footer.html" data-type="text/html"></footer>
+
+<script src="prism.js" data-default-language="markup"></script>
+<script src="utopia.js"></script>
+<script src="code.js"></script>
+
+</body>
+</html>

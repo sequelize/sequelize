@@ -1,0 +1,1 @@
+define("funcOne",["require","funcTwo"],function(e){var t=function(e){this.name=e};return t.prototype.getName=function(){var t=new(e("funcTwo"))("-NESTED");return this.name+t.name},t});

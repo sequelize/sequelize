@@ -1,0 +1,1 @@
+define(["require","b"],function(e){var t=e("b");return a={name:"a",b:t,ids:[],add:function(e){this.ids.push(e)}}});

@@ -1,0 +1,80 @@
+<div class="navbar navbar-fixed-top">
+   <div class="navbar-inner">
+     <div class="container">
+       <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+         <span class="icon-bar"></span>
+         <span class="icon-bar"></span>
+         <span class="icon-bar"></span>
+       </a>
+       <a class="brand" href="#">Sequelize</a>
+       <div class="nav-collapse collapse" id="main-menu">
+        <ul class="nav" id="main-menu-left">
+          <% elements.forEach(function(element) { %>
+            <% if (element.entries.length === 0) { %>
+              <li><a href="<%= element.url %>"><%= element.title %></a></li>
+            <% } else { %>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  <%= element.title %>
+                  <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                  <% element.entries.forEach(function(entry) { %>
+                    <% if (entry.divider) { %>
+                      <li class="divider"></li>
+                    <% } else { %>
+                      <li><a href="<%= entry.url %>"><%= entry.title %></a></li>
+                    <% } %>
+                  <% }) %>
+                </ul>
+              </li>
+            <% } %>
+          <% }) %>
+        </ul>
+        <ul class="nav pull-right">
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+              Sections
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+              <li class="<%= (controller === 'documentation') ? 'current' : '' %>"><a href="/documentation">Documentation</a></li>
+              <li class="<%= (controller === 'changelog') ? 'current' : '' %>"><a href="/changelog">Changelog</a></li>
+              <li class="divider"></li>
+              <li>
+                <a href="https://github.com/sequelize/sequelize" target="_blank" rel="nofollow">
+                  <i class="icon-share"></i>
+                  Github
+                </a>
+              </li>
+              <li>
+                <a href="https://www.xing.com/net/priec1b5cx/sequelize" target="_blank" rel="nofollow">
+                  <i class="icon-share"></i>
+                  Xing
+                </a>
+              </li>
+              <li>
+                <a href="https://www.facebook.com/sequelize" target="_blank" rel="nofollow">
+                  <i class="icon-share"></i>
+                  Facebook
+                </a>
+              </li>
+              <li>
+                <a href="irc://irc.freenode.net/sequelizejs" target="_blank" rel="nofollow">
+                  <i class="icon-share"></i>
+                  IRC
+                </a>
+              </li>
+              <li>
+                <a href="https://groups.google.com/forum/#!forum/sequelize" target="_blank" rel="nofollow">
+                  <i class="icon-share"></i>
+                  Google Groups
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1 @@
+function inherits(e,t,n){n=n||{};var r={};[e.prototype,n].forEach(function(e){Object.getOwnPropertyNames(e).forEach(function(t){r[t]=Object.getOwnPropertyDescriptor(e,t)})}),e.prototype=Object.create(t.prototype,r),e.super=t}module.exports=inherits;

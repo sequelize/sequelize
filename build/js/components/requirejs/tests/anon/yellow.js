@@ -1,0 +1,1 @@
+define("yellow",{name:"yellow"});

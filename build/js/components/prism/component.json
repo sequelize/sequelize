@@ -1,0 +1,9 @@
+{
+  "name": "prism",
+  "version": "0.0.0",
+  "commit": "4309608a1f0038525dd028ad50cc3299b008aa90",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/LeaVerou/prism.git"
+  }
+}

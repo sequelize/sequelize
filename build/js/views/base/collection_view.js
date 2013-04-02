@@ -1,0 +1,1 @@
+define(["chaplin","views/base/view"],function(e,t){var n=e.CollectionView.extend({autoRender:!0,getTemplateFunction:t.prototype.getTemplateFunction,container:"body > .container",render:function(){e.CollectionView.prototype.render.apply(this,arguments),window.setTimeout(function(){this.trigger("render")}.bind(this),1)}});return n});

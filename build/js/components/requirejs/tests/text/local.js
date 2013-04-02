@@ -1,0 +1,1 @@
+define(["text!./resources/local.html"],function(e){return{localHtml:e}});

@@ -1,0 +1,1 @@
+define(["collectionHelper"],function(e){return{name:"collection",collectionHelperName:e.name,componentName:e.componentName,componentHtml:e.componentHtml}});
