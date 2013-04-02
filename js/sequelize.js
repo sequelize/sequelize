@@ -56,8 +56,12 @@ define([
       Chaplin.mediator.seal()
 
       Chaplin.mediator.subscribe('!router:route', function() {
-        var route = document.location.href.match(/http.?:\/\/.+?(\/.+)/)[1]
-        window._gaq.push(['_trackPageview', route])
+        var match = document.location.href.match(/http.?:\/\/.+?(\/.+)/)
+          , route = !!match ? match[1] : null
+
+        if (!!route) {
+          window._gaq.push(['_trackPageview', route])
+        }
       })
     }
   })
