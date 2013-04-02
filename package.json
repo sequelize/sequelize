@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "amdify-bootstrap": "node_modules/.bin/bootstrap-amd js/components/bootstrap",
-    "deploy": "git push heroku web:master"
+    "deploy": "git push heroku web:master",
+    "build": "cd build && node ../node_modules/.bin/r.js -o build.js && rm -rf .git && cd .."
   },
   "repository": "",
   "author": "",
