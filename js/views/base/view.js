@@ -1,4 +1,4 @@
-/*global define:false, window:false*/
+/*global define:false, window:false, window:false, document:false*/
 
 define([
   'underscore',
@@ -36,6 +36,12 @@ define([
       window.setTimeout(function() {
         this.trigger('rendered')
       }.bind(this), 1)
+    },
+
+    jumpToAnchor: function() {
+      if (!!window.anchor && !!document.location.href.match(/#$/)) {
+        document.location.href = document.location.href.replace('#', '#' + window.anchor)
+      }
     }
   })
 

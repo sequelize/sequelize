@@ -106,12 +106,6 @@ define([
       })
     },
 
-    jumpToAnchor: function() {
-      if (!!window.anchor && !!document.location.href.match(/#$/)) {
-        document.location.href = document.location.href.replace('#', '#' + window.anchor)
-      }
-    },
-
     renderMiniBrowsers: function() {
       $('.mini-browser').each(function() {
         var $browser = $(this)

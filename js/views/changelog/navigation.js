@@ -28,6 +28,8 @@ define([
       }]
 
       View.prototype.render.apply(this, arguments)
+
+      this.jumpToAnchor()
     }
   })
 })
