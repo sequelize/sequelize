@@ -8,10 +8,6 @@ define([
   return Controller.extend({
     title: 'Documentation',
 
-    historyURL: function() {
-      return ''
-    },
-
     index: function() {
       require([
         'views/documentation/index',

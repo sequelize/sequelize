@@ -9,10 +9,6 @@ define([
   return Controller.extend({
     title: 'Changelog',
 
-    historyURL: function() {
-      return ''
-    },
-
     index: function() {
       new ChangelogCollection().fetch({
         success: function(collection) {

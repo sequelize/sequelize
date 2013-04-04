@@ -7,5 +7,6 @@ define(function() {
     match('',              'home#index')
     match('documentation', 'documentation#index')
     match('changelog',     'changelog#index')
+    match('heroku',        'pages#heroku')
   }
 })

@@ -1,0 +1,68 @@
+<header class="jumbotron subhead" id="overview">
+  <div class="row">
+    <div class="span12">
+      <h1>
+        Sequelize on Heroku
+        <small>using PostgreSQL</small>
+      </h1>
+      <p class="lead">
+        This section covers the use of Sequelize on Heroku. It will explain how to get started with Heroku and what is necessary
+        to setup a proper environment. We will use MySQL on the development machine and PostgreSQL on the remote servers.
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="page-header">
+  <h2>Getting started with Heroku</h2>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <p>
+      Before we can roll out any software on the Heroku cluster, we need to sign up and have to connect our development
+      environment. Here are the most basic steps:
+    </p>
+    <ul>
+      <li><a href="https://api.heroku.com/signup/devcenter" target="_blank" rel="nofollow">Sign up</a> for a Heroku account.</li>
+      <li><a href="https://toolbelt.heroku.com/" target="_blank" rel="nofollow">Install</a> the Heroku Toolbelt. This tool will let you create applications and is a handy way to configure them on the command line.</li>
+      <li>Use the new binary to login. Run the following command on command line: <code>heroku login</code></li>
+    </ul>
+    <p>
+      And that's it. You should now be able to do things like <code>heroku apps</code>. This should list all applications you've currently
+      created on the Heroku cluster. If you've just created a new account, this should show you an empty list. <a href="https://devcenter.heroku.com/articles/quickstart" target="_blank" rel="nofollow">You can get further information about the registration process here.</a>
+    </p>
+  </div>
+</div>
+
+<div class="page-header">
+  <h2>A minimal express application</h2>
+</div>
+
+<div class="row">
+  <div class="span12">
+    <p>
+      In order to create a minimal express application, we need to install express first. We can do this via the following commands:
+
+      <pre><code class="language-js">
+        mkdir example-app
+        cd example-app
+        npm install express
+        node_modules/.bin/express . -f
+        npm install
+        node app.js
+      </code></pre>
+    </p>
+
+    <p>
+      So now we have a default express application. If you point your browser to
+      <code>http://localhost:8080</code>, you will see a tiny page welcoming you.
+      Next: Let's sequelize the application :)
+
+      <pre><code class="language-js">
+        npm install --save sequelize pg mysql
+        mkdir models
+      </code></pre>
+    </p>
+  </div>
+</div>
