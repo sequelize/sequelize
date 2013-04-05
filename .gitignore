@@ -4,4 +4,6 @@ test*.js
 .DS_STORE
 node_modules
 npm-debug.log
+spec/config/config.js
+spec-jasmine/config/config.js
 *~
