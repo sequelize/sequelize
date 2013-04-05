@@ -13,19 +13,15 @@ define([
     container: 'body > nav',
 
     render: function() {
+      this.options.elements = $('h2').map(function() {
+        var $headline = $(this)
+          , $row      = $headline.parents('.row')
 
-      this.options.elements = [{
-        title:   'Changelog',
-        url:     '#',
-        entries: $('h3').map(function() {
-          var $headline = $(this)
-
-          return {
-            url:   '#' + $headline.parents('.row').first().attr('id'),
-            title: $headline.text()
-          }
-        }).toArray().slice(0, 10)
-      }]
+        return {
+          url:   '#' + $row.first().attr('id'),
+          title: $row.data('title') || $headline.text()
+        }
+      }).toArray()
 
       View.prototype.render.apply(this, arguments)
 

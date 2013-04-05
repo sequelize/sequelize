@@ -10,7 +10,7 @@
        <div class="nav-collapse collapse" id="main-menu">
         <ul class="nav" id="main-menu-left">
           <% elements.forEach(function(element) { %>
-            <% if (element.entries.length === 0) { %>
+            <% if (!element.entries || (element.entries.length === 0)) { %>
               <li><a href="<%= element.url %>"><%= element.title %></a></li>
             <% } else { %>
               <li class="dropdown">

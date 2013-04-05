@@ -15,11 +15,12 @@ define([
         'views/pages/heroku/navigation',
         'bootstrap'
       ], function(IndexView, NavigationView) {
-        new NavigationView({ controller: 'heroku' })
         new IndexView()
           .on('rendered', function() {
             this.$el.html(ViewHelper.fixCodeIndentation(this.$el).html())
             Prism.highlightAll()
+
+            new NavigationView({ controller: 'heroku' })
           })
           .render()
       })
