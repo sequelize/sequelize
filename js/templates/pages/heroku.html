@@ -1,10 +1,10 @@
 <header class="jumbotron subhead" id="overview">
   <div class="row">
     <div class="span12">
-      <h1>
+      <h2>
         Sequelize on Heroku
         <small>using PostgreSQL</small>
-      </h1>
+      </h2>
       <p class="lead">
         This section covers the use of Sequelize on Heroku. It will explain how to get started with Heroku and what is necessary
         to setup a proper environment. We will use MySQL on the development machine and PostgreSQL on the remote servers.
@@ -15,7 +15,7 @@
 
 <div class="row" id="heroku-getting-started" data-title="Getting started">
   <div class="span12">
-    <h2>Getting started with Heroku</h2>
+    <h3>Getting started with Heroku</h3>
 
     <p>
       Before we can roll out any software on the Heroku cluster, we need to sign up and have to connect our development
@@ -35,7 +35,7 @@
 
 <div class="row" id="heroku-minimal-express-app" data-title="Minimal express app">
   <div class="span12">
-    <h2>A minimal express application</h2>
+    <h3>A minimal express application</h3>
 
     <p>
       In order to create a minimal express application, we need to install express first. We can do this via the following commands:
@@ -61,7 +61,7 @@
 
 <div class="row" id="heroku-deployment" data-title="Deployment">
   <div class="span12">
-    <h2>Deployment to Heroku</h2>
+    <h3>Deployment to Heroku</h3>
 
     <p>
       First of all, we need to add the right version of Node.JS and NPM to the <code>package.json</code>. The file should look similiar to this:
@@ -108,7 +108,7 @@
 
 <div class="row" id="heroku-database" data-title="Spawn the database">
   <div class="span12">
-    <h2>Spawning a database on Heroku</h2>
+    <h3>Spawning a database on Heroku</h3>
 
     <p>
       In order to get a database on Heroku we can use their CLI. Just run the following command and take a closer look at it's output:
@@ -146,7 +146,7 @@
 
 <div class="row" id="heroku-sequelize" data-title="Adding Sequelize">
   <div class="span12">
-    <h2>Adding Sequelize to the application</h2>
+    <h3>Adding Sequelize to the application</h3>
 
     <p>
       The following commands will install <code>sequelize</code>, the needed PostgreSQL library as well as the MySQL bindings. Also we will create a folder <code>models</code>, that will contain the model definitions.
@@ -158,7 +158,7 @@
     </p>
 
     <p>
-      <h3>app.js</h3>
+      <h4>app.js</h4>
 
       In order to create a maintainable application, we will put all the database logic into the <code>models</code> folder.
       The application's main file will then just sync the models with the database and run the server. This way we don't clutter the
@@ -206,7 +206,7 @@
     </p>
 
     <p>
-      <h3>models/index.js</h3>
+      <h4>models/index.js</h4>
 
       The idea of this file is to configure a connection to the database and to collect
       all model definitions. Once everything is in place we will store the stuff in a singleton.
@@ -255,7 +255,7 @@
     </p>
 
     <p>
-      <h3>models/user.js</h3>
+      <h4>models/user.js</h4>
 
       All the other models of our application will be located as separate files in the <code>models</code> folder.
       We will use the <code>import</code>-method of Sequelize to load those files.
@@ -273,7 +273,7 @@
 
 <div class="row" id="heroku-tldr">
   <div class="span12">
-    <h2>tl;dr</h2>
+    <h3>tl;dr</h3>
 
     <p>
       This article explains a straight-forward but maintainable approach for hosting an express application on Heroku. If you don't want to read all the stuff mentioned, just execute the following stuff and have fun.

@@ -13,7 +13,7 @@ define([
     container: 'body > nav',
 
     render: function() {
-      this.options.elements = $('h2').map(function() {
+      this.options.elements = $('h3').map(function() {
         var $headline = $(this)
           , $row      = $headline.parents('.row')
 

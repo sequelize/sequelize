@@ -10,27 +10,28 @@ body {
   margin-bottom: 0;
 }
 
-h1 {
+h2 {
   font-size: 60px;
 }
 
-h1 small {
+h2 small {
   font-size: 15px;
 }
 
-h2 {
+h3 {
   font-size: 38.5px;
   border-bottom: 4px solid #333;
   padding-bottom: 10px;
 }
 
-h3 {
+h4 {
   font-size: 24.5px;
   margin-top: 100px;
   border-bottom: 1px solid #333;
+  line-height: 30px;
 }
 
-h4 {
+h5 {
   margin-top: 30px;
   border-bottom: 1px dotted #333;
   padding-bottom: 5px;

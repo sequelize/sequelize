@@ -2,9 +2,10 @@
 
 define([
   'views/base/collection_view',
+  'text!templates/changelog/index.html',
   'views/changelog/item',
   'jquery'
-], function(View, ItemView, $) {
+], function(View, template, ItemView, $) {
   'use strict';
 
   return View.extend({
@@ -14,7 +15,7 @@ define([
 
     listen: {
       'render': function() {
-        this.$el.prepend($('<h1>Changelog</h1>'))
+        this.$el.prepend($(template))
       }
     },
 
