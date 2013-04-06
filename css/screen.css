@@ -10,6 +10,14 @@ body {
   margin-bottom: 0;
 }
 
+h1 {
+  display: block;
+  float: left;
+  margin: 0;
+  height: 40px;
+  line-height: 20px;
+}
+
 h2 {
   font-size: 60px;
 }
