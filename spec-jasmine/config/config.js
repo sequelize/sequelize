@@ -6,10 +6,10 @@ module.exports = {
   //make maxIdleTime small so that tests exit promptly
   mysql: {
     username: "root",
-    password: null,
+    password: "newdawn",
     database: 'sequelize_test',
-    host: '127.0.0.1',
-    port: 3306,
+    host: 'localhost',
+    port: '/tmp/mysql.sock',
     pool: { maxConnections: 5, maxIdleTime: 30}
   },
 
