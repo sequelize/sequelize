@@ -179,10 +179,10 @@ describe('QueryGenerator', function() {
         expectation: "TRUNCATE \"myTable\""
       }, {
         arguments: ['myTable', {truncate: false}],
-        expectation: "DELETE FROM \"myTable\" WHERE 1"
+        expectation: "DELETE FROM \"myTable\""
       }, {
         arguments: ['myTable'],
-        expectation: "DELETE FROM \"myTable\" WHERE 1"
+        expectation: "DELETE FROM \"myTable\""
       }
     ],
 
