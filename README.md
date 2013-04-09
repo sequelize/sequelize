@@ -72,6 +72,10 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - ~~save datetimes in UTC~~
 - encapsulate attributes if a dao inside the attributes property + add getters and setters
 
+### Missing documentation
+- File type regex in migrator [#525](https://github.com/sequelize/sequelize/pull/525)
+- Support for URL connection strings [#490](https://github.com/sequelize/sequelize/pull/490)
+
 ## Collaboration 2.0 ##
 
 I'm glad to get pull request if any functionality is missing or something is buggy. But _please_ ... run the tests before you send me the pull request.
