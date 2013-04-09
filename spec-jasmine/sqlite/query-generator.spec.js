@@ -81,10 +81,10 @@ describe('QueryGenerator', function() {
 
     deleteAllQuery: [
       {
-        arguments: ['myTable', {optimize: true}],
+        arguments: ['myTable', {truncate: true}],
         expectation: "DELETE FROM `myTable`"
       }, {
-        arguments: ['myTable', {optimize: false}],
+        arguments: ['myTable', {truncate: false}],
         expectation: "DELETE FROM `myTable`"
       }, {
         arguments: ['myTable'],
