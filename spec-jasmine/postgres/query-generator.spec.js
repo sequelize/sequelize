@@ -173,6 +173,19 @@ describe('QueryGenerator', function() {
       }
     ],
 
+    deleteAllQuery: [
+      {
+        arguments: ['myTable', {optimize: true}],
+        expectation: "TRUNCATE \"myTable\""
+      }, {
+        arguments: ['myTable', {optimize: false}],
+        expectation: "DELETE FROM \"myTable\" WHERE 1"
+      }, {
+        arguments: ['myTable'],
+        expectation: "DELETE FROM \"myTable\" WHERE 1"
+      }
+    ],
+
     deleteQuery: [
       {
         arguments: ['myTable', {name: 'foo'}],
