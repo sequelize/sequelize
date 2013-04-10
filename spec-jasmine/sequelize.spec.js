@@ -8,7 +8,17 @@ describe('Sequelize', function() {
 
 
   var setup = function(options) {
-    options   = options || {logging: false}
+    options   = options || {}
+
+    if (!options.hasOwnProperty('pool'))
+      options.pool = config.mysql.pool
+    if (!options.hasOwnProperty('logging'))
+      options.logging = false
+    if (!options.hasOwnProperty('host'))
+      options.host = config.mysql.host
+    if (!options.hasOwnProperty('port'))
+      options.port = config.mysql.port
+
     sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, options)
     Helpers   = new (require("./config/helpers"))(sequelize)
 
