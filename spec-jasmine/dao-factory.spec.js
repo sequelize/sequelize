@@ -247,6 +247,17 @@ describe('DAOFactory', function() {
           })
         })
 
+        it("handles where clause with ordering [only]", function() {
+          Helpers.async(function(done) {
+            User.findAndCount({where: "id != " + users[0].id, order: 'id ASC'}).success(function(info) {
+              expect(info.count).toEqual(fullcount - 1)
+              expect(Array.isArray(info.rows)).toBeTruthy()
+              expect(info.rows.length).toEqual(fullcount - 1)
+              done()
+            })
+          })
+        })
+
 /*
 // at time of writing (v1.6.0) Sequelize does not seem to support 'offset' on it's own consistently (goes wrong for PostGRES and SQLite)
         it("handles offset", function() {
