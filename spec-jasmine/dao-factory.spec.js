@@ -227,7 +227,7 @@ describe('DAOFactory', function() {
         })
       })
 
-      describe('findAndCount', function() {
+      describe('findAndCountAll', function() {
         var users = [], fullcount = 3
 
         beforeEach(function() {
@@ -238,7 +238,7 @@ describe('DAOFactory', function() {
 
         it("handles where clause [only]", function() {
           Helpers.async(function(done) {
-            User.findAndCount({where: "id != " + users[0].id}).success(function(info) {
+            User.findAndCountAll({where: "id != " + users[0].id}).success(function(info) {
               expect(info.count).toEqual(fullcount - 1)
               expect(Array.isArray(info.rows)).toBeTruthy()
               expect(info.rows.length).toEqual(fullcount - 1)
@@ -249,7 +249,7 @@ describe('DAOFactory', function() {
 
         it("handles where clause with ordering [only]", function() {
           Helpers.async(function(done) {
-            User.findAndCount({where: "id != " + users[0].id, order: 'id ASC'}).success(function(info) {
+            User.findAndCountAll({where: "id != " + users[0].id, order: 'id ASC'}).success(function(info) {
               expect(info.count).toEqual(fullcount - 1)
               expect(Array.isArray(info.rows)).toBeTruthy()
               expect(info.rows.length).toEqual(fullcount - 1)
@@ -262,7 +262,7 @@ describe('DAOFactory', function() {
 // at time of writing (v1.6.0) Sequelize does not seem to support 'offset' on it's own consistently (goes wrong for PostGRES and SQLite)
         it("handles offset", function() {
           Helpers.async(function(done) {
-            User.findAndCount({offset: 1}).success(function(info) {
+            User.findAndCountAll({offset: 1}).success(function(info) {
               expect(info.count).toEqual(fullcount)
               expect(Array.isArray(info.rows)).toBeTruthy()
               expect(info.rows.length).toEqual(fullcount - 1)
@@ -273,7 +273,7 @@ describe('DAOFactory', function() {
 */
         it("handles limit", function() {
           Helpers.async(function(done) {
-            User.findAndCount({limit: 1})/*.on('sql', console.log)*/.success(function(info) {
+            User.findAndCountAll({limit: 1})/*.on('sql', console.log)*/.success(function(info) {
               expect(info.count).toEqual(fullcount)
               expect(Array.isArray(info.rows)).toBeTruthy()
               expect(info.rows.length).toEqual(1)
@@ -284,7 +284,7 @@ describe('DAOFactory', function() {
 
         it("handles offset and limit", function() {
           Helpers.async(function(done) {
-            User.findAndCount({offset: 1, limit: 1}).success(function(info) {
+            User.findAndCountAll({offset: 1, limit: 1}).success(function(info) {
               expect(info.count).toEqual(fullcount)
               expect(Array.isArray(info.rows)).toBeTruthy()
               expect(info.rows.length).toEqual(1)
