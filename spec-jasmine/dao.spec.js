@@ -13,7 +13,8 @@ describe('DAO', function() {
             {
               logging: false,
               dialect: dialect,
-              port: config[dialect].port
+              port: config[dialect].port,
+              host: config[dialect].host
             }
           )
         , Helpers   = new (require("./config/helpers"))(sequelize)
