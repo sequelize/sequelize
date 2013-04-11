@@ -40,7 +40,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       var User = this.sequelize.define('SuperUser', {}, { freezeTableName: false })
       var factorySize = this.sequelize.daoFactoryManager.all.length
 
-      var User2 = this.sequelize.define('SuperUser', {}, { freezeTableName: false })   
+      var User2 = this.sequelize.define('SuperUser', {}, { freezeTableName: false })
       var factorySize2 = this.sequelize.daoFactoryManager.all.length
 
       expect(factorySize).toEqual(factorySize2)
@@ -98,6 +98,37 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     it("stores the the passed values in a special variable", function() {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).toEqual({ username: 'John Wayne' })
+    })
+
+    it("attaches getter and setter methods", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters', {
+        priceInCents: {
+          type: Sequelize.INTEGER
+        }
+      },{
+        instanceMethods: {
+          foo: function() {
+            console.log('woot')
+          }
+        },
+        setterMethods: {
+          price: function(value) {
+            this.dataValues.priceInCents = value * 100;
+          }
+        },
+        getterMethods: {
+          price: function() {
+            return '$' + (this.getDataValue('priceInCents') / 100);
+          },
+
+          priceInCents: function() {
+            return this.dataValues.priceInCents;
+          }
+        }
+      });
+
+      expect(Product.build({price: 20}).priceInCents).toEqual(20 * 100);
+      expect(Product.build({priceInCents: 30 * 100}).price).toEqual('$' + 30);
     })
   })
 
