@@ -286,9 +286,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       User.hasMany(Task)
       Task.hasMany(User)
 
-      var add = this.spy()
-
-      this.stub(Sequelize.Utils, 'QueryChainer').returns({ add: add, run: function(){} })
+      var add = this.spy(Sequelize.Utils.QueryChainer.prototype, 'add')
 
       this.sequelize.sync({ force: true })
       expect(add).toHaveBeenCalledThrice()
