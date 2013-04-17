@@ -489,26 +489,22 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
     it('always honors ZERO as primary key', function(_done) {
       var permutations = [
-          {v: 0,                  k: 'intV'},
-          {v: '0',                k: 'intV'},
-          {v: {where: {id: 0}},   k: 'intV'},
-          {v: {where: {id: '0'}}, k: 'strV'}
+          0,
+          '0',
+          {where: {id: 0}},
+          {where: {id: '0'}}
         ]
-        , SQLs = {
-          strV: "SELECT * FROM `Users` WHERE `Users`.`id`='0' LIMIT 1;",
-          intV: "SELECT * FROM `Users` WHERE `Users`.`id`=0 LIMIT 1;"
-        }
         , done = _.after(2 * permutations.length, _done);
 
       this.User.create({name: 'jack'}).success(function (jack) {
         this.User.create({name: 'jill'}).success(function (jill) {
           permutations.forEach(function(perm) {
-            this.User.find(perm.v).done(function(err, user) {
+            this.User.find(perm).done(function(err, user) {
               expect(err).toBeNull();
               expect(user).toBeNull();
               done();
             }).on('sql', function(s) {
-              expect(s).toEqual(SQLs[perm.k]);
+              expect(s.indexOf(0)).not.toEqual(-1);
               done();
             })
           }.bind(this))
