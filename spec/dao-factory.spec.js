@@ -2,6 +2,7 @@ if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
       , Helpers   = require('./buster-helpers')
+      , _         = require('underscore')
       , dialect   = Helpers.getTestDialect()
 }
 
@@ -483,6 +484,31 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           expect(user.selectedValues).toEqual({ username: 'JohnXOXOXO' })
           done()
         })
+      }.bind(this))
+    })
+
+    it('always honors ZERO as primary key', function(_done) {
+      var permutations = [
+          0,
+          '0',
+          {where: {id: 0}},
+          {where: {id: '0'}}
+        ]
+        , done = _.after(2 * permutations.length, _done);
+
+      this.User.create({name: 'jack'}).success(function (jack) {
+        this.User.create({name: 'jill'}).success(function (jill) {
+          permutations.forEach(function(perm) {
+            this.User.find(perm).done(function(err, user) {
+              expect(err).toBeNull();
+              expect(user).toBeNull();
+              done();
+            }).on('sql', function(s) {
+              expect(s.indexOf(0)).not.toEqual(-1);
+              done();
+            })
+          }.bind(this))
+        }.bind(this))
       }.bind(this))
     })
 
