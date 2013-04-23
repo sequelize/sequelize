@@ -41,7 +41,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       var User = this.sequelize.define('SuperUser', {}, { freezeTableName: false })
       var factorySize = this.sequelize.daoFactoryManager.all.length
 
-      var User2 = this.sequelize.define('SuperUser', {}, { freezeTableName: false })   
+      var User2 = this.sequelize.define('SuperUser', {}, { freezeTableName: false })
       var factorySize2 = this.sequelize.daoFactoryManager.all.length
 
       expect(factorySize).toEqual(factorySize2)
@@ -1076,4 +1076,93 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
   }) //- describe: max
+
+  describe('schematic support', function() {
+    before(function(done){
+      var self = this;
+
+      this.UserPublic = this.sequelize.define('UserPublic', {
+        age: Sequelize.INTEGER
+      })
+
+      this.UserSpecial = this.sequelize.define('UserSpecial', {
+        age: Sequelize.INTEGER
+      })
+
+      self.sequelize.dropAllSchemas().success(function(){
+        self.sequelize.createSchema('schema_test').success(function(){
+          self.sequelize.createSchema('special').success(function(){
+            self.UserSpecial.schema('special').sync({force: true}).success(function(UserSpecialSync){
+              self.UserSpecialSync = UserSpecialSync;
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    it("should be able to list schemas", function(done){
+      this.sequelize.showAllSchemas().success(function(schemas){
+        expect(schemas).toBeDefined()
+        expect(schemas[0]).toBeArray()
+        expect(schemas[0].length).toEqual(2)
+        done()
+      })
+    })
+
+    if (dialect === "mysql") {
+      it("should take schemaDelimiter into account if applicable", function(done){
+        var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'})
+        var UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {age: Sequelize.INTEGER})
+        UserSpecialUnderscore.sync({force: true}).success(function(User){
+          UserSpecialDblUnderscore.schema('hello', '__').sync({force: true}).success(function(DblUser){
+            DblUser.create({age: 3}).on('sql', function(dblSql){
+              User.create({age: 3}).on('sql', function(sql){
+                expect(dblSql).toBeDefined()
+                expect(dblSql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).toBeGreaterThan(-1)
+                expect(sql).toBeDefined()
+                expect(sql.indexOf('INSERT INTO `hello_UserSpecialUnderscores`')).toBeGreaterThan(-1)
+                done()
+              })
+            })
+          })
+        })
+      })
+    }
+
+    it("should be able to create and update records under any valid schematic", function(done){
+      var self = this
+
+      self.UserPublic.sync({ force: true }).success(function(UserPublicSync){
+        UserPublicSync.create({age: 3}).on('sql', function(UserPublic){
+          self.UserSpecialSync.schema('special').create({age: 3})
+          .on('sql', function(UserSpecial){
+            expect(UserSpecial).toBeDefined()
+            expect(UserPublic).toBeDefined()
+            if (dialect === "postgres") {
+              expect(self.UserSpecialSync.getTableName()).toEqual('"special"."UserSpecials"');
+              expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).toBeGreaterThan(-1)
+              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).toBeGreaterThan(-1)
+            } else {
+              expect(self.UserSpecialSync.getTableName()).toEqual('`special.UserSpecials`');
+              expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).toBeGreaterThan(-1)
+              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).toBeGreaterThan(-1)
+            }
+          })
+          .success(function(UserSpecial){
+            UserSpecial.updateAttributes({age: 5})
+            .on('sql', function(user){
+              expect(user).toBeDefined()
+              if (dialect === "postgres") {
+                expect(user.indexOf('UPDATE "special"."UserSpecials"')).toBeGreaterThan(-1)
+              } else {
+                expect(user.indexOf('UPDATE `special.UserSpecials`')).toBeGreaterThan(-1)
+              }
+              done()
+            })
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+  })
 })
