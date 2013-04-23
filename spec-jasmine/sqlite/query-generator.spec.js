@@ -121,6 +121,43 @@ describe('QueryGenerator', function() {
       }
     ],
 
+    bulkInsertQuery: [
+      {
+        arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}]],
+        expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+      }, {
+        arguments: ['myTable', [{name: "'bar'"}, {name: 'foo'}]],
+        expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar'''),('foo');"
+      }, {
+        arguments: ['myTable', [{name: "bar", value: null}, {name: 'foo', value: 1}]],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('foo',1);"
+      }, {
+        arguments: ['myTable', [{name: "bar", value: undefined}, {name: 'bar', value: 2}]],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('bar',2);"
+      }, {
+        arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1),('bar',0);"
+      }, {
+        arguments: ['myTable', [{name: "foo", value: false}, {name: 'bar', value: false}]],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',0),('bar',0);"
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);"
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+        context: {options: {omitNull: false}}
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+        context: {options: {omitNull: true}} // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+        context: {options: {omitNull: true}} // Note: As above
+      }
+    ],
+
     updateQuery: [
       {
         arguments: ['myTable', { name: 'foo' }, { id: 2 }],
