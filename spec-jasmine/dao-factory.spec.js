@@ -1,6 +1,7 @@
 var config    = require("./config/config")
   , Sequelize = require("../index")
   , dialects  = ['sqlite', 'mysql', 'postgres']
+  , logErr    = function(err) { console.log(err) }
 
 describe('DAOFactory', function() {
   dialects.forEach(function(dialect) {
@@ -127,6 +128,105 @@ describe('DAOFactory', function() {
                 done()
               })
             })
+          })
+        })
+      })
+
+      describe('deleteAll', function() {
+        var ParaUser;
+
+        var fillParaUser  = function(options, done, count) {
+          Helpers.Factories.DAO('ParaUser', options, function() { done() }, count)
+        }
+
+        var defineParaUser = function(preDeleteOne) {
+          var preDeleteDate = preDeleteOne ? new Date('October 13, 2000 11:13:00') : null;
+
+          Helpers.async(function(done) {
+            ParaUser = sequelize.define('ParaUser', {
+              name       : Sequelize.STRING,
+              bio        : Sequelize.TEXT
+            }, {
+              paranoid   : true,
+              // using 'underscored' here because I have no idea how to
+              // build a dialect agnostic WHERE clause like this: "someField >= ?"
+              // i.e. sticking a camelCased field name in a parameterized WHERE clause string
+              // causes the field name to be lower cased when the string is parsed ... and
+              // this breaks the query because "someField" !== "somefield"
+              underscored: true
+            })
+
+            ParaUser.sync({
+              force      : true
+            }).success(done)
+
+          })
+
+          Helpers.async(function(done) {
+            fillParaUser({name: 'user', age: 10, bio: 'foobar'}, done, 2)
+          })
+
+          Helpers.async(function(done) {
+            fillParaUser({name: 'user', age: 10, bio: 'foobar', deleted_at: preDeleteDate }, done, 1)
+          })
+        }
+
+        it('deletes all records from the database table if dao is not paranoid', function() {
+          Helpers.async(function(done) {
+            Helpers.Factories.User({name: 'user', age: 10, bio: 'foobar'}, function() { done() }, 3)
+          })
+
+          Helpers.async(function(done) {
+            User
+              .deleteAll()
+              .error(logErr)
+              .success(function() {
+                User
+                  .findAll()
+                  .error(logErr)
+                  .success(function(usrs) {
+                    expect(usrs.length).toEqual(0)
+                    done()
+                  })
+              })
+          })
+        })
+
+        it('marks all records as deleted from the database table if dao is paranoid', function() {
+          defineParaUser(false)
+
+          Helpers.async(function(done) {
+            ParaUser
+              .deleteAll()
+              .error(logErr)
+              .success(function() {
+                ParaUser
+                  .findAll({where: ["deleted_at >= ?", new Date]})
+                  .error(logErr)
+                  .success(function(usrs) {
+                    expect(usrs.length).toEqual(3)
+                    done()
+                  })
+              })
+          })
+        })
+
+        it('marks all records as deleted from the database table if dao is paranoid that were not yet marked as deleted', function() {
+          defineParaUser(true)
+
+          Helpers.async(function(done) {
+            ParaUser
+              .deleteAll()
+              .error(logErr)
+              .success(function() {
+                ParaUser
+                  .findAll({where: ["deleted_at >= ?", new Date]})
+                  .error(logErr)
+                  .success(function(usrs) {
+                    expect(usrs.length).toEqual(2)
+                    done()
+                  })
+              })
           })
         })
       })

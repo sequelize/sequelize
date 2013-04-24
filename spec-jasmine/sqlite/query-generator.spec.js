@@ -77,6 +77,19 @@ describe('QueryGenerator', function() {
         expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'",
         context: {options: {omitNull: true}}
       }
+    ],
+
+    deleteAllQuery: [
+      {
+        arguments: ['myTable', {truncate: true}],
+        expectation: "DELETE FROM `myTable`"
+      }, {
+        arguments: ['myTable', {truncate: false}],
+        expectation: "DELETE FROM `myTable`"
+      }, {
+        arguments: ['myTable'],
+        expectation: "DELETE FROM `myTable`"
+      }
     ]
   };
 
