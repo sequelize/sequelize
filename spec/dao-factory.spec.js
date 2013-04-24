@@ -387,6 +387,99 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
   })
 
+  describe('bulkCreate', function() {
+
+    it('inserts multiple values', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul', secretValue: '23'}]
+
+      this.User.bulkCreate(data, ['username']).success(function(users) {
+        // self.User.find(user.id).success(function(_user) {
+        //   expect(_user.username).toEqual(data.username)
+        //   expect(_user.secretValue).not.toEqual(data.secretValue)
+        //   expect(_user.secretValue).toEqual(null)
+        done()
+      })
+    })
+
+  }) // - bulkCreate
+
+    // it('should only store the values passed in the witelist', function(done) {
+    //   var self = this
+    //     , data = { username: 'Peter', secretValue: '42' }
+
+    //   this.User.create(data, ['username']).success(function(user) {
+    //     self.User.find(user.id).success(function(_user) {
+    //       expect(_user.username).toEqual(data.username)
+    //       expect(_user.secretValue).not.toEqual(data.secretValue)
+    //       expect(_user.secretValue).toEqual(null)
+    //       done()
+    //     })
+    //   })
+    // })
+
+    // it('should store all values if no whitelist is specified', function(done) {
+    //   var self = this
+    //     , data = { username: 'Peter', secretValue: '42' }
+
+    //   this.User.create(data).success(function(user) {
+    //     self.User.find(user.id).success(function(_user) {
+    //       expect(_user.username).toEqual(data.username)
+    //       expect(_user.secretValue).toEqual(data.secretValue)
+    //       done()
+    //     })
+    //   })
+    // })
+
+    // it('saves data with single quote', function(done) {
+    //   var quote = "single'quote"
+    //     , self  = this
+
+    //   this.User.create({ data: quote }).success(function(user) {
+    //     expect(user.data).toEqual(quote, 'memory single quote')
+
+    //     self.User.find({where: { id: user.id }}).success(function(user) {
+    //       expect(user.data).toEqual(quote, 'SQL single quote')
+    //       done()
+    //     })
+    //   })
+    // })
+
+    // it('saves data with double quote', function(done) {
+    //   var quote = 'double"quote'
+    //     , self  = this
+
+    //   this.User.create({ data: quote }).success(function(user) {
+    //     expect(user.data).toEqual(quote, 'memory double quote')
+
+    //     self.User.find({where: { id: user.id }}).success(function(user) {
+    //       expect(user.data).toEqual(quote, 'SQL double quote')
+    //       done()
+    //     })
+    //   })
+    // })
+
+    // it('saves stringified JSON data', function(done) {
+    //   var json = JSON.stringify({ key: 'value' })
+    //     , self = this
+
+    //   this.User.create({ data: json }).success(function(user) {
+    //     expect(user.data).toEqual(json, 'memory data')
+    //     self.User.find({where: { id: user.id }}).success(function(user) {
+    //       expect(user.data).toEqual(json, 'SQL data')
+    //       done()
+    //     })
+    //   })
+    // })
+
+    // it('stores the current date in createdAt', function(done) {
+    //   this.User.create({ username: 'foo' }).success(function(user) {
+    //     expect(parseInt(+user.createdAt/5000)).toEqual(parseInt(+new Date()/5000))
+    //     done()
+    //   })
+    // })
+
   describe('find', function find() {
     before(function(done) {
       this.User.create({
