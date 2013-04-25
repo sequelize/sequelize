@@ -8,7 +8,17 @@ describe('Sequelize', function() {
 
 
   var setup = function(options) {
-    options   = options || {logging: false}
+    options   = options || {}
+
+    if (!options.hasOwnProperty('pool'))
+      options.pool = config.mysql.pool
+    if (!options.hasOwnProperty('logging'))
+      options.logging = false
+    if (!options.hasOwnProperty('host'))
+      options.host = config.mysql.host
+    if (!options.hasOwnProperty('port'))
+      options.port = config.mysql.port
+
     sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, options)
     Helpers   = new (require("./config/helpers"))(sequelize)
 
@@ -68,6 +78,17 @@ describe('Sequelize', function() {
       expect(typeof DAO.options.classMethods.globalClassMethod).toEqual('function')
       expect(typeof DAO.options.classMethods.localClassMethod).toEqual('function')
       expect(typeof DAO.options.instanceMethods.globalInstanceMethod).toEqual('function')
+    })
+
+    it("uses the passed tableName", function(done) {
+      var Photo = sequelize.define('Foto', { name: Sequelize.STRING }, { tableName: 'photos' })
+
+      Photo.sync({ force: true }).success(function() {
+        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          expect(tableNames).toContain('photos')
+          done()
+        })
+      })
     })
   })
 

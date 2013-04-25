@@ -9,7 +9,7 @@ if(typeof require === 'function') {
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
-describe("[" + Helpers.getTestDialectTeaser() + "] QueryChainer", function() {
+describe(Helpers.getTestDialectTeaser("QueryChainer"), function() {
   before(function() {
     this.queryChainer = new QueryChainer()
   })

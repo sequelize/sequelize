@@ -2,6 +2,7 @@ const Sequelize = require(__dirname + "/../index")
     , DataTypes = require(__dirname + "/../lib/data-types")
     , config    = require(__dirname + "/config/config")
     , fs        = require('fs')
+    , buster    = require("buster")
 
 var BusterHelpers = module.exports = {
   Sequelize: Sequelize,
@@ -10,8 +11,17 @@ var BusterHelpers = module.exports = {
     var sequelize = this.createSequelizeInstance(options)
 
     this.clearDatabase(sequelize, function() {
-      options.beforeComplete && options.beforeComplete(sequelize, DataTypes)
-      options.onComplete && options.onComplete(sequelize, DataTypes)
+      if (options.context) {
+        options.context.sequelize = sequelize
+      }
+
+      if (options.beforeComplete) {
+        options.beforeComplete(sequelize, DataTypes)
+      }
+
+      if (options.onComplete) {
+        options.onComplete(sequelize, DataTypes)
+      }
     })
   },
 
@@ -70,14 +80,14 @@ var BusterHelpers = module.exports = {
     return envDialect
   },
 
-  getTestDialectTeaser: function() {
+  getTestDialectTeaser: function(moduleName) {
     var dialect = this.getTestDialect()
 
     if (process.env.DIALECT === 'postgres-native') {
       dialect = 'postgres-native'
     }
 
-    return dialect.toUpperCase()
+    return "[" + dialect.toUpperCase() + "] " + moduleName
   },
 
   checkMatchForDialects: function(dialect, value, expectations) {
@@ -85,6 +95,15 @@ var BusterHelpers = module.exports = {
       expect(value).toMatch(expectations[dialect])
     } else {
       throw new Error('Undefined expectation for "' + dialect + '"!')
+    }
+  },
+
+  assertException: function(block, msg) {
+    try {
+      block()
+      throw new Error('Passed function did not throw an error')
+    } catch(e) {
+      buster.assert.equals(e.message, msg)
     }
   }
 }

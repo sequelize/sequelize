@@ -1,6 +1,6 @@
 var config         = require("../config/config")
   , Sequelize      = require("../../index")
-  , sequelize      = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { pool: config.mysql.pool, logging: false })
+  , sequelize      = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { pool: config.mysql.pool, logging: false, host: config.mysql.host, port: config.mysql.port })
   , Helpers        = new (require("../config/helpers"))(sequelize)
   , QueryGenerator = require("../../lib/dialects/mysql/query-generator")
   , util           = require("util")
@@ -22,6 +22,10 @@ describe('QueryGenerator', function() {
       {
         arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {charset: 'latin1'}],
         expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+      },
+      {
+        arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}, {charset: 'latin1'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
       }
     ],
 
@@ -74,6 +78,14 @@ describe('QueryGenerator', function() {
         expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
         context: QueryGenerator
       }, {
+        arguments: ['myTable', {group: ["name"]}],
+        expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
+        context: QueryGenerator
+      }, {
+        arguments: ['myTable', {group: ["name", "title"]}],
+        expectation: "SELECT * FROM `myTable` GROUP BY `name`, `title`;",
+        context: QueryGenerator
+      }, {
         arguments: ['myTable', {group: "name", order: "id DESC"}],
         expectation: "SELECT * FROM `myTable` GROUP BY `name` ORDER BY id DESC;",
         context: QueryGenerator
@@ -101,7 +113,7 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
         expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo\\';DROP TABLE myTable;');"
       }, {
-        arguments: ['myTable', {name: 'foo', birthday: new Date(2011, 2, 27, 10, 1, 55)}],
+        arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}],
         expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55');"
       }, {
         arguments: ['myTable', {name: 'foo', foo: 1}],
@@ -126,10 +138,10 @@ describe('QueryGenerator', function() {
 
     updateQuery: [
       {
-        arguments: ['myTable', {name: 'foo', birthday: new Date(2011, 2, 27, 10, 1, 55)}, {id: 2}],
+        arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
         expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
       }, {
-        arguments: ['myTable', {name: 'foo', birthday: new Date(2011, 2, 27, 10, 1, 55)}, 2],
+        arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, 2],
         expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
       }, {
         arguments: ['myTable', {bar: 2}, {name: 'foo'}],
@@ -222,7 +234,7 @@ describe('QueryGenerator', function() {
   Sequelize.Utils._.each(suites, function(tests, suiteTitle) {
     describe(suiteTitle, function() {
       tests.forEach(function(test) {
-        var title = test.title || 'correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
+        var title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
         it(title, function() {
           // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
           var context = test.context || {options: {}};

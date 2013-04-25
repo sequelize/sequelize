@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>lib&#x2F;dialects&#x2F;abstract&#x2F;query.js</title>
+    <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.8.0&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
+    <link rel="stylesheet" href="..&#x2F;assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
+    <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
+    <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.8.0&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+            
+                <h1><img src="..&#x2F;assets/css/logo.png" title=""></h1>
+            
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: </em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+    <h2 class="off-left">APIs</h2>
+    <div id="api-tabview" class="tabview">
+        <ul class="tabs">
+            <li><a href="#api-classes">Classes</a></li>
+            <li><a href="#api-modules">Modules</a></li>
+        </ul>
+
+        <div id="api-tabview-filter">
+            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+        </div>
+
+        <div id="api-tabview-panel">
+            <ul id="api-classes" class="apis classes">
+            
+                <li><a href="..&#x2F;classes/QueryInterface.html">QueryInterface</a></li>
+            
+                <li><a href="..&#x2F;classes/Sequelize.html">Sequelize</a></li>
+            
+            </ul>
+
+            <ul id="api-modules" class="apis modules">
+            
+                <li><a href="..&#x2F;modules/Sequelize.html">Sequelize</a></li>
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+        Show:
+        <label for="api-show-inherited">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </div>
+
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        <h1 class="file-heading">File: lib&#x2F;dialects&#x2F;abstract&#x2F;query.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+var Utils              = require(&#x27;..&#x2F;..&#x2F;utils&#x27;)
+  , CustomEventEmitter = require(&quot;..&#x2F;..&#x2F;emitters&#x2F;custom-event-emitter&quot;)
+  , Dot                = require(&#x27;dottie&#x27;)
+
+module.exports = (function() {
+  var AbstractQuery = function(database, sequelize, callee, options) {}
+
+  &#x2F;**
+    Inherit from CustomEventEmitter
+  *&#x2F;
+  Utils.inherit(AbstractQuery, CustomEventEmitter)
+
+  &#x2F;**
+   * Execute the passed sql query.
+   *
+   * Examples:
+   *
+   *     query.run(&#x27;SELECT 1&#x27;)
+   *
+   * @param {String} sql - The SQL query which should be executed.
+   * @api public
+   *&#x2F;
+  AbstractQuery.prototype.run = function(sql) {
+    throw new Error(&quot;The run method wasn&#x27;t overwritten!&quot;)
+  }
+
+  &#x2F;**
+   * Check the logging option of the instance and print deprecation warnings.
+   *
+   * @return {void}
+   *&#x2F;
+  AbstractQuery.prototype.checkLoggingOption = function() {
+    if (this.options.logging === true) {
+      console.log(&#x27;DEPRECATION WARNING: The logging-option should be either a function or false. Default: console.log&#x27;)
+      this.options.logging = console.log
+    }
+
+    if (this.options.logging === console.log) {
+      &#x2F;&#x2F; using just console.log will break in node &lt; 0.6
+      this.options.logging = function(s) { console.log(s) }
+    }
+  }
+
+  &#x2F;**
+   * High level function that handles the results of a query execution.
+   *
+   *
+   * Example:
+   *  query.formatResults([
+   *    {
+   *      id: 1,              &#x2F;&#x2F; this is from the main table
+   *      attr2: &#x27;snafu&#x27;,     &#x2F;&#x2F; this is from the main table
+   *      Tasks.id: 1,        &#x2F;&#x2F; this is from the associated table
+   *      Tasks.title: &#x27;task&#x27; &#x2F;&#x2F; this is from the associated table
+   *    }
+   *  ])
+   *
+   * @param {Array} data - The result of the query execution.
+   *&#x2F;
+  AbstractQuery.prototype.formatResults = function(data) {
+    var result  = this.callee
+
+    if (isInsertQuery.call(this, data)) {
+      handleInsertQuery.call(this, data)
+    }
+
+    if (isSelectQuery.call(this)) {
+      result = handleSelectQuery.call(this, data)
+    } else if (isShowTableQuery.call(this)) {
+      result = handleShowTableQuery.call(this, data)
+    } else if (isShowOrDescribeQuery.call(this)) {
+      result = data
+
+      if (this.sql.toLowerCase().indexOf(&#x27;describe&#x27;) === 0) {
+        result = {}
+
+        data.forEach(function(_result) {
+          result[_result.Field] = {
+            type:         _result.Type.toUpperCase(),
+            allowNull:    (_result.Null === &#x27;YES&#x27;),
+            defaultValue: _result.Default
+          }
+        })
+      } else if (this.sql.toLowerCase().indexOf(&#x27;show index from&#x27;) === 0) {
+        result = Utils._.uniq(result.map(function(result) {
+          return {
+            name:       result.Key_name,
+            tableName:  result.Table,
+            unique:     (result.Non_unique !== 1)
+          }
+        }), false, function(row) {
+          return row.name
+        })
+      }
+    } else if (isCallQuery.call(this)) {
+      result = data[0]
+    }
+
+    return result
+  }
+
+  &#x2F;**
+    Shortcut methods (success, ok) for listening for success events.
+
+    Params:
+      - fct: A function that gets executed once the *success* event was triggered.
+
+    Result:
+      The function returns the instance of the query.
+  *&#x2F;
+  AbstractQuery.prototype.success =
+  AbstractQuery.prototype.ok =
+  function(fct) {
+    this.on(&#x27;success&#x27;, fct)
+    return this
+  }
+
+  &#x2F;**
+    Shortcut methods (failure, fail, error) for listening for error events.
+
+    Params:
+      - fct: A function that gets executed once the *error* event was triggered.
+
+    Result:
+      The function returns the instance of the query.
+  *&#x2F;
+  AbstractQuery.prototype.failure =
+  AbstractQuery.prototype.fail =
+  AbstractQuery.prototype.error =
+  function(fct) {
+    this.on(&#x27;error&#x27;, fct)
+    return this
+  }
+
+  &#x2F;**
+   * This function is a wrapper for private methods.
+   *
+   * @param {String} fctName The name of the private method.
+   *
+   *&#x2F;
+  AbstractQuery.prototype.send = function(fctName&#x2F;*, arg1, arg2, arg3, ...*&#x2F;) {
+    var args = Array.prototype.slice.call(arguments).slice(1)
+    return eval(fctName).apply(this, args)
+  }
+
+  &#x2F;**
+   * Get the attributes of an insert query, which contains the just inserted id.
+   *
+   * @return {String} The field name.
+   *&#x2F;
+  AbstractQuery.prototype.getInsertIdField = function() {
+    return &#x27;insertId&#x27;
+  }
+
+  &#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+  &#x2F;&#x2F; private &#x2F;&#x2F;
+  &#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+
+  &#x2F;**
+   * Iterate over all known tables and search their names inside the sql query.
+   * This method will also check association aliases (&#x27;as&#x27; option).
+   *
+   * @param  {String} attribute An attribute of a SQL query. (?)
+   * @return {String}           The found tableName &#x2F; alias.
+   *&#x2F;
+  var findTableNameInAttribute = function(attribute) {
+    if (!this.options.include) {
+      return null
+    }
+
+    var tableNames = this.options.include.map(function(include) {
+      return include.as
+    }).filter(function(include) {
+      return attribute.indexOf(include + &#x27;.&#x27;) === 0
+    })
+
+    if (tableNames.length === 1) {
+      return tableNames[0]
+    } else {
+      return null
+    }
+  }
+
+  var queryResultHasJoin = function(results) {
+    if (!!results[0]) {
+      var keys = Object.keys(results[0])
+
+      for (var i = 0; i &lt; keys.length; i++) {
+        if (!!findTableNameInAttribute.call(this, keys[i])) {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
+  var isInsertQuery = function(results, metaData) {
+    var result = true
+
+    &#x2F;&#x2F; is insert query if sql contains insert into
+    result = result &amp;&amp; (this.sql.toLowerCase().indexOf(&#x27;insert into&#x27;) === 0)
+
+    &#x2F;&#x2F; is insert query if no results are passed or if the result has the inserted id
+    result = result &amp;&amp; (!results || results.hasOwnProperty(this.getInsertIdField()))
+
+    &#x2F;&#x2F; is insert query if no metadata are passed or if the metadata has the inserted id
+    result = result &amp;&amp; (!metaData || metaData.hasOwnProperty(this.getInsertIdField()))
+
+    return result
+  }
+
+  var handleInsertQuery = function(results, metaData) {
+    if (this.callee) {
+      &#x2F;&#x2F; add the inserted row id to the instance
+      var autoIncrementField = this.callee.__factory.autoIncrementField
+        , id                 = null
+
+      id = id || (results &amp;&amp; results[this.getInsertIdField()])
+      id = id || (metaData &amp;&amp; metaData[this.getInsertIdField()])
+
+      this.callee[autoIncrementField] = id
+    }
+  }
+
+  var isShowTableQuery = function() {
+    return (this.sql.toLowerCase().indexOf(&#x27;show tables&#x27;) === 0)
+  }
+
+  var handleShowTableQuery = function(results) {
+    return Utils._.flatten(results.map(function(resultSet) {
+      return Utils._.values(resultSet)
+    }))
+  }
+
+  var isSelectQuery = function() {
+    return this.options.type === &#x27;SELECT&#x27;;
+  }
+
+  var isUpdateQuery = function() {
+    return (this.sql.toLowerCase().indexOf(&#x27;update&#x27;) === 0)
+  }
+
+  var handleSelectQuery = function(results) {
+    var result = null
+
+    if (this.options.raw) {
+      result = results.map(function(result) {
+        var o = {}
+
+        for (var key in result) {
+          if (result.hasOwnProperty(key)) {
+            o[key] = result[key]
+          }
+        }
+
+        return o
+      })
+
+      result = result.map(Dot.transform)
+    } else if (this.options.hasJoin === true) {
+      result = prepareJoinData.call(this, results)
+      result = groupDataByCalleeFactory.call(this, result).map(function(result) {
+        &#x2F;&#x2F; let&#x27;s build the actual dao instance first...
+        var dao = this.callee.build(result[this.callee.tableName], { isNewRecord: false })
+
+        &#x2F;&#x2F; ... and afterwards the prefetched associations
+        for (var tableName in result) {
+          if (result.hasOwnProperty(tableName) &amp;&amp; (tableName !== this.callee.tableName)) {
+            buildAssociatedDaoInstances.call(this, tableName, result[tableName], dao)
+          }
+        }
+
+        return dao
+      }.bind(this))
+    } else {
+      result = results.map(function(result) {
+        return this.callee.build(result, { isNewRecord: false })
+      }.bind(this))
+    }
+
+    &#x2F;&#x2F; return the first real model instance if options.plain is set (e.g. Model.find)
+    if (this.options.plain) {
+      result = (result.length === 0) ? null : result[0]
+    }
+
+    return result
+  }
+
+  var buildAssociatedDaoInstances = function(tableName, associationData, dao) {
+    var associatedDaoFactory = this.sequelize.daoFactoryManager.getDAO(tableName, { attribute: &#x27;tableName&#x27; })
+      , association          = null
+
+    if (!!associatedDaoFactory) {
+      association = this.callee.getAssociation(associatedDaoFactory)
+    } else {
+      associatedDaoFactory = this.sequelize.daoFactoryManager.getDAO(Utils.pluralize(tableName), { attribute: &#x27;tableName&#x27; })
+
+      if (!!associatedDaoFactory) {
+        association = this.callee.getAssociation(associatedDaoFactory)
+      } else {
+        association          = this.callee.getAssociationByAlias(tableName)
+        associatedDaoFactory = association.target
+      }
+    }
+
+    var accessor = Utils._.camelize(tableName)
+
+    &#x2F;&#x2F; downcase the first char
+    accessor = accessor.slice(0,1).toLowerCase() + accessor.slice(1)
+
+    associationData.forEach(function(data) {
+      var daoInstance = associatedDaoFactory.build(data, { isNewRecord: false })
+        , isEmpty = ! Utils.firstValueOfHash(daoInstance.identifiers)
+
+      if ([&#x27;BelongsTo&#x27;, &#x27;HasOne&#x27;].indexOf(association.associationType) &gt; -1) {
+        accessor = Utils.singularize(accessor)
+        dao[accessor] = isEmpty ? null : daoInstance
+      } else {
+        dao[accessor] = dao[accessor] || []
+
+        if (!isEmpty) {
+          dao[accessor].push(daoInstance)
+        }
+      }
+
+      &#x2F;&#x2F; add the accessor to the eagerly loaded associations array
+      dao.__eagerlyLoadedAssociations = Utils._.uniq(dao.__eagerlyLoadedAssociations.concat([accessor]))
+    })
+  }
+
+  var isShowOrDescribeQuery = function() {
+    var result = false
+
+    result = result || (this.sql.toLowerCase().indexOf(&#x27;show&#x27;) === 0)
+    result = result || (this.sql.toLowerCase().indexOf(&#x27;describe&#x27;) === 0)
+
+    return  result
+  }
+
+  var isCallQuery = function() {
+    var result = false
+
+    result = result || (this.sql.toLowerCase().indexOf(&#x27;call&#x27;) === 0)
+
+    return result
+  }
+
+
+  &#x2F;**
+    The function takes the result of the query execution and groups
+    the associated data by the callee.
+
+    Example:
+      groupDataByCalleeFactory([
+        {
+          callee: { some: &#x27;data&#x27;, id: 1 },
+          association: { foo: &#x27;bar&#x27;, id: 1 }
+        }, {
+          callee: { some: &#x27;data&#x27;, id: 1 },
+          association: { foo: &#x27;bar&#x27;, id: 2 }
+        }, {
+          callee: { some: &#x27;data&#x27;, id: 1 },
+          association: { foo: &#x27;bar&#x27;, id: 3 }
+        }
+      ])
+
+    Result:
+      Something like this:
+
+      [
+        {
+          callee:  { some: &#x27;data&#x27;, id: 1 },
+          association: [
+            { foo: &#x27;bar&#x27;, id: 1 },
+            { foo: &#x27;bar&#x27;, id: 2 },
+            { foo: &#x27;bar&#x27;, id: 3 }
+          ]
+        }
+      ]
+  *&#x2F;
+  var groupDataByCalleeFactory = function(data) {
+    var result          = []
+      , calleeTableName = this.callee.tableName
+
+    data.forEach(function(row) {
+      var calleeData    = row[calleeTableName]
+        , existingEntry = result.filter(function(groupedRow) {
+            return Utils._.isEqual(groupedRow[calleeTableName], calleeData)
+          })[0]
+
+      if (!existingEntry) {
+        existingEntry = {}
+        result.push(existingEntry)
+        existingEntry[calleeTableName] = calleeData
+      }
+
+      for (var attrName in row) {
+        if (row.hasOwnProperty(attrName) &amp;&amp; (attrName !== calleeTableName)) {
+          existingEntry[attrName] = existingEntry[attrName] || []
+          existingEntry[attrName].push(row[attrName])
+        }
+      }
+    })
+
+    return result
+  }
+
+
+  &#x2F;**
+   * This function will prepare the result of select queries with joins.
+   *
+   * @param  {Array} data This array contains objects.
+   * @return {Array}      The array will have the needed format for groupDataByCalleeFactory.
+   *&#x2F;
+  var prepareJoinData = function(data) {
+    var result = data.map(function(row) {
+      var nestedRow = {}
+
+      for (var key in row) {
+        if (row.hasOwnProperty(key)) {
+          var tableName = findTableNameInAttribute.call(this, key)
+
+          if (!!tableName) {
+            nestedRow[tableName] = nestedRow[tableName] || {}
+            nestedRow[tableName][key.replace(tableName + &#x27;.&#x27;, &#x27;&#x27;)] = row[key]
+          } else {
+            nestedRow[this.callee.tableName] = nestedRow[this.callee.tableName] || {}
+            nestedRow[this.callee.tableName][key] = row[key]
+          }
+        }
+      }
+
+      return nestedRow
+    }.bind(this))
+
+    return result
+  }
+
+  return AbstractQuery
+})()
+
+    </pre>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="..&#x2F;assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="..&#x2F;assets/js/yui-prettify.js"></script>
+<script src="..&#x2F;assets/../api.js"></script>
+<script src="..&#x2F;assets/js/api-filter.js"></script>
+<script src="..&#x2F;assets/js/api-list.js"></script>
+<script src="..&#x2F;assets/js/api-search.js"></script>
+<script src="..&#x2F;assets/js/apidocs.js"></script>
+</body>
+</html>

@@ -13,7 +13,8 @@ describe('DAO', function() {
             {
               logging: false,
               dialect: dialect,
-              port: config[dialect].port
+              port: config[dialect].port,
+              host: config[dialect].host
             }
           )
         , Helpers   = new (require("./config/helpers"))(sequelize)
@@ -181,7 +182,7 @@ describe('DAO', function() {
               expect(users.length).toEqual(1)
               expect(users[0].username).toEqual(username)
               expect(users[0].birthDate instanceof Date).toBe(true)
-              expect(users[0].birthDate.getTime()).toEqual(new Date(1984, 8, 23).getTime())
+              expect(users[0].birthDate).toEqual(new Date(1984, 8, 23))
               done()
             })
           })
@@ -199,7 +200,7 @@ describe('DAO', function() {
               updatedAt = user.updatedAt
               expect(updatedAt.getTime()).toBeGreaterThan(now)
               done()
-            }, 10)
+            }, 1000)
           })
 
           Helpers.async(function(done) {
@@ -208,7 +209,7 @@ describe('DAO', function() {
                 expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
                 done()
               })
-            }, 10)
+            }, 1000)
           })
         })
 
@@ -334,7 +335,6 @@ describe('DAO', function() {
           })
         })
       })
-
     })
   })
 })

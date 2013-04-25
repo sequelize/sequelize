@@ -8,7 +8,7 @@ if (typeof require === 'function') {
 buster.spec.expose()
 buster.testRunner.timeout = 1500
 
-describe("[" + Helpers.getTestDialectTeaser() + "] HasOne", function() {
+describe(Helpers.getTestDialectTeaser("HasOne"), function() {
   before(function(done) {
     var self = this
 
