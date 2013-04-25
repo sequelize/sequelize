@@ -215,6 +215,12 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           activity_date: Sequelize.DATe
         })
       }.bind(this), 'Unrecognized data type for field activity_date')
+
+      Helpers.assertException(function() {
+        this.sequelize.define('UserBadDataType', {
+          activity_date: {type: Sequelize.DATe}
+        })
+      }.bind(this), 'Unrecognized data type for field activity_date')
     })
 
     it('sets a 64 bit int in bigint', function(done) {
