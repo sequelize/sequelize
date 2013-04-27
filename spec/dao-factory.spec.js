@@ -536,6 +536,33 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
   }) // - bulkCreate
 
+  describe('bulkUpdate', function() {
+
+    it('updates only values that match filter', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data, data).success(function() {
+
+        self.User.bulkUpdate({username: 'Bill'}, {where: {secretValue: '42'}})
+          .success(function() {
+            self.User.findAll().success(function(users) {
+              expect(users.length).toEqual(3)
+
+              expect(users[0].username).toEqual("Bill")
+              expect(users[1].username).toEqual("Bill")
+              expect(users[2].username).toEqual("Bob")
+
+              done()
+            })
+          });
+      })
+    })
+
+  )}
+
   describe('find', function find() {
     before(function(done) {
       this.User.create({
