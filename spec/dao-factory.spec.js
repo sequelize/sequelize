@@ -590,6 +590,71 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
   }) // - bulkUpdate
 
+  describe('bulkDelete', function() {
+
+    it('deletes values that match filter', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+
+        self.User.bulkDelete({secretValue: '42'})
+          .success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).toEqual(1)
+
+              expect(users[0].username).toEqual("Bob")
+
+              done()
+            })
+          })
+      })
+    })
+
+    it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
+
+      var self = this
+        , User = this.sequelize.define('ParanoidUser', {
+            username:     Sequelize.STRING,
+            secretValue:  Sequelize.STRING,
+            data:         Sequelize.STRING
+          }, {
+            paranoid: true
+          })
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      User.sync({ force: true }).success(function() {
+
+        User.bulkCreate(data).success(function() {
+
+          User.bulkDelete({secretValue: '42'})
+            .success(function() {
+              User.findAll({order: 'id'}).success(function(users) {
+                expect(users.length).toEqual(3)
+
+                expect(users[0].username).toEqual("Peter")
+                expect(users[1].username).toEqual("Paul")
+                expect(users[2].username).toEqual("Bob")
+
+                expect(parseInt(+users[0].deletedAt/5000)).toEqual(parseInt(+new Date()/5000))
+                expect(parseInt(+users[1].deletedAt/5000)).toEqual(parseInt(+new Date()/5000))
+                expect(parseInt(+users[2].deletedAt)).not.toEqual(parseInt(+new Date()/5000))
+
+                done()
+              })
+            })
+        })
+
+      })
+
+    })
+
+  }) // - bulkDelete
+
   describe('find', function find() {
     before(function(done) {
       this.User.create({
