@@ -395,7 +395,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul', secretValue: '23'}]
 
       this.User.bulkCreate(data, ['username']).success(function() {
-        self.User.findAll().success(function(users) {
+        self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).toEqual(2)
 
           expect(users[0].username).toEqual("Peter")
@@ -415,7 +415,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul', secretValue: '23'}]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.findAll().success(function(users) {
+        self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).toEqual(2)
 
           expect(users[0].username).toEqual("Peter")
@@ -436,7 +436,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul', data: quote}]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.findAll().success(function(users) {
+        self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).toEqual(2)
 
           expect(users[0].username).toEqual("Peter")
@@ -457,7 +457,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul', data: quote}]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.findAll().success(function(users) {
+        self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).toEqual(2)
 
           expect(users[0].username).toEqual("Peter")
@@ -478,7 +478,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul', data: json}]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.findAll().success(function(users) {
+        self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).toEqual(2)
 
           expect(users[0].username).toEqual("Peter")
@@ -498,7 +498,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul'}]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.findAll().success(function(users) {
+        self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).toEqual(2)
 
           expect(users[0].username).toEqual("Peter")
@@ -544,11 +544,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul',  secretValue: '42' },
                   { username: 'Bob',   secretValue: '43' }]
 
-      this.User.bulkCreate(data, data).success(function() {
+      this.User.bulkCreate(data).success(function() {
 
-        self.User.bulkUpdate({username: 'Bill'}, {where: {secretValue: '42'}})
+        self.User.bulkUpdate({username: 'Bill'}, {secretValue: '42'})
           .success(function() {
-            self.User.findAll().success(function(users) {
+            self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).toEqual(3)
 
               expect(users[0].username).toEqual("Bill")
@@ -557,11 +557,38 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
               done()
             })
-          });
+          })
       })
     })
 
-  )}
+    it('sets updatedAt to the current timestamp', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+
+        self.User.bulkUpdate({username: 'Bill'}, {secretValue: '42'})
+          .success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).toEqual(3)
+
+              expect(users[0].username).toEqual("Bill")
+              expect(users[1].username).toEqual("Bill")
+              expect(users[2].username).toEqual("Bob")
+
+              expect(parseInt(+users[0].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
+              expect(parseInt(+users[1].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
+              expect(parseInt(+users[2].createdAt)).not.toEqual(parseInt(+users[0].createdAt/5000))
+
+              done()
+            })
+          })
+      })
+    })
+
+  }) // - bulkUpdate
 
   describe('find', function find() {
     before(function(done) {
