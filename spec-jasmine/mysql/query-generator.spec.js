@@ -271,19 +271,9 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
         expectation: "DELETE FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;' LIMIT 10"
-      }
-    ],
-
-    bulkDeleteQuery: [
-      {
-        arguments: ['myTable', {name: 'foo'}],
+      }, {
+        arguments: ['myTable', {name: 'foo'}, {limit: null}],
         expectation: "DELETE FROM `myTable` WHERE `name`='foo'"
-      }, {
-        arguments: ['myTable', 1],
-        expectation: "DELETE FROM `myTable` WHERE `id`=1"
-      }, {
-        arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
-        expectation: "DELETE FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;'"
       }
     ],
 

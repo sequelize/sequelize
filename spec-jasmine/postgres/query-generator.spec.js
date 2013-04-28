@@ -304,25 +304,9 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
         expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
-      }
-    ],
-
-    bulkDeleteQuery: [
-      {
-        arguments: ['myTable', {name: 'foo'}],
+      }, {
+        arguments: ['myTable', {name: 'foo'}, {limit: null}],
         expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo')"
-      }, {
-        arguments: ['myTable', 1],
-        expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"id\"=1)"
-      }, {
-        arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
-        expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo'';DROP TABLE myTable;')"
-      }, {
-        arguments: ['mySchema.myTable', {name: 'foo'}],
-        expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo')"
-      }, {
-        arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}],
-        expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;')"
       }
     ],
 

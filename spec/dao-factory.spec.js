@@ -536,7 +536,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
   }) // - bulkCreate
 
-  describe('bulkUpdate', function() {
+  describe('update', function() {
 
     it('updates only values that match filter', function(done) {
       var self = this
@@ -546,7 +546,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       this.User.bulkCreate(data).success(function() {
 
-        self.User.bulkUpdate({username: 'Bill'}, {secretValue: '42'})
+        self.User.update({username: 'Bill'}, {secretValue: '42'})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).toEqual(3)
@@ -569,7 +569,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       this.User.bulkCreate(data).success(function() {
 
-        self.User.bulkUpdate({username: 'Bill'}, {secretValue: '42'})
+        self.User.update({username: 'Bill'}, {secretValue: '42'})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).toEqual(3)
@@ -588,9 +588,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
-  }) // - bulkUpdate
+  }) // - update
 
-  describe('bulkDelete', function() {
+  describe('destroy', function() {
 
     it('deletes values that match filter', function(done) {
       var self = this
@@ -600,7 +600,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       this.User.bulkCreate(data).success(function() {
 
-        self.User.bulkDelete({secretValue: '42'})
+        self.User.destroy({secretValue: '42'})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).toEqual(1)
@@ -631,7 +631,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
         User.bulkCreate(data).success(function() {
 
-          User.bulkDelete({secretValue: '42'})
+          User.destroy({secretValue: '42'})
             .success(function() {
               User.findAll({order: 'id'}).success(function(users) {
                 expect(users.length).toEqual(3)
@@ -653,7 +653,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
     })
 
-  }) // - bulkDelete
+  }) // - destroy
 
   describe('find', function find() {
     before(function(done) {
