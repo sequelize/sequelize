@@ -1,5 +1,6 @@
 # v1.7.0 #
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
+- [BUG] Null dates don't break SQLite anymore. [#572](https://github.com/sequelize/sequelize/pull/572). thanks to mweibel
 
 # v1.6.0 #
 - [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
