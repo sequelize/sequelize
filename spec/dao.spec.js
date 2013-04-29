@@ -19,7 +19,11 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           username:  { type: DataTypes.STRING },
           touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
           aNumber:   { type: DataTypes.INTEGER },
-          bNumber:   { type: DataTypes.INTEGER }
+          bNumber:   { type: DataTypes.INTEGER },
+          dateAllowNullTrue: {
+            type: DataTypes.DATE,
+            allowNull: true
+          }
         })
 
         self.HistoryLog = sequelize.define('HistoryLog', {
@@ -318,6 +322,29 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
 
         var user = this.User.build({ username: 'a user'})
         expect(+user.touchedAt).toBe(5000)
+      })
+    })
+
+    describe('allowNull date', function() {
+      it('should be just "null" and not Date with Invalid Date', function(done) {
+        var self = this;
+        this.User.build({ username: 'a user'}).save().success(function() {
+          self.User.find({where: {username: 'a user'}}).success(function(user) {
+            expect(user.dateAllowNullTrue).toBe(null)
+            done()
+          })
+        })
+      })
+
+      it('should be the same valid date when saving the date', function(done) {
+        var self = this;
+        var date = new Date();
+        this.User.build({ username: 'a user', dateAllowNullTrue: date}).save().success(function() {
+          self.User.find({where: {username: 'a user'}}).success(function(user) {
+            expect(user.dateAllowNullTrue.toString()).toEqual(date.toString())
+            done()
+          })
+        })
       })
     })
   })
