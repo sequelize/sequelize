@@ -9,6 +9,36 @@ describe('QueryGenerator', function() {
   afterEach(function() { Helpers.drop() })
 
   var suites = {
+
+    // TODO: Test attributesToSQL
+
+    createTableQuery: [
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));"
+      },
+      {
+        arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255));"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER PRIMARY KEY);"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);"
+      }
+    ],
+
     insertQuery: [
       {
         arguments: ['myTable', { name: 'foo' }],
