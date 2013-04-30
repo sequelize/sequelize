@@ -322,5 +322,28 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         })
       })
     })
+
+    describe("Foreign key constraints", function() {
+
+      it("can cascade deletes", function(done) {
+        var User = this.sequelize.define('User', { username: Sequelize.STRING })
+          , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+
+        User.hasMany(Task, {onDelete: 'cascade'})
+
+        this.sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTasks([task]).success(function() {
+                debugger
+                done()
+              })
+            })
+          })
+        })
+      })
+
+    })
+
   })
 })
