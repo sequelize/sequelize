@@ -145,11 +145,11 @@ if(program.migrate) {
 
   var migrationContent = [
     "module.exports = {",
-    "  up: function(migration, DataTypes) {",
-    "    // add altering commands here",
+    "  up: function(migration, DataTypes, done) {",
+    "    // add altering commands here, calling 'done' when finished",
     "  },",
-    "  down: function(migration) {",
-    "    // add reverting commands here",
+    "  down: function(migration, DataTypes, done) {",
+    "    // add reverting commands here, calling 'done' when finished",
     "  }",
     "}"
   ].join('\n')

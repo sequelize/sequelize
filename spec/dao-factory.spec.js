@@ -2,6 +2,7 @@ if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
       , Helpers   = require('./buster-helpers')
+      , _         = require('underscore')
       , dialect   = Helpers.getTestDialect()
 }
 
@@ -40,7 +41,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       var User = this.sequelize.define('SuperUser', {}, { freezeTableName: false })
       var factorySize = this.sequelize.daoFactoryManager.all.length
 
-      var User2 = this.sequelize.define('SuperUser', {}, { freezeTableName: false })   
+      var User2 = this.sequelize.define('SuperUser', {}, { freezeTableName: false })
       var factorySize2 = this.sequelize.daoFactoryManager.all.length
 
       expect(factorySize).toEqual(factorySize2)
@@ -213,6 +214,12 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       Helpers.assertException(function() {
         this.sequelize.define('UserBadDataType', {
           activity_date: Sequelize.DATe
+        })
+      }.bind(this), 'Unrecognized data type for field activity_date')
+
+      Helpers.assertException(function() {
+        this.sequelize.define('UserBadDataType', {
+          activity_date: {type: Sequelize.DATe}
         })
       }.bind(this), 'Unrecognized data type for field activity_date')
     })
@@ -483,6 +490,31 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           expect(user.selectedValues).toEqual({ username: 'JohnXOXOXO' })
           done()
         })
+      }.bind(this))
+    })
+
+    it('always honors ZERO as primary key', function(_done) {
+      var permutations = [
+          0,
+          '0',
+          {where: {id: 0}},
+          {where: {id: '0'}}
+        ]
+        , done = _.after(2 * permutations.length, _done);
+
+      this.User.create({name: 'jack'}).success(function (jack) {
+        this.User.create({name: 'jill'}).success(function (jill) {
+          permutations.forEach(function(perm) {
+            this.User.find(perm).done(function(err, user) {
+              expect(err).toBeNull();
+              expect(user).toBeNull();
+              done();
+            }).on('sql', function(s) {
+              expect(s.indexOf(0)).not.toEqual(-1);
+              done();
+            })
+          }.bind(this))
+        }.bind(this))
       }.bind(this))
     })
 
@@ -999,7 +1031,13 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         age: Sequelize.INTEGER
       })
 
-      this.UserWithAge.sync({ force: true }).success(done)
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function(){
+        this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
     })
 
     it("should return the min value", function(done) {
@@ -1020,6 +1058,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         done()
       })
     })
+
+    it("should allow decimals in min", function(done){
+      this.UserWithDec.create({value: 3.5}).success(function(){
+        this.UserWithDec.create({ value: 5.5 }).success(function(){
+          this.UserWithDec.min('value').success(function(min){
+            expect(min).toEqual(3.5)
+            done()
+          })
+        }.bind(this))
+      }.bind(this))
+    })
   }) //- describe: min
 
   describe('max', function() {
@@ -1028,7 +1077,13 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         age: Sequelize.INTEGER
       })
 
-      this.UserWithAge.sync({ force: true }).success(done)
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function(){
+        this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
     })
 
     it("should return the max value", function(done) {
@@ -1036,6 +1091,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         this.UserWithAge.create({ age: 3 }).success(function() {
           this.UserWithAge.max('age').success(function(max) {
             expect(max).toEqual(3)
+            done()
+          })
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("should allow decimals in max", function(done){
+      this.UserWithDec.create({value: 3.5}).success(function(){
+        this.UserWithDec.create({ value: 5.5 }).success(function(){
+          this.UserWithDec.max('value').success(function(max){
+            expect(max).toEqual(5.5)
             done()
           })
         }.bind(this))
@@ -1050,4 +1116,93 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
   }) //- describe: max
+
+  describe('schematic support', function() {
+    before(function(done){
+      var self = this;
+
+      this.UserPublic = this.sequelize.define('UserPublic', {
+        age: Sequelize.INTEGER
+      })
+
+      this.UserSpecial = this.sequelize.define('UserSpecial', {
+        age: Sequelize.INTEGER
+      })
+
+      self.sequelize.dropAllSchemas().success(function(){
+        self.sequelize.createSchema('schema_test').success(function(){
+          self.sequelize.createSchema('special').success(function(){
+            self.UserSpecial.schema('special').sync({force: true}).success(function(UserSpecialSync){
+              self.UserSpecialSync = UserSpecialSync;
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    it("should be able to list schemas", function(done){
+      this.sequelize.showAllSchemas().success(function(schemas){
+        expect(schemas).toBeDefined()
+        expect(schemas[0]).toBeArray()
+        expect(schemas[0].length).toEqual(2)
+        done()
+      })
+    })
+
+    if (dialect === "mysql") {
+      it("should take schemaDelimiter into account if applicable", function(done){
+        var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'})
+        var UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {age: Sequelize.INTEGER})
+        UserSpecialUnderscore.sync({force: true}).success(function(User){
+          UserSpecialDblUnderscore.schema('hello', '__').sync({force: true}).success(function(DblUser){
+            DblUser.create({age: 3}).on('sql', function(dblSql){
+              User.create({age: 3}).on('sql', function(sql){
+                expect(dblSql).toBeDefined()
+                expect(dblSql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).toBeGreaterThan(-1)
+                expect(sql).toBeDefined()
+                expect(sql.indexOf('INSERT INTO `hello_UserSpecialUnderscores`')).toBeGreaterThan(-1)
+                done()
+              })
+            })
+          })
+        })
+      })
+    }
+
+    it("should be able to create and update records under any valid schematic", function(done){
+      var self = this
+
+      self.UserPublic.sync({ force: true }).success(function(UserPublicSync){
+        UserPublicSync.create({age: 3}).on('sql', function(UserPublic){
+          self.UserSpecialSync.schema('special').create({age: 3})
+          .on('sql', function(UserSpecial){
+            expect(UserSpecial).toBeDefined()
+            expect(UserPublic).toBeDefined()
+            if (dialect === "postgres") {
+              expect(self.UserSpecialSync.getTableName()).toEqual('"special"."UserSpecials"');
+              expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).toBeGreaterThan(-1)
+              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).toBeGreaterThan(-1)
+            } else {
+              expect(self.UserSpecialSync.getTableName()).toEqual('`special.UserSpecials`');
+              expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).toBeGreaterThan(-1)
+              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).toBeGreaterThan(-1)
+            }
+          })
+          .success(function(UserSpecial){
+            UserSpecial.updateAttributes({age: 5})
+            .on('sql', function(user){
+              expect(user).toBeDefined()
+              if (dialect === "postgres") {
+                expect(user.indexOf('UPDATE "special"."UserSpecials"')).toBeGreaterThan(-1)
+              } else {
+                expect(user.indexOf('UPDATE `special.UserSpecials`')).toBeGreaterThan(-1)
+              }
+              done()
+            })
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+  })
 })
