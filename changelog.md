@@ -1,4 +1,6 @@
 # v1.7.0 #
+- [BUG] "order by" is now after "group by". [#585](https://github.com/sequelize/sequelize/pull/585). thanks to mekanics
+- [BUG] Added decimal support for min/max. [#583](https://github.com/sequelize/sequelize/pull/583). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [BUG] Null dates don't break SQLite anymore. [#572](https://github.com/sequelize/sequelize/pull/572). thanks to mweibel
 
