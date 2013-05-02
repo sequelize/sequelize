@@ -493,6 +493,37 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       }.bind(this))
     })
 
+    it('returns the selected fields and all fields of the included table as instance.selectedValues', function(done) {
+      this.Mission = this.sequelize.define('Mission', {
+        title:  {type: Sequelize.STRING, defaultValue: 'a mission!'},
+        foo:    {type: Sequelize.INTEGER, defaultValue: 2},
+      })
+
+      this.Mission.belongsTo(this.User)
+      this.User.hasMany(this.Mission)
+
+      this.sequelize.sync({ force: true }).complete(function() {
+        this.Mission.create()
+        .success(function(mission) {
+          this.User.create({
+            username: 'John DOE'
+          }).success(function(user) {
+            mission.setUser(user)
+            .success(function() {
+              this.User.find({
+                where: { username: 'John DOE' },
+                attributes: ['username'],
+                include: [this.Mission]
+              }).success(function(user) {
+                expect(user.selectedValues).toEqual({ username: 'John DOE' })
+                done()
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
     it('always honors ZERO as primary key', function(_done) {
       var permutations = [
           0,
