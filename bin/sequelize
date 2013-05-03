@@ -11,7 +11,7 @@ var configPath       = process.cwd() + '/config'
   , migrationsPath   = process.cwd() + '/migrations'
   , packageJsonPath  = __dirname + '/../package.json'
   , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
-  , configFile       = configPath + '/config.json'
+  , configFile       = configPath + '/sequelize.json'
   , configPathExists = fs.existsSync(configPath)
   , configFileExists = fs.existsSync(configFile)
 
@@ -60,13 +60,13 @@ var readConfig = function() {
 
     return config
   } catch(e) {
-    throw new Error('The config.json is not available or contains invalid JSON.')
+    throw new Error('The sequelize.json is not available or contains invalid JSON.')
   }
 }
 
 program
   .version(packageJson.version)
-  .option('-i, --init', 'Initializes the project. Creates a config/config.json')
+  .option('-i, --init', 'Initializes the project. Creates a config/sequelize.json')
   .option('-m, --migrate', 'Runs undone migrations')
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
@@ -104,7 +104,7 @@ if(program.migrate) {
       sequelize.migrate()
     }
   } else {
-    throw new Error('Please add a configuration file under config/config.json. You might run "sequelize --init".')
+    throw new Error('Please add a configuration file under config/sequelize.json. You might run "sequelize --init".')
   }
 } else if(program.init) {
   if(!configFileExists || !!program.force) {
@@ -129,9 +129,9 @@ if(program.migrate) {
       }
     })
 
-    console.log('Successfully created config.json')
+    console.log('Successfully created sequelize.json')
   } else {
-    console.log('A config.json already exists. Run "sequelize --init --force" to overwrite it.')
+    console.log('A sequelize.json already exists. Run "sequelize --init --force" to overwrite it.')
   }
 
   createMigrationsFolder(program.force)
