@@ -35,7 +35,7 @@
     "validator": "0.4.x",
     "moment": "~1.7.0",
     "commander": "~0.6.0",
-    "generic-pool": "1.0.9",
+    "generic-pool": "2.0.3",
     "dottie": "0.0.6-1"
   },
   "devDependencies": {
