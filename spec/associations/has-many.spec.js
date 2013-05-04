@@ -288,7 +288,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
       var add = this.spy()
 
-      this.stub(Sequelize.Utils, 'QueryChainer').returns({ add: add, run: function(){} })
+      this.stub(Sequelize.Utils, 'QueryChainer').returns({ add: add, runSerially: function(){} })
 
       this.sequelize.sync({ force: true })
       expect(add).toHaveBeenCalledThrice()
@@ -326,8 +326,8 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     describe("Foreign key constraints", function() {
 
       it("can cascade deletes", function(done) {
-        var User = this.sequelize.define('User', { username: Sequelize.STRING })
-          , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+          , User = this.sequelize.define('User', { username: Sequelize.STRING })
 
         User.hasMany(Task, {onDelete: 'cascade'})
 
