@@ -18,10 +18,7 @@ var configPath       = process.cwd() + '/config'
 var writeConfig = function(config) {
   !configPathExists && fs.mkdirSync(configPath)
 
-  config = JSON.stringify(config)
-  config = config.replace('{', '{\n  ')
-  config = config.replace(/,/g, ",\n  ")
-  config = config.replace('}', "\n}")
+  config = JSON.stringify(config, null, 2)
 
   fs.writeFileSync(configFile, "module.exports = " + config + ";")
 }
