@@ -53,7 +53,7 @@ describe('QueryGenerator', function() {
         expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
       },
       {
-        arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKeys: ['pk']}}],
+        arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
         expectation: {id: 'INTEGER REFERENCES "Bar" ("pk")'}
       },
       {
