@@ -11,7 +11,7 @@ var configPath       = process.cwd() + '/config'
   , migrationsPath   = process.cwd() + '/migrations'
   , packageJsonPath  = __dirname + '/../package.json'
   , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
-  , configFile       = configPath + '/sequelize.json'
+  , configFile       = configPath + '/sequelize.js'
   , configPathExists = fs.existsSync(configPath)
   , configFileExists = fs.existsSync(configFile)
 
