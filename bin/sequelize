@@ -23,7 +23,7 @@ var writeConfig = function(config) {
   config = config.replace(/,/g, ",\n  ")
   config = config.replace('}', "\n}")
 
-  fs.writeFileSync(configFile, config)
+  fs.writeFileSync(configFile, "module.exports = " + config + ";")
 }
 
 var createMigrationsFolder = function(force) {
@@ -51,7 +51,7 @@ var createMigrationsFolder = function(force) {
 
 var readConfig = function() {
   try {
-    var config = JSON.parse(fs.readFileSync(configFile))
+    var config = require(configFile)
       , env    = process.env.NODE_ENV || 'development'
 
     if (config[env]) {
