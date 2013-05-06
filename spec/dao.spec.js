@@ -2,7 +2,7 @@ if (typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
-      , _ = require('underscore')
+      , _ = require('lodash')
 }
 
 buster.spec.expose()
