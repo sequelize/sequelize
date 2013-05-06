@@ -47,4 +47,76 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
   })
+
+  describe("Foreign key constraints", function() {
+
+    it("are not enabled by default", function(done) {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+
+      Task.belongsTo(User)
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'foo' }).success(function(user) {
+          Task.create({ title: 'task' }).success(function(task) {
+            task.setUser(user).success(function() {
+              user.destroy().success(function() {
+                Task.findAll().success(function(tasks) {
+                  expect(tasks.length).toEqual(1)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it("can cascade deletes", function(done) {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+
+      Task.belongsTo(User, {onDelete: 'cascade'})
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'foo' }).success(function(user) {
+          Task.create({ title: 'task' }).success(function(task) {
+            task.setUser(user).success(function() {
+              user.destroy().success(function() {
+                Task.findAll().success(function(tasks) {
+                  expect(tasks.length).toEqual(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it("can restrict deletes", function(done) {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+
+      Task.belongsTo(User, {onDelete: 'restrict'})
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'foo' }).success(function(user) {
+          Task.create({ title: 'task' }).success(function(task) {
+            task.setUser(user).success(function() {
+              user.destroy().error(function() {
+                // Should fail due to FK restriction
+                Task.findAll().success(function(tasks) {
+                  expect(tasks.length).toEqual(1)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+  })
+
 })
