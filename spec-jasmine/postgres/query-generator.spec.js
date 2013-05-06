@@ -95,6 +95,14 @@ describe('QueryGenerator', function() {
 
     dropTableQuery: [
       {
+        arguments: ['myTable'],
+        expectation: "DROP TABLE IF EXISTS \"myTable\";"
+      },
+      {
+        arguments: ['mySchema.myTable'],
+        expectation: "DROP TABLE IF EXISTS \"mySchema\".\"myTable\";"
+      },
+      {
         arguments: ['myTable', {cascade: true}],
         expectation: "DROP TABLE IF EXISTS \"myTable\" CASCADE;"
       },
