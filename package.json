@@ -29,7 +29,7 @@
     "url": "https://github.com/sdepold/sequelize/issues"
   },
   "dependencies": {
-    "underscore": "~1.4.0",
+    "lodash": "~1.2.1",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
     "validator": "0.4.x",

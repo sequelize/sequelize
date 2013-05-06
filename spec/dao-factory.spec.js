@@ -2,7 +2,7 @@ if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
       , Helpers   = require('./buster-helpers')
-      , _         = require('underscore')
+      , _         = require('lodash')
       , dialect   = Helpers.getTestDialect()
 }
 
