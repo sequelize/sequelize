@@ -135,7 +135,6 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
               var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
               user.QueryInterface.update(user, tableName, {id: 999}, user.id)
               .success(function() {
-                // Should fail due to FK restriction
                 Task.findAll().success(function(tasks) {
                   expect(tasks.length).toEqual(1)
                   expect(tasks[0].UserId).toEqual(999)
