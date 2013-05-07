@@ -551,9 +551,13 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).toEqual(3)
 
-              expect(users[0].username).toEqual("Bill")
-              expect(users[1].username).toEqual("Bill")
-              expect(users[2].username).toEqual("Bob")
+              users.forEach(function (user) {
+                if (user.secretValue == '42') {
+                  expect(user.username).toEqual("Bill")
+                } else {
+                  expect(user.username).toEqual("Bob")
+                }
+              })
 
               done()
             })
@@ -578,9 +582,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
               expect(users[1].username).toEqual("Bill")
               expect(users[2].username).toEqual("Bob")
 
-              expect(parseInt(+users[0].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
-              expect(parseInt(+users[1].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
-              expect(parseInt(+users[2].createdAt)).not.toEqual(parseInt(+users[0].createdAt/5000))
+              expect(parseInt(+users[0].updatedAt/5000)).toEqual(parseInt(+new Date()/5000))
+              expect(parseInt(+users[1].updatedAt/5000)).toEqual(parseInt(+new Date()/5000))
 
               done()
             })
@@ -642,7 +645,6 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
                 expect(parseInt(+users[0].deletedAt/5000)).toEqual(parseInt(+new Date()/5000))
                 expect(parseInt(+users[1].deletedAt/5000)).toEqual(parseInt(+new Date()/5000))
-                expect(parseInt(+users[2].deletedAt)).not.toEqual(parseInt(+new Date()/5000))
 
                 done()
               })
