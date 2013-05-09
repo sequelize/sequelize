@@ -11,19 +11,17 @@ var configPath       = process.cwd() + '/config'
   , migrationsPath   = process.cwd() + '/migrations'
   , packageJsonPath  = __dirname + '/../package.json'
   , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
-  , configFile       = configPath + '/config.json'
+  , configFileName   = 'sequelize.js'
+  , configFile       = configPath + '/' + configFileName
   , configPathExists = fs.existsSync(configPath)
   , configFileExists = fs.existsSync(configFile)
 
 var writeConfig = function(config) {
   !configPathExists && fs.mkdirSync(configPath)
 
-  config = JSON.stringify(config)
-  config = config.replace('{', '{\n  ')
-  config = config.replace(/,/g, ",\n  ")
-  config = config.replace('}', "\n}")
+  config = JSON.stringify(config, null, 2)
 
-  fs.writeFileSync(configFile, config)
+  fs.writeFileSync(configFile, "module.exports = " + config + ";")
 }
 
 var createMigrationsFolder = function(force) {
@@ -51,7 +49,7 @@ var createMigrationsFolder = function(force) {
 
 var readConfig = function() {
   try {
-    var config = JSON.parse(fs.readFileSync(configFile))
+    var config = require(configFile)
       , env    = process.env.NODE_ENV || 'development'
 
     if (config[env]) {
@@ -60,13 +58,13 @@ var readConfig = function() {
 
     return config
   } catch(e) {
-    throw new Error('The config.json is not available or contains invalid JSON.')
+    throw new Error('The ' + configFileName + ' is not available or contains invalid JSON.')
   }
 }
 
 program
   .version(packageJson.version)
-  .option('-i, --init', 'Initializes the project. Creates a config/config.json')
+  .option('-i, --init', 'Initializes the project. Creates a config/' + configFileName)
   .option('-m, --migrate', 'Runs undone migrations')
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
@@ -104,7 +102,7 @@ if(program.migrate) {
       sequelize.migrate()
     }
   } else {
-    throw new Error('Please add a configuration file under config/config.json. You might run "sequelize --init".')
+    throw new Error('Please add a configuration file under config/' + configFileName + '. You might run "sequelize --init".')
   }
 } else if(program.init) {
   if(!configFileExists || !!program.force) {
@@ -129,9 +127,9 @@ if(program.migrate) {
       }
     })
 
-    console.log('Successfully created config.json')
+    console.log('Successfully created ' + configFileName)
   } else {
-    console.log('A config.json already exists. Run "sequelize --init --force" to overwrite it.')
+    console.log('A ' + configFileName + ' already exists. Run "sequelize --init --force" to overwrite it.')
   }
 
   createMigrationsFolder(program.force)
