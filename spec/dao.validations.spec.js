@@ -42,6 +42,10 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         fail: "abc",
         pass: "129.89.23.1"
       }
+    , isIPv6 : {
+      fail: '1111:2222:3333::5555:',
+      pass: 'fe80:0000:0000:0000:0204:61ff:fe9d:f156'
+    }
     , isAlpha : {
         fail: "012",
         pass: "abc"
