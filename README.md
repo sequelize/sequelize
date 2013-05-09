@@ -46,12 +46,8 @@ Also make sure to take a look at the examples in the repository. The website wil
 
 A very basic roadmap. Chances aren't too bad, that not mentioned things are implemented as well. Don't panic :)
 
-### 1.6.0 (ToDo)
-- ~~Fix last issues with eager loading of associated data~~
-- ~~Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person~~
-
 ### 1.7.0
-- Check if lodash is a proper alternative to current underscore usage.
+- ~~Check if lodash is a proper alternative to current underscore usage.~~
 - Transactions
 - Support for update of tables without primary key
 - MariaDB support
@@ -59,8 +55,8 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
 - Model#delete
 - Validate a model before it gets saved. (Move validation of enum attribute value to validate method)
-- BLOB [#99](https://github.com/sdepold/sequelize/issues/99)
-- Support for foreign keys
+- BLOB [#99](https://github.com/sequelize/sequelize/issues/99)
+- ~~Support for foreign keys~~ Implemented in [#595](https://github.com/sequelize/sequelize/pull/595), thanks to @optilude
 
 ### 1.7.x
 - Complete support for non-id primary keys

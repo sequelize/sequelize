@@ -2,7 +2,7 @@ if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
       , Helpers   = require('./buster-helpers')
-      , _         = require('underscore')
+      , _         = require('lodash')
       , dialect   = Helpers.getTestDialect()
 }
 
@@ -1031,7 +1031,13 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         age: Sequelize.INTEGER
       })
 
-      this.UserWithAge.sync({ force: true }).success(done)
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function(){
+        this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
     })
 
     it("should return the min value", function(done) {
@@ -1052,6 +1058,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         done()
       })
     })
+
+    it("should allow decimals in min", function(done){
+      this.UserWithDec.create({value: 3.5}).success(function(){
+        this.UserWithDec.create({ value: 5.5 }).success(function(){
+          this.UserWithDec.min('value').success(function(min){
+            expect(min).toEqual(3.5)
+            done()
+          })
+        }.bind(this))
+      }.bind(this))
+    })
   }) //- describe: min
 
   describe('max', function() {
@@ -1060,7 +1077,13 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         age: Sequelize.INTEGER
       })
 
-      this.UserWithAge.sync({ force: true }).success(done)
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function(){
+        this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
     })
 
     it("should return the max value", function(done) {
@@ -1068,6 +1091,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         this.UserWithAge.create({ age: 3 }).success(function() {
           this.UserWithAge.max('age').success(function(max) {
             expect(max).toEqual(3)
+            done()
+          })
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("should allow decimals in max", function(done){
+      this.UserWithDec.create({value: 3.5}).success(function(){
+        this.UserWithDec.create({ value: 5.5 }).success(function(){
+          this.UserWithDec.max('value').success(function(max){
+            expect(max).toEqual(5.5)
             done()
           })
         }.bind(this))

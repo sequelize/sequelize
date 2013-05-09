@@ -29,14 +29,15 @@
     "url": "https://github.com/sdepold/sequelize/issues"
   },
   "dependencies": {
-    "underscore": "~1.4.0",
+    "lodash": "~1.2.1",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
     "validator": "0.4.x",
     "moment": "~1.7.0",
     "commander": "~0.6.0",
     "generic-pool": "1.0.9",
-    "dottie": "0.0.6-1"
+    "dottie": "0.0.6-1",
+    "toposort-class": "0.1.4"
   },
   "devDependencies": {
     "jasmine-node": "1.5.0",

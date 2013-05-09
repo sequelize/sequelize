@@ -9,6 +9,81 @@ describe('QueryGenerator', function() {
   afterEach(function() { Helpers.drop() })
 
   var suites = {
+
+    attributesToSQL: [
+      {
+        arguments: [{id: 'INTEGER'}],
+        expectation: {id: 'INTEGER'}
+      },
+      {
+        arguments: [{id: 'INTEGER', foo: 'VARCHAR(255)'}],
+        expectation: {id: 'INTEGER', foo: 'VARCHAR(255)'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER'}}],
+        expectation: {id: 'INTEGER'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', allowNull: false}}],
+        expectation: {id: 'INTEGER NOT NULL'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', allowNull: true}}],
+        expectation: {id: 'INTEGER'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', primaryKey: true, autoIncrement: true}}],
+        expectation: {id: 'INTEGER PRIMARY KEY AUTOINCREMENT'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', defaultValue: 0}}],
+        expectation: {id: 'INTEGER DEFAULT 0'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', unique: true}}],
+        expectation: {id: 'INTEGER UNIQUE'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`pk`)'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar', onDelete: 'CASCADE'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar', onUpdate: 'RESTRICT'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+        expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
+      },
+    ],
+
+    createTableQuery: [
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));"
+      },
+      {
+        arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255));"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER PRIMARY KEY);"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);"
+      }
+    ],
+
     insertQuery: [
       {
         arguments: ['myTable', { name: 'foo' }],

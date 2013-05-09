@@ -2,7 +2,7 @@ if (typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
-      , _ = require('underscore')
+      , _ = require('lodash')
 }
 
 buster.spec.expose()
@@ -31,10 +31,20 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           aNumber:   { type: DataTypes.INTEGER },
           aRandomId: { type: DataTypes.INTEGER }
         })
+
+        self.ParanoidUser = sequelize.define('ParanoidUser', {
+          username: { type: DataTypes.STRING }
+        }, {
+          paranoid: true
+        })
+
+        self.ParanoidUser.hasOne( self.ParanoidUser )
       },
       onComplete: function() {
         self.User.sync({ force: true }).success(function(){
-          self.HistoryLog.sync({ force: true }).success(done)
+          self.HistoryLog.sync({ force: true }).success(function(){
+            self.ParanoidUser.sync({force: true }).success(done)
+          })
         })
       }
     })
@@ -490,6 +500,51 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           expect(users[0].username).toBeDefined()
 
           done()
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("creates the deletedAt property, when defining paranoid as true", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          expect(users[0].deletedAt).toBeDefined()
+          expect(users[0].deletedAt).toBe(null)
+          done()
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("sets deletedAt property to a specific date when deleting an instance", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          users[0].destroy().success(function(user) {
+            expect(user.deletedAt.getMonth).toBeDefined()
+            done()
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("keeps the deletedAt-attribute with value null, when running updateAttributes", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          users[0].updateAttributes({username: 'newFnord'}).success(function(user) {
+            expect(user.deletedAt).toBe(null)
+            done()
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("keeps the deletedAt-attribute with value null, when updating associations", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          this.ParanoidUser.create({ username: 'linkedFnord' }).success(function( linkedUser ) {
+            users[0].setParanoidUser( linkedUser ).success(function(user) {
+              expect(user.deletedAt).toBe(null)
+              done()
+            }.bind(this))
+          }.bind(this))
         }.bind(this))
       }.bind(this))
     })
