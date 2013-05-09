@@ -38,7 +38,7 @@ Also make sure to take a look at the examples in the repository. The website wil
 
 - [Documentation](http://www.sequelizejs.com)
 - [Twitter](http://twitter.com/sdepold)
-- [IRC](irc://irc.freenode.net/sequelizejs)
+- [IRC](http://webchat.freenode.net?channels=sequelizejs)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
 - [XING](https://www.xing.com/net/priec1b5cx/sequelize) (pretty much inactive, but you might want to name it on your profile)
 
