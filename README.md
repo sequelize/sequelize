@@ -54,7 +54,8 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Support for update and delete calls for whole tables without previous loading of instances
 - Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
 - Model#delete
-- Validate a model before it gets saved. (Move validation of enum attribute value to validate method)
+- ~~Validate a model before it gets saved.~~ Implemented in [#601](https://github.com/sequelize/sequelize/pull/601), thanks to @durango
+- Move validation of enum attribute value to validate method
 - BLOB [#99](https://github.com/sequelize/sequelize/issues/99)
 - ~~Support for foreign keys~~ Implemented in [#595](https://github.com/sequelize/sequelize/pull/595), thanks to @optilude
 
