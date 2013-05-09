@@ -197,7 +197,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         for (var i = 0; i < validatorDetails.fail.length; i++) {
           var failingValue = validatorDetails.fail[i]
 
-          it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function() {
+          it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function(done) {
             var validations = {}
               , message     = validator + "(" + failingValue + ")"
 
@@ -217,11 +217,15 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
             })
 
             var failingUser = UserFail.build({ name : failingValue })
-              , errors      = failingUser.validate()
+              , errors      = undefined;
 
-            expect(errors).not.toBeNull()
-            expect(errors).toEqual({ name : [message] })
-          })
+
+            failingUser.validate().done( function(err,_errors) {
+              expect(_errors).not.toBeNull();
+              expect(_errors).toEqual({ name : [message] });
+              done();
+            });
+          });
         }
 
         ////////////////////////////
@@ -230,7 +234,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         for (var j = 0; j < validatorDetails.pass.length; j++) {
           var succeedingValue = validatorDetails.pass[j]
 
-          it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
+          it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function(done) {
             var validations = {}
 
             if (validatorDetails.hasOwnProperty('spec')) {
@@ -248,35 +252,50 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
               }
             })
 
-            var successfulUser = UserSuccess.build({ name: succeedingValue })
-            expect(successfulUser.validate()).toBeNull()
+            var successfulUser = UserSuccess.build({ name: succeedingValue });
+
+            successfulUser.validate().success( function() {
+              expect(arguments.length).toBe(0);
+              done();
+            }).error(function(err) {
+              expect(err).toBe({})
+              done();
+            });
           })
         }
       }
     }
 
-    it('correctly validates using custom validation methods', function() {
+    it('correctly validates using custom validation methods', function(done) {
       var User = this.sequelize.define('User' + Math.random(), {
         name: {
           type: Sequelize.STRING,
           validate: {
-            customFn: function(val) {
+            customFn: function(val,next) {
               if (val !== "2") {
-                throw new Error("name should equal '2'")
+                next("name should equal '2'")
               }
+              next()
             }
           }
         }
       })
 
       var failingUser = User.build({ name : "3" })
-        , errors      = failingUser.validate()
 
-      expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ name: ["name should equal '2'"] })
+      failingUser.validate().error(function(errors) {
+        expect(errors).toEqual({ name: ["name should equal '2'"] })
+        done();
+      });
 
       var successfulUser = User.build({ name : "2" })
-      expect(successfulUser.validate()).toBeNull()
+      successfulUser.validate().success(function() {
+        expect(arguments.length).toBe(0);
+        done();
+      }).error(function(err) {
+        expect(err).toBe({});
+        done();
+      })
     })
   })
 })
