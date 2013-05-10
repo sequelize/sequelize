@@ -71,6 +71,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 ### 2.0.0
 - ~~save datetimes in UTC~~
 - encapsulate attributes if a dao inside the attributes property + add getters and setters
+- add proper error message everywhere
 
 
 ## Collaboration 2.0 ##
