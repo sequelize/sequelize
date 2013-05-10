@@ -224,6 +224,58 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       }.bind(this), 'Unrecognized data type for field activity_date')
     })
 
+    it('allows native JS types as a datatype', function(done) {
+      var data = this.sequelize.define('NativeDataType', {
+        aString1: String,
+        aString2: 'String',
+        aString3: Sequelize.STRING,
+        aString4: {type: Sequelize.STRING},
+        aNumber1: Number,
+        aNumber2: 'Number',
+        aNumber3: Sequelize.INTEGER,
+        aNumber4: {type: Sequelize.INTEGER},
+        aBoolean1: Boolean,
+        aBoolean2: 'Boolean',
+        aBoolean3: Sequelize.BOOLEAN,
+        aBoolean4: {type: Sequelize.BOOLEAN},
+        aDate1: Date,
+        aDate2: 'Date',
+        aDate3: Sequelize.DATE,
+        aDate4: {type: Sequelize.DATE},
+        anArray1: Array,
+        anArray2: 'Array',
+        anArray3: Sequelize.ARRAY,
+        anArray4: {type: Sequelize.ARRAY},
+        aHstore1: {type: Sequelize.HSTORE}, // Filler
+        aHstore2: {type: Sequelize.HSTORE}, // Filler
+        aHstore3: {type: Sequelize.HSTORE}, // Filler
+        aHstore4: {type: Sequelize.HSTORE}, // Filler
+      })
+
+      var attrs = []
+      attrs.push({ key: 'aString', val: 'VARCHAR(255)' })
+      attrs.push({ key: 'aNumber', val: 'INTEGER' })
+      attrs.push({ key: 'aBoolean', val: /(BOOLEAN|TINYINT\(1\))/ })
+      attrs.push({ key: 'aDate', val: /TIMESTAMP WITH TIME ZONE|DATETIME/ })
+      attrs.push({ key: 'anArray', val: /text\[\]|function/ })
+
+      expect(data.rawAttributes).toBeDefined()
+
+      attrs.forEach(function(values){
+        for (var i = 1; i < 5; ++i) {
+          var field = data.rawAttributes[(values.key + i)]
+          expect(field).toBeDefined()
+          if (field.type) {
+            expect(field.type).toMatch(values.val)
+          } else {
+            expect(field).toMatch(values.val)
+          }
+        }
+      })
+
+      done()
+    })
+
     it('sets a 64 bit int in bigint', function(done) {
       var User = this.sequelize.define('UserWithBigIntFields', {
         big: Sequelize.BIGINT
