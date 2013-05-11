@@ -8,6 +8,7 @@ const path      = require("path")
     , _         = Sequelize.Utils._
 
 var configPath       = process.cwd() + '/config'
+  , environment      = process.env.NODE_ENV || 'development'
   , migrationsPath   = process.cwd() + '/migrations'
   , packageJsonPath  = __dirname + '/../package.json'
   , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
@@ -52,10 +53,9 @@ var createMigrationsFolder = function(force) {
 var readConfig = function() {
   try {
     var config = JSON.parse(fs.readFileSync(configFile))
-      , env    = process.env.NODE_ENV || 'development'
 
-    if (config[env]) {
-      config = config[env]
+    if (config[environment]) {
+      config = config[environment]
     }
 
     return config
@@ -68,10 +68,16 @@ program
   .version(packageJson.version)
   .option('-i, --init', 'Initializes the project. Creates a config/config.json')
   .option('-m, --migrate', 'Runs undone migrations')
+  .option('-e, --env <environment>', 'Specify the environment.')
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
   .option('-c, --create-migration [migration-name]', 'Create a new migration skeleton file.')
   .parse(process.argv)
+
+if(typeof program.env === 'string') {
+  environment = program.env
+}
+console.log("Using environment '" + environment + "'.")
 
 if(program.migrate) {
   if(configFileExists) {
