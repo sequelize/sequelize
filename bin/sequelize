@@ -148,16 +148,18 @@ if(program.migrate) {
 
   var migrationName = [
     moment().format('YYYYMMDDHHmmss'),
-    (typeof program.createMigration == 'string') ? program.createMigration : 'unnamed-migration'
+    (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
   ].join('-') + '.js'
 
   var migrationContent = [
     "module.exports = {",
     "  up: function(migration, DataTypes, done) {",
     "    // add altering commands here, calling 'done' when finished",
+    "    done()",
     "  },",
     "  down: function(migration, DataTypes, done) {",
     "    // add reverting commands here, calling 'done' when finished",
+    "    done()",
     "  }",
     "}"
   ].join('\n')
