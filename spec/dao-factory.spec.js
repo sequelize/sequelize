@@ -1060,6 +1060,42 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
       })
     })
+
+    describe('queryOptions', function() {
+      before(function(done) {
+        this.User.create({
+          username: 'barfooz'
+        }).success(function(user) {
+          this.user = user
+          done()
+        }.bind(this))
+      })
+
+      it("should return a DAO when queryOptions are not set", function (done) {
+        this.User.find({ where: { username: 'barfooz'}}).done(function (err, user) {
+          expect(user).toHavePrototype(this.User.DAO.prototype)
+
+          done();
+        }.bind(this))
+      })
+
+      it("should return a DAO when raw is false", function (done) {
+        this.User.find({ where: { username: 'barfooz'}}, { raw: false }).done(function (err, user) {
+          expect(user).toHavePrototype(this.User.DAO.prototype)
+
+          done();
+        }.bind(this))
+      })  
+
+      it("should return raw data when raw is true", function (done) {
+        this.User.find({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, user) {
+          expect(user).not.toHavePrototype(this.User.DAO.prototype)
+          expect(user).toBeObject()
+
+          done();
+        }.bind(this))
+      })
+    }) // - describe: queryOptions
   }) //- describe: find
 
   describe('findAll', function findAll() {
@@ -1292,6 +1328,49 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           }.bind(this))
         })
       })
+
+      describe('queryOptions', function() {
+        before(function(done) {
+          this.User.create({
+            username: 'barfooz'
+          }).success(function(user) {
+            this.user = user
+            done()
+          }.bind(this))
+        })
+
+        it("should return a DAO when queryOptions are not set", function (done) {
+          this.User.findAll({ where: { username: 'barfooz'}}).done(function (err, users) {
+            users.forEach(function (user) {
+              expect(user).toHavePrototype(this.User.DAO.prototype)  
+            }, this)
+            
+
+            done();
+          }.bind(this))
+        })
+
+        it("should return a DAO when raw is false", function (done) {
+          this.User.findAll({ where: { username: 'barfooz'}}, { raw: false }).done(function (err, users) {
+            users.forEach(function (user) {
+              expect(user).toHavePrototype(this.User.DAO.prototype)  
+            }, this)
+            
+            done();
+          }.bind(this))
+        })  
+
+        it("should return raw data when raw is true", function (done) {
+          this.User.findAll({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, users) {
+            users.forEach(function (user) {
+              expect(user).not.toHavePrototype(this.User.DAO.prototype) 
+              expect(users[0]).toBeObject()
+            }, this)
+
+            done();
+          }.bind(this))
+        })
+      }) // - describe: queryOptions
     })
   }) //- describe: findAll
 
