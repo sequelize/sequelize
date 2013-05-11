@@ -51,17 +51,23 @@ var createMigrationsFolder = function(force) {
 }
 
 var readConfig = function() {
+  var config
   try {
-    var config = JSON.parse(fs.readFileSync(configFile))
-
-    if (config[environment]) {
-      config = config[environment]
-    }
-
-    return config
+    config = fs.readFileSync(configFile)
   } catch(e) {
-    throw new Error('The config.json is not available or contains invalid JSON.')
+    throw new Error('Error reading "config/config.json".')
   }
+
+  try {
+    config = JSON.parse(config)
+  } catch (e) {
+    throw new Error('Error parsing "config/config.json" as JSON.')
+  }
+
+  if (config[environment]) {
+    config = config[environment]
+  }
+  return config
 }
 
 program
@@ -81,8 +87,15 @@ console.log("Using environment '" + environment + "'.")
 
 if(program.migrate) {
   if(configFileExists) {
-    var config = readConfig()
+    var config
       , options  = {}
+
+    try {
+      config = readConfig()
+    } catch(e) {
+      console.log(e.message)
+      process.exit(1)
+    }
 
     _.each(config, function(value, key) {
       if(['database', 'username', 'password'].indexOf(key) == -1) {
