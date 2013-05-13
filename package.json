@@ -47,7 +47,8 @@
     "mariasql": "~0.1.18",
     "buster": "~0.6.0",
     "watchr": "~2.2.0",
-    "yuidocjs": "~0.3.36"
+    "yuidocjs": "~0.3.36",
+    "mariasql": "~0.1.18"
   },
   "keywords": [
     "mysql",
@@ -59,12 +60,13 @@
   "scripts": {
     "test": "npm run test-jasmine && npm run test-buster",
     "test-jasmine": "jasmine-node spec-jasmine/",
-    "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite",
+    "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite && npm run test-buster-mariadb",
     "test-buster-travis": "buster-test",
     "test-buster-mysql": "DIALECT=mysql buster-test",
     "test-buster-postgres": "DIALECT=postgres buster-test",
     "test-buster-postgres-native": "DIALECT=postgres-native buster-test",
     "test-buster-sqlite": "DIALECT=sqlite buster-test",
+    "test-buster-mariadb": "DIALECT=mariadb buster-test",
     "docs": "node_modules/.bin/yuidoc . -o docs"
   },
   "bin": {
