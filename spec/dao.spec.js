@@ -644,4 +644,44 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       }.bind(this))
     })
   })
+
+  describe('updateAttributes', function() {
+    it('stores and restores null values', function(done) {
+      var Download = this.sequelize.define('download', {
+        startedAt: Helpers.Sequelize.DATE,
+        canceledAt: Helpers.Sequelize.DATE,
+        finishedAt: Helpers.Sequelize.DATE
+      })
+
+      Download.sync({ force: true }).success(function() {
+        Download.create({
+          startedAt: new Date()
+        }).success(function(download) {
+          expect(download.startedAt instanceof Date).toBeTrue()
+          expect(download.canceledAt).toBeFalsy()
+          expect(download.finishedAt).toBeFalsy()
+
+          download.updateAttributes({
+            canceledAt: new Date()
+          }).success(function(download) {
+            expect(download.startedAt instanceof Date).toBeTrue()
+            expect(download.canceledAt instanceof Date).toBeTrue()
+            expect(download.finishedAt).toBeFalsy()
+
+            Download.all({
+              where: (dialect === 'postgres' ? '"finishedAt" IS NULL' : "`finishedAt` IS NULL")
+            }).success(function(downloads) {
+              downloads.forEach(function(download) {
+                expect(download.startedAt instanceof Date).toBeTrue()
+                expect(download.canceledAt instanceof Date).toBeTrue()
+                expect(download.finishedAt).toBeFalsy()
+              })
+
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
 })
