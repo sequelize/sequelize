@@ -8,6 +8,7 @@ const path      = require("path")
     , _         = Sequelize.Utils._
 
 var configPath       = process.cwd() + '/config'
+  , environment      = process.env.NODE_ENV || 'development'
   , migrationsPath   = process.cwd() + '/migrations'
   , packageJsonPath  = __dirname + '/../package.json'
   , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
@@ -50,33 +51,51 @@ var createMigrationsFolder = function(force) {
 }
 
 var readConfig = function() {
+  var config
   try {
-    var config = JSON.parse(fs.readFileSync(configFile))
-      , env    = process.env.NODE_ENV || 'development'
-
-    if (config[env]) {
-      config = config[env]
-    }
-
-    return config
+    config = fs.readFileSync(configFile)
   } catch(e) {
-    throw new Error('The config.json is not available or contains invalid JSON.')
+    throw new Error('Error reading "config/config.json".')
   }
+
+  try {
+    config = JSON.parse(config)
+  } catch (e) {
+    throw new Error('Error parsing "config/config.json" as JSON.')
+  }
+
+  if (config[environment]) {
+    config = config[environment]
+  }
+  return config
 }
 
 program
   .version(packageJson.version)
-  .option('-i, --init', 'Initializes the project. Creates a config/config.json')
-  .option('-m, --migrate', 'Runs undone migrations')
+  .option('-i, --init', 'Initializes the project.')
+  .option('-e, --env <environment>', 'Specify the environment.')
+  .option('-m, --migrate', 'Run pending migrations.')
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
-  .option('-c, --create-migration [migration-name]', 'Create a new migration skeleton file.')
+  .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
   .parse(process.argv)
+
+if(typeof program.env === 'string') {
+  environment = program.env
+}
+console.log("Using environment '" + environment + "'.")
 
 if(program.migrate) {
   if(configFileExists) {
-    var config = readConfig()
+    var config
       , options  = {}
+
+    try {
+      config = readConfig()
+    } catch(e) {
+      console.log(e.message)
+      process.exit(1)
+    }
 
     _.each(config, function(value, key) {
       if(['database', 'username', 'password'].indexOf(key) == -1) {
@@ -104,7 +123,8 @@ if(program.migrate) {
       sequelize.migrate()
     }
   } else {
-    throw new Error('Please add a configuration file under config/config.json. You might run "sequelize --init".')
+    console.log('Cannot find "config/config.json". Have you run "sequelize --init"?')
+    process.exit(1)
   }
 } else if(program.init) {
   if(!configFileExists || !!program.force) {
@@ -129,9 +149,10 @@ if(program.migrate) {
       }
     })
 
-    console.log('Successfully created config.json')
+    console.log('Created "config/config.json"')
   } else {
-    console.log('A config.json already exists. Run "sequelize --init --force" to overwrite it.')
+    console.log('"config/config.json" already exists. Run "sequelize --init --force" to overwrite.')
+    process.exit(1)
   }
 
   createMigrationsFolder(program.force)
@@ -140,21 +161,23 @@ if(program.migrate) {
 
   var migrationName = [
     moment().format('YYYYMMDDHHmmss'),
-    (typeof program.createMigration == 'string') ? program.createMigration : 'unnamed-migration'
+    (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
   ].join('-') + '.js'
 
   var migrationContent = [
     "module.exports = {",
     "  up: function(migration, DataTypes, done) {",
     "    // add altering commands here, calling 'done' when finished",
+    "    done()",
     "  },",
     "  down: function(migration, DataTypes, done) {",
     "    // add reverting commands here, calling 'done' when finished",
+    "    done()",
     "  }",
     "}"
   ].join('\n')
 
   fs.writeFileSync(migrationsPath + '/' + migrationName, migrationContent)
 } else {
-  console.log('Please define any params!')
+  console.log('Try "sequelize --help" for usage information.')
 }
