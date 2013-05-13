@@ -44,6 +44,7 @@
     "sqlite3": "~2.1.5",
     "mysql": "~2.0.0-alpha7",
     "pg": "~0.10.2",
+    "mariasql": "~0.1.18",
     "buster": "~0.6.0",
     "watchr": "~2.2.0",
     "yuidocjs": "~0.3.36"
