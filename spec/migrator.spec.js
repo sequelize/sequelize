@@ -14,8 +14,8 @@ describe(Helpers.getTestDialectTeaser("Migrator"), function() {
   before(function(done) {
     this.init = function(options, callback) {
       options = Helpers.Sequelize.Utils._.extend({
-        path: __dirname + '/assets/migrations',
-        logging: false
+        path:    __dirname + '/assets/migrations',
+        logging: function(){}
       }, options || {})
 
       var migrator = new Migrator(this.sequelize, options)
