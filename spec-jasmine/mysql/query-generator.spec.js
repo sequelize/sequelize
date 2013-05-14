@@ -174,17 +174,17 @@ describe('QueryGenerator', function() {
       }, {
         title: 'no where arguments (object)',
         arguments: ['myTable', {where: {}}],
-        expectation: "SELECT * FROM `myTable` WHERE 1;",
+        expectation: "SELECT * FROM `myTable` WHERE 1=1;",
         context: QueryGenerator
       }, {
         title: 'no where arguments (string)',
         arguments: ['myTable', {where: ''}],
-        expectation: "SELECT * FROM `myTable` WHERE 1;",
+        expectation: "SELECT * FROM `myTable` WHERE 1=1;",
         context: QueryGenerator
       }, {
         title: 'no where arguments (null)',
         arguments: ['myTable', {where: null}],
-        expectation: "SELECT * FROM `myTable` WHERE 1;",
+        expectation: "SELECT * FROM `myTable` WHERE 1=1;",
         context: QueryGenerator
       }
     ],
