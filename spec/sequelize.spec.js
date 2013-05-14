@@ -7,7 +7,7 @@ if(typeof require === 'function') {
 var qq = function(str) {
   if (dialect == 'postgres' || dialect == 'sqlite') {
     return '"' + str + '"'
-  } else if (dialect == 'mysql') {
+  } else if (dialect == 'mysql' || dialect == 'mariadb') {
     return '`' + str + '`'
   } else {
     return str
@@ -106,7 +106,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
 
-    if (dialect == 'mysql') {
+    if (dialect == 'mysql' || dialect == 'mariadb') {
       it('executes stored procedures', function(done) {
         this.sequelize.query(this.insertQuery).success(function() {
           this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
