@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-var path = require("path")
-  , fs = require("fs")
-  , program = require("commander")
+var path      = require("path")
+  , fs        = require("fs")
+  , program   = require("commander")
   , Sequelize = require(__dirname + '/../index')
-  , moment = require("moment")
-  , _ = Sequelize.Utils._
+  , moment    = require("moment")
+  , _         = Sequelize.Utils._
 
 var configuration = {
   configFile: process.cwd() + '/config/config.json',
