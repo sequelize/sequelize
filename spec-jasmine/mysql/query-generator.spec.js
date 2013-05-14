@@ -197,6 +197,12 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
         expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
         context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {foo: false}],
+        expectation: "INSERT INTO `myTable` (`foo`) VALUES (0);"
+      }, {
+        arguments: ['myTable', {foo: true}],
+        expectation: "INSERT INTO `myTable` (`foo`) VALUES (1);"
       }
     ],
 
@@ -228,6 +234,9 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: undefined}, {name: 'bar', foo: 2, undefinedValue: undefined}]],
         expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
         context: {options: {omitNull: true}} // Note: As above
+      }, {
+        arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1),('bar',0);"
       }
     ],
 
@@ -255,6 +264,12 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
         expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'",
         context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {bar: false}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=0 WHERE `name`='foo'"
+      }, {
+        arguments: ['myTable', {bar: true}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=1 WHERE `name`='foo'"
       }
     ],
 
@@ -325,6 +340,27 @@ describe('QueryGenerator', function() {
       {
         arguments: [{ id: [] }],
         expectation: "`id` IN (NULL)"
+      },
+      {
+        arguments: [{ maple: false, bacon: true }],
+        expectation: "`maple`=0 AND `bacon`=1"
+      },
+      {
+        arguments: [{ beaver: [false, true] }],
+        expectation: "`beaver` IN (0,1)"
+      },
+      {
+        arguments: [{birthday: new Date(Date.UTC(2011, 6, 1, 10, 1, 55))}],
+        expectation: "`birthday`='2011-07-01 10:01:55'"
+      },
+      {
+        arguments: [{ birthday: new Date(Date.UTC(2011, 6, 1, 10, 1, 55)),
+                      otherday: new Date(Date.UTC(2013, 6, 2, 10, 1, 22)) }],
+        expectation: "`birthday`='2011-07-01 10:01:55' AND `otherday`='2013-07-02 10:01:22'"
+      },
+      {
+        arguments: [{ birthday: [new Date(Date.UTC(2011, 6, 1, 10, 1, 55)), new Date(Date.UTC(2013, 6, 2, 10, 1, 22))] }],
+        expectation: "`birthday` IN ('2011-07-01 10:01:55','2013-07-02 10:01:22')"
       }
     ]
   }
