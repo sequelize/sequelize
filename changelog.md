@@ -7,6 +7,7 @@
 - [BUG] Added decimal support for min/max. [#583](https://github.com/sequelize/sequelize/pull/583). thanks to durango
 - [BUG] Null dates don't break SQLite anymore. [#572](https://github.com/sequelize/sequelize/pull/572). thanks to mweibel
 - [BUG] Correctly handle booleans in MySQL. [#608](https://github.com/sequelize/sequelize/pull/608). Thanks to terraflubb
+- [BUG] Fixed empty where conditions in MySQL. [#619](https://github.com/sequelize/sequelize/pull/619). Thanks to terraflubb
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
 - [FEATURE] Support for bulk insert (`<DAOFactory>.bulkCreate()`, update (`<DAOFactory>.update()`) and delete (`<DAOFactory>.destroy()`) [#569](https://github.com/sequelize/sequelize/pull/569). thanks to optilude
