@@ -495,7 +495,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
     it('returns the selected fields and all fields of the included table as instance.selectedValues', function(done) {
       this.Mission = this.sequelize.define('Mission', {
-        title:  {type: Sequelize.STRING, defaultValue: 'a mission!'},
+        title:  {type: Sequelize.STRING, defaultValue: 'a mission!!'},
         foo:    {type: Sequelize.INTEGER, defaultValue: 2},
       })
 
