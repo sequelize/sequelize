@@ -2,7 +2,7 @@ if (typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
-      , _ = require('underscore')
+      , _ = require('lodash')
 }
 
 buster.spec.expose()
@@ -19,7 +19,23 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           username:  { type: DataTypes.STRING },
           touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
           aNumber:   { type: DataTypes.INTEGER },
-          bNumber:   { type: DataTypes.INTEGER }
+          bNumber:   { type: DataTypes.INTEGER },
+
+          validateTest: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            validate: {isInt: true}
+          },
+          validateCustom: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            validate: {len: {msg: 'Length failed.', args: [1,20]}}
+          },
+
+          dateAllowNullTrue: {
+            type: DataTypes.DATE,
+            allowNull: true
+          }
         })
 
         self.HistoryLog = sequelize.define('HistoryLog', {
@@ -27,10 +43,20 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           aNumber:   { type: DataTypes.INTEGER },
           aRandomId: { type: DataTypes.INTEGER }
         })
+
+        self.ParanoidUser = sequelize.define('ParanoidUser', {
+          username: { type: DataTypes.STRING }
+        }, {
+          paranoid: true
+        })
+
+        self.ParanoidUser.hasOne( self.ParanoidUser )
       },
       onComplete: function() {
         self.User.sync({ force: true }).success(function(){
-          self.HistoryLog.sync({ force: true }).success(done)
+          self.HistoryLog.sync({ force: true }).success(function(){
+            self.ParanoidUser.sync({force: true }).success(done)
+          })
         })
       }
     })
@@ -320,6 +346,29 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         expect(+user.touchedAt).toBe(5000)
       })
     })
+
+    describe('allowNull date', function() {
+      it('should be just "null" and not Date with Invalid Date', function(done) {
+        var self = this;
+        this.User.build({ username: 'a user'}).save().success(function() {
+          self.User.find({where: {username: 'a user'}}).success(function(user) {
+            expect(user.dateAllowNullTrue).toBe(null)
+            done()
+          })
+        })
+      })
+
+      it('should be the same valid date when saving the date', function(done) {
+        var self = this;
+        var date = new Date();
+        this.User.build({ username: 'a user', dateAllowNullTrue: date}).save().success(function() {
+          self.User.find({where: {username: 'a user'}}).success(function(user) {
+            expect(user.dateAllowNullTrue.toString()).toEqual(date.toString())
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('complete', function() {
@@ -341,6 +390,44 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
   })
 
   describe('save', function() {
+    it('should fail a validation upon creating', function(done){
+      this.User.create({aNumber: 0, validateTest: 'hello'}).error(function(err){
+        expect(err).toBeDefined()
+        expect(err).toBeObject()
+        expect(err.validateTest).toBeArray()
+        expect(err.validateTest[0]).toBeDefined()
+        expect(err.validateTest[0].indexOf('Invalid integer')).toBeGreaterThan(-1);
+        done();
+      });
+    })
+
+    it('should fail a validation upon building', function(done){
+      this.User.build({aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'}).save()
+      .error(function(err){
+        expect(err).toBeDefined()
+        expect(err).toBeObject()
+        expect(err.validateCustom).toBeDefined()
+        expect(err.validateCustom).toBeArray()
+        expect(err.validateCustom[0]).toBeDefined()
+        expect(err.validateCustom[0]).toEqual('Length failed.')
+        done()
+      })
+    })
+
+    it('should fail a validation when updating', function(done){
+      this.User.create({aNumber: 0}).success(function(user){
+        user.updateAttributes({validateTest: 'hello'}).error(function(err){
+          expect(err).toBeDefined()
+          expect(err).toBeObject()
+          expect(err.validateTest).toBeDefined()
+          expect(err.validateTest).toBeArray()
+          expect(err.validateTest[0]).toBeDefined()
+          expect(err.validateTest[0].indexOf('Invalid integer:')).toBeGreaterThan(-1)
+          done()
+        })
+      })
+    })
+
     it('takes zero into account', function(done) {
       this.User.build({ aNumber: 0 }).save([ 'aNumber' ]).success(function(user) {
         expect(user.aNumber).toEqual(0)
@@ -467,6 +554,51 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       }.bind(this))
     })
 
+    it("creates the deletedAt property, when defining paranoid as true", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          expect(users[0].deletedAt).toBeDefined()
+          expect(users[0].deletedAt).toBe(null)
+          done()
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("sets deletedAt property to a specific date when deleting an instance", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          users[0].destroy().success(function(user) {
+            expect(user.deletedAt.getMonth).toBeDefined()
+            done()
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("keeps the deletedAt-attribute with value null, when running updateAttributes", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          users[0].updateAttributes({username: 'newFnord'}).success(function(user) {
+            expect(user.deletedAt).toBe(null)
+            done()
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("keeps the deletedAt-attribute with value null, when updating associations", function(done) {
+      this.ParanoidUser.create({ username: 'fnord' }).success(function() {
+        this.ParanoidUser.findAll().success(function(users) {
+          this.ParanoidUser.create({ username: 'linkedFnord' }).success(function( linkedUser ) {
+            users[0].setParanoidUser( linkedUser ).success(function(user) {
+              expect(user.deletedAt).toBe(null)
+              done()
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
     it("can reuse query option objects", function(done) {
       this.User.create({ username: 'fnord' }).success(function() {
         var query = { where: { username: 'fnord' }}
@@ -510,6 +642,46 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           done()
         }.bind(this))
       }.bind(this))
+    })
+  })
+
+  describe('updateAttributes', function() {
+    it('stores and restores null values', function(done) {
+      var Download = this.sequelize.define('download', {
+        startedAt: Helpers.Sequelize.DATE,
+        canceledAt: Helpers.Sequelize.DATE,
+        finishedAt: Helpers.Sequelize.DATE
+      })
+
+      Download.sync({ force: true }).success(function() {
+        Download.create({
+          startedAt: new Date()
+        }).success(function(download) {
+          expect(download.startedAt instanceof Date).toBeTrue()
+          expect(download.canceledAt).toBeFalsy()
+          expect(download.finishedAt).toBeFalsy()
+
+          download.updateAttributes({
+            canceledAt: new Date()
+          }).success(function(download) {
+            expect(download.startedAt instanceof Date).toBeTrue()
+            expect(download.canceledAt instanceof Date).toBeTrue()
+            expect(download.finishedAt).toBeFalsy()
+
+            Download.all({
+              where: (dialect === 'postgres' ? '"finishedAt" IS NULL' : "`finishedAt` IS NULL")
+            }).success(function(downloads) {
+              downloads.forEach(function(download) {
+                expect(download.startedAt instanceof Date).toBeTrue()
+                expect(download.canceledAt instanceof Date).toBeTrue()
+                expect(download.finishedAt).toBeFalsy()
+              })
+
+              done()
+            })
+          })
+        })
+      })
     })
   })
 })
