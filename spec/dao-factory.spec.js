@@ -168,6 +168,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
             Helpers.checkMatchForDialects(dialect, err.message, {
               sqlite: /.*SQLITE_CONSTRAINT.*/,
               mysql: /.*Duplicate\ entry.*/,
+              mariadb: /.*Duplicate\ entry.*/,
               postgres: /.*duplicate\ key\ value.*/
             })
 
@@ -190,6 +191,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           Helpers.checkMatchForDialects(dialect, err.message, {
             sqlite: /.*SQLITE_CONSTRAINT.*/,
             mysql: "Column 'smth' cannot be null",
+            mariadb: "Column 'smth' cannot be null",
             postgres: /.*column "smth" violates not-null.*/
           })
 
@@ -200,6 +202,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
               Helpers.checkMatchForDialects(dialect, err.message, {
                 sqlite: /.*SQLITE_CONSTRAINT.*/,
                 mysql: "Duplicate entry 'foo' for key 'username'",
+                mariadb: "Duplicate entry 'foo' for key 'username'",
                 postgres: /.*duplicate key value violates unique constraint.*/
               })
 
@@ -1499,7 +1502,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
-    if (dialect === "mysql") {
+    if (dialect === "mysql" /* || dialect === "mariadb" */) {
       it("should take schemaDelimiter into account if applicable", function(done){
         var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'})
         var UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {age: Sequelize.INTEGER})
