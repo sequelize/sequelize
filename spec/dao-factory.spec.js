@@ -101,17 +101,37 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       expect(user.selectedValues).toEqual({ username: 'John Wayne' })
     })
 
-    it("attaches getter and setter methods", function() {
-      var Product = this.sequelize.define('ProductWithSettersAndGetters', {
+    it("attaches getter and setter methods from attribute definition", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters1', {
+        price: {
+          type: Sequelize.INTEGER,
+          get : function() {
+            return 'answer = ' + this.getDataValue('price');
+          },
+          set : function(v) {
+            return this.setDataValue('price', v + 42);
+          }
+        }
+      },{
+      });
+
+      expect(Product.build({price: 42}).price).toEqual('answer = 84');
+
+      var p = Product.build({price: 1});
+
+      expect(p.price).toEqual('answer = 43');
+
+      p.price = 0;
+
+      expect(p.price).toEqual('answer = 42'); // ah finally the right answer :-)
+    })
+
+    it("attaches getter and setter methods from options", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters2', {
         priceInCents: {
           type: Sequelize.INTEGER
         }
       },{
-        instanceMethods: {
-          foo: function() {
-            console.log('woot')
-          }
-        },
         setterMethods: {
           price: function(value) {
             this.dataValues.priceInCents = value * 100;
@@ -130,6 +150,31 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       expect(Product.build({price: 20}).priceInCents).toEqual(20 * 100);
       expect(Product.build({priceInCents: 30 * 100}).price).toEqual('$' + 30);
+    })
+
+    it("attaches getter and setter methods from options only if not defined in attribute", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters3', {
+        price1: {
+          type: Sequelize.INTEGER,
+          set : function(v) { this.setDataValue('price1', v * 10); }
+        },
+        price2: {
+          type: Sequelize.INTEGER,
+          get : function(v) { return this.getDataValue('price2') * 10; }
+        }
+      },{
+        setterMethods: {
+          price1: function(v) { this.setDataValue('price1', v * 100); }
+        },
+        getterMethods: {
+          price2: function() { return '$' + this.getDataValue('price2'); }
+        }
+      });
+
+      var p = Product.build({ price1: 1, price2: 2 });
+
+      expect(p.price1).toEqual(10);
+      expect(p.price2).toEqual(20);
     })
   })
 
@@ -1147,7 +1192,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
           done();
         }.bind(this))
-      })  
+      })
 
       it("should return raw data when raw is true", function (done) {
         this.User.find({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, user) {
@@ -1404,9 +1449,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         it("should return a DAO when queryOptions are not set", function (done) {
           this.User.findAll({ where: { username: 'barfooz'}}).done(function (err, users) {
             users.forEach(function (user) {
-              expect(user).toHavePrototype(this.User.DAO.prototype)  
+              expect(user).toHavePrototype(this.User.DAO.prototype)
             }, this)
-            
+
 
             done();
           }.bind(this))
@@ -1415,17 +1460,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         it("should return a DAO when raw is false", function (done) {
           this.User.findAll({ where: { username: 'barfooz'}}, { raw: false }).done(function (err, users) {
             users.forEach(function (user) {
-              expect(user).toHavePrototype(this.User.DAO.prototype)  
+              expect(user).toHavePrototype(this.User.DAO.prototype)
             }, this)
-            
+
             done();
           }.bind(this))
-        })  
+        })
 
         it("should return raw data when raw is true", function (done) {
           this.User.findAll({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, users) {
             users.forEach(function (user) {
-              expect(user).not.toHavePrototype(this.User.DAO.prototype) 
+              expect(user).not.toHavePrototype(this.User.DAO.prototype)
               expect(users[0]).toBeObject()
             }, this)
 
