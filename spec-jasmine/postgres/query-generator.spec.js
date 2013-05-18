@@ -121,16 +121,16 @@ describe('QueryGenerator', function() {
         expectation: "SELECT \"id\", \"name\" FROM \"myTable\";"
       }, {
         arguments: ['myTable', {where: {id: 2}}],
-        expectation: "SELECT * FROM \"myTable\" WHERE \"id\"=2;"
+        expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"id\"=2;"
       }, {
         arguments: ['myTable', {where: {name: 'foo'}}],
-        expectation: "SELECT * FROM \"myTable\" WHERE \"name\"='foo';"
+        expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"name\"='foo';"
       }, {
         arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
-        expectation: "SELECT * FROM \"myTable\" WHERE \"name\"='foo'';DROP TABLE myTable;';"
+        expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"name\"='foo'';DROP TABLE myTable;';"
       }, {
         arguments: ['myTable', {where: 2}],
-        expectation: "SELECT * FROM \"myTable\" WHERE \"id\"=2;"
+        expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"id\"=2;"
       }, {
         arguments: ['foo', { attributes: [['count(*)', 'count']] }],
         expectation: 'SELECT count(*) as \"count\" FROM \"foo\";'
@@ -164,7 +164,7 @@ describe('QueryGenerator', function() {
         expectation: "SELECT * FROM \"mySchema\".\"myTable\";"
       }, {
         arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
-        expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;';"
+        expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"mySchema\".\"myTable\".\"name\"='foo'';DROP TABLE mySchema.myTable;';"
       }
     ],
 
