@@ -25,7 +25,7 @@ module.exports = {
     database: 'sequelize_test',
     host: '127.0.0.1',
     port: 3306,
-    pool: { maxConnections: 1, maxIdleTime: 30}
+    pool: { maxConnections: 5, maxIdleTime: 30}
   },
 
   sqlite: {
