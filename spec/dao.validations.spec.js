@@ -282,5 +282,29 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       var successfulUser = User.build({ name : "2" })
       expect(successfulUser.validate()).toBeNull()
     })
+
+    it('skips other validations if allowNull is true and the value is null', function() {
+      var User = this.sequelize.define('User' + Math.random(), {
+        age: {
+          type: Sequelize.INTEGER,
+          allowNull: true,
+          validate: {
+            min: { args: 0, msg: 'must be positive' }
+          }
+        }
+      })
+
+      var failingUser = User.build({ age: -1 })
+        , errors      = failingUser.validate()
+
+      expect(errors).not.toBeNull(null)
+      expect(errors).toEqual({ age: ['must be positive'] })
+
+      var successfulUser1 = User.build({ age: null })
+      expect(successfulUser1.validate()).toBeNull()
+
+      var successfulUser2 = User.build({ age: 1 })
+      expect(successfulUser2.validate()).toBeNull()
+    })
   })
 })
