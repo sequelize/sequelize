@@ -121,7 +121,25 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
           }.bind(this))
         }.bind(this))
       })
-    } else {
+    } /*
+    // this is always timing out for mariadb for some reason
+    else if (dialect == 'mariadb'){
+      it('executes stored procedures', function(done) {
+        this.sequelize.query(this.insertQuery).success(function() {
+          this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
+            this.sequelize.query("CREATE PROCEDURE foo()").success(function() {
+              this.sequelize.query("SELECT * FROM " + this.User.tableName + ";"
+              ).success(function() {
+                this.sequelize.query('CALL foo()').success(function(users) {
+                  expect(users.map(function(u){ return u.username })).toEqual(['john'])
+                  done()
+                })
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      })
+    }*/ else {
       console.log('FIXME: I want to be supported in this dialect as well :-(')
     }
 

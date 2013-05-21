@@ -1502,7 +1502,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
-    if (dialect === "mysql" /* || dialect === "mariadb" */) {
+    if (dialect === "mysql" || dialect === "mariadb" ) {
       it("should take schemaDelimiter into account if applicable", function(done){
         var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'})
         var UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {age: Sequelize.INTEGER})
