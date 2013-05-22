@@ -1,14 +1,14 @@
 /*
   Title: Defining class and instance methods
-  
+
   This example shows the usage of the classMethods and instanceMethods option for Models.
 */
 
 var Sequelize = require(__dirname + "/../../index")
-  , config    = require(__dirname + "/../../test/config")
+  , config    = require(__dirname + "/../../spec/config/config")
   , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
 
-// model definition    
+// model definition
 var Task = sequelize.define("Task", {
   name: Sequelize.STRING,
   deadline: Sequelize.DATE,
@@ -51,7 +51,7 @@ Task.sync({force: true}).on('success', function() {
     console.log("should be false: " + task1.passedDeadline())
     console.log("should be true: " + task2.passedDeadline())
     console.log("should be 10: " + task1.importance)
-    
+
     Task.setImportance(30, function() {
       Task.findAll().on('success', function(tasks) {
         tasks.forEach(function(task) {

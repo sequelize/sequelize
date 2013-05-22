@@ -30,7 +30,7 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 - Associations
 - Importing definitions from single files
 
-## Documentation, Examples and Updates ##
+## Documentation and Updates ##
 
 You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
 If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
@@ -41,6 +41,11 @@ Also make sure to take a look at the examples in the repository. The website wil
 - [IRC](http://webchat.freenode.net?channels=sequelizejs)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
 - [XING](https://www.xing.com/net/priec1b5cx/sequelize) (pretty much inactive, but you might want to name it on your profile)
+
+## Running Examples
+Instructions for running samples are located in the [example directory](https://github.com/sequelize/sequelize/tree/master/examples). Try these samples in a live sandbox environment:
+
+<a href="https://runnable.com/sequelize" target="_blank"><img src="https://runnable.com/external/styles/assets/runnablebtn.png"></a>
 
 ## Roadmap
 
