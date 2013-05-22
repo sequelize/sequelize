@@ -124,8 +124,8 @@
               notEmpty: true,           // don't allow empty strings
               equals: 'specific value', // only allow a specific value
               contains: 'foo',          // force specific substrings
-              notIn: 'foo',             // force specific substrings
-              isIn: "foo",              // force specific substrings
+              notIn: [['foo', 'bar']],  // check the value is not one of these
+              isIn: [['foo', 'bar']],   // check the value is one of these
               notContains: 'bar',       // don't allow specific substrings
               len: [2,10],              // only allow values with length between 2 and 10
               isUUID: 4,                // only allow uuids
@@ -141,13 +141,35 @@
               isEven: function(value) {
                 if(parseInt(value) % 2 != 0)
                   throw new Error('Only even values are allowed!')
+                // we also are in the model's context here, so this.otherField
+                // would get the value of otherField if it existed
               }
             }
           }
         })
       </code></pre>
+      Note that where multiple arguments need to be passed to the built-in validation functions, the arguments to be passed must be in an array. But if a single array argument is to be passed, for instance an array of acceptable strings for <code>isIn</code>, this will be interpreted as multiple string arguments instead of one array argument. To work around this pass something like <code>[['one', two']]</code> as shown above.
     </p>
+    <p>
+      To use a custom error message instead of that provided by node-validator, use an object instead of the plain value or array of arguments, for example a validator which needs no argument can be given a custom message with
+      <pre><code class="language-javascript">
+        isInt: {
+          msg: "Must be an integer number of pennies"
+        }
+      </code></pre>
+      or if arguments need to also be passed add an <code>args</code> property:
+      <pre><code class="language-javascript"><code>
+        isIn: {
+          args: [['en', 'zh']],
+          msg: "Must be English or Chinese"
+        }
+      </code></pre>
+    </p>
+    <p>See <a href="https://github.com/chriso/node-validator">the node-validator project</a> for more details on the built in validation methods.</p>
     <p><strong>Hint:</strong> You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.</p>
+
+    <h4>Validators and <code>allowNull</code></h4>
+    <p>Since v1.7.0 if a particular field of model is set to allow null (with <code>allowNull: true</code>) and that value has been set to null, its validators do not run. This means you can, for instance, have a string field which validates its length to be at least 5 characters, but also allows null.</p>
   </div>
 </div>
 
