@@ -106,7 +106,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
 
-    if (dialect == 'mysql' || dialect == 'mariadb') {
+    if (dialect == 'mysql') {
       it('executes stored procedures', function(done) {
         this.sequelize.query(this.insertQuery).success(function() {
           this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
