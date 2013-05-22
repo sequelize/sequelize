@@ -148,6 +148,49 @@
       </code></pre>
     </p>
     <p><strong>Hint:</strong> You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.</p>
+
+    <h4>Model validations</h4>
+    <p>Since 1.7.0, validations can also be defined to check the model after the field-specific validators. Using this you could, for example, ensure either neither of <code>latitude</code> and <code>longitude</code> are set or both, and fail if one but not the other is set.</p>
+    <p>Model validator methods are called with the model object's context and are deemed to fail if they throw an error, otherwise pass. This is just the same as with custom field-specific validators.</p>
+    <p>Any error messages collected are added to a '_' member array of the validation result object, alongside the arrays named after any fields whose validations failed.</p>
+    <p>
+      An example:
+      <pre><code class="language-javascript">
+        var Pub = Sequelize.define('Pub', {
+          name: { type: Sequelize.STRING },
+          address: { type: Sequelize.STRING },
+          latitude: {
+            type: Sequelize.INTEGER,
+            allowNull: true,
+            defaultValue: null,
+            validate: { min: -90, max: 90 }
+          },
+          longitude: {
+            type: Sequelize.INTEGER,
+            allowNull: true,
+            defaultValue: null,
+            validate: { min: -180, max: 180 }
+          },
+        }, {
+          validate: {
+            xorCoords: function() {
+              if ((this.latitude === null) === (this.longitude === null)) {
+                throw new Error('Require either both latitude and longitude or neither')
+              }
+            }
+          }
+        })
+      </code></pre>
+    </p>
+    <p>
+      In this simple case an object fails validation if latitude or longitude is given, but not both. If we try to build one with an out of range latitude and no longitude, <code>raging_bullock_arms.validate()</code> might return
+      <pre><code class="language-javascript">
+        {
+          'latitude': ['Invalid number: latitude'],
+          '_': ['Require either both latitude and longitude or neither']
+        }
+      </code></pre>
+    </p>
   </div>
 </div>
 
