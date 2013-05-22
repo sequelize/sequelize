@@ -55,7 +55,7 @@
         var Foo = sequelize.define('Foo', {
           // instantiating will automatically set the flag to true if not set
           flag: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
-          // default values for dates => current time
+          // default values for dates =&gt; current time
           myDate: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
           // setting no title will throw an error when trying to save
           title: { type: Sequelize.STRING, allowNull: false},
@@ -132,8 +132,8 @@
               isDate: true,             // only allow date strings
               isAfter: "2011-11-05",    // only allow date strings after a specific date
               isBefore: "2011-11-05",   // only allow date strings before a specific date
-              max: 23,                  // only allow values <= 23
-              min: 23,                  // only allow values >= 23
+              max: 23,                  // only allow values &lt;= 23
+              min: 23,                  // only allow values &gt;= 23
               isArray: true,            // only allow arrays
               isCreditCard: true,       // check for valid credit card numbers
 
@@ -480,7 +480,7 @@
             })
 
             // search with string replacements
-            Project.findAll({ where: ["id > ?", 25] }).success(function(projects) {
+            Project.findAll({ where: ["id &gt; ?", 25] }).success(function(projects) {
               // projects will be an array of Projects having a greater id than 25
             })
 
@@ -528,7 +528,7 @@
               console.log("There are " + c + " projects!")
             })
 
-            Project.count({ where: ["id > ?", 25] }).success(function(c) {
+            Project.count({ where: ["id &gt; ?", 25] }).success(function(c) {
               console.log("There are " + c + " projects with an id greater than 25.")
             })
           </code></pre>

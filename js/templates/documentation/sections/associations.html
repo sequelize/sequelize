@@ -212,7 +212,7 @@
 
         // You can also pass filters to the getter method.
         // They are equal to the options you can pass to a usual finder method.
-        project.getTasks({ where: 'id > 10' }).success(function(tasks) {
+        project.getTasks({ where: 'id &gt; 10' }).success(function(tasks) {
           // tasks with an id greater than 10 :)
         })
 
