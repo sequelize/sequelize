@@ -100,6 +100,82 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).toEqual({ username: 'John Wayne' })
     })
+
+    it("attaches getter and setter methods from attribute definition", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters1', {
+        price: {
+          type: Sequelize.INTEGER,
+          get : function() {
+            return 'answer = ' + this.getDataValue('price');
+          },
+          set : function(v) {
+            return this.setDataValue('price', v + 42);
+          }
+        }
+      },{
+      });
+
+      expect(Product.build({price: 42}).price).toEqual('answer = 84');
+
+      var p = Product.build({price: 1});
+
+      expect(p.price).toEqual('answer = 43');
+
+      p.price = 0;
+
+      expect(p.price).toEqual('answer = 42'); // ah finally the right answer :-)
+    })
+
+    it("attaches getter and setter methods from options", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters2', {
+        priceInCents: {
+          type: Sequelize.INTEGER
+        }
+      },{
+        setterMethods: {
+          price: function(value) {
+            this.dataValues.priceInCents = value * 100;
+          }
+        },
+        getterMethods: {
+          price: function() {
+            return '$' + (this.getDataValue('priceInCents') / 100);
+          },
+
+          priceInCents: function() {
+            return this.dataValues.priceInCents;
+          }
+        }
+      });
+
+      expect(Product.build({price: 20}).priceInCents).toEqual(20 * 100);
+      expect(Product.build({priceInCents: 30 * 100}).price).toEqual('$' + 30);
+    })
+
+    it("attaches getter and setter methods from options only if not defined in attribute", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters3', {
+        price1: {
+          type: Sequelize.INTEGER,
+          set : function(v) { this.setDataValue('price1', v * 10); }
+        },
+        price2: {
+          type: Sequelize.INTEGER,
+          get : function(v) { return this.getDataValue('price2') * 10; }
+        }
+      },{
+        setterMethods: {
+          price1: function(v) { this.setDataValue('price1', v * 100); }
+        },
+        getterMethods: {
+          price2: function() { return '$' + this.getDataValue('price2'); }
+        }
+      });
+
+      var p = Product.build({ price1: 1, price2: 2 });
+
+      expect(p.price1).toEqual(10);
+      expect(p.price2).toEqual(20);
+    })
   })
 
   describe('findOrCreate', function () {
