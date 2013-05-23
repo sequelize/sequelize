@@ -75,7 +75,8 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 
 ### 2.0.0
 - ~~save datetimes in UTC~~
-- encapsulate attributes if a dao inside the attributes property + add getters and setters
+- encapsulate attributes if a dao inside the attributes property
+- ~~add getters and setters for dao~~ Implemented in [#538](https://github.com/sequelize/sequelize/pull/538), thanks to iamjochem
 - add proper error message everywhere
 
 
