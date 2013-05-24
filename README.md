@@ -78,6 +78,9 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - encapsulate attributes if a dao inside the attributes property
 - ~~add getters and setters for dao~~ Implemented in [#538](https://github.com/sequelize/sequelize/pull/538), thanks to iamjochem
 - add proper error message everywhere
+- refactor validate() output data structure, separating field-specific errors
+  from general model validator errors (i.e.
+  `{fields: {field1: ['field1error1']}, model: ['modelError1']}` or similar)
 
 
 ## Collaboration 2.0 ##
