@@ -319,9 +319,9 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         }
       }, {
         validate: {
-          xor: function() {
+          xnor: function() {
             if ((this.field1 === null) === (this.field2 === null)) {
-              throw new Error('xor failed');
+              throw new Error('xnor failed');
             }
           }
         }
@@ -330,7 +330,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       var failingFoo = Foo.build({ field1: null, field2: null })
         , errors     = failingFoo.validate()
       expect(errors).not.toBeNull()
-      expect(errors).toEqual({ '__model': ['xor failed'] })
+      expect(errors).toEqual({ '__model': ['xnor failed'] })
 
       var successfulFoo = Foo.build({ field1: 33, field2: null })
       expect(successfulFoo.validate()).toBeNull()
