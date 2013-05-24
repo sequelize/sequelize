@@ -1,18 +1,23 @@
 # v1.7.0 #
 - [DEPENDENCIES] Upgraded validator for IPv6 support. [#603](https://github.com/sequelize/sequelize/pull/603). thanks to durango
-- [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [DEPENDENCIES] replaced underscore by lodash. [#954](https://github.com/sequelize/sequelize/pull/594). thanks to durango
 - [BUG] Fix string escape with postgresql on raw SQL queries. [#586](https://github.com/sequelize/sequelize/pull/586). thanks to zanamixx
 - [BUG] "order by" is now after "group by". [#585](https://github.com/sequelize/sequelize/pull/585). thanks to mekanics
 - [BUG] Added decimal support for min/max. [#583](https://github.com/sequelize/sequelize/pull/583). thanks to durango
 - [BUG] Null dates don't break SQLite anymore. [#572](https://github.com/sequelize/sequelize/pull/572). thanks to mweibel
 - [BUG] Correctly handle booleans in MySQL. [#608](https://github.com/sequelize/sequelize/pull/608). Thanks to terraflubb
+- [BUG] Fixed empty where conditions in MySQL. [#619](https://github.com/sequelize/sequelize/pull/619). Thanks to terraflubb
+- [BUG] Allow overriding of default columns. [#635](https://github.com/sequelize/sequelize/pull/635). Thanks to sevastos
+- [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
 - [FEATURE] Support for bulk insert (`<DAOFactory>.bulkCreate()`, update (`<DAOFactory>.update()`) and delete (`<DAOFactory>.destroy()`) [#569](https://github.com/sequelize/sequelize/pull/569). thanks to optilude
 - [FEATURE] Add an extra `queryOptions` parameter to `DAOFactory.find` and `DAOFactory.findAll`. This allows a user to specify `{ raw: true }`, meaning that the raw result should be returned, instead of built DAOs. Usefull for queries returning large datasets, see [#611](https://github.com/sequelize/sequelize/pull/611) janmeier
 - [FEATURE] Added convenient data types. [#616](https://github.com/sequelize/sequelize/pull/616). Thanks to Costent
 - [FEATURE] Binary is more verbose now. [#612](https://github.com/sequelize/sequelize/pull/612). Thanks to terraflubb
+- [FEATURE] Promises/A support. [#626](https://github.com/sequelize/sequelize/pull/626). Thanks to kevinbeaty
+- [FEATURE] Added Getters/Setters method for DAO. [#538](https://github.com/sequelize/sequelize/pull/538). Thanks to iamjochem
+- [FEATURE] Added model wide validations. [#640](https://github.com/sequelize/sequelize/pull/640). Thanks to tremby
 
 # v1.6.0 #
 - [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work

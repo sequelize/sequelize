@@ -70,6 +70,34 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
       }.bind(this), 'Invalid DAO definition. Only one autoincrement field allowed.')
     })
+
+    it('throws an error if a custom model-wide validation is not a function', function() {
+      Helpers.assertException(function() {
+        this.sequelize.define('Foo', {
+          field: {
+            type: Sequelize.INTEGER
+          }
+        }, {
+          validate: {
+            notFunction: 33
+          }
+        })
+      }.bind(this), 'Members of the validate option must be functions. Model: Foo, error with validate member notFunction')
+    })
+
+    it('throws an error if a custom model-wide validation has the same name as a field', function() {
+      Helpers.assertException(function() {
+        this.sequelize.define('Foo', {
+          field: {
+            type: Sequelize.INTEGER
+          }
+        }, {
+          validate: {
+            field: function() {}
+          }
+        })
+      }.bind(this), 'A model validator function must not have the same name as a field. Model: Foo, field/validation name: field')
+    })
   })
 
   describe('build', function() {
@@ -99,6 +127,82 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     it("stores the the passed values in a special variable", function() {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).toEqual({ username: 'John Wayne' })
+    })
+
+    it("attaches getter and setter methods from attribute definition", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters1', {
+        price: {
+          type: Sequelize.INTEGER,
+          get : function() {
+            return 'answer = ' + this.getDataValue('price');
+          },
+          set : function(v) {
+            return this.setDataValue('price', v + 42);
+          }
+        }
+      },{
+      });
+
+      expect(Product.build({price: 42}).price).toEqual('answer = 84');
+
+      var p = Product.build({price: 1});
+
+      expect(p.price).toEqual('answer = 43');
+
+      p.price = 0;
+
+      expect(p.price).toEqual('answer = 42'); // ah finally the right answer :-)
+    })
+
+    it("attaches getter and setter methods from options", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters2', {
+        priceInCents: {
+          type: Sequelize.INTEGER
+        }
+      },{
+        setterMethods: {
+          price: function(value) {
+            this.dataValues.priceInCents = value * 100;
+          }
+        },
+        getterMethods: {
+          price: function() {
+            return '$' + (this.getDataValue('priceInCents') / 100);
+          },
+
+          priceInCents: function() {
+            return this.dataValues.priceInCents;
+          }
+        }
+      });
+
+      expect(Product.build({price: 20}).priceInCents).toEqual(20 * 100);
+      expect(Product.build({priceInCents: 30 * 100}).price).toEqual('$' + 30);
+    })
+
+    it("attaches getter and setter methods from options only if not defined in attribute", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters3', {
+        price1: {
+          type: Sequelize.INTEGER,
+          set : function(v) { this.setDataValue('price1', v * 10); }
+        },
+        price2: {
+          type: Sequelize.INTEGER,
+          get : function(v) { return this.getDataValue('price2') * 10; }
+        }
+      },{
+        setterMethods: {
+          price1: function(v) { this.setDataValue('price1', v * 100); }
+        },
+        getterMethods: {
+          price2: function() { return '$' + this.getDataValue('price2'); }
+        }
+      });
+
+      var p = Product.build({ price1: 1, price2: 2 });
+
+      expect(p.price1).toEqual(10);
+      expect(p.price2).toEqual(20);
     })
   })
 
@@ -763,6 +867,37 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       }.bind(this))
     })
 
+    it('returns the selected fields and all fields of the included table as instance.selectedValues', function(done) {
+      this.Mission = this.sequelize.define('Mission', {
+        title:  {type: Sequelize.STRING, defaultValue: 'a mission!!'},
+        foo:    {type: Sequelize.INTEGER, defaultValue: 2},
+      })
+
+      this.Mission.belongsTo(this.User)
+      this.User.hasMany(this.Mission)
+
+      this.sequelize.sync({ force: true }).complete(function() {
+        this.Mission.create()
+        .success(function(mission) {
+          this.User.create({
+            username: 'John DOE'
+          }).success(function(user) {
+            mission.setUser(user)
+            .success(function() {
+              this.User.find({
+                where: { username: 'John DOE' },
+                attributes: ['username'],
+                include: [this.Mission]
+              }).success(function(user) {
+                expect(user.selectedValues).toEqual({ username: 'John DOE' })
+                done()
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
     it('always honors ZERO as primary key', function(_done) {
       var permutations = [
           0,
@@ -1085,7 +1220,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
           done();
         }.bind(this))
-      })  
+      })
 
       it("should return raw data when raw is true", function (done) {
         this.User.find({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, user) {
@@ -1342,9 +1477,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         it("should return a DAO when queryOptions are not set", function (done) {
           this.User.findAll({ where: { username: 'barfooz'}}).done(function (err, users) {
             users.forEach(function (user) {
-              expect(user).toHavePrototype(this.User.DAO.prototype)  
+              expect(user).toHavePrototype(this.User.DAO.prototype)
             }, this)
-            
+
 
             done();
           }.bind(this))
@@ -1353,17 +1488,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         it("should return a DAO when raw is false", function (done) {
           this.User.findAll({ where: { username: 'barfooz'}}, { raw: false }).done(function (err, users) {
             users.forEach(function (user) {
-              expect(user).toHavePrototype(this.User.DAO.prototype)  
+              expect(user).toHavePrototype(this.User.DAO.prototype)
             }, this)
-            
+
             done();
           }.bind(this))
-        })  
+        })
 
         it("should return raw data when raw is true", function (done) {
           this.User.findAll({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, users) {
             users.forEach(function (user) {
-              expect(user).not.toHavePrototype(this.User.DAO.prototype) 
+              expect(user).not.toHavePrototype(this.User.DAO.prototype)
               expect(users[0]).toBeObject()
             }, this)
 
@@ -1532,6 +1667,10 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
               expect(self.UserSpecialSync.getTableName()).toEqual('"special"."UserSpecials"');
               expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).toBeGreaterThan(-1)
               expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).toBeGreaterThan(-1)
+            } else if (dialect === "sqlite") {
+              expect(self.UserSpecialSync.getTableName()).toEqual('`special`.`UserSpecials`');
+              expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).toBeGreaterThan(-1)
+              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).toBeGreaterThan(-1)
             } else {
               expect(self.UserSpecialSync.getTableName()).toEqual('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).toBeGreaterThan(-1)

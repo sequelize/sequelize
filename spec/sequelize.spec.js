@@ -194,5 +194,29 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         })
       })
     })
+
+    describe('table', function() {
+      [
+        { id: { type: Helpers.Sequelize.BIGINT } },
+        { id: { type: Helpers.Sequelize.STRING, allowNull: true } },
+        { id: { type: Helpers.Sequelize.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true } }
+      ].forEach(function(customAttributes) {
+
+        it('should be able to override options on the default attributes', function(done) {
+          var Picture = this.sequelize.define('picture', Helpers.Sequelize.Utils._.cloneDeep(customAttributes))
+          Picture.sync({ force: true }).success(function() {
+            Object.keys(customAttributes).forEach(function(attribute) {
+              Object.keys(customAttributes[attribute]).forEach(function(option) {
+                var optionValue = customAttributes[attribute][option];
+                expect(Picture.rawAttributes[attribute][option]).toBe(optionValue)
+              });
+            })
+            done()
+          })
+        })
+
+      })
+    })
+
   })
 })
