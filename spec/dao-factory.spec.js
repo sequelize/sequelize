@@ -70,6 +70,20 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
       }.bind(this), 'Invalid DAO definition. Only one autoincrement field allowed.')
     })
+
+    it('throws an error if a custom model-wide validation is not a function', function() {
+      Helpers.assertException(function() {
+        this.sequelize.define('Foo', {
+          field: {
+            type: Sequelize.INTEGER
+          }
+        }, {
+          validate: {
+            notFunction: 33
+          }
+        })
+      }.bind(this), 'Members of the validate option must be functions. Model: Foo, error with validate member notFunction')
+    })
   })
 
   describe('build', function() {
