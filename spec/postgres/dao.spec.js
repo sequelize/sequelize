@@ -65,4 +65,60 @@ if (dialect.match(/^postgres/)) {
       })
     })
   })
+
+  describe('[POSTGRES] Unquoted identifiers', function() {
+
+    before(function(done) {
+      var self = this
+
+      Helpers.initTests({
+        dialect: dialect,
+        beforeComplete: function(sequelize, DataTypes) {
+          self.sequelize = sequelize
+          self.sequelize.options.quoteIdentifiers = false
+
+          self.User = sequelize.define('User', {
+            username: DataTypes.STRING,
+            fullName: DataTypes.STRING // Note mixed case
+          })
+        },
+        onComplete: function() {
+          // We can create a table with non-quoted identifiers
+          self.User.sync({ force: true }).success(done)
+        }
+      })
+    })
+
+    it("can insert and select", function(done) {
+      var self = this
+
+      self.User
+        .create({ username: 'user', fullName: "John Smith" })
+        .success(function(user) {
+          // We can insert into a table with non-quoted identifiers
+          expect(user.id).toBeDefined()
+          expect(user.id).not.toBeNull()
+          expect(user.username).toEqual('user')
+          expect(user.fullName).toEqual('John Smith')
+
+          // We can query by non-quoted identifiers
+          self.User.find({
+            where: {fullName: "John Smith"}
+          })
+          .success(function(user2) {
+            // We can map values back to non-quoted identifiers
+            expect(user2.id).toEqual(user.id)
+            expect(user2.username).toEqual('user')
+            expect(user2.fullName).toEqual('John Smith')
+            done();
+          })
+          .error(function(err) {
+            console.log(err)
+          })
+        })
+        .error(function(err) {
+          console.log(err)
+        })
+    })
+  })
 }
