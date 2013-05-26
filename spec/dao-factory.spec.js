@@ -216,9 +216,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       this.User.create(data).success(function (user) {
         self.User.findOrCreate({
           username: user.username
-        }).success(function (_user) {
+        }).success(function (_user, created) {
           expect(_user.id).toEqual(user.id)
           expect(_user.username).toEqual('Username')
+          expect(created).toBeFalse()
+
           done()
         })
       })
@@ -232,10 +234,12 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         };
 
       this.User.create(data).success(function (user) {
-        self.User.findOrCreate(data).success(function (_user) {
+        self.User.findOrCreate(data).success(function (_user, created) {
           expect(_user.id).toEqual(user.id)
           expect(_user.username).toEqual('Username')
           expect(_user.data).toEqual('ThisIsData')
+          expect(created).toBeFalse()
+
           done()
         })
       })
@@ -250,9 +254,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           data: 'ThisIsData'
         };
 
-      this.User.findOrCreate(data, default_values).success(function (user) {
+      this.User.findOrCreate(data, default_values).success(function (user, created) {
         expect(user.username).toEqual('Username')
         expect(user.data).toEqual('ThisIsData')
+        expect(created).toBeTrue()
+
         done()
       })
     })
