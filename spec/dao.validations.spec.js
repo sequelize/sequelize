@@ -329,6 +329,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
 
       var failingFoo = Foo.build({ field1: null, field2: null })
         , errors     = failingFoo.validate()
+
       expect(errors).not.toBeNull()
       expect(errors).toEqual({ 'xnor': ['xnor failed'] })
 
