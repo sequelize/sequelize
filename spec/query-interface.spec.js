@@ -93,7 +93,8 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
     before(function(done) {
       this.interface.createTable('User', {
         username: Helpers.Sequelize.STRING,
-        isAdmin: Helpers.Sequelize.BOOLEAN
+        isAdmin: Helpers.Sequelize.BOOLEAN,
+        enumVals: Helpers.Sequelize.ENUM('hello', 'world')
       }).success(done)
     })
 
@@ -103,6 +104,7 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
 
         var username = metadata.username
         var isAdmin  = metadata.isAdmin
+        var enumVals = metadata.enumVals
 
         expect(username.type).toEqual(dialect === 'postgres' ? 'CHARACTER VARYING' : 'VARCHAR(255)')
         expect(username.allowNull).toBeTrue()
@@ -111,6 +113,11 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
         expect(isAdmin.type).toEqual(dialect === 'postgres' ? 'BOOLEAN' : 'TINYINT(1)')
         expect(isAdmin.allowNull).toBeTrue()
         expect(isAdmin.defaultValue).toBeNull()
+
+        if (dialect === 'postgres') {
+          expect(enumVals.special).toBeArray();
+          expect(enumVals.special.length).toEqual(2);
+        }
 
         done()
       })
