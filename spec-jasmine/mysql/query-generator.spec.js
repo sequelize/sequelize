@@ -300,6 +300,9 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', 1],
         expectation: "DELETE FROM `myTable` WHERE `id`=1 LIMIT 1"
+      },{
+        arguments: ['myTable', 1, {truncate: true}],
+        expectation: "TRUNCATE `myTable` WHERE `id`=1 LIMIT 1"
       }, {
         arguments: ['myTable', 1, {limit: 10}],
         expectation: "DELETE FROM `myTable` WHERE `id`=1 LIMIT 10"

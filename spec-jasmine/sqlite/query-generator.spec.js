@@ -199,6 +199,9 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', 1],
         expectation: "DELETE FROM `myTable` WHERE `id`=1"
       }, {
+        arguments: ['myTable', 1, {truncate: true}],
+        expectation: "DELETE FROM `myTable` WHERE `id`=1"
+      }, {
         arguments: ['myTable', 1, {limit: 10}],
         expectation: "DELETE FROM `myTable` WHERE `id`=1"
       }, {
