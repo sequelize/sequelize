@@ -7,7 +7,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe(Helpers.getTestDialectTeaser("DAO"), function() {
+describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
   describe('validations', function() {
     before(function(done) {
       Helpers.initTests({
