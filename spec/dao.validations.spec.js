@@ -275,7 +275,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         name: {
           type: Sequelize.STRING,
           validate: {
-            customFn: function(val,next) {
+            customFn: function(val, next) {
               if (val !== "2") {
                 next("name should equal '2'")
               } else {
@@ -288,7 +288,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
 
       var failingUser = User.build({ name : "3" })
 
-      failingUser.validate().error(function(errors) {
+      failingUser.validate().success(function(errors) {
         expect(errors).toEqual({ name: ["name should equal '2'"] })
 
         var successfulUser = User.build({ name : "2" })
@@ -362,7 +362,6 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
             .build({ field1: 33, field2: null })
             .validate()
             .success(function(errors) {
-              console.log(errors)
               expect(errors).not.toBeDefined()
               done()
             })
