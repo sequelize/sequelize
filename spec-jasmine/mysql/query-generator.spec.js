@@ -10,6 +10,62 @@ describe('QueryGenerator', function() {
   afterEach(function() { Helpers.drop() })
 
   var suites = {
+
+    attributesToSQL: [
+      {
+        arguments: [{id: 'INTEGER'}],
+        expectation: {id: 'INTEGER'}
+      },
+      {
+        arguments: [{id: 'INTEGER', foo: 'VARCHAR(255)'}],
+        expectation: {id: 'INTEGER', foo: 'VARCHAR(255)'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER'}}],
+        expectation: {id: 'INTEGER'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', allowNull: false}}],
+        expectation: {id: 'INTEGER NOT NULL'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', allowNull: true}}],
+        expectation: {id: 'INTEGER'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', primaryKey: true, autoIncrement: true}}],
+        expectation: {id: 'INTEGER auto_increment PRIMARY KEY'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', defaultValue: 0}}],
+        expectation: {id: 'INTEGER DEFAULT 0'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', unique: true}}],
+        expectation: {id: 'INTEGER UNIQUE'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`pk`)'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar', onDelete: 'CASCADE'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', references: 'Bar', onUpdate: 'RESTRICT'}}],
+        expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT'}
+      },
+      {
+        arguments: [{id: {type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+        expectation: {id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
+      },
+    ],
+
     createTableQuery: [
       {
         arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
@@ -26,6 +82,14 @@ describe('QueryGenerator', function() {
       {
         arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}, {charset: 'latin1'}],
         expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER , PRIMARY KEY (`id`)) ENGINE=InnoDB;"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;"
       }
     ],
 
@@ -102,6 +166,26 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {offset: 2}],
         expectation: "SELECT * FROM `myTable`;",
         context: QueryGenerator
+      }, {
+        title: 'multiple where arguments',
+        arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
+        expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat`='canoe' AND `myTable`.`weather`='cold';",
+        context: QueryGenerator
+      }, {
+        title: 'no where arguments (object)',
+        arguments: ['myTable', {where: {}}],
+        expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+        context: QueryGenerator
+      }, {
+        title: 'no where arguments (string)',
+        arguments: ['myTable', {where: ''}],
+        expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+        context: QueryGenerator
+      }, {
+        title: 'no where arguments (null)',
+        arguments: ['myTable', {where: null}],
+        expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+        context: QueryGenerator
       }
     ],
 
@@ -133,6 +217,46 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
         expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
         context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {foo: false}],
+        expectation: "INSERT INTO `myTable` (`foo`) VALUES (0);"
+      }, {
+        arguments: ['myTable', {foo: true}],
+        expectation: "INSERT INTO `myTable` (`foo`) VALUES (1);"
+      }
+    ],
+
+    bulkInsertQuery: [
+      {
+        arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}]],
+        expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+      }, {
+        arguments: ['myTable', [{name: "foo';DROP TABLE myTable;"}, {name: 'bar'}]],
+        expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo\\';DROP TABLE myTable;'),('bar');"
+      }, {
+        arguments: ['myTable', [{name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55))}]],
+        expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55'),('bar','2012-03-27 10:01:55');"
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1}, {name: 'bar', foo: 2}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1),('bar',2);"
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', nullValue: null}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',NULL);"
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+        context: {options: {omitNull: false}}
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+        context: {options: {omitNull: true}} // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
+      }, {
+        arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: undefined}, {name: 'bar', foo: 2, undefinedValue: undefined}]],
+        expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+        context: {options: {omitNull: true}} // Note: As above
+      }, {
+        arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1),('bar',0);"
       }
     ],
 
@@ -160,6 +284,12 @@ describe('QueryGenerator', function() {
         arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
         expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'",
         context: {options: {omitNull: true}}
+      }, {
+        arguments: ['myTable', {bar: false}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=0 WHERE `name`='foo'"
+      }, {
+        arguments: ['myTable', {bar: true}, {name: 'foo'}],
+        expectation: "UPDATE `myTable` SET `bar`=1 WHERE `name`='foo'"
       }
     ],
 
@@ -176,6 +306,9 @@ describe('QueryGenerator', function() {
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
         expectation: "DELETE FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;' LIMIT 10"
+      }, {
+        arguments: ['myTable', {name: 'foo'}, {limit: null}],
+        expectation: "DELETE FROM `myTable` WHERE `name`='foo'"
       }
     ],
 
@@ -227,6 +360,27 @@ describe('QueryGenerator', function() {
       {
         arguments: [{ id: [] }],
         expectation: "`id` IN (NULL)"
+      },
+      {
+        arguments: [{ maple: false, bacon: true }],
+        expectation: "`maple`=0 AND `bacon`=1"
+      },
+      {
+        arguments: [{ beaver: [false, true] }],
+        expectation: "`beaver` IN (0,1)"
+      },
+      {
+        arguments: [{birthday: new Date(Date.UTC(2011, 6, 1, 10, 1, 55))}],
+        expectation: "`birthday`='2011-07-01 10:01:55'"
+      },
+      {
+        arguments: [{ birthday: new Date(Date.UTC(2011, 6, 1, 10, 1, 55)),
+                      otherday: new Date(Date.UTC(2013, 6, 2, 10, 1, 22)) }],
+        expectation: "`birthday`='2011-07-01 10:01:55' AND `otherday`='2013-07-02 10:01:22'"
+      },
+      {
+        arguments: [{ birthday: [new Date(Date.UTC(2011, 6, 1, 10, 1, 55)), new Date(Date.UTC(2013, 6, 2, 10, 1, 22))] }],
+        expectation: "`birthday` IN ('2011-07-01 10:01:55','2013-07-02 10:01:22')"
       }
     ]
   }

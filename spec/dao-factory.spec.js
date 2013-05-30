@@ -2,7 +2,7 @@ if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
       , Helpers   = require('./buster-helpers')
-      , _         = require('underscore')
+      , _         = require('lodash')
       , dialect   = Helpers.getTestDialect()
 }
 
@@ -99,6 +99,82 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     it("stores the the passed values in a special variable", function() {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).toEqual({ username: 'John Wayne' })
+    })
+
+    it("attaches getter and setter methods from attribute definition", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters1', {
+        price: {
+          type: Sequelize.INTEGER,
+          get : function() {
+            return 'answer = ' + this.getDataValue('price');
+          },
+          set : function(v) {
+            return this.setDataValue('price', v + 42);
+          }
+        }
+      },{
+      });
+
+      expect(Product.build({price: 42}).price).toEqual('answer = 84');
+
+      var p = Product.build({price: 1});
+
+      expect(p.price).toEqual('answer = 43');
+
+      p.price = 0;
+
+      expect(p.price).toEqual('answer = 42'); // ah finally the right answer :-)
+    })
+
+    it("attaches getter and setter methods from options", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters2', {
+        priceInCents: {
+          type: Sequelize.INTEGER
+        }
+      },{
+        setterMethods: {
+          price: function(value) {
+            this.dataValues.priceInCents = value * 100;
+          }
+        },
+        getterMethods: {
+          price: function() {
+            return '$' + (this.getDataValue('priceInCents') / 100);
+          },
+
+          priceInCents: function() {
+            return this.dataValues.priceInCents;
+          }
+        }
+      });
+
+      expect(Product.build({price: 20}).priceInCents).toEqual(20 * 100);
+      expect(Product.build({priceInCents: 30 * 100}).price).toEqual('$' + 30);
+    })
+
+    it("attaches getter and setter methods from options only if not defined in attribute", function() {
+      var Product = this.sequelize.define('ProductWithSettersAndGetters3', {
+        price1: {
+          type: Sequelize.INTEGER,
+          set : function(v) { this.setDataValue('price1', v * 10); }
+        },
+        price2: {
+          type: Sequelize.INTEGER,
+          get : function(v) { return this.getDataValue('price2') * 10; }
+        }
+      },{
+        setterMethods: {
+          price1: function(v) { this.setDataValue('price1', v * 100); }
+        },
+        getterMethods: {
+          price2: function() { return '$' + this.getDataValue('price2'); }
+        }
+      });
+
+      var p = Product.build({ price1: 1, price2: 2 });
+
+      expect(p.price1).toEqual(10);
+      expect(p.price2).toEqual(20);
     })
   })
 
@@ -214,6 +290,12 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       Helpers.assertException(function() {
         this.sequelize.define('UserBadDataType', {
           activity_date: Sequelize.DATe
+        })
+      }.bind(this), 'Unrecognized data type for field activity_date')
+
+      Helpers.assertException(function() {
+        this.sequelize.define('UserBadDataType', {
+          activity_date: {type: Sequelize.DATe}
         })
       }.bind(this), 'Unrecognized data type for field activity_date')
     })
@@ -381,6 +463,276 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
   })
 
+  describe('bulkCreate', function() {
+
+    it('inserts multiple values respecting the white list', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul', secretValue: '23'}]
+
+      this.User.bulkCreate(data, ['username']).success(function() {
+        self.User.findAll({order: 'id'}).success(function(users) {
+          expect(users.length).toEqual(2)
+
+          expect(users[0].username).toEqual("Peter")
+          expect(users[0].secretValue).toBeNull();
+
+          expect(users[1].username).toEqual("Paul")
+          expect(users[1].secretValue).toBeNull();
+
+          done()
+        })
+      })
+    })
+
+    it('should store all values if no whitelist is specified', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul', secretValue: '23'}]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.findAll({order: 'id'}).success(function(users) {
+          expect(users.length).toEqual(2)
+
+          expect(users[0].username).toEqual("Peter")
+          expect(users[0].secretValue).toEqual('42')
+
+          expect(users[1].username).toEqual("Paul")
+          expect(users[1].secretValue).toEqual('23')
+
+          done()
+        })
+      })
+    })
+
+    it('saves data with single quote', function(done) {
+      var self = this
+        , quote = "Single'Quote"
+        , data = [{ username: 'Peter', data: quote},
+                  { username: 'Paul', data: quote}]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.findAll({order: 'id'}).success(function(users) {
+          expect(users.length).toEqual(2)
+
+          expect(users[0].username).toEqual("Peter")
+          expect(users[0].data).toEqual(quote)
+
+          expect(users[1].username).toEqual("Paul")
+          expect(users[1].data).toEqual(quote)
+
+          done()
+        })
+      })
+    })
+
+    it('saves data with double quote', function(done) {
+      var self = this
+        , quote = 'Double"Quote'
+        , data = [{ username: 'Peter', data: quote},
+                  { username: 'Paul', data: quote}]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.findAll({order: 'id'}).success(function(users) {
+          expect(users.length).toEqual(2)
+
+          expect(users[0].username).toEqual("Peter")
+          expect(users[0].data).toEqual(quote)
+
+          expect(users[1].username).toEqual("Paul")
+          expect(users[1].data).toEqual(quote)
+
+          done()
+        })
+      })
+    })
+
+    it('saves stringified JSON data', function(done) {
+      var self = this
+        , json = JSON.stringify({ key: 'value' })
+        , data = [{ username: 'Peter', data: json},
+                  { username: 'Paul', data: json}]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.findAll({order: 'id'}).success(function(users) {
+          expect(users.length).toEqual(2)
+
+          expect(users[0].username).toEqual("Peter")
+          expect(users[0].data).toEqual(json)
+
+          expect(users[1].username).toEqual("Paul")
+          expect(users[1].data).toEqual(json)
+
+          done()
+        })
+      })
+    })
+
+    it('stores the current date in createdAt', function(done) {
+      var self = this
+        , data = [{ username: 'Peter'},
+                  { username: 'Paul'}]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.findAll({order: 'id'}).success(function(users) {
+          expect(users.length).toEqual(2)
+
+          expect(users[0].username).toEqual("Peter")
+          expect(parseInt(+users[0].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
+
+          expect(users[1].username).toEqual("Paul")
+          expect(parseInt(+users[1].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
+
+          done()
+        })
+      })
+    })
+
+    describe('enums', function() {
+      before(function(done) {
+        this.Item = this.sequelize.define('Item', {
+          state: { type: Helpers.Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] },
+          name: Sequelize.STRING
+        })
+
+        this.sequelize.sync({ force: true }).success(function() {
+          this.Item.bulkCreate([{state: 'in_cart', name: 'A'}, { state: 'available', name: 'B'}]).success(function() {
+            done()
+          }.bind(this))
+        }.bind(this))
+      })
+
+      it('correctly restores enum values', function(done) {
+        this.Item.find({ where: { state: 'available' }}).success(function(item) {
+          expect(item.name).toEqual('B')
+          done()
+        }.bind(this))
+      })
+    })
+
+  }) // - bulkCreate
+
+  describe('update', function() {
+
+    it('updates only values that match filter', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+
+        self.User.update({username: 'Bill'}, {secretValue: '42'})
+          .success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).toEqual(3)
+
+              users.forEach(function (user) {
+                if (user.secretValue == '42') {
+                  expect(user.username).toEqual("Bill")
+                } else {
+                  expect(user.username).toEqual("Bob")
+                }
+              })
+
+              done()
+            })
+          })
+      })
+    })
+
+    it('sets updatedAt to the current timestamp', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+
+        self.User.update({username: 'Bill'}, {secretValue: '42'})
+          .success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).toEqual(3)
+
+              expect(users[0].username).toEqual("Bill")
+              expect(users[1].username).toEqual("Bill")
+              expect(users[2].username).toEqual("Bob")
+
+              expect(parseInt(+users[0].updatedAt/5000)).toEqual(parseInt(+new Date()/5000))
+              expect(parseInt(+users[1].updatedAt/5000)).toEqual(parseInt(+new Date()/5000))
+
+              done()
+            })
+          })
+      })
+    })
+
+  }) // - update
+
+  describe('destroy', function() {
+
+    it('deletes values that match filter', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+
+        self.User.destroy({secretValue: '42'})
+          .success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).toEqual(1)
+
+              expect(users[0].username).toEqual("Bob")
+
+              done()
+            })
+          })
+      })
+    })
+
+    it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
+
+      var self = this
+        , User = this.sequelize.define('ParanoidUser', {
+            username:     Sequelize.STRING,
+            secretValue:  Sequelize.STRING,
+            data:         Sequelize.STRING
+          }, {
+            paranoid: true
+          })
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      User.sync({ force: true }).success(function() {
+
+        User.bulkCreate(data).success(function() {
+
+          User.destroy({secretValue: '42'})
+            .success(function() {
+              User.findAll({order: 'id'}).success(function(users) {
+                expect(users.length).toEqual(3)
+
+                expect(users[0].username).toEqual("Peter")
+                expect(users[1].username).toEqual("Paul")
+                expect(users[2].username).toEqual("Bob")
+
+                expect(parseInt(+users[0].deletedAt/5000)).toEqual(parseInt(+new Date()/5000))
+                expect(parseInt(+users[1].deletedAt/5000)).toEqual(parseInt(+new Date()/5000))
+
+                done()
+              })
+            })
+        })
+
+      })
+
+    })
+
+  }) // - destroy
+
   describe('find', function find() {
     before(function(done) {
       this.User.create({
@@ -484,6 +836,37 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           expect(user.selectedValues).toEqual({ username: 'JohnXOXOXO' })
           done()
         })
+      }.bind(this))
+    })
+
+    it('returns the selected fields and all fields of the included table as instance.selectedValues', function(done) {
+      this.Mission = this.sequelize.define('Mission', {
+        title:  {type: Sequelize.STRING, defaultValue: 'a mission!!'},
+        foo:    {type: Sequelize.INTEGER, defaultValue: 2},
+      })
+
+      this.Mission.belongsTo(this.User)
+      this.User.hasMany(this.Mission)
+
+      this.sequelize.sync({ force: true }).complete(function() {
+        this.Mission.create()
+        .success(function(mission) {
+          this.User.create({
+            username: 'John DOE'
+          }).success(function(user) {
+            mission.setUser(user)
+            .success(function() {
+              this.User.find({
+                where: { username: 'John DOE' },
+                attributes: ['username'],
+                include: [this.Mission]
+              }).success(function(user) {
+                expect(user.selectedValues).toEqual({ username: 'John DOE' })
+                done()
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
       }.bind(this))
     })
 
@@ -784,6 +1167,42 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
       })
     })
+
+    describe('queryOptions', function() {
+      before(function(done) {
+        this.User.create({
+          username: 'barfooz'
+        }).success(function(user) {
+          this.user = user
+          done()
+        }.bind(this))
+      })
+
+      it("should return a DAO when queryOptions are not set", function (done) {
+        this.User.find({ where: { username: 'barfooz'}}).done(function (err, user) {
+          expect(user).toHavePrototype(this.User.DAO.prototype)
+
+          done();
+        }.bind(this))
+      })
+
+      it("should return a DAO when raw is false", function (done) {
+        this.User.find({ where: { username: 'barfooz'}}, { raw: false }).done(function (err, user) {
+          expect(user).toHavePrototype(this.User.DAO.prototype)
+
+          done();
+        }.bind(this))
+      })
+
+      it("should return raw data when raw is true", function (done) {
+        this.User.find({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, user) {
+          expect(user).not.toHavePrototype(this.User.DAO.prototype)
+          expect(user).toBeObject()
+
+          done();
+        }.bind(this))
+      })
+    }) // - describe: queryOptions
   }) //- describe: find
 
   describe('findAll', function findAll() {
@@ -1016,6 +1435,49 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           }.bind(this))
         })
       })
+
+      describe('queryOptions', function() {
+        before(function(done) {
+          this.User.create({
+            username: 'barfooz'
+          }).success(function(user) {
+            this.user = user
+            done()
+          }.bind(this))
+        })
+
+        it("should return a DAO when queryOptions are not set", function (done) {
+          this.User.findAll({ where: { username: 'barfooz'}}).done(function (err, users) {
+            users.forEach(function (user) {
+              expect(user).toHavePrototype(this.User.DAO.prototype)
+            }, this)
+
+
+            done();
+          }.bind(this))
+        })
+
+        it("should return a DAO when raw is false", function (done) {
+          this.User.findAll({ where: { username: 'barfooz'}}, { raw: false }).done(function (err, users) {
+            users.forEach(function (user) {
+              expect(user).toHavePrototype(this.User.DAO.prototype)
+            }, this)
+
+            done();
+          }.bind(this))
+        })
+
+        it("should return raw data when raw is true", function (done) {
+          this.User.findAll({ where: { username: 'barfooz'}}, { raw: true }).done(function (err, users) {
+            users.forEach(function (user) {
+              expect(user).not.toHavePrototype(this.User.DAO.prototype)
+              expect(users[0]).toBeObject()
+            }, this)
+
+            done();
+          }.bind(this))
+        })
+      }) // - describe: queryOptions
     })
   }) //- describe: findAll
 
@@ -1025,7 +1487,13 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         age: Sequelize.INTEGER
       })
 
-      this.UserWithAge.sync({ force: true }).success(done)
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function(){
+        this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
     })
 
     it("should return the min value", function(done) {
@@ -1046,6 +1514,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         done()
       })
     })
+
+    it("should allow decimals in min", function(done){
+      this.UserWithDec.create({value: 3.5}).success(function(){
+        this.UserWithDec.create({ value: 5.5 }).success(function(){
+          this.UserWithDec.min('value').success(function(min){
+            expect(min).toEqual(3.5)
+            done()
+          })
+        }.bind(this))
+      }.bind(this))
+    })
   }) //- describe: min
 
   describe('max', function() {
@@ -1054,7 +1533,13 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         age: Sequelize.INTEGER
       })
 
-      this.UserWithAge.sync({ force: true }).success(done)
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function(){
+        this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
     })
 
     it("should return the max value", function(done) {
@@ -1062,6 +1547,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         this.UserWithAge.create({ age: 3 }).success(function() {
           this.UserWithAge.max('age').success(function(max) {
             expect(max).toEqual(3)
+            done()
+          })
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it("should allow decimals in max", function(done){
+      this.UserWithDec.create({value: 3.5}).success(function(){
+        this.UserWithDec.create({ value: 5.5 }).success(function(){
+          this.UserWithDec.max('value').success(function(max){
+            expect(max).toEqual(5.5)
             done()
           })
         }.bind(this))
@@ -1143,6 +1639,10 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
               expect(self.UserSpecialSync.getTableName()).toEqual('"special"."UserSpecials"');
               expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).toBeGreaterThan(-1)
               expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).toBeGreaterThan(-1)
+            } else if (dialect === "sqlite") {
+              expect(self.UserSpecialSync.getTableName()).toEqual('`special`.`UserSpecials`');
+              expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).toBeGreaterThan(-1)
+              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).toBeGreaterThan(-1)
             } else {
               expect(self.UserSpecialSync.getTableName()).toEqual('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).toBeGreaterThan(-1)
