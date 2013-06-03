@@ -399,7 +399,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
     })
 
-    it('should only store the values passed in the witelist', function(done) {
+    it('should only store the values passed in the whitelist', function(done) {
       var self = this
         , data = { username: 'Peter', secretValue: '42' }
 
