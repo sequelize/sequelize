@@ -398,7 +398,8 @@ describe('QueryGenerator', function() {
         it(title, function() {
           // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
           var context = test.context || {options: {}};
-          var conditions = QueryGenerator[suiteTitle].apply(context, test.arguments)
+          QueryGenerator.options = context.options
+          var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
 
           expect(conditions).toEqual(test.expectation)
         })
