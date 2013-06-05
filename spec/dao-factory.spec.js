@@ -445,7 +445,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
               expect(Book.rawAttributes.id.type.toString())
                 .toEqual(dataTypes[index].toString())
 
-              Book.drop();
+              Book.drop()
               if (index >= dataTypes.length - 1) {
                 done()
               }

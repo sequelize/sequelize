@@ -195,7 +195,7 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
           expect(Task.rawAttributes.userId.type.toString())
             .toEqual(dataType.toString())
 
-          dataTypes.splice(dataTypes.indexOf(dataType), 1);
+          dataTypes.splice(dataTypes.indexOf(dataType), 1)
           if (!dataTypes.length) {
             done()
           }
