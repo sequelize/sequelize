@@ -9,6 +9,7 @@
 - [BUG] Fixed empty where conditions in MySQL. [#619](https://github.com/sequelize/sequelize/pull/619). Thanks to terraflubb
 - [BUG] Allow overriding of default columns. [#635](https://github.com/sequelize/sequelize/pull/635). Thanks to sevastos
 - [BUG] Fix where params for belongsTo [#658](https://github.com/sequelize/sequelize/pull/658). Thanks to mweibel
+- [BUG] Default ports are now declared in the connector manager, which means the default port for PG correctly becomes 5432. [#633](https://github.com/sequelize/sequelize/issues/633)
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
