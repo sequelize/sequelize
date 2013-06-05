@@ -206,7 +206,7 @@ describe('QueryGenerator', function() {
         expectation: "DELETE FROM `myTable` WHERE `id`=1"
       }, {
         arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-        expectation: "DELETE FROM `myTable` WHERE `name`='foo\\';DROP TABLE myTable;'"
+        expectation: "DELETE FROM `myTable` WHERE `name`='foo'';DROP TABLE myTable;'"
       }, {
         arguments: ['myTable', {name: 'foo'}, {limit: null}],
         expectation: "DELETE FROM `myTable` WHERE `name`='foo'"
@@ -221,8 +221,8 @@ describe('QueryGenerator', function() {
         it(title, function() {
           // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
           var context = test.context || {options: {}};
-          
-          var conditions = QueryGenerator[suiteTitle].apply(context, test.arguments)
+          QueryGenerator.options = context.options
+          var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
           expect(conditions).toEqual(test.expectation)
         })
       })
