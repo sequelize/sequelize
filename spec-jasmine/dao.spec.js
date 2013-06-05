@@ -308,11 +308,12 @@ describe('DAO', function() {
               name: 'snafu',
               identifier: 'identifier'
             }).success(function(user) {
-              var emitter = user.updateAttributes({name: 'foobar'})
-              emitter.success(function() {
-                expect(emitter.query.sql).toMatch(/WHERE [`"]identifier[`"]..identifier./)
-                done()
-              })
+              user
+                .updateAttributes({name: 'foobar'})
+                .on('sql', function(sql) {
+                  expect(sql).toMatch(/WHERE [`"]identifier[`"]..identifier./)
+                  done()
+                })
             })
           })
         })

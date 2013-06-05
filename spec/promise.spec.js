@@ -287,7 +287,7 @@ describe(Helpers.getTestDialectTeaser("Promise"), function () {
         expect(err.validateTest).toBeDefined()
         expect(err.validateTest).toBeArray()
         expect(err.validateTest[0]).toBeDefined()
-        expect(err.validateTest[0].indexOf('Invalid integer:')).toBeGreaterThan(-1)
+        expect(err.validateTest[0].indexOf('Invalid integer')).toBeGreaterThan(-1)
         done()
       })
     })
