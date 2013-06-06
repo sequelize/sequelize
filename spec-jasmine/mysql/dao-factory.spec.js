@@ -1,6 +1,6 @@
 var config    = require("../config/config")
   , Sequelize = require("../../index")
-  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { pool: config.mysql.pool, logging: false })
+  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { pool: config.mysql.pool, logging: false, host: config.mysql.host, port: config.mysql.port })
   , Helpers   = new (require("../config/helpers"))(sequelize)
 
 describe('DAOFactory', function() {
@@ -29,6 +29,13 @@ describe('DAOFactory', function() {
         username: {type: Sequelize.STRING, allowNull: false}
       }, { timestamps: false })
       expect(User.attributes).toEqual({username:"VARCHAR(255) NOT NULL",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
+    })
+
+    it("handles extended attributes (comment)", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        username: {type: Sequelize.STRING, comment: 'This be\'s a comment'}
+      }, { timestamps: false })
+      expect(User.attributes).toEqual({username:"VARCHAR(255) COMMENT 'This be\\'s a comment'",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
     })
 
     it("handles extended attributes (primaryKey)", function() {

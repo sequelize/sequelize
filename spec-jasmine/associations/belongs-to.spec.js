@@ -1,6 +1,6 @@
 var config    = require("../config/config")
   , Sequelize = require("../../index")
-  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { logging: false })
+  , sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, { pool: config.mysql.pool, logging: false, host: config.mysql.host, port: config.mysql.port })
   , Helpers   = new (require("../config/helpers"))(sequelize)
 
 describe('BelongsTo', function() {
@@ -8,7 +8,10 @@ describe('BelongsTo', function() {
     , Task = null
 
   var setup = function() {
-    User = sequelize.define('User', { username: Sequelize.STRING })
+    User = sequelize.define('User', { username: Sequelize.STRING, enabled: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true
+    }})
     Task = sequelize.define('Task', { title: Sequelize.STRING })
   }
 
@@ -80,6 +83,29 @@ describe('BelongsTo', function() {
           t.setUser(u).success(function() {
             t.getUser().success(function(user) {
               expect(user.username).toEqual('asd')
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
+
+  it('extends the id where param with the supplied where params', function() {
+    Task.belongsTo(User, {as: 'User'})
+
+    Helpers.async(function(done) {
+      User.sync({force: true}).success(function() {
+        Task.sync({force: true}).success(done)
+      })
+    })
+
+    Helpers.async(function(done) {
+      User.create({username: 'asd', enabled: false}).success(function(u) {
+        Task.create({title: 'a task'}).success(function(t) {
+          t.setUser(u).success(function() {
+            t.getUser({where: {enabled: true}}).success(function(user) {
+              expect(user).toEqual(null)
               done()
             })
           })

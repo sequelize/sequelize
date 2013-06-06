@@ -90,25 +90,6 @@ describe('DAOFactory', function() {
           })
         })
 
-        it('marks the database entry as deleted if dao is paranoid', function() {
-          Helpers.async(function(done) {
-            User = sequelize.define('User', {
-              name: Sequelize.STRING, bio: Sequelize.TEXT
-            }, { paranoid:true })
-            User.sync({ force: true }).success(done)
-          })
-
-          Helpers.async(function(done) {
-            User.create({ name: 'asd', bio: 'asd' }).success(function(u) {
-              expect(u.deletedAt).toBeNull()
-              u.destroy().success(function(u) {
-                expect(u.deletedAt).toBeTruthy()
-                done()
-              })
-            })
-          })
-        })
-
         it('allows sql logging of update statements', function() {
           Helpers.async(function(done) {
             User = sequelize.define('User', {

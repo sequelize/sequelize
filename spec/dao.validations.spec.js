@@ -7,7 +7,7 @@ if(typeof require === 'function') {
 
 buster.spec.expose()
 
-describe(Helpers.getTestDialectTeaser("DAO"), function() {
+describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
   describe('validations', function() {
     before(function(done) {
       Helpers.initTests({
@@ -42,6 +42,10 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         fail: "abc",
         pass: "129.89.23.1"
       }
+    , isIPv6 : {
+      fail: '1111:2222:3333::5555:',
+      pass: 'fe80:0000:0000:0000:0204:61ff:fe9d:f156'
+    }
     , isAlpha : {
         fail: "012",
         pass: "abc"
@@ -277,6 +281,60 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
 
       var successfulUser = User.build({ name : "2" })
       expect(successfulUser.validate()).toBeNull()
+    })
+
+    it('skips other validations if allowNull is true and the value is null', function() {
+      var User = this.sequelize.define('User' + Math.random(), {
+        age: {
+          type: Sequelize.INTEGER,
+          allowNull: true,
+          validate: {
+            min: { args: 0, msg: 'must be positive' }
+          }
+        }
+      })
+
+      var failingUser = User.build({ age: -1 })
+        , errors      = failingUser.validate()
+
+      expect(errors).not.toBeNull(null)
+      expect(errors).toEqual({ age: ['must be positive'] })
+
+      var successfulUser1 = User.build({ age: null })
+      expect(successfulUser1.validate()).toBeNull()
+
+      var successfulUser2 = User.build({ age: 1 })
+      expect(successfulUser2.validate()).toBeNull()
+    })
+
+    it('validates a model with custom model-wide validation methods', function() {
+      var Foo = this.sequelize.define('Foo' + Math.random(), {
+        field1: {
+          type: Sequelize.INTEGER,
+          allowNull: true
+        },
+        field2: {
+          type: Sequelize.INTEGER,
+          allowNull: true
+        }
+      }, {
+        validate: {
+          xnor: function() {
+            if ((this.field1 === null) === (this.field2 === null)) {
+              throw new Error('xnor failed');
+            }
+          }
+        }
+      })
+
+      var failingFoo = Foo.build({ field1: null, field2: null })
+        , errors     = failingFoo.validate()
+
+      expect(errors).not.toBeNull()
+      expect(errors).toEqual({ 'xnor': ['xnor failed'] })
+
+      var successfulFoo = Foo.build({ field1: 33, field2: null })
+      expect(successfulFoo.validate()).toBeNull()
     })
   })
 })

@@ -1,12 +1,12 @@
 var Sequelize = require(__dirname + "/../../index")
-  , config    = require(__dirname + "/../../test/config")
+  , config    = require(__dirname + "/../../spec/config/config")
   , sequelize = new Sequelize(config.database, config.username, config.password, {logging: false})
   , Project   = sequelize.import(__dirname + "/Project")
   , Task      = sequelize.import(__dirname + "/Task")
-  
+
 Project.hasMany(Task)
 Task.belongsTo(Project)
-    
+
 sequelize.sync({force: true}).on('success', function() {
   Project
     .create({ name: 'Sequelize', description: 'A nice MySQL ORM for NodeJS' })

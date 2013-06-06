@@ -2,6 +2,9 @@
 
 The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databases by mapping database entries to objects and vice versa. To put it in a nutshell... it's an ORM (Object-Relational-Mapper). The library is written entirely in JavaScript and can be used in the Node.JS environment.
 
+<a href="http://flattr.com/thing/1259407/Sequelize" target="_blank">
+<img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>
+
 ## Important Notes ##
 
 ### 1.6.0 ###
@@ -27,7 +30,7 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 - Associations
 - Importing definitions from single files
 
-## Documentation, Examples and Updates ##
+## Documentation and Updates ##
 
 You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
 If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
@@ -35,29 +38,31 @@ Also make sure to take a look at the examples in the repository. The website wil
 
 - [Documentation](http://www.sequelizejs.com)
 - [Twitter](http://twitter.com/sdepold)
-- [IRC](irc://irc.freenode.net/sequelizejs)
+- [IRC](http://webchat.freenode.net?channels=sequelizejs)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
 - [XING](https://www.xing.com/net/priec1b5cx/sequelize) (pretty much inactive, but you might want to name it on your profile)
+
+## Running Examples
+Instructions for running samples are located in the [example directory](https://github.com/sequelize/sequelize/tree/master/examples). Try these samples in a live sandbox environment:
+
+<a href="https://runnable.com/sequelize" target="_blank"><img src="https://runnable.com/external/styles/assets/runnablebtn.png"></a>
 
 ## Roadmap
 
 A very basic roadmap. Chances aren't too bad, that not mentioned things are implemented as well. Don't panic :)
 
-### 1.6.0 (ToDo)
-- ~~Fix last issues with eager loading of associated data~~
-- ~~Find out why Person.belongsTo(House) would add person_id to house. It should add house_id to person~~
-
 ### 1.7.0
-- Check if lodash is a proper alternative to current underscore usage.
+- ~~Check if lodash is a proper alternative to current underscore usage.~~
 - Transactions
 - Support for update of tables without primary key
 - MariaDB support
-- Support for update and delete calls for whole tables without previous loading of instances
+- ~~Support for update and delete calls for whole tables without previous loading of instances~~ Implemented in [#569](https://github.com/sequelize/sequelize/pull/569) thanks to @optiltude
 - Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
 - Model#delete
-- Validate a model before it gets saved. (Move validation of enum attribute value to validate method)
-- BLOB [#99](https://github.com/sdepold/sequelize/issues/99)
-- Support for foreign keys
+- ~~Validate a model before it gets saved.~~ Implemented in [#601](https://github.com/sequelize/sequelize/pull/601), thanks to @durango
+- Move validation of enum attribute value to validate method
+- BLOB [#99](https://github.com/sequelize/sequelize/issues/99)
+- ~~Support for foreign keys~~ Implemented in [#595](https://github.com/sequelize/sequelize/pull/595), thanks to @optilude
 
 ### 1.7.x
 - Complete support for non-id primary keys
@@ -70,7 +75,13 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 
 ### 2.0.0
 - ~~save datetimes in UTC~~
-- encapsulate attributes if a dao inside the attributes property + add getters and setters
+- encapsulate attributes if a dao inside the attributes property
+- ~~add getters and setters for dao~~ Implemented in [#538](https://github.com/sequelize/sequelize/pull/538), thanks to iamjochem
+- add proper error message everywhere
+- refactor validate() output data structure, separating field-specific errors
+  from general model validator errors (i.e.
+  `{fields: {field1: ['field1error1']}, model: ['modelError1']}` or similar)
+
 
 ## Collaboration 2.0 ##
 
@@ -234,4 +245,4 @@ for (var key in obj) {
 The automated tests we talk about just so much are running on
 [Travis public CI](http://travis-ci.org), here is its status:
 
-[![Build Status](https://secure.travis-ci.org/sdepold/sequelize.png)](http://travis-ci.org/sdepold/sequelize)
+[![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize)
