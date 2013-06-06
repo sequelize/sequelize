@@ -254,7 +254,7 @@ describe('DAOFactory', function() {
 */
         it("handles limit", function() {
           Helpers.async(function(done) {
-            User.findAndCountAll({limit: 1})/*.on('sql', console.log)*/.success(function(info) {
+            User.findAndCountAll({limit: 1}).success(function(info) {
               expect(info.count).toEqual(fullcount)
               expect(Array.isArray(info.rows)).toBeTruthy()
               expect(info.rows.length).toEqual(1)
