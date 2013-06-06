@@ -399,7 +399,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
     })
 
-    it('should only store the values passed in the witelist', function(done) {
+    it('should only store the values passed in the whitelist', function(done) {
       var self = this
         , data = { username: 'Peter', secretValue: '42' }
 
@@ -422,6 +422,34 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           expect(_user.username).toEqual(data.username)
           expect(_user.secretValue).toEqual(data.secretValue)
           done()
+        })
+      })
+    })
+
+    it('can omitt autoincremental columns', function(done) {
+      var self = this
+        , data = { title: 'Iliad' }
+        , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT]
+
+      dataTypes.forEach(function(dataType, index) {
+        var Book = self.sequelize.define('Book'+index, {
+          id: { type: dataType, primaryKey: true, autoIncrement: true },
+          title: Sequelize.TEXT
+        })
+        Book.sync({ force: true }).success(function() {
+          Book
+            .create(data)
+            .success(function(book) {
+              expect(book.title).toEqual(data.title)
+              expect(book.author).toEqual(data.author)
+              expect(Book.rawAttributes.id.type.toString())
+                .toEqual(dataTypes[index].toString())
+
+              Book.drop()
+              if (index >= dataTypes.length - 1) {
+                done()
+              }
+            })
         })
       })
     })
