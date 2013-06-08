@@ -7,6 +7,7 @@ if(typeof require === 'function') {
 }
 
 buster.spec.expose()
+buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   before(function(done) {
@@ -117,6 +118,21 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
         flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
       })
+      expect(Task.build().title).toEqual('a task!')
+      expect(Task.build().foo).toEqual(2)
+      expect(Task.build().bar).toEqual(undefined)
+      expect(Task.build().foobar).toEqual('asd')
+      expect(Task.build().flag).toEqual(false)
+    })
+
+    it("fills the objects with default values", function() {
+      var Task = this.sequelize.define('Task', {
+        title:  {type: Sequelize.STRING, defaultValue: 'a task!'},
+        foo:    {type: Sequelize.INTEGER, defaultValue: 2},
+        bar:    {type: Sequelize.DATE},
+        foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
+        flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
+      }, { timestamps: false })
       expect(Task.build().title).toEqual('a task!')
       expect(Task.build().foo).toEqual(2)
       expect(Task.build().bar).toEqual(undefined)
