@@ -23,6 +23,7 @@
 - [FEATURE] `findOrCreate` now returns an additional flag (`created`), that is true if a model was created, and false if it was found [#648](https://github.com/sequelize/sequelize/pull/648). janmeier
 - [FEATURE] Field and table comments for MySQL and PG. [#523](https://github.com/sequelize/sequelize/pull/523). MySQL by iamjochen. PG by janmeier
 - [FEATURE] BigInts can now be used for autoincrement/serial columns. [#673](https://github.com/sequelize/sequelize/pull/673). thanks to sevastos
+- [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 
 # v1.6.0 #
 - [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
