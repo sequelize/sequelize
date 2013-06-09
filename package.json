@@ -17,8 +17,8 @@
       "email": "sky@skytrife.com"
     },
     {
-      "name": "Jan Aagaard Meier (Innofluence)",
-      "email": "jam@innofluence.com"
+      "name": "Jan Aagaard Meier",
+      "email": ["janzeh@gmail.com", "jmei@itu.dk"]
     }
   ],
   "repository": {
