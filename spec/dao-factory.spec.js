@@ -7,6 +7,7 @@ if(typeof require === 'function') {
 }
 
 buster.spec.expose()
+buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   before(function(done) {
@@ -117,6 +118,21 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
         flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
       })
+      expect(Task.build().title).toEqual('a task!')
+      expect(Task.build().foo).toEqual(2)
+      expect(Task.build().bar).toEqual(undefined)
+      expect(Task.build().foobar).toEqual('asd')
+      expect(Task.build().flag).toEqual(false)
+    })
+
+    it("fills the objects with default values", function() {
+      var Task = this.sequelize.define('Task', {
+        title:  {type: Sequelize.STRING, defaultValue: 'a task!'},
+        foo:    {type: Sequelize.INTEGER, defaultValue: 2},
+        bar:    {type: Sequelize.DATE},
+        foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
+        flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
+      }, { timestamps: false })
       expect(Task.build().title).toEqual('a task!')
       expect(Task.build().foo).toEqual(2)
       expect(Task.build().bar).toEqual(undefined)
@@ -399,7 +415,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
     })
 
-    it('should only store the values passed in the witelist', function(done) {
+    it('should only store the values passed in the whitelist', function(done) {
       var self = this
         , data = { username: 'Peter', secretValue: '42' }
 
@@ -422,6 +438,34 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           expect(_user.username).toEqual(data.username)
           expect(_user.secretValue).toEqual(data.secretValue)
           done()
+        })
+      })
+    })
+
+    it('can omitt autoincremental columns', function(done) {
+      var self = this
+        , data = { title: 'Iliad' }
+        , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT]
+
+      dataTypes.forEach(function(dataType, index) {
+        var Book = self.sequelize.define('Book'+index, {
+          id: { type: dataType, primaryKey: true, autoIncrement: true },
+          title: Sequelize.TEXT
+        })
+        Book.sync({ force: true }).success(function() {
+          Book
+            .create(data)
+            .success(function(book) {
+              expect(book.title).toEqual(data.title)
+              expect(book.author).toEqual(data.author)
+              expect(Book.rawAttributes.id.type.toString())
+                .toEqual(dataTypes[index].toString())
+
+              Book.drop()
+              if (index >= dataTypes.length - 1) {
+                done()
+              }
+            })
         })
       })
     })
