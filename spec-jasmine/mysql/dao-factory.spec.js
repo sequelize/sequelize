@@ -31,6 +31,13 @@ describe('DAOFactory', function() {
       expect(User.attributes).toEqual({username:"VARCHAR(255) NOT NULL",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
     })
 
+    it("handles extended attributes (comment)", function() {
+      var User = sequelize.define('User' + config.rand(), {
+        username: {type: Sequelize.STRING, comment: 'This be\'s a comment'}
+      }, { timestamps: false })
+      expect(User.attributes).toEqual({username:"VARCHAR(255) COMMENT 'This be\\'s a comment'",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
+    })
+
     it("handles extended attributes (primaryKey)", function() {
       var User = sequelize.define('User' + config.rand(), {
         username: {type: Sequelize.STRING, primaryKey: true}
