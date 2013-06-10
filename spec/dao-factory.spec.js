@@ -518,6 +518,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
+    it('allows setting custom IDs', function (done) {
+      this.User.create({ id: 42 }).success(function (user) {
+        expect(user.id).toEqual(42)
+
+        this.User.find(42).success(function (user) {
+          expect(user).toBeDefined()
+          done()
+        })
+      }.bind(this))
+    })
+
     describe('enums', function() {
       before(function(done) {
         this.Item = this.sequelize.define('Item', {
