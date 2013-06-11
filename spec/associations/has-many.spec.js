@@ -3,7 +3,6 @@ if (typeof require === 'function') {
       , Helpers   = require('../buster-helpers')
       , Sequelize = require('../../index')
       , dialect   = Helpers.getTestDialect()
-      , _         = require('lodash')
 }
 
 buster.spec.expose()
@@ -33,8 +32,6 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
 
       it('does not have any labels assigned to it initially', function(done) {
-        var self = this
-
         var chainer = new Sequelize.Utils.QueryChainer([
           this.Article.create({ title: 'Article' }),
           this.Label.create({ text: 'Awesomeness' }),
@@ -56,8 +53,6 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
 
       it('answers true if the label has been assigned', function(done) {
-        var self = this
-
         var chainer = new Sequelize.Utils.QueryChainer([
           this.Article.create({ title: 'Article' }),
           this.Label.create({ text: 'Awesomeness' }),
@@ -91,8 +86,6 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
 
       it('answers false if only some labels have been assigned', function(done) {
-        var self = this
-
         var chainer = new Sequelize.Utils.QueryChainer([
           this.Article.create({ title: 'Article' }),
           this.Label.create({ text: 'Awesomeness' }),
@@ -110,8 +103,6 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
 
       it('answers true if all label have been assigned', function(done) {
-        var self = this
-
         var chainer = new Sequelize.Utils.QueryChainer([
           this.Article.create({ title: 'Article' }),
           this.Label.create({ text: 'Awesomeness' }),
@@ -568,5 +559,4 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
     })
   })
-
 })
