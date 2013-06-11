@@ -3,6 +3,7 @@ if (typeof require === 'function') {
       , Helpers   = require('../buster-helpers')
       , Sequelize = require('../../index')
       , dialect   = Helpers.getTestDialect()
+      , _         = require('lodash')
 }
 
 buster.spec.expose()
@@ -186,7 +187,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
     describe("getting assocations with options", function() {
       before(function(done) {
-        var self = this;
+        var self = this
 
         this.User = this.sequelize.define('User', { username: Sequelize.STRING })
         this.Task = this.sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
@@ -194,7 +195,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.User.hasMany(self.Task)
 
         this.sequelize.sync({ force: true }).done(function() {
-         var chainer = new Sequelize.Utils.QueryChainer([
+          var chainer = new Sequelize.Utils.QueryChainer([
             self.User.create({ username: 'John'}),
             self.Task.create({ title: 'Get rich', active: true}),
             self.Task.create({ title: 'Die trying', active: false})
@@ -210,7 +211,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks().success(function (tasks) {
             expect(tasks.length).toEqual(2)
-            done();
+            done()
           })
         })
       })
@@ -219,17 +220,60 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.User.find({ where: { username: 'John' } }).success(function (john) {
           john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' }).success(function (tasks) {
             expect(tasks.length).toEqual(1)
-            done();
+            done()
           })
         })
       })
     })
+
+    describe('optimizations using bulk create, destroy and update', function () {
+      before(function (done) {
+        this.User = this.sequelize.define('User', { username: Sequelize.STRING }, {timestamps: false})
+        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING }, {timestamps: false})
+
+        this.User.hasMany(this.Task)
+
+        this.sequelize.sync({force: true}).success(done)
+      })
+
+      it('uses one insert into statement', function (done) {
+        var spy = this.spy()
+
+        this.User.create({ username: 'foo' }).success(function(user) {
+          this.Task.create({ title: 'task1' }).success(function(task1) {
+            this.Task.create({ title: 'task2' }).success(function(task2) {
+              user.setTasks([task1, task2]).on('sql', spy).success(function () {
+                expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
+                done()
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      })
+
+      it('uses one delete from statement', function (done) {
+        var spy = this.spy()
+
+        this.User.create({ username: 'foo' }).success(function (user) {
+          this.Task.create({ title: 'task1' }).success(function (task1) {
+            this.Task.create({ title: 'task2' }).success(function (task2) {
+              user.setTasks([task1, task2]).success(function () {
+                user.setTasks(null).on('sql', spy).success(function () {
+                  expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for DELETE
+                  done()
+                })
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      })
+    }) // end optimization using bulk create, destroy and update
   })
 
   describe('(N:M)', function() {
     describe("getting assocations with options", function() {
       before(function(done) {
-        var self = this;
+        var self = this
 
         this.User = this.sequelize.define('User', { username: Sequelize.STRING })
         this.Task = this.sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
@@ -238,7 +282,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         self.Task.hasMany(self.User)
 
         this.sequelize.sync({ force: true }).done(function() {
-         var chainer = new Sequelize.Utils.QueryChainer([
+          var chainer = new Sequelize.Utils.QueryChainer([
             self.User.create({ username: 'John'}),
             self.Task.create({ title: 'Get rich', active: true}),
             self.Task.create({ title: 'Die trying', active: false})
@@ -254,7 +298,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks().success(function (tasks) {
             expect(tasks.length).toEqual(2)
-            done();
+            done()
           })
         })
       })
@@ -263,7 +307,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks({where: {active: true}}).success(function (tasks) {
             expect(tasks.length).toEqual(1)
-            done();
+            done()
           })
         })
       })
@@ -323,6 +367,50 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         })
       })
     })
+
+    describe('optimizations using bulk create, destroy and update', function () {
+      before(function (done) {
+        this.User = this.sequelize.define('User', { username: Sequelize.STRING }, {timestamps: false})
+        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING }, {timestamps: false})
+
+        this.User.hasMany(this.Task)
+        this.Task.hasMany(this.User)  
+
+        this.sequelize.sync({force: true}).success(done)
+      })
+
+      it('uses one insert into statement', function (done) {
+        var spy = this.spy()
+
+        this.User.create({ username: 'foo' }).success(function(user) {
+          this.Task.create({ title: 'task1' }).success(function(task1) {
+            this.Task.create({ title: 'task2' }).success(function(task2) {
+              user.setTasks([task1, task2]).on('sql', spy).success(function () {
+                expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
+                done()
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      })
+
+      it('uses one delete from statement', function (done) {
+        var spy = this.spy()
+
+        this.User.create({ username: 'foo' }).success(function (user) {
+          this.Task.create({ title: 'task1' }).success(function (task1) {
+            this.Task.create({ title: 'task2' }).success(function (task2) {
+              user.setTasks([task1, task2]).success(function () {
+                user.setTasks(null).on('sql', spy).success(function () {
+                  expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for DELETE
+                  done()
+                })
+              })
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      })
+    }) // end optimization using bulk create, destroy and update
   })
 
   describe("Foreign key constraints", function() {
