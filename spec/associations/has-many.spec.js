@@ -235,6 +235,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
           this.Task.create({ title: 'task1' }).success(function(task1) {
             this.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
+                expect(sql).toMatch("UPDATE")
                 expect(sql).toMatch("IN (1,2)")
               })).success(function () {
                 expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
@@ -253,6 +254,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
             this.Task.create({ title: 'task2' }).success(function (task2) {
               user.setTasks([task1, task2]).success(function () {
                 user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
+                  expect(sql).toMatch("UPDATE")
                   expect(sql).toMatch("IN (1,2)")
                 })).success(function () {
                   expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
@@ -382,6 +384,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
           this.Task.create({ title: 'task1' }).success(function(task1) {
             this.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
+                expect(sql).toMatch("INSERT INTO")
                 expect(sql).toMatch("VALUES (1,1),(2,1)")
               })).success(function () {
                 expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
@@ -400,6 +403,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
             this.Task.create({ title: 'task2' }).success(function (task2) {
               user.setTasks([task1, task2]).success(function () {
                 user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) {
+                  expect(sql).toMatch("DELETE FROM")
                   expect(sql).toMatch("IN (1,2)")
                 })).success(function () {
                   expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for DELETE
