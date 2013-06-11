@@ -3,6 +3,7 @@ if (typeof require === 'function') {
       , Helpers   = require('../buster-helpers')
       , Sequelize = require('../../index')
       , dialect   = Helpers.getTestDialect()
+      , _         = require('lodash')
 }
 
 buster.spec.expose()
@@ -227,14 +228,16 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.sequelize.sync({force: true}).success(done)
       })
 
-      it('uses one insert into statement', function (done) {
+      it('uses one UPDATE statement', function (done) {
         var spy = this.spy()
 
         this.User.create({ username: 'foo' }).success(function(user) {
           this.Task.create({ title: 'task1' }).success(function(task1) {
             this.Task.create({ title: 'task2' }).success(function(task2) {
-              user.setTasks([task1, task2]).on('sql', spy).success(function () {
-                expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
+              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
+                expect(sql).toMatch("IN (1,2)")
+              })).success(function () {
+                expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
                 done()
               })
             }.bind(this))
@@ -242,15 +245,17 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         }.bind(this))
       })
 
-      it('uses one delete from statement', function (done) {
+      it('uses one UPDATE statement', function (done) {
         var spy = this.spy()
 
         this.User.create({ username: 'foo' }).success(function (user) {
           this.Task.create({ title: 'task1' }).success(function (task1) {
             this.Task.create({ title: 'task2' }).success(function (task2) {
               user.setTasks([task1, task2]).success(function () {
-                user.setTasks(null).on('sql', spy).success(function () {
-                  expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for DELETE
+                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
+                  expect(sql).toMatch("IN (1,2)")
+                })).success(function () {
+                  expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
                   done()
                 })
               })
@@ -376,7 +381,9 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.User.create({ username: 'foo' }).success(function(user) {
           this.Task.create({ title: 'task1' }).success(function(task1) {
             this.Task.create({ title: 'task2' }).success(function(task2) {
-              user.setTasks([task1, task2]).on('sql', spy).success(function () {
+              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
+                expect(sql).toMatch("VALUES (1,1),(2,1)")
+              })).success(function () {
                 expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
                 done()
               })
@@ -392,7 +399,9 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
           this.Task.create({ title: 'task1' }).success(function (task1) {
             this.Task.create({ title: 'task2' }).success(function (task2) {
               user.setTasks([task1, task2]).success(function () {
-                user.setTasks(null).on('sql', spy).success(function () {
+                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) {
+                  expect(sql).toMatch("IN (1,2)")
+                })).success(function () {
                   expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for DELETE
                   done()
                 })
