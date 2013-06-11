@@ -253,7 +253,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
           this.Task.create({ title: 'task1' }).success(function (task1) {
             this.Task.create({ title: 'task2' }).success(function (task2) {
               user.setTasks([task1, task2]).success(function () {
-                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
+                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECT, only UPDATE
                   expect(sql).toMatch("UPDATE")
                   expect(sql).toMatch("IN (1,2)")
                 })).success(function () {
