@@ -860,6 +860,22 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
+    it("should not try to convert boolean values if they are not selected", function (done) {
+      var UserWithBoolean = this.sequelize.define('user', {
+        active: Sequelize.BOOLEAN
+      })
+
+      this.sequelize.sync({force: true}).success(function () {
+        UserWithBoolean.create({ active: true }).success(function (user) {
+          UserWithBoolean.find({ where: { id: user.id }, attributes: [ 'id' ] }).success(function (user) {
+            expect(user.active).not.toBeDefined()
+
+            done()
+          })
+        })
+      })
+    })
+
     it('finds a specific user via where option', function(done) {
       this.User.find({ where: { username: 'barfooz' } }).success(function(user) {
         expect(user.username).toEqual('barfooz')
