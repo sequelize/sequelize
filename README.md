@@ -242,7 +242,8 @@ for (var key in obj) {
   "unused": true,
   "asi": true,
   "evil": false,
-  "laxcomma": true
+  "laxcomma": true,
+  "es5": true
 }
 ```
 
