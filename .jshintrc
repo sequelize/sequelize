@@ -18,5 +18,6 @@
     "unused": true,
     "asi": true,
     "evil": false,
-    "laxcomma": true
+    "laxcomma": true,
+    "es5": true
 }
