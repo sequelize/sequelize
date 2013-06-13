@@ -41,8 +41,7 @@
     "dottie": "0.0.6-1",
     "toposort-class": "0.1.4",
     "generic-pool": "2.0.3",
-    "promise": "~3.0.0",
-    "pg-hstore": "~1.0.3"
+    "promise": "~3.0.0"
   },
   "devDependencies": {
     "jasmine-node": "1.5.0",
