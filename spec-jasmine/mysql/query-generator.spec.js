@@ -77,15 +77,19 @@ describe('QueryGenerator', function() {
       },
       {
         arguments: ['myTable', {title: "INTEGER COMMENT 'I\\'m a comment!'"}],
-        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER COMMENT 'I\\'m a comment!') ENGINE=InnoDB;",
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER COMMENT 'I\\'m a comment!') ENGINE=InnoDB;"
       },
       {
         arguments: ['myTable', {title: "INTEGER"}, {comment:  "I'm a comment!"}],
-        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER) COMMENT 'I\\'m a comment!' ENGINE=InnoDB;",
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER) COMMENT 'I\\'m a comment!' ENGINE=InnoDB;"
       },
       {
         arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {engine: 'MyISAM'}],
         expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;"
+      },
+      {
+        arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {charset: 'utf8', collate: 'utf8_unicode_ci'}],
+        expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;"
       },
       {
         arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {charset: 'latin1'}],

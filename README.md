@@ -7,6 +7,12 @@ The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databa
 
 ## Important Notes ##
 
+### 2.0.0 ###
+
+There is a parallel "branch" of the project, released as `2.0.0-alphaX` in NPM. All those releases are based on the master
+and will get all the changes of the master. However, `2.0.0` will contain backwards compatibility breaking changes. Check the
+changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/2.0.0/changelog.md
+
 ### 1.6.0 ###
 
 - We changed the way timestamps are handled. From v1.6.0 on timestamps are stored and loaded as UTC.
@@ -236,7 +242,8 @@ for (var key in obj) {
   "unused": true,
   "asi": true,
   "evil": false,
-  "laxcomma": true
+  "laxcomma": true,
+  "es5": true
 }
 ```
 
