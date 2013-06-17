@@ -1,3 +1,6 @@
+# v2.0.0 (alpha1) #
+- [FEATURE] async validations. [#580](https://github.com/sequelize/sequelize/pull/580). thanks to Interlock
+
 # v1.7.0 #
 - [DEPENDENCIES] Upgraded validator for IPv6 support. [#603](https://github.com/sequelize/sequelize/pull/603). thanks to durango
 - [DEPENDENCIES] replaced underscore by lodash. [#954](https://github.com/sequelize/sequelize/pull/594). thanks to durango

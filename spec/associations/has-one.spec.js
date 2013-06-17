@@ -20,7 +20,7 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
   })
 
   describe('setAssociation', function() {
-    it('clears the association if null is passed', function(done) {
+    it('//clears the association if null is passed', function(done) {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING })
 

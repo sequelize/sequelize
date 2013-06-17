@@ -202,7 +202,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         for (var i = 0; i < validatorDetails.fail.length; i++) {
           var failingValue = validatorDetails.fail[i]
 
-          it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function() {
+          it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function(done) {
             var validations = {}
               , message     = validator + "(" + failingValue + ")"
 
@@ -222,11 +222,15 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
             })
 
             var failingUser = UserFail.build({ name : failingValue })
-              , errors      = failingUser.validate()
+              , errors      = undefined;
 
-            expect(errors).not.toBeNull()
-            expect(errors).toEqual({ name : [message] })
-          })
+
+            failingUser.validate().done( function(err,_errors) {
+              expect(_errors).not.toBeNull();
+              expect(_errors).toEqual({ name : [message] });
+              done();
+            });
+          });
         }
 
         ////////////////////////////
@@ -235,7 +239,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         for (var j = 0; j < validatorDetails.pass.length; j++) {
           var succeedingValue = validatorDetails.pass[j]
 
-          it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
+          it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function(done) {
             var validations = {}
 
             if (validatorDetails.hasOwnProperty('spec')) {
@@ -253,21 +257,30 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
               }
             })
 
-            var successfulUser = UserSuccess.build({ name: succeedingValue })
-            expect(successfulUser.validate()).toBeNull()
+            var successfulUser = UserSuccess.build({ name: succeedingValue });
+
+            successfulUser.validate().success( function() {
+              expect(arguments.length).toBe(0);
+              done();
+            }).error(function(err) {
+              expect(err).toBe({})
+              done();
+            });
           })
         }
       }
     }
 
-    it('correctly validates using custom validation methods', function() {
+    it('correctly validates using custom validation methods', function(done) {
       var User = this.sequelize.define('User' + Math.random(), {
         name: {
           type: Sequelize.STRING,
           validate: {
-            customFn: function(val) {
+            customFn: function(val, next) {
               if (val !== "2") {
-                throw new Error("name should equal '2'")
+                next("name should equal '2'")
+              } else {
+                next()
               }
             }
           }
@@ -275,16 +288,23 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
       })
 
       var failingUser = User.build({ name : "3" })
-        , errors      = failingUser.validate()
 
-      expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ name: ["name should equal '2'"] })
+      failingUser.validate().success(function(errors) {
+        expect(errors).toEqual({ name: ["name should equal '2'"] })
 
-      var successfulUser = User.build({ name : "2" })
-      expect(successfulUser.validate()).toBeNull()
+        var successfulUser = User.build({ name : "2" })
+        successfulUser.validate().success(function() {
+          expect(arguments.length).toBe(0);
+          done();
+        }).error(function(err) {
+          expect(err).toBe({});
+          done();
+        })
+      });
+
     })
 
-    it('skips other validations if allowNull is true and the value is null', function() {
+    it('skips other validations if allowNull is true and the value is null', function(done) {
       var User = this.sequelize.define('User' + Math.random(), {
         age: {
           type: Sequelize.INTEGER,
@@ -295,20 +315,22 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         }
       })
 
-      var failingUser = User.build({ age: -1 })
-        , errors      = failingUser.validate()
+      User
+        .build({ age: -1 })
+        .validate()
+        .success(function(errors) {
+          expect(errors).not.toBeNull(null)
+          expect(errors).toEqual({ age: ['must be positive'] })
 
-      expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ age: ['must be positive'] })
-
-      var successfulUser1 = User.build({ age: null })
-      expect(successfulUser1.validate()).toBeNull()
-
-      var successfulUser2 = User.build({ age: 1 })
-      expect(successfulUser2.validate()).toBeNull()
+          User.build({ age: null }).validate().success(function() {
+            User.build({ age: 1 }).validate().success(function() {
+              done()
+            })
+          })
+        })
     })
 
-    it('validates a model with custom model-wide validation methods', function() {
+    it('validates a model with custom model-wide validation methods', function(done) {
       var Foo = this.sequelize.define('Foo' + Math.random(), {
         field1: {
           type: Sequelize.INTEGER,
@@ -320,22 +342,52 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         }
       }, {
         validate: {
-          xnor: function() {
+          xnor: function(done) {
             if ((this.field1 === null) === (this.field2 === null)) {
-              throw new Error('xnor failed');
+              done('xnor failed')
+            } else {
+              done()
             }
           }
         }
       })
 
-      var failingFoo = Foo.build({ field1: null, field2: null })
-        , errors     = failingFoo.validate()
+      Foo
+        .build({ field1: null, field2: null })
+        .validate()
+        .success(function(errors) {
+          expect(errors).not.toBeNull()
+          expect(errors).toEqual({ 'xnor': ['xnor failed'] })
 
-      expect(errors).not.toBeNull()
-      expect(errors).toEqual({ 'xnor': ['xnor failed'] })
-
-      var successfulFoo = Foo.build({ field1: 33, field2: null })
-      expect(successfulFoo.validate()).toBeNull()
+          Foo
+            .build({ field1: 33, field2: null })
+            .validate()
+            .success(function(errors) {
+              expect(errors).not.toBeDefined()
+              done()
+            })
+        })
     })
+
+    it('validates model with a validator whose arg is an Array successfully twice in a row', function(done){
+      var Foo = this.sequelize.define('Foo' + Math.random(), {
+        bar: {
+          type: Sequelize.STRING,
+          validate: {
+            isIn: [['a', 'b']]
+          }
+        }
+      }), foo;
+
+      foo = Foo
+        .build({bar:'a'});
+      foo.validate().success(function(errors){
+        expect(errors).not.toBeDefined()
+        foo.validate().success(function(errors){
+          expect(errors).not.toBeDefined()
+          done();
+        });
+      });
+    });
   })
 })
