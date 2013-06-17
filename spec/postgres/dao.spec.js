@@ -19,7 +19,7 @@ if (dialect.match(/^postgres/)) {
           self.User = sequelize.define('User', {
             username: DataTypes.STRING,
             email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
-            document: {type: DataTypes.HSTORE, defaultValue: 'default=>value'}
+            document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
           })
         },
         onComplete: function() {
@@ -47,9 +47,10 @@ if (dialect.match(/^postgres/)) {
         var self = this
 
         this.User
-          .create({ username: 'user', email: ['foo@bar.com'], document: {hello: 'world'}})
+          .create({ username: 'user', email: ['foo@bar.com'], document: { created: { test: '"value"' }}})
           .success(function(newUser) {
-            expect(newUser.document).toEqual({hello: 'world'})
+            expect(newUser.document).toEqual({ created: { test: '"value"' }})
+
             // Check to see if updating an hstore field works
             newUser.updateAttributes({document: {should: 'update', to: 'this', first: 'place'}}).success(function(oldUser){
               // Postgres always returns keys in alphabetical order (ascending)

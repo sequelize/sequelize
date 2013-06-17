@@ -18,7 +18,10 @@
     },
     {
       "name": "Jan Aagaard Meier",
-      "email": ["janzeh@gmail.com", "jmei@itu.dk"]
+      "email": [
+        "janzeh@gmail.com",
+        "jmei@itu.dk"
+      ]
     }
   ],
   "repository": {
