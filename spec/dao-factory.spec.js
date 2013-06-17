@@ -518,6 +518,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
+    it('allows setting custom IDs', function (done) {
+      this.User.create({ id: 42 }).success(function (user) {
+        expect(user.id).toEqual(42)
+
+        this.User.find(42).success(function (user) {
+          expect(user).toBeDefined()
+          done()
+        })
+      }.bind(this))
+    })
+
     describe('enums', function() {
       before(function(done) {
         this.Item = this.sequelize.define('Item', {
@@ -846,6 +857,22 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       }).success(function(user) {
         expect(user.name).toEqual('barfooz')
         done()
+      })
+    })
+
+    it("should not try to convert boolean values if they are not selected", function (done) {
+      var UserWithBoolean = this.sequelize.define('user', {
+        active: Sequelize.BOOLEAN
+      })
+
+      this.sequelize.sync({force: true}).success(function () {
+        UserWithBoolean.create({ active: true }).success(function (user) {
+          UserWithBoolean.find({ where: { id: user.id }, attributes: [ 'id' ] }).success(function (user) {
+            expect(user.active).not.toBeDefined()
+
+            done()
+          })
+        })
       })
     })
 
