@@ -29,7 +29,7 @@ if (dialect.match(/^postgres/)) {
     })
 
     describe('model', function() {
-      it("create handles array correctly", function(done) {
+      it("should create ARRAY correctly", function(done) {
         var self = this
 
         this.User
@@ -43,7 +43,7 @@ if (dialect.match(/^postgres/)) {
           })
       })
 
-      it("should handle hstore correctly", function(done) {
+      it("should create HSTORE correctly", function(done) {
         var self = this
 
         this.User
@@ -58,7 +58,13 @@ if (dialect.match(/^postgres/)) {
               // Check to see if the default value for an hstore field works
               self.User.create({ username: 'user2', email: ['bar@baz.com']}).success(function(defaultUser){
                 expect(defaultUser.document).toEqual({default: 'value'})
-                done()
+
+                self.User.find({ where: { username: 'user' }}).success(function(user) {
+                  expect(user).not.toBeNull()
+                  expect(user.document).toEqual({should: 'update', to: 'this', first: 'place'})
+
+                  done()
+                }).error(console.log)
               })
             })
           })
@@ -68,7 +74,6 @@ if (dialect.match(/^postgres/)) {
   })
 
   describe('[POSTGRES] Unquoted identifiers', function() {
-
     before(function(done) {
       var self = this
 
