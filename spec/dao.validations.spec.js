@@ -368,5 +368,26 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
             })
         })
     })
+
+    it('validates model with a validator whose arg is an Array successfully twice in a row', function(done){
+      var Foo = this.sequelize.define('Foo' + Math.random(), {
+        bar: {
+          type: Sequelize.STRING,
+          validate: {
+            isIn: [['a', 'b']]
+          }
+        }
+      }), foo;
+
+      foo = Foo
+        .build({bar:'a'});
+      foo.validate().success(function(errors){
+        expect(errors).not.toBeDefined()
+        foo.validate().success(function(errors){
+          expect(errors).not.toBeDefined()
+          done();
+        });
+      });
+    });
   })
 })
