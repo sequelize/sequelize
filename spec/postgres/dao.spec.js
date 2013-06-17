@@ -63,7 +63,14 @@ if (dialect.match(/^postgres/)) {
                   expect(user).not.toBeNull()
                   expect(user.document).toEqual({should: 'update', to: 'this', first: 'place'})
 
-                  done()
+                  user.document = { updated: 'document', having: { nesting: true } }
+                  user.save().success(function() {
+                    self.User.find({ where: { username: 'user' }}).success(function(reloadedUser) {
+                      expect(reloadedUser.document).toEqual({ updated: 'document', having: { nesting: true } })                    
+
+                      done()
+                    }).error(console.log)
+                  }).error(console.log)
                 }).error(console.log)
               })
             })
