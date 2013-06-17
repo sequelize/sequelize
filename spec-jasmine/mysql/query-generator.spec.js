@@ -235,10 +235,10 @@ describe('QueryGenerator', function() {
         context: {options: {omitNull: true}}
       }, {
         arguments: ['myTable', {foo: false}],
-        expectation: "INSERT INTO `myTable` (`foo`) VALUES (0);"
+        expectation: "INSERT INTO `myTable` (`foo`) VALUES (false);"
       }, {
         arguments: ['myTable', {foo: true}],
-        expectation: "INSERT INTO `myTable` (`foo`) VALUES (1);"
+        expectation: "INSERT INTO `myTable` (`foo`) VALUES (true);"
       }
     ],
 
@@ -272,7 +272,7 @@ describe('QueryGenerator', function() {
         context: {options: {omitNull: true}} // Note: As above
       }, {
         arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
-        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1),('bar',0);"
+        expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',true),('bar',false);"
       }
     ],
 
@@ -302,10 +302,10 @@ describe('QueryGenerator', function() {
         context: {options: {omitNull: true}}
       }, {
         arguments: ['myTable', {bar: false}, {name: 'foo'}],
-        expectation: "UPDATE `myTable` SET `bar`=0 WHERE `name`='foo'"
+        expectation: "UPDATE `myTable` SET `bar`=false WHERE `name`='foo'"
       }, {
         arguments: ['myTable', {bar: true}, {name: 'foo'}],
-        expectation: "UPDATE `myTable` SET `bar`=1 WHERE `name`='foo'"
+        expectation: "UPDATE `myTable` SET `bar`=true WHERE `name`='foo'"
       }
     ],
 
@@ -385,11 +385,11 @@ describe('QueryGenerator', function() {
       },
       {
         arguments: [{ maple: false, bacon: true }],
-        expectation: "`maple`=0 AND `bacon`=1"
+        expectation: "`maple`=false AND `bacon`=true"
       },
       {
         arguments: [{ beaver: [false, true] }],
-        expectation: "`beaver` IN (0,1)"
+        expectation: "`beaver` IN (false,true)"
       },
       {
         arguments: [{birthday: new Date(Date.UTC(2011, 6, 1, 10, 1, 55))}],
