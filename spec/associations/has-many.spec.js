@@ -438,6 +438,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       it('uses the specified joinTableName or a reasonable default', function(done) {
         for (var associationName in this.User.associations) {
           expect(associationName).not.toEqual(this.User.tableName)
+          expect(associationName).not.toEqual(this.Task.tableName)
 
           var joinTableName = this.User.associations[associationName].options.joinTableName
           if (typeof joinTableName !== 'undefined') {
