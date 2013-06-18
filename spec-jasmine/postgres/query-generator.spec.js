@@ -338,7 +338,7 @@ describe('QueryGenerator', function() {
         expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;') RETURNING *;"
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}],
-        expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.0Z') RETURNING *;"
+        expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000 +00:00') RETURNING *;"
       }, {
         arguments: ['myTable', {name: 'foo', foo: 1}],
         expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1) RETURNING *;"
@@ -379,7 +379,7 @@ describe('QueryGenerator', function() {
         context: {options: {quoteIdentifiers: false}}
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}],
-        expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.0Z') RETURNING *;",
+        expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00') RETURNING *;",
         context: {options: {quoteIdentifiers: false}}
       }, {
         arguments: ['myTable', {name: 'foo', foo: 1}],
@@ -426,7 +426,7 @@ describe('QueryGenerator', function() {
         expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;'),('bar') RETURNING *;"
       }, {
         arguments: ['myTable', [{name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55))}]],
-        expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.0Z'),('bar','2012-03-27 10:01:55.0Z') RETURNING *;"
+        expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00') RETURNING *;"
       }, {
         arguments: ['myTable', [{name: 'foo', foo: 1}, {name: 'bar', foo: 2}]],
         expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1),('bar',2) RETURNING *;"
@@ -467,7 +467,7 @@ describe('QueryGenerator', function() {
         context: {options: {quoteIdentifiers: false}}
       }, {
         arguments: ['myTable', [{name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55))}]],
-        expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.0Z'),('bar','2012-03-27 10:01:55.0Z') RETURNING *;",
+        expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00') RETURNING *;",
         context: {options: {quoteIdentifiers: false}}
       }, {
         arguments: ['myTable', [{name: 'foo', foo: 1}, {name: 'bar', foo: 2}]],
@@ -507,10 +507,10 @@ describe('QueryGenerator', function() {
     updateQuery: [
       {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0Z' WHERE \"id\"=2 RETURNING *"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, 2],
-        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0Z' WHERE \"id\"=2 RETURNING *"
+        expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['myTable', {bar: 2}, {name: 'foo'}],
         expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *"
@@ -534,7 +534,7 @@ describe('QueryGenerator', function() {
         context: {options: {omitNull: true}}
       }, {
         arguments: ['mySchema.myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.0Z' WHERE \"id\"=2 RETURNING *"
+        expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\"=2 RETURNING *"
       }, {
         arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
         expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo' RETURNING *"
@@ -543,11 +543,11 @@ describe('QueryGenerator', function() {
       // Variants when quoteIdentifiers is false
       {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.0Z' WHERE id=2 RETURNING *",
+        expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id=2 RETURNING *",
         context: {options: {quoteIdentifiers: false}}
       }, {
         arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, 2],
-        expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.0Z' WHERE id=2 RETURNING *",
+        expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id=2 RETURNING *",
         context: {options: {quoteIdentifiers: false}}
       }, {
         arguments: ['myTable', {bar: 2}, {name: 'foo'}],
@@ -575,7 +575,7 @@ describe('QueryGenerator', function() {
         context: {options: {omitNull: true, quoteIdentifiers: false}},
       }, {
         arguments: ['mySchema.myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-        expectation: "UPDATE mySchema.myTable SET name='foo',birthday='2011-03-27 10:01:55.0Z' WHERE id=2 RETURNING *",
+        expectation: "UPDATE mySchema.myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id=2 RETURNING *",
         context: {options: {quoteIdentifiers: false}}
       }, {
         arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
