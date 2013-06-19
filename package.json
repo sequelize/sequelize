@@ -47,7 +47,7 @@
     "jasmine-node": "1.5.0",
     "sqlite3": "~2.1.5",
     "mysql": "~2.0.0-alpha7",
-    "pg": "~0.10.2",
+    "pg": "~2.0.0",
     "buster": "~0.6.3",
     "watchr": "~2.2.0",
     "yuidocjs": "~0.3.36"
