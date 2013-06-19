@@ -281,6 +281,26 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   })
 
   describe('create', function() {
+    it("casts empty arrays correctly for postgresql", function(done) {
+      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+        expect('').toEqual('')
+        return done()
+      }
+
+      var User = this.sequelize.define('UserWithArray', {
+        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+      })
+
+      User.sync({force: true}).success(function() {
+        User.create({myvals: [], mystr: []}).on('sql', function(sql){
+          expect(sql.indexOf('ARRAY[]::INTEGER[]')).toBeGreaterThan(-1)
+          expect(sql.indexOf('ARRAY[]::VARCHAR[]')).toBeGreaterThan(-1)
+          done()
+        })
+      })
+    })
+
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
         username: { type: Sequelize.STRING, unique: true }
