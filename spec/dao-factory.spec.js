@@ -357,7 +357,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       User.sync({ force: true }).success(function() {
         User.create({ big: '9223372036854775807' }).on('success', function(user) {
-          expect(user.big).toEqual( '9223372036854775807' )
+          expect(user.big).toBe( '9223372036854775807' )
           done()
         })
       })
