@@ -1004,8 +1004,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         ]
         , done = _.after(2 * permutations.length, _done);
 
-      this.User.create({name: 'jack'}).success(function (jack) {
-        this.User.create({name: 'jill'}).success(function (jill) {
+      this.User.create({username: 'jack'}).success(function (jack) {
+        this.User.create({username: 'jill'}).success(function (jill) {
           permutations.forEach(function(perm) {
             this.User.find(perm).done(function(err, user) {
               expect(err).toBeNull();

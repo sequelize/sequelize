@@ -372,7 +372,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.Task = this.sequelize.define('Task', { title: Sequelize.STRING }, {timestamps: false})
 
         this.User.hasMany(this.Task)
-        this.Task.hasMany(this.User)  
+        this.Task.hasMany(this.User)
 
         this.sequelize.sync({force: true}).success(done)
       })
@@ -385,7 +385,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
             this.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
                 expect(sql).toMatch("INSERT INTO")
-                expect(sql).toMatch("VALUES (1,1),(2,1)")
+                expect(sql).toMatch("VALUES (1,1),(1,2)")
               })).success(function () {
                 expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
                 done()
@@ -415,7 +415,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         }.bind(this))
       })
     }) // end optimization using bulk create, destroy and update
-  
+
     describe('join table creation', function () {
       before(function (done) {
         this.User = this.sequelize.define('User',
@@ -430,7 +430,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.User.hasMany(this.Task,
           { joinTableName: 'user_has_tasks' }
         )
-        this.Task.hasMany(this.User)  
+        this.Task.hasMany(this.User)
 
         this.sequelize.sync({force: true}).success(done)
       })
