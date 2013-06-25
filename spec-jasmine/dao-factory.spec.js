@@ -208,6 +208,74 @@ describe('DAOFactory', function() {
         })
       })
 
+      describe('findAndCountAll', function() {
+        var users = [], fullcount = 3
+
+        beforeEach(function() {
+          Helpers.Factories.User({name: 'user', bio: 'foobar'}, function(_users) {
+            users = _users
+          }, fullcount)
+        })
+
+        it("handles where clause [only]", function() {
+          Helpers.async(function(done) {
+            User.findAndCountAll({where: "id != " + users[0].id}).success(function(info) {
+              expect(info.count).toEqual(fullcount - 1)
+              expect(Array.isArray(info.rows)).toBeTruthy()
+              expect(info.rows.length).toEqual(fullcount - 1)
+              done()
+            })
+          })
+        })
+
+        it("handles where clause with ordering [only]", function() {
+          Helpers.async(function(done) {
+            User.findAndCountAll({where: "id != " + users[0].id, order: 'id ASC'}).success(function(info) {
+              expect(info.count).toEqual(fullcount - 1)
+              expect(Array.isArray(info.rows)).toBeTruthy()
+              expect(info.rows.length).toEqual(fullcount - 1)
+              done()
+            })
+          })
+        })
+
+/*
+// at time of writing (v1.6.0) Sequelize does not seem to support 'offset' on it's own consistently (goes wrong for PostGRES and SQLite)
+        it("handles offset", function() {
+          Helpers.async(function(done) {
+            User.findAndCountAll({offset: 1}).success(function(info) {
+              expect(info.count).toEqual(fullcount)
+              expect(Array.isArray(info.rows)).toBeTruthy()
+              expect(info.rows.length).toEqual(fullcount - 1)
+              done()
+            })
+          })
+        })
+*/
+        it("handles limit", function() {
+          Helpers.async(function(done) {
+            User.findAndCountAll({limit: 1}).success(function(info) {
+              expect(info.count).toEqual(fullcount)
+              expect(Array.isArray(info.rows)).toBeTruthy()
+              expect(info.rows.length).toEqual(1)
+              done()
+            })
+          })
+        })
+
+        it("handles offset and limit", function() {
+          Helpers.async(function(done) {
+            User.findAndCountAll({offset: 1, limit: 1}).success(function(info) {
+              expect(info.count).toEqual(fullcount)
+              expect(Array.isArray(info.rows)).toBeTruthy()
+              expect(info.rows.length).toEqual(1)
+              done()
+            })
+          })
+        })
+      })
+
+
       describe('all', function() {
         beforeEach(function() {
           Helpers.Factories.User({name: 'user', bio: 'foobar'}, null, 2)

@@ -372,7 +372,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         this.Task = this.sequelize.define('Task', { title: Sequelize.STRING }, {timestamps: false})
 
         this.User.hasMany(this.Task)
-        this.Task.hasMany(this.User)  
+        this.Task.hasMany(this.User)
 
         this.sequelize.sync({force: true}).success(done)
       })
@@ -385,7 +385,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
             this.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
                 expect(sql).toMatch("INSERT INTO")
-                expect(sql).toMatch("VALUES (1,1),(2,1)")
+                expect(sql).toMatch("VALUES (1,1),(1,2)")
               })).success(function () {
                 expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
                 done()
@@ -415,6 +415,43 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         }.bind(this))
       })
     }) // end optimization using bulk create, destroy and update
+
+    describe('join table creation', function () {
+      before(function (done) {
+        this.User = this.sequelize.define('User',
+          { username: Sequelize.STRING },
+          { tableName: 'users'}
+        )
+        this.Task = this.sequelize.define('Task',
+          { title: Sequelize.STRING },
+          { tableName: 'tasks' }
+        )
+
+        this.User.hasMany(this.Task,
+          { joinTableName: 'user_has_tasks' }
+        )
+        this.Task.hasMany(this.User)
+
+        this.sequelize.sync({force: true}).success(done)
+      })
+
+      it('uses the specified joinTableName or a reasonable default', function(done) {
+        for (var associationName in this.User.associations) {
+          expect(associationName).not.toEqual(this.User.tableName)
+          expect(associationName).not.toEqual(this.Task.tableName)
+
+          var joinTableName = this.User.associations[associationName].options.joinTableName
+          if (typeof joinTableName !== 'undefined') {
+            expect(joinTableName).toEqual(associationName)
+          }
+          var tableName = this.User.associations[associationName].options.tableName
+          if (typeof tableName !== 'undefined') {
+            expect(tableName).toEqual(associationName)
+          }
+        }
+        done()
+      })
+    })
   })
 
   describe("Foreign key constraints", function() {
