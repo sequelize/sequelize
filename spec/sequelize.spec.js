@@ -68,8 +68,10 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         expect(result.length).toEqual(2)
         expect(result[0].username).toEqual('john');
         expect(result[1].username).toEqual('bob');
+        expect(result[0]).toHavePrototype(this.User.DAO.prototype)
+        expect(result[1]).toHavePrototype(this.User.DAO.prototype)
         done()
-      })
+      }.bind(this))
     })
 
     it('executes a query and returns the results of a unmapped table (for Postgres only)', function(done) {
