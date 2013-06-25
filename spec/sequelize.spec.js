@@ -42,6 +42,10 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     before(function(done) {
       this.User = this.sequelize.define('User', {
         username: Helpers.Sequelize.STRING
+      }, {
+        instanceMethods: {
+          name: function() { return this.username }
+        }
       })
 
       this.insertQuery = "INSERT INTO " + qq(this.User.tableName) + " (username, " + qq("createdAt") + ", " + qq("updatedAt") + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
@@ -50,6 +54,40 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         console(err)
         done()
       })
+    })
+
+    it('executes a query and returns the results of a mapped table (for Postgres only)', function(done) {
+      if (dialect !== "postgres" && dialect !== "postgres-native") {
+        expect('').toEqual('')
+        return done()
+      }
+
+      this.sequelize.query(this.insertQuery + ", ('bob', '2012-01-01 10:10:10', '2012-01-01 10:10:10') RETURNING *", null, {raw: true}).complete(function(err, result){
+        expect(err).toBeNull()
+        expect(result).toBeArray()
+        expect(result.length).toEqual(2)
+        expect(result[0].username).toEqual('john');
+        expect(result[1].username).toEqual('bob');
+        expect(result[0]).toHavePrototype(this.User.DAO.prototype)
+        expect(result[1]).toHavePrototype(this.User.DAO.prototype)
+        done()
+      }.bind(this))
+    })
+
+    it('executes a query and returns the results of a unmapped table (for Postgres only)', function(done) {
+      if (dialect !== "postgres" && dialect !== "postgres-native") {
+        expect('').toEqual('')
+        return done()
+      }
+
+      this.sequelize.query('CREATE TABLE IF NOT EXISTS newFoo (code varchar);', null, {raw: true}).complete(function(){
+        this.sequelize.query('INSERT INTO newFoo VALUES (\'hello world\'), (\'yup\') RETURNING *', null, {raw: true}).complete(function(err, result){
+          expect(err).toBeNull()
+          expect(result).toBeArray()
+          expect(result.length).toEqual(2)
+          done()
+        })
+      }.bind(this))
     })
 
     it('executes a query the internal way', function(done) {
