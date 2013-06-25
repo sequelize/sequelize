@@ -444,6 +444,140 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         })
       })
     })
+
+    before(function(done) {
+      this.UserEager    = this.sequelize.define('UserEagerLoadingSaves', {
+        username    : Helpers.Sequelize.STRING,
+        age         : Helpers.Sequelize.INTEGER
+      }, { timestamps: false })
+
+      this.ProjectEager = this.sequelize.define('ProjectEagerLoadingSaves', {
+        title       : Helpers.Sequelize.STRING,
+        overdue_days: Helpers.Sequelize.INTEGER
+      }, { timestamps: false })
+
+      this.UserEager.hasMany(this.ProjectEager,   { as: 'Projects'   })
+      this.ProjectEager.belongsTo(this.UserEager, { as: 'Poobah'     })
+
+      this.sequelize.sync({ force: true }).success(done)
+    })
+
+    it('saves one object that has a collection of eagerly loaded objects', function(done) {
+      this.UserEager.create({ username: 'joe', age: 1 }).success(function(user) {
+        this.ProjectEager.create({ title: 'project-joe1', overdue_days: 0 }).success(function(project1) {
+          this.ProjectEager.create({ title: 'project-joe2', overdue_days: 0 }).success(function(project2)  {
+            user.setProjects([project1, project2]).success(function() {
+
+              this.UserEager.find({where: {age: 1}, include: [{model: this.ProjectEager, as: 'Projects'}]}).success(function(user) {
+
+                expect(user.username).toEqual('joe')
+                expect(user.age).toEqual(1)
+                expect(user.projects).toBeDefined()
+                expect(user.projects.length).toEqual(2)
+
+                user.age = user.age + 1; // happy birthday joe
+
+                user.save().success(function(saveduser) {
+                  expect(user.username).toEqual('joe')
+                  expect(user.age).toEqual(2)
+                  expect(user.projects).toBeDefined()
+                  expect(user.projects.length).toEqual(2)
+                  done()
+                })
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it('saves many objects that each a have collection of eagerly loaded objects', function(done) {
+      this.UserEager.create({ username: 'bart', age: 20 }).success(function(bart) {
+        this.UserEager.create({ username: 'lisa', age: 20 }).success(function(lisa) {
+
+          this.ProjectEager.create({ title: 'detention1', overdue_days: 0 }).success(function(detention1) {
+            this.ProjectEager.create({ title: 'detention2', overdue_days: 0 }).success(function(detention2)  {
+              this.ProjectEager.create({ title: 'exam1', overdue_days: 0 }).success(function(exam1) {
+                this.ProjectEager.create({ title: 'exam2', overdue_days: 0 }).success(function(exam2)  {
+                  bart.setProjects([detention1, detention2]).success(function() {
+                    lisa.setProjects([exam1, exam2]).success(function() {
+                      this.UserEager.findAll({where: {age: 20}, order: 'username ASC', include: [{model: this.ProjectEager, as: 'Projects'}]}).success(function(simpsons) {
+                        var _bart, _lisa;
+
+                        expect(simpsons.length).toEqual(2)
+
+                        _bart = simpsons[0];
+                        _lisa = simpsons[1];
+
+                        expect(_bart.projects).toBeDefined()
+                        expect(_lisa.projects).toBeDefined()
+                        expect(_bart.projects.length).toEqual(2)
+                        expect(_lisa.projects.length).toEqual(2)
+
+                        _bart.age = _bart.age + 1; // happy birthday bart - off to Moe's
+
+                        _bart.save().success(function(savedbart) {
+                          expect(savedbart.username).toEqual('bart')
+                          expect(savedbart.age).toEqual(21)
+
+                          _lisa.username = 'lsimpson';
+
+                          _lisa.save().success(function(savedlisa) {
+                            expect(savedlisa.username).toEqual('lsimpson')
+                            expect(savedlisa.age).toEqual(20)
+
+                            done()
+                          })
+                        })
+                      })
+                    }.bind(this))
+                  }.bind(this))
+                }.bind(this))
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
+
+    it('saves many objects that each has one eagerly loaded object (to which they belong)', function(done) {
+      this.UserEager.create({ username: 'poobah', age: 18 }).success(function(user) {
+        this.ProjectEager.create({ title: 'homework', overdue_days: 10 }).success(function(homework) {
+          this.ProjectEager.create({ title: 'party', overdue_days: 2 }).success(function(party)  {
+            user.setProjects([homework, party]).success(function() {
+              this.ProjectEager.findAll({include: [{model: this.UserEager, as: 'Poobah'}]}).success(function(projects) {
+
+                expect(projects.length).toEqual(2)
+                expect(projects[0].poobah).toBeDefined()
+                expect(projects[1].poobah).toBeDefined()
+                expect(projects[0].poobah.username).toEqual('poobah')
+                expect(projects[1].poobah.username).toEqual('poobah')
+
+                projects[0].title        = 'partymore';
+                projects[1].title        = 'partymore';
+                projects[0].overdue_days = 0;
+                projects[1].overdue_days = 0;
+
+                projects[0].save().success(function() {
+                  projects[1].save().success(function() {
+                    this.ProjectEager.findAll({where: {title: 'partymore', overdue_days: 0}, include: [{model: this.UserEager, as: 'Poobah'}]}).success(function(savedprojects) {
+
+                      expect(savedprojects.length).toEqual(2)
+                      expect(savedprojects[0].poobah).toBeDefined()
+                      expect(savedprojects[1].poobah).toBeDefined()
+                      expect(savedprojects[0].poobah.username).toEqual('poobah')
+                      expect(savedprojects[1].poobah.username).toEqual('poobah')
+
+                      done()
+                    })
+                  }.bind(this))
+                }.bind(this))
+              }.bind(this))
+            }.bind(this))
+          }.bind(this))
+        }.bind(this))
+      }.bind(this))
+    })
   })
 
   describe('toJSON', function toJSON() {

@@ -17,6 +17,9 @@
 - [BUG] Columns with type BOOLEAN were always added to toJSON output, even if they were not selected [see](https://gist.github.com/gchaincl/45aca14e93934bf4a05e). janmeier
 - [BUG] Hstore is now fully supported [#695](https://github.com/sequelize/sequelize/pull/695). thanks to tadman
 - [BUG] Correct join table name for tables with custom names [#698](https://github.com/sequelize/sequelize/pull/698). thanks to jjclark1982
+- [BUG] PostgreSQL should now be able to insert empty arrays with typecasting. [#718](https://github.com/sequelize/sequelize/pull/718). thanks to durango
+- [BUG] Fields should be escaped by quoteIdentifier for max/min functions which allows SQL reserved keywords to be used. [#719](https://github.com/sequelize/sequelize/pull/719). thanks to durango
+- [BUG] Fixed bug when trying to save objects with eagerly loaded attributes [#716](https://github.com/sequelize/sequelize/pull/716). thanks to iamjochen
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
@@ -34,6 +37,7 @@
 - [FEATURE] Use moment for better postgres timestamp strings. [#710](https://github.com/sequelize/sequelize/pull/710). Thanks to seth-admittedly
 - [FEATURE] Keep milliseconds in timestamps for postgres. [#712](https://github.com/sequelize/sequelize/pull/712). Thanks to seth-admittedly
 - [FEATURE] You can now set lingo's language through Sequelize. [#713](https://github.com/sequelize/sequelize/pull/713). Thanks to durango
+- [FEATURE] Added a `findAndCountAll`, useful for pagination. [#533](https://github.com/sequelize/sequelize/pull/533). Thanks to iamjochen
 
 # v1.6.0 #
 - [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
