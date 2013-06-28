@@ -30,13 +30,14 @@
 - [FEATURE] `findOrCreate` now returns an additional flag (`created`), that is true if a model was created, and false if it was found [#648](https://github.com/sequelize/sequelize/pull/648). janmeier
 - [FEATURE] Field and table comments for MySQL and PG. [#523](https://github.com/sequelize/sequelize/pull/523). MySQL by iamjochen. PG by janmeier
 - [FEATURE] BigInts can now be used for autoincrement/serial columns. [#673](https://github.com/sequelize/sequelize/pull/673). thanks to sevastos
-- [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [FEATURE] Use moment for better postgres timestamp strings. [#710](https://github.com/sequelize/sequelize/pull/710). Thanks to seth-admittedly
 - [FEATURE] Keep milliseconds in timestamps for postgres. [#712](https://github.com/sequelize/sequelize/pull/712). Thanks to seth-admittedly
 - [FEATURE] You can now set lingo's language through Sequelize. [#713](https://github.com/sequelize/sequelize/pull/713). Thanks to durango
 - [FEATURE] Added a `findAndCountAll`, useful for pagination. [#533](https://github.com/sequelize/sequelize/pull/533). Thanks to iamjochen
 - [FEATURE] Made explicit migrations possible. [#728](https://github.com/sequelize/sequelize/pull/728). Thanks to freezy
 - [FEATURE] Added support for where clauses containing !=, < etc. and support for date ranges  [#727](https://github.com/sequelize/sequelize/pull/727). Thanks to durango
+- [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
+- [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 
 # v1.6.0 #
 - [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work
