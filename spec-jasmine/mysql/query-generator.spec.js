@@ -178,9 +178,9 @@ describe('QueryGenerator', function() {
         expectation: "SELECT * FROM `myTable` LIMIT 2, 10;",
         context: QueryGenerator
       }, {
-        title: 'ignores offset if no limit was passed',
+        title: 'uses default limit if only offset is specified',
         arguments: ['myTable', {offset: 2}],
-        expectation: "SELECT * FROM `myTable`;",
+        expectation: "SELECT * FROM `myTable` LIMIT 2, 18440000000000000000;",
         context: QueryGenerator
       }, {
         title: 'multiple where arguments',
