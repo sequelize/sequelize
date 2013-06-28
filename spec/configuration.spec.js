@@ -1,5 +1,6 @@
 if(typeof require === 'function') {
   const buster           = require("buster")
+    , semver             = require("semver")
     , CustomEventEmitter = require("../lib/emitters/custom-event-emitter")
     , Helpers            = require('./buster-helpers')
     , config             = require(__dirname + "/config/config")
@@ -10,27 +11,22 @@ buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 var Sequelize = require(__dirname + '/../index')
+  , noDomains = semver.lt(process.version, '0.8.0')
 
 describe(Helpers.getTestDialectTeaser("Configuration"), function() {
   describe('Connections problems should fail with a nice message', function() {
-    it('should give us an error for not having the correct server details', function(done) {
-      var domain
-
-      try {
-        domain = require('domain')
-      } catch (err) {
-        console.log('WARNING: Configuration specs requires Node version >= 0.8')
+    it('when we don\'t have the correct server details', function(done) {
+      if (noDomains === true) {
+        console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
         expect('').toEqual('') // Silence Buster!
-        done()
+        return done()
       }
 
-      var d = domain.create()
-
       var sequelize = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
-      d.add(sequelize.query)
+        , domain = require('domain')
+        , d = domain.create()
 
       d.on('error', function(err){
-        d.remove(sequelize.query)
         var msg = 'Failed to find SQL server. Please double check your settings.'
         if (dialect === "postgres" || dialect === "postgres-native") {
           msg = 'Failed to find PostgresSQL server. Please double check your settings.'
@@ -40,39 +36,35 @@ describe(Helpers.getTestDialectTeaser("Configuration"), function() {
         }
 
         expect(err.message).toEqual(msg)
+        d.remove(sequelize.query)
         done()
       })
 
       d.run(function(){
+        d.add(sequelize.query)
         sequelize.query('select 1 as hello')
         .success(function(){})
       })
     })
 
-    it('should give us an error for not having the correct login information', function(done) {
+    it('when we don\'t have the correct login information', function(done) {
       if (dialect !== "postgres" && dialect !== "postgres-native" && dialect !== "mysql") {
-        // This dialect doesn't support incorrect login information
+        console.log('This dialect doesn\'t support me :(')
         expect('').toEqual('') // Silence Buster
         return done()
       }
 
-      var domain
-
-      try {
-        domain = require('domain')
-      } catch (err) {
-        console.log('WARNING: Configuration specs requires Node version >= 0.8')
+      if (noDomains === true) {
+        console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
         expect('').toEqual('') // Silence Buster!
-        done()
+        return done()
       }
 
-      var d = domain.create()
-
       var sequelize = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
-      d.add(sequelize.query)
+      , domain = require('domain')
+      , d = domain.create()
 
       d.on('error', function(err){
-        d.remove(sequelize.query)
         var msg = 'Failed to authenticate for SQL. Please double check your settings.'
         if (dialect === "postgres" || dialect === "postgres-native") {
           msg = 'Failed to authenticate for PostgresSQL. Please double check your settings.'
@@ -82,13 +74,21 @@ describe(Helpers.getTestDialectTeaser("Configuration"), function() {
         }
 
         expect(err.message).toEqual(msg)
+        d.remove(sequelize.query)
         done()
       })
 
       d.run(function(){
+        d.add(sequelize.query)
         sequelize.query('select 1 as hello')
         .success(function(){})
       })
+    })
+
+    it('when we don\'t have a valid dialect.', function() {
+      Helpers.assertException(function() {
+        new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: undefined})
+      }.bind(this), 'The dialect undefined is not supported.')
     })
   })
 
