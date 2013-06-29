@@ -91,20 +91,33 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
 
   describe('describeTable', function() {
     before(function(done) {
-      this.interface.createTable('User', {
-        username: Helpers.Sequelize.STRING,
-        isAdmin: Helpers.Sequelize.BOOLEAN,
-        enumVals: Helpers.Sequelize.ENUM('hello', 'world')
-      }).success(done)
+      var self = this
+
+      var createTable = function() {
+        self.interface.createTable('User', {
+          username: Helpers.Sequelize.STRING,
+          isAdmin: Helpers.Sequelize.BOOLEAN,
+          enumVals: Helpers.Sequelize.ENUM('hello', 'world'),
+          preferences: (dialect == 'postgres') ? Helpers.Sequelize.HSTORE() : Helpers.Sequelize.TEXT
+        }).success(done)
+      }
+
+      if (dialect == 'postgres') {
+        this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "hstore"').success(createTable).error(console.log)
+      }
+      else {
+        createTable()
+      }
     })
 
     it('reads the metadata of the table', function(done) {
       this.interface.describeTable('User').complete(function(err, metadata) {
         expect(err).toBeNull()
 
-        var username = metadata.username
-        var isAdmin  = metadata.isAdmin
-        var enumVals = metadata.enumVals
+        var username    = metadata.username
+        var isAdmin     = metadata.isAdmin
+        var enumVals    = metadata.enumVals
+        var preferences = metadata.preferences
 
         expect(username.type).toEqual(dialect === 'postgres' ? 'CHARACTER VARYING' : 'VARCHAR(255)')
         expect(username.allowNull).toBeTrue()
@@ -115,8 +128,12 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
         expect(isAdmin.defaultValue).toBeNull()
 
         if (dialect === 'postgres') {
+          expect(enumVals.type).toEqual('ENUM_USER_ENUMVALS')
           expect(enumVals.special).toBeArray();
           expect(enumVals.special.length).toEqual(2);
+
+          expect(preferences.type).toEqual('HSTORE')
+          expect(preferences.allowNull).toBeTrue()
         }
 
         done()
