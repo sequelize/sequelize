@@ -91,6 +91,22 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       }.bind(this))
     })
 
+    it('executes select queries correctly when quoteIdentifiers is false', function(done) {
+      this.sequelize.options.quoteIdentifiers = false
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize
+          .query("select * from " + qq(this.User.tableName) + "")
+          .complete(function(err, users) {
+            if (err) {
+              console.log(err)
+            }
+            expect(err).toBeNull()
+            expect(users.map(function(u){ return u.username })).toEqual(['john'])
+            done()
+          })
+      }.bind(this))
+    })
+
     it('executes select query and parses dot notation results', function(done) {
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
