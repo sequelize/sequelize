@@ -2008,6 +2008,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           sequelizeTeam: {
             where: ['email LIKE \'%@sequelizejs.com\'']
           },
+          fakeEmail: {
+            where: ['email LIKE \'%@fakeemail.com\'']
+          },
           highValue: {
             where: {
               other_value: {
@@ -2077,11 +2080,10 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     it("should be able to override the default scope", function(done) {
-      this.ScopeMe.scope('highValue').findAll().success(function(users) {
+      this.ScopeMe.scope('fakeEmail').findAll().success(function(users) {
         expect(users).toBeArray()
-        expect(users.length).toEqual(2)
-        expect(['dan', 'tobi'].indexOf(users[0].username) !== -1).toBeTrue()
-        expect(['dan', 'tobi'].indexOf(users[1].username) !== -1).toBeTrue()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('tobi')
         done()
       })
     })
@@ -2157,6 +2159,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         expect(users).toBeArray()
         expect(users.length).toEqual(1)
         expect(users[0].username).toEqual('dan')
+        expect(users[0].access_level).toEqual(5)
+        expect(users[0].other_value).toEqual(10)
         done()
       })
     })
