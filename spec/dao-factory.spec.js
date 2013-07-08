@@ -14,6 +14,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     Helpers.initTests({
       dialect: dialect,
       beforeComplete: function(sequelize, DataTypes) {
+        this.DataTypes = DataTypes
         this.sequelize = sequelize
         this.User      = sequelize.define('User', {
           username:     DataTypes.STRING,
@@ -1077,9 +1078,34 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       this.User.create({
         username: 'barfooz'
       }).success(function(user) {
-        this.user = user
-        done()
+        this.UserPrimary = this.sequelize.define('UserPrimary', {
+          specialKey: {
+            type: this.DataTypes.STRING,
+            primaryKey: true
+          }
+        })
+
+        this.UserPrimary.sync({force: true}).success(function(primary){
+          this.UserPrimary.create({specialKey: 'a string'}).success(function(){
+            this.user = user
+            done()
+          }.bind(this))
+        }.bind(this))
       }.bind(this))
+    })
+
+    it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function(done) {
+      this.UserPrimary.find('a string').success(function(user) {
+        expect(user.specialKey).toEqual('a string')
+        done()
+      })
+    })
+
+    it('doesn\'t throw an error when entering in a non integer value', function(done) {
+      this.User.find('a string value').success(function(user) {
+        expect(user).toBeNull()
+        done()
+      })
     })
 
     it('returns a single dao', function(done) {
