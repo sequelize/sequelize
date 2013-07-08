@@ -238,9 +238,7 @@ describe('DAOFactory', function() {
             })
           })
         })
-
-/*
-// at time of writing (v1.6.0) Sequelize does not seem to support 'offset' on it's own consistently (goes wrong for PostGRES and SQLite)
+        
         it("handles offset", function() {
           Helpers.async(function(done) {
             User.findAndCountAll({offset: 1}).success(function(info) {
@@ -251,7 +249,7 @@ describe('DAOFactory', function() {
             })
           })
         })
-*/
+
         it("handles limit", function() {
           Helpers.async(function(done) {
             User.findAndCountAll({limit: 1}).success(function(info) {
