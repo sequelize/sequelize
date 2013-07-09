@@ -690,10 +690,10 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           expect(users.length).toEqual(2)
 
           expect(users[0].username).toEqual("Peter")
-          expect(parseInt(+users[0].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
+          expect(parseInt(+users[0].createdAt/5000, 10)).toEqual(parseInt(+new Date()/5000))
 
           expect(users[1].username).toEqual("Paul")
-          expect(parseInt(+users[1].createdAt/5000)).toEqual(parseInt(+new Date()/5000))
+          expect(parseInt(+users[1].createdAt/5000, 10)).toEqual(parseInt(+new Date()/5000))
 
           done()
         })
@@ -725,6 +725,14 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   }) // - bulkCreate
 
   describe('update', function() {
+    it('updates the attributes that we select only', function(done) {
+      this.User.create({username: 'Peter', secretValue: '42'}).success(function(user) {
+        user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
+          expect(sql).toMatch(/UPDATE\s+[`"]+Users[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+          done()
+        })
+      })
+    })
 
     it('updates only values that match filter', function(done) {
       var self = this
