@@ -2073,8 +2073,19 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       this.ScopeMe.findAll().success(function(users) {
         expect(users).toBeArray()
         expect(users.length).toEqual(2)
+        expect([10,5].indexOf(users[0].access_level) !== -1).toBeTrue()
+        expect([10,5].indexOf(users[1].access_level) !== -1).toBeTrue()
         expect(['dan', 'tobi'].indexOf(users[0].username) !== -1).toBeTrue()
         expect(['dan', 'tobi'].indexOf(users[1].username) !== -1).toBeTrue()
+        done()
+      })
+    })
+
+    it("should be able to amend the default scope with a find object", function(done) {
+      this.ScopeMe.findAll({where: {username: 'dan'}}).success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('dan')
         done()
       })
     })
