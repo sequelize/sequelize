@@ -50,7 +50,8 @@
     "pg": "~2.0.0",
     "buster": "~0.6.3",
     "watchr": "~2.2.0",
-    "yuidocjs": "~0.3.36"
+    "yuidocjs": "~0.3.36",
+    "semver": "~2.0.8"
   },
   "keywords": [
     "mysql",
