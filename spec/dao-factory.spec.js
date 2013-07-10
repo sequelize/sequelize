@@ -281,6 +281,26 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   })
 
   describe('create', function() {
+    it("casts empty arrays correctly for postgresql", function(done) {
+      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+        expect('').toEqual('')
+        return done()
+      }
+
+      var User = this.sequelize.define('UserWithArray', {
+        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+      })
+
+      User.sync({force: true}).success(function() {
+        User.create({myvals: [], mystr: []}).on('sql', function(sql){
+          expect(sql.indexOf('ARRAY[]::INTEGER[]')).toBeGreaterThan(-1)
+          expect(sql.indexOf('ARRAY[]::VARCHAR[]')).toBeGreaterThan(-1)
+          done()
+        })
+      })
+    })
+
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
         username: { type: Sequelize.STRING, unique: true }
@@ -357,7 +377,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       User.sync({ force: true }).success(function() {
         User.create({ big: '9223372036854775807' }).on('success', function(user) {
-          expect(user.big).toEqual( '9223372036854775807' )
+          expect(user.big).toBe( '9223372036854775807' )
           done()
         })
       })
@@ -1635,7 +1655,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   describe('max', function() {
     before(function(done) {
       this.UserWithAge = this.sequelize.define('UserWithAge', {
-        age: Sequelize.INTEGER
+        age: Sequelize.INTEGER,
+        order: Sequelize.INTEGER
       })
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
@@ -1644,6 +1665,15 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       this.UserWithAge.sync({ force: true }).success(function(){
         this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
+    })
+
+    it("should return the max value for a field named the same as an SQL reserved keyword", function(done) {
+      this.UserWithAge.create({age: 3, order: 5}).success(function(){
+        this.UserWithAge.max('order').success(function(max) {
+          expect(max).toEqual(5)
+          done()
+        })
       }.bind(this))
     })
 
