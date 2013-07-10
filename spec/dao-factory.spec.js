@@ -14,11 +14,14 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     Helpers.initTests({
       dialect: dialect,
       beforeComplete: function(sequelize, DataTypes) {
+        this.DataTypes = DataTypes
         this.sequelize = sequelize
         this.User      = sequelize.define('User', {
           username:     DataTypes.STRING,
           secretValue:  DataTypes.STRING,
-          data:         DataTypes.STRING
+          data:         DataTypes.STRING,
+          intVal:       DataTypes.INTEGER,
+          theDate:      DataTypes.DATE
         })
       }.bind(this),
       onComplete: function() {
@@ -807,7 +810,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         , User = this.sequelize.define('ParanoidUser', {
             username:     Sequelize.STRING,
             secretValue:  Sequelize.STRING,
-            data:         Sequelize.STRING
+            data:         Sequelize.STRING,
+            intVal:       { type: Sequelize.INTEGER, defaultValue: 1}
           }, {
             paranoid: true
           })
@@ -842,14 +846,249 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
   }) // - destroy
 
+  describe('special where conditions', function() {
+    before(function(done) {
+      var self = this
+
+      this.User.create({
+        username: 'boo',
+        intVal: 5,
+        theDate: '2013-01-01 12:00'
+      }).success(function(user){
+        self.user = user
+        self.User.create({
+          username: 'boo2',
+          intVal: 10,
+          theDate: '2013-01-10 12:00'
+        }).success(function(user2){
+          self.user2 = user2
+          done()
+        })
+      })
+    })
+
+    it('should be able to find a row between a certain date', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: ['2013-01-02', '2013-01-11']
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row between a certain date and an additional where clause', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: ['2013-01-02', '2013-01-11']
+          },
+          intVal: 10
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row not between a certain integer', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            nbetween: [8, 10]
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using not between and between logic', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: ['2012-12-10', '2013-01-02'],
+            nbetween: ['2013-01-04', '2013-01-20']
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using not between and between logic with dates', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: [new Date('2012-12-10'), new Date('2013-01-02')],
+            nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using greater than or equal to logic with dates', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            gte: new Date('2013-01-09')
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row using greater than or equal to', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            gte: 6
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo2')
+        expect(user.intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row using greater than', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            gt: 5
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo2')
+        expect(user.intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row using lesser than or equal to', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            lte: 5
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo')
+        expect(user.intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using lesser than', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            lt: 6
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo')
+        expect(user.intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should have no problem finding a row using lesser and greater than', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            lt: 6,
+            gt: 4
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using not equal to logic', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            ne: 10
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo')
+        expect(user.intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find multiple users with any of the special where logic properties', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            lte: 10
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        expect(users[1].username).toEqual('boo2')
+        expect(users[1].intVal).toEqual(10)
+        done()
+      })
+    })
+  })
+
   describe('find', function find() {
     before(function(done) {
       this.User.create({
         username: 'barfooz'
       }).success(function(user) {
-        this.user = user
-        done()
+        this.UserPrimary = this.sequelize.define('UserPrimary', {
+          specialKey: {
+            type: this.DataTypes.STRING,
+            primaryKey: true
+          }
+        })
+
+        this.UserPrimary.sync({force: true}).success(function(primary){
+          this.UserPrimary.create({specialKey: 'a string'}).success(function(){
+            this.user = user
+            done()
+          }.bind(this))
+        }.bind(this))
       }.bind(this))
+    })
+
+    it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function(done) {
+      this.UserPrimary.find('a string').success(function(user) {
+        expect(user.specialKey).toEqual('a string')
+        done()
+      })
+    })
+
+    it('doesn\'t throw an error when entering in a non integer value', function(done) {
+      this.User.find('a string value').success(function(user) {
+        expect(user).toBeNull()
+        done()
+      })
     })
 
     it('returns a single dao', function(done) {
