@@ -2039,4 +2039,39 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       }.bind(this))
     })
   })
+
+  describe('references', function() {
+    before(function() {
+      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
+      this.Post   = this.sequelize.define('post', {
+        title:    Sequelize.STRING,
+        authorId: {
+          type:          Sequelize.INTEGER,
+          references:    this.Author,
+          referencesKey: "id"
+        }
+      })
+
+      this.Author.hasMany(this.Post)
+      this.Post.belongsTo(this.Author)
+    })
+
+    it('references the author table', function(done) {
+      this.Author.sync({ force: true }).success(function() {
+        this.Post.sync({ force: true }).on('sql', function(sql) {
+          if (dialect === 'postgres') {
+            expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
+          } else if (dialect === 'mysql') {
+            expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+          } else if (dialect === 'sqlite') {
+            expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+          } else {
+            throw new Error('Undefined dialect!')
+          }
+
+          done()
+        })
+      }.bind(this))
+    })
+  }) //- describe: references
 })
