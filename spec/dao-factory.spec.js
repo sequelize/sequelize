@@ -2190,6 +2190,25 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         done()
       })
     })
+
+    it("should be able to hold multiple scope objects", function(done) {
+      var sequelizeTeam = this.ScopeMe.scope('sequelizeTeam', 'orderScope')
+        , tobi = this.ScopeMe.scope({method: ['actualValue', 11]})
+
+      sequelizeTeam.all().success(function(team) {
+        tobi.all().success(function(t) {
+          expect(team).toBeArray()
+          expect(team.length).toEqual(2)
+          expect(team[0].username).toEqual('dan')
+          expect(team[1].username).toEqual('tony')
+
+          expect(t).toBeArray()
+          expect(t.length).toEqual(1)
+          expect(t[0].username).toEqual('tobi')
+          done()
+        })
+      })
+    })
   })
 
   describe('schematic support', function() {
