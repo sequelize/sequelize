@@ -2,6 +2,7 @@ if(typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
+      , moment  = require('moment')
 }
 
 var qq = function(str) {
@@ -47,7 +48,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       this.insertQuery = "INSERT INTO " + qq(this.User.tableName) + " (username, " + qq("createdAt") + ", " + qq("updatedAt") + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
       this.User.sync().success(done).error(function(err) {
-        console(err)
+        console.log(err)
         done()
       })
     })
@@ -163,6 +164,13 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     it('replaces token with the passed array', function(done) {
       this.sequelize.query('select ? as foo, ? as bar', null, { raw: true }, [ 1, 2 ]).success(function(result) {
         expect(result).toEqual([{ foo: 1, bar: 2 }])
+        done()
+      })
+    })
+
+    it('handles AS in conjunction with functions just fine', function(done) {
+      this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
+        expect(moment(result[0].t).isValid()).toBeTrue()
         done()
       })
     })
