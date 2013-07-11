@@ -2096,7 +2096,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     it("should be able to use a defaultScope if declared", function(done) {
-      this.ScopeMe.findAll().success(function(users) {
+      this.ScopeMe.all().success(function(users) {
         expect(users).toBeArray()
         expect(users.length).toEqual(2)
         expect([10,5].indexOf(users[0].access_level) !== -1).toBeTrue()
@@ -2234,6 +2234,45 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           done()
         })
       })
+    })
+
+    it("should gracefully omit any scopes that don't exist", function(done) {
+      this.ScopeMe.scope('sequelizeTeam', 'orderScope', 'doesntexist').all().success(function(team) {
+        expect(team).toBeArray()
+        expect(team.length).toEqual(2)
+        expect(team[0].username).toEqual('dan')
+        expect(team[1].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should gracefully omit any scopes that don't exist through an array", function(done) {
+      this.ScopeMe.scope(['sequelizeTeam', 'orderScope', 'doesntexist']).all().success(function(team) {
+        expect(team).toBeArray()
+        expect(team.length).toEqual(2)
+        expect(team[0].username).toEqual('dan')
+        expect(team[1].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should gracefully omit any scopes that don't exist through an object", function(done) {
+      this.ScopeMe.scope('sequelizeTeam', 'orderScope', {method: 'doesntexist'}).all().success(function(team) {
+        expect(team).toBeArray()
+        expect(team.length).toEqual(2)
+        expect(team[0].username).toEqual('dan')
+        expect(team[1].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should emit an error for scopes that don't exist with silent: false", function(done) {
+      try {
+        this.ScopeMe.scope('doesntexist', {silent: false})
+      } catch (err) {
+        expect(err.message).toEqual('Invalid scope doesntexist called.')
+        done()
+      }
     })
   })
 
