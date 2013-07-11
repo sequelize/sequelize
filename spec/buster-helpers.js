@@ -34,7 +34,7 @@ var BusterHelpers = module.exports = {
     var sequelizeOptions = {
       logging: options.logging,
       dialect: options.dialect,
-      port:    config[options.dialect].port
+      port:    process.env.SEQ_PORT || config[options.dialect].port
     }
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -42,9 +42,9 @@ var BusterHelpers = module.exports = {
     }
 
     return new Sequelize(
-      config[options.dialect].database,
-      config[options.dialect].username,
-      config[options.dialect].password,
+      process.env.SEQ_DB    || config[options.dialect].database,
+      process.env.SEQ_USER  || process.env.SEQ_USERNAME || config[options.dialect].username,
+      process.env.SEQ_PW    || process.env.SEQ_PASSWORD || config[options.dialect].password,
       sequelizeOptions
     )
   },

@@ -2,6 +2,7 @@ if(typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
+      , moment  = require('moment')
 }
 
 var qq = function(str) {
@@ -47,7 +48,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       this.insertQuery = "INSERT INTO " + qq(this.User.tableName) + " (username, " + qq("createdAt") + ", " + qq("updatedAt") + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
       this.User.sync().success(done).error(function(err) {
-        console(err)
+        console.log(err)
         done()
       })
     })
@@ -77,6 +78,22 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     })
 
     it('executes select queries correctly', function(done) {
+      this.sequelize.query(this.insertQuery).success(function() {
+        this.sequelize
+          .query("select * from " + qq(this.User.tableName) + "")
+          .complete(function(err, users) {
+            if (err) {
+              console.log(err)
+            }
+            expect(err).toBeNull()
+            expect(users.map(function(u){ return u.username })).toEqual(['john'])
+            done()
+          })
+      }.bind(this))
+    })
+
+    it('executes select queries correctly when quoteIdentifiers is false', function(done) {
+      this.sequelize.options.quoteIdentifiers = false
       this.sequelize.query(this.insertQuery).success(function() {
         this.sequelize
           .query("select * from " + qq(this.User.tableName) + "")
@@ -147,6 +164,13 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     it('replaces token with the passed array', function(done) {
       this.sequelize.query('select ? as foo, ? as bar', null, { raw: true }, [ 1, 2 ]).success(function(result) {
         expect(result).toEqual([{ foo: 1, bar: 2 }])
+        done()
+      })
+    })
+
+    it('handles AS in conjunction with functions just fine', function(done) {
+      this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
+        expect(moment(result[0].t).isValid()).toBeTrue()
         done()
       })
     })
