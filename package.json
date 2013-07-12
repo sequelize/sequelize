@@ -32,24 +32,24 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "lodash": "~1.2.1",
+    "lodash": "~1.3.1",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
-    "validator": "1.1.1",
-    "moment": "~1.7.0",
-    "commander": "~0.6.0",
-    "dottie": "0.0.6-1",
-    "toposort-class": "0.1.4",
+    "validator": "~1.3.0",
+    "moment": "~2.1.0",
+    "commander": "~1.3.0",
+    "dottie": "0.0.8-0",
+    "toposort-class": "~0.2.0",
     "generic-pool": "2.0.3",
-    "promise": "~3.0.0"
+    "promise": "~3.2.0"
   },
   "devDependencies": {
-    "jasmine-node": "1.5.0",
-    "sqlite3": "~2.1.5",
-    "mysql": "~2.0.0-alpha7",
-    "pg": "~2.0.0",
+    "jasmine-node": "~1.10.2",
+    "sqlite3": "~2.1.12",
+    "mysql": "~2.0.0-alpha8",
+    "pg": "~2.1.0",
     "buster": "~0.6.3",
-    "watchr": "~2.2.0",
+    "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
     "semver": "~2.0.8"
   },
