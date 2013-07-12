@@ -2039,4 +2039,124 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       }.bind(this))
     })
   })
+
+  describe('references', function() {
+    before(function() {
+      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
+    })
+
+    describe("use of existing dao factory", function() {
+      before(function() {
+        this.Post = this.sequelize.define('post', {
+          title:    Sequelize.STRING,
+          authorId: {
+            type:          Sequelize.INTEGER,
+            references:    this.Author,
+            referencesKey: "id"
+          }
+        })
+
+        this.Author.hasMany(this.Post)
+        this.Post.belongsTo(this.Author)
+      })
+
+      it('references the author table', function(done) {
+        this.Author.sync({ force: true }).success(function() {
+          this.Post.sync({ force: true }).on('sql', function(sql) {
+            if (dialect === 'postgres') {
+              expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
+            } else if (dialect === 'mysql') {
+              expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+            } else if (dialect === 'sqlite') {
+              expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+            } else {
+              throw new Error('Undefined dialect!')
+            }
+
+            done()
+          })
+        }.bind(this))
+      })
+    })
+
+    describe('use of table name as string', function() {
+      before(function() {
+        this.Post = this.sequelize.define('post', {
+          title:    Sequelize.STRING,
+          authorId: {
+            type:          Sequelize.INTEGER,
+            references:    'authors',
+            referencesKey: "id"
+          }
+        })
+
+        this.Author.hasMany(this.Post)
+        this.Post.belongsTo(this.Author)
+      })
+
+      it('references the author table', function(done) {
+        this.Author.sync({ force: true }).success(function() {
+          this.Post.sync({ force: true }).on('sql', function(sql) {
+            if (dialect === 'postgres') {
+              expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
+            } else if (dialect === 'mysql') {
+              expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+            } else if (dialect === 'sqlite') {
+              expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+            } else {
+              throw new Error('Undefined dialect!')
+            }
+
+            done()
+          })
+        }.bind(this))
+      })
+    })
+
+    describe('use of invalid table name', function() {
+      before(function() {
+        this.Post = this.sequelize.define('post', {
+          title:    Sequelize.STRING,
+          authorId: {
+            type:          Sequelize.INTEGER,
+            references:    '4uth0r5',
+            referencesKey: "id"
+          }
+        })
+
+        this.Author.hasMany(this.Post)
+        this.Post.belongsTo(this.Author)
+      })
+
+      it("emits the error event as the referenced table name is invalid", function(done) {
+        this.Author.sync({ force: true }).success(function() {
+          this.Post
+            .sync({ force: true })
+            .success(function() {
+              if (dialect === 'sqlite') {
+                // sorry ... but sqlite is too stupid to understand whats going on ...
+                expect(1).toEqual(1)
+                done()
+              } else {
+                // the parser should not end up here ...
+                expect(2).toEqual(1)
+              }
+            }).error(function(err) {
+              if (dialect === 'mysql') {
+                expect(err.message).toMatch(/ER_CANT_CREATE_TABLE/)
+              } else if (dialect === 'sqlite') {
+                // the parser should not end up here ... see above
+                expect(1).toEqual(2)
+              } else if (dialect === 'postgres') {
+                expect(err.message).toMatch(/relation "4uth0r5" does not exist/)
+              } else {
+                throw new Error('Undefined dialect!')
+              }
+
+              done()
+            })
+        }.bind(this))
+      })
+    })
+  }) //- describe: references
 })
