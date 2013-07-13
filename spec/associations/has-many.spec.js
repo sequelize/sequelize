@@ -230,7 +230,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
           chainer.run().success(function(results, article, label1, label2) {
             article.setLabels([label1, label2]).success(function() {
-              article.getLabels({where: ['until > ?', moment('2014-01-01').toDate()]}).success(function(labels) {
+              article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]}).success(function(labels) {
                 expect(labels).toBeArray()
                 expect(labels.length).toEqual(1)
                 expect(labels[0].text).toEqual('Epicness')
