@@ -1,6 +1,6 @@
-# Sequelize #
+# Sequelize [![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) #
 
-The Sequelize library provides easy access to MySQL, SQLite or PostgreSQL databases by mapping database entries to objects and vice versa. To put it in a nutshell... it's an ORM (Object-Relational-Mapper). The library is written entirely in JavaScript and can be used in the Node.JS environment.
+MySQL, PostgresSQL, and SQLite Object Relational Mapper for [node](http://nodejs.org).
 
 <a href="http://flattr.com/thing/1259407/Sequelize" target="_blank">
 <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>
@@ -35,6 +35,7 @@ changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/
 - Asynchronous library
 - Associations
 - Importing definitions from single files
+- Promises
 
 ## Documentation and Updates ##
 
@@ -64,7 +65,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - MariaDB support
 - ~~Support for update and delete calls for whole tables without previous loading of instances~~ Implemented in [#569](https://github.com/sequelize/sequelize/pull/569) thanks to @optiltude
 - Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
-- Model#delete
+- ~~Model#delete~~ (renamed to [Model.destroy()](http://sequelizejs.com/documentation#instances-destroy))
 - ~~Validate a model before it gets saved.~~ Implemented in [#601](https://github.com/sequelize/sequelize/pull/601), thanks to @durango
 - Move validation of enum attribute value to validate method
 - BLOB [#99](https://github.com/sequelize/sequelize/issues/99)
@@ -167,6 +168,9 @@ $ npm run test-buster-sqlite
 
 $ # run the buster specs for postgresql:
 $ npm run test-buster-postgres
+
+$ # alternatively you can pass database credentials with $variables when testing with buster.js
+$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password buster-test
 ```
 
 ### 5. That's all ###
@@ -235,6 +239,18 @@ for (var key in obj) {
 
 ```js
 {
+  "globals": {
+    "jasmine": false,
+    "spyOn": false,
+    "it": false,
+    "console": false,
+    "describe": false,
+    "expect": false,
+    "beforeEach": false,
+    "waits": false,
+    "waitsFor": false,
+    "runs": false
+  },
   "camelcase": true,
   "curly": true,
   "forin": true,
@@ -246,10 +262,3 @@ for (var key in obj) {
   "es5": true
 }
 ```
-
-# Build status
-
-The automated tests we talk about just so much are running on
-[Travis public CI](http://travis-ci.org), here is its status:
-
-[![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize)
