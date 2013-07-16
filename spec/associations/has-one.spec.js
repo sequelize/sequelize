@@ -41,6 +41,32 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
   })
 
   describe('setAssociation', function() {
+    it('can set an association with predefined primary keys', function(done) {
+      var User = this.sequelize.define('UserXYZ', { userCoolIdTag: { type: Sequelize.INTEGER, primaryKey: true }, username: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { taskOrSomething: { type: Sequelize.INTEGER, primaryKey: true }, title: Sequelize.STRING })
+
+      User.hasOne(Task, {foreignKey: 'userCoolIdTag'})
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({userCoolIdTag: 1, username: 'foo'}).success(function(user) {
+          Task.create({taskOrSomething: 1, title: 'bar'}).success(function(task) {
+            user.setTaskXYZ(task).success(function() {
+              user.getTaskXYZ().success(function(task) {
+                expect(task).not.toEqual(null)
+
+                user.setTaskXYZ(null).success(function() {
+                  user.getTaskXYZ().success(function(task) {
+                    expect(task).toEqual(null)
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('clears the association if null is passed', function(done) {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING })
@@ -70,7 +96,6 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
   })
 
   describe("Foreign key constraints", function() {
-
     it("are not enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })

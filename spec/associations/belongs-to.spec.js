@@ -1,3 +1,4 @@
+/*jshint camelcase: false*/
 if (typeof require === 'function') {
   const buster    = require("buster")
       , Helpers   = require('../buster-helpers')
@@ -20,6 +21,33 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe('setAssociation', function() {
+    it('can set the association with declared primary keys...', function(done) {
+      var User = this.sequelize.define('UserXYZ', { user_id: {type: Sequelize.INTEGER, primaryKey: true }, username: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { task_id: {type: Sequelize.INTEGER, primaryKey: true }, title: Sequelize.STRING })
+
+      Task.belongsTo(User, { foreignKey: 'user_id' })
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ user_id: 1, username: 'foo' }).success(function(user) {
+          Task.create({ task_id: 1, title: 'task' }).success(function(task) {
+            task.setUserXYZ(user).success(function() {
+              task.getUserXYZ().success(function(user) {
+                expect(user).not.toEqual(null)
+
+                task.setUserXYZ(null).success(function() {
+                  task.getUserXYZ().success(function(user) {
+                    expect(user).toEqual(null)
+                    done()
+                  })
+                })
+
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('clears the association if null is passed', function(done) {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING })
@@ -49,7 +77,6 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe("Foreign key constraints", function() {
-
     it("are not enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })

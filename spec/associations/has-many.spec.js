@@ -1,3 +1,4 @@
+/*jshint camelcase: false */
 if (typeof require === 'function') {
   const buster    = require("buster")
       , Helpers   = require('../buster-helpers')
@@ -406,6 +407,40 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
                   task.setUsers(null).success(function() {
                     task.getUsers().success(function(_users) {
                       expect(_users.length).toEqual(0)
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it("joins an association with custom primary keys", function(done) {
+        var Group = this.sequelize.define('group', {
+            group_id: {type: Sequelize.STRING(32), primaryKey: true},
+            name: Sequelize.STRING(64)
+          })
+          , Member = this.sequelize.define('member', {
+            member_id: {type: Sequelize.STRING(32), primaryKey: true},
+            email: Sequelize.STRING(64)
+          })
+
+        Group.hasMany(Member, {joinTableName: 'group_members', foreignKey: 'group_id'})
+        Member.hasMany(Group, {joinTableName: 'group_members', foreignKey: 'member_id'})
+
+        this.sequelize.sync({ force: true }).success(function() {
+          Group.create({group_id: 1, name: 'Group1'}).success(function(){
+            Member.create({member_id: 10, email: 'team@sequelizejs.com'}).success(function() {
+              Group.find(1).success(function(group) {
+                Member.find(10).success(function(member) {
+                  group.addMember(member).success(function() {
+                    group.getMembers().success(function(members) {
+                      expect(members).toBeArray()
+                      expect(members.length).toEqual(1)
+                      expect(members[0].member_id).toEqual(10)
+                      expect(members[0].email).toEqual('team@sequelizejs.com')
                       done()
                     })
                   })
