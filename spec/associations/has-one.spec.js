@@ -19,6 +19,27 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
     })
   })
 
+  describe('getAssocation', function() {
+    it('should be able to handle a where object that\'s a first class citizen.', function(done) {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING })
+
+      User.hasOne(Task)
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'foo' }).success(function(user) {
+          Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
+            user.setTaskXYZ(task).success(function() {
+              user.getTaskXYZ({where: ['status = ?', 'active']}).success(function(task) {
+                expect(task).toEqual(null)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   describe('setAssociation', function() {
     it('clears the association if null is passed', function(done) {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })

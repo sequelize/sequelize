@@ -4,6 +4,7 @@ if (typeof require === 'function') {
       , Sequelize = require('../../index')
       , dialect   = Helpers.getTestDialect()
       , _         = require('lodash')
+      , moment    = require('moment')
 }
 
 buster.spec.expose()
@@ -24,8 +25,12 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
   describe('(1:N)', function() {
     describe('hasSingle', function() {
       before(function(done) {
-        this.Article = this.sequelize.define('Article', { 'title': Sequelize.STRING })
-        this.Label   = this.sequelize.define('Label', { 'text': Sequelize.STRING })
+        this.Article = this.sequelize.define('Article', {
+          'title': Sequelize.STRING
+        })
+        this.Label   = this.sequelize.define('Label', {
+          'text': Sequelize.STRING
+        })
 
         this.Article.hasMany(this.Label)
 
@@ -67,7 +72,8 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
             [ article, 'hasLabel', [ label2 ]]
           ])
 
-          chainer.runSerially().success(function(_, label1, hasLabel1, hasLabel2) {
+          chainer.runSerially()
+          .success(function(_, label1, hasLabel1, hasLabel2) {
             expect(hasLabel1).toBeTrue()
             expect(hasLabel2).toBeFalse()
             done()
@@ -78,8 +84,12 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
     describe('hasAll', function() {
       before(function(done) {
-        this.Article = this.sequelize.define('Article', { 'title': Sequelize.STRING })
-        this.Label = this.sequelize.define('Label', { 'text': Sequelize.STRING })
+        this.Article = this.sequelize.define('Article', {
+          'title': Sequelize.STRING
+        })
+        this.Label = this.sequelize.define('Label', {
+          'text': Sequelize.STRING
+        })
 
         this.Article.hasMany(this.Label)
 
@@ -199,6 +209,38 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('should treat the where object of associations as a first class citizen', function(done) {
+        var self = this
+        this.Article = this.sequelize.define('Article', {
+          'title': Sequelize.STRING
+        })
+        this.Label = this.sequelize.define('Label', {
+          'text': Sequelize.STRING,
+          'until': Sequelize.DATE
+        })
+
+        this.Article.hasMany(this.Label)
+
+        this.sequelize.sync({ force: true }).success(function() {
+          var chainer = new Sequelize.Utils.QueryChainer([
+            self.Article.create({ title: 'Article' }),
+            self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
+            self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
+          ])
+
+          chainer.run().success(function(results, article, label1, label2) {
+            article.setLabels([label1, label2]).success(function() {
+              article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]}).success(function(labels) {
+                expect(labels).toBeArray()
+                expect(labels.length).toEqual(1)
+                expect(labels[0].text).toEqual('Epicness')
+                done()
+              })
+            })
+          })
+        })
+      })
+
       it("gets all associated objects when no options are passed", function(done) {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks().success(function (tasks) {
@@ -304,6 +346,15 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       it("only get objects that fulfill the options", function(done) {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks({where: {active: true}}).success(function (tasks) {
+            expect(tasks.length).toEqual(1)
+            done()
+          })
+        })
+      })
+
+      it("only gets objects that fulfill options with a formatted value", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function (john) {
+          john.getTasks({where: ['active = ?', true]}).success(function (tasks) {
             expect(tasks.length).toEqual(1)
             done()
           })
