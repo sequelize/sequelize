@@ -576,6 +576,23 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   })
 
   describe('bulkCreate', function() {
+    it('properly handles disparate field lists', function(done) {
+      var self = this
+        , data = [{username: 'Peter', secretValue: '42' },
+                  {username: 'Paul'},
+                  {username: 'Steve'}]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.findAll({where: {username: 'Paul'}}).success(function(users) {
+          expect(users.length).toEqual(1)
+
+          expect(users[0].username).toEqual("Paul")
+          expect(users[0].secretValue).toBeNull()
+
+          done()
+        })
+      })
+    })
 
     it('inserts multiple values respecting the white list', function(done) {
       var self = this
