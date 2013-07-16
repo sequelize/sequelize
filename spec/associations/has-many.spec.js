@@ -436,7 +436,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
             this.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
                 expect(sql).toMatch("INSERT INTO")
-                expect(sql).toMatch("VALUES (1,1),(1,2)")
+                expect(sql).toMatch("VALUES (1,1),(2,1)")
               })).success(function () {
                 expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
                 done()

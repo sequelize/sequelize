@@ -18,6 +18,7 @@
 - [BUG] Fields should be escaped by quoteIdentifier for max/min functions which allows SQL reserved keywords to be used. [#719](https://github.com/sequelize/sequelize/pull/719). thanks to durango
 - [BUG] Fixed bug when trying to save objects with eagerly loaded attributes [#716](https://github.com/sequelize/sequelize/pull/716). thanks to iamjochen
 - [BUG] Strings for .find() should be fixed. Also added support for string primary keys to be found easily. [#737](https://github.com/sequelize/sequelize/pull/737). thanks to durango
+- [BUG] bulkCreate would have problems with a disparate field list [#738](https://github.com/sequelize/sequelize/pull/738). thanks to durango
 - [BUG] Fixed problems with quoteIdentifiers and {raw: false} option on raw queries [#751](https://github.com/sequelize/sequelize/pull/751). thanks to janmeier
 - [BUG] Fixed SQL escaping with sqlite and unified escaping [#700](https://github.com/sequelize/sequelize/pull/700). thanks to PiPeep
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
