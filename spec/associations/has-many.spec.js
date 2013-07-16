@@ -419,11 +419,11 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
       it("joins an association with custom primary keys", function(done) {
         var Group = this.sequelize.define('group', {
-            group_id: {type: Sequelize.STRING(32), primaryKey: true},
+            group_id: {type: Sequelize.INTEGER, primaryKey: true},
             name: Sequelize.STRING(64)
           })
           , Member = this.sequelize.define('member', {
-            member_id: {type: Sequelize.STRING(32), primaryKey: true},
+            member_id: {type: Sequelize.INTEGER, primaryKey: true},
             email: Sequelize.STRING(64)
           })
 
