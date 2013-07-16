@@ -2079,6 +2079,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                 lte: 5
               }
             }
+          },
+          escape: {
+            where: {
+              username: "escape'd"
+            }
           }
         }
       })
@@ -2093,6 +2098,18 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           done()
         })
       }.bind(this))
+    })
+
+    it("should have no problems with escaping SQL", function(done) {
+      var self = this
+      this.ScopeMe.create({username: 'escape\'d', email: 'fake@fakemail.com'}).success(function(){
+        self.ScopeMe.scope('escape').all().success(function(users){
+          expect(users).toBeArray()
+          expect(users.length).toEqual(1)
+          expect(users[0].username).toEqual('escape\'d');
+          done()
+        })
+      })
     })
 
     it("should be able to use a defaultScope if declared", function(done) {
