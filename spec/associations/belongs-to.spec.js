@@ -49,7 +49,6 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe("Foreign key constraints", function() {
-
     it("are not enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })
@@ -176,7 +175,6 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
         })
       })
     })
-
   })
 
   describe("Association options", function() {
