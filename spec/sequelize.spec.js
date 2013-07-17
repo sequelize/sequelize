@@ -1,7 +1,9 @@
 if(typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
+      , config    = require(__dirname + "/config/config")
       , dialect = Helpers.getTestDialect()
+      , moment  = require('moment')
 }
 
 var qq = function(str) {
@@ -15,6 +17,7 @@ var qq = function(str) {
 }
 
 buster.spec.expose()
+buster.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
   before(function(done) {
@@ -22,6 +25,23 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       dialect: dialect,
       beforeComplete: function(sequelize) { this.sequelize = sequelize }.bind(this),
       onComplete: done
+    })
+  })
+
+  describe('constructor', function() {
+    it('should pass the global options correctly', function(done) {
+      var sequelize = Helpers.createSequelizeInstance({ logging: false, define: { underscored:true } })
+        , DAO = sequelize.define('dao', {name: Helpers.Sequelize.STRING})
+
+      expect(DAO.options.underscored).toBeTruthy()
+      done()
+    })
+
+    it('should correctly set the host and the port', function(done) {
+      var sequelize = Helpers.createSequelizeInstance({ host: '127.0.0.1', port: 1234 })
+      expect(sequelize.config.port).toEqual(1234)
+      expect(sequelize.config.host).toEqual('127.0.0.1')
+      done()
     })
   })
 
@@ -47,7 +67,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       this.insertQuery = "INSERT INTO " + qq(this.User.tableName) + " (username, " + qq("createdAt") + ", " + qq("updatedAt") + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
       this.User.sync().success(done).error(function(err) {
-        console(err)
+        console.log(err)
         done()
       })
     })
@@ -166,6 +186,120 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         done()
       })
     })
+
+    it('handles AS in conjunction with functions just fine', function(done) {
+      this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
+        expect(moment(result[0].t).isValid()).toBeTrue()
+        done()
+      })
+    })
+  })
+
+  describe('define', function() {
+    it("adds a new dao to the dao manager", function(done) {
+      expect(this.sequelize.daoFactoryManager.all.length).toEqual(0)
+      this.sequelize.define('foo', { title: Helpers.Sequelize.STRING })
+      expect(this.sequelize.daoFactoryManager.all.length).toEqual(1)
+      done()
+    })
+
+    it("overwrites global options", function(done) {
+      var sequelize = Helpers.createSequelizeInstance({ define: { collate: 'utf8_general_ci' } })
+      var DAO = sequelize.define('foo', {bar: Helpers.Sequelize.STRING}, {collate: 'utf8_bin'})
+      expect(DAO.options.collate).toEqual('utf8_bin')
+      done()
+    })
+
+    it("inherits global collate option", function(done) {
+      var sequelize = Helpers.createSequelizeInstance({ define: { collate: 'utf8_general_ci' } })
+      var DAO = sequelize.define('foo', {bar: Helpers.Sequelize.STRING})
+      expect(DAO.options.collate).toEqual('utf8_general_ci')
+      done()
+    })
+
+    it("inherits global classMethods and instanceMethods", function(done) {
+      var sequelize = Helpers.createSequelizeInstance({
+        define: {
+          classMethods : { globalClassMethod : function() {} },
+          instanceMethods : { globalInstanceMethod : function() {} }
+        }
+      })
+
+      var DAO = sequelize.define('foo', {bar: Helpers.Sequelize.STRING}, {
+        classMethods : { localClassMethod : function() {} }
+      })
+
+      expect(typeof DAO.options.classMethods.globalClassMethod).toEqual('function')
+      expect(typeof DAO.options.classMethods.localClassMethod).toEqual('function')
+      expect(typeof DAO.options.instanceMethods.globalInstanceMethod).toEqual('function')
+      done()
+    })
+
+    it("uses the passed tableName", function(done) {
+      var self = this
+        , Photo = this.sequelize.define('Foto', { name: Helpers.Sequelize.STRING }, { tableName: 'photos' })
+      Photo.sync({ force: true }).success(function() {
+        self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          expect(tableNames).toContain('photos')
+          done()
+        })
+      })
+    })
+  })
+
+  describe('sync', function() {
+    it("synchronizes all daos", function(done) {
+      var Project = this.sequelize.define('project' + config.rand(), { title: Helpers.Sequelize.STRING })
+      var Task = this.sequelize.define('task' + config.rand(), { title: Helpers.Sequelize.STRING })
+
+      this.sequelize.sync().success(function() {
+        Project.create({title: 'bla'}).success(function() {
+          Task.create({title: 'bla'}).success(function(task){
+            expect(task).toBeDefined()
+            expect(task.title).toEqual('bla')
+            done()
+          })
+        })
+      })
+    })
+
+    it('works with correct database credentials', function(done) {
+      var User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING })
+      User.sync().success(function() {
+        expect(true).toBeTrue()
+        done()
+      })
+    })
+
+    it("fails with incorrect database credentials", function(done) {
+      var sequelize2 = Helpers.getSequelizeInstance('foo', 'bar', null, { logging: false })
+        , User2      = sequelize2.define('User', { name: Helpers.Sequelize.STRING, bio: Helpers.Sequelize.TEXT })
+
+      User2.sync().error(function(err) {
+        expect(err.message).toMatch(/.*Access\ denied.*/)
+        done()
+      })
+    })
+  })
+
+  describe('drop should work', function() {
+    it('correctly succeeds', function(done) {
+      var User = this.sequelize.define('Users', {username: Helpers.Sequelize.STRING })
+      User.sync({ force: true }).success(function() {
+        User.drop().success(function() {
+          expect(true).toBeTrue()
+          done()
+        })
+      })
+    })
+  })
+
+  describe('import', function() {
+    it("imports a dao definition from a file", function(done) {
+      var Project = this.sequelize.import(__dirname + "/assets/project")
+      expect(Project).toBeDefined()
+      done()
+    })
   })
 
   describe('define', function() {
@@ -233,6 +367,5 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
 
       })
     })
-
   })
 })
