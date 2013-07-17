@@ -28,7 +28,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     })
   })
 
-  describe('=> constructor', function() {
+  describe('constructor', function() {
     it('should pass the global options correctly', function(done) {
       var sequelize = Helpers.createSequelizeInstance({ logging: false, define: { underscored:true } })
         , DAO = sequelize.define('dao', {name: Helpers.Sequelize.STRING})
@@ -195,7 +195,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     })
   })
 
-  describe('=> define', function() {
+  describe('define', function() {
     it("adds a new dao to the dao manager", function(done) {
       expect(this.sequelize.daoFactoryManager.all.length).toEqual(0)
       this.sequelize.define('foo', { title: Helpers.Sequelize.STRING })
