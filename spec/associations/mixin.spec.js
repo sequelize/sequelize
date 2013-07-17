@@ -18,6 +18,16 @@ describe(Helpers.getTestDialectTeaser("Mixin"), function() {
     })
   })
 
+  describe('Mixin', function() {
+    var DAOFactory = require("../../lib/dao-factory")
+
+    it("adds the mixed-in functions to the dao", function() {
+      expect(DAOFactory.prototype.hasOne).toBeDefined()
+      expect(DAOFactory.prototype.hasMany).toBeDefined()
+      expect(DAOFactory.prototype.belongsTo).toBeDefined()
+    })
+  })
+
   describe('getAssociation', function() {
     it('returns the respective part of the association for 1:1 associations', function() {
       var User = this.sequelize.define('User', {})
