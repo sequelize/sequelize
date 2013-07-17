@@ -140,9 +140,7 @@ $ npm install
 ### 4. Run the tests ###
 
 Right now, the test base is split into the `spec` folder (which contains the
-lovely [BusterJS](http://busterjs.org) tests) and the `spec-jasmine` folder
-(which contains the ugly and awkward node-jasmine based tests). A main goal
-is to get rid of the jasmine tests!
+lovely [BusterJS](http://busterjs.org) tests).
 
 As you might haven't installed all of the supported SQL dialects, here is how
 to run the test suites for your development environment:
@@ -150,9 +148,6 @@ to run the test suites for your development environment:
 ```console
 $ # run all tests at once:
 $ npm test
-
-$ # run only the jasmine tests (for all dialects):
-$ npm run test-jasmine
 
 $ # run all of the buster specs (for all dialects):
 $ npm run test-buster
@@ -237,7 +232,6 @@ for (var key in obj) {
 ```js
 {
   "globals": {
-    "jasmine": false,
     "spyOn": false,
     "it": false,
     "console": false,

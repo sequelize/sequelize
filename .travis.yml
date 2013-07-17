@@ -4,7 +4,6 @@ before_script:
 
 script:
   - "npm run test-buster-travis"
-  - "npm run test-jasmine"
 
 notifications:
   email:

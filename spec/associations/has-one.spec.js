@@ -1,3 +1,4 @@
+/* jshint camelcase: false */
 if (typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../../index")
@@ -16,6 +17,136 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
       dialect: dialect,
       beforeComplete: function(sequelize) { self.sequelize = sequelize },
       onComplete: done
+    })
+  })
+
+  describe('general usage', function() {
+    before(function(done) {
+      this.User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING })
+      this.Task = this.sequelize.define('Task', { title: Helpers.Sequelize.STRING })
+      this.sequelize.sync({ force: true }).success(done)
+    })
+
+    it("adds the foreign key", function(done) {
+      this.User.hasOne(this.Task)
+      expect(this.Task.attributes.UserId).toEqual("INTEGER")
+      done()
+    })
+
+    it("adds an underscored foreign key", function(done) {
+      var User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING }, {underscored: true})
+      , Task = this.sequelize.define('Task', { title: Helpers.Sequelize.STRING })
+
+      User.hasOne(Task)
+      expect(Task.attributes.user_id).toEqual("INTEGER")
+      done()
+    })
+
+    it("uses the passed foreign key", function(done) {
+      var User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING }, {underscored: true})
+        , Task = this.sequelize.define('Task', { title: Helpers.Sequelize.STRING })
+
+      User.hasOne(Task, {foreignKey: 'person_id'})
+      expect(Task.attributes.person_id).toEqual("INTEGER")
+      done()
+    })
+
+    it("defines the getter and the setter", function(done) {
+      this.User.hasOne(this.Task)
+      var u = this.User.build({username: 'asd'})
+
+      expect(u.setTask).toBeDefined()
+      expect(u.getTask).toBeDefined()
+      done()
+    })
+
+    it("defined the getter and the setter according to the passed 'as' option", function(done) {
+      this.User.hasOne(this.Task, {as: 'Work'})
+      var u = this.User.build({username: 'asd'})
+
+      expect(u.setWork).toBeDefined()
+      expect(u.getWork).toBeDefined()
+      done()
+    })
+
+    it("aliases associations to the same table according to the passed 'as' option", function(done) {
+      this.User.hasOne(this.Task, {as: 'Work'});
+      this.User.hasOne(this.Task, {as: 'Play'});
+
+      var u = this.User.build({username: 'asd'})
+      expect(u.getWork).toBeDefined()
+      expect(u.setWork).toBeDefined()
+      expect(u.getPlay).toBeDefined()
+      expect(u.setPlay).toBeDefined()
+      done()
+    })
+
+    it("gets and sets the correct objects", function(done) {
+      var self = this
+
+      this.User.hasOne(this.Task, {as: 'Task'})
+      this.sequelize.sync({ force: true }).success(function() {
+        self.User.create({username: 'name'}).success(function(user) {
+          self.Task.create({title: 'snafu'}).success(function(task) {
+            user.setTask(task).on('success', function() {
+              user.getTask().on('success', function(task2) {
+                expect(task.title).toEqual(task2.title)
+                user.getTask({attributes: ['title']}).on('success', function(task2) {
+                  expect(task2.selectedValues.title).toEqual('snafu')
+                  expect(task2.selectedValues.id).not.toBeDefined()
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it("unsets unassociated objects", function(done) {
+      var self = this
+
+      this.User.hasOne(this.Task, {as: 'Task'})
+      this.sequelize.sync({ force: true }).success(function() {
+        self.User.create({username: 'name'}).success(function(user) {
+          self.Task.create({title: 'snafu'}).success(function(task1) {
+            self.Task.create({title: 'another task'}).success(function(task2) {
+              user.setTask(task1).success(function() {
+                user.getTask().success(function(_task) {
+                  expect(task1.title).toEqual(_task.title)
+                  user.setTask(task2).success(function() {
+                    user.getTask().success(function(_task2) {
+                      expect(task2.title).toEqual(_task2.title)
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it("sets self associations", function(done) {
+      var Person = this.sequelize.define('Person', { name: Helpers.Sequelize.STRING })
+      Person.hasOne(Person, {as: 'Mother', foreignKey: 'MotherId'})
+      Person.hasOne(Person, {as: 'Father', foreignKey: 'FatherId'})
+
+      Person.sync({force: true}).success(function() {
+        var p = Person.build()
+        expect(p.setFather).toBeDefined()
+        expect(p.setMother).toBeDefined()
+        done()
+      })
+    })
+
+    it("automatically sets the foreign key on self associations", function(done) {
+      var Person = this.sequelize.define('Person', { name: Helpers.Sequelize.STRING })
+
+      Person.hasOne(Person, {as: 'Mother'})
+      expect(Person.associations.MotherPersons.options.foreignKey).toEqual('MotherId')
+      done()
     })
   })
 
@@ -70,7 +201,6 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
   })
 
   describe("Foreign key constraints", function() {
-
     it("are not enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })

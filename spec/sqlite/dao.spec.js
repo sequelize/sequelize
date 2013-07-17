@@ -33,19 +33,14 @@ if (dialect === 'sqlite') {
         this.User
           .create({ username: 'user', createdAt: new Date(2011, 04, 04) })
           .success(function(oldUser) {
-            self.User
-              .create({ username: 'new user' })
-              .success(function(newUser) {
-                self.User.findAll({
-                  where: ['createdAt > ?', new Date(2012, 01, 01)]
-                }).success(function(users) {
-                  expect(users.length).toEqual(1)
-                  done()
-                })
+            self.User.create({ username: 'new user' }).success(function(newUser) {
+              self.User.findAll({
+                where: ['createdAt > ?', new Date(2012, 01, 01)]
+              }).success(function(users) {
+                expect(users.length).toEqual(1)
+                done()
               })
-          })
-          .error(function(err) {
-            console.log(err)
+            })
           })
       })
     })
