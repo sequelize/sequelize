@@ -743,7 +743,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   }) // - bulkCreate
 
   describe('update', function() {
-    it('allows sql logging of updated statements', function() {
+    it('allows sql logging of updated statements', function(done) {
       var User = this.sequelize.define('User', {
         name: Sequelize.STRING,
         bio: Sequelize.TEXT
@@ -754,8 +754,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       this.sequelize.sync({ force: true }).success(function() {
         User.create({ name: 'meg', bio: 'none' }).success(function(u) {
           expect(u).toBeDefined()
-          expect(u).not.toBe(null)
-          u.setAttributes({name: 'brian'}).on('sql', function(sql) {
+          expect(u).not.toBeNull()
+          u.updateAttributes({name: 'brian'}).on('sql', function(sql) {
             expect(sql).toBeDefined()
             expect(sql.toUpperCase().indexOf("UPDATE")).toBeGreaterThan(-1)
             done()
