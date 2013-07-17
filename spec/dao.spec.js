@@ -2,6 +2,8 @@ if (typeof require === 'function') {
   const buster  = require("buster")
       , Helpers = require('./buster-helpers')
       , dialect = Helpers.getTestDialect()
+      , Sequelize = require("../index")
+      , config    = require(__dirname + "/config/config")
       , _ = require('lodash')
 }
 
@@ -39,6 +41,13 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           }
         })
 
+        self.User2 = sequelize.define('User2', {
+          username: DataTypes.STRING,
+          updatedAt: DataTypes.DATE
+        }, {
+          timestamps: false
+        })
+
         self.HistoryLog = sequelize.define('HistoryLog', {
           someText:  { type: DataTypes.STRING },
           aNumber:   { type: DataTypes.INTEGER },
@@ -63,6 +72,74 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     })
   })
 
+  describe('Escaping', function() {
+    it('is done properly for special characters', function(done) {
+      // Ideally we should test more: "\0\n\r\b\t\\\'\"\x1a"
+      // But this causes sqlite to fail and exits the entire test suite immediately
+      var bio = dialect + "'\"\n" // Need to add the dialect here so in case of failure I know what DB it failed for
+        , self = this
+      this.User.create({ username: bio }).success(function(u1) {
+        self.User.find(u1.id).success(function(u2) {
+          expect(u2.username).toEqual(bio)
+          done()
+        })
+      })
+    })
+  })
+
+  describe('isNewRecord', function() {
+    it('returns true for non-saved objects', function(done) {
+      var user = this.User.build({ username: 'user' })
+      expect(user.id).toBeNull()
+      expect(user.isNewRecord).toBeTruthy()
+      done()
+    })
+
+    it("returns false for saved objects", function(done) {
+      this.User.build({ username: 'user' }).save().success(function(user) {
+        expect(user.isNewRecord).toBeFalsy()
+        done()
+      })
+    })
+
+    it("returns false for created objects", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        expect(user.isNewRecord).toBeFalsy()
+        done()
+      })
+    })
+
+    it("returns false for objects found by find method", function(done) {
+      var self = this
+      this.User.create({ username: 'user' }).success(function() {
+        self.User.create({ username: 'user' }).success(function(user) {
+          self.User.find(user.id).success(function(user) {
+            expect(user.isNewRecord).toBeFalsy()
+            done()
+          })
+        })
+      })
+    })
+
+    it("returns false for objects found by findAll method", function(done) {
+      var chainer = new Sequelize.Utils.QueryChainer()
+        , self = this
+
+      for (var i = 0; i < 10; i++) {
+        chainer.add(self.User.create({ username: 'user' }))
+      }
+
+      chainer.run().success(function() {
+        self.User.findAll().success(function(users) {
+          users.forEach(function(u) {
+            expect(u.isNewRecord).toBeFalsy()
+          })
+          done()
+        })
+      })
+    })
+  })
+
   describe('increment', function () {
     before(function (done) {
       this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done)
@@ -74,7 +151,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.increment(['aNumber'], 2).done(function (err, user2) {
-
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(2);
             done();
@@ -89,7 +165,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.increment('aNumber', 2).done(function (err, user2) {
-
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(2);
             done();
@@ -108,7 +183,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
             aNumber: user2.aNumber + 1
           }).done(function (err, user3) {
             user1.increment(['aNumber'], 2).done(function (err, user4) {
-
               self.User.find(1).done(function (err, user5) {
                 expect(user5.aNumber).toBe(3);
                 done();
@@ -142,7 +216,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.increment({ 'aNumber': 1, 'bNumber': 2}).done(function (err, user2) {
-
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(1);
             expect(user3.bNumber).toBe(2);
@@ -164,7 +237,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.decrement(['aNumber'], 2).done(function (err, user2) {
-
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(-2);
             done();
@@ -179,7 +251,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.decrement('aNumber', 2).done(function (err, user2) {
-
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(-2);
             done();
@@ -198,7 +269,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
             aNumber: user2.aNumber + 1
           }).done(function (err, user3) {
             user1.decrement(['aNumber'], 2).done(function (err, user4) {
-
               self.User.find(1).done(function (err, user5) {
                 expect(user5.aNumber).toBe(-1);
                 done();
@@ -232,7 +302,6 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
       // Select something
       this.User.find(1).done(function (err, user1) {
         user1.decrement({ 'aNumber': 1, 'bNumber': 2}).done(function (err, user2) {
-
           self.User.find(1).done(function (err, user3) {
             expect(user3.aNumber).toBe(-1);
             expect(user3.bNumber).toBe(-2);
@@ -391,6 +460,86 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
   })
 
   describe('save', function() {
+    it('only updates fields in passed array', function(done) {
+      var self   = this
+        , userId = null
+        , date   = new Date(1990, 01, 01)
+
+      this.User.create({
+        username: 'foo',
+        touchedAt: new Date()
+      }).success(function(user) {
+        user.username = 'fizz'
+        user.touchedAt = date
+        user.save(['username']).success(function(){
+          // re-select user
+          self.User.find(user.id).success(function(user2) {
+            // name should have changed
+            expect(user2.username).toEqual('fizz')
+            // bio should be unchanged
+            expect(user2.birthDate).not.toEqual(date)
+            done()
+          })
+        })
+      })
+    })
+
+    it("stores an entry in the database", function(done) {
+      var username = 'user'
+        , self     = this
+        , user     = this.User.build({
+          username: username,
+          touchedAt: new Date(1984, 8, 23)
+        })
+
+      self.User.all().success(function(users) {
+        expect(users.length).toEqual(0)
+        user.save().success(function(){
+          self.User.all().success(function(users) {
+            expect(users.length).toEqual(1)
+            expect(users[0].username).toEqual(username)
+            expect(users[0].touchedAt instanceof Date).toBe(true)
+            expect(users[0].touchedAt).toEqual(new Date(1984, 8, 23))
+            done()
+          })
+        })
+      })
+    })
+
+    it("updates the timestamps", function(done) {
+      this.timeout = 1000 * 5;
+      var now       = Date.now()
+        , user      = null
+        , updatedAt = null
+        , self      = this
+
+      // timeout is needed, in order to check the update of the timestamp
+      var build = function() {
+        user      = self.User.build({ username: 'user' })
+        updatedAt = user.updatedAt
+        expect(updatedAt.getTime()).toBeGreaterThan(now)
+
+        setTimeout(function() {
+          user.save().success(function() {
+            expect(updatedAt.getTime()).toBeLessThan(user.updatedAt.getTime())
+            done()
+          })
+        }, 1000)
+      }
+
+      setTimeout(build, 1000)
+    })
+
+    describe('without timestamps option', function() {
+      it("doesn't update the updatedAt column", function(done) {
+        this.User2.create({ username: 'john doe' }).success(function(johnDoe) {
+          // sqlite and mysql return undefined, whereas postgres returns null
+          expect([undefined, null].indexOf(johnDoe.updatedAt)).not.toBe(-1);
+          done()
+        })
+      })
+    })
+
     it('should fail a validation upon creating', function(done){
       this.User.create({aNumber: 0, validateTest: 'hello'}).error(function(err){
         expect(err).toBeDefined()
@@ -780,7 +929,90 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
     })
   })
 
+  describe('values', function() {
+    it('returns all values', function(done) {
+      var User = this.sequelize.define('UserHelper', {
+        username: Helpers.Sequelize.STRING
+      }, { timestamps: false, logging: false })
+
+      User.sync({ force: true }).success(function() {
+        var user = User.build({ username: 'foo' })
+        expect(user.values).toEqual({ username: "foo", id: null })
+        done()
+      })
+    })
+  })
+
   describe('updateAttributes', function() {
+    it("updates attributes in the database", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        expect(user.username).toEqual('user')
+        user.updateAttributes({ username: 'person' }).success(function(user) {
+          expect(user.username).toEqual('person')
+          done()
+        })
+      })
+    })
+
+    it("ignores unknown attributes", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        user.updateAttributes({ username: 'person', foo: 'bar'}).success(function(user) {
+          expect(user.username).toEqual('person')
+          expect(user.foo).not.toBeDefined()
+          done()
+        })
+      })
+    })
+
+    it("doesn't update primary keys or timestamps", function(done) {
+      var User = this.sequelize.define('User' + config.rand(), {
+        name: Helpers.Sequelize.STRING,
+        bio: Helpers.Sequelize.TEXT,
+        identifier: {type: Helpers.Sequelize.STRING, primaryKey: true}
+      })
+
+      User.sync({ force: true }).success(function(){
+        User.create({
+          name: 'snafu',
+          identifier: 'identifier'
+        }).success(function(user) {
+          var oldCreatedAt  = user.createdAt
+            , oldIdentifier = user.identifier
+
+          user.updateAttributes({
+            name: 'foobar',
+            createdAt: new Date(2000, 1, 1),
+            identifier: 'another identifier'
+          }).success(function(user) {
+            expect(user.createdAt).toEqual(oldCreatedAt)
+            expect(user.identifier).toEqual(oldIdentifier)
+            done()
+          })
+        })
+      })
+    })
+
+    it("uses primary keys in where clause", function(done) {
+      var User = this.sequelize.define('User' + config.rand(), {
+        name: Helpers.Sequelize.STRING,
+        bio: Helpers.Sequelize.TEXT,
+        identifier: {type: Helpers.Sequelize.STRING, primaryKey: true}
+      })
+
+      User.sync({ force:true }).success(function(){
+        User.create({
+          name: 'snafu',
+          identifier: 'identifier'
+        }).success(function(user) {
+          var emitter = user.updateAttributes({name: 'foobar'})
+          emitter.success(function() {
+            expect(emitter.query.sql).toMatch(/WHERE [`"]identifier[`"]..identifier./)
+            done()
+          })
+        })
+      })
+    })
+
     it('stores and restores null values', function(done) {
       var Download = this.sequelize.define('download', {
         startedAt: Helpers.Sequelize.DATE,

@@ -44,7 +44,6 @@
     "promise": "~3.2.0"
   },
   "devDependencies": {
-    "jasmine-node": "~1.10.2",
     "sqlite3": "~2.1.12",
     "mysql": "~2.0.0-alpha8",
     "pg": "~2.1.0",
@@ -61,8 +60,7 @@
   ],
   "main": "index",
   "scripts": {
-    "test": "npm run test-jasmine && npm run test-buster",
-    "test-jasmine": "jasmine-node spec-jasmine/",
+    "test": "npm run test-buster",
     "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite",
     "test-buster-travis": "buster-test",
     "test-buster-mysql": "DIALECT=mysql buster-test",
