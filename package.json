@@ -41,7 +41,8 @@
     "dottie": "0.0.8-0",
     "toposort-class": "~0.2.0",
     "generic-pool": "2.0.3",
-    "promise": "~3.2.0"
+    "promise": "~3.2.0",
+    "sql": "~0.25.0"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
