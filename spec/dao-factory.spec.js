@@ -1,3 +1,5 @@
+/* jshint camelcase: false */
+
 if(typeof require === 'function') {
   const buster    = require("buster")
       , Sequelize = require("../index")
@@ -935,11 +937,57 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
 
+    it('should be able to find a row using like', function(done) {
+      this.User.findAll({
+        where: {
+          username: {
+            like: '%2'
+          }
+        }
+      }).success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row using not like', function(done) {
+      this.User.findAll({
+        where: {
+          username: {
+            nlike: '%2'
+          }
+        }
+      }).success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
     it('should be able to find a row between a certain date', function(done) {
       this.User.findAll({
         where: {
           theDate: {
             between: ['2013-01-02', '2013-01-11']
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row between a certain date using the between shortcut', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            '..': ['2013-01-02', '2013-01-11']
           }
         }
       }).success(function(users) {
@@ -969,6 +1017,20 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         where: {
           intVal: {
             nbetween: [8, 10]
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row not between a certain integer using the not between shortcut', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            '!..': [8, 10]
           }
         }
       }).success(function(users) {
@@ -2255,9 +2317,293 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
   }) //- describe: max
 
+  describe('scopes', function() {
+    before(function(done) {
+      this.ScopeMe = this.sequelize.define('ScopeMe', {
+        username: Sequelize.STRING,
+        email: Sequelize.STRING,
+        access_level: Sequelize.INTEGER,
+        other_value: Sequelize.INTEGER
+      }, {
+        defaultScope: {
+          where: {
+            access_level: {
+              gte: 5
+            }
+          }
+        },
+        scopes: {
+          orderScope: {
+            order: 'access_level DESC'
+          },
+          limitScope: {
+            limit: 2
+          },
+          sequelizeTeam: {
+            where: ['email LIKE \'%@sequelizejs.com\'']
+          },
+          fakeEmail: {
+            where: ['email LIKE \'%@fakeemail.com\'']
+          },
+          highValue: {
+            where: {
+              other_value: {
+                gte: 10
+              }
+            }
+          },
+          isTony: {
+            where: {
+              username: 'tony'
+            }
+          },
+          canBeTony: {
+            where: {
+              username: ['tony']
+            }
+          },
+          canBeDan: {
+            where: {
+              username: {
+                in: 'dan'
+              }
+            }
+          },
+          actualValue: function(value) {
+            return {
+              where: {
+                other_value: value
+              }
+            }
+          },
+          complexFunction: function(email, accessLevel) {
+            return {
+              where: ['email like ? AND access_level >= ?', email + '%', accessLevel]
+            }
+          },
+          lowAccess: {
+            where: {
+              access_level: {
+                lte: 5
+              }
+            }
+          },
+          escape: {
+            where: {
+              username: "escape'd"
+            }
+          }
+        }
+      })
+
+      this.sequelize.sync({force: true}).success(function() {
+        var records = [
+          {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
+          {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
+          {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7}
+        ];
+        this.ScopeMe.bulkCreate(records).success(function() {
+          done()
+        })
+      }.bind(this))
+    })
+
+    it("should have no problems with escaping SQL", function(done) {
+      var self = this
+      this.ScopeMe.create({username: 'escape\'d', email: 'fake@fakemail.com'}).success(function(){
+        self.ScopeMe.scope('escape').all().success(function(users){
+          expect(users).toBeArray()
+          expect(users.length).toEqual(1)
+          expect(users[0].username).toEqual('escape\'d');
+          done()
+        })
+      })
+    })
+
+    it("should be able to use a defaultScope if declared", function(done) {
+      this.ScopeMe.all().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(2)
+        expect([10,5].indexOf(users[0].access_level) !== -1).toBeTrue()
+        expect([10,5].indexOf(users[1].access_level) !== -1).toBeTrue()
+        expect(['dan', 'tobi'].indexOf(users[0].username) !== -1).toBeTrue()
+        expect(['dan', 'tobi'].indexOf(users[1].username) !== -1).toBeTrue()
+        done()
+      })
+    })
+
+    it("should be able to amend the default scope with a find object", function(done) {
+      this.ScopeMe.findAll({where: {username: 'dan'}}).success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('dan')
+        done()
+      })
+    })
+
+    it("should be able to override the default scope", function(done) {
+      this.ScopeMe.scope('fakeEmail').findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('tobi')
+        done()
+      })
+    })
+
+    it("should be able to combine two scopes", function(done) {
+      this.ScopeMe.scope(['sequelizeTeam', 'highValue']).findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('dan')
+        done()
+      })
+    })
+
+    it("should be able to call a scope that's a function", function(done) {
+      this.ScopeMe.scope({method: ['actualValue', 11]}).findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('tobi')
+        done()
+      })
+    })
+
+    it("should be able to handle multiple function scopes", function(done) {
+      this.ScopeMe.scope([{method: ['actualValue', 10]}, {method: ['complexFunction', 'dan', '5']}]).findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('dan')
+        done()
+      })
+    })
+
+    it("should be able to stack the same field in the where clause", function(done) {
+      this.ScopeMe.scope(['canBeDan', 'canBeTony']).findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(2)
+        expect(['dan', 'tony'].indexOf(users[0].username) !== -1).toBeTrue()
+        expect(['dan', 'tony'].indexOf(users[1].username) !== -1).toBeTrue()
+        done()
+      })
+    })
+
+    it("should be able to merge scopes", function(done) {
+      this.ScopeMe.scope(['highValue', 'isTony', {merge: true, method: ['actualValue', 7]}]).findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should give us the correct order if we declare an order in our scope", function(done) {
+      this.ScopeMe.scope('sequelizeTeam', 'orderScope').findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(2)
+        expect(users[0].username).toEqual('dan')
+        expect(users[1].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should give us the correct order as well as a limit if we declare such in our scope", function(done) {
+      this.ScopeMe.scope(['orderScope', 'limitScope']).findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(2)
+        expect(users[0].username).toEqual('tobi')
+        expect(users[1].username).toEqual('dan')
+        done()
+      })
+    })
+
+    it("should have no problems combining scopes and traditional where object", function(done) {
+      this.ScopeMe.scope('sequelizeTeam').findAll({where: {other_value: 10}}).success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(1)
+        expect(users[0].username).toEqual('dan')
+        expect(users[0].access_level).toEqual(5)
+        expect(users[0].other_value).toEqual(10)
+        done()
+      })
+    })
+
+    it("should be able to remove all scopes", function(done) {
+      this.ScopeMe.scope(null).findAll().success(function(users) {
+        expect(users).toBeArray()
+        expect(users.length).toEqual(3)
+        done()
+      })
+    })
+
+    it("should have no problem performing findOrCreate", function(done) {
+      this.ScopeMe.findOrCreate({username: 'fake'}).success(function(user) {
+        expect(user.username).toEqual('fake')
+        done()
+      })
+    })
+
+    it("should be able to hold multiple scope objects", function(done) {
+      var sequelizeTeam = this.ScopeMe.scope('sequelizeTeam', 'orderScope')
+        , tobi = this.ScopeMe.scope({method: ['actualValue', 11]})
+
+      sequelizeTeam.all().success(function(team) {
+        tobi.all().success(function(t) {
+          expect(team).toBeArray()
+          expect(team.length).toEqual(2)
+          expect(team[0].username).toEqual('dan')
+          expect(team[1].username).toEqual('tony')
+
+          expect(t).toBeArray()
+          expect(t.length).toEqual(1)
+          expect(t[0].username).toEqual('tobi')
+          done()
+        })
+      })
+    })
+
+    it("should gracefully omit any scopes that don't exist", function(done) {
+      this.ScopeMe.scope('sequelizeTeam', 'orderScope', 'doesntexist').all().success(function(team) {
+        expect(team).toBeArray()
+        expect(team.length).toEqual(2)
+        expect(team[0].username).toEqual('dan')
+        expect(team[1].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should gracefully omit any scopes that don't exist through an array", function(done) {
+      this.ScopeMe.scope(['sequelizeTeam', 'orderScope', 'doesntexist']).all().success(function(team) {
+        expect(team).toBeArray()
+        expect(team.length).toEqual(2)
+        expect(team[0].username).toEqual('dan')
+        expect(team[1].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should gracefully omit any scopes that don't exist through an object", function(done) {
+      this.ScopeMe.scope('sequelizeTeam', 'orderScope', {method: 'doesntexist'}).all().success(function(team) {
+        expect(team).toBeArray()
+        expect(team.length).toEqual(2)
+        expect(team[0].username).toEqual('dan')
+        expect(team[1].username).toEqual('tony')
+        done()
+      })
+    })
+
+    it("should emit an error for scopes that don't exist with silent: false", function(done) {
+      try {
+        this.ScopeMe.scope('doesntexist', {silent: false})
+      } catch (err) {
+        expect(err.message).toEqual('Invalid scope doesntexist called.')
+        done()
+      }
+    })
+  })
+
   describe('schematic support', function() {
     before(function(done){
-      var self = this;
+      var self = this
 
       this.UserPublic = this.sequelize.define('UserPublic', {
         age: Sequelize.INTEGER
