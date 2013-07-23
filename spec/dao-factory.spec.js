@@ -2368,49 +2368,47 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
   describe('references', function() {
     before(function(done) {
-      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
+      this.sequelize = sequelize
       done()
     })
 
-    describe("use of existing dao factory", function() {
-      before(function(done) {
-        this.Post = this.sequelize.define('post', {
-          title:    Sequelize.STRING,
-          authorId: {
-            type:          Sequelize.INTEGER,
-            references:    this.Author,
-            referencesKey: "id"
-          }
-        })
-
-        this.Author.hasMany(this.Post)
-        this.Post.belongsTo(this.Author)
-        done()
+    it('uses an existing dao factory and references the author table', function(done) {
+      var self    = this
+        , Author  = self.sequelize.define('author', { firstName: Sequelize.STRING })
+        , Post    = self.sequelize.define('post', {
+        title:    Sequelize.STRING,
+        authorId: {
+          type:          Sequelize.INTEGER,
+          references:    Author,
+          referencesKey: "id"
+        }
       })
 
-      it('references the author table', function(done) {
-        var self = this
-        this.Author.sync({ force: true }).success(function() {
-          self.Post.sync({ force: true }).on('sql', function(sql) {
-            if (dialect === 'postgres') {
-              expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-            } else if (dialect === 'mysql') {
-              expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
-            } else if (dialect === 'sqlite') {
-              expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
-            } else {
-              throw new Error('Undefined dialect!')
-            }
+      Author.hasMany(Post)
+      Post.belongsTo(Author)
 
-            done()
-          })
+      Author.sync({ force: true }).success(function() {
+        Post.sync({ force: true }).on('sql', function(sql) {
+          if (dialect === 'postgres') {
+            expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
+          } else if (dialect === 'mysql') {
+            expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+          } else if (dialect === 'sqlite') {
+            expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+          } else {
+            throw new Error('Undefined dialect!')
+          }
+
+          done()
         })
       })
     })
 
-    describe('use of table name as string', function() {
-      before(function(done) {
-        this.Post = this.sequelize.define('post', {
+    it('uses a table name as a string and references the author table', function(done) {
+      this.timeout = 2500
+      var self    = this
+        , Author  = self.sequelize.define('author', { firstName: Sequelize.STRING })
+        , Post    = self.sequelize.define('post', {
           title:    Sequelize.STRING,
           authorId: {
             type:          Sequelize.INTEGER,
@@ -2419,72 +2417,65 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           }
         })
 
-        this.Author.hasMany(this.Post)
-        this.Post.belongsTo(this.Author)
-        done()
-      })
+      Author.hasMany(Post)
+      Post.belongsTo(Author)
 
-      it('references the author table', function(done) {
-        var self = this
-        this.Author.sync({ force: true }).success(function() {
-          self.Post.sync({ force: true }).on('sql', function(sql) {
-            if (dialect === 'postgres') {
-              expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-            } else if (dialect === 'mysql') {
-              expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
-            } else if (dialect === 'sqlite') {
-              expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
-            } else {
-              throw new Error('Undefined dialect!')
-            }
+      Author.sync( {force: true }).success(function() {
+        Post.sync({ force: true }).on('sql', function(sql) {
+          if (dialect === 'postgres') {
+            expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
+          } else if (dialect === 'mysql') {
+            expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+          } else if (dialect === 'sqlite') {
+            expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+          } else {
+            throw new Error('Undefined dialect!')
+          }
 
-            done()
-          })
+          done()
         })
       })
     })
 
-    describe('use of invalid table name', function() {
-      it("emits the error event as the referenced table name is invalid", function(done) {
-        this.timeout = 3500
-        var self = this
+    it("emits an error event as the referenced table name is invalid", function(done) {
+      this.timeout = 2500
+      var self    = this
+        , Author  = self.sequelize.define('author', { firstName: Sequelize.STRING })
+        , Post    = self.sequelize.define('post', {
+        title:    Sequelize.STRING,
+        authorId: {
+          type:          Sequelize.INTEGER,
+          references:    '4uth0r5',
+          referencesKey: "id"
+        }
+      })
 
-        self.Post = self.sequelize.define('post', {
-          title:    Sequelize.STRING,
-          authorId: {
-            type:          Sequelize.INTEGER,
-            references:    '4uth0r5',
-            referencesKey: "id"
-          }
-        })
+      Author.hasMany(Post)
+      Post.belongsTo(Author)
 
-        self.Author.hasMany(self.Post)
-        self.Post.belongsTo(self.Author)
-
-        self.Author.sync({ force: true }).success(function() {
-          self.Post.sync({ force: true }).success(function() {
-            if (dialect === 'sqlite') {
-              // sorry ... but sqlite is too stupid to understand whats going on ...
-              expect(1).toEqual(1)
-              done()
-            } else {
-              // the parser should not end up here ...
-              expect(2).toEqual(1)
-            }
-          }).error(function(err) {
-            if (dialect === 'mysql') {
-              expect(err.message).toMatch(/ER_CANNOT_ADD_FOREIGN/)
-            } else if (dialect === 'sqlite') {
-              // the parser should not end up here ... see above
-              expect(1).toEqual(2)
-            } else if (dialect === 'postgres') {
-              expect(err.message).toMatch(/relation "4uth0r5" does not exist/)
-            } else {
-              throw new Error('Undefined dialect!')
-            }
-
+      Author.sync({ force: true }).success(function() {
+        Post.sync({ force: true }).success(function() {
+          if (dialect === 'sqlite') {
+            // sorry ... but sqlite is too stupid to understand whats going on ...
+            expect(1).toEqual(1)
             done()
-          })
+          } else {
+            // the parser should not end up here ...
+            expect(2).toEqual(1)
+          }
+        }).error(function(err) {
+          if (dialect === 'mysql') {
+            expect(err.message).toMatch(/ER_CANNOT_ADD_FOREIGN/)
+          } else if (dialect === 'sqlite') {
+            // the parser should not end up here ... see above
+            expect(1).toEqual(2)
+          } else if (dialect === 'postgres') {
+            expect(err.message).toMatch(/relation "4uth0r5" does not exist/)
+          } else {
+            throw new Error('Undefined dialect!')
+          }
+
+          done()
         })
       })
     })
