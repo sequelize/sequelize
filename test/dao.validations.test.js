@@ -1,19 +1,17 @@
-var buster    = require("buster")
-  , Sequelize = require("../index")
-  , Helpers   = require('./buster-helpers')
-  , dialect   = Helpers.getTestDialect()
+var chai      = require('chai')
+  , expect    = chai.expect
+  , Sequelize = require(__dirname + '/../index')
+  , Utils     = require(__dirname + '/../lib/utils')
+  , Support   = require(__dirname + '/support')
+  , dialect   = Support.getTestDialect()
 
-buster.spec.expose()
-buster.testRunner.timeout = 1000
-
-describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
-  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+describe(Support.getTestDialectTeaser("DaoValidator"), function() {
+  var sequelize = Support.createSequelizeInstance({ dialect: dialect })
 
   describe('validations', function() {
-    beforeAll(function(done) {
-      var self = this
-      self.sequelize = Object.create(sequelize)
-      Helpers.clearDatabase(self.sequelize, done)
+    before(function(done) {
+      this.sequelize = Object.create(sequelize)
+      Support.clearDatabase(this.sequelize, done)
     })
 
     var checks = {
@@ -222,8 +220,8 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
             var failingUser = UserFail.build({ name : failingValue })
               , errors      = failingUser.validate()
 
-            expect(errors).not.toBeNull()
-            expect(errors).toEqual({ name : [message] })
+            expect(errors).not.to.be.null
+            expect(errors).to.eql({ name : [message] })
             done()
           })
         }
@@ -253,7 +251,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
             })
 
             var successfulUser = UserSuccess.build({ name: succeedingValue })
-            expect(successfulUser.validate()).toBeNull()
+            expect(successfulUser.validate()).to.be.null
             done()
           })
         }
@@ -277,11 +275,12 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
       var failingUser = User.build({ name : "3" })
         , errors      = failingUser.validate()
 
-      expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ name: ["name should equal '2'"] })
+      expect(errors).not.to.be.null
+      expect(errors).to.eql({ name: ["name should equal '2'"] })
 
       var successfulUser = User.build({ name : "2" })
-      expect(successfulUser.validate()).toBeNull()
+      expect(successfulUser.validate()).to.be.null
+
       done()
     })
 
@@ -299,14 +298,15 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
       var failingUser = User.build({ age: -1 })
         , errors      = failingUser.validate()
 
-      expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ age: ['must be positive'] })
+      expect(errors).not.to.be.null
+      expect(errors).to.eql({ age: ['must be positive'] })
 
       var successfulUser1 = User.build({ age: null })
-      expect(successfulUser1.validate()).toBeNull()
+      expect(successfulUser1.validate()).to.be.null
 
       var successfulUser2 = User.build({ age: 1 })
-      expect(successfulUser2.validate()).toBeNull()
+      expect(successfulUser2.validate()).to.be.null
+
       done()
     })
 
@@ -333,11 +333,11 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
       var failingFoo = Foo.build({ field1: null, field2: null })
         , errors     = failingFoo.validate()
 
-      expect(errors).not.toBeNull()
-      expect(errors).toEqual({ 'xnor': ['xnor failed'] })
+      expect(errors).not.to.be.null
+      expect(errors).to.eql({ 'xnor': ['xnor failed'] })
 
       var successfulFoo = Foo.build({ field1: 33, field2: null })
-      expect(successfulFoo.validate()).toBeNull()
+      expect(successfulFoo.validate()).to.be.null
       done()
     })
   })
