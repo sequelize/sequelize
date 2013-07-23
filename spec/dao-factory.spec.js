@@ -2468,7 +2468,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
   }) //- describe: references
 
-  describe("dataset", function() {
+  describe("syntax sugar", function() {
     before(function(done) {
       this.User = this.sequelize.define("user", {
         username:  Sequelize.STRING,
@@ -2479,8 +2479,24 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       this.User.sync({ force: true }).success(done)
     })
 
-    it("returns a node-sql instance with the correct dialect", function() {
-      expect(this.User.dataset().sql.dialectName).toEqual(dialect)
+    describe("dataset", function() {
+      it("returns a node-sql instance with the correct dialect", function() {
+        expect(this.User.dataset().sql.dialectName).toEqual(dialect)
+      })
+
+      it("allows me to generate sql queries", function() {
+        var query = this.User.dataset().select("username").toQuery()
+        expect(Object.keys(query)).toEqual(['text', 'values'])
+      })
+    })
+
+    describe("select", function() {
+      it("sets .select() as an alias to .dataset().select()", function() {
+        var query1 = this.User.select("username").toQuery()
+          , query2 = this.User.dataset().select("username").toQuery()
+
+        expect(query1.text).toEqual(query2.text)
+      })
     })
   })
 })
