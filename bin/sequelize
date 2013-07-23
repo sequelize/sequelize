@@ -101,6 +101,21 @@ if(program.migrate) {
       if(['database', 'username', 'password'].indexOf(key) == -1) {
         options[key] = value
       }
+      if(key === "use_env_variable") {
+        if(process.env[value]) {
+          var db_info = process.env[value].match(
+                  /([^:]+):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+          options = _.extend(options, {
+            database: db_info[6],
+            username: db_info[2],
+            password: db_info[3],
+            host: db_info[4],
+            port: db_info[5],
+            dialect: db_info[1],
+            protocol: db_info[1]
+          });
+        }
+      }
     })
 
     options = _.extend(options, { logging: false })
