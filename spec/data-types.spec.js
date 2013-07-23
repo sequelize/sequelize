@@ -1,20 +1,21 @@
-if(typeof require === 'function') {
-  const buster    = require("buster")
-      , Sequelize = require("../index")
-      , Helpers   = require('./buster-helpers')
-      , dialect   = Helpers.getTestDialect()
-}
+var buster    = require("buster")
+  , Sequelize = require("../index")
+  , Helpers   = require('./buster-helpers')
+  , dialect   = Helpers.getTestDialect()
 
 buster.spec.expose()
+buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser('DataTypes'), function() {
-  it('should return DECIMAL for the default decimal type', function() {
-    expect(Sequelize.DECIMAL).toEqual('DECIMAL');
-  });
+  it('should return DECIMAL for the default decimal type', function(done) {
+    expect(Sequelize.DECIMAL).toEqual('DECIMAL')
+    done()
+  })
 
-  it('should return DECIMAL(10,2) for the default decimal type with arguments', function() {
-    expect(Sequelize.DECIMAL(10, 2)).toEqual('DECIMAL(10,2)');
-  });
+  it('should return DECIMAL(10,2) for the default decimal type with arguments', function(done) {
+    expect(Sequelize.DECIMAL(10, 2)).toEqual('DECIMAL(10,2)')
+    done()
+  })
 
   var tests = [
     [Sequelize.STRING, 'STRING', 'VARCHAR(255)'],
@@ -59,8 +60,9 @@ describe(Helpers.getTestDialectTeaser('DataTypes'), function() {
   ]
 
   tests.forEach(function(test) {
-    it('transforms "' + test[1] + '" to "' + test[2] + '"', function() {
+    it('transforms "' + test[1] + '" to "' + test[2] + '"', function(done) {
       expect(test[0]).toEqual(test[2])
+      done()
     })
   })
 })

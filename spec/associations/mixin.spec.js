@@ -1,35 +1,32 @@
-if (typeof require === 'function') {
-  const buster    = require("buster")
-      , Helpers   = require('../buster-helpers')
-      , Sequelize = require('../../index')
-      , dialect   = Helpers.getTestDialect()
-}
+var buster    = require("buster")
+  , Helpers   = require('../buster-helpers')
+  , Sequelize = require('../../index')
+  , dialect   = Helpers.getTestDialect()
 
 buster.spec.expose()
+buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("Mixin"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   before(function(done) {
-    Helpers.initTests({
-      dialect: dialect,
-      beforeComplete: function(sequelize) {
-        this.sequelize = sequelize
-      }.bind(this),
-      onComplete: done
-    })
+    this.sequelize = sequelize
+    Helpers.clearDatabase(this.sequelize, done)
   })
 
   describe('Mixin', function() {
     var DAOFactory = require("../../lib/dao-factory")
 
-    it("adds the mixed-in functions to the dao", function() {
+    it("adds the mixed-in functions to the dao", function(done) {
       expect(DAOFactory.prototype.hasOne).toBeDefined()
       expect(DAOFactory.prototype.hasMany).toBeDefined()
       expect(DAOFactory.prototype.belongsTo).toBeDefined()
+      done()
     })
   })
 
   describe('getAssociation', function() {
-    it('returns the respective part of the association for 1:1 associations', function() {
+    it('returns the respective part of the association for 1:1 associations', function(done) {
       var User = this.sequelize.define('User', {})
       var Task = this.sequelize.define('Task', {})
 
@@ -37,6 +34,7 @@ describe(Helpers.getTestDialectTeaser("Mixin"), function() {
       Task.belongsTo(User)
 
       expect(User.getAssociation(Task).target).toEqual(Task)
+      done()
     })
 
     it('can handle multiple associations just fine', function(done) {

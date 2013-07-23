@@ -6,7 +6,7 @@ module.exports = {
   pool: { maxConnections: 5, maxIdleTime: 30000},
 
   rand: function() {
-    return parseInt(Math.random() * 999)
+    return parseInt(Math.random() * 999, 10)
   },
 
   //make maxIdleTime small so that tests exit promptly
