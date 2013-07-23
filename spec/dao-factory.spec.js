@@ -3,6 +3,7 @@ if(typeof require === 'function') {
       , Sequelize = require("../index")
       , Helpers   = require('./buster-helpers')
       , _         = require('lodash')
+      , moment    = require('moment')
       , dialect   = Helpers.getTestDialect()
 }
 
@@ -14,11 +15,14 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     Helpers.initTests({
       dialect: dialect,
       beforeComplete: function(sequelize, DataTypes) {
+        this.DataTypes = DataTypes
         this.sequelize = sequelize
         this.User      = sequelize.define('User', {
           username:     DataTypes.STRING,
           secretValue:  DataTypes.STRING,
-          data:         DataTypes.STRING
+          data:         DataTypes.STRING,
+          intVal:       DataTypes.INTEGER,
+          theDate:      DataTypes.DATE
         })
       }.bind(this),
       onComplete: function() {
@@ -281,6 +285,26 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   })
 
   describe('create', function() {
+    it("casts empty arrays correctly for postgresql", function(done) {
+      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+        expect('').toEqual('')
+        return done()
+      }
+
+      var User = this.sequelize.define('UserWithArray', {
+        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+      })
+
+      User.sync({force: true}).success(function() {
+        User.create({myvals: [], mystr: []}).on('sql', function(sql){
+          expect(sql.indexOf('ARRAY[]::INTEGER[]')).toBeGreaterThan(-1)
+          expect(sql.indexOf('ARRAY[]::VARCHAR[]')).toBeGreaterThan(-1)
+          done()
+        })
+      })
+    })
+
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
         username: { type: Sequelize.STRING, unique: true }
@@ -357,7 +381,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       User.sync({ force: true }).success(function() {
         User.create({ big: '9223372036854775807' }).on('success', function(user) {
-          expect(user.big).toEqual( '9223372036854775807' )
+          expect(user.big).toBe( '9223372036854775807' )
           done()
         })
       })
@@ -553,6 +577,23 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   })
 
   describe('bulkCreate', function() {
+    it('properly handles disparate field lists', function(done) {
+      var self = this
+        , data = [{username: 'Peter', secretValue: '42' },
+                  {username: 'Paul'},
+                  {username: 'Steve'}]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.findAll({where: {username: 'Paul'}}).success(function(users) {
+          expect(users.length).toEqual(1)
+
+          expect(users[0].username).toEqual("Paul")
+          expect(users[0].secretValue).toBeNull()
+
+          done()
+        })
+      })
+    })
 
     it('inserts multiple values respecting the white list', function(done) {
       var self = this
@@ -702,6 +743,26 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   }) // - bulkCreate
 
   describe('update', function() {
+    it('allows sql logging of updated statements', function(done) {
+      var User = this.sequelize.define('User', {
+        name: Sequelize.STRING,
+        bio: Sequelize.TEXT
+      }, {
+          paranoid:true
+        })
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ name: 'meg', bio: 'none' }).success(function(u) {
+          expect(u).toBeDefined()
+          expect(u).not.toBeNull()
+          u.updateAttributes({name: 'brian'}).on('sql', function(sql) {
+            expect(sql).toBeDefined()
+            expect(sql.toUpperCase().indexOf("UPDATE")).toBeGreaterThan(-1)
+            done()
+          })
+        })
+      })
+    })
 
     it('updates only values that match filter', function(done) {
       var self = this
@@ -759,6 +820,45 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   }) // - update
 
   describe('destroy', function() {
+    it('deletes a record from the database if dao is not paranoid', function(done) {
+      var User = this.sequelize.define('User', {
+          name: Sequelize.STRING,
+          bio: Sequelize.TEXT
+        })
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          User.all().success(function(users) {
+            expect(users.length).toEqual(1)
+            u.destroy().success(function() {
+              User.all().success(function(users) {
+                expect(users.length).toEqual(0)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('allows sql logging of delete statements', function(done) {
+      var User = this.sequelize.define('User', {
+          name: Sequelize.STRING,
+          bio: Sequelize.TEXT
+        })
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          User.all().success(function(users) {
+            expect(users.length).toEqual(1)
+            u.destroy().on('sql', function(sql) {
+              expect(sql).toBeDefined()
+              expect(sql.toUpperCase().indexOf("DELETE")).toBeGreaterThan(-1)
+              done()
+            })
+          })
+        })
+      })
+    })
 
     it('deletes values that match filter', function(done) {
       var self = this
@@ -767,14 +867,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Bob',   secretValue: '43' }]
 
       this.User.bulkCreate(data).success(function() {
-
         self.User.destroy({secretValue: '42'})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).toEqual(1)
-
               expect(users[0].username).toEqual("Bob")
-
               done()
             })
           })
@@ -782,12 +879,12 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
-
       var self = this
         , User = this.sequelize.define('ParanoidUser', {
             username:     Sequelize.STRING,
             secretValue:  Sequelize.STRING,
-            data:         Sequelize.STRING
+            data:         Sequelize.STRING,
+            intVal:       { type: Sequelize.INTEGER, defaultValue: 1}
           }, {
             paranoid: true
           })
@@ -796,9 +893,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Bob',   secretValue: '43' }]
 
       User.sync({ force: true }).success(function() {
-
         User.bulkCreate(data).success(function() {
-
           User.destroy({secretValue: '42'})
             .success(function() {
               User.findAll({order: 'id'}).success(function(users) {
@@ -815,21 +910,253 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
               })
             })
         })
-
       })
+    })
+  }) // - destroy
 
+  describe('special where conditions', function() {
+    before(function(done) {
+      var self = this
+
+      this.User.create({
+        username: 'boo',
+        intVal: 5,
+        theDate: '2013-01-01 12:00'
+      }).success(function(user){
+        self.user = user
+        self.User.create({
+          username: 'boo2',
+          intVal: 10,
+          theDate: '2013-01-10 12:00'
+        }).success(function(user2){
+          self.user2 = user2
+          done()
+        })
+      })
     })
 
-  }) // - destroy
+    it('should be able to find a row between a certain date', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: ['2013-01-02', '2013-01-11']
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row between a certain date and an additional where clause', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: ['2013-01-02', '2013-01-11']
+          },
+          intVal: 10
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row not between a certain integer', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            nbetween: [8, 10]
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using not between and between logic', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: ['2012-12-10', '2013-01-02'],
+            nbetween: ['2013-01-04', '2013-01-20']
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using not between and between logic with dates', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            between: [new Date('2012-12-10'), new Date('2013-01-02')],
+            nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using greater than or equal to logic with dates', function(done) {
+      this.User.findAll({
+        where: {
+          theDate: {
+            gte: new Date('2013-01-09')
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo2')
+        expect(users[0].intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row using greater than or equal to', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            gte: 6
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo2')
+        expect(user.intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row using greater than', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            gt: 5
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo2')
+        expect(user.intVal).toEqual(10)
+        done()
+      })
+    })
+
+    it('should be able to find a row using lesser than or equal to', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            lte: 5
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo')
+        expect(user.intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using lesser than', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            lt: 6
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo')
+        expect(user.intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should have no problem finding a row using lesser and greater than', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            lt: 6,
+            gt: 4
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find a row using not equal to logic', function(done) {
+      this.User.find({
+        where: {
+          intVal: {
+            ne: 10
+          }
+        }
+      }).success(function(user) {
+        expect(user.username).toEqual('boo')
+        expect(user.intVal).toEqual(5)
+        done()
+      })
+    })
+
+    it('should be able to find multiple users with any of the special where logic properties', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            lte: 10
+          }
+        }
+      }).success(function(users) {
+        expect(users[0].username).toEqual('boo')
+        expect(users[0].intVal).toEqual(5)
+        expect(users[1].username).toEqual('boo2')
+        expect(users[1].intVal).toEqual(10)
+        done()
+      })
+    })
+  })
 
   describe('find', function find() {
     before(function(done) {
       this.User.create({
         username: 'barfooz'
       }).success(function(user) {
-        this.user = user
-        done()
+        this.UserPrimary = this.sequelize.define('UserPrimary', {
+          specialKey: {
+            type: this.DataTypes.STRING,
+            primaryKey: true
+          }
+        })
+
+        this.UserPrimary.sync({force: true}).success(function(primary){
+          this.UserPrimary.create({specialKey: 'a string'}).success(function(){
+            this.user = user
+            done()
+          }.bind(this))
+        }.bind(this))
       }.bind(this))
+    })
+
+    it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function(done) {
+      this.UserPrimary.find('a string').success(function(user) {
+        expect(user.specialKey).toEqual('a string')
+        done()
+      })
+    })
+
+    it('doesn\'t throw an error when entering in a non integer value', function(done) {
+      this.User.find('a string value').success(function(user) {
+        expect(user).toBeNull()
+        done()
+      })
     })
 
     it('returns a single dao', function(done) {
@@ -984,8 +1311,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         ]
         , done = _.after(2 * permutations.length, _done);
 
-      this.User.create({name: 'jack'}).success(function (jack) {
-        this.User.create({name: 'jill'}).success(function (jill) {
+      this.User.create({username: 'jack'}).success(function (jack) {
+        this.User.create({username: 'jill'}).success(function (jill) {
           permutations.forEach(function(perm) {
             this.User.find(perm).done(function(err, user) {
               expect(err).toBeNull();
@@ -1584,7 +1911,247 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         })
       }) // - describe: queryOptions
     })
+
+    describe('normal findAll', function() {
+      beforeEach(function(done) {
+        var self = this
+        this.User.create({username: 'user', data: 'foobar', theDate: moment().toDate()}).success(function(user) {
+          self.User.create({username: 'user2', data: 'bar', theDate: moment().toDate()}).success(function(user2){
+            self.users = [user].concat(user2)
+            done()
+          })
+        })
+      })
+
+      it("finds all entries", function(done) {
+        this.User.findAll().on('success', function(users) {
+          expect(users.length).toEqual(2)
+          done()
+        })
+      })
+
+      it("finds all users matching the passed conditions", function(done) {
+        this.User.findAll({where: "id != " + this.users[1].id}).success(function(users) {
+          expect(users.length).toEqual(1)
+          done()
+        })
+      })
+
+      it("can also handle array notation", function(done) {
+        var self = this
+        this.User.findAll({where: ['id = ?', this.users[1].id]}).success(function(users) {
+          expect(users.length).toEqual(1)
+          expect(users[0].id).toEqual(self.users[1].id)
+          done()
+        })
+      })
+
+      it("sorts the results via id in ascending order", function(done) {
+        this.User.findAll().success(function(users) {
+          expect(users.length).toEqual(2);
+          expect(users[0].id).toBeLessThan(users[1].id)
+          done()
+        })
+      })
+
+      it("sorts the results via id in descending order", function(done) {
+        this.User.findAll({ order: "id DESC" }).success(function(users) {
+          expect(users[0].id).toBeGreaterThan(users[1].id)
+          done()
+        })
+      })
+
+      it("sorts the results via a date column", function(done) {
+        var self = this
+        self.User.create({username: 'user3', data: 'bar', theDate: moment().add('hours', 2).toDate()}).success(function(){
+          self.User.findAll({ order: 'theDate DESC' }).success(function(users) {
+            expect(users[0].id).toBeGreaterThan(users[2].id)
+            done()
+          })
+        })
+      })
+
+      it("handles offset and limit", function(done) {
+        var self = this
+        this.User.bulkCreate([{username: 'bobby'}, {username: 'tables'}]).success(function() {
+          self.User.findAll({ limit: 2, offset: 2 }).success(function(users) {
+            expect(users.length).toEqual(2)
+            expect(users[0].id).toEqual(3)
+            done()
+          })
+        })
+      })
+    })
   }) //- describe: findAll
+
+  describe('findAndCountAll', function() {
+    beforeEach(function(done) {
+      var self = this
+      this.User.bulkCreate([
+        {username: 'user', data: 'foobar'},
+        {username: 'user2', data: 'bar'},
+        {username: 'bobby', data: 'foo'}
+      ]).success(function() {
+        self.User.all().success(function(users){
+          self.users = users
+          done()
+        })
+      })
+    })
+
+    it("handles where clause [only]", function(done) {
+      this.User.findAndCountAll({where: "id != " + this.users[0].id}).success(function(info) {
+        expect(info.count).toEqual(2)
+        expect(Array.isArray(info.rows)).toBeTruthy()
+        expect(info.rows.length).toEqual(2)
+        done()
+      })
+    })
+
+    it("handles where clause with ordering [only]", function(done) {
+      this.User.findAndCountAll({where: "id != " + this.users[0].id, order: 'id ASC'}).success(function(info) {
+        expect(info.count).toEqual(2)
+        expect(Array.isArray(info.rows)).toBeTruthy()
+        expect(info.rows.length).toEqual(2)
+        done()
+      })
+    })
+
+    it("handles offset", function(done) {
+      this.User.findAndCountAll({offset: 1}).success(function(info) {
+        expect(info.count).toEqual(3)
+        expect(Array.isArray(info.rows)).toBeTruthy()
+        expect(info.rows.length).toEqual(2)
+        done()
+      })
+    })
+
+    it("handles limit", function(done) {
+      this.User.findAndCountAll({limit: 1}).success(function(info) {
+        expect(info.count).toEqual(3)
+        expect(Array.isArray(info.rows)).toBeTruthy()
+        expect(info.rows.length).toEqual(1)
+        done()
+      })
+    })
+
+    it("handles offset and limit", function(done) {
+      this.User.findAndCountAll({offset: 1, limit: 1}).success(function(info) {
+        expect(info.count).toEqual(3)
+        expect(Array.isArray(info.rows)).toBeTruthy()
+        expect(info.rows.length).toEqual(1)
+        done()
+      })
+    })
+  })
+
+  describe('all', function() {
+    beforeEach(function(done) {
+      this.User.bulkCreate([
+        {username: 'user', data: 'foobar'},
+        {username: 'user2', data: 'bar'}
+      ]).complete(done)
+    })
+
+    it("should return all users", function(done) {
+      this.User.all().on('success', function(users) {
+        expect(users.length).toEqual(2)
+        done()
+      })
+    })
+  })
+
+  describe('equals', function() {
+    it("correctly determines equality of objects", function(done) {
+      this.User.create({username: 'hallo', data: 'welt'}).success(function(u) {
+        expect(u.equals(u)).toBeTruthy()
+        done()
+      })
+    })
+
+    // sqlite can't handle multiple primary keys
+    if(dialect !== "sqlite") {
+      it("correctly determines equality with multiple primary keys", function(done) {
+        var userKeys = this.sequelize.define('userkeys', {
+          foo: {type: Sequelize.STRING, primaryKey: true},
+          bar: {type: Sequelize.STRING, primaryKey: true},
+          name: Sequelize.STRING,
+          bio: Sequelize.TEXT
+        })
+
+        this.sequelize.sync({ force: true }).success(function() {
+          userKeys.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).success(function(u) {
+            expect(u.equals(u)).toBeTruthy()
+            done()
+          })
+        })
+      })
+    }
+  })
+
+  describe('equalsOneOf', function() {
+    // sqlite can't handle multiple primary keys
+    if (dialect !== "sqlite") {
+      beforeEach(function(done) {
+        this.userKey = this.sequelize.define('userKeys', {
+          foo: {type: Sequelize.STRING, primaryKey: true},
+          bar: {type: Sequelize.STRING, primaryKey: true},
+          name: Sequelize.STRING,
+          bio: Sequelize.TEXT
+        })
+
+        this.sequelize.sync({ force: true }).success(done)
+      })
+
+      it('determines equality if one is matching', function(done) {
+        this.userKey.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).success(function(u) {
+          expect(u.equalsOneOf([u, {a: 1}])).toBeTruthy()
+          done()
+        })
+      })
+
+      it("doesn't determine equality if none is matching", function(done) {
+        this.userKey.create({foo: '1', bar: '2', name: 'hallo', bio: 'welt'}).success(function(u) {
+          expect(u.equalsOneOf([{b: 2}, {a: 1}])).toBeFalsy()
+          done()
+        })
+      })
+    }
+  })
+
+  describe('count', function() {
+    it('counts all created objects', function(done) {
+      var self = this
+      this.User.create({username: 'user1'}).success(function() {
+        self.User.create({username: 'user2'}).success(function() {
+          self.User.count().success(function(count) {
+            expect(count).toEqual(2)
+            done()
+          })
+        })
+      })
+    })
+
+    it('allows sql logging', function(done) {
+      this.User.count().on('sql', function(sql) {
+        expect(sql).toBeDefined()
+        expect(sql.toUpperCase().indexOf("SELECT")).toBeGreaterThan(-1)
+        done()
+      })
+    })
+
+    it('filters object', function(done) {
+      var self = this
+      this.User.create({username: 'user1'}).success(function() {
+        self.User.create({username: 'foo'}).success(function() {
+          self.User.count({where: "username LIKE '%us%'"}).success(function(count) {
+            expect(count).toEqual(1)
+            done()
+          })
+        })
+      })
+    })
+  })
 
   describe('min', function() {
     before(function(done) {
@@ -1635,7 +2202,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   describe('max', function() {
     before(function(done) {
       this.UserWithAge = this.sequelize.define('UserWithAge', {
-        age: Sequelize.INTEGER
+        age: Sequelize.INTEGER,
+        order: Sequelize.INTEGER
       })
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
@@ -1644,6 +2212,15 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       this.UserWithAge.sync({ force: true }).success(function(){
         this.UserWithDec.sync({ force: true }).success(done)
+      }.bind(this))
+    })
+
+    it("should return the max value for a field named the same as an SQL reserved keyword", function(done) {
+      this.UserWithAge.create({age: 3, order: 5}).success(function(){
+        this.UserWithAge.max('order').success(function(max) {
+          expect(max).toEqual(5)
+          done()
+        })
       }.bind(this))
     })
 
@@ -1770,4 +2347,124 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       }.bind(this))
     })
   })
+
+  describe('references', function() {
+    before(function() {
+      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
+    })
+
+    describe("use of existing dao factory", function() {
+      before(function() {
+        this.Post = this.sequelize.define('post', {
+          title:    Sequelize.STRING,
+          authorId: {
+            type:          Sequelize.INTEGER,
+            references:    this.Author,
+            referencesKey: "id"
+          }
+        })
+
+        this.Author.hasMany(this.Post)
+        this.Post.belongsTo(this.Author)
+      })
+
+      it('references the author table', function(done) {
+        this.Author.sync({ force: true }).success(function() {
+          this.Post.sync({ force: true }).on('sql', function(sql) {
+            if (dialect === 'postgres') {
+              expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
+            } else if (dialect === 'mysql') {
+              expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+            } else if (dialect === 'sqlite') {
+              expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+            } else {
+              throw new Error('Undefined dialect!')
+            }
+
+            done()
+          })
+        }.bind(this))
+      })
+    })
+
+    describe('use of table name as string', function() {
+      before(function() {
+        this.Post = this.sequelize.define('post', {
+          title:    Sequelize.STRING,
+          authorId: {
+            type:          Sequelize.INTEGER,
+            references:    'authors',
+            referencesKey: "id"
+          }
+        })
+
+        this.Author.hasMany(this.Post)
+        this.Post.belongsTo(this.Author)
+      })
+
+      it('references the author table', function(done) {
+        this.Author.sync({ force: true }).success(function() {
+          this.Post.sync({ force: true }).on('sql', function(sql) {
+            if (dialect === 'postgres') {
+              expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
+            } else if (dialect === 'mysql') {
+              expect(sql).toMatch(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+            } else if (dialect === 'sqlite') {
+              expect(sql).toMatch(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+            } else {
+              throw new Error('Undefined dialect!')
+            }
+
+            done()
+          })
+        }.bind(this))
+      })
+    })
+
+    describe('use of invalid table name', function() {
+      before(function() {
+        this.Post = this.sequelize.define('post', {
+          title:    Sequelize.STRING,
+          authorId: {
+            type:          Sequelize.INTEGER,
+            references:    '4uth0r5',
+            referencesKey: "id"
+          }
+        })
+
+        this.Author.hasMany(this.Post)
+        this.Post.belongsTo(this.Author)
+      })
+
+      it("emits the error event as the referenced table name is invalid", function(done) {
+        this.Author.sync({ force: true }).success(function() {
+          this.Post
+            .sync({ force: true })
+            .success(function() {
+              if (dialect === 'sqlite') {
+                // sorry ... but sqlite is too stupid to understand whats going on ...
+                expect(1).toEqual(1)
+                done()
+              } else {
+                // the parser should not end up here ...
+                expect(2).toEqual(1)
+              }
+            }).error(function(err) {
+              if (dialect === 'mysql') {
+                expect(err.message).toMatch(/ER_CANT_CREATE_TABLE/)
+              } else if (dialect === 'sqlite') {
+                // the parser should not end up here ... see above
+                expect(1).toEqual(2)
+              } else if (dialect === 'postgres') {
+                expect(err.message).toMatch(/relation "4uth0r5" does not exist/)
+              } else {
+                throw new Error('Undefined dialect!')
+              }
+
+              done()
+            })
+        }.bind(this))
+      })
+    })
+  }) //- describe: references
 })
