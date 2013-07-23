@@ -2445,8 +2445,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     describe('use of invalid table name', function() {
-      before(function(done) {
-        this.Post = this.sequelize.define('post', {
+      it("emits the error event as the referenced table name is invalid", function(done) {
+        this.timeout = 3500
+        var self = this
+
+        self.Post = self.sequelize.define('post', {
           title:    Sequelize.STRING,
           authorId: {
             type:          Sequelize.INTEGER,
@@ -2455,15 +2458,10 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           }
         })
 
-        this.Author.hasMany(this.Post)
-        this.Post.belongsTo(this.Author)
-        done()
-      })
+        self.Author.hasMany(self.Post)
+        self.Post.belongsTo(self.Author)
 
-      it("emits the error event as the referenced table name is invalid", function(done) {
-        this.timeout = 2500
-        var self = this
-        this.Author.sync({ force: true }).success(function() {
+        self.Author.sync({ force: true }).success(function() {
           self.Post.sync({ force: true }).success(function() {
             if (dialect === 'sqlite') {
               // sorry ... but sqlite is too stupid to understand whats going on ...

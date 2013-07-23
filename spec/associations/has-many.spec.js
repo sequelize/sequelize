@@ -289,20 +289,24 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       Parent.hasMany(Child, {as: 'Children', foreignKey: 'child_id', joinTableName: 'ParentRelationship'})
       Child.hasMany(Parent, {as: 'Parents', foreignKey: 'parent_id', joinTableName: 'ParentRelationship'})
 
-      this.sequelize.sync({ force: true }).success(function() {
-        Parent.create({name: 'mom'}).success(function(mom) {
-          parents.push(mom)
-          Parent.create({name: 'dad'}).success(function(dad) {
-            parents.push(dad)
-            Child.create({name: 'baby'}).success(function(baby) {
-              baby.setParents(parents).success(function(){
-                parents[0].getChildren().success(function(children){
-                  expect(children).not.toBe(null)
-                  expect(children.length).toBeDefined()
-                  expect(children.length).toEqual(1)
-                  expect(children[0]).toBeDefined()
-                  expect(children[0].name).toEqual('baby')
-                  done()
+      ParentJoin.sync({ force: true }).success(function() {
+        Parent.sync({ force: true }).success(function() {
+          Child.sync({ force: true }).success(function() {
+            Parent.create({name: 'mom'}).success(function(mom) {
+              parents.push(mom)
+              Parent.create({name: 'dad'}).success(function(dad) {
+                parents.push(dad)
+                Child.create({name: 'baby'}).success(function(baby) {
+                  baby.setParents(parents).success(function(){
+                    parents[0].getChildren().success(function(children){
+                      expect(children).not.toBe(null)
+                      expect(children.length).toBeDefined()
+                      expect(children.length).toEqual(1)
+                      expect(children[0]).toBeDefined()
+                      expect(children[0].name).toEqual('baby')
+                      done()
+                    })
+                  })
                 })
               })
             })
