@@ -1,37 +1,29 @@
 /* jshint multistr: true */
-
-if (typeof require === 'function') {
-  var buster             = require("buster")
-    , Helpers            = require('./buster-helpers')
-    , dialect            = Helpers.getTestDialect()
-}
+var buster             = require("buster")
+  , Helpers            = require('./buster-helpers')
+  , dialect            = Helpers.getTestDialect()
+  , DataTypes = require(__dirname + "/../lib/data-types")
 
 buster.spec.expose()
 buster.testRunner.timeout = 2000
 
 describe(Helpers.getTestDialectTeaser("QueryGenerators"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   before(function(done) {
-    Helpers.initTests({
-      dialect: dialect,
-      beforeComplete: function(sequelize, DataTypes) {
-        this.sequelize = sequelize
-        this.DataTypes = DataTypes
-      }.bind(this),
-      onComplete: function() {
-        this.interface = this.sequelize.getQueryInterface()
-        done()
-      }.bind(this)
-    })
+    this.sequelize = sequelize
+    this.interface = this.sequelize.getQueryInterface()
+    done()
   })
 
   describe("comments", function() {
     it("should create a comment for a column", function(done) {
       var self = this
         , User = this.sequelize.define('User', {
-          username: {type: this.DataTypes.STRING, comment: 'Some lovely info for my DBA'}
+          username: {type: DataTypes.STRING, comment: 'Some lovely info for my DBA'}
         })
 
-      User.sync().success(function(){
+      User.sync({ force: true }).success(function(){
         var sql = ''
         if (dialect === "mysql") {
           sql = 'SELECT COLUMN_COMMENT as cmt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = \'' + self.sequelize.config.database + '\' AND TABLE_NAME = \'Users\' AND COLUMN_NAME = \'username\'';

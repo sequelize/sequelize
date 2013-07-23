@@ -1,31 +1,25 @@
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , Helpers = require('../buster-helpers')
-      , dialect = Helpers.getTestDialect()
-      , QueryGenerator = require("../../lib/dialects/sqlite/query-generator")
-      , util    = require("util");
-}
+var buster  = require("buster")
+  , Helpers = require('../buster-helpers')
+  , dialect = Helpers.getTestDialect()
+  , QueryGenerator = require("../../lib/dialects/sqlite/query-generator")
+  , util    = require("util")
+  , DataTypes = require(__dirname + "/../../lib/data-types")
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
+
+var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
 if (dialect === 'sqlite') {
   describe('[SQLITE] QueryGenerator', function() {
     before(function(done) {
       var self = this
-
-      Helpers.initTests({
-        dialect: 'sqlite',
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-
-          self.User = sequelize.define('User', {
-            username: DataTypes.STRING
-          })
-        },
-        onComplete: function() {
-          self.User.sync({ force: true }).success(done)
-        }
+      this.sequelize = sequelize
+      Helpers.clearDatabase(this.sequelize, function() {
+        self.User = sequelize.define('User', {
+          username: DataTypes.STRING
+        })
+        self.User.sync({ force: true }).success(done)
       })
     })
 

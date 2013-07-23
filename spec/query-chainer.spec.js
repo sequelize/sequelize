@@ -10,21 +10,24 @@ buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("QueryChainer"), function() {
-  before(function() {
+  before(function(done) {
     this.queryChainer = new QueryChainer()
+    done()
   })
 
   describe('add', function() {
-    it('adds a new serial item if method is passed',   function() {
+    it('adds a new serial item if method is passed',   function(done) {
       expect(this.queryChainer.serials.length).toEqual(0)
       this.queryChainer.add({}, 'foo')
       expect(this.queryChainer.serials.length).toEqual(1)
+      done()
     })
 
-    it('adds a new emitter if no method is passed', function() {
+    it('adds a new emitter if no method is passed', function(done) {
       expect(this.queryChainer.emitters.length).toEqual(0)
       this.queryChainer.add(new CustomEventEmitter())
       expect(this.queryChainer.emitters.length).toEqual(1)
+      done()
     })
   })
 

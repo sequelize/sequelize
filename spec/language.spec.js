@@ -1,23 +1,22 @@
-if(typeof require === 'function') {
-  const buster    = require("buster")
-      , Sequelize = require("../index")
-      , Helpers   = require('./buster-helpers')
-      , dialect   = Helpers.getTestDialect()
-}
+var buster    = require("buster")
+    , Sequelize = require("../index")
+    , Helpers   = require('./buster-helpers')
+    , dialect   = Helpers.getTestDialect()
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("Language Util"), function() {
   describe("Plural", function(){
-    before(function(done) {
+    beforeAll(function(done) {
+      var self = this
       Helpers.initTests({
         dialect: dialect,
         onComplete: function(sequelize) {
-          this.sequelize = sequelize
-          this.sequelize.options.language = 'es'
+          self.sequelize = sequelize
+          self.sequelize.options.language = 'es'
           done()
-        }.bind(this)
+        }
       })
     })
 

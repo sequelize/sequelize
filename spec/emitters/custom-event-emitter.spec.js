@@ -12,7 +12,7 @@ describe(Helpers.getTestDialectTeaser("CustomEventEmitter"), function() {
 	describe("proxy", function () {
 		/* Tests could _probably_ be run synchronously, but for future proofing we're basing it on the events */
 
-		it("should correctly work with success listeners", function (done) {
+		it("should correctly work with success listeners", function(done) {
 			var emitter = new CustomEventEmitter()
 				, proxy = new CustomEventEmitter()
 				, success = this.spy()
@@ -29,7 +29,7 @@ describe(Helpers.getTestDialectTeaser("CustomEventEmitter"), function() {
 			proxy.emit('success')
 		})
 
-		it("should correctly work with error listeners", function (done) {
+		it("should correctly work with error listeners", function(done) {
 			var emitter = new CustomEventEmitter()
 				, proxy = new CustomEventEmitter()
 				, error = this.spy()
@@ -46,7 +46,7 @@ describe(Helpers.getTestDialectTeaser("CustomEventEmitter"), function() {
 			proxy.emit('error')
 		})
 
-		it("should correctly work with complete/done listeners", function (done) {
+		it("should correctly work with complete/done listeners", function(done) {
 			var emitter = new CustomEventEmitter()
 				, proxy = new CustomEventEmitter()
 				, complete = this.spy()

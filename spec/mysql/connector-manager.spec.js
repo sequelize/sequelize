@@ -1,26 +1,17 @@
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , Helpers = require('../buster-helpers')
-      , dialect = Helpers.getTestDialect()
-}
+var buster  = require("buster")
+  , Helpers = require('../buster-helpers')
+  , dialect = Helpers.getTestDialect()
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
+var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
 if (dialect.match(/^mysql/)) {
   describe('[MYSQL] Connector Manager', function() {
     before(function(done) {
-      var self = this
-
-      Helpers.initTests({
-        dialect: dialect,
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-        },
-        onComplete: function() {
-          self.sequelize.sync({ force: true }).success(done)
-        }
-      })
+      this.sequelize = sequelize
+      Helpers.clearDatabase(this.sequelize, done)
     })
 
     it('works correctly after being idle', function(done) {

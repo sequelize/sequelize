@@ -1,26 +1,17 @@
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , Helpers = require('../buster-helpers')
-      , dialect = Helpers.getTestDialect()
-}
+var buster  = require("buster")
+  , Helpers = require('../buster-helpers')
+  , dialect = Helpers.getTestDialect()
 
 buster.spec.expose()
-buster.testRunner.timeout = 1000
+buster.testRunner.timeout = 2000
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] associations', function() {
-    before(function(done) {
-      var self = this
+    var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
-      Helpers.initTests({
-        dialect: dialect,
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-        },
-        onComplete: function() {
-          self.sequelize.sync({ force: true }).success(done)
-        }
-      })
+    before(function(done) {
+      this.sequelize = sequelize
+      Helpers.clearDatabase(this.sequelize, done)
     })
 
     describe('many-to-many', function() {

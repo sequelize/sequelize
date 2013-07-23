@@ -1,34 +1,27 @@
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , Helpers = require('../buster-helpers')
-      , dialect = Helpers.getTestDialect()
-      , QueryGenerator = require("../../lib/dialects/postgres/query-generator")
-      , util           = require("util")
-      , moment = require('moment')
-}
+var buster  = require("buster")
+  , Helpers = require('../buster-helpers')
+  , dialect = Helpers.getTestDialect()
+  , QueryGenerator = require("../../lib/dialects/postgres/query-generator")
+  , util           = require("util")
+  , moment = require('moment')
+  , DataTypes = require(__dirname + "/../../lib/data-types")
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] QueryGenerator', function() {
+    var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
     before(function(done) {
       var self = this
-
-      Helpers.initTests({
-        dialect: dialect,
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-
-          self.User = sequelize.define('User', {
-            username: DataTypes.STRING,
-            email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
-            document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
-          })
-        },
-        onComplete: function() {
-          self.User.sync({ force: true }).success(done)
-        }
+      this.sequelize = sequelize
+      Helpers.clearDatabase(this.sequelize, function() {
+        self.User = sequelize.define('User', {
+          username: DataTypes.STRING,
+          email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
+          document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
+        })
+        self.User.sync({ force: true }).success(done)
       })
     })
 

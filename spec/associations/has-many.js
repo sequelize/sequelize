@@ -1,10 +1,11 @@
 /* jshint camelcase: false */
 var buster    = require("buster")
-    , Helpers   = require('../buster-helpers')
-    , Sequelize = require('../../index')
-    , dialect   = Helpers.getTestDialect()
-    , _         = require('lodash')
-    , moment    = require('moment')
+  , Helpers   = require('../buster-helpers')
+  , Sequelize = require('../../index')
+  , dialect   = Helpers.getTestDialect()
+  , _         = require('lodash')
+  , moment    = require('moment')
+  , DataTypes = require(__dirname + "/../../lib/data-types")
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
@@ -13,16 +14,18 @@ var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
 describe(Helpers.getTestDialectTeaser("HasMany"), function() {
   before(function(done) {
-    var self = this
-    self.sequelize = sequelize
+    this.sequelize = sequelize
     Helpers.clearDatabase(this.sequelize, done)
   })
 
   describe('general usage', function() {
     before(function(done) {
-      this.User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING })
-      this.Task = this.sequelize.define('Task', { title: Helpers.Sequelize.STRING })
-      this.sequelize.sync({ force: true }).success(done)
+      this.User = this.sequelize.define('User', { username: DataTypes.STRING })
+      this.Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+      var self = this
+      this.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(done)
+      })
     })
 
     describe('mono-directional', function() {
@@ -33,8 +36,8 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
 
       it('adds the foreign key with underscore', function(done) {
-        var User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING })
-          , Task = this.sequelize.define('Task', { title: Helpers.Sequelize.STRING }, { underscored: true })
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING }, { underscored: true })
 
         Task.hasMany(User)
 
@@ -70,17 +73,19 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         var self = this
 
         this.User.hasMany(this.Task, { as: 'Tasks' })
-        this.sequelize.sync({ force: true }).success(function() {
-          self.User.create({username: 'name'}).success(function(user) {
-            self.Task.create({title: 'task1'}).success(function(task1) {
-              self.Task.create({title: 'task2'}).success(function(task2) {
-                user.setTasks([task1, task2]).success(function() {
-                  user.getTasks().success(function(tasks) {
-                    expect(tasks.length).toEqual(2)
-                    user.getTasks({attributes: ['title']}).success(function(tasks) {
-                      expect(tasks[0].selectedValues.title).toEqual('task1')
-                      expect(tasks[0].selectedValues.id).not.toBeDefined()
-                      done()
+        this.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(function() {
+            self.User.create({username: 'name'}).success(function(user) {
+              self.Task.create({title: 'task1'}).success(function(task1) {
+                self.Task.create({title: 'task2'}).success(function(task2) {
+                  user.setTasks([task1, task2]).success(function() {
+                    user.getTasks().success(function(tasks) {
+                      expect(tasks.length).toEqual(2)
+                      user.getTasks({attributes: ['title']}).success(function(tasks) {
+                        expect(tasks[0].selectedValues.title).toEqual('task1')
+                        expect(tasks[0].selectedValues.id).not.toBeDefined()
+                        done()
+                      })
                     })
                   })
                 })
@@ -93,7 +98,7 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
     it("should allow selfAssociation to be single linked (only one DAO is created)", function(done) {
       var oldLength = this.sequelize.daoFactoryManager.daos.length
-        , Comment = this.sequelize.define('Comment', { content: Helpers.Sequelize.STRING })
+        , Comment = this.sequelize.define('Comment', { content: DataTypes.STRING })
 
       Comment.belongsTo(Comment, {as: "Parent"});
       Comment.hasMany(Comment, {as: 'Children', foreignKey: "ParentId", useJunctionTable: false})
@@ -225,24 +230,26 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
         this.User.hasMany(this.Task, {as: 'Tasks'})
         this.Task.hasMany(this.User, {as: 'Users'})
-        this.sequelize.sync({ force: true }).success(function() {
-          self.User.create({username: 'name'}).success(function(user1) {
-            self.User.create({username: 'name2'}).success(function(user2) {
-              self.Task.create({title: 'task1'}).success(function(task1) {
-                self.Task.create({title: 'task2'}).success(function(task2) {
-                  users.push(user1)
-                  users.push(user2)
-                  tasks.push(task1)
-                  tasks.push(task2)
+        this.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(function() {
+            self.User.create({username: 'name'}).success(function(user1) {
+              self.User.create({username: 'name2'}).success(function(user2) {
+                self.Task.create({title: 'task1'}).success(function(task1) {
+                  self.Task.create({title: 'task2'}).success(function(task2) {
+                    users.push(user1)
+                    users.push(user2)
+                    tasks.push(task1)
+                    tasks.push(task2)
 
-                  users[0].setTasks(tasks).success(function() {
-                    users[0].getTasks().success(function(_tasks) {
-                      expect(_tasks.length).toEqual(2)
+                    users[0].setTasks(tasks).success(function() {
+                      users[0].getTasks().success(function(_tasks) {
+                        expect(_tasks.length).toEqual(2)
 
-                      tasks[1].setUsers(users).success(function() {
-                        tasks[1].getUsers().success(function(_users) {
-                          expect(users.length).toEqual(2)
-                          done()
+                        tasks[1].setUsers(users).success(function() {
+                          tasks[1].getUsers().success(function() {
+                            expect(users.length).toEqual(2)
+                            done()
+                          })
                         })
                       })
                     })
@@ -284,20 +291,22 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       Parent.hasMany(Child, {as: 'Children', foreignKey: 'child_id', joinTableName: 'ParentRelationship'})
       Child.hasMany(Parent, {as: 'Parents', foreignKey: 'parent_id', joinTableName: 'ParentRelationship'})
 
-      this.sequelize.sync({ force: true }).success(function() {
-        Parent.create({name: 'mom'}).success(function(mom) {
-          parents.push(mom)
-          Parent.create({name: 'dad'}).success(function(dad) {
-            parents.push(dad)
-            Child.create({name: 'baby'}).success(function(baby) {
-              baby.setParents(parents).success(function(){
-                parents[0].getChildren().success(function(children){
-                  expect(children).not.toBe(null)
-                  expect(children.length).toBeDefined()
-                  expect(children.length).toEqual(1)
-                  expect(children[0]).toBeDefined()
-                  expect(children[0].name).toEqual('baby')
-                  done()
+      Parent.sync({ force: true }).success(function() {
+        Child.sync({ force: true }).success(function() {
+          Parent.create({name: 'mom'}).success(function(mom) {
+            parents.push(mom)
+            Parent.create({name: 'dad'}).success(function(dad) {
+              parents.push(dad)
+              Child.create({name: 'baby'}).success(function(baby) {
+                baby.setParents(parents).success(function(){
+                  parents[0].getChildren().success(function(children){
+                    expect(children).not.toBe(null)
+                    expect(children.length).toBeDefined()
+                    expect(children.length).toEqual(1)
+                    expect(children[0]).toBeDefined()
+                    expect(children[0].name).toEqual('baby')
+                    done()
+                  })
                 })
               })
             })
@@ -317,19 +326,23 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       User.hasMany(Company, {as: 'Companies', foreignKey: 'user_id', joinTableName: 'CompanyAccess'})
       Company.hasMany(User, {as: 'Users', foreignKey: 'company_id', joinTableName: 'CompanyAccess'})
 
-      this.sequelize.sync({ force: true }).success(function() {
-        Company.create({name: 'IBM'}).success(function(ibm) {
-          companies.push(ibm)
-          Company.create({name: 'EA'}).success(function(ea) {
-            companies.push(ea)
-            User.create({name: 'joe@ibm.com'}).success(function(joe) {
-              joe.setCompanies(companies).success(function(){
-                User.find({where: {name: 'joe@ibm.com'}}).success(function(joe) {
-                  expect(joe).not.toEqual(null)
-                  joe.getCompanies().success(function(comps) {
-                    expect(comps).not.toEqual(null)
-                    expect(comps.length).toEqual(2)
-                    done()
+      User.sync({ force: true }).success(function() {
+        Company.sync({ force: true }).success(function() {
+          CompanyAccess.sync({ force: true }).success(function() {
+            Company.create({name: 'IBM'}).success(function(ibm) {
+              companies.push(ibm)
+              Company.create({name: 'EA'}).success(function(ea) {
+                companies.push(ea)
+                User.create({name: 'joe@ibm.com'}).success(function(joe) {
+                  joe.setCompanies(companies).success(function(){
+                    User.find({where: {name: 'joe@ibm.com'}}).success(function(joe) {
+                      expect(joe).not.toEqual(null)
+                      joe.getCompanies().success(function(comps) {
+                        expect(comps).not.toEqual(null)
+                        expect(comps.length).toEqual(2)
+                        done()
+                      })
+                    })
                   })
                 })
               })
@@ -366,15 +379,18 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     describe('hasSingle', function() {
       before(function(done) {
         this.Article = this.sequelize.define('Article', {
-          'title': Sequelize.STRING
+          'title': DataTypes.STRING
         })
         this.Label   = this.sequelize.define('Label', {
-          'text': Sequelize.STRING
+          'text': DataTypes.STRING
         })
 
         this.Article.hasMany(this.Label)
 
-        this.sequelize.sync({ force: true }).success(done)
+        var self = this
+        this.Article.sync({ force: true }).success(function() {
+          self.Label.sync({ force: true }).success(done)
+        })
       })
 
       it('does not have any labels assigned to it initially', function(done) {
@@ -425,15 +441,18 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     describe('hasAll', function() {
       before(function(done) {
         this.Article = this.sequelize.define('Article', {
-          'title': Sequelize.STRING
+          'title': DataTypes.STRING
         })
         this.Label = this.sequelize.define('Label', {
-          'text': Sequelize.STRING
+          'text': DataTypes.STRING
         })
 
         this.Article.hasMany(this.Label)
 
-        this.sequelize.sync({ force: true }).success(done)
+        var self = this
+        this.Article.sync({ force: true }).success(function() {
+          self.Label.sync({ force: true }).success(done)
+        })
       })
 
       it('answers false if only some labels have been assigned', function(done) {
@@ -473,22 +492,24 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
     describe('setAssociations', function() {
       it("clears associations when passing null to the set-method", function(done) {
-        var User = this.sequelize.define('User', { username: Sequelize.STRING })
-          , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
 
         Task.hasMany(User)
 
-        this.sequelize.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Task.create({ title: 'task' }).success(function(task) {
-              task.setUsers([ user ]).success(function() {
-                task.getUsers().success(function(_users) {
-                  expect(_users.length).toEqual(1)
+        User.sync({ force: true }).success(function() {
+          Task.sync({ force: true }).success(function() {
+            User.create({ username: 'foo' }).success(function(user) {
+              Task.create({ title: 'task' }).success(function(task) {
+                task.setUsers([ user ]).success(function() {
+                  task.getUsers().success(function(_users) {
+                    expect(_users.length).toEqual(1)
 
-                  task.setUsers(null).success(function() {
-                    task.getUsers().success(function(_users) {
-                      expect(_users.length).toEqual(0)
-                      done()
+                    task.setUsers(null).success(function() {
+                      task.getUsers().success(function(_users) {
+                        expect(_users.length).toEqual(0)
+                        done()
+                      })
                     })
                   })
                 })
@@ -507,236 +528,8 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
       Task.hasMany(User)
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUsers([ user ]).success(function() {
-              task.getUsers().success(function(_users) {
-                expect(_users.length).toEqual(1)
-
-                task.setUsers(null).success(function() {
-                  task.getUsers().success(function(_users) {
-                    expect(_users.length).toEqual(0)
-                    done()
-                  })
-                })
-              })
-            })
-          })
-        })
-      })
-    })
-
-    describe("getting assocations with options", function() {
-      before(function(done) {
-        var self = this
-
-        this.User = this.sequelize.define('User', { username: Sequelize.STRING })
-        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
-
-        this.User.hasMany(self.Task)
-
-        this.sequelize.sync({ force: true }).done(function() {
-          var chainer = new Sequelize.Utils.QueryChainer([
-            self.User.create({ username: 'John'}),
-            self.Task.create({ title: 'Get rich', active: true}),
-            self.Task.create({ title: 'Die trying', active: false})
-          ])
-
-          chainer.run().success(function (results, john, task1, task2) {
-            john.setTasks([task1, task2]).success(done)
-          })
-        })
-      })
-
-      it('should treat the where object of associations as a first class citizen', function(done) {
-        var self = this
-        this.Article = this.sequelize.define('Article', {
-          'title': Sequelize.STRING
-        })
-        this.Label = this.sequelize.define('Label', {
-          'text': Sequelize.STRING,
-          'until': Sequelize.DATE
-        })
-
-        this.Article.hasMany(this.Label)
-
-        this.sequelize.sync({ force: true }).success(function() {
-          var chainer = new Sequelize.Utils.QueryChainer([
-            self.Article.create({ title: 'Article' }),
-            self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
-            self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
-          ])
-
-          chainer.run().success(function(results, article, label1, label2) {
-            article.setLabels([label1, label2]).success(function() {
-              article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]}).success(function(labels) {
-                expect(labels).toBeArray()
-                expect(labels.length).toEqual(1)
-                expect(labels[0].text).toEqual('Epicness')
-                done()
-              })
-            })
-          })
-        })
-      })
-
-      it("gets all associated objects when no options are passed", function(done) {
-        this.User.find({where: {username: 'John'}}).success(function (john) {
-          john.getTasks().success(function (tasks) {
-            expect(tasks.length).toEqual(2)
-            done()
-          })
-        })
-      })
-
-      it("only get objects that fulfill the options", function(done) {
-        this.User.find({ where: { username: 'John' } }).success(function (john) {
-          john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' }).success(function (tasks) {
-            expect(tasks.length).toEqual(1)
-            done()
-          })
-        })
-      })
-    })
-
-    describe('optimizations using bulk create, destroy and update', function () {
-      before(function (done) {
-        this.User = this.sequelize.define('User', { username: Sequelize.STRING }, {timestamps: false})
-        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING }, {timestamps: false})
-
-        this.User.hasMany(this.Task)
-
-        this.sequelize.sync({force: true}).success(done)
-      })
-
-      it('uses one UPDATE statement', function (done) {
-        var spy = this.spy()
-
-        this.User.create({ username: 'foo' }).success(function(user) {
-          this.Task.create({ title: 'task1' }).success(function(task1) {
-            this.Task.create({ title: 'task2' }).success(function(task2) {
-              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
-                expect(sql).toMatch("UPDATE")
-                expect(sql).toMatch("IN (1,2)")
-              })).success(function () {
-                expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
-                done()
-              })
-            }.bind(this))
-          }.bind(this))
-        }.bind(this))
-      })
-
-      it('uses one UPDATE statement', function (done) {
-        var spy = this.spy()
-
-        this.User.create({ username: 'foo' }).success(function (user) {
-          this.Task.create({ title: 'task1' }).success(function (task1) {
-            this.Task.create({ title: 'task2' }).success(function (task2) {
-              user.setTasks([task1, task2]).success(function () {
-                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECT, only UPDATE
-                  expect(sql).toMatch("UPDATE")
-                  expect(sql).toMatch("IN (1,2)")
-                })).success(function () {
-                  expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
-                  done()
-                })
-              })
-            }.bind(this))
-          }.bind(this))
-        }.bind(this))
-      })
-    }) // end optimization using bulk create, destroy and update
-  })
-
-  describe('(N:M)', function() {
-    describe("getting assocations with options", function() {
-      before(function(done) {
-        var self = this
-
-        this.User = this.sequelize.define('User', { username: Sequelize.STRING })
-        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
-
-        self.User.hasMany(self.Task)
-        self.Task.hasMany(self.User)
-
-        this.sequelize.sync({ force: true }).done(function() {
-          var chainer = new Sequelize.Utils.QueryChainer([
-            self.User.create({ username: 'John'}),
-            self.Task.create({ title: 'Get rich', active: true}),
-            self.Task.create({ title: 'Die trying', active: false})
-          ])
-
-          chainer.run().success(function (results, john, task1, task2) {
-            john.setTasks([task1, task2]).success(done)
-          })
-        })
-      })
-
-      it("gets all associated objects when no options are passed", function(done) {
-        this.User.find({where: {username: 'John'}}).success(function (john) {
-          john.getTasks().success(function (tasks) {
-            expect(tasks.length).toEqual(2)
-            done()
-          })
-        })
-      })
-
-      it("only get objects that fulfill the options", function(done) {
-        this.User.find({where: {username: 'John'}}).success(function (john) {
-          john.getTasks({where: {active: true}}).success(function (tasks) {
-            expect(tasks.length).toEqual(1)
-            done()
-          })
-        })
-      })
-
-      it("only gets objects that fulfill options with a formatted value", function(done) {
-        this.User.find({where: {username: 'John'}}).success(function (john) {
-          john.getTasks({where: ['active = ?', true]}).success(function (tasks) {
-            expect(tasks.length).toEqual(1)
-            done()
-          })
-        })
-      })
-    })
-
-    it("removes the reference id, which was added in the first place", function() {
-      var User = this.sequelize.define('User', { username: Sequelize.STRING })
-        , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-
-      User.hasMany(Task)
-      expect(Task.attributes.UserId).toBeDefined()
-
-      Task.hasMany(User)
-      expect(Task.attributes.UserId).not.toBeDefined()
-    })
-
-    it("adds three items to the query chainer when calling sync", function() {
-      var User = this.sequelize.define('User', { username: Sequelize.STRING })
-        , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-
-      User.hasMany(Task)
-      Task.hasMany(User)
-
-      var add = this.spy()
-
-      this.stub(Sequelize.Utils, 'QueryChainer').returns({ add: add, runSerially: function(){} })
-
-      this.sequelize.sync({ force: true })
-      expect(add).toHaveBeenCalledThrice()
-    })
-
-    describe('setAssociations', function() {
-      it("clears associations when passing null to the set-method", function(done) {
-        var User = this.sequelize.define('User', { username: Sequelize.STRING })
-          , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-
-        User.hasMany(Task)
-        Task.hasMany(User)
-
-        this.sequelize.sync({ force: true }).success(function() {
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             Task.create({ title: 'task' }).success(function(task) {
               task.setUsers([ user ]).success(function() {
@@ -757,43 +550,293 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe("getting assocations with options", function() {
+      it('should treat the where object of associations as a first class citizen', function(done) {
+        var self = this
+        this.Article = this.sequelize.define('Article', {
+          'title': DataTypes.STRING
+        })
+        this.Label = this.sequelize.define('Label', {
+          'text': DataTypes.STRING,
+          'until': DataTypes.DATE
+        })
+
+        this.Article.hasMany(this.Label)
+
+        self.Article.sync({ force: true }).success(function() {
+          self.Label.sync({ force: true }).success(function() {
+            var chainer = new Sequelize.Utils.QueryChainer([
+              self.Article.create({ title: 'Article' }),
+              self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
+              self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
+            ])
+
+            chainer.run().success(function(results, article, label1, label2) {
+              article.setLabels([label1, label2]).success(function() {
+                article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]}).success(function(labels) {
+                  expect(labels).toBeArray()
+                  expect(labels.length).toEqual(1)
+                  expect(labels[0].text).toEqual('Epicness')
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+
+      describe("generic options", function() {
+        before(function(done) {
+          var self = this
+
+          this.User = this.sequelize.define('User', { username: DataTypes.STRING })
+          this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN })
+
+          this.User.hasMany(self.Task)
+
+          this.User.sync({ force: true }).success(function() {
+            self.Task.sync({ force: true }).success(function() {
+              var chainer = new Sequelize.Utils.QueryChainer([
+                self.User.create({ username: 'John'}),
+                self.Task.create({ title: 'Get rich', active: true}),
+                self.Task.create({ title: 'Die trying', active: false})
+              ])
+
+              chainer.run().success(function (results, john, task1, task2) {
+                john.setTasks([task1, task2]).success(done)
+              })
+            })
+          })
+        })
+
+        it("gets all associated objects when no options are passed", function(done) {
+          this.User.find({where: {username: 'John'}}).success(function(john) {
+            john.getTasks().success(function (tasks) {
+              expect(tasks.length).toEqual(2)
+              done()
+            })
+          })
+        })
+
+        it("only get objects that fulfill the options", function(done) {
+          this.User.find({ where: { username: 'John' } }).success(function(john) {
+            john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' }).success(function(tasks) {
+              expect(tasks.length).toEqual(1)
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('optimizations using bulk create, destroy and update', function () {
+      before(function(done) {
+        var self = this
+        this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false})
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, {timestamps: false})
+
+        this.User.hasMany(this.Task)
+        self.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(done)
+        })
+      })
+
+      it('uses one UPDATE statement', function(done) {
+        var spy = this.spy()
+          , self = this
+
+        this.User.create({ username: 'foo' }).success(function(user) {
+          self.Task.create({ title: 'task1' }).success(function(task1) {
+            self.Task.create({ title: 'task2' }).success(function(task2) {
+              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function(sql) { // We don't care about SELECt, only UPDAET
+                expect(sql).toMatch("UPDATE")
+                expect(sql).toMatch("IN (1,2)")
+              })).success(function () {
+                expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      it('uses one UPDATE statement', function(done) {
+        var spy = this.spy()
+          , self = this
+
+        this.User.create({ username: 'foo' }).success(function(user) {
+          self.Task.create({ title: 'task1' }).success(function(task1) {
+            self.Task.create({ title: 'task2' }).success(function(task2) {
+              user.setTasks([task1, task2]).success(function () {
+                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function(sql) { // We don't care about SELECT, only UPDATE
+                  expect(sql).toMatch("UPDATE")
+                  expect(sql).toMatch("IN (1,2)")
+                })).success(function () {
+                  expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for UPDATE
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('(N:M)', function() {
+    describe("getting assocations with options", function() {
+      before(function(done) {
+        var self = this
+
+        this.User = this.sequelize.define('User', { username: DataTypes.STRING })
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN })
+
+        self.User.hasMany(self.Task)
+        self.Task.hasMany(self.User)
+
+        self.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(function() {
+            var chainer = new Sequelize.Utils.QueryChainer([
+              self.User.create({ username: 'John'}),
+              self.Task.create({ title: 'Get rich', active: true}),
+              self.Task.create({ title: 'Die trying', active: false})
+            ])
+
+            chainer.run().success(function(results, john, task1, task2) {
+              john.setTasks([task1, task2]).success(done)
+            })
+          })
+        })
+      })
+
+      it("gets all associated objects when no options are passed", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function(john) {
+          john.getTasks().success(function (tasks) {
+            expect(tasks.length).toEqual(2)
+            done()
+          })
+        })
+      })
+
+      it("only get objects that fulfill the options", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function(john) {
+          john.getTasks({where: {active: true}}).success(function(tasks) {
+            expect(tasks.length).toEqual(1)
+            done()
+          })
+        })
+      })
+
+      it("only gets objects that fulfill options with a formatted value", function(done) {
+        this.User.find({where: {username: 'John'}}).success(function(john) {
+          john.getTasks({where: ['active = ?', true]}).success(function(tasks) {
+            expect(tasks.length).toEqual(1)
+            done()
+          })
+        })
+      })
+    })
+
+    it("removes the reference id, which was added in the first place", function(done) {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+      User.hasMany(Task)
+      expect(Task.attributes.UserId).toBeDefined()
+
+      Task.hasMany(User)
+      expect(Task.attributes.UserId).not.toBeDefined()
+      done()
+    })
+
+    it("adds three items to the query chainer when calling sync", function(done) {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+      User.hasMany(Task)
+      Task.hasMany(User)
+
+      var add = this.spy()
+
+      this.stub(Sequelize.Utils, 'QueryChainer').returns({ add: add, runSerially: function(){} })
+
+      this.sequelize.sync({ force: true })
+      expect(add).toHaveBeenCalledThrice()
+      done()
+    })
+
+    describe('setAssociations', function() {
+      it("clears associations when passing null to the set-method", function(done) {
+        var User = this.sequelize.define('User', { username: Sequelize.STRING })
+          , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+
+        User.hasMany(Task)
+        Task.hasMany(User)
+
+        User.sync({ force: true }).success(function() {
+          Task.sync({ force: true }).success(function() {
+            User.create({ username: 'foo' }).success(function(user) {
+              Task.create({ title: 'task' }).success(function(task) {
+                task.setUsers([ user ]).success(function() {
+                  task.getUsers().success(function(_users) {
+                    expect(_users.length).toEqual(1)
+                    task.setUsers(null).success(function() {
+                      task.getUsers().success(function(_users) {
+                        expect(_users.length).toEqual(0)
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe('optimizations using bulk create, destroy and update', function () {
       before(function (done) {
-        this.User = this.sequelize.define('User', { username: Sequelize.STRING }, {timestamps: false})
-        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING }, {timestamps: false})
+        this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false})
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, {timestamps: false})
 
         this.User.hasMany(this.Task)
         this.Task.hasMany(this.User)
 
-        this.sequelize.sync({force: true}).success(done)
+        var self = this
+        self.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(done)
+        })
       })
 
-      it('uses one insert into statement', function (done) {
+      it('uses one insert into statement', function(done) {
         var spy = this.spy()
+          , self = this
 
         this.User.create({ username: 'foo' }).success(function(user) {
-          this.Task.create({ title: 'task1' }).success(function(task1) {
-            this.Task.create({ title: 'task2' }).success(function(task2) {
-              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
+          self.Task.create({ title: 'task1' }).success(function(task1) {
+            self.Task.create({ title: 'task2' }).success(function(task2) {
+              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function(sql) {
                 expect(sql).toMatch("INSERT INTO")
                 expect(sql).toMatch("VALUES (1,1),(2,1)")
               })).success(function () {
                 expect(spy).toHaveBeenCalledTwice() // Once for SELECT, once for INSERT into
                 done()
               })
-            }.bind(this))
-          }.bind(this))
-        }.bind(this))
+            })
+          })
+        })
       })
 
-      it('uses one delete from statement', function (done) {
+      it('uses one delete from statement', function(done) {
         var spy = this.spy()
+          , self = this
 
-        this.User.create({ username: 'foo' }).success(function (user) {
-          this.Task.create({ title: 'task1' }).success(function (task1) {
-            this.Task.create({ title: 'task2' }).success(function (task2) {
+        this.User.create({ username: 'foo' }).success(function(user) {
+          self.Task.create({ title: 'task1' }).success(function(task1) {
+            self.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).success(function () {
-                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) {
+                user.setTasks(null).on('sql', spy).on('sql', _.after(2, function(sql) {
                   expect(sql).toMatch("DELETE FROM")
                   expect(sql).toMatch("IN (1,2)")
                 })).success(function () {
@@ -801,20 +844,20 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
                   done()
                 })
               })
-            }.bind(this))
-          }.bind(this))
-        }.bind(this))
+            })
+          })
+        })
       })
     }) // end optimization using bulk create, destroy and update
 
     describe('join table creation', function () {
       before(function (done) {
         this.User = this.sequelize.define('User',
-          { username: Sequelize.STRING },
+          { username: DataTypes.STRING },
           { tableName: 'users'}
         )
         this.Task = this.sequelize.define('Task',
-          { title: Sequelize.STRING },
+          { title: DataTypes.STRING },
           { tableName: 'tasks' }
         )
 
@@ -823,7 +866,10 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         )
         this.Task.hasMany(this.User)
 
-        this.sequelize.sync({force: true}).success(done)
+        var self = this
+        self.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(done)
+        })
       })
 
       it('uses the specified joinTableName or a reasonable default', function(done) {
@@ -847,23 +893,26 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
   describe("Foreign key constraints", function() {
     before(function(done) {
-      Helpers.clearDatabase(this.sequelize, done) // Constraints need this for some reason...
+      this.sequelize.options = console.log
+      done()
     })
 
     it("are not enabled by default", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+        , User = this.sequelize.define('User', { username: DataTypes.STRING })
 
       User.hasMany(Task)
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            user.setTasks([task]).success(function() {
-              user.destroy().success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  done()
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTasks([task]).success(function() {
+                user.destroy().success(function() {
+                  Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    done()
+                  })
                 })
               })
             })
@@ -873,19 +922,19 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     })
 
     it("can cascade deletes", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.User.hasMany(self.Task, {onDelete: 'cascade'})
 
-      User.hasMany(Task, {onDelete: 'cascade'})
-
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            user.setTasks([task]).success(function() {
-              user.destroy().success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(0)
-                  done()
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              user.setTasks([task]).success(function() {
+                user.destroy().success(function() {
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(0)
+                    done()
+                  })
                 })
               })
             })
@@ -895,20 +944,20 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     })
 
     it("can restrict deletes", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.User.hasMany(self.Task, {onDelete: 'restrict'})
 
-      User.hasMany(Task, {onDelete: 'restrict'})
-
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            user.setTasks([task]).success(function() {
-              user.destroy().error(function() {
-                // Should fail due to FK restriction
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  done()
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              user.setTasks([task]).success(function() {
+                user.destroy().error(function() {
+                  // Should fail due to FK restriction
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    done()
+                  })
                 })
               })
             })
@@ -918,27 +967,27 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     })
 
     it("can cascade updates", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.User.hasMany(self.Task, {onUpdate: 'cascade'})
 
-      User.hasMany(Task, {onUpdate: 'cascade'})
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              user.setTasks([task]).success(function() {
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            user.setTasks([task]).success(function() {
+                // Changing the id of a DAO requires a little dance since
+                // the `UPDATE` query generated by `save()` uses `id` in the
+                // `WHERE` clause
 
-              // Changing the id of a DAO requires a little dance since
-              // the `UPDATE` query generated by `save()` uses `id` in the
-              // `WHERE` clause
-
-              var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
-              user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-              .success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  expect(tasks[0].UserId).toEqual(999)
-                  done()
+                var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
+                user.QueryInterface.update(user, tableName, {id: 999}, user.id)
+                .success(function() {
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    expect(tasks[0].UserId).toEqual(999)
+                    done()
+                  })
                 })
               })
             })
@@ -948,27 +997,27 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     })
 
     it("can restrict updates", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.User.hasMany(self.Task, {onUpdate: 'restrict'})
 
-      User.hasMany(Task, {onUpdate: 'restrict'})
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              user.setTasks([task]).success(function() {
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            user.setTasks([task]).success(function() {
+                // Changing the id of a DAO requires a little dance since
+                // the `UPDATE` query generated by `save()` uses `id` in the
+                // `WHERE` clause
 
-              // Changing the id of a DAO requires a little dance since
-              // the `UPDATE` query generated by `save()` uses `id` in the
-              // `WHERE` clause
-
-              var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
-              user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-              .error(function() {
-                // Should fail due to FK restriction
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  done()
+                var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
+                user.QueryInterface.update(user, tableName, {id: 999}, user.id)
+                .error(function() {
+                  // Should fail due to FK restriction
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    done()
+                  })
                 })
               })
             })
@@ -976,22 +1025,21 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
         })
       })
     })
-
   })
 
   describe("Association options", function() {
     it('can specify data type for autogenerated relational keys', function(done) {
-      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
-        , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT, Sequelize.STRING]
+      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , dataTypes = [DataTypes.INTEGER, Sequelize.BIGINT, DataTypes.STRING]
         , self = this
 
       dataTypes.forEach(function(dataType) {
         var tableName = 'TaskXYZ_' + dataType.toString()
-          , Task = self.sequelize.define(tableName, { title: Sequelize.STRING })
+          , Task = self.sequelize.define(tableName, { title: DataTypes.STRING })
 
         User.hasMany(Task, { foreignKey: 'userId', keyType: dataType })
 
-        self.sequelize.sync({ force: true }).success(function() {
+        User.sync({ force: true }).success(function() {
           expect(Task.rawAttributes.userId.type.toString())
             .toEqual(dataType.toString())
 

@@ -1,11 +1,8 @@
-if(typeof require === 'function') {
-  const buster           = require("buster")
-    , semver             = require("semver")
-    , CustomEventEmitter = require("../lib/emitters/custom-event-emitter")
-    , Helpers            = require('./buster-helpers')
-    , config             = require(__dirname + "/config/config")
-    , dialect            = Helpers.getTestDialect()
-}
+var buster           = require("buster")
+  , semver             = require("semver")
+  , Helpers            = require('./buster-helpers')
+  , config             = require(__dirname + "/config/config")
+  , dialect            = Helpers.getTestDialect()
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
@@ -27,15 +24,7 @@ describe(Helpers.getTestDialectTeaser("Configuration"), function() {
         , d = domain.create()
 
       d.on('error', function(err){
-        var msg = 'Failed to find SQL server. Please double check your settings.'
-        if (dialect === "postgres" || dialect === "postgres-native") {
-          msg = 'Failed to find PostgresSQL server. Please double check your settings.'
-        }
-        else if (dialect === "mysql") {
-          msg = 'Failed to find MySQL server. Please double check your settings.'
-        }
-
-        expect(err.message).toEqual(msg)
+        expect(err).toMatch(/Failed to find (.*?) Please double check your settings\./)
         d.remove(sequelize.query)
         done()
       })
@@ -65,35 +54,28 @@ describe(Helpers.getTestDialectTeaser("Configuration"), function() {
       , d = domain.create()
 
       d.on('error', function(err){
-        var msg = 'Failed to authenticate for SQL. Please double check your settings.'
-        if (dialect === "postgres" || dialect === "postgres-native") {
-          msg = 'Failed to authenticate for PostgresSQL. Please double check your settings.'
-        }
-        else if (dialect === "mysql") {
-          msg = 'Failed to authenticate for MySQL. Please double check your settings.'
-        }
-
-        expect(err.message).toEqual(msg)
-        d.remove(sequelize.query)
+        expect(err).toMatch(/^Failed to authenticate/)
+        d.remove(sequelize)
         done()
       })
 
       d.run(function(){
-        d.add(sequelize.query)
+        d.add(sequelize)
         sequelize.query('select 1 as hello')
         .success(function(){})
       })
     })
 
-    it('when we don\'t have a valid dialect.', function() {
-      Helpers.assertException(function() {
+    it('when we don\'t have a valid dialect.', function(done) {
+      expect(function() {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: undefined})
-      }.bind(this), 'The dialect undefined is not supported.')
+      }).toThrow('Error', 'The dialect undefined is not supported.')
+      done()
     })
   })
 
   describe('Instantiation with a URL string', function() {
-    it('should accept username, password, host, port, and database', function() {
+    it('should accept username, password, host, port, and database', function(done) {
       var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname')
       var config = sequelize.config
       var options = sequelize.options
@@ -105,44 +87,49 @@ describe(Helpers.getTestDialectTeaser("Configuration"), function() {
       expect(config.username).toEqual('user')
       expect(config.password).toEqual('pass')
       expect(config.port).toEqual(9821)
+      done()
     })
 
-    it('should work with no authentication options', function() {
+    it('should work with no authentication options', function(done) {
       var sequelize = new Sequelize('mysql://example.com:9821/dbname')
       var config = sequelize.config
 
       expect(config.username).toEqual(undefined)
       expect(config.password).toEqual(null)
+      done()
     })
 
-    it('should use the default port when no other is specified', function() {
+    it('should use the default port when no other is specified', function(done) {
       var sequelize = new Sequelize('mysql://example.com/dbname')
       var config = sequelize.config
 
       // The default port should be set
       expect(config.port).toEqual(3306)
+      done()
     })
   })
 
   describe('Intantiation with arguments', function() {
-    it('should accept two parameters (database, username)', function() {
+    it('should accept two parameters (database, username)', function(done) {
       var sequelize = new Sequelize('dbname', 'root')
       var config = sequelize.config
 
       expect(config.database).toEqual('dbname')
       expect(config.username).toEqual('root')
+      done()
     })
 
-    it('should accept three parameters (database, username, password)', function() {
+    it('should accept three parameters (database, username, password)', function(done) {
       var sequelize = new Sequelize('dbname', 'root', 'pass')
       var config = sequelize.config
 
       expect(config.database).toEqual('dbname')
       expect(config.username).toEqual('root')
       expect(config.password).toEqual('pass')
+      done()
     })
 
-    it('should accept four parameters (database, username, password, options)', function() {
+    it('should accept four parameters (database, username, password, options)', function(done) {
       var sequelize = new Sequelize('dbname', 'root', 'pass', { port: 999 })
       var config = sequelize.config
 
@@ -150,6 +137,7 @@ describe(Helpers.getTestDialectTeaser("Configuration"), function() {
       expect(config.username).toEqual('root')
       expect(config.password).toEqual('pass')
       expect(config.port).toEqual(999)
+      done()
     })
   })
 })

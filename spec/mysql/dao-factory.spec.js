@@ -1,29 +1,19 @@
 /* jshint camelcase: false */
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , config  = require('../config/config')
-      , Helpers = require('../buster-helpers')
-      , dialect = Helpers.getTestDialect()
-}
+var buster  = require("buster")
+  , config  = require('../config/config')
+  , Helpers = require('../buster-helpers')
+  , dialect = Helpers.getTestDialect()
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
+var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
 if (dialect.match(/^mysql/)) {
   describe('[MYSQL] DAOFactory', function() {
     before(function(done) {
-      var self = this
-
-      Helpers.initTests({
-        dialect: dialect,
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-          self.User = self.sequelize.define('User', { age: DataTypes.INTEGER, name: DataTypes.STRING, bio: DataTypes.TEXT })
-        },
-        onComplete: function() {
-          self.sequelize.sync({ force: true }).success(done)
-        }
-      })
+      this.sequelize = sequelize
+      Helpers.clearDatabase(this.sequelize, done)
     })
 
     describe('constructor', function() {
