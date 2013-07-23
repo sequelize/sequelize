@@ -1,6 +1,6 @@
 var buster             = require("buster")
-    , Helpers            = require('./buster-helpers')
-    , dialect            = Helpers.getTestDialect()
+  , Helpers            = require('./buster-helpers')
+  , dialect            = Helpers.getTestDialect()
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000

@@ -241,12 +241,14 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       var Project = this.sequelize.define('project' + config.rand(), { title: Helpers.Sequelize.STRING })
       var Task = this.sequelize.define('task' + config.rand(), { title: Helpers.Sequelize.STRING })
 
-      sequelize.sync().success(function() {
-        Project.create({title: 'bla'}).success(function() {
-          Task.create({title: 'bla'}).success(function(task){
-            expect(task).toBeDefined()
-            expect(task.title).toEqual('bla')
-            done()
+      Project.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          Project.create({title: 'bla'}).success(function() {
+            Task.create({title: 'bla'}).success(function(task){
+              expect(task).toBeDefined()
+              expect(task.title).toEqual('bla')
+              done()
+            })
           })
         })
       })

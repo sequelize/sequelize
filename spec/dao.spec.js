@@ -965,7 +965,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         identifier: {type: Helpers.Sequelize.STRING, primaryKey: true}
       })
 
-      User.sync().success(function(){
+      User.sync({ force: true }).success(function(){
         User.create({
           name: 'snafu',
           identifier: 'identifier'
@@ -993,7 +993,7 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
         identifier: {type: Helpers.Sequelize.STRING, primaryKey: true}
       })
 
-      User.sync().success(function(){
+      User.sync({ force: true }).success(function(){
         User.create({
           name: 'snafu',
           identifier: 'identifier'

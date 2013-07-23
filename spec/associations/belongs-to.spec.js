@@ -8,9 +8,9 @@ var buster    = require("buster")
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
-var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
-
 describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   before(function(done) {
     this.sequelize = sequelize
     Helpers.clearDatabase(this.sequelize, done)

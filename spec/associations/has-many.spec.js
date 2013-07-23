@@ -9,9 +9,9 @@ var buster    = require("buster")
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
-var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
-
 describe(Helpers.getTestDialectTeaser("HasMany"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   before(function(done) {
     var self = this
     self.sequelize = sequelize
@@ -20,67 +20,72 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
 
   describe('general usage', function() {
     before(function(done) {
-      this.User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING })
-      this.Task = this.sequelize.define('Task', { title: Helpers.Sequelize.STRING })
-      this.sequelize.sync({ force: true }).success(done)
+      var self = this
+      self.User = self.sequelize.define('User', { username: Helpers.Sequelize.STRING })
+      self.Task = self.sequelize.define('Task', { title: Helpers.Sequelize.STRING })
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(done)
+      })
     })
 
     describe('mono-directional', function() {
-      it("adds the foreign key", function(done) {
-        this.User.hasMany(this.Task)
-        expect(this.Task.attributes.UserId).toEqual("INTEGER")
-        done()
+      it("adds the foreign key", function() {
+        var self = this
+        self.User.hasMany(self.Task)
+        expect(self.Task.attributes.UserId).toEqual("INTEGER")
       })
 
-      it('adds the foreign key with underscore', function(done) {
-        var User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING })
-          , Task = this.sequelize.define('Task', { title: Helpers.Sequelize.STRING }, { underscored: true })
+      it('adds the foreign key with underscore', function() {
+        var self = this
+          , User = self.sequelize.define('User', { username: Helpers.Sequelize.STRING })
+          , Task = self.sequelize.define('Task', { title: Helpers.Sequelize.STRING }, { underscored: true })
 
         Task.hasMany(User)
 
         expect(User.attributes.task_id).toBeDefined()
-        done()
       })
 
-      it('uses the passed foreign key', function(done) {
-        this.User.hasMany(this.Task, { foreignKey: 'person_id' })
-        expect(this.Task.attributes.person_id).toEqual("INTEGER")
-        done()
+      it('uses the passed foreign key', function() {
+        var self = this
+        self.User.hasMany(self.Task, { foreignKey: 'person_id' })
+        expect(self.Task.attributes.person_id).toEqual("INTEGER")
       })
 
-      it('defines getters and setters', function(done) {
-        this.User.hasMany(this.Task)
+      it('defines getters and setters', function() {
+        var self = this
+        self.User.hasMany(self.Task)
 
-        var u = this.User.build({username: 'asd'})
+        var u = self.User.build({username: 'asd'})
         expect(u.setTasks).toBeDefined()
         expect(u.getTasks).toBeDefined()
-        done()
       })
 
-      it("defines getters and setters according to the 'as' option", function(done) {
-        this.User.hasMany(this.Task, {as: 'Tasks'})
-        var u = this.User.build({username: 'asd'})
+      it("defines getters and setters according to the 'as' option", function() {
+        var self = this
+        self.User.hasMany(self.Task, {as: 'Tasks'})
+        var u = self.User.build({username: 'asd'})
 
         expect(u.setTasks).toBeDefined()
         expect(u.getTasks).toBeDefined()
-        done()
       })
 
       it("sets and gets associated objects", function(done) {
         var self = this
 
-        this.User.hasMany(this.Task, { as: 'Tasks' })
-        this.sequelize.sync({ force: true }).success(function() {
-          self.User.create({username: 'name'}).success(function(user) {
-            self.Task.create({title: 'task1'}).success(function(task1) {
-              self.Task.create({title: 'task2'}).success(function(task2) {
-                user.setTasks([task1, task2]).success(function() {
-                  user.getTasks().success(function(tasks) {
-                    expect(tasks.length).toEqual(2)
-                    user.getTasks({attributes: ['title']}).success(function(tasks) {
-                      expect(tasks[0].selectedValues.title).toEqual('task1')
-                      expect(tasks[0].selectedValues.id).not.toBeDefined()
-                      done()
+        self.User.hasMany(self.Task, { as: 'Tasks' })
+        self.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(function() {
+            self.User.create({username: 'name'}).success(function(user) {
+              self.Task.create({title: 'task1'}).success(function(task1) {
+                self.Task.create({title: 'task2'}).success(function(task2) {
+                  user.setTasks([task1, task2]).success(function() {
+                    user.getTasks().success(function(tasks) {
+                      expect(tasks.length).toEqual(2)
+                      user.getTasks({attributes: ['title']}).success(function(tasks) {
+                        expect(tasks[0].selectedValues.title).toEqual('task1')
+                        expect(tasks[0].selectedValues.id).not.toBeDefined()
+                        done()
+                      })
                     })
                   })
                 })
@@ -92,15 +97,16 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     })
 
     it("should allow selfAssociation to be single linked (only one DAO is created)", function(done) {
-      var oldLength = this.sequelize.daoFactoryManager.daos.length
-        , Comment = this.sequelize.define('Comment', { content: Helpers.Sequelize.STRING })
+      var self = this
+        , oldLength = self.sequelize.daoFactoryManager.daos.length
+        , Comment = self.sequelize.define('Comment', { content: Helpers.Sequelize.STRING })
 
       Comment.belongsTo(Comment, {as: "Parent"});
       Comment.hasMany(Comment, {as: 'Children', foreignKey: "ParentId", useJunctionTable: false})
 
-      expect(this.sequelize.daoFactoryManager.daos.length).toEqual(oldLength + 1)
+      expect(self.sequelize.daoFactoryManager.daos.length).toEqual(oldLength + 1)
 
-      Comment.sync({force: true}).success(function() {
+      self.sequelize.sync({ force: true }).success(function() {
         Comment.create({ content: 'parentComment' }).success(function(parent) {
           Comment.create({ content: 'child1' }).success(function(child1) {
             child1.setParent(parent).success(function() {
@@ -120,19 +126,19 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
-    it("should still use many to many for selfAssociation by default (two DAOs are created)", function(done) {
-      var oldLength = this.sequelize.daoFactoryManager.daos.length
-        , Comment = this.sequelize.define('Comment', { content: Sequelize.STRING })
+    it("should still use many to many for selfAssociation by default (two DAOs are created)", function() {
+      var self = this
+        , oldLength = self.sequelize.daoFactoryManager.daos.length
+        , Comment   = self.sequelize.define('Comment', { content: Sequelize.STRING })
 
       Comment.belongsTo(Comment, {as: "Parent"})
       Comment.hasMany(Comment, {as: 'Children'})
 
-      expect(this.sequelize.daoFactoryManager.daos.length).toEqual(oldLength + 2)
-      done();
+      expect(self.sequelize.daoFactoryManager.daos.length).toEqual(oldLength + 2)
     })
 
     describe('bi-directional', function() {
-      it('adds the foreign key', function(done) {
+      it('adds the foreign key', function() {
         var self = this
 
         this.Task.hasMany(this.User)
@@ -149,7 +155,6 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
           expect(dao.attributes.UserId).toBeDefined()
           expect(dao.attributes.TaskId).toBeDefined()
         })
-        done()
       })
 
       it("adds the foreign key with underscores", function(done) {
@@ -340,7 +345,8 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
     })
 
     it("gets and sets the connector daos", function(done) {
-      var Person = this.sequelize.define('Person', { name: Helpers.Sequelize.STRING })
+      var self = this
+        , Person = self.sequelize.define('Person', { name: Helpers.Sequelize.STRING })
 
       Person.hasMany(Person, {as: 'Children'})
       Person.hasMany(Person, {as: 'Friends'})
@@ -531,20 +537,22 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       before(function(done) {
         var self = this
 
-        this.User = this.sequelize.define('User', { username: Sequelize.STRING })
-        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
+        self.User = self.sequelize.define('User', { username: Sequelize.STRING })
+        self.Task = self.sequelize.define('Task', { title: Sequelize.STRING, active: Sequelize.BOOLEAN })
 
-        this.User.hasMany(self.Task)
+        self.User.hasMany(self.Task)
 
-        this.sequelize.sync({ force: true }).done(function() {
-          var chainer = new Sequelize.Utils.QueryChainer([
-            self.User.create({ username: 'John'}),
-            self.Task.create({ title: 'Get rich', active: true}),
-            self.Task.create({ title: 'Die trying', active: false})
-          ])
+        self.User.sync({ force: true }).done(function() {
+          self.Task.sync({ force: true }).success(function() {
+            var chainer = new Sequelize.Utils.QueryChainer([
+              self.User.create({ username: 'John'}),
+              self.Task.create({ title: 'Get rich', active: true}),
+              self.Task.create({ title: 'Die trying', active: false})
+            ])
 
-          chainer.run().success(function (results, john, task1, task2) {
-            john.setTasks([task1, task2]).success(done)
+            chainer.run().success(function (results, john, task1, task2) {
+              john.setTasks([task1, task2]).success(done)
+            })
           })
         })
       })

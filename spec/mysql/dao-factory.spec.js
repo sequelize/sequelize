@@ -10,7 +10,7 @@ buster.testRunner.timeout = 1000
 var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
 if (dialect.match(/^mysql/)) {
-  describe('[MYSQL] DAOFactory', function() {
+  describe('[MYSQL Specific] DAOFactory', function() {
     before(function(done) {
       this.sequelize = sequelize
       Helpers.clearDatabase(this.sequelize, done)

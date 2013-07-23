@@ -1,4 +1,4 @@
-var buster    = require("buster")
+var buster      = require("buster")
     , Sequelize = require("../index")
     , Helpers   = require('./buster-helpers')
     , dialect   = Helpers.getTestDialect()

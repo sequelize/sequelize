@@ -1,11 +1,11 @@
 /* jshint camelcase: false */
 var buster    = require("buster")
-    , Sequelize = require("../index")
-    , Helpers   = require('./buster-helpers')
-    , _         = require('lodash')
-    , moment    = require('moment')
-    , dialect   = Helpers.getTestDialect()
-    , DataTypes = require(__dirname + "/../lib/data-types")
+  , Sequelize = require("../index")
+  , Helpers   = require('./buster-helpers')
+  , _         = require('lodash')
+  , moment    = require('moment')
+  , dialect   = Helpers.getTestDialect()
+  , DataTypes = require(__dirname + "/../lib/data-types")
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
@@ -341,7 +341,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
           Helpers.checkMatchForDialects(dialect, err.message, {
             sqlite: /.*SQLITE_CONSTRAINT.*/,
-            mysql: "Column 'smth' cannot be null",
+            // We need to allow two different errors for MySQL, see:
+            // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
+            mysql: /(Column 'smth' cannot be null|Field 'smth' doesn't have a default value)/,
             postgres: /.*column "smth" violates not-null.*/
           })
 
@@ -1313,26 +1315,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     describe('eager loading', function() {
       before(function(done) {
         var self         = this
-        this.Task        = this.sequelize.define('Task', { title: Sequelize.STRING })
-        this.Worker      = this.sequelize.define('Worker', { name: Sequelize.STRING })
-        this.Domain      = this.sequelize.define('Domain', { ip: Sequelize.STRING })
-        this.Environment = this.sequelize.define('Environment', { name: Sequelize.STRING })
-        this.Environment
-          .belongsTo(this.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' })
-          .belongsTo(this.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' })
+        self.Task        = self.sequelize.define('Task', { title: Sequelize.STRING })
+        self.Worker      = self.sequelize.define('Worker', { name: Sequelize.STRING })
 
         this.init = function(callback) {
           self.Task.sync({ force: true }).success(function() {
             self.Worker.sync({ force: true }).success(function() {
-              self.Domain.sync({ force: true }).success(function() {
-                self.Environment.sync({ force: true }).success(function() {
-                  self.Worker.create({ name: 'worker' }).success(function(worker) {
-                    self.Task.create({ title: 'homework' }).success(function(task) {
-                      self.worker    = worker
-                      self.task      = task
-                      callback()
-                    })
-                  })
+              self.Worker.create({ name: 'worker' }).success(function(worker) {
+                self.Task.create({ title: 'homework' }).success(function(task) {
+                  self.worker    = worker
+                  self.task      = task
+                  callback()
                 })
               })
             })
@@ -1342,72 +1335,84 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
 
       describe('belongsTo', function() {
-        before(function(done) {
-          var self = this
-          this.Task.belongsTo(this.Worker)
-          this.init(function() {
-            self.task.setWorker(self.worker).success(done)
+        describe('generic', function() {
+          before(function(done) {
+            var self = this
+            this.Task.belongsTo(this.Worker)
+            this.init(function() {
+              self.task.setWorker(self.worker).success(done)
+            })
           })
-        })
 
-        it('throws an error about unexpected input if include contains a non-object', function(done) {
-          var self = this
-          expect(function() {
-            self.Worker.find({ include: [ 1 ] })
-          }).toThrow('Error', 'Include unexpected. Element has to be either an instance of DAOFactory or an object.')
-          done()
-        })
-
-        it('throws an error about missing attributes if include contains an object with daoFactory', function(done) {
-          var self = this
-          expect(function() {
-            self.Worker.find({ include: [ { daoFactory: self.Worker } ] })
-          }).toThrow('Error', 'Include malformed. Expected attributes: daoFactory, as!')
-          done()
-        })
-
-        it('throws an error if included DaoFactory is not associated', function(done) {
-          var self = this
-          expect(function() {
-            self.Worker.find({ include: [ self.Task ] })
-          }).toThrow('Error', 'Task is not associated to Worker!')
-          done()
-        })
-
-        it('returns the associated worker via task.worker', function(done) {
-          this.Task.find({
-            where:   { title: 'homework' },
-            include: [ this.Worker ]
-          }).complete(function(err, task) {
-            expect(err).toBeNull()
-            expect(task).toBeDefined()
-            expect(task.worker).toBeDefined()
-            expect(task.worker.name).toEqual('worker')
+          it('throws an error about unexpected input if include contains a non-object', function(done) {
+            var self = this
+            expect(function() {
+              self.Worker.find({ include: [ 1 ] })
+            }).toThrow('Error', 'Include unexpected. Element has to be either an instance of DAOFactory or an object.')
             done()
+          })
+
+          it('throws an error about missing attributes if include contains an object with daoFactory', function(done) {
+            var self = this
+            expect(function() {
+              self.Worker.find({ include: [ { daoFactory: self.Worker } ] })
+            }).toThrow('Error', 'Include malformed. Expected attributes: daoFactory, as!')
+            done()
+          })
+
+          it('throws an error if included DaoFactory is not associated', function(done) {
+            var self = this
+            expect(function() {
+              self.Worker.find({ include: [ self.Task ] })
+            }).toThrow('Error', 'Task is not associated to Worker!')
+            done()
+          })
+
+          it('returns the associated worker via task.worker', function(done) {
+            this.Task.find({
+              where:   { title: 'homework' },
+              include: [ this.Worker ]
+            }).complete(function(err, task) {
+              expect(err).toBeNull()
+              expect(task).toBeDefined()
+              expect(task.worker).toBeDefined()
+              expect(task.worker.name).toEqual('worker')
+              done()
+            })
           })
         })
 
         it('returns the private and public ip', function(done) {
           var self = this
-          this.Domain.create({ ip: '192.168.0.1' }).success(function(privateIp) {
-            self.Domain.create({ ip: '91.65.189.19' }).success(function(publicIp) {
-              self.Environment.create({ name: 'environment' }).success(function(env) {
-                env.setPrivateDomain(privateIp).success(function() {
-                  env.setPublicDomain(publicIp).success(function() {
-                    self.Environment.find({
-                      where:   { name: 'environment' },
-                      include: [
-                        { daoFactory: self.Domain, as: 'PrivateDomain' },
-                        { daoFactory: self.Domain, as: 'PublicDomain' }
-                      ]
-                    }).complete(function(err, environment) {
-                      expect(err).toBeNull()
-                      expect(environment).toBeDefined()
-                      expect(environment.privateDomain).toBeDefined()
-                      expect(environment.privateDomain.ip).toEqual('192.168.0.1')
-                      expect(environment.publicDomain).toBeDefined()
-                      expect(environment.publicDomain.ip).toEqual('91.65.189.19')
-                      done()
+          self.Domain      = self.sequelize.define('Domain', { ip: Sequelize.STRING })
+          self.Environment = self.sequelize.define('Environment', { name: Sequelize.STRING })
+          self.Environment
+            .belongsTo(self.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' })
+            .belongsTo(self.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' })
+
+          self.Domain.sync({ force: true }).success(function() {
+            self.Environment.sync({ force: true }).success(function() {
+              self.Domain.create({ ip: '192.168.0.1' }).success(function(privateIp) {
+                self.Domain.create({ ip: '91.65.189.19' }).success(function(publicIp) {
+                  self.Environment.create({ name: 'environment' }).success(function(env) {
+                    env.setPrivateDomain(privateIp).success(function() {
+                      env.setPublicDomain(publicIp).success(function() {
+                        self.Environment.find({
+                          where:   { name: 'environment' },
+                          include: [
+                            { daoFactory: self.Domain, as: 'PrivateDomain' },
+                            { daoFactory: self.Domain, as: 'PublicDomain' }
+                          ]
+                        }).complete(function(err, environment) {
+                          expect(err).toBeNull()
+                          expect(environment).toBeDefined()
+                          expect(environment.privateDomain).toBeDefined()
+                          expect(environment.privateDomain.ip).toEqual('192.168.0.1')
+                          expect(environment.publicDomain).toBeDefined()
+                          expect(environment.publicDomain.ip).toEqual('91.65.189.19')
+                          done()
+                        })
+                      })
                     })
                   })
                 })
@@ -2456,7 +2461,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
 
       it("emits the error event as the referenced table name is invalid", function(done) {
-        this.timeout = 1500
+        this.timeout = 2500
         var self = this
         this.Author.sync({ force: true }).success(function() {
           self.Post.sync({ force: true }).success(function() {

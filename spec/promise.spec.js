@@ -1,8 +1,8 @@
-var buster  = require("buster")
-    , Helpers = require('./buster-helpers')
-    , DataTypes = require(__dirname + "/../lib/data-types")
-    , dialect = Helpers.getTestDialect()
-    , _ = require('lodash')
+var buster    = require("buster")
+  , Helpers   = require('./buster-helpers')
+  , DataTypes = require(__dirname + "/../lib/data-types")
+  , dialect   = Helpers.getTestDialect()
+  , _         = require('lodash')
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
@@ -73,7 +73,7 @@ describe(Helpers.getTestDialectTeaser("Promise"), function () {
             return self.User.find(1)
           }).then(function(user5) {
             expect(user5.aNumber).toBe(3)
-            done();
+            done()
           }, done)
         })
       })

@@ -11,7 +11,7 @@ buster.testRunner.timeout = 1000
 var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
 if (dialect.match(/^mysql/)) {
-  describe('[MYSQL] QueryGenerator', function() {
+  describe('[MYSQL Specific] QueryGenerator', function() {
     before(function(done) {
       this.sequelize = sequelize
       Helpers.clearDatabase(this.sequelize, done)

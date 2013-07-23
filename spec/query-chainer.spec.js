@@ -1,10 +1,7 @@
-if(typeof require === 'function') {
-  const buster             = require("buster")
-      , QueryChainer       = require("../lib/query-chainer")
-      , CustomEventEmitter = require("../lib/emitters/custom-event-emitter")
-      , Helpers            = require('./buster-helpers')
-      , dialect            = Helpers.getTestDialect()
-}
+var buster             = require("buster")
+  , QueryChainer       = require("../lib/query-chainer")
+  , CustomEventEmitter = require("../lib/emitters/custom-event-emitter")
+  , Helpers            = require('./buster-helpers')
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000

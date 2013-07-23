@@ -8,7 +8,7 @@ buster.testRunner.timeout = 1000
 var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
 if (dialect.match(/^mysql/)) {
-  describe('[MYSQL] Connector Manager', function() {
+  describe('[MYSQL Specific] Connector Manager', function() {
     before(function(done) {
       this.sequelize = sequelize
       Helpers.clearDatabase(this.sequelize, done)
