@@ -2467,4 +2467,20 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
     })
   }) //- describe: references
+
+  describe("dataset", function() {
+    before(function(done) {
+      this.User = this.sequelize.define("user", {
+        username:  Sequelize.STRING,
+        firstName: Sequelize.STRING,
+        lastName:  Sequelize.STRING
+      })
+
+      this.User.sync({ force: true }).success(done)
+    })
+
+    it("returns a node-sql instance with the correct dialect", function() {
+      expect(this.User.dataset().sql.dialectName).toEqual(dialect)
+    })
+  })
 })
