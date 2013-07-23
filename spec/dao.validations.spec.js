@@ -7,16 +7,13 @@ buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   describe('validations', function() {
     beforeAll(function(done) {
       var self = this
-      Helpers.initTests({
-        dialect: dialect,
-        onComplete: function(sequelize) {
-          self.sequelize = sequelize
-          done()
-        }
-      })
+      self.sequelize = Object.create(sequelize)
+      Helpers.clearDatabase(self.sequelize, done)
     })
 
     var checks = {

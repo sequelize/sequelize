@@ -21,8 +21,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   })
 
   before(function(done) {
-    this.sequelize = sequelize
-    this.DataTypes = DataTypes
+    this.sequelize = Object.create(sequelize)
     this.User = User
     var self = this
     Helpers.clearDatabase(this.sequelize, function() {
@@ -570,15 +569,14 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     describe('enums', function() {
       it('correctly restores enum values', function(done) {
         var self = this
-        this.Item = this.sequelize.define('Item', {
+          , Item = self.sequelize.define('Item', {
           state: { type: Helpers.Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] }
         })
 
-        this.Item.sync({ force: true }).success(function() {
-          self.Item.create({ state: 'available' }).success(function(item) {
-            self.item = item
-            self.Item.find({ where: { state: 'available' }}).success(function(item) {
-              expect(item.id).toEqual(self.item.id)
+        Item.sync({ force: true }).success(function() {
+          Item.create({ state: 'available' }).success(function(_item) {
+            Item.find({ where: { state: 'available' }}).success(function(item) {
+              expect(item.id).toEqual(_item.id)
               done()
             })
           })
@@ -710,24 +708,20 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     describe('enums', function() {
-      before(function(done) {
+      it('correctly restores enum values', function(done) {
         var self = this
-        this.Item = this.sequelize.define('Item', {
+          , Item = self.sequelize.define('Item', {
           state: { type: Helpers.Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] },
           name: Sequelize.STRING
         })
 
-        this.Item.sync({ force: true }).success(function() {
-          self.Item.bulkCreate([{state: 'in_cart', name: 'A'}, { state: 'available', name: 'B'}]).success(function() {
-            done()
+        Item.sync({ force: true }).success(function() {
+          Item.bulkCreate([{state: 'in_cart', name: 'A'}, { state: 'available', name: 'B'}]).success(function() {
+            Item.find({ where: { state: 'available' }}).success(function(item) {
+              expect(item.name).toEqual('B')
+              done()
+            })
           })
-        })
-      })
-
-      it('correctly restores enum values', function(done) {
-        this.Item.find({ where: { state: 'available' }}).success(function(item) {
-          expect(item.name).toEqual('B')
-          done()
         })
       })
     })
@@ -809,17 +803,17 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
   describe('destroy', function() {
     it('deletes a record from the database if dao is not paranoid', function(done) {
-      var User = this.sequelize.define('User', {
+      var UserDestroy = this.sequelize.define('UserDestory', {
           name: Sequelize.STRING,
           bio: Sequelize.TEXT
         })
 
-      User.sync({ force: true }).success(function() {
-        User.create({name: 'hallo', bio: 'welt'}).success(function(u) {
-          User.all().success(function(users) {
+      UserDestroy.sync({ force: true }).success(function() {
+        UserDestroy.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          UserDestroy.all().success(function(users) {
             expect(users.length).toEqual(1)
             u.destroy().success(function() {
-              User.all().success(function(users) {
+              UserDestroy.all().success(function(users) {
                 expect(users.length).toEqual(0)
                 done()
               })
@@ -830,14 +824,14 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     it('allows sql logging of delete statements', function(done) {
-      var User = this.sequelize.define('User', {
+      var UserDelete = this.sequelize.define('UserDelete', {
           name: Sequelize.STRING,
           bio: Sequelize.TEXT
         })
 
-      User.sync({ force: true }).success(function() {
-        User.create({name: 'hallo', bio: 'welt'}).success(function(u) {
-          User.all().success(function(users) {
+      UserDelete.sync({ force: true }).success(function() {
+        UserDelete.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          UserDelete.all().success(function(users) {
             expect(users.length).toEqual(1)
             u.destroy().on('sql', function(sql) {
               expect(sql).toBeDefined()
@@ -868,7 +862,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
     })
 
     it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
-      var User = this.sequelize.define('ParanoidUser', {
+      var self = this
+        , ParanoidUser = self.sequelize.define('ParanoidUser', {
           username:     Sequelize.STRING,
           secretValue:  Sequelize.STRING,
           data:         Sequelize.STRING,
@@ -880,18 +875,19 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
                   { username: 'Paul',  secretValue: '42' },
                   { username: 'Bob',   secretValue: '43' }]
 
-      User.sync({ force: true }).success(function() {
-        User.bulkCreate(data).success(function() {
-          User.destroy({secretValue: '42'}).success(function() {
-            User.findAll({order: 'id'}).success(function(users) {
+      ParanoidUser.sync({ force: true }).success(function() {
+        ParanoidUser.bulkCreate(data).success(function() {
+          var date = parseInt(+new Date()/5000, 10)
+          ParanoidUser.destroy({secretValue: '42'}).success(function() {
+            ParanoidUser.findAll({order: 'id'}).success(function(users) {
               expect(users.length).toEqual(3)
 
               expect(users[0].username).toEqual("Peter")
               expect(users[1].username).toEqual("Paul")
               expect(users[2].username).toEqual("Bob")
 
-              expect(parseInt(+users[0].deletedAt/5000, 10)).toEqual(parseInt(+new Date()/5000, 10))
-              expect(parseInt(+users[1].deletedAt/5000, 10)).toEqual(parseInt(+new Date()/5000, 10))
+              expect(parseInt(+users[0].deletedAt/5000, 10)).toEqual(date)
+              expect(parseInt(+users[1].deletedAt/5000, 10)).toEqual(date)
 
               done()
             })
@@ -1118,7 +1114,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
         this.User.create({username: 'barfooz'}).success(function(user) {
           self.UserPrimary = self.sequelize.define('UserPrimary', {
             specialKey: {
-              type: self.DataTypes.STRING,
+              type: DataTypes.STRING,
               primaryKey: true
             }
           })
@@ -1177,7 +1173,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
 
       it("should not try to convert boolean values if they are not selected", function(done) {
-        var UserWithBoolean = this.sequelize.define('user', {
+        var UserWithBoolean = this.sequelize.define('UserBoolean', {
           active: Sequelize.BOOLEAN
         })
 
@@ -1223,19 +1219,20 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
 
       it('finds entries via primary keys', function(done) {
-        var User = this.sequelize.define('UserWithPrimaryKey', {
+        var self = this
+          , UserPrimary = self.sequelize.define('UserWithPrimaryKey', {
           identifier: {type: Sequelize.STRING, primaryKey: true},
           name: Sequelize.STRING
         })
 
-        User.sync({ force: true }).success(function() {
-          User.create({
+        UserPrimary.sync({ force: true }).success(function() {
+          UserPrimary.create({
             identifier: 'an identifier',
             name: 'John'
           }).success(function(u) {
             expect(u.id).not.toBeDefined()
 
-            User.find('an identifier').success(function(u2) {
+            UserPrimary.find('an identifier').success(function(u2) {
               expect(u2.identifier).toEqual('an identifier')
               expect(u2.name).toEqual('John')
               done()
@@ -1261,15 +1258,15 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       it('returns the selected fields and all fields of the included table as instance.selectedValues', function(done) {
         var self = this
-        this.Mission = this.sequelize.define('Mission', {
+        self.Mission = self.sequelize.define('Mission', {
           title:  {type: Sequelize.STRING, defaultValue: 'a mission!!'},
           foo:    {type: Sequelize.INTEGER, defaultValue: 2},
         })
 
-        this.Mission.belongsTo(this.User)
-        this.User.hasMany(this.Mission)
+        self.Mission.belongsTo(self.User)
+        self.User.hasMany(self.Mission)
 
-        this.Mission.sync({ force: true }).success(function() {
+        self.Mission.sync({ force: true }).success(function() {
           self.Mission.create().success(function(mission) {
             self.User.create({username: 'John DOE'}).success(function(user) {
               mission.setUser(user).success(function() {
@@ -1336,14 +1333,6 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
 
       describe('belongsTo', function() {
         describe('generic', function() {
-          before(function(done) {
-            var self = this
-            this.Task.belongsTo(this.Worker)
-            this.init(function() {
-              self.task.setWorker(self.worker).success(done)
-            })
-          })
-
           it('throws an error about unexpected input if include contains a non-object', function(done) {
             var self = this
             expect(function() {
@@ -1369,21 +1358,27 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           })
 
           it('returns the associated worker via task.worker', function(done) {
-            this.Task.find({
-              where:   { title: 'homework' },
-              include: [ this.Worker ]
-            }).complete(function(err, task) {
-              expect(err).toBeNull()
-              expect(task).toBeDefined()
-              expect(task.worker).toBeDefined()
-              expect(task.worker.name).toEqual('worker')
-              done()
+            var self = this
+            this.Task.belongsTo(this.Worker)
+            this.init(function() {
+              self.task.setWorker(self.worker).success(function() {
+                self.Task.find({
+                  where:   { title: 'homework' },
+                  include: [ self.Worker ]
+                }).complete(function(err, task) {
+                  expect(err).toBeNull()
+                  expect(task).toBeDefined()
+                  expect(task.worker).toBeDefined()
+                  expect(task.worker.name).toEqual('worker')
+                  done()
+                })
+              })
             })
           })
         })
 
         it('returns the private and public ip', function(done) {
-          var self = this
+          var self = Object.create(this)
           self.Domain      = self.sequelize.define('Domain', { ip: Sequelize.STRING })
           self.Environment = self.sequelize.define('Environment', { name: Sequelize.STRING })
           self.Environment
@@ -1454,14 +1449,6 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
 
       describe('hasOne with alias', function() {
-        before(function(done) {
-          var self = this
-          this.Worker.hasOne(this.Task, { as: 'ToDo' })
-          this.init(function() {
-            self.worker.setToDo(self.task).success(done)
-          })
-        })
-
         it('throws an error if included DaoFactory is not referenced by alias', function(done) {
           var self = this
           expect(function() {
@@ -1470,34 +1457,44 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           done()
         })
 
-        it('throws an error if alias is not associated', function(done) {
-          var self = this
-          expect(function() {
-            self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] })
-          }).toThrow('Error', 'Task (Work) is not associated to Worker!')
-          done()
-        })
+        describe('alias', function(done) {
+          before(function(done) {
+            var self = this
+            this.Worker.hasOne(this.Task, { as: 'ToDo' })
+            this.init(function() {
+              self.worker.setToDo(self.task).success(done)
+            })
+          })
 
-        it('returns the associated task via worker.task', function(done) {
-          this.Worker.find({
-            where:   { name: 'worker' },
-            include: [ { daoFactory: this.Task, as: 'ToDo' } ]
-          }).complete(function(err, worker) {
-            expect(err).toBeNull()
-            expect(worker).toBeDefined()
-            expect(worker.toDo).toBeDefined()
-            expect(worker.toDo.title).toEqual('homework')
+          it('throws an error if alias is not associated', function(done) {
+            var self = this
+            expect(function() {
+              self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] })
+            }).toThrow('Error', 'Task (Work) is not associated to Worker!')
             done()
           })
-        })
 
-        it('returns the associated task via worker.task when daoFactory is aliased with model', function(done) {
-          this.Worker.find({
-            where:   { name: 'worker' },
-            include: [ { model: this.Task, as: 'ToDo' } ]
-          }).complete(function(err, worker) {
-            expect(worker.toDo.title).toEqual('homework')
-            done()
+          it('returns the associated task via worker.task', function(done) {
+            this.Worker.find({
+              where:   { name: 'worker' },
+              include: [ { daoFactory: this.Task, as: 'ToDo' } ]
+            }).complete(function(err, worker) {
+              expect(err).toBeNull()
+              expect(worker).toBeDefined()
+              expect(worker.toDo).toBeDefined()
+              expect(worker.toDo.title).toEqual('homework')
+              done()
+            })
+          })
+
+          it('returns the associated task via worker.task when daoFactory is aliased with model', function(done) {
+            this.Worker.find({
+              where:   { name: 'worker' },
+              include: [ { model: this.Task, as: 'ToDo' } ]
+            }).complete(function(err, worker) {
+              expect(worker.toDo.title).toEqual('homework')
+              done()
+            })
           })
         })
       })
@@ -1534,14 +1531,6 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
 
       describe('hasMany with alias', function() {
-        before(function(done) {
-          var self = this
-          this.Worker.hasMany(this.Task, { as: 'ToDos' })
-          this.init(function() {
-            self.worker.setToDos([ self.task ]).success(done)
-          })
-        })
-
         it('throws an error if included DaoFactory is not referenced by alias', function(done) {
           var self = this
           expect(function() {
@@ -1550,34 +1539,44 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
           done()
         })
 
-        it('throws an error if alias is not associated', function(done) {
-          var self = this
-          expect(function() {
-            self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] })
-          }).toThrow('Error', 'Task (Work) is not associated to Worker!')
-          done()
-        })
+        describe('alias', function() {
+          before(function(done) {
+            var self = this
+            this.Worker.hasMany(this.Task, { as: 'ToDos' })
+            this.init(function() {
+              self.worker.setToDos([ self.task ]).success(done)
+            })
+          })
 
-        it('returns the associated task via worker.task', function(done) {
-          this.Worker.find({
-            where:   { name: 'worker' },
-            include: [ { daoFactory: this.Task, as: 'ToDos' } ]
-          }).complete(function(err, worker) {
-            expect(err).toBeNull()
-            expect(worker).toBeDefined()
-            expect(worker.toDos).toBeDefined()
-            expect(worker.toDos[0].title).toEqual('homework')
+          it('throws an error if alias is not associated', function(done) {
+            var self = this
+            expect(function() {
+              self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] })
+            }).toThrow('Error', 'Task (Work) is not associated to Worker!')
             done()
           })
-        })
 
-        it('returns the associated task via worker.task when daoFactory is aliased with model', function(done) {
-          this.Worker.find({
-            where:   { name: 'worker' },
-            include: [ { model: this.Task, as: 'ToDos' } ]
-          }).complete(function(err, worker) {
-            expect(worker.toDos[0].title).toEqual('homework')
-            done()
+          it('returns the associated task via worker.task', function(done) {
+            this.Worker.find({
+              where:   { name: 'worker' },
+              include: [ { daoFactory: this.Task, as: 'ToDos' } ]
+            }).complete(function(err, worker) {
+              expect(err).toBeNull()
+              expect(worker).toBeDefined()
+              expect(worker.toDos).toBeDefined()
+              expect(worker.toDos[0].title).toEqual('homework')
+              done()
+            })
+          })
+
+          it('returns the associated task via worker.task when daoFactory is aliased with model', function(done) {
+            this.Worker.find({
+              where:   { name: 'worker' },
+              include: [ { model: this.Task, as: 'ToDos' } ]
+            }).complete(function(err, worker) {
+              expect(worker.toDos[0].title).toEqual('homework')
+              done()
+            })
           })
         })
       })
@@ -1626,11 +1625,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       describe('belongsTo', function() {
         before(function(done) {
           var self = this
-          this.Task     = this.sequelize.define('TaskBelongsTo', { title: Sequelize.STRING })
-          this.Worker   = this.sequelize.define('Worker', { name: Sequelize.STRING })
-          this.Task.belongsTo(this.Worker)
+          self.Task     = self.sequelize.define('TaskBelongsTo', { title: Sequelize.STRING })
+          self.Worker   = self.sequelize.define('Worker', { name: Sequelize.STRING })
+          self.Task.belongsTo(self.Worker)
 
-          this.Worker.sync({ force: true }).success(function() {
+          self.Worker.sync({ force: true }).success(function() {
             self.Task.sync({ force: true }).success(function() {
               self.Worker.create({ name: 'worker' }).success(function(worker) {
                 self.Task.create({ title: 'homework' }).success(function(task) {
@@ -1685,10 +1684,10 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       describe('hasOne', function() {
         before(function(done) {
           var self = this
-          this.Task     = this.sequelize.define('TaskHasOne', { title: Sequelize.STRING })
-          this.Worker   = this.sequelize.define('Worker', { name: Sequelize.STRING })
-          this.Worker.hasOne(this.Task)
-          this.Worker.sync({ force: true }).success(function() {
+          self.Task     = self.sequelize.define('TaskHasOne', { title: Sequelize.STRING })
+          self.Worker   = self.sequelize.define('Worker', { name: Sequelize.STRING })
+          self.Worker.hasOne(self.Task)
+          self.Worker.sync({ force: true }).success(function() {
             self.Task.sync({ force: true }).success(function() {
               self.Worker.create({ name: 'worker' }).success(function(worker) {
                 self.Task.create({ title: 'homework' }).success(function(task) {
@@ -1727,11 +1726,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       describe('hasOne with alias', function() {
         before(function(done) {
           var self = this
-          this.Task     = this.sequelize.define('Task', { title: Sequelize.STRING })
-          this.Worker   = this.sequelize.define('Worker', { name: Sequelize.STRING })
-          this.Worker.hasOne(this.Task, { as: 'ToDo' })
+          self.Task     = self.sequelize.define('Task', { title: Sequelize.STRING })
+          self.Worker   = self.sequelize.define('Worker', { name: Sequelize.STRING })
+          self.Worker.hasOne(self.Task, { as: 'ToDo' })
 
-          this.Worker.sync({ force: true }).success(function() {
+          self.Worker.sync({ force: true }).success(function() {
             self.Task.sync({ force: true }).success(function() {
               self.Worker.create({ name: 'worker' }).success(function(worker) {
                 self.Task.create({ title: 'homework' }).success(function(task) {
@@ -1788,11 +1787,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       describe('hasMany', function() {
         before(function(done) {
           var self = this
-          this.Task     = this.sequelize.define('Task', { title: Sequelize.STRING })
-          this.Worker   = this.sequelize.define('Worker', { name: Sequelize.STRING })
-          this.Worker.hasMany(this.Task)
+          self.Task     = self.sequelize.define('Task', { title: Sequelize.STRING })
+          self.Worker   = self.sequelize.define('Worker', { name: Sequelize.STRING })
+          self.Worker.hasMany(self.Task)
 
-          this.Worker.sync({ force: true }).success(function() {
+          self.Worker.sync({ force: true }).success(function() {
             self.Task.sync({ force: true }).success(function() {
               self.Worker.create({ name: 'worker' }).success(function(worker) {
                 self.Task.create({ title: 'homework' }).success(function(task) {
@@ -1831,11 +1830,11 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       describe('hasMany with alias', function() {
         before(function(done) {
           var self = this
-          this.Task     = this.sequelize.define('Task', { title: Sequelize.STRING })
-          this.Worker   = this.sequelize.define('Worker', { name: Sequelize.STRING })
-          this.Worker.hasMany(this.Task, { as: 'ToDos' })
+          self.Task     = self.sequelize.define('Task', { title: Sequelize.STRING })
+          self.Worker   = self.sequelize.define('Worker', { name: Sequelize.STRING })
+          self.Worker.hasMany(self.Task, { as: 'ToDos' })
 
-          this.Worker.sync({ force: true }).success(function() {
+          self.Worker.sync({ force: true }).success(function() {
             self.Task.sync({ force: true }).success(function() {
               self.Worker.create({ name: 'worker' }).success(function(worker) {
                 self.Task.create({ title: 'homework' }).success(function(task) {
@@ -1945,7 +1944,7 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       })
 
       it("finds all entries", function(done) {
-        this.User.findAll().on('success', function(users) {
+        this.User.all().on('success', function(users) {
           expect(users.length).toEqual(2)
           done()
         })
@@ -2367,11 +2366,6 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
   })
 
   describe('references', function() {
-    before(function(done) {
-      this.sequelize = sequelize
-      done()
-    })
-
     it('uses an existing dao factory and references the author table', function(done) {
       var self    = this
         , Author  = self.sequelize.define('author', { firstName: Sequelize.STRING })
@@ -2388,7 +2382,8 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       Post.belongsTo(Author)
 
       Author.sync({ force: true }).success(function() {
-        Post.sync({ force: true }).on('sql', function(sql) {
+        Post.sync({ force: true })
+        .on('sql', function(sql) {
           if (dialect === 'postgres') {
             expect(sql).toMatch(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
           } else if (dialect === 'mysql') {

@@ -7,83 +7,86 @@ var buster    = require("buster")
 buster.spec.expose()
 buster.testRunner.timeout = 1500
 
-var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
-
 describe(Helpers.getTestDialectTeaser("HasOne"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   before(function(done) {
-    this.sequelize = sequelize
-    Helpers.clearDatabase(this.sequelize, done)
+    var self = this
+    self.sequelize = Object.create(sequelize)
+    Helpers.clearDatabase(self.sequelize, done)
   })
 
   describe('general usage', function() {
     before(function(done) {
-      this.User = this.sequelize.define('User', { username: DataTypes.STRING })
-      this.Task = this.sequelize.define('Task', { title: DataTypes.STRING })
       var self = this
-      this.User.sync({ force: true }).success(function() {
-        self.Task.sync({ force: true }).success(done)
+      Helpers.clearDatabase(self.sequelize, function() {
+        self.User = self.sequelize.define('User', { username: DataTypes.STRING })
+        self.Task = self.sequelize.define('Task', { title: DataTypes.STRING })
+        self.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(done)
+        })
       })
     })
 
-    it("adds the foreign key", function(done) {
-      this.User.hasOne(this.Task)
-      expect(this.Task.attributes.UserId).toEqual("INTEGER")
-      done()
+    it("adds the foreign key", function() {
+      var self = this
+      self.User.hasOne(self.Task)
+      expect(self.Task.attributes.UserId).toEqual("INTEGER")
     })
 
-    it("adds an underscored foreign key", function(done) {
-      var User = this.sequelize.define('User', { username: DataTypes.STRING }, {underscored: true})
-      , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+    it("adds an underscored foreign key", function() {
+      var self = this
+        , User = self.sequelize.define('User', { username: DataTypes.STRING }, {underscored: true})
+        , Task = self.sequelize.define('Task', { title: DataTypes.STRING })
 
       User.hasOne(Task)
       expect(Task.attributes.user_id).toEqual("INTEGER")
-      done()
     })
 
-    it("uses the passed foreign key", function(done) {
-      var User = this.sequelize.define('User', { username: DataTypes.STRING }, {underscored: true})
-        , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+    it("uses the passed foreign key", function() {
+      var self = this
+        , User = self.sequelize.define('User', { username: DataTypes.STRING }, {underscored: true})
+        , Task = self.sequelize.define('Task', { title: DataTypes.STRING })
 
       User.hasOne(Task, {foreignKey: 'person_id'})
       expect(Task.attributes.person_id).toEqual("INTEGER")
-      done()
     })
 
-    it("defines the getter and the setter", function(done) {
-      this.User.hasOne(this.Task)
-      var u = this.User.build({username: 'asd'})
+    it("defines the getter and the setter", function() {
+      var self = this
+      self.User.hasOne(self.Task)
+      var u = self.User.build({username: 'asd'})
 
       expect(u.setTask).toBeDefined()
       expect(u.getTask).toBeDefined()
-      done()
     })
 
-    it("defined the getter and the setter according to the passed 'as' option", function(done) {
-      this.User.hasOne(this.Task, {as: 'Work'})
-      var u = this.User.build({username: 'asd'})
+    it("defined the getter and the setter according to the passed 'as' option", function() {
+      var self = this
+      self.User.hasOne(self.Task, {as: 'Work'})
+      var u = self.User.build({username: 'asd'})
 
       expect(u.setWork).toBeDefined()
       expect(u.getWork).toBeDefined()
-      done()
     })
 
-    it("aliases associations to the same table according to the passed 'as' option", function(done) {
-      this.User.hasOne(this.Task, {as: 'Work'});
-      this.User.hasOne(this.Task, {as: 'Play'});
+    it("aliases associations to the same table according to the passed 'as' option", function() {
+      var self = this
+      self.User.hasOne(self.Task, {as: 'Work'});
+      self.User.hasOne(self.Task, {as: 'Play'});
 
-      var u = this.User.build({username: 'asd'})
+      var u = self.User.build({username: 'asd'})
       expect(u.getWork).toBeDefined()
       expect(u.setWork).toBeDefined()
       expect(u.getPlay).toBeDefined()
       expect(u.setPlay).toBeDefined()
-      done()
     })
 
     it("gets and sets the correct objects", function(done) {
       var self = this
 
-      this.User.hasOne(this.Task, {as: 'Task'})
-      this.User.sync({ force: true }).success(function() {
+      self.User.hasOne(self.Task, {as: 'Task'})
+      self.User.sync({ force: true }).success(function() {
         self.Task.sync({ force: true }).success(function() {
           self.User.create({username: 'name'}).success(function(user) {
             self.Task.create({title: 'snafu'}).success(function(task) {
@@ -106,8 +109,8 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
     it("unsets unassociated objects", function(done) {
       var self = this
 
-      this.User.hasOne(this.Task, {as: 'Task'})
-      this.User.sync({ force: true }).success(function() {
+      self.User.hasOne(self.Task, {as: 'Task'})
+      self.User.sync({ force: true }).success(function() {
         self.Task.sync({ force: true }).success(function() {
           self.User.create({username: 'name'}).success(function(user) {
             self.Task.create({title: 'snafu'}).success(function(task1) {
@@ -135,7 +138,7 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
       Person.hasOne(Person, {as: 'Mother', foreignKey: 'MotherId'})
       Person.hasOne(Person, {as: 'Father', foreignKey: 'FatherId'})
 
-      Person.sync({force: true}).success(function() {
+      Person.sync({ force: true }).success(function() {
         var p = Person.build()
         expect(p.setFather).toBeDefined()
         expect(p.setMother).toBeDefined()
@@ -154,8 +157,9 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
 
   describe('getAssocation', function() {
     it('should be able to handle a where object that\'s a first class citizen.', function(done) {
-      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
-        , Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING })
+      var self = this
+        , User = self.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , Task = self.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING })
 
       User.hasOne(Task)
       User.sync({ force: true }).success(function() {
@@ -177,9 +181,9 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
 
   describe('setAssociation', function() {
     it('clears the association if null is passed', function(done) {
-      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
-        , Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING })
-
+      var self = this
+        , User = self.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , Task = self.sequelize.define('TaskXYZ', { title: DataTypes.STRING })
       User.hasOne(Task)
 
       User.sync({ force: true }).success(function() {
@@ -189,14 +193,12 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
               user.setTaskXYZ(task).success(function() {
                 user.getTaskXYZ().success(function(task) {
                   expect(task).not.toEqual(null)
-
                   user.setTaskXYZ(null).success(function() {
                     user.getTaskXYZ().success(function(task) {
                       expect(task).toEqual(null)
                       done()
                     })
                   })
-
                 })
               })
             })
@@ -209,30 +211,24 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
   describe("Foreign key constraints", function() {
     before(function(done) {
       var self = this
-      Helpers.initTests({
-        dialect: dialect,
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-          self.Task = sequelize.define('Task', { title: DataTypes.STRING })
-          self.User = sequelize.define('User', { username: DataTypes.STRING })
-        },
-        onComplete: function() {
-          self.sequelize.sync({ force: true }).success(done)
-        }
-      })
+      self.sequelize = Object.create(self.sequelize)
+      Helpers.clearDatabase(self.sequelize, done)
     })
 
-    it("are not enabled by default", function(done) {
+    it("is not enabled by default", function(done) {
       var self = this
-      self.User.hasOne(self.Task)
+        , Task = self.sequelize.define('Task1', { title: DataTypes.STRING })
+        , User = self.sequelize.define('User1', { username: DataTypes.STRING })
 
-      self.User.sync({ force: true }).success(function() {
-        self.Task.sync({ force: true }).success(function() {
-          self.User.create({ username: 'foo' }).success(function(user) {
-            self.Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
+      User.hasOne(Task)
+
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTask1(task).success(function() {
                 user.destroy().success(function() {
-                  self.Task.findAll().success(function(tasks) {
+                  Task.all().success(function(tasks) {
                     expect(tasks.length).toEqual(1)
                     done()
                   })
@@ -246,15 +242,18 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
 
     it("can cascade deletes", function(done) {
       var self = this
-      self.User.hasOne(self.Task, {onDelete: 'cascade'})
+        , Task = self.sequelize.define('Task2', { title: DataTypes.STRING })
+        , User = self.sequelize.define('User2', { username: DataTypes.STRING })
 
-      self.User.sync({ force: true }).success(function() {
-        self.Task.sync({ force: true }).success(function() {
-          self.User.create({ username: 'foo' }).success(function(user) {
-            self.Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
+      User.hasOne(Task, {onDelete: 'cascade'})
+
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTask2(task).success(function() {
                 user.destroy().success(function() {
-                  self.Task.findAll().success(function(tasks) {
+                  Task.all().success(function(tasks) {
                     expect(tasks.length).toEqual(0)
                     done()
                   })
@@ -268,16 +267,23 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
 
     it("can restrict deletes", function(done) {
       var self = this
-      self.User.hasOne(self.Task, {onDelete: 'restrict'})
+        , Task = self.sequelize.define('Task3', { title: DataTypes.STRING })
+        , User = self.sequelize.define('User3', { username: DataTypes.STRING })
 
-      self.User.sync({ force: true }).success(function() {
-        self.Task.sync({ force: true }).success(function() {
-          self.User.create({ username: 'foo' }).success(function(user) {
-            self.Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
-                user.destroy().error(function() {
+      User.hasOne(Task, {onDelete: 'restrict'})
+
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTask3(task).success(function() {
+                user.destroy().success(function() {
+                  expect(false).toEqual('You shouldn\'t reach here.')
+                  done()
+                })
+                .error(function() {
                   // Should fail due to FK restriction
-                  self.Task.findAll().success(function(tasks) {
+                  Task.all().success(function(tasks) {
                     expect(tasks.length).toEqual(1)
                     done()
                   })
@@ -291,13 +297,16 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
 
     it("can cascade updates", function(done) {
       var self = this
-      self.User.hasOne(self.Task, {onUpdate: 'cascade'})
+        , Task = self.sequelize.define('Task4', { title: DataTypes.STRING })
+        , User = self.sequelize.define('User4', { username: DataTypes.STRING })
 
-      self.User.sync({ force: true }).success(function() {
-        self.Task.sync({ force: true }).success(function() {
-          self.User.create({ username: 'foo' }).success(function(user) {
-            self.Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
+      User.hasOne(Task, {onUpdate: 'cascade'})
+
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTask4(task).success(function() {
 
                 // Changing the id of a DAO requires a little dance since
                 // the `UPDATE` query generated by `save()` uses `id` in the
@@ -306,9 +315,9 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
                 var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
                 user.QueryInterface.update(user, tableName, {id: 999}, user.id)
                 .success(function() {
-                  self.Task.findAll().success(function(tasks) {
+                  Task.all().success(function(tasks) {
                     expect(tasks.length).toEqual(1)
-                    expect(tasks[0].UserId).toEqual(999)
+                    expect(tasks[0].User4Id).toEqual(999)
                     done()
                   })
                 })
@@ -321,23 +330,29 @@ describe(Helpers.getTestDialectTeaser("HasOne"), function() {
 
     it("can restrict updates", function(done) {
       var self = this
-      self.User.hasOne(self.Task, {onUpdate: 'restrict'})
+        , Task = self.sequelize.define('Task5', { title: DataTypes.STRING })
+        , User = self.sequelize.define('User5', { username: DataTypes.STRING })
 
-      self.User.sync({ force: true }).success(function() {
-        self.Task.sync({ force: true }).success(function() {
-          self.User.create({ username: 'foo' }).success(function(user) {
-            self.Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
+      User.hasOne(Task, {onUpdate: 'restrict'})
 
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTask5(task).success(function() {
                 // Changing the id of a DAO requires a little dance since
                 // the `UPDATE` query generated by `save()` uses `id` in the
                 // `WHERE` clause
 
                 var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
                 user.QueryInterface.update(user, tableName, {id: 999}, user.id)
+                .success(function() {
+                  expect(1).toEqual(2)
+                  done()
+                })
                 .error(function() {
                   // Should fail due to FK restriction
-                  self.Task.findAll().success(function(tasks) {
+                  Task.all().success(function(tasks) {
                     expect(tasks.length).toEqual(1)
                     done()
                   })

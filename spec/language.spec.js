@@ -7,31 +7,30 @@ buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("Language Util"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
   describe("Plural", function(){
-    beforeAll(function(done) {
+    before(function(done) {
       var self = this
-      Helpers.initTests({
-        dialect: dialect,
-        onComplete: function(sequelize) {
-          self.sequelize = sequelize
-          self.sequelize.options.language = 'es'
-          done()
-        }
-      })
+      self.sequelize = Object.create(sequelize)
+      self.sequelize.options.language = 'es'
+      Helpers.clearDatabase(self.sequelize, done)
     })
 
     it("should rename tables to their plural form...", function(done){
-      var table = this.sequelize.define('arbol', {name: Sequelize.STRING})
-      var table2 = this.sequelize.define('androide', {name: Sequelize.STRING})
+      var self = this
+        , table = self.sequelize.define('arbol', {name: Sequelize.STRING})
+        , table2 = self.sequelize.define('androide', {name: Sequelize.STRING})
+
       expect(table.tableName).toEqual('arboles')
       expect(table2.tableName).toEqual('androides')
       done()
     })
 
     it("should be able to pluralize/singularize associations...", function(done){
-      var table = this.sequelize.define('arbol', {name: Sequelize.STRING})
-      var table2 = this.sequelize.define('androide', {name: Sequelize.STRING})
-      var table3 = this.sequelize.define('hombre', {name: Sequelize.STRING})
+      var self = this
+        , table = self.sequelize.define('arbol', {name: Sequelize.STRING})
+        , table2 = self.sequelize.define('androide', {name: Sequelize.STRING})
+        , table3 = self.sequelize.define('hombre', {name: Sequelize.STRING})
 
       table.hasOne(table2)
       table2.belongsTo(table)

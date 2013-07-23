@@ -36,10 +36,9 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
 
   before(function(done) {
     var self = this
-
-    self.sequelize = sequelize
+    self.sequelize = Object.create(sequelize)
     self.User      = User
-    Helpers.clearDatabase(this.sequelize, function(){
+    Helpers.clearDatabase(self.sequelize, function(){
       self.User.sync({ force: true }).success(done)
     })
   })
@@ -999,8 +998,8 @@ describe(Helpers.getTestDialectTeaser("DAO"), function() {
           identifier: 'identifier'
         }).success(function(user) {
           var emitter = user.updateAttributes({name: 'foobar'})
-          emitter.success(function() {
-            expect(emitter.query.sql).toMatch(/WHERE [`"]identifier[`"]..identifier./)
+          emitter.on('sql', function(sql) {
+            expect(sql).toMatch(/WHERE [`"]identifier[`"]..identifier./)
             done()
           })
         })

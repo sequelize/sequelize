@@ -50,21 +50,23 @@ describe(Helpers.getTestDialectTeaser("Configuration"), function() {
         return done()
       }
 
-      var sequelizeSpecific1 = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
-      , domain = require('domain')
-      , d = domain.create()
+      (function() {
+        var sequelizeSpecific1 = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
+        , domain = require('domain')
+        , d = domain.create()
 
-      d.on('error', function(err){
-        expect(err).toMatch(/^Failed to authenticate/)
-        d.remove(sequelizeSpecific1.query)
-        done()
-      })
+        d.on('error', function(err){
+          expect(err).toMatch(/^Failed to authenticate/)
+          d.remove(sequelizeSpecific1.query)
+          done()
+        })
 
-      d.run(function(){
-        d.add(sequelizeSpecific1.query)
-        sequelizeSpecific1.query('select 1 as hello')
-        .success(function(){})
-      })
+        d.run(function(){
+          d.add(sequelizeSpecific1.query)
+          sequelizeSpecific1.query('select 1 as hello')
+          .success(function(){})
+        })
+      })()
     })
 
     it('when we don\'t have a valid dialect.', function(done) {

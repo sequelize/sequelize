@@ -22,7 +22,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
 
   before(function(done) {
     var self = this
-    self.sequelize = sequelize
+    self.sequelize = Object.create(sequelize)
     Helpers.clearDatabase(self.sequelize, done)
   })
 

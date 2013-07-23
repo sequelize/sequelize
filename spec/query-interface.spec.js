@@ -9,9 +9,10 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
   var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
   before(function(done) {
-    this.sequelize = sequelize
-    this.interface = this.sequelize.getQueryInterface()
-    Helpers.clearDatabase(this.sequelize, done)
+    var self = this
+    self.sequelize = Object.create(sequelize)
+    self.interface = self.sequelize.getQueryInterface()
+    Helpers.clearDatabase(self.sequelize, done)
   })
 
   describe('dropAllTables', function() {

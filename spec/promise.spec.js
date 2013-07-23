@@ -34,9 +34,9 @@ describe(Helpers.getTestDialectTeaser("Promise"), function () {
 
   before(function(done) {
     var self = this
-    self.sequelize = sequelize
+    self.sequelize = Object.create(sequelize)
     self.User      = User
-    Helpers.clearDatabase(this.sequelize, function(){
+    Helpers.clearDatabase(self.sequelize, function(){
       self.User.sync({ force: true }).then(function() {done()}, done)
     })
   })
