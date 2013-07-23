@@ -14,5 +14,33 @@ describe("Utils", function() {
 
       expect(result).not.to.match(/.*noot.*/)
     })
+
+    it("removes lines comments in the middle of a line", function() {
+      var functionWithLineComments = function() {
+        alert(1) // noot noot
+      }
+
+      var string = functionWithLineComments.toString()
+        , result = Utils.removeCommentsFromFunctionString(string)
+
+      expect(result).not.to.match(/.*noot.*/)
+    })
+
+    it("removes range comments", function() {
+      var s = function() {
+        alert(1) /*
+          noot noot
+        */
+        alert(2) /*
+          foo
+        */
+      }.toString()
+
+      var result = Utils.removeCommentsFromFunctionString(s)
+
+      expect(result).not.to.match(/.*noot.*/)
+      expect(result).not.to.match(/.*foo.*/)
+      expect(result).to.match(/.*alert\(2\).*/)
+    })
   })
 })
