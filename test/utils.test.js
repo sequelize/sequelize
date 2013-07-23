@@ -1,8 +1,9 @@
-var chai   = require('chai')
-  , expect = chai.expect
-  , Utils  = require(__dirname + '/../lib/utils')
+var chai    = require('chai')
+  , expect  = chai.expect
+  , Utils   = require(__dirname + '/../lib/utils')
+  , Support = require(__dirname + '/support')
 
-describe("Utils", function() {
+describe(Support.getTestDialectTeaser("Utils"), function() {
   describe('removeCommentsFromFunctionString', function() {
     it("removes line comments at the start of a line", function() {
       var functionWithLineComments = function() {
