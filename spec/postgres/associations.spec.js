@@ -6,7 +6,7 @@ buster.spec.expose()
 buster.testRunner.timeout = 2000
 
 if (dialect.match(/^postgres/)) {
-  describe('[POSTGRES] associations', function() {
+  describe('[POSTGRES Specific] associations', function() {
     var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
     before(function(done) {

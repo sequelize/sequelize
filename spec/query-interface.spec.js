@@ -11,7 +11,7 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
   before(function(done) {
     this.sequelize = sequelize
     this.interface = this.sequelize.getQueryInterface()
-    done()
+    Helpers.clearDatabase(this.sequelize, done)
   })
 
   describe('dropAllTables', function() {
@@ -86,11 +86,13 @@ describe(Helpers.getTestDialectTeaser("QueryInterface"), function() {
   describe('describeTable', function() {
     it('reads the metadata of the table', function(done) {
       var self = this
-      this.interface.createTable('User', {
+      var Users = self.sequelize.define('User', {
         username: Helpers.Sequelize.STRING,
         isAdmin: Helpers.Sequelize.BOOLEAN,
         enumVals: Helpers.Sequelize.ENUM('hello', 'world')
-      }).success(function() {
+      }, { freezeTableName: true })
+
+      Users.sync({ force: true }).success(function() {
         self.interface.describeTable('User').complete(function(err, metadata) {
           expect(err).toBeNull()
 

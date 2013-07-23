@@ -6,7 +6,7 @@ buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 if (dialect.match(/^postgres/)) {
-  describe('[POSTGRES] hstore', function() {
+  describe('[POSTGRES Specific] hstore', function() {
     var hstore = require('../../lib/dialects/postgres/hstore')
 
     describe('stringifyPart', function() {

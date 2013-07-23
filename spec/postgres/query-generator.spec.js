@@ -10,7 +10,7 @@ buster.spec.expose()
 buster.testRunner.timeout = 1000
 
 if (dialect.match(/^postgres/)) {
-  describe('[POSTGRES] QueryGenerator', function() {
+  describe('[POSTGRES Specific] QueryGenerator', function() {
     var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
     before(function(done) {
       var self = this
