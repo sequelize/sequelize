@@ -2503,9 +2503,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       it("transforms the node-sql instance into a proper sql string", function() {
         var sql    = this.User.select("username").toSql()
         var sqlMap = {
-          postgres: 'SELECT username FROM "users"',
-          mysql:    'SELECT `username` FROM `users`',
-          sqlite:   'SELECT username FROM "users"'
+          postgres: 'SELECT username FROM "users";',
+          mysql:    'SELECT `username` FROM `users`;',
+          sqlite:   'SELECT username FROM "users";'
         }
         expect(sql).toEqual(sqlMap[dialect])
       })
@@ -2513,9 +2513,9 @@ describe(Helpers.getTestDialectTeaser("DAOFactory"), function() {
       it("transforms node-sql instances with chaining into a proper sql string", function() {
         var sql    = this.User.select("username").select("firstName").group("username").toSql()
         var sqlMap = {
-          postgres: 'SELECT username, firstName FROM "users" GROUP BY username',
-          mysql:    'SELECT `username`, `firstName` FROM `users` GROUP BY username',
-          sqlite:   'SELECT username, firstName FROM "users" GROUP BY username'
+          postgres: 'SELECT username, firstName FROM "users" GROUP BY username;',
+          mysql:    'SELECT `username`, `firstName` FROM `users` GROUP BY username;',
+          sqlite:   'SELECT username, firstName FROM "users" GROUP BY username;'
         }
         expect(sql).toEqual(sqlMap[dialect])
       })
