@@ -2,11 +2,12 @@ var chai      = require('chai')
   , expect    = chai.expect
   , semver    = require("semver")
   , config    = require(__dirname + "/config/config")
-  , Utils     = require(__dirname + '/../lib/utils')
   , Support   = require(__dirname + '/support')
   , dialect   = Support.getTestDialect()
   , Sequelize = require(__dirname + '/../index')
   , noDomains = semver.lt(process.version, '0.8.0')
+
+chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Configuration"), function() {
   describe('Connections problems should fail with a nice message', function() {
