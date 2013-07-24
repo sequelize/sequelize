@@ -1,12 +1,13 @@
 var Support   = require(__dirname + '/support')
   , dialect   = Support.getTestDialect()
 
+var sequelize = Support.createSequelizeInstance({ dialect: dialect })
+
 before(function(done) {
-  var sequelize = Support.createSequelizeInstance({ dialect: dialect })
   this.sequelize = sequelize
   done()
 })
 
-beforeEach(function(done) {
+afterEach(function(done) {
   Support.clearDatabase(this.sequelize, done)
 })

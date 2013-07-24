@@ -2,6 +2,8 @@ var fs        = require('fs')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
   , config    = require(__dirname + "/config/config")
+  , chai      = require('chai')
+  , expect    = chai.expect
 
 module.exports = {
   Sequelize: Sequelize,
@@ -77,6 +79,14 @@ module.exports = {
     return fs.readdirSync(__dirname + '/../lib/dialects').filter(function(file) {
       return ((file.indexOf('.js') === -1) && (file.indexOf('abstract') === -1))
     })
+  },
+
+  checkMatchForDialects: function(dialect, value, expectations) {
+    if (!!expectations[dialect]) {
+      expect(value).to.match(expectations[dialect])
+    } else {
+      throw new Error('Undefined expectation for "' + dialect + '"!')
+    }
   },
 
   getTestDialect: function() {
