@@ -6,6 +6,11 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Language Util"), function() {
+  after(function(done) {
+    this.sequelize.options.language = 'en'
+    done()
+  })
+
   describe("Plural", function(){
     before(function(done) {
       this.sequelize.options.language = 'es'
