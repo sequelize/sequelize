@@ -1,19 +1,12 @@
 var chai      = require('chai')
   , expect    = chai.expect
   , Sequelize = require(__dirname + '/../index')
-  , Utils     = require(__dirname + '/../lib/utils')
   , Support   = require(__dirname + '/support')
-  , dialect   = Support.getTestDialect()
+
+chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("DaoValidator"), function() {
-  var sequelize = Support.createSequelizeInstance({ dialect: dialect })
-
   describe('validations', function() {
-    before(function(done) {
-      this.sequelize = Object.create(sequelize)
-      Support.clearDatabase(this.sequelize, done)
-    })
-
     var checks = {
       is: {
         spec: { args: ["[a-z]",'i'] },
