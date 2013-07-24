@@ -11,30 +11,27 @@ chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Configuration"), function() {
   describe('Connections problems should fail with a nice message', function() {
-    it('when we don\'t have the correct server details', function(done) {
+    it("when we don't have the correct server details", function(done) {
       if (noDomains === true) {
         console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
-        expect('').toEqual('') // Silence Buster!
-        return done()
-      }
+        done()
+      } else {
+        var seq    = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
+          , Domain = require('domain')
+          , domain = Domain.create()
 
-      (function() {
-        var sequelizeSpecific2 = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
-          , domain = require('domain')
-          , d = domain.create()
-
-        d.on('error', function(err){
-          expect(err).to.match(/Failed to find (.*?) Please double check your settings\./)
-          d.remove(sequelizeSpecific2.query)
+        domain.on('error', function(err){
+          expect(err.toString()).to.match(/Failed to find (.*?) Please double check your settings\./)
+          domain.remove(seq.query)
           done()
         })
 
-        d.run(function(){
-          d.add(sequelizeSpecific2.query)
-          sequelizeSpecific2.query('select 1 as hello')
+        domain.run(function(){
+          domain.add(seq.query)
+          seq.query('select 1 as hello')
           .success(function(){})
         })
-      })()
+      }
     })
 
     it('when we don\'t have the correct login information', function(done) {
@@ -42,31 +39,26 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
         console.log('This dialect doesn\'t support me :(')
         expect('').toEqual('') // Silence Buster
         return done()
-      }
-
-      if (noDomains === true) {
+      } else if (noDomains === true) {
         console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
         expect('').toEqual('') // Silence Buster!
         return done()
-      }
+      } else {
+        var seq    = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
+          , Domain = require('domain')
+          , domain = Domain.create()
 
-      (function() {
-        var sequelizeSpecific1 = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
-        , domain = require('domain')
-        , d = domain.create()
-
-        d.on('error', function(err){
-          expect(err).to.match(/^Failed to authenticate/)
-          d.remove(sequelizeSpecific1.query)
+        domain.on('error', function(err){
+          expect(err.toString()).to.match(/^Failed to authenticate/)
+          domain.remove(seq.query)
           done()
         })
 
-        d.run(function(){
-          d.add(sequelizeSpecific1.query)
-          sequelizeSpecific1.query('select 1 as hello')
-          .success(function(){})
+        domain.run(function(){
+          domain.add(seq.query)
+          seq.query('select 1 as hello').success(function(){})
         })
-      })()
+      }
     })
 
     it('when we don\'t have a valid dialect.', function(done) {
