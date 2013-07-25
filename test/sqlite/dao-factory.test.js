@@ -10,7 +10,12 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 if (dialect === 'sqlite') {
-  describe('[SQLITE] DAOFactory', function() {
+  describe('[SQLITE Specific] DAOFactory', function() {
+    after(function(done) {
+      this.sequelize.options.storage = ':memory:'
+      done()
+    })
+
     beforeEach(function(done) {
       this.sequelize.options.storage = dbFile
       this.User = this.sequelize.define('User', {
@@ -27,13 +32,13 @@ if (dialect === 'sqlite') {
       describe('with storage "' + storage + '"', function() {
         after(function(done) {
           if (storage === dbFile) {
-            done()
-            // require("fs").writeFile(dbFile, '', done)
+            require("fs").writeFile(dbFile, '', function() {
+              done()
+            })
           }
         })
 
         describe('create', function() {
-
           it('creates a table entry', function(done) {
             var self = this
             this.User.create({ age: 21, name: 'John Wayne', bio: 'noot noot' }).success(function(user) {
@@ -139,7 +144,7 @@ if (dialect === 'sqlite') {
 
           it("should return all users", function(done) {
             this.User.all().on('success', function(users) {
-              expect(users.length).to.equal(2)
+              expect(users).to.have.length(2)
               done()
             })
           })
@@ -174,7 +179,7 @@ if (dialect === 'sqlite') {
 
             this.User.bulkCreate(users).success(function() {
               self.User.max('age').on('success', function(min) {
-                expect(min).to.equal(5);
+                expect(min).to.equal(5)
                 done()
               })
             })

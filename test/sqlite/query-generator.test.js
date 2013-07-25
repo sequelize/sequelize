@@ -1,25 +1,22 @@
-var buster  = require("buster")
-  , Helpers = require('../buster-helpers')
-  , dialect = Helpers.getTestDialect()
-  , QueryGenerator = require("../../lib/dialects/sqlite/query-generator")
-  , util    = require("util")
+var chai      = require('chai')
+  , expect    = chai.expect
+  , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
+  , dialect   = Support.getTestDialect()
+  , util      = require("util")
+  , _         = require('lodash')
+  , QueryGenerator = require("../../lib/dialects/sqlite/query-generator")
 
-buster.spec.expose()
-buster.testRunner.timeout = 1000
-
-var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+chai.Assertion.includeStack = true
 
 if (dialect === 'sqlite') {
-  describe('[SQLITE] QueryGenerator', function() {
-    before(function(done) {
-      var self = this
-      this.sequelize = sequelize
-      Helpers.clearDatabase(this.sequelize, function() {
-        self.User = sequelize.define('User', {
-          username: DataTypes.STRING
-        })
-        self.User.sync({ force: true }).success(done)
+  describe('[SQLITE Specific] QueryGenerator', function() {
+    beforeEach(function(done) {
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING
+      })
+      this.User.sync({ force: true }).success(function() {
+        done()
       })
     })
 
@@ -229,7 +226,7 @@ if (dialect === 'sqlite') {
     }
 
 
-    Helpers.Sequelize.Utils._.each(suites, function(tests, suiteTitle) {
+    _.each(suites, function(tests, suiteTitle) {
       describe(suiteTitle, function() {
         tests.forEach(function(test) {
           var title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
@@ -238,7 +235,7 @@ if (dialect === 'sqlite') {
             var context = test.context || {options: {}};
             QueryGenerator.options = context.options
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
-            expect(conditions).toEqual(test.expectation)
+            expect(conditions).to.deep.equal(test.expectation)
             done()
           })
         })

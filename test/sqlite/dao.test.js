@@ -1,23 +1,19 @@
-var buster  = require("buster")
-  , Helpers = require('../buster-helpers')
-  , dialect = Helpers.getTestDialect()
+var chai      = require('chai')
+  , expect    = chai.expect
+  , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
+  , dialect   = Support.getTestDialect()
 
-buster.spec.expose()
-buster.testRunner.timeout = 1000
-
-var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+chai.Assertion.includeStack = true
 
 if (dialect === 'sqlite') {
-  describe('[SQLITE] DAO', function() {
-    before(function(done) {
-      var self = this
-      this.sequelize = sequelize
-      Helpers.clearDatabase(this.sequelize, function() {
-        self.User = sequelize.define('User', {
-          username: DataTypes.STRING
-        })
-        self.User.sync({ force: true }).success(done)
+  describe('[SQLITE Specific] DAO', function() {
+    beforeEach(function(done) {
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING
+      })
+      this.User.sync({ force: true }).success(function() {
+        done()
       })
     })
 
@@ -32,7 +28,7 @@ if (dialect === 'sqlite') {
               self.User.findAll({
                 where: ['createdAt > ?', new Date(2012, 01, 01)]
               }).success(function(users) {
-                expect(users.length).toEqual(1)
+                expect(users).to.have.length(1)
                 done()
               })
             })
