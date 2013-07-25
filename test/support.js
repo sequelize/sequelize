@@ -120,7 +120,9 @@ before(function(done) {
 })
 
 afterEach(function(done) {
-  Support.clearDatabase(this.sequelize, done)
+  Support.clearDatabase(this.sequelize, function() {
+    done()
+  })
 })
 
 module.exports = Support
