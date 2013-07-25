@@ -7,7 +7,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-describe.only(Support.getTestDialectTeaser("CustomEventEmitter"), function () {
+describe(Support.getTestDialectTeaser("CustomEventEmitter"), function () {
   describe("proxy", function () {
     it("should correctly work with success listeners", function(done) {
       var emitter = new CustomEventEmitter()

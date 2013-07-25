@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
     it('when we don\'t have the correct server details', function(done) {
       if (noDomains === true) {
         console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
-        expect('').toEqual('') // Silence Buster!
+        expect('').to.equal('') // Silence Buster!
         return done()
       }
 
@@ -40,13 +40,13 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
     it('when we don\'t have the correct login information', function(done) {
       if (dialect !== "postgres" && dialect !== "postgres-native" && dialect !== "mysql") {
         console.log('This dialect doesn\'t support me :(')
-        expect('').toEqual('') // Silence Buster
+        expect('').to.equal('') // Silence Buster
         return done()
       }
 
       if (noDomains === true) {
         console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
-        expect('').toEqual('') // Silence Buster!
+        expect('').to.equal('') // Silence Buster!
         return done()
       }
 
