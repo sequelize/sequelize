@@ -6,17 +6,17 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Language Util"), function() {
+  before(function(done) {
+    this.sequelize.options.language = 'es'
+    done()
+  })
+
   after(function(done) {
     this.sequelize.options.language = 'en'
     done()
   })
 
   describe("Plural", function(){
-    before(function(done) {
-      this.sequelize.options.language = 'es'
-      done()
-    })
-
     it("should rename tables to their plural form...", function(done){
       var self = this
         , table = self.sequelize.define('arbol', {name: Sequelize.STRING})

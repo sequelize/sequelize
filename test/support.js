@@ -2,10 +2,8 @@ var fs        = require('fs')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
   , config    = require(__dirname + "/config/config")
-  , chai      = require('chai')
-  , expect    = chai.expect
 
-module.exports = {
+var Support = {
   Sequelize: Sequelize,
 
   initTests: function(options) {
@@ -113,3 +111,18 @@ module.exports = {
     return "[" + dialect.toUpperCase() + "] " + moduleName
   }
 }
+
+var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() })
+
+before(function(done) {
+  this.sequelize = sequelize
+  done()
+})
+
+afterEach(function(done) {
+  Support.clearDatabase(this.sequelize, function() {
+    done()
+  })
+})
+
+module.exports = Support

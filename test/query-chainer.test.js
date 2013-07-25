@@ -1,11 +1,8 @@
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
-  , DataTypes = require(__dirname + "/../lib/data-types")
-  , dialect   = Support.getTestDialect()
   , QueryChainer       = require("../lib/query-chainer")
   , CustomEventEmitter = require("../lib/emitters/custom-event-emitter")
-  , _         = require('lodash')
 
 chai.Assertion.includeStack = true
 
@@ -16,7 +13,7 @@ describe(Support.getTestDialectTeaser("QueryChainer"), function () {
   })
 
   describe('add', function() {
-    it('adds a new serial item if method is passed',   function(done) {
+    it('adds a new serial item if method is passed', function(done) {
       expect(this.queryChainer.serials.length).to.equal(0)
       this.queryChainer.add({}, 'foo')
       expect(this.queryChainer.serials.length).to.equal(1)
@@ -57,7 +54,7 @@ describe(Support.getTestDialectTeaser("QueryChainer"), function () {
 
       this.queryChainer.run().success(function(results) {
         expect(results).to.exist
-        expect(results.length).to.equal(1)
+        expect(results).to.have.length(1)
         expect(results[0]).to.equal(1)
         done()
       })
@@ -75,7 +72,7 @@ describe(Support.getTestDialectTeaser("QueryChainer"), function () {
       this.queryChainer.add(emitter3)
 
       this.queryChainer.run().success(function(results) {
-        expect(results.length).to.equal(3)
+        expect(results).to.have.length(3)
         expect(results).to.include.members([1,2,3])
         done()
       })
@@ -126,7 +123,7 @@ describe(Support.getTestDialectTeaser("QueryChainer"), function () {
 
       this.queryChainer.runSerially().success(function(results) {
         expect(results).to.exist
-        expect(results.length).to.equal(1)
+        expect(results).to.have.length(1)
         expect(results[0]).to.equal(1)
         done()
       })
@@ -142,7 +139,7 @@ describe(Support.getTestDialectTeaser("QueryChainer"), function () {
       this.queryChainer.add(emitter3, 'run')
 
       this.queryChainer.runSerially().success(function(results) {
-        expect(results.length).to.equal(3)
+        expect(results).to.have.length(3)
         expect(results).to.contain.members([1,2,3])
         done()
       })
