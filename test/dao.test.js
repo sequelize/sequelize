@@ -114,16 +114,16 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
   describe('increment', function () {
     beforeEach(function(done) {
-      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(function(){
+      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).complete(function(){
         done()
       })
     })
 
     it('with array', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
-        user1.increment(['aNumber'], 2).done(function() {
-          self.User.find(1).done(function(err, user3) {
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment(['aNumber'], 2).complete(function() {
+          self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(2)
             done()
           })
@@ -133,9 +133,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('with single field', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
-        user1.increment('aNumber', 2).done(function() {
-          self.User.find(1).done(function(err, user3) {
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment('aNumber', 2).complete(function() {
+          self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(2)
             done()
           })
@@ -145,14 +145,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('should still work right with other concurrent updates', function(done) {
       var self = this
-      this.User.find(1).done(function (err, user1) {
+      this.User.find(1).complete(function (err, user1) {
         // Select the user again (simulating a concurrent query)
-        self.User.find(1).done(function (err, user2) {
+        self.User.find(1).complete(function (err, user2) {
           user2.updateAttributes({
             aNumber: user2.aNumber + 1
-          }).done(function () {
-            user1.increment(['aNumber'], 2).done(function() {
-              self.User.find(1).done(function(err, user5) {
+          }).complete(function () {
+            user1.increment(['aNumber'], 2).complete(function() {
+              self.User.find(1).complete(function(err, user5) {
                 expect(user5.aNumber).to.be.equal(3)
                 done()
               })
@@ -164,25 +164,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('should still work right with other concurrent increments', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
+      this.User.find(1).complete(function(err, user1) {
         var _done = _.after(3, function() {
-          self.User.find(1).done(function(err, user2) {
+          self.User.find(1).complete(function(err, user2) {
             expect(user2.aNumber).to.equal(6)
             done()
           })
         })
 
-        user1.increment(['aNumber'], 2).done(_done)
-        user1.increment(['aNumber'], 2).done(_done)
-        user1.increment(['aNumber'], 2).done(_done)
+        user1.increment(['aNumber'], 2).complete(_done)
+        user1.increment(['aNumber'], 2).complete(_done)
+        user1.increment(['aNumber'], 2).complete(_done)
       })
     })
 
     it('with key value pair', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
-        user1.increment({ 'aNumber': 1, 'bNumber': 2}).done(function() {
-          self.User.find(1).done(function (err, user3) {
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment({ 'aNumber': 1, 'bNumber': 2}).success(function() {
+          self.User.find(1).complete(function (err, user3) {
             expect(user3.aNumber).to.be.equal(1)
             expect(user3.bNumber).to.be.equal(2)
             done()
@@ -194,14 +194,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
   describe('decrement', function () {
     beforeEach(function(done) {
-      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done)
+      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).complete(done)
     })
 
     it('with array', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
-        user1.decrement(['aNumber'], 2).done(function() {
-          self.User.find(1).done(function(err, user3) {
+      this.User.find(1).complete(function(err, user1) {
+        user1.decrement(['aNumber'], 2).complete(function() {
+          self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
             done()
           })
@@ -211,9 +211,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('with single field', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
-        user1.decrement('aNumber', 2).done(function() {
-          self.User.find(1).done(function(err, user3) {
+      this.User.find(1).complete(function(err, user1) {
+        user1.decrement('aNumber', 2).complete(function() {
+          self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
             done()
           })
@@ -223,14 +223,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('should still work right with other concurrent updates', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
+      this.User.find(1).complete(function(err, user1) {
         // Select the user again (simulating a concurrent query)
-        self.User.find(1).done(function(err, user2) {
+        self.User.find(1).complete(function(err, user2) {
           user2.updateAttributes({
             aNumber: user2.aNumber + 1
-          }).done(function () {
-            user1.decrement(['aNumber'], 2).done(function() {
-              self.User.find(1).done(function(err, user5) {
+          }).complete(function () {
+            user1.decrement(['aNumber'], 2).complete(function() {
+              self.User.find(1).complete(function(err, user5) {
                 expect(user5.aNumber).to.be.equal(-1)
                 done()
               })
@@ -242,25 +242,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('should still work right with other concurrent increments', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
+      this.User.find(1).complete(function(err, user1) {
         var _done = _.after(3, function() {
-          self.User.find(1).done(function (err, user2) {
+          self.User.find(1).complete(function (err, user2) {
             expect(user2.aNumber).to.equal(-6)
             done()
           })
         })
 
-        user1.decrement(['aNumber'], 2).done(_done)
-        user1.decrement(['aNumber'], 2).done(_done)
-        user1.decrement(['aNumber'], 2).done(_done)
+        user1.decrement(['aNumber'], 2).complete(_done)
+        user1.decrement(['aNumber'], 2).complete(_done)
+        user1.decrement(['aNumber'], 2).complete(_done)
       })
     })
 
     it('with key value pair', function(done) {
       var self = this
-      this.User.find(1).done(function(err, user1) {
-        user1.decrement({ 'aNumber': 1, 'bNumber': 2}).done(function() {
-          self.User.find(1).done(function(err, user3) {
+      this.User.find(1).complete(function(err, user1) {
+        user1.decrement({ 'aNumber': 1, 'bNumber': 2}).complete(function() {
+          self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-1)
             expect(user3.bNumber).to.be.equal(-2)
             done()
@@ -272,9 +272,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
   describe('reload', function () {
     it("should return a reference to the same DAO instead of creating a new one", function(done) {
-      this.User.create({ username: 'John Doe' }).done(function(err, originalUser) {
-        originalUser.updateAttributes({ username: 'Doe John' }).done(function() {
-          originalUser.reload().done(function (err, updatedUser) {
+      this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
+        originalUser.updateAttributes({ username: 'Doe John' }).complete(function() {
+          originalUser.reload().complete(function (err, updatedUser) {
             expect(originalUser === updatedUser).to.be.true
             done()
           })
@@ -284,13 +284,13 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it("should update the values on all references to the DAO", function(done) {
       var self = this
-      this.User.create({ username: 'John Doe' }).done(function(err, originalUser) {
-        self.User.find(originalUser.id).done(function(err, updater) {
-          updater.updateAttributes({ username: 'Doe John' }).done(function() {
+      this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
+        self.User.find(originalUser.id).complete(function(err, updater) {
+          updater.updateAttributes({ username: 'Doe John' }).complete(function() {
             // We used a different reference when calling updateAttributes, so originalUser is now out of sync
             expect(originalUser.username).to.equal('John Doe')
 
-            originalUser.reload().done(function(err, updatedUser) {
+            originalUser.reload().complete(function(err, updatedUser) {
               expect(originalUser.username).to.equal('Doe John')
               expect(updatedUser.username).to.equal('Doe John')
               done()
@@ -304,14 +304,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       var self = this
       this.timeout = 2000
 
-      this.User.create({ username: 'John Doe' }).done(function(err, originalUser) {
+      this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
         var originallyUpdatedAt = originalUser.updatedAt
 
         // Wait for a second, so updatedAt will actually be different
         setTimeout(function () {
-          self.User.find(originalUser.id).done(function(err, updater) {
-            updater.updateAttributes({ username: 'Doe John' }).done(function () {
-              originalUser.reload().done(function(err, updatedUser) {
+          self.User.find(originalUser.id).complete(function(err, updater) {
+            updater.updateAttributes({ username: 'Doe John' }).complete(function () {
+              originalUser.reload().complete(function(err, updatedUser) {
                 expect(originalUser.updatedAt).to.be.above(originallyUpdatedAt)
                 expect(updatedUser.updatedAt).to.be.above(originallyUpdatedAt)
                 done()
@@ -453,10 +453,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
 
       User.all().success(function(users) {
-        expect(users.length).to.equal(0)
+        expect(users).to.have.length(0)
         user.save().success(function(){
           User.all().success(function(users) {
-            expect(users.length).to.equal(1)
+            expect(users).to.have.length(1)
             expect(users[0].username).to.equal(username)
             expect(users[0].touchedAt).to.be.instanceof(Date)
             expect(users[0].touchedAt).to.equalDate(new Date(1984, 8, 23))
@@ -466,14 +466,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
-    it("updates the timestamps", function() {
+    it("updates the timestamps", function(done) {
       var now       = Date.now()
         , user      = null
         , updatedAt = null
         , User      = this.User
 
       // timeout is needed, in order to check the update of the timestamp
-      var build = function() {
+      var build = function(callback) {
         user      = User.build({ username: 'user' })
         updatedAt = user.updatedAt
         expect(updatedAt.getTime()).to.be.above(now)
@@ -481,11 +481,17 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         setTimeout(function() {
           user.save().success(function() {
             expect(updatedAt.getTime()).to.be.below(user.updatedAt.getTime())
+            callback()
           })
         }, 1000)
       }
 
-      setTimeout(build, 1000)
+      // closures are fun :)
+      setTimeout(function() {
+        build(function() {
+          done()
+        })
+      }, 1000)
     })
 
     describe('without timestamps option', function() {
@@ -1046,9 +1052,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                 expect(download.startedAt instanceof Date).to.be.true
                 expect(download.canceledAt instanceof Date).to.be.true
                 expect(download.finishedAt).to.not.be.ok
+                done()
               })
-
-              done()
             })
           })
         })
