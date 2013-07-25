@@ -2400,8 +2400,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     afterEach(function(done) {
       var self = this
-      self.sequelize.getQueryInterface().dropTable('posts').success(function() {
-        self.sequelize.getQueryInterface().dropTable('authors').success(function() {
+      self.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
+        self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
           done()
         })
       })
@@ -2410,13 +2410,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('uses an existing dao factory and references the author table', function(done) {
       var self    = this
         , Post    = this.sequelize.define('post', {
-        title:    Sequelize.STRING,
-        authorId: {
-          type:          Sequelize.INTEGER,
-          references:    this.Author,
-          referencesKey: "id"
-        }
-      })
+            title:    Sequelize.STRING,
+            authorId: {
+              type:          Sequelize.INTEGER,
+              references:    this.Author,
+              referencesKey: "id"
+            }
+          })
 
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
@@ -2441,13 +2441,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('uses a table name as a string and references the author table', function(done) {
       var self    = this
         , Post    = self.sequelize.define('post', {
-          title:    Sequelize.STRING,
-          authorId: {
-            type:          Sequelize.INTEGER,
-            references:    'authors',
-            referencesKey: "id"
-          }
-        })
+            title:    Sequelize.STRING,
+            authorId: {
+              type:          Sequelize.INTEGER,
+              references:    'authors',
+              referencesKey: "id"
+            }
+          })
 
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
@@ -2472,13 +2472,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it("emits an error event as the referenced table name is invalid", function(done) {
       var self    = this
         , Post    = this.sequelize.define('post', {
-        title:    Sequelize.STRING,
-        authorId: {
-          type:          Sequelize.INTEGER,
-          references:    '4uth0r5',
-          referencesKey: "id"
-        }
-      })
+            title:    Sequelize.STRING,
+            authorId: {
+              type:          Sequelize.INTEGER,
+              references:    '4uth0r5',
+              referencesKey: "id"
+            }
+          })
 
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
@@ -2495,7 +2495,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
       }).error(function(err) {
         if (dialect === 'mysql') {
-          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN/)
+          expect(err.message).to.match(/ER_CANT_CREATE_TABLE/)
         }
         else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
