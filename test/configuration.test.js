@@ -92,42 +92,46 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       expect(config.port).to.equal('9821')
     })
 
-    it('should work with no authentication options', function() {
+    it('should work with no authentication options', function(done) {
       var sequelize = new Sequelize('mysql://example.com:9821/dbname')
       var config = sequelize.config
 
-      expect(config.username).to.equal(undefined)
-      expect(config.password).to.equal(null)
+      expect(config.username).to.not.be.ok
+      expect(config.password).to.be.null
+      done()
     })
 
-    it('should use the default port when no other is specified', function() {
+    it('should use the default port when no other is specified', function(done) {
       var sequelize = new Sequelize('mysql://example.com/dbname')
       var config = sequelize.config
 
       // The default port should be set
       expect(config.port).to.equal(3306)
+      done()
     })
   })
 
   describe('Intantiation with arguments', function() {
-    it('should accept two parameters (database, username)', function() {
+    it('should accept two parameters (database, username)', function(done) {
       var sequelize = new Sequelize('dbname', 'root')
       var config = sequelize.config
 
       expect(config.database).to.equal('dbname')
       expect(config.username).to.equal('root')
+      done()
     })
 
-    it('should accept three parameters (database, username, password)', function() {
+    it('should accept three parameters (database, username, password)', function(done) {
       var sequelize = new Sequelize('dbname', 'root', 'pass')
       var config = sequelize.config
 
       expect(config.database).to.equal('dbname')
       expect(config.username).to.equal('root')
       expect(config.password).to.equal('pass')
+      done()
     })
 
-    it('should accept four parameters (database, username, password, options)', function() {
+    it('should accept four parameters (database, username, password, options)', function(done) {
       var sequelize = new Sequelize('dbname', 'root', 'pass', { port: 999 })
       var config = sequelize.config
 
@@ -135,6 +139,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       expect(config.username).to.equal('root')
       expect(config.password).to.equal('pass')
       expect(config.port).to.equal(999)
+      done()
     })
   })
 })
