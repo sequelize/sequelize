@@ -531,6 +531,45 @@ describe(Helpers.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    it('makes sure that the associated mdoels doesn\'t bleed their options over to a conjunction table and we can still throw in our own options', function(done) {
+      this.sequelize.options.define = {
+        paranoid: false,
+        timestamps: false
+      }
+
+      var User = this.sequelize.define( 'user', {
+          username: { type: Sequelize.STRING }
+        }, {
+          paranoid: true,
+          timestamps: false
+        })
+      , Conversation = this.sequelize.define( 'conversation', {
+          subject: { type: Sequelize.STRING }
+        }, {
+          paranoid: true,
+          timestamps: true
+        })
+
+      User.hasMany(Conversation, { paranoid: true, timestamps: true })
+      Conversation.hasMany(User, { paranoid: true, timestamps: true })
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({username: 'foo'}).success(function(user) {
+          Conversation.create({subject: 'bar'}).success(function(conversation) {
+            user.addConversation(conversation).success(function() {
+              user.removeConversation(conversation).success(function() {
+                user.getConversations({where: ['conversationsusers.deletedAt IS NULL']}).success(function(convo) {
+                  expect(convo).toBeArray()
+                  expect(convo.length).toEqual(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe("getting assocations with options", function() {
       before(function(done) {
         var self = this
