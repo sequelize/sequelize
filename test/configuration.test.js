@@ -10,7 +10,7 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Configuration"), function() {
-  describe('Connections problems should fail with a nice message', function() {
+  /*describe('Connections problems should fail with a nice message', function() {
     it("when we don't have the correct server details", function(done) {
       if (noDomains === true) {
         console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       }).to.throw('The dialect undefined is not supported.')
       done()
     })
-  })
+  })*/
 
   describe('Instantiation with a URL string', function() {
     it('should accept username, password, host, port, and database', function() {
