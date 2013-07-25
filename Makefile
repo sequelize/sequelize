@@ -1,18 +1,9 @@
 REPORTER ?= dot
-TESTS = $(shell find ./test/* -name "*.test.js")
 
-sqlite:
-	DIALECT=sqlite
+test:
 	@./node_modules/mocha/bin/mocha \
 		--colors \
 		--reporter $(REPORTER) \
-		$(TESTS)
+		$(shell find ./test/* -name "*.test.js")
 
-mysql:
-	DIALECT=mysql
-	@./node_modules/mocha/bin/mocha \
-		--colors \
-		--reporter $(REPORTER) \
-		$(TESTS)
-
-.PHONY: sqlite mysql
+.PHONY: test
