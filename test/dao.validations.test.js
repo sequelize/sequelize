@@ -2,6 +2,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Sequelize = require(__dirname + '/../index')
   , Support   = require(__dirname + '/support')
+  , config    = require(__dirname + '/config/config')
 
 chai.Assertion.includeStack = true
 
@@ -203,7 +204,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
             validations[validator].msg = message
 
-            var UserFail = this.sequelize.define('User' + Math.random(), {
+            var UserFail = this.sequelize.define('User' + config.rand(), {
               name: {
                 type:     Sequelize.STRING,
                 validate: validations
@@ -222,6 +223,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         ////////////////////////////
         // test the success cases //
         ////////////////////////////
+
         for (var j = 0; j < validatorDetails.pass.length; j++) {
           var succeedingValue = validatorDetails.pass[j]
 
@@ -236,7 +238,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
             validations[validator].msg = validator + "(" + succeedingValue + ")"
 
-            var UserSuccess = this.sequelize.define('User' + Math.random(), {
+            var UserSuccess = this.sequelize.define('User' + config.rand(), {
               name: {
                 type:     Sequelize.STRING,
                 validate: validations
@@ -252,7 +254,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
     }
 
     it('correctly validates using custom validation methods', function(done) {
-      var User = this.sequelize.define('User' + Math.random(), {
+      var User = this.sequelize.define('User' + config.rand(), {
         name: {
           type: Sequelize.STRING,
           validate: {
@@ -278,7 +280,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
     })
 
     it('skips other validations if allowNull is true and the value is null', function(done) {
-      var User = this.sequelize.define('User' + Math.random(), {
+      var User = this.sequelize.define('User' + config.rand(), {
         age: {
           type: Sequelize.INTEGER,
           allowNull: true,
@@ -304,7 +306,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
     })
 
     it('validates a model with custom model-wide validation methods', function(done) {
-      var Foo = this.sequelize.define('Foo' + Math.random(), {
+      var Foo = this.sequelize.define('Foo' + config.rand(), {
         field1: {
           type: Sequelize.INTEGER,
           allowNull: true
