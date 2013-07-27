@@ -13,4 +13,20 @@ mysql:
 		--reporter $(REPORTER) \
 		$(TESTS)
 
-.PHONY: sqlite mysql
+postgres:
+	@DIALECT=postgres ./node_modules/mocha/bin/mocha \
+		--colors \
+		--reporter $(REPORTER) \
+		$(TESTS)
+
+pgsql: postgres
+
+postgres-native:
+	@DIALECT=postgres-native ./node_modules/mocha/bin/mocha \
+		--colors \
+		--reporter $(REPORTER) \
+		$(TESTS)
+
+postgresn: postgres-native
+
+.PHONY: sqlite mysql postgres pgsql postgres-native postgresn
