@@ -559,7 +559,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('stores the current date in createdAt', function(done) {
       this.User.create({ username: 'foo' }).success(function(user) {
-        expect(parseInt(+user.createdAt/5000, 10)).to.equal(parseInt(+new Date()/5000, 10))
+        expect(parseInt(+user.createdAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1.5)
         done()
       })
     })
@@ -2310,8 +2310,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       self.sequelize.dropAllSchemas().success(function(){
         self.sequelize.createSchema('schema_test').success(function(){
           self.sequelize.createSchema('special').success(function(){
-            self.UserSpecial.schema('special').sync({force: true}).success(function(UserSpecialSync){
-              self.UserSpecialSync = UserSpecialSync;
+            self.UserSpecial.schema('special').sync({force: true}).success(function(UserSpecialSync) {
+              self.UserSpecialSync = UserSpecialSync
               done()
             })
           })
@@ -2320,10 +2320,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it("should be able to list schemas", function(done){
-      this.sequelize.showAllSchemas().success(function(schemas){
+      this.sequelize.showAllSchemas().success(function(schemas) {
         expect(schemas).to.exist
         expect(schemas[0]).to.be.instanceof(Array)
-        expect(schemas[0].length).to.equal(2)
+        // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
+        // Postgres supports schemas natively
+        expect(schemas[0]).to.have.length((dialect === "postgres" || dialect === "postgres-native" ? 2 : 1))
         done()
       })
     })
@@ -2495,7 +2497,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
       }).error(function(err) {
         if (dialect === 'mysql') {
-          expect(err.message).to.match(/ER_CANT_CREATE_TABLE/)
+          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN/)
         }
         else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above

@@ -9,11 +9,6 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("QueryGenerators"), function () {
-  before(function(done) {
-    this.interface = this.sequelize.getQueryInterface()
-    done()
-  })
-
   describe("comments", function() {
     it("should create a comment for a column", function(done) {
       var self = this
@@ -21,7 +16,7 @@ describe(Support.getTestDialectTeaser("QueryGenerators"), function () {
           username: {type: DataTypes.STRING, comment: 'Some lovely info for my DBA'}
         })
 
-      User.sync({ force: true }).success(function(){
+      User.sync({ force: true }).success(function() {
         var sql = ''
         if (dialect === "mysql") {
           sql = 'SELECT COLUMN_COMMENT as cmt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = \'' + self.sequelize.config.database + '\' AND TABLE_NAME = \'Users\' AND COLUMN_NAME = \'username\'';

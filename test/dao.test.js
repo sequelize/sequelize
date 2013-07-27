@@ -994,7 +994,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             createdAt: new Date(2000, 1, 1),
             identifier: 'another identifier'
           }).success(function(user) {
-            expect(user.createdAt).to.equal(oldCreatedAt)
+            expect((new Date(user.createdAt)).getTime()).to.equal((new Date(oldCreatedAt)).getTime())
             expect(user.identifier).to.equal(oldIdentifier)
             done()
           })

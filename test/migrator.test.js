@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
       this.init({ from: 20111117063700, to: 20111130161100 }, function(migrator) {
         migrator.getUndoneMigrations(function(err, migrations) {
           expect(err).to.be.null
-          expect(migrations.length).to.equal(2)
+          expect(migrations).to.have.length(2)
           expect(migrations[0].filename).to.equal('20111117063700-createPerson.js')
           expect(migrations[1].filename).to.equal('20111130161100-emptyMigration.js')
           done()
@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
       this.init({ to: 20111130161100 }, function(migrator) {
         migrator.getUndoneMigrations(function(err, migrations) {
           expect(err).to.be.null
-          expect(migrations.length).to.equal(2)
+          expect(migrations).to.have.length(2)
           done()
         })
       })
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).to.be.null
-            expect(migrations.length).to.equal(6)
+            expect(migrations).to.have.length(6)
             expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
             done()
           })
@@ -198,7 +198,11 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
               expect(signature.allowNull).to.be.true
               expect(isAdmin.allowNull).to.be.false
-              expect(isAdmin.defaultValue).to.equal("0")
+              if (dialect === "postgres" || dialect === "postgres-native" || dialect === "sqlite") {
+                expect(isAdmin.defaultValue).to.be.false
+              } else {
+                expect(isAdmin.defaultValue).to.equal("0")
+              }
               expect(shopId.allowNull).to.be.true
 
               done()
@@ -221,8 +225,11 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
               expect(signature.allowNull).to.be.true
               expect(isAdmin.allowNull).to.be.false
-              expect(isAdmin.defaultValue).to.equal('0')
-
+              if (dialect === "postgres" || dialect === "postgres-native" || dialect === "sqlite") {
+                expect(isAdmin.defaultValue).to.be.false
+              } else {
+                expect(isAdmin.defaultValue).to.equal("0")
+              }
               expect(shopId).to.be.not.ok
 
               done()
