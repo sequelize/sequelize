@@ -907,7 +907,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe('special where conditions', function() {
+  describe('special where conditions/smartWhere object', function() {
     beforeEach(function(done) {
       var self = this
 
@@ -917,6 +917,45 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       ]).success(function(user2){
           done()
         })
+    })
+
+    it('should be able to retun a record with primaryKey being null for new inserts', function(done) {
+      var Session = this.sequelize.define('Session', {
+          token: { type: DataTypes.TEXT, allowNull: false },
+          lastUpdate: { type: DataTypes.DATE, allowNull: false }
+        }, {
+            charset: 'utf8',
+            collate: 'utf8_general_ci',
+            omitNull: true
+          })
+
+        , User = this.sequelize.define('User', {
+            name: { type: DataTypes.STRING, allowNull: false, unique: true },
+            password: { type: DataTypes.STRING, allowNull: false },
+            isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+          }, {
+            charset: 'utf8',
+            collate: 'utf8_general_ci'
+          })
+
+      User.hasMany(Session, { as: 'Sessions' })
+      Session.belongsTo(User)
+
+      Session.sync({ force: true }).success(function() {
+        User.sync({ force: true }).success(function() {
+          User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
+            var sess = Session.build({
+              lastUpdate: new Date(),
+              token: '123'
+            })
+
+            user.addSession(sess).success(function(u) {
+              expect(u.token).to.equal('123')
+              done()
+            })
+          })
+        })
+      })
     })
 
     it('should be able to find a row between a certain date', function(done) {
