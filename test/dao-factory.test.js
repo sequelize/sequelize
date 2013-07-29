@@ -2534,7 +2534,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
       }).error(function(err) {
         if (dialect === 'mysql') {
-          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN/)
+          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/)
         }
         else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
