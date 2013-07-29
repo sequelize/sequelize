@@ -1,34 +1,39 @@
 REPORTER ?= dot
 TESTS = $(shell find ./test/* -name "*.test.js")
 
+
+# test commands
+
+teaser:
+	echo "" && \
+	node -pe "Array(20 + '$(DIALECT)'.length + 3).join('#')" && \
+	echo '# Running tests for $(DIALECT) #' && \
+	node -pe "Array(20 + '$(DIALECT)'.length + 3).join('#')" && \
+	echo ''
+
+test:
+	make teaser && \
+	./node_modules/mocha/bin/mocha \
+	--colors \
+	--reporter $(REPORTER) \
+	$(TESTS)
+
 sqlite:
-	@DIALECT=sqlite ./node_modules/mocha/bin/mocha \
-		--colors \
-		--reporter $(REPORTER) \
-		$(TESTS)
-
+	@DIALECT=sqlite make test
 mysql:
-	@DIALECT=mysql ./node_modules/mocha/bin/mocha \
-		--colors \
-		--reporter $(REPORTER) \
-		$(TESTS)
-
+	@DIALECT=mysql make test
 postgres:
-	@DIALECT=postgres ./node_modules/mocha/bin/mocha \
-		--colors \
-		--reporter $(REPORTER) \
-		$(TESTS)
+	@DIALECT=postgres make test
+postgres-native:
+	@DIALECT=postgres-native make test
+
+# test aliases
 
 pgsql: postgres
-
-postgres-native:
-	@DIALECT=postgres-native ./node_modules/mocha/bin/mocha \
-		--colors \
-		--reporter $(REPORTER) \
-		$(TESTS)
-
 postgresn: postgres-native
 
-all: make sqlite && make mysql && make postgres && make postgres-native
+# test all the dialects \o/
 
-.PHONY: sqlite mysql postgres pgsql postgres-native postgresn all
+all: sqlite mysql postgres postgres-native
+
+.PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test
