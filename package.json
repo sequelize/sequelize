@@ -63,14 +63,7 @@
   ],
   "main": "index",
   "scripts": {
-    "test": "npm run test-buster",
-    "test-mocha": "node_modules/.bin/mocha -R nyan",
-    "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite",
-    "test-buster-travis": "buster-test",
-    "test-buster-mysql": "DIALECT=mysql buster-test",
-    "test-buster-postgres": "DIALECT=postgres buster-test",
-    "test-buster-postgres-native": "DIALECT=postgres-native buster-test",
-    "test-buster-sqlite": "DIALECT=sqlite buster-test",
+    "test": "make all",
     "docs": "node_modules/.bin/yuidoc . -o docs"
   },
   "bin": {
