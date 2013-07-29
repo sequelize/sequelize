@@ -1,7 +1,6 @@
 /* jshint camelcase: false */
 var chai      = require('chai')
   , Sequelize = require('../index')
-  , sinonChai = require('sinon-chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
@@ -12,7 +11,6 @@ var chai      = require('chai')
   , _         = require('lodash')
   , moment    = require('moment')
 
-chai.use(sinonChai)
 chai.use(datetime)
 chai.Assertion.includeStack = true
 
