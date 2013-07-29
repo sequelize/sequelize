@@ -1,18 +1,18 @@
 REPORTER ?= dot
 TESTS = $(shell find ./test/* -name "*.test.js")
-
+DIALECT ?= mysql
 
 # test commands
 
 teaser:
-	echo "" && \
+	@echo "" && \
 	node -pe "Array(20 + '$(DIALECT)'.length + 3).join('#')" && \
 	echo '# Running tests for $(DIALECT) #' && \
 	node -pe "Array(20 + '$(DIALECT)'.length + 3).join('#')" && \
 	echo ''
 
 test:
-	make teaser && \
+	@make teaser && \
 	./node_modules/mocha/bin/mocha \
 	--colors \
 	--reporter $(REPORTER) \
