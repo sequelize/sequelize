@@ -112,7 +112,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it("doesn't create database entries", function(done) {
       this.User.build({ username: 'John Wayne' })
       this.User.all().success(function(users) {
-        expect(users.length).to.equal(0)
+        expect(users).to.have.length(0)
         done()
       })
     })
