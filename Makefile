@@ -29,4 +29,6 @@ postgres-native:
 
 postgresn: postgres-native
 
-.PHONY: sqlite mysql postgres pgsql postgres-native postgresn
+all: make sqlite && make mysql && make postgres && make postgres-native
+
+.PHONY: sqlite mysql postgres pgsql postgres-native postgresn all
