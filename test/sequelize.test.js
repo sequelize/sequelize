@@ -52,6 +52,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
   })
 
   describe('query', function() {
+    afterEach(function(done) {
+      this.sequelize.options.quoteIdentifiers = true
+      done()
+    })
+
     beforeEach(function(done) {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING
@@ -259,11 +264,21 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it("fails with incorrect database credentials", function(done) {
+      // sqlite doesn't have a concept of database credentials
+      if (dialect === "sqlite") {
+        expect(true).to.be.true
+        return done()
+      }
+
       var sequelize2 = Support.getSequelizeInstance('foo', 'bar', null, { logging: false })
         , User2      = sequelize2.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
       User2.sync().error(function(err) {
-        expect(err.message).to.match(/.*Access\ denied.*/)
+        if (dialect === "postgres" || dialect === "postgres-native") {
+          expect(err.message).to.equal('role "bar" does not exist')
+        } else {
+          expect(err.message.toString()).to.match(/.*Access\ denied.*/)
+        }
         done()
       })
     })

@@ -8,34 +8,35 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("QueryInterface"), function () {
-  before(function(done) {
-    this.interface = this.sequelize.getQueryInterface()
+  beforeEach(function(done) {
+    this.sequelize.options.quoteIdenifiers = true
+    this.queryInterface = this.sequelize.getQueryInterface()
     done()
   })
 
   describe('dropAllTables', function() {
     it("should drop all tables", function(done) {
       var self = this
-      this.interface.dropAllTables().complete(function(err) {
+      this.queryInterface.dropAllTables().complete(function(err) {
         expect(err).to.be.null
 
-        self.interface.showAllTables().complete(function(err, tableNames) {
+        self.queryInterface.showAllTables().complete(function(err, tableNames) {
           expect(err).to.be.null
-          expect(tableNames.length).to.equal(0)
+          expect(tableNames).to.be.empty
 
-          self.interface.createTable('table', { name: DataTypes.STRING }).complete(function(err) {
+          self.queryInterface.createTable('table', { name: DataTypes.STRING }).complete(function(err) {
             expect(err).to.be.null
 
-            self.interface.showAllTables().complete(function(err, tableNames) {
+            self.queryInterface.showAllTables().complete(function(err, tableNames) {
               expect(err).to.be.null
-              expect(tableNames.length).to.equal(1)
+              expect(tableNames).to.have.length(1)
 
-              self.interface.dropAllTables().complete(function(err) {
+              self.queryInterface.dropAllTables().complete(function(err) {
                 expect(err).to.be.null
 
-                self.interface.showAllTables().complete(function(err, tableNames) {
+                self.queryInterface.showAllTables().complete(function(err, tableNames) {
                   expect(err).to.be.null
-                  expect(tableNames.length).to.equal(0)
+                  expect(tableNames).to.be.empty
                   done()
                 })
               })
@@ -47,28 +48,34 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
   })
 
   describe('indexes', function() {
-    beforeEach(function(done) {
-      this.interface.createTable('User', {
-        username: DataTypes.STRING,
-        isAdmin: DataTypes.BOOLEAN
-      }).success(done)
+    before(function(done) {
+      var self = this
+      this.queryInterface.dropTable('Users').success(function() {
+        self.queryInterface.createTable('Users', {
+          username: DataTypes.STRING,
+          isAdmin: DataTypes.BOOLEAN
+        }).success(function() {
+          done()
+        })
+      })
     })
 
     it('adds, reads and removes an index to the table', function(done) {
       var self = this
-      this.interface.addIndex('User', ['username', 'isAdmin']).complete(function(err) {
+
+      this.queryInterface.addIndex('Users', ['username', 'isAdmin']).complete(function(err) {
         expect(err).to.be.null
 
-        self.interface.showIndex('User').complete(function(err, indexes) {
+        self.queryInterface.showIndex('Users').complete(function(err, indexes) {
           expect(err).to.be.null
 
           var indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
-          expect(indexColumns).to.include('user_username_is_admin')
+          expect(indexColumns).to.include('users_username_is_admin')
 
-          self.interface.removeIndex('User', ['username', 'isAdmin']).complete(function(err) {
+          self.queryInterface.removeIndex('Users', ['username', 'isAdmin']).complete(function(err) {
             expect(err).to.be.null
 
-            self.interface.showIndex('User').complete(function(err, indexes) {
+            self.queryInterface.showIndex('Users').complete(function(err, indexes) {
               expect(err).to.be.null
 
               indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
@@ -85,14 +92,14 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
   describe('describeTable', function() {
     it('reads the metadata of the table', function(done) {
       var self = this
-      var Users = self.sequelize.define('User', {
+      var Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING,
         isAdmin: DataTypes.BOOLEAN,
         enumVals: DataTypes.ENUM('hello', 'world')
       }, { freezeTableName: true })
 
       Users.sync({ force: true }).success(function() {
-        self.interface.describeTable('User').complete(function(err, metadata) {
+        self.queryInterface.describeTable('_Users').complete(function(err, metadata) {
           expect(err).to.be.null
 
           var username = metadata.username
@@ -109,7 +116,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
 
           if (dialect === "postgres" || dialect === "postgres-native") {
             expect(enumVals.special).to.be.instanceof(Array)
-            expect(enumVals.special.length).to.equal(2);
+            expect(enumVals.special).to.have.length(2);
           }
 
           done()

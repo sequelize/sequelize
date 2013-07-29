@@ -46,14 +46,12 @@
   "devDependencies": {
     "sqlite3": "~2.1.12",
     "mysql": "~2.0.0-alpha8",
-    "pg": "~2.1.0",
+    "pg": "~2.2.0",
     "buster": "~0.6.3",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
-    "semver": "~2.0.8",
     "chai": "~1.7.2",
     "mocha": "~1.12.0",
-    "sinon-chai": "~2.4.0",
     "chai-datetime": "~1.0.0"
   },
   "keywords": [

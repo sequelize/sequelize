@@ -559,7 +559,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('stores the current date in createdAt', function(done) {
       this.User.create({ username: 'foo' }).success(function(user) {
-        expect(parseInt(+user.createdAt/5000, 10)).to.equal(parseInt(+new Date()/5000, 10))
+        expect(parseInt(+user.createdAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1.5)
         done()
       })
     })
@@ -907,7 +907,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe('special where conditions', function() {
+  describe('special where conditions/smartWhere object', function() {
     beforeEach(function(done) {
       var self = this
 
@@ -917,6 +917,45 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       ]).success(function(user2){
           done()
         })
+    })
+
+    it('should be able to retun a record with primaryKey being null for new inserts', function(done) {
+      var Session = this.sequelize.define('Session', {
+          token: { type: DataTypes.TEXT, allowNull: false },
+          lastUpdate: { type: DataTypes.DATE, allowNull: false }
+        }, {
+            charset: 'utf8',
+            collate: 'utf8_general_ci',
+            omitNull: true
+          })
+
+        , User = this.sequelize.define('User', {
+            name: { type: DataTypes.STRING, allowNull: false, unique: true },
+            password: { type: DataTypes.STRING, allowNull: false },
+            isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+          }, {
+            charset: 'utf8',
+            collate: 'utf8_general_ci'
+          })
+
+      User.hasMany(Session, { as: 'Sessions' })
+      Session.belongsTo(User)
+
+      Session.sync({ force: true }).success(function() {
+        User.sync({ force: true }).success(function() {
+          User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
+            var sess = Session.build({
+              lastUpdate: new Date(),
+              token: '123'
+            })
+
+            user.addSession(sess).success(function(u) {
+              expect(u.token).to.equal('123')
+              done()
+            })
+          })
+        })
+      })
     })
 
     it('should be able to find a row between a certain date', function(done) {
@@ -2310,8 +2349,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       self.sequelize.dropAllSchemas().success(function(){
         self.sequelize.createSchema('schema_test').success(function(){
           self.sequelize.createSchema('special').success(function(){
-            self.UserSpecial.schema('special').sync({force: true}).success(function(UserSpecialSync){
-              self.UserSpecialSync = UserSpecialSync;
+            self.UserSpecial.schema('special').sync({force: true}).success(function(UserSpecialSync) {
+              self.UserSpecialSync = UserSpecialSync
               done()
             })
           })
@@ -2320,10 +2359,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it("should be able to list schemas", function(done){
-      this.sequelize.showAllSchemas().success(function(schemas){
+      this.sequelize.showAllSchemas().success(function(schemas) {
         expect(schemas).to.exist
         expect(schemas[0]).to.be.instanceof(Array)
-        expect(schemas[0].length).to.equal(2)
+        // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
+        // Postgres supports schemas natively
+        expect(schemas[0]).to.have.length((dialect === "postgres" || dialect === "postgres-native" ? 2 : 1))
         done()
       })
     })
@@ -2495,7 +2536,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
       }).error(function(err) {
         if (dialect === 'mysql') {
-          expect(err.message).to.match(/ER_CANT_CREATE_TABLE/)
+          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN/)
         }
         else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above

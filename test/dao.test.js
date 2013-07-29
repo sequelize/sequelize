@@ -1,6 +1,5 @@
 /* jshint camelcase: false */
 var chai      = require('chai')
-  , sinonChai = require('sinon-chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
@@ -10,7 +9,6 @@ var chai      = require('chai')
   , datetime  = require('chai-datetime')
   , _         = require('lodash')
 
-chai.use(sinonChai)
 chai.use(datetime)
 chai.Assertion.includeStack = true
 
@@ -994,7 +992,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             createdAt: new Date(2000, 1, 1),
             identifier: 'another identifier'
           }).success(function(user) {
-            expect(user.createdAt).to.equal(oldCreatedAt)
+            expect((new Date(user.createdAt)).getTime()).to.equal((new Date(oldCreatedAt)).getTime())
             expect(user.identifier).to.equal(oldIdentifier)
             done()
           })

@@ -1,71 +1,47 @@
 var chai      = require('chai')
   , expect    = chai.expect
-  , semver    = require("semver")
   , config    = require(__dirname + "/config/config")
   , Support   = require(__dirname + '/support')
   , dialect   = Support.getTestDialect()
   , Sequelize = require(__dirname + '/../index')
-  , noDomains = semver.lt(process.version, '0.8.0')
 
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Configuration"), function() {
-  describe.skip('Connections problems should fail with a nice message', function() {
+  describe('Connections problems should fail with a nice message', function() {
     it("when we don't have the correct server details", function(done) {
-      if (noDomains === true) {
-        console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
-        expect('').to.equal('') // Silence Buster!
-        done()
-      } else {
-        var seq    = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
-          , Domain = require('domain')
-          , domain = Domain.create()
-
-        domain.on('error', function(err){
-          expect(err.toString()).to.match(/Failed to find (.*?) Please double check your settings\./)
-          domain.remove(seq.query)
-          done()
-        })
-
-        domain.run(function(){
-          domain.add(seq.query)
-          seq.query('select 1 as hello')
-          .success(function(){})
-        })
+      // mysql is not properly supported due to the custom pooling system
+      if (dialect !== "postgres" && dialect !== "postgres-native") {
+        console.log('This dialect doesn\'t support me :(')
+        expect(true).to.be.true // Silence Buster
+        return done()
       }
+
+      var seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
+      seq.query('select 1 as hello').error(function(err) {
+        expect(err.message).to.match(/Failed to find (.*?) Please double check your settings\./)
+        done()
+      })
     })
 
     it('when we don\'t have the correct login information', function(done) {
-      if (dialect !== "postgres" && dialect !== "postgres-native" && dialect !== "mysql") {
+      if (dialect !== "postgres" && dialect !== "postgres-native") {
         console.log('This dialect doesn\'t support me :(')
-        expect('').to.equal('') // Silence Buster
+        expect(true).to.be.true // Silence Buster
         return done()
-      } else if (noDomains === true) {
-        console.log('WARNING: Configuration specs requires NodeJS version >= 0.8 for full compatibility')
-        expect('').to.equal('') // Silence Buster!
-        return done()
-      } else {
-        var seq    = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
-          , Domain = require('domain')
-          , domain = Domain.create()
-
-        domain.on('error', function(err){
-          expect(err.toString()).to.match(/^Failed to authenticate/)
-          domain.remove(seq.query)
-          done()
-        })
-
-        domain.run(function(){
-          domain.add(seq.query)
-          seq.query('select 1 as hello').success(function(){})
-        })
       }
+
+      var seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
+      seq.query('select 1 as hello').error(function(err) {
+        expect(err.message).to.match(/^Failed to authenticate/)
+        done()
+      })
     })
 
     it('when we don\'t have a valid dialect.', function(done) {
       expect(function() {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: undefined})
-      }).to.throw('The dialect undefined is not supported.')
+      }).to.throw(Error, 'The dialect undefined is not supported.')
       done()
     })
   })
