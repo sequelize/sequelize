@@ -9,6 +9,11 @@ chai.Assertion.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {
+    beforeEach(function(done) {
+      this.sequelize.options.quoteIdentifier = true
+      done()
+    })
+
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {
         it("should create a table wp_table1wp_table2s", function(done) {
