@@ -253,6 +253,58 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       }
     }
 
+    describe('#create', function() {
+      beforeEach(function(done) {
+        var self = this
+
+        var Project = this.sequelize.define('Project', {
+          name: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            defaultValue: 'unknown',
+            validate: {
+              isIn: [['unknown', 'hello', 'test']]
+            }
+          }
+        })
+
+        var Task = this.sequelize.define('Task', {
+          something: Sequelize.INTEGER
+        })
+
+        Project.hasOne(Task)
+        Task.hasOne(Project)
+
+        Project.sync({ force: true }).success(function() {
+          Task.sync({ force: true }).success(function() {
+            self.Project = Project
+            self.Task = Task
+            done()
+          })
+        })
+      })
+
+      it('correctly validates using create method ', function(done) {
+        var self = this
+        this.Project.create({}).success(function(project) {
+          self.Task.create({something: 1}).success(function(task) {
+            project.setTask(task).success(function(task) {
+              expect(task.ProjectId).to.not.be.null
+              done()
+            })
+          })
+        })
+      })
+
+      it('correctly throws an error using create method ', function(done) {
+        var self = this
+        this.Project.create({name: 'nope'}).error(function(err) {
+          expect(err).to.have.ownProperty('name')
+          done()
+        })
+      })
+    })
+
     it('correctly validates using custom validation methods', function(done) {
       var User = this.sequelize.define('User' + config.rand(), {
         name: {
