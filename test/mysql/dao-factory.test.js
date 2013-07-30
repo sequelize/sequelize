@@ -71,6 +71,18 @@ if (dialect.match(/^mysql/)) {
         expect(User.attributes).to.deep.equal({id:"INTEGER NOT NULL auto_increment PRIMARY KEY", deleted_at:"DATETIME", updated_at:"DATETIME NOT NULL", created_at:"DATETIME NOT NULL"})
         done()
       })
+
+      it('omits text fields with defaultValues', function(done) {
+        var User = this.sequelize.define('User' + config.rand(), {name: {type: DataTypes.TEXT, defaultValue: 'helloworld'}})
+        expect(User.attributes.name).to.equal('TEXT')
+        done()
+      })
+
+      it('omits blobs fields with defaultValues', function(done) {
+        var User = this.sequelize.define('User' + config.rand(), {name: {type: DataTypes.STRING.BINARY, defaultValue: 'helloworld'}})
+        expect(User.attributes.name).to.equal('VARCHAR(255) BINARY')
+        done()
+      })
     })
 
     describe('primaryKeys', function() {
