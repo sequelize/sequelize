@@ -22,6 +22,10 @@
         "janzeh@gmail.com",
         "jmei@itu.dk"
       ]
+    },
+    {
+      "name": "Daniel Durante",
+      "email": "me@danieldurante.com"
     }
   ],
   "repository": {
@@ -37,10 +41,10 @@
     "lingo": "~0.0.5",
     "validator": "~1.3.0",
     "moment": "~2.1.0",
-    "commander": "~1.3.0",
+    "commander": "~2.0.0",
     "dottie": "0.0.8-0",
     "toposort-class": "~0.2.0",
-    "generic-pool": "2.0.3",
+    "generic-pool": "2.0.4",
     "promise": "~3.2.0"
   },
   "devDependencies": {

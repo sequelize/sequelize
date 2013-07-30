@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
   })
 
   describe('indexes', function() {
-    before(function(done) {
+    beforeEach(function(done) {
       var self = this
       this.queryInterface.dropTable('Users').success(function() {
         self.queryInterface.createTable('Users', {
