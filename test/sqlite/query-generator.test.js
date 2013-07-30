@@ -5,6 +5,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , util      = require("util")
   , _         = require('lodash')
+  , moment    = require('moment')
   , QueryGenerator = require("../../lib/dialects/sqlite/query-generator")
 
 chai.Assertion.includeStack = true
@@ -109,6 +110,9 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', { name: "bar", value: undefined }],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
         }, {
+          arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}],
+          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55');"
+        }, {
           arguments: ['myTable', { name: "foo", value: true }],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1);"
         }, {
@@ -139,6 +143,9 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['myTable', [{name: "'bar'"}, {name: 'foo'}]],
           expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar'''),('foo');"
+        }, {
+          arguments: ['myTable', [{name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {name: 'bar', birthday: moment("2012-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}]],
+          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55'),('bar','2012-03-27 10:01:55');"
         }, {
           arguments: ['myTable', [{name: "bar", value: null}, {name: 'foo', value: 1}]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('foo',1);"
@@ -171,6 +178,12 @@ if (dialect === 'sqlite') {
 
       updateQuery: [
         {
+          arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {id: 2}],
+          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
+        }, {
+          arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, 2],
+          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
+        }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],
           expectation: "UPDATE `myTable` SET `name`='foo' WHERE `id`=2"
         }, {
