@@ -985,17 +985,21 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           identifier: 'identifier'
         }).success(function(user) {
           var oldCreatedAt  = user.createdAt
+            , oldUpdatedAt  = user.updatedAt
             , oldIdentifier = user.identifier
 
-          user.updateAttributes({
-            name: 'foobar',
-            createdAt: new Date(2000, 1, 1),
-            identifier: 'another identifier'
-          }).success(function(user) {
-            expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt))
-            expect(user.identifier).to.equal(oldIdentifier)
-            done()
-          })
+          setTimeout(function () {
+            user.updateAttributes({
+              name: 'foobar',
+              createdAt: new Date(2000, 1, 1),
+              identifier: 'another identifier'
+            }).success(function(user) {
+              expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt))
+              expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt))
+              expect(user.identifier).to.equal(oldIdentifier)
+              done()
+            })
+          }, 1000)
         })
       })
     })
