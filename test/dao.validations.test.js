@@ -260,7 +260,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       }
     }
 
-    describe.only('#create', function() {
+    describe('#create', function() {
       beforeEach(function(done) {
         var self = this
 
@@ -297,7 +297,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           self.Task.create({something: 1}).success(function(task) {
             project.setTask(task).success(function(task) {
               expect(task.ProjectId).to.not.be.null
-              done()
+              task.setProject(project).success(function(project) {
+                expect(project.ProjectId).to.not.be.null
+                done()
+              })
             })
           })
         })
