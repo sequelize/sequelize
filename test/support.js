@@ -121,7 +121,7 @@ before(function(done) {
   done()
 })
 
-afterEach(function(done) {
+beforeEach(function(done) {
   Support.clearDatabase(this.sequelize, function() {
     done()
   })

@@ -9,11 +9,6 @@ chai.Assertion.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {
-    beforeEach(function(done) {
-      this.sequelize.options.quoteIdentifier = true
-      done()
-    })
-
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {
         it("should create a table wp_table1wp_table2s", function(done) {
@@ -76,17 +71,15 @@ if (dialect.match(/^postgres/)) {
             tasks[tasks.length] = {name: 'Task' + Math.random()}
           }
 
-          self.sequelize.getQueryInterface().dropAllTables().success(function() {
-            self.User.sync({ force: true }).success(function() {
-              self.Task.sync({ force: true }).success(function() {
-                self.User.bulkCreate(users).success(function() {
-                  self.Task.bulkCreate(tasks).success(function() {
-                    self.User.all().success(function(_users) {
-                      self.Task.all().success(function(_tasks) {
-                        self.user = _users[0]
-                        self.task = _tasks[0]
-                        done()
-                      })
+          self.User.sync({ force: true }).success(function() {
+            self.Task.sync({ force: true }).success(function() {
+              self.User.bulkCreate(users).success(function() {
+                self.Task.bulkCreate(tasks).success(function() {
+                  self.User.all().success(function(_users) {
+                    self.Task.all().success(function(_tasks) {
+                      self.user = _users[0]
+                      self.task = _tasks[0]
+                      done()
                     })
                   })
                 })
