@@ -290,17 +290,12 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           self.Task.create({something: 1}).success(function(task) {
             project.setTask(task).success(function(task) {
               expect(task.ProjectId).to.not.be.null
-              done()
+              task.setProject(project).success(function(project) {
+                expect(project.ProjectId).to.not.be.null
+                done()
+              })
             })
           })
-        })
-      })
-
-      it('correctly throws an error using create method ', function(done) {
-        var self = this
-        this.Project.create({name: 'nope'}).error(function(err) {
-          expect(err).to.have.ownProperty('name')
-          done()
         })
       })
     })
