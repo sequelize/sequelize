@@ -24,6 +24,7 @@
 - [BUG] Fixed problems with quoteIdentifiers and {raw: false} option on raw queries [#751](https://github.com/sequelize/sequelize/pull/751). thanks to janmeier
 - [BUG] Fixed SQL escaping with sqlite and unified escaping [#700](https://github.com/sequelize/sequelize/pull/700). thanks to PiPeep
 - [BUG] Fixed Postgres' pools [ff57af63](https://github.com/sequelize/sequelize/commit/ff57af63c2eb395b4828a5984a22984acdc2a5e1)
+- [BUG] Fixed BLOB/TEXT columns having a default value declared in MySQL [#793](https://github.com/sequelize/sequelize/pull/793). thanks to durango
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
