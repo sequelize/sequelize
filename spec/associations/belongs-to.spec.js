@@ -1,39 +1,39 @@
 /* jshint camelcase: false */
-if (typeof require === 'function') {
-  const buster    = require("buster")
-      , Helpers   = require('../buster-helpers')
-      , Sequelize = require('../../index')
-      , dialect   = Helpers.getTestDialect()
-}
+var buster    = require("buster")
+  , Helpers   = require('../buster-helpers')
+  , Sequelize = require('../../index')
+  , DataTypes = require(__dirname + "/../../lib/data-types")
+  , dialect   = Helpers.getTestDialect()
 
 buster.spec.expose()
-buster.testRunner.timeout = 500
+buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   before(function(done) {
-    Helpers.initTests({
-      dialect: dialect,
-      beforeComplete: function(sequelize) {
-        this.sequelize = sequelize
-      }.bind(this),
-      onComplete: done
-    })
+    this.sequelize = sequelize
+    Helpers.clearDatabase(this.sequelize, done)
   })
 
   describe('general usage', function() {
     before(function(done) {
-      this.User = this.sequelize.define('User', {
-        username: Helpers.Sequelize.STRING,
+      var self = this
+      self.User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
         enabled: {
           type: Helpers.Sequelize.BOOLEAN,
           defaultValue: true
         }
       })
-      this.Task = this.sequelize.define('Task', {
-        title: Helpers.Sequelize.STRING
+
+      self.Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING
       })
 
-      this.sequelize.sync({ force: true }).success(done)
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(done)
+      })
     })
 
     it('adds the foreign key', function(done) {
@@ -44,6 +44,7 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
 
     it("underscores the foreign key", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING }, {underscored: true})
+
       Task.belongsTo(this.User)
       expect(Task.attributes.user_id).toEqual("INTEGER")
       done()
@@ -97,13 +98,15 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
       var self = this
 
       this.Task.belongsTo(this.User, {as: 'User'})
-      this.sequelize.sync({ force: true }).success(function() {
-        self.User.create({username: 'asd'}).success(function(u) {
-          self.Task.create({title: 'a task'}).success(function(t) {
-            t.setUser(u).success(function() {
-              t.getUser().success(function(user) {
-                expect(user.username).toEqual('asd')
-                done()
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({username: 'asd'}).success(function(u) {
+            self.Task.create({title: 'a task'}).success(function(t) {
+              t.setUser(u).success(function() {
+                t.getUser().success(function(user) {
+                  expect(user.username).toEqual('asd')
+                  done()
+                })
               })
             })
           })
@@ -115,13 +118,15 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
       var self = this
 
       this.Task.belongsTo(this.User, {as: 'User'})
-      this.sequelize.sync({ force: true }).success(function() {
-        self.User.create({username: 'asd', enabled: false}).success(function(u) {
-          self.Task.create({title: 'a task'}).success(function(t) {
-            t.setUser(u).success(function() {
-              t.getUser({where: {enabled: true}}).success(function(user) {
-                expect(user).toEqual(null)
-                done()
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({username: 'asd', enabled: false}).success(function(u) {
+            self.Task.create({title: 'a task'}).success(function(t) {
+              t.setUser(u).success(function() {
+                t.getUser({where: {enabled: true}}).success(function(user) {
+                  expect(user).toEqual(null)
+                  done()
+                })
               })
             })
           })
@@ -158,20 +163,20 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
 
       Task.belongsTo(User)
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUserXYZ(user).success(function() {
-              task.getUserXYZ().success(function(user) {
-                expect(user).not.toEqual(null)
-
-                task.setUserXYZ(null).success(function() {
-                  task.getUserXYZ().success(function(user) {
-                    expect(user).toEqual(null)
-                    done()
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              task.setUserXYZ(user).success(function() {
+                task.getUserXYZ().success(function(user) {
+                  expect(user).not.toEqual(null)
+                  task.setUserXYZ(null).success(function() {
+                    task.getUserXYZ().success(function(user) {
+                      expect(user).toEqual(null)
+                      done()
+                    })
                   })
                 })
-
               })
             })
           })
@@ -181,20 +186,26 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe("Foreign key constraints", function() {
+    before(function(done) {
+      this.Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+      this.User = this.sequelize.define('User', { username: DataTypes.STRING })
+      done()
+    })
+
     it("are not enabled by default", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.Task.belongsTo(self.User)
 
-      Task.belongsTo(User)
-
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUser(user).success(function() {
-              user.destroy().success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  done()
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              task.setUser(user).success(function() {
+                user.destroy().success(function() {
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    done()
+                  })
                 })
               })
             })
@@ -204,19 +215,19 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
     })
 
     it("can cascade deletes", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.Task.belongsTo(self.User, {onDelete: 'cascade'})
 
-      Task.belongsTo(User, {onDelete: 'cascade'})
-
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUser(user).success(function() {
-              user.destroy().success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(0)
-                  done()
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              task.setUser(user).success(function() {
+                user.destroy().success(function() {
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(0)
+                    done()
+                  })
                 })
               })
             })
@@ -226,20 +237,20 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
     })
 
     it("can restrict deletes", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.Task.belongsTo(self.User, {onDelete: 'restrict'})
 
-      Task.belongsTo(User, {onDelete: 'restrict'})
-
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUser(user).success(function() {
-              user.destroy().error(function() {
-                // Should fail due to FK restriction
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  done()
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              task.setUser(user).success(function() {
+                user.destroy().error(function() {
+                  // Should fail due to FK restriction
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    done()
+                  })
                 })
               })
             })
@@ -249,27 +260,27 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
     })
 
     it("can cascade updates", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.Task.belongsTo(self.User, {onUpdate: 'cascade'})
 
-      Task.belongsTo(User, {onUpdate: 'cascade'})
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              task.setUser(user).success(function() {
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUser(user).success(function() {
+                // Changing the id of a DAO requires a little dance since
+                // the `UPDATE` query generated by `save()` uses `id` in the
+                // `WHERE` clause
 
-              // Changing the id of a DAO requires a little dance since
-              // the `UPDATE` query generated by `save()` uses `id` in the
-              // `WHERE` clause
-
-              var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
-              user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-              .success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  expect(tasks[0].UserId).toEqual(999)
-                  done()
+                var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
+                user.QueryInterface.update(user, tableName, {id: 999}, user.id)
+                .success(function() {
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    expect(tasks[0].UserId).toEqual(999)
+                    done()
+                  })
                 })
               })
             })
@@ -279,27 +290,27 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
     })
 
     it("can restrict updates", function(done) {
-      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
-        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+      var self = this
+      self.Task.belongsTo(self.User, {onUpdate: 'restrict'})
 
-      Task.belongsTo(User, {onUpdate: 'restrict'})
+      self.User.sync({ force: true }).success(function() {
+        self.Task.sync({ force: true }).success(function() {
+          self.User.create({ username: 'foo' }).success(function(user) {
+            self.Task.create({ title: 'task' }).success(function(task) {
+              task.setUser(user).success(function() {
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'foo' }).success(function(user) {
-          Task.create({ title: 'task' }).success(function(task) {
-            task.setUser(user).success(function() {
+                // Changing the id of a DAO requires a little dance since
+                // the `UPDATE` query generated by `save()` uses `id` in the
+                // `WHERE` clause
 
-              // Changing the id of a DAO requires a little dance since
-              // the `UPDATE` query generated by `save()` uses `id` in the
-              // `WHERE` clause
-
-              var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
-              user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-              .error(function() {
-                // Should fail due to FK restriction
-                Task.findAll().success(function(tasks) {
-                  expect(tasks.length).toEqual(1)
-                  done()
+                var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
+                user.QueryInterface.update(user, tableName, {id: 999}, user.id)
+                .error(function() {
+                  // Should fail due to FK restriction
+                  self.Task.findAll().success(function(tasks) {
+                    expect(tasks.length).toEqual(1)
+                    done()
+                  })
                 })
               })
             })
@@ -311,8 +322,8 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
 
   describe("Association options", function() {
     it('can specify data type for autogenerated relational keys', function(done) {
-      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
-        , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT, Sequelize.STRING]
+      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING]
         , self = this
 
       dataTypes.forEach(function(dataType) {
@@ -321,7 +332,7 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
 
         Task.belongsTo(User, { foreignKey: 'userId', keyType: dataType })
 
-        self.sequelize.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
           expect(Task.rawAttributes.userId.type.toString())
             .toEqual(dataType.toString())
 
@@ -333,5 +344,4 @@ describe(Helpers.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
   })
-
 })

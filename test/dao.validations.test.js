@@ -1,25 +1,13 @@
-if(typeof require === 'function') {
-  const buster    = require("buster")
-      , Sequelize = require("../index")
-      , Helpers   = require('./buster-helpers')
-      , dialect   = Helpers.getTestDialect()
-}
+var chai      = require('chai')
+  , expect    = chai.expect
+  , Sequelize = require(__dirname + '/../index')
+  , Support   = require(__dirname + '/support')
+  , config    = require(__dirname + '/config/config')
 
-buster.spec.expose()
-buster.testRunner.timeout = 1000
+chai.Assertion.includeStack = true
 
-describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
+describe(Support.getTestDialectTeaser("DaoValidator"), function() {
   describe('validations', function() {
-    before(function(done) {
-      Helpers.initTests({
-        dialect: dialect,
-        onComplete: function(sequelize) {
-          this.sequelize = sequelize
-          done()
-        }.bind(this)
-      })
-    }) //- before
-
     var checks = {
       is: {
         spec: { args: ["[a-z]",'i'] },
@@ -44,9 +32,9 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         pass: "129.89.23.1"
       }
     , isIPv6 : {
-      fail: '1111:2222:3333::5555:',
-      pass: 'fe80:0000:0000:0000:0204:61ff:fe9d:f156'
-    }
+        fail: '1111:2222:3333::5555:',
+        pass: 'fe80:0000:0000:0000:0204:61ff:fe9d:f156'
+      }
     , isAlpha : {
         fail: "012",
         pass: "abc"
@@ -116,72 +104,72 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         fail: "a",
         pass: "0"
       }
-    , len : {
+    , len: {
         spec: { args: [2,4] },
         fail: ["1", "12345"],
         pass: ["12", "123", "1234"],
         raw: true
       }
-    , len: {
+    , len$: {
         spec: [2,4],
         fail: ["1", "12345"],
         pass: ["12", "123", "1234"],
         raw: true
-    }
-    , isUUID : {
+      }
+    , isUUID: {
         spec: { args: 4 },
         fail: "f47ac10b-58cc-3372-a567-0e02b2c3d479",
         pass: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
       }
-    , isDate : {
+    , isDate: {
         fail: "not a date",
         pass: "2011-02-04"
       }
-    , isAfter : {
+    , isAfter: {
         spec: { args: "2011-11-05" },
         fail: "2011-11-04",
         pass: "2011-11-05"
       }
-    , isBefore : {
+    , isBefore: {
         spec: { args: "2011-11-05" },
         fail: "2011-11-06",
         pass: "2011-11-05"
       }
-    , isIn : {
+    , isIn: {
         spec: { args: "abcdefghijk" },
         fail: "ghik",
         pass: "ghij"
       }
-    , notIn : {
+    , notIn: {
         spec: { args: "abcdefghijk" },
         fail: "ghij",
         pass: "ghik"
       }
-    , max : {
+    , max: {
         spec: { args: 23 },
         fail: "24",
         pass: "23"
       }
-    , max : {
+    , max$: {
         spec: 23,
         fail: "24",
         pass: "23"
       }
-    , min : {
+    , min: {
         spec: { args: 23 },
         fail: "22",
         pass: "23"
       }
-    , min : {
+    , min$: {
         spec: 23,
         fail: "22",
         pass: "23"
       }
-    , isArray : {
+    , isArray: {
         fail: 22,
         pass: [22]
       }
-    , isCreditCard : {
+    , isCreditCard: {
         fail: "401288888888188f",
         pass: "4012888888881881"
       }
@@ -189,6 +177,8 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
 
     for (var validator in checks) {
       if (checks.hasOwnProperty(validator)) {
+        validator = validator.replace(/\$$/, '')
+
         var validatorDetails = checks[validator]
 
         if (!validatorDetails.hasOwnProperty("raw")) {
@@ -202,7 +192,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
         for (var i = 0; i < validatorDetails.fail.length; i++) {
           var failingValue = validatorDetails.fail[i]
 
-          it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function() {
+          it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function(done) {
             var validations = {}
               , message     = validator + "(" + failingValue + ")"
 
@@ -214,7 +204,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
 
             validations[validator].msg = message
 
-            var UserFail = this.sequelize.define('User' + Math.random(), {
+            var UserFail = this.sequelize.define('User' + config.rand(), {
               name: {
                 type:     Sequelize.STRING,
                 validate: validations
@@ -224,18 +214,20 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
             var failingUser = UserFail.build({ name : failingValue })
               , errors      = failingUser.validate()
 
-            expect(errors).not.toBeNull()
-            expect(errors).toEqual({ name : [message] })
+            expect(errors).not.to.be.null
+            expect(errors).to.eql({ name : [message] })
+            done()
           })
         }
 
         ////////////////////////////
         // test the success cases //
         ////////////////////////////
+
         for (var j = 0; j < validatorDetails.pass.length; j++) {
           var succeedingValue = validatorDetails.pass[j]
 
-          it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
+          it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function(done) {
             var validations = {}
 
             if (validatorDetails.hasOwnProperty('spec')) {
@@ -246,7 +238,7 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
 
             validations[validator].msg = validator + "(" + succeedingValue + ")"
 
-            var UserSuccess = this.sequelize.define('User' + Math.random(), {
+            var UserSuccess = this.sequelize.define('User' + config.rand(), {
               name: {
                 type:     Sequelize.STRING,
                 validate: validations
@@ -254,14 +246,15 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
             })
 
             var successfulUser = UserSuccess.build({ name: succeedingValue })
-            expect(successfulUser.validate()).toBeNull()
+            expect(successfulUser.validate()).to.be.null
+            done()
           })
         }
       }
     }
 
-    it('correctly validates using custom validation methods', function() {
-      var User = this.sequelize.define('User' + Math.random(), {
+    it('correctly validates using custom validation methods', function(done) {
+      var User = this.sequelize.define('User' + config.rand(), {
         name: {
           type: Sequelize.STRING,
           validate: {
@@ -277,15 +270,17 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
       var failingUser = User.build({ name : "3" })
         , errors      = failingUser.validate()
 
-      expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ name: ["name should equal '2'"] })
+      expect(errors).not.to.be.null
+      expect(errors).to.eql({ name: ["name should equal '2'"] })
 
       var successfulUser = User.build({ name : "2" })
-      expect(successfulUser.validate()).toBeNull()
+      expect(successfulUser.validate()).to.be.null
+
+      done()
     })
 
-    it('skips other validations if allowNull is true and the value is null', function() {
-      var User = this.sequelize.define('User' + Math.random(), {
+    it('skips other validations if allowNull is true and the value is null', function(done) {
+      var User = this.sequelize.define('User' + config.rand(), {
         age: {
           type: Sequelize.INTEGER,
           allowNull: true,
@@ -298,18 +293,20 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
       var failingUser = User.build({ age: -1 })
         , errors      = failingUser.validate()
 
-      expect(errors).not.toBeNull(null)
-      expect(errors).toEqual({ age: ['must be positive'] })
+      expect(errors).not.to.be.null
+      expect(errors).to.eql({ age: ['must be positive'] })
 
       var successfulUser1 = User.build({ age: null })
-      expect(successfulUser1.validate()).toBeNull()
+      expect(successfulUser1.validate()).to.be.null
 
       var successfulUser2 = User.build({ age: 1 })
-      expect(successfulUser2.validate()).toBeNull()
+      expect(successfulUser2.validate()).to.be.null
+
+      done()
     })
 
-    it('validates a model with custom model-wide validation methods', function() {
-      var Foo = this.sequelize.define('Foo' + Math.random(), {
+    it('validates a model with custom model-wide validation methods', function(done) {
+      var Foo = this.sequelize.define('Foo' + config.rand(), {
         field1: {
           type: Sequelize.INTEGER,
           allowNull: true
@@ -331,11 +328,12 @@ describe(Helpers.getTestDialectTeaser("DaoValidator"), function() {
       var failingFoo = Foo.build({ field1: null, field2: null })
         , errors     = failingFoo.validate()
 
-      expect(errors).not.toBeNull()
-      expect(errors).toEqual({ 'xnor': ['xnor failed'] })
+      expect(errors).not.to.be.null
+      expect(errors).to.eql({ 'xnor': ['xnor failed'] })
 
       var successfulFoo = Foo.build({ field1: 33, field2: null })
-      expect(successfulFoo.validate()).toBeNull()
+      expect(successfulFoo.validate()).to.be.null
+      done()
     })
   })
 })

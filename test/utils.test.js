@@ -1,19 +1,21 @@
-var buster  = require("buster")
-  , Utils   = require('../lib/utils')
-  , Helpers   = require('./buster-helpers')
+var chai    = require('chai')
+  , expect  = chai.expect
+  , Utils   = require(__dirname + '/../lib/utils')
+  , Support = require(__dirname + '/support')
 
-buster.spec.expose()
-buster.testRunner.timeout = 1000
+chai.Assertion.includeStack = true
 
-describe(Helpers.getTestDialectTeaser("Utils"), function() {
+describe(Support.getTestDialectTeaser("Utils"), function() {
   describe('removeCommentsFromFunctionString', function() {
     it("removes line comments at the start of a line", function(done) {
       var functionWithLineComments = function() {
         // noot noot
       }
 
-      var result = Utils.removeCommentsFromFunctionString(functionWithLineComments.toString())
-      expect(result).not.toMatch(/.*noot.*/)
+      var string = functionWithLineComments.toString()
+        , result = Utils.removeCommentsFromFunctionString(string)
+
+      expect(result).not.to.match(/.*noot.*/)
       done()
     })
 
@@ -22,8 +24,10 @@ describe(Helpers.getTestDialectTeaser("Utils"), function() {
         alert(1) // noot noot
       }
 
-      var result = Utils.removeCommentsFromFunctionString(functionWithLineComments.toString())
-      expect(result).not.toMatch(/.*noot.*/)
+      var string = functionWithLineComments.toString()
+        , result = Utils.removeCommentsFromFunctionString(string)
+
+      expect(result).not.to.match(/.*noot.*/)
       done()
     })
 
@@ -38,31 +42,32 @@ describe(Helpers.getTestDialectTeaser("Utils"), function() {
       }.toString()
 
       var result = Utils.removeCommentsFromFunctionString(s)
-      expect(result).not.toMatch(/.*noot.*/)
-      expect(result).not.toMatch(/.*foo.*/)
-      expect(result).toMatch(/.*alert\(2\).*/)
+
+      expect(result).not.to.match(/.*noot.*/)
+      expect(result).not.to.match(/.*foo.*/)
+      expect(result).to.match(/.*alert\(2\).*/)
       done()
     })
   })
 
   describe('argsArePrimaryKeys', function() {
     it("doesn't detect primary keys if primareyKeys and values have different lengths", function(done) {
-      expect(Utils.argsArePrimaryKeys([1,2,3], [1])).toBeFalsy()
+      expect(Utils.argsArePrimaryKeys([1,2,3], [1])).to.be.false
       done()
     })
 
     it("doesn't detect primary keys if primary keys are hashes or arrays", function(done) {
-      expect(Utils.argsArePrimaryKeys([[]], [1])).toBeFalsy()
+      expect(Utils.argsArePrimaryKeys([[]], [1])).to.be.false
       done()
     })
 
     it('detects primary keys if length is correct and data types are matching', function(done) {
-      expect(Utils.argsArePrimaryKeys([1,2,3], ["INTEGER", "INTEGER", "INTEGER"])).toBeTruthy()
+      expect(Utils.argsArePrimaryKeys([1,2,3], ["INTEGER", "INTEGER", "INTEGER"])).to.be.true
       done()
     })
 
     it("detects primary keys if primary keys are dates and lengths are matching", function(done) {
-      expect(Utils.argsArePrimaryKeys([new Date()], ['foo'])).toBeTruthy()
+      expect(Utils.argsArePrimaryKeys([new Date()], ['foo'])).to.be.true
       done()
     })
   })
@@ -70,34 +75,34 @@ describe(Helpers.getTestDialectTeaser("Utils"), function() {
   describe('underscore', function() {
     describe('underscoredIf', function() {
       it('is defined', function(done) {
-        expect(Utils._.underscoredIf).toBeDefined()
+        expect(Utils._.underscoredIf).to.be.ok
         done()
       })
 
       it('underscores if second param is true', function(done) {
-        expect(Utils._.underscoredIf('fooBar', true)).toEqual('foo_bar')
+        expect(Utils._.underscoredIf('fooBar', true)).to.equal('foo_bar')
         done()
       })
 
       it("doesn't underscore if second param is false", function(done) {
-        expect(Utils._.underscoredIf('fooBar', false)).toEqual('fooBar')
+        expect(Utils._.underscoredIf('fooBar', false)).to.equal('fooBar')
         done()
       })
     })
 
     describe('camelizeIf', function() {
       it('is defined', function(done) {
-        expect(Utils._.camelizeIf).toBeDefined()
+        expect(Utils._.camelizeIf).to.be.ok
         done()
       })
 
       it('camelizes if second param is true', function(done) {
-        expect(Utils._.camelizeIf('foo_bar', true)).toEqual('fooBar')
+        expect(Utils._.camelizeIf('foo_bar', true)).to.equal('fooBar')
         done()
       })
 
       it("doesn't camelize if second param is false", function(done) {
-        expect(Utils._.underscoredIf('fooBar', true)).toEqual('foo_bar')
+        expect(Utils._.underscoredIf('fooBar', true)).to.equal('foo_bar')
         done()
       })
     })
@@ -105,12 +110,12 @@ describe(Helpers.getTestDialectTeaser("Utils"), function() {
 
   describe('isHash', function() {
     it('doesn\'t match arrays', function(done) {
-      expect(Utils.isHash([])).toBeFalsy()
+      expect(Utils.isHash([])).to.be.false
       done()
     })
 
     it('doesn\'t match null', function(done) {
-      expect(Utils.isHash(null)).toBeFalsy()
+      expect(Utils.isHash(null)).to.be.false
       done()
     })
 
@@ -121,7 +126,8 @@ describe(Helpers.getTestDialectTeaser("Utils"), function() {
           'last': 'Bar'
         }
       }
-      expect(Utils.isHash(values)).toBeTruthy()
+
+      expect(Utils.isHash(values)).to.be.true
       done()
     })
 
@@ -133,7 +139,8 @@ describe(Helpers.getTestDialectTeaser("Utils"), function() {
         },
         'length': 1
       }
-      expect(Utils.isHash(values)).toBeTruthy()
+
+      expect(Utils.isHash(values)).to.be.true
       done()
     })
   })
@@ -141,13 +148,13 @@ describe(Helpers.getTestDialectTeaser("Utils"), function() {
   describe('format', function() {
     it('should format where clause correctly when the value is truthy', function(done) {
       var where = ['foo = ?', 1]
-      expect(Utils.format(where)).toEqual('foo = 1')
+      expect(Utils.format(where)).to.equal('foo = 1')
       done()
     })
 
-    it('should format where clause correctly when the value is falsy', function(done) {
+    it('should format where clause correctly when the value is false', function(done) {
       var where = ['foo = ?', 0]
-      expect(Utils.format(where)).toEqual('foo = 0')
+      expect(Utils.format(where)).to.equal('foo = 0')
       done()
     })
   })

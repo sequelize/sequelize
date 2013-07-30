@@ -1,28 +1,18 @@
 /* jshint camelcase: false */
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , config  = require('../config/config')
-      , Helpers = require('../buster-helpers')
-      , dialect = Helpers.getTestDialect()
-}
+var buster  = require("buster")
+  , Helpers = require('../buster-helpers')
+  , dialect = Helpers.getTestDialect()
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
-if (dialect.match(/^mysql/)) {
-  describe('[MYSQL] Associations', function() {
-    before(function(done) {
-      var self = this
+var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
-      Helpers.initTests({
-        dialect: dialect,
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-        },
-        onComplete: function() {
-          self.sequelize.sync({ force: true }).success(done)
-        }
-      })
+if (dialect.match(/^mysql/)) {
+  describe('[MYSQL Specific] Associations', function() {
+    before(function(done) {
+      this.sequelize = sequelize
+      Helpers.clearDatabase(this.sequelize, done)
     })
 
     describe('many-to-many', function() {
@@ -34,9 +24,11 @@ if (dialect.match(/^mysql/)) {
 
           Table1.hasMany(Table2)
           Table2.hasMany(Table1)
-          this.sequelize.sync({ force: true }).success(function() {
-            expect(self.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).toBeDefined()
-            done()
+          Table1.sync({ force: true }).success(function() {
+            Table2.sync({ force: true }).success(function() {
+              expect(self.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).toBeDefined()
+              done()
+            })
           })
         })
       })
@@ -48,17 +40,14 @@ if (dialect.match(/^mysql/)) {
 
           Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'})
           Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'})
-          this.sequelize.sync({ force: true }).success(done)
+          Table1.sync({ force: true }).success(function() {
+            Table2.sync({ force: true }).success(done)
+          })
         })
 
-        it("should not use a combined name", function(done) {
+        it("should not use only a specified name", function() {
           expect(this.sequelize.daoFactoryManager.getDAO('ms_table1sms_table2s')).not.toBeDefined()
-          done()
-        })
-
-        it("should use the specified name", function(done) {
           expect(this.sequelize.daoFactoryManager.getDAO('table1_to_table2')).toBeDefined()
-          done()
         })
       })
     })
@@ -87,9 +76,11 @@ if (dialect.match(/^mysql/)) {
           tasks[tasks.length] = {name: 'Task' + Math.random()}
         }
 
-        this.sequelize.sync({ force: true }).success(function() {
-          self.User.bulkCreate(users).success(function() {
-            self.Task.bulkCreate(tasks).success(done)
+        this.User.sync({ force: true }).success(function() {
+          self.Task.sync({ force: true }).success(function() {
+            self.User.bulkCreate(users).success(function() {
+              self.Task.bulkCreate(tasks).success(done)
+            })
           })
         })
       })

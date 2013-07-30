@@ -1,31 +1,20 @@
 /* jshint camelcase: false */
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , config  = require('../config/config')
-      , Helpers = require('../buster-helpers')
-      , dialect = Helpers.getTestDialect()
-      , QueryGenerator = require("../../lib/dialects/mysql/query-generator")
-      , util           = require("util")
-
-}
+var buster  = require("buster")
+  , Helpers = require('../buster-helpers')
+  , dialect = Helpers.getTestDialect()
+  , QueryGenerator = require("../../lib/dialects/mysql/query-generator")
+  , util           = require("util")
 
 buster.spec.expose()
 buster.testRunner.timeout = 1000
 
-if (dialect.match(/^mysql/)) {
-  describe('[MYSQL] QueryGenerator', function() {
-    before(function(done) {
-      var self = this
+var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
 
-      Helpers.initTests({
-        dialect: dialect,
-        beforeComplete: function(sequelize, DataTypes) {
-          self.sequelize = sequelize
-        },
-        onComplete: function() {
-          self.sequelize.sync({ force: true }).success(done)
-        }
-      })
+if (dialect.match(/^mysql/)) {
+  describe('[MYSQL Specific] QueryGenerator', function() {
+    before(function(done) {
+      this.sequelize = sequelize
+      Helpers.clearDatabase(this.sequelize, done)
     })
 
     var suites = {

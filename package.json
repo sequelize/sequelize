@@ -46,11 +46,14 @@
   "devDependencies": {
     "sqlite3": "~2.1.12",
     "mysql": "~2.0.0-alpha8",
-    "pg": "~2.1.0",
+    "pg": "~2.2.0",
     "buster": "~0.6.3",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
-    "semver": "~2.0.8"
+    "chai": "~1.7.2",
+    "mocha": "~1.12.0",
+    "chai-datetime": "~1.0.0",
+    "sinon": "~1.7.3"
   },
   "keywords": [
     "mysql",
@@ -60,13 +63,7 @@
   ],
   "main": "index",
   "scripts": {
-    "test": "npm run test-buster",
-    "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite",
-    "test-buster-travis": "buster-test",
-    "test-buster-mysql": "DIALECT=mysql buster-test",
-    "test-buster-postgres": "DIALECT=postgres buster-test",
-    "test-buster-postgres-native": "DIALECT=postgres-native buster-test",
-    "test-buster-sqlite": "DIALECT=sqlite buster-test",
+    "test": "make all",
     "docs": "node_modules/.bin/yuidoc . -o docs"
   },
   "bin": {

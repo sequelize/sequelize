@@ -1,10 +1,8 @@
-if(typeof require === 'function') {
-  const buster  = require("buster")
-      , Helpers = require('./buster-helpers')
-      , config    = require(__dirname + "/config/config")
-      , dialect = Helpers.getTestDialect()
-      , moment  = require('moment')
-}
+var buster  = require("buster")
+    , Helpers = require('./buster-helpers')
+    , config    = require(__dirname + "/config/config")
+    , dialect = Helpers.getTestDialect()
+    , moment  = require('moment')
 
 var qq = function(str) {
   if (dialect == 'postgres' || dialect == 'sqlite') {
@@ -17,15 +15,15 @@ var qq = function(str) {
 }
 
 buster.spec.expose()
-buster.timeout = 1000
+buster.testRunner.timeout = 1000
 
 describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
+  var sequelize = Helpers.createSequelizeInstance({dialect: dialect})
+
   before(function(done) {
-    Helpers.initTests({
-      dialect: dialect,
-      beforeComplete: function(sequelize) { this.sequelize = sequelize }.bind(this),
-      onComplete: done
-    })
+    var self = this
+    self.sequelize = Object.create(sequelize)
+    Helpers.clearDatabase(self.sequelize, done)
   })
 
   describe('constructor', function() {
@@ -60,24 +58,19 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
 
   describe('query', function() {
     before(function(done) {
+      this.sequelize.options.quoteIdentifiers = true
       this.User = this.sequelize.define('User', {
         username: Helpers.Sequelize.STRING
       })
 
       this.insertQuery = "INSERT INTO " + qq(this.User.tableName) + " (username, " + qq("createdAt") + ", " + qq("updatedAt") + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')"
 
-      this.User.sync().success(done).error(function(err) {
-        console.log(err)
-        done()
-      })
+      this.User.sync({ force: true }).success(done)
     })
 
     it('executes a query the internal way', function(done) {
       this.sequelize.query(this.insertQuery, null, { raw: true })
       .complete(function(err, result) {
-        if (err) {
-          console.log(err)
-        }
         expect(err).toBeNull()
         expect(result).toBeNull()
         done()
@@ -87,9 +80,6 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     it('executes a query if only the sql is passed', function(done) {
       this.sequelize.query(this.insertQuery)
       .complete(function(err, result) {
-        if (err) {
-          console.log(err)
-        }
         expect(err).toBeNull()
         expect(result).not.toBeDefined()
         done()
@@ -97,98 +87,97 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     })
 
     it('executes select queries correctly', function(done) {
-      this.sequelize.query(this.insertQuery).success(function() {
-        this.sequelize
-          .query("select * from " + qq(this.User.tableName) + "")
+      var self = this
+      sequelize.query(this.insertQuery).success(function() {
+        sequelize
+          .query("select * from " + qq(self.User.tableName) + "")
           .complete(function(err, users) {
-            if (err) {
-              console.log(err)
-            }
             expect(err).toBeNull()
             expect(users.map(function(u){ return u.username })).toEqual(['john'])
             done()
           })
-      }.bind(this))
+      })
     })
 
     it('executes select queries correctly when quoteIdentifiers is false', function(done) {
-      this.sequelize.options.quoteIdentifiers = false
-      this.sequelize.query(this.insertQuery).success(function() {
-        this.sequelize
-          .query("select * from " + qq(this.User.tableName) + "")
+      var self = this
+        , seq = Object.create(self.sequelize)
+
+      seq.options.quoteIdentifiers = false
+      seq.query(this.insertQuery).success(function() {
+        seq.query("select * from " + qq(self.User.tableName) + "")
           .complete(function(err, users) {
-            if (err) {
-              console.log(err)
-            }
             expect(err).toBeNull()
             expect(users.map(function(u){ return u.username })).toEqual(['john'])
             done()
           })
-      }.bind(this))
+      })
     })
 
     it('executes select query and parses dot notation results', function(done) {
-      this.sequelize.query(this.insertQuery).success(function() {
-        this.sequelize
-          .query("select username as " + qq("user.username") + " from " + qq(this.User.tableName) + "")
-          .complete(function(err, users) {
-            if (err) {
-              console.log(err)
-            }
-            expect(err).toBeNull()
-            expect(users.map(function(u){ return u.user })).toEqual([{'username':'john'}])
-            done()
-          })
-      }.bind(this))
+      var self = this
+      sequelize.query('DELETE FROM ' + qq(self.User.tableName)).complete(function() {
+        sequelize.query(self.insertQuery).success(function() {
+          sequelize
+            .query("select username as " + qq("user.username") + " from " + qq(self.User.tableName) + "")
+            .complete(function(err, users) {
+              expect(err).toBeNull()
+              expect(users.map(function(u){ return u.user })).toEqual([{'username':'john'}])
+              done()
+            })
+        })
+      })
     })
 
     if (dialect == 'mysql') {
       it('executes stored procedures', function(done) {
-        this.sequelize.query(this.insertQuery).success(function() {
-          this.sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
-            this.sequelize.query(
-              "CREATE PROCEDURE foo()\nSELECT * FROM " + this.User.tableName + ";"
+        var self = this
+        sequelize.query(this.insertQuery).success(function() {
+          sequelize.query('DROP PROCEDURE IF EXISTS foo').success(function() {
+            sequelize.query(
+              "CREATE PROCEDURE foo()\nSELECT * FROM " + self.User.tableName + ";"
             ).success(function() {
-              this.sequelize.query('CALL foo()').success(function(users) {
+              sequelize.query('CALL foo()').success(function(users) {
                 expect(users.map(function(u){ return u.username })).toEqual(['john'])
                 done()
               })
-            }.bind(this))
-          }.bind(this))
-        }.bind(this))
+            })
+          })
+        })
       })
     } else {
       console.log('FIXME: I want to be supported in this dialect as well :-(')
     }
 
     it('uses the passed DAOFactory', function(done) {
-      this.sequelize.query(this.insertQuery).success(function() {
-        this.sequelize.query("SELECT * FROM " + qq(this.User.tableName) + ";", this.User).success(function(users) {
-          expect(users[0].__factory).toEqual(this.User)
+      var self = this
+      sequelize.query(this.insertQuery).success(function() {
+        sequelize.query("SELECT * FROM " + qq(self.User.tableName) + ";", self.User).success(function(users) {
+          expect(users[0].__factory).toEqual(self.User)
           done()
-        }.bind(this))
-      }.bind(this))
+        })
+      })
     })
 
     it('destructs dot separated attributes when doing a raw query', function(done) {
       var tickChar = (dialect === 'postgres') ? '"' : '`'
         , sql      = "select 1 as " + Helpers.Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
-      this.sequelize.query(sql, null, { raw: true }).success(function(result) {
+      sequelize.query(sql, null, { raw: true }).success(function(result) {
         expect(result).toEqual([ { foo: { bar: { baz: 1 } } } ])
         done()
       })
     })
 
     it('replaces token with the passed array', function(done) {
-      this.sequelize.query('select ? as foo, ? as bar', null, { raw: true }, [ 1, 2 ]).success(function(result) {
+      sequelize.query('select ? as foo, ? as bar', null, { raw: true }, [ 1, 2 ]).success(function(result) {
         expect(result).toEqual([{ foo: 1, bar: 2 }])
         done()
       })
     })
 
     it('handles AS in conjunction with functions just fine', function(done) {
-      this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
+      sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
         expect(moment(result[0].t).isValid()).toBeTrue()
         done()
       })
@@ -197,9 +186,9 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
 
   describe('define', function() {
     it("adds a new dao to the dao manager", function(done) {
-      expect(this.sequelize.daoFactoryManager.all.length).toEqual(0)
-      this.sequelize.define('foo', { title: Helpers.Sequelize.STRING })
-      expect(this.sequelize.daoFactoryManager.all.length).toEqual(1)
+      expect(sequelize.daoFactoryManager.all.length).toEqual(0)
+      sequelize.define('foo', { title: Helpers.Sequelize.STRING })
+      expect(sequelize.daoFactoryManager.all.length).toEqual(1)
       done()
     })
 
@@ -239,7 +228,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       var self = this
         , Photo = this.sequelize.define('Foto', { name: Helpers.Sequelize.STRING }, { tableName: 'photos' })
       Photo.sync({ force: true }).success(function() {
-        self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+        sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           expect(tableNames).toContain('photos')
           done()
         })
@@ -252,19 +241,21 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       var Project = this.sequelize.define('project' + config.rand(), { title: Helpers.Sequelize.STRING })
       var Task = this.sequelize.define('task' + config.rand(), { title: Helpers.Sequelize.STRING })
 
-      this.sequelize.sync().success(function() {
-        Project.create({title: 'bla'}).success(function() {
-          Task.create({title: 'bla'}).success(function(task){
-            expect(task).toBeDefined()
-            expect(task.title).toEqual('bla')
-            done()
+      Project.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          Project.create({title: 'bla'}).success(function() {
+            Task.create({title: 'bla'}).success(function(task){
+              expect(task).toBeDefined()
+              expect(task.title).toEqual('bla')
+              done()
+            })
           })
         })
       })
     })
 
     it('works with correct database credentials', function(done) {
-      var User = this.sequelize.define('User', { username: Helpers.Sequelize.STRING })
+      var User = sequelize.define('User', { username: Helpers.Sequelize.STRING })
       User.sync().success(function() {
         expect(true).toBeTrue()
         done()
@@ -284,7 +275,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
 
   describe('drop should work', function() {
     it('correctly succeeds', function(done) {
-      var User = this.sequelize.define('Users', {username: Helpers.Sequelize.STRING })
+      var User = sequelize.define('Users', {username: Helpers.Sequelize.STRING })
       User.sync({ force: true }).success(function() {
         User.drop().success(function() {
           expect(true).toBeTrue()
@@ -296,7 +287,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
 
   describe('import', function() {
     it("imports a dao definition from a file", function(done) {
-      var Project = this.sequelize.import(__dirname + "/assets/project")
+      var Project = sequelize.import(__dirname + "/assets/project")
       expect(Project).toBeDefined()
       done()
     })
@@ -309,16 +300,17 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
     ].forEach(function(status) {
       describe('enum', function() {
         before(function(done) {
-          this.Review = this.sequelize.define('review', { status: status })
+          this.Review = sequelize.define('review', { status: status })
           this.Review.sync({ force: true }).success(done)
         })
 
-        it('raises an error if no values are defined', function() {
-          Helpers.assertException(function() {
-            this.sequelize.define('omnomnom', {
+        it('raises an error if no values are defined', function(done) {
+          expect(function() {
+            sequelize.define('omnomnom', {
               bla: { type: Helpers.Sequelize.ENUM }
             })
-          }.bind(this), 'Values for ENUM haven\'t been defined.')
+          }).toThrow('Error', 'Values for ENUM haven\'t been defined.')
+          done()
         })
 
         it('correctly stores values', function(done) {
@@ -329,18 +321,21 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
         })
 
         it('correctly loads values', function(done) {
+          var self = this
           this.Review.create({ status: 'active' }).success(function() {
-            this.Review.findAll().success(function(reviews) {
+            self.Review.findAll().success(function(reviews) {
               expect(reviews[0].status).toEqual('active')
               done()
             })
-          }.bind(this))
+          })
         })
 
-        it("doesn't save an instance if value is not in the range of enums", function() {
-          Helpers.assertException(function() {
-            this.Review.create({ status: 'fnord' })
-          }.bind(this), 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
+        it("doesn't save an instance if value is not in the range of enums", function(done) {
+          var self = this
+          expect(function() {
+            self.Review.create({ status: 'fnord' })
+          }).toThrow('Error', 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
+          done()
         })
       })
     })
@@ -353,7 +348,7 @@ describe(Helpers.getTestDialectTeaser("Sequelize"), function() {
       ].forEach(function(customAttributes) {
 
         it('should be able to override options on the default attributes', function(done) {
-          var Picture = this.sequelize.define('picture', Helpers.Sequelize.Utils._.cloneDeep(customAttributes))
+          var Picture = sequelize.define('picture', Helpers.Sequelize.Utils._.cloneDeep(customAttributes))
           Picture.sync({ force: true }).success(function() {
             Object.keys(customAttributes).forEach(function(attribute) {
               Object.keys(customAttributes[attribute]).forEach(function(option) {
