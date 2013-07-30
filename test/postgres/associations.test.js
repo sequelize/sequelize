@@ -9,6 +9,11 @@ chai.Assertion.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {
+    beforeEach(function(done) {
+      this.sequelize.options.quoteIdentifier = true
+      done()
+    })
+
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {
         it("should create a table wp_table1wp_table2s", function(done) {
@@ -46,53 +51,46 @@ if (dialect.match(/^postgres/)) {
     })
 
     describe('HasMany', function() {
-      beforeEach(function(done) {
-        //prevent periods from occurring in the table name since they are used to delimit (table.column)
-        this.User  = this.sequelize.define('User' + config.rand(), { name: DataTypes.STRING })
-        this.Task  = this.sequelize.define('Task' + config.rand(), { name: DataTypes.STRING })
-        this.users = null
-        this.tasks = null
-
-        this.User.hasMany(this.Task, {as:'Tasks'})
-        this.Task.hasMany(this.User, {as:'Users'})
-
-        var self = this
-          , users = []
-          , tasks = []
-
-        for (var i = 0; i < 5; ++i) {
-          users[users.length] = {name: 'User' + Math.random()}
-        }
-
-        for (var x = 0; x < 5; ++x) {
-          tasks[tasks.length] = {name: 'Task' + Math.random()}
-        }
-
-        self.sequelize.getQueryInterface().dropAllTables().success(function() {
-          self.User.sync({ force: true }).success(function() {
-            self.Task.sync({ force: true }).success(function() {
-              self.User.bulkCreate(users).success(function() {
-                self.Task.bulkCreate(tasks).success(function() {
-                  done()
-                })
-              })
-            })
-          })
-        })
-      })
-
       describe('addDAO / getDAO', function() {
         beforeEach(function(done) {
           var self = this
 
-          self.user = null
-          self.task = null
+          //prevent periods from occurring in the table name since they are used to delimit (table.column)
+          this.User  = this.sequelize.define('User' + config.rand(), { name: DataTypes.STRING })
+          this.Task  = this.sequelize.define('Task' + config.rand(), { name: DataTypes.STRING })
+          this.users = null
+          this.tasks = null
 
-          self.User.all().success(function(_users) {
-            self.Task.all().success(function(_tasks) {
-              self.user = _users[0]
-              self.task = _tasks[0]
-              done()
+          this.User.hasMany(this.Task, {as:'Tasks'})
+          this.Task.hasMany(this.User, {as:'Users'})
+
+          var self = this
+            , users = []
+            , tasks = []
+
+          for (var i = 0; i < 5; ++i) {
+            users[users.length] = {name: 'User' + Math.random()}
+          }
+
+          for (var x = 0; x < 5; ++x) {
+            tasks[tasks.length] = {name: 'Task' + Math.random()}
+          }
+
+          self.sequelize.getQueryInterface().dropAllTables().success(function() {
+            self.User.sync({ force: true }).success(function() {
+              self.Task.sync({ force: true }).success(function() {
+                self.User.bulkCreate(users).success(function() {
+                  self.Task.bulkCreate(tasks).success(function() {
+                    self.User.all().success(function(_users) {
+                      self.Task.all().success(function(_tasks) {
+                        self.user = _users[0]
+                        self.task = _tasks[0]
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
             })
           })
         })
@@ -113,33 +111,54 @@ if (dialect.match(/^postgres/)) {
       })
 
       describe('removeDAO', function() {
-        beforeEach(function(done) {
-          var self = this
-
-          self.user = null
-          self.tasks = null
-
-          self.User.all().success(function(_users) {
-            self.Task.all().success(function(_tasks) {
-              self.user = _users[0]
-              self.tasks = _tasks
-              done()
-            })
-          })
-        })
-
         it("should correctly remove associated objects", function(done) {
           var self = this
+            , users = []
+            , tasks = []
 
-          self.user.getTasks().on('success', function(__tasks) {
-            expect(__tasks).to.have.length(0)
-            self.user.setTasks(self.tasks).on('success', function() {
-              self.user.getTasks().on('success', function(_tasks) {
-                expect(_tasks).to.have.length(self.tasks.length)
-                self.user.removeTask(self.tasks[0]).on('success', function() {
-                  self.user.getTasks().on('success', function(_tasks) {
-                    expect(_tasks).to.have.length(self.tasks.length - 1)
-                    done()
+          //prevent periods from occurring in the table name since they are used to delimit (table.column)
+          this.User  = this.sequelize.define('User' + config.rand(), { name: DataTypes.STRING })
+          this.Task  = this.sequelize.define('Task' + config.rand(), { name: DataTypes.STRING })
+          this.users = null
+          this.tasks = null
+
+          this.User.hasMany(this.Task, {as:'Tasks'})
+          this.Task.hasMany(this.User, {as:'Users'})
+
+          for (var i = 0; i < 5; ++i) {
+            users[users.length] = {id: i, name: 'User' + Math.random()}
+          }
+
+          for (var x = 0; x < 5; ++x) {
+            tasks[tasks.length] = {id: i, name: 'Task' + Math.random()}
+          }
+
+          self.User.sync({ force: true }).success(function() {
+            self.Task.sync({ force: true }).success(function() {
+              self.User.bulkCreate(users).success(function() {
+                self.Task.bulkCreate(tasks).success(function() {
+                  self.User.all().success(function(_users) {
+                    self.Task.all().success(function(_tasks) {
+                      self.user = _users[0]
+                      self.task = _tasks[0]
+                      self.users = _users
+                      self.tasks = _tasks
+
+                      self.user.getTasks().on('success', function(__tasks) {
+                        expect(__tasks).to.have.length(0)
+                        self.user.setTasks(self.tasks).on('success', function() {
+                          self.user.getTasks().on('success', function(_tasks) {
+                            expect(_tasks).to.have.length(self.tasks.length)
+                            self.user.removeTask(self.tasks[0]).on('success', function() {
+                              self.user.getTasks().on('success', function(_tasks) {
+                                expect(_tasks).to.have.length(self.tasks.length - 1)
+                                done()
+                              })
+                            })
+                          })
+                        })
+                      })
+                    })
                   })
                 })
               })
