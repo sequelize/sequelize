@@ -992,7 +992,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             createdAt: new Date(2000, 1, 1),
             identifier: 'another identifier'
           }).success(function(user) {
-            expect((new Date(user.createdAt)).getTime()).to.equal((new Date(oldCreatedAt)).getTime())
+            expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt))
             expect(user.identifier).to.equal(oldIdentifier)
             done()
           })
