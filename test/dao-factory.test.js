@@ -736,6 +736,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('update', function() {
+    it('updates the attributes that we select only without updating createdAt', function(done) {
+      var User = this.sequelize.define('User1', {
+        username: Sequelize.STRING,
+        secretValue: Sequelize.STRING
+      }, {
+          paranoid:true
+        })
+
+      User.sync({ force: true }).success(function() {
+        User.create({username: 'Peter', secretValue: '42'}).success(function(user) {
+          user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
+            expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+            done()
+          })
+        })
+      })
+    })
+
     it('allows sql logging of updated statements', function(done) {
       var User = this.sequelize.define('User', {
         name: Sequelize.STRING,
