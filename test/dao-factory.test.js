@@ -799,8 +799,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(users[1].username).to.equal("Bill")
             expect(users[2].username).to.equal("Bob")
 
-            expect(parseInt(+users[0].updatedAt/5000, 10)).to.equal(parseInt(+new Date()/5000, 10))
-            expect(parseInt(+users[1].updatedAt/5000, 10)).to.equal(parseInt(+new Date()/5000, 10))
+            expect(parseInt(+users[0].updatedAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1)
+            expect(parseInt(+users[1].updatedAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1)
 
             done()
           })
