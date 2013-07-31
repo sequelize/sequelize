@@ -750,6 +750,33 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it("doesn't emit an error when validate is set to true but our selectedValues are fine", function(done) {
+      var Tasks = this.sequelize.define('Task', {
+        name: {
+          type: Sequelize.STRING,
+          validate: {
+            notNull: { args: true, msg: 'name cannot be null' }
+          }
+        },
+        code: {
+          type: Sequelize.STRING,
+          validate: {
+            len: [3, 10]
+          }
+        }
+      })
+
+      Tasks.sync({ force: true }).success(function() {
+        Tasks.bulkCreate([
+          {name: 'foo', code: '123'},
+          {code: '1234'}
+        ], ['code'], {validate: true}).success(function() {
+          // we passed!
+          done()
+        })
+      })
+    })
+
     describe('enums', function() {
       it('correctly restores enum values', function(done) {
         var self = this
