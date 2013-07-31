@@ -110,6 +110,116 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
   })
 
+  describe('isDirty', function() {
+    it('returns true for non-saved objects', function(done) {
+      var user = this.User.build({ username: 'user' })
+      expect(user.id).to.be.null
+      expect(user.isDirty).to.be.ok
+      done()
+    })
+
+    it("returns false for saved objects", function(done) {
+      this.User.build({ username: 'user' }).save().success(function(user) {
+        expect(user.isDirty).to.not.be.ok
+        done()
+      })
+    })
+
+    it("returns true for changed attribute", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        user.username = 'new'
+        expect(user.isDirty).to.be.ok
+        done()
+      })
+    })
+
+    it("returns false for non-changed attribute", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        user.username = 'user'
+        expect(user.isDirty).to.not.be.ok
+        done()
+      })
+    })
+
+    it("returns true for bulk changed attribute", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        user.setAttributes({
+          username: 'new',
+          aNumber: 1
+        })
+        expect(user.isDirty).to.be.ok
+        done()
+      })
+    })
+
+    it("returns false for bulk non-changed attribute", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        user.setAttributes({
+          username: 'user'
+        })
+        expect(user.isDirty).to.not.be.ok
+        done()
+      })
+    })
+
+    it("returns true for changed and bulk non-changed attribute", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        user.aNumber = 1
+        user.setAttributes({
+          username: 'user'
+        })
+        expect(user.isDirty).to.be.ok
+        done()
+      })
+    })
+
+    it("returns true for changed attribute and false for saved object", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        user.username = 'new'
+        expect(user.isDirty).to.be.ok
+        user.save().success(function() {
+          expect(user.isDirty).to.not.be.ok
+          done()
+        })
+      })
+    })
+
+    it("returns false for created objects", function(done) {
+      this.User.create({ username: 'user' }).success(function(user) {
+        expect(user.isDirty).to.not.be.ok
+        done()
+      })
+    })
+
+    it("returns false for objects found by find method", function(done) {
+      var self = this
+      this.User.create({ username: 'user' }).success(function(user) {
+        self.User.find(user.id).success(function(user) {
+          expect(user.isDirty).to.not.be.ok
+          done()
+        })
+      })
+    })
+
+    it("returns false for objects found by findAll method", function(done) {
+      var self = this
+        , users = []
+
+      for (var i = 0; i < 10; i++) {
+        users[users.length] = {username: 'user'}
+      }
+
+      this.User.bulkCreate(users).success(function() {
+        self.User.findAll().success(function(users) {
+          users.forEach(function(u) {
+            expect(u.isDirty).to.not.be.ok
+          })
+          done()
+        })
+      })
+    })
+  })
+
   describe('increment', function () {
     beforeEach(function(done) {
       this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).complete(function(){
