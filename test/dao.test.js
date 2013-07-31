@@ -19,6 +19,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber:   { type: DataTypes.INTEGER },
       bNumber:   { type: DataTypes.INTEGER },
+      aDate:     { type: DataTypes.DATE },
 
       validateTest: {
         type: DataTypes.INTEGER,
@@ -114,13 +115,13 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('returns true for non-saved objects', function(done) {
       var user = this.User.build({ username: 'user' })
       expect(user.id).to.be.null
-      expect(user.isDirty).to.be.ok
+      expect(user.isDirty).to.be.true
       done()
     })
 
     it("returns false for saved objects", function(done) {
       this.User.build({ username: 'user' }).save().success(function(user) {
-        expect(user.isDirty).to.not.be.ok
+        expect(user.isDirty).to.be.false
         done()
       })
     })
@@ -128,7 +129,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it("returns true for changed attribute", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         user.username = 'new'
-        expect(user.isDirty).to.be.ok
+        expect(user.isDirty).to.be.true
         done()
       })
     })
@@ -136,7 +137,23 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it("returns false for non-changed attribute", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         user.username = 'user'
-        expect(user.isDirty).to.not.be.ok
+        expect(user.isDirty).to.be.false
+        done()
+      })
+    })
+
+    it("returns false for non-changed date attribute", function(done) {
+      this.User.create({ aDate: new Date(2013, 6, 31, 14, 25, 21) }).success(function(user) {
+        user.aDate = '2013-07-31 14:25:21'
+        expect(user.isDirty).to.be.false
+        done()
+      })
+    })
+
+    it("returns false for two empty attributes", function(done) {
+      this.User.create({ username: null }).success(function(user) {
+        user.username = ''
+        expect(user.isDirty).to.be.false
         done()
       })
     })
@@ -147,7 +164,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           username: 'new',
           aNumber: 1
         })
-        expect(user.isDirty).to.be.ok
+        expect(user.isDirty).to.be.true
         done()
       })
     })
@@ -157,18 +174,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         user.setAttributes({
           username: 'user'
         })
-        expect(user.isDirty).to.not.be.ok
+        expect(user.isDirty).to.be.false
         done()
       })
     })
 
     it("returns true for changed and bulk non-changed attribute", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
-        user.aNumber = 1
+        user.aNumber = 23
         user.setAttributes({
           username: 'user'
         })
-        expect(user.isDirty).to.be.ok
+        expect(user.isDirty).to.be.true
         done()
       })
     })
@@ -176,9 +193,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it("returns true for changed attribute and false for saved object", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         user.username = 'new'
-        expect(user.isDirty).to.be.ok
+        expect(user.isDirty).to.be.true
         user.save().success(function() {
-          expect(user.isDirty).to.not.be.ok
+          expect(user.isDirty).to.be.false
           done()
         })
       })
@@ -186,7 +203,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it("returns false for created objects", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
-        expect(user.isDirty).to.not.be.ok
+        expect(user.isDirty).to.be.false
         done()
       })
     })
@@ -195,7 +212,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       var self = this
       this.User.create({ username: 'user' }).success(function(user) {
         self.User.find(user.id).success(function(user) {
-          expect(user.isDirty).to.not.be.ok
+          expect(user.isDirty).to.be.false
           done()
         })
       })
@@ -212,7 +229,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       this.User.bulkCreate(users).success(function() {
         self.User.findAll().success(function(users) {
           users.forEach(function(u) {
-            expect(u.isDirty).to.not.be.ok
+            expect(u.isDirty).to.be.false
           })
           done()
         })
