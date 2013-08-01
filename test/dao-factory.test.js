@@ -1392,17 +1392,34 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             {where: {id: 0}},
             {where: {id: '0'}}
           ]
-          , done = _.after(2 * permutations.length, _done);
+          , done = _.after(2 * permutations.length, _done)
 
         this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).success(function() {
           permutations.forEach(function(perm) {
             self.User.find(perm).done(function(err, user) {
-              expect(err).to.be.null;
-              expect(user).to.be.null;
-              done();
+              expect(err).to.be.null
+              expect(user).to.be.null
+              done()
             }).on('sql', function(s) {
-              expect(s.indexOf(0)).not.to.equal(-1);
-              done();
+              expect(s.indexOf(0)).not.to.equal(-1)
+              done()
+            })
+          })
+        })
+      })
+
+      it('should allow us to find IDs using capital letters', function(done) {
+        var User = this.sequelize.define('User' + config.rand(), {
+          ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+          Login: { type: Sequelize.STRING }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({Login: 'foo'}).success(function() {
+            User.find(1).success(function(user) {
+              expect(user).to.exist
+              expect(user.ID).to.equal(1)
+              done()
             })
           })
         })
@@ -2112,6 +2129,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(users.length).to.equal(2)
             expect(users[0].id).to.equal(3)
             done()
+          })
+        })
+      })
+
+      it('should allow us to find IDs using capital letters', function(done) {
+        var User = this.sequelize.define('User' + config.rand(), {
+          ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+          Login: { type: Sequelize.STRING }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({Login: 'foo'}).success(function() {
+            User.findAll({ID: 1}).success(function(user) {
+              expect(user).to.be.instanceof(Array)
+              expect(user).to.have.length(1)
+              done()
+            })
           })
         })
       })
