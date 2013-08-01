@@ -85,7 +85,7 @@ if (dialect.match(/^mysql/)) {
       })
     })
 
-    describe.only('validations', function() {
+    describe('validations', function() {
       describe('enums', function() {
         it('enum data type should be case insensitive if my collation allows it', function(done) {
           var User = this.sequelize.define('User' + config.rand(), {
