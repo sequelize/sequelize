@@ -50,6 +50,7 @@
 - [FEATURE] Added support for specifying the path to load a module for a dialect. [#766](https://github.com/sequelize/sequelize/pull/766) thanks to sonnym.
 - [FEATURE] Drop index if exists has been added to sqlite [#766](https://github.com/sequelize/sequelize/pull/776) thanks to coderbuzz
 - [FEATURE] bulkCreate() now has a third argument which gives you the ability to validate each row before attempting to bulkInsert [#797](https://github.com/sequelize/sequelize/pull/797). thanks to durango
+- [FEATURE] Added `isDirty` to model instances. [#798](https://github.com/sequelize/sequelize/pull/798). Thanks to mstorgaard
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango
