@@ -1,8 +1,6 @@
 var chai         = require('chai')
   , expect       = chai.expect
   , Support      = require(__dirname + '/support')
-  , DataTypes    = require(__dirname + "/../lib/data-types")
-  , QueryChainer = require("../lib/query-chainer")
   , Migrator     = require("../lib/migrator")
   , dialect      = Support.getTestDialect()
 
@@ -16,6 +14,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         logging: function(){}
       }, options || {})
 
+      // this.sequelize.options.logging = console.log
       var migrator = new Migrator(this.sequelize, options)
 
       migrator
@@ -87,7 +86,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).to.be.null
-            expect(migrations).to.have.length(6)
+            expect(migrations).to.have.length(7)
             expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
             done()
           })
@@ -186,6 +185,31 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('addColumn', function() {
+      it('adds a unique column to the user table', function(done) {
+        var self = this
+
+        this.init({ from: 20111117063700, to: 20111205167000 }, function(migrator) {
+          migrator.migrate().complete(function(err) {
+            self.sequelize.getQueryInterface().describeTable('User').complete(function(err, data) {
+              var signature = data.signature
+                , isAdmin   = data.isAdmin
+                , shopId    = data.shopId
+
+              expect(signature.allowNull).to.be.true
+              expect(isAdmin.allowNull).to.be.false
+              if (dialect === "postgres" || dialect === "postgres-native" || dialect === "sqlite") {
+                expect(isAdmin.defaultValue).to.be.false
+              } else {
+                expect(isAdmin.defaultValue).to.equal("0")
+              }
+              expect(shopId.allowNull).to.be.true
+
+              done()
+            })
+          })
+        })
+      })
+
       it('adds a column to the user table', function(done) {
         var self = this
 

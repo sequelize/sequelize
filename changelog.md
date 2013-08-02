@@ -25,6 +25,8 @@
 - [BUG] Fixed SQL escaping with sqlite and unified escaping [#700](https://github.com/sequelize/sequelize/pull/700). thanks to PiPeep
 - [BUG] Fixed Postgres' pools [ff57af63](https://github.com/sequelize/sequelize/commit/ff57af63c2eb395b4828a5984a22984acdc2a5e1)
 - [BUG] Fixed BLOB/TEXT columns having a default value declared in MySQL [#793](https://github.com/sequelize/sequelize/pull/793). thanks to durango
+- [BUG] You can now use .find() on any single integer primary key when throwing just a number as an argument [#796](https://github.com/sequelize/sequelize/pull/796). thanks to durango
+- [BUG] Adding unique to a column for Postgres in the migrator should be fixed [#795](https://github.com/sequelize/sequelize/pull/795). thanks to durango
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
@@ -47,6 +49,7 @@
 - [FEATURE] Added support for model instances being referenced [#761](https://github.com/sequelize/sequelize/pull/761) thanks to sdepold
 - [FEATURE] Added support for specifying the path to load a module for a dialect. [#766](https://github.com/sequelize/sequelize/pull/766) thanks to sonnym.
 - [FEATURE] Drop index if exists has been added to sqlite [#766](https://github.com/sequelize/sequelize/pull/776) thanks to coderbuzz
+- [FEATURE] bulkCreate() now has a third argument which gives you the ability to validate each row before attempting to bulkInsert [#797](https://github.com/sequelize/sequelize/pull/797). thanks to durango
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango

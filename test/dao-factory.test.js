@@ -715,6 +715,68 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('emits an error when validate is set to true', function(done) {
+      var Tasks = this.sequelize.define('Task', {
+        name: {
+          type: Sequelize.STRING,
+          validate: {
+            notNull: { args: true, msg: 'name cannot be null' }
+          }
+        },
+        code: {
+          type: Sequelize.STRING,
+          validate: {
+            len: [3, 10]
+          }
+        }
+      })
+
+      Tasks.sync({ force: true }).success(function() {
+        Tasks.bulkCreate([
+          {name: 'foo', code: '123'},
+          {code: '1234'},
+          {name: 'bar', code: '1'}
+        ], null, {validate: true}).error(function(errors) {
+          expect(errors).to.not.be.null
+          expect(errors).to.be.instanceof(Array)
+          expect(errors).to.have.length(2)
+          expect(errors[0].record.code).to.equal('1234')
+          expect(errors[0].errors.name[0]).to.equal('name cannot be null')
+          expect(errors[1].record.name).to.equal('bar')
+          expect(errors[1].record.code).to.equal('1')
+          expect(errors[1].errors.code[0]).to.equal('String is not in range: code')
+          done()
+        })
+      })
+    })
+
+    it("doesn't emit an error when validate is set to true but our selectedValues are fine", function(done) {
+      var Tasks = this.sequelize.define('Task', {
+        name: {
+          type: Sequelize.STRING,
+          validate: {
+            notNull: { args: true, msg: 'name cannot be null' }
+          }
+        },
+        code: {
+          type: Sequelize.STRING,
+          validate: {
+            len: [3, 10]
+          }
+        }
+      })
+
+      Tasks.sync({ force: true }).success(function() {
+        Tasks.bulkCreate([
+          {name: 'foo', code: '123'},
+          {code: '1234'}
+        ], ['code'], {validate: true}).success(function() {
+          // we passed!
+          done()
+        })
+      })
+    })
+
     describe('enums', function() {
       it('correctly restores enum values', function(done) {
         var self = this
@@ -1330,17 +1392,34 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             {where: {id: 0}},
             {where: {id: '0'}}
           ]
-          , done = _.after(2 * permutations.length, _done);
+          , done = _.after(2 * permutations.length, _done)
 
         this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).success(function() {
           permutations.forEach(function(perm) {
             self.User.find(perm).done(function(err, user) {
-              expect(err).to.be.null;
-              expect(user).to.be.null;
-              done();
+              expect(err).to.be.null
+              expect(user).to.be.null
+              done()
             }).on('sql', function(s) {
-              expect(s.indexOf(0)).not.to.equal(-1);
-              done();
+              expect(s.indexOf(0)).not.to.equal(-1)
+              done()
+            })
+          })
+        })
+      })
+
+      it('should allow us to find IDs using capital letters', function(done) {
+        var User = this.sequelize.define('User' + config.rand(), {
+          ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+          Login: { type: Sequelize.STRING }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({Login: 'foo'}).success(function() {
+            User.find(1).success(function(user) {
+              expect(user).to.exist
+              expect(user.ID).to.equal(1)
+              done()
             })
           })
         })
@@ -2050,6 +2129,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(users.length).to.equal(2)
             expect(users[0].id).to.equal(3)
             done()
+          })
+        })
+      })
+
+      it('should allow us to find IDs using capital letters', function(done) {
+        var User = this.sequelize.define('User' + config.rand(), {
+          ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+          Login: { type: Sequelize.STRING }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({Login: 'foo'}).success(function() {
+            User.findAll({ID: 1}).success(function(user) {
+              expect(user).to.be.instanceof(Array)
+              expect(user).to.have.length(1)
+              done()
+            })
           })
         })
       })
