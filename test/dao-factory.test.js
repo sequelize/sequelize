@@ -2701,5 +2701,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(sql).to.equal(sqlMap[dialect])
       })
     })
+
+    describe("exec", function() {
+      beforeEach(function(done) {
+        var self = this
+
+        this
+          .User
+          .create({ username: "foo" })
+          .then(function() {
+            return self.User.create({ username: "bar" })
+          })
+          .then(function() { done() })
+      })
+
+      it("selects all users with name 'foo'", function(done) {
+        this
+          .User
+          .where({ username: "foo" })
+          .exec()
+          .success(function(users) {
+            expect(users).to.have.length(1)
+            expect(users[0].username).to.equal("foo")
+            done()
+          })
+      })
+    })
   })
 })
