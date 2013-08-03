@@ -2712,6 +2712,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           .then(function() {
             return self.User.create({ username: "bar" })
           })
+          .then(function() {
+            return self.User.create({ username: "baz" })
+          })
           .then(function() { done() })
       })
 
@@ -2723,6 +2726,33 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           .success(function(users) {
             expect(users).to.have.length(1)
             expect(users[0].username).to.equal("foo")
+            done()
+          })
+      })
+
+      it("returns an instanceof DAO", function(done) {
+        var DAO = require(__dirname + "/../lib/dao")
+
+        this.User.where({ username: "foo" }).exec().success(function(users) {
+          expect(users[0]).to.be.instanceOf(DAO)
+          done()
+        })
+      })
+
+      it("returns all users in the db", function(done) {
+        this.User.select().exec().success(function(users) {
+          expect(users).to.have.length(3)
+          done()
+        })
+      })
+
+      it("can handle or queries", function(done) {
+        this
+          .User
+          .where(this.User.dataset().username.equals("bar").or(this.User.dataset().username.equals("baz")))
+          .exec()
+          .success(function(users) {
+            expect(users).to.have.length(2)
             done()
           })
       })
