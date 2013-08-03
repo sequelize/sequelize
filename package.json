@@ -22,6 +22,10 @@
         "janzeh@gmail.com",
         "jmei@itu.dk"
       ]
+    },
+    {
+      "name": "Daniel Durante",
+      "email": "me@danieldurante.com"
     }
   ],
   "repository": {
@@ -37,21 +41,24 @@
     "lingo": "~0.0.5",
     "validator": "~1.3.0",
     "moment": "~2.1.0",
-    "commander": "~1.3.0",
+    "commander": "~2.0.0",
     "dottie": "0.0.8-0",
     "toposort-class": "~0.2.0",
-    "generic-pool": "2.0.3",
+    "generic-pool": "2.0.4",
     "promise": "~3.2.0",
     "sql": "~0.26.0"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
     "mysql": "~2.0.0-alpha8",
-    "pg": "~2.1.0",
+    "pg": "~2.2.0",
     "buster": "~0.6.3",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
-    "semver": "~2.0.8"
+    "chai": "~1.7.2",
+    "mocha": "~1.12.0",
+    "chai-datetime": "~1.0.0",
+    "sinon": "~1.7.3"
   },
   "keywords": [
     "mysql",
@@ -61,13 +68,7 @@
   ],
   "main": "index",
   "scripts": {
-    "test": "npm run test-buster",
-    "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite",
-    "test-buster-travis": "node_modules/.bin/buster-test",
-    "test-buster-mysql": "DIALECT=mysql node_modules/.bin/buster-test",
-    "test-buster-postgres": "DIALECT=postgres node_modules/.bin/buster-test",
-    "test-buster-postgres-native": "DIALECT=postgres-native node_modules/.bin/buster-test",
-    "test-buster-sqlite": "DIALECT=sqlite node_modules/.bin/buster-test",
+    "test": "make all",
     "docs": "node_modules/.bin/yuidoc . -o docs"
   },
   "bin": {

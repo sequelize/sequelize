@@ -139,30 +139,27 @@ $ npm install
 
 ### 4. Run the tests ###
 
-Right now, the test base is split into the `spec` folder (which contains the
-lovely [BusterJS](http://busterjs.org) tests).
+Right now, the test base is split into the `test` folder (which contains the
+lovely [Mocha](http://visionmedia.github.io/mocha/) tests).
 
 As you might haven't installed all of the supported SQL dialects, here is how
 to run the test suites for your development environment:
 
 ```console
 $ # run all tests at once:
-$ npm test
-
-$ # run all of the buster specs (for all dialects):
-$ npm run test-buster
+$ make all
 
 $ # run the buster specs for mysql:
-$ npm run test-buster-mysql
+$ make mysql
 
 $ # run the buster specs for sqlite:
-$ npm run test-buster-sqlite
+$ make sqlite
 
 $ # run the buster specs for postgresql:
-$ npm run test-buster-postgres
+$ make pgsql
 
-$ # alternatively you can pass database credentials with $variables when testing with buster.js
-$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password buster-test
+$ # alternatively you can pass database credentials with $variables when testing
+$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password make test
 ```
 
 ### 5. That's all ###

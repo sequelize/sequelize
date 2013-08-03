@@ -3,7 +3,7 @@ before_script:
   - "psql -c 'create database sequelize_test;' -U postgres"
 
 script:
-  - "npm run test-buster-travis"
+  - "make test"
 
 notifications:
   email:
