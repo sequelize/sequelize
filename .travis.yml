@@ -8,6 +8,8 @@ script:
 notifications:
   email:
     - sascha@depold.com
+  hipchat:
+    - 40e8850aaba9854ac4c9963bd33f8b@253477
 
 env:
   - DB=mysql DIALECT=mysql

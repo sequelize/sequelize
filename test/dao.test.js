@@ -169,14 +169,36 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
-    it("returns false for bulk non-changed attribute", function(done) {
+    it("returns true for bulk non-changed attribute + model with timestamps", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         user.setAttributes({
           username: 'user'
         })
-        expect(user.isDirty).to.be.false
+
+        expect(user.isDirty).to.be.rue
         done()
       })
+    })
+
+    it("returns false for bulk non-changed attribute + model without timestamps", function(done) {
+      var User = this.sequelize.define('User' + parseInt(Math.random() * 10000000), {
+        username: DataTypes.STRING
+      }, {
+        timestamps: false
+      })
+
+      User
+        .sync({ force: true })
+        .then(function() {
+          return User.create({ username: "user" })
+        })
+        .then(function(user) {
+          return user.setAttributes({ username: "user" })
+          expect(user.isDirty).to.be.false
+        })
+        .then(function() {
+          done()
+        })
     })
 
     it("returns true for changed and bulk non-changed attribute", function(done) {
@@ -1112,17 +1134,21 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           identifier: 'identifier'
         }).success(function(user) {
           var oldCreatedAt  = user.createdAt
+            , oldUpdatedAt  = user.updatedAt
             , oldIdentifier = user.identifier
 
-          user.updateAttributes({
-            name: 'foobar',
-            createdAt: new Date(2000, 1, 1),
-            identifier: 'another identifier'
-          }).success(function(user) {
-            expect((new Date(user.createdAt)).getTime()).to.equal((new Date(oldCreatedAt)).getTime())
-            expect(user.identifier).to.equal(oldIdentifier)
-            done()
-          })
+          setTimeout(function () {
+            user.updateAttributes({
+              name: 'foobar',
+              createdAt: new Date(2000, 1, 1),
+              identifier: 'another identifier'
+            }).success(function(user) {
+              expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt))
+              expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt))
+              expect(user.identifier).to.equal(oldIdentifier)
+              done()
+            })
+          }, 1000)
         })
       })
     })

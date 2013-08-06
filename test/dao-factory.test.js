@@ -337,7 +337,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
 
       UserNull.sync({ force: true }).success(function() {
-        UserNull.create({ username: 'foo', smth: null }).error(function(err) {
+        UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
           expect(err).to.exist
 
           if (dialect === "mysql") {
@@ -798,6 +798,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('update', function() {
+    it('updates the attributes that we select only without updating createdAt', function(done) {
+      var User = this.sequelize.define('User1', {
+        username: Sequelize.STRING,
+        secretValue: Sequelize.STRING
+      }, {
+          paranoid:true
+        })
+
+      User.sync({ force: true }).success(function() {
+        User.create({username: 'Peter', secretValue: '42'}).success(function(user) {
+          user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
+            expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+            done()
+          })
+        })
+      })
+    })
+
     it('allows sql logging of updated statements', function(done) {
       var User = this.sequelize.define('User', {
         name: Sequelize.STRING,
@@ -2526,15 +2544,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   describe('references', function() {
     this.timeout(3000)
     beforeEach(function(done) {
-      var self = this
-      self.Author = self.sequelize.define('author', { firstName: Sequelize.STRING })
-      self.Author.sync({ force: true }).success(function() {
+      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
+      this.Author.sync({ force: true }).success(function() {
         done()
       })
     })
 
     afterEach(function(done) {
       var self = this
+
       self.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
         self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
           done()
@@ -2643,6 +2661,118 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
 
         done()
+      })
+    })
+  })
+
+  describe("syntax sugar", function() {
+    before(function(done) {
+      this.User = this.sequelize.define("user", {
+        username:  Sequelize.STRING,
+        firstName: Sequelize.STRING,
+        lastName:  Sequelize.STRING
+      })
+
+      this.User.sync({ force: true }).success(function() {
+        done()
+      })
+    })
+
+    describe("dataset", function() {
+      it("returns a node-sql instance with the correct dialect", function() {
+        expect(this.User.dataset().sql.dialectName).to.equal(dialect)
+      })
+
+      it("allows me to generate sql queries", function() {
+        var query = this.User.dataset().select("username").toQuery()
+        expect(Object.keys(query)).to.eql(['text', 'values'])
+      })
+    })
+
+    describe("select", function() {
+      it("sets .select() as an alias to .dataset().select()", function() {
+        var query1 = this.User.select("username").toQuery()
+          , query2 = this.User.dataset().select("username").toQuery()
+
+        expect(query1.text).to.equal(query2.text)
+      })
+    })
+
+    describe("toSql", function() {
+      it("transforms the node-sql instance into a proper sql string", function() {
+        var sql    = this.User.select("username").toSql()
+        var sqlMap = {
+          postgres: 'SELECT username FROM "' + this.User.tableName + '";',
+          mysql:    'SELECT username FROM `' + this.User.tableName + '`;',
+          sqlite:   'SELECT username FROM "' + this.User.tableName + '";'
+        }
+        expect(sql).to.equal(sqlMap[dialect])
+      })
+
+      it("transforms node-sql instances with chaining into a proper sql string", function() {
+        var sql    = this.User.select("username").select("firstName").group("username").toSql()
+        var sqlMap = {
+          postgres: 'SELECT username, firstName FROM "' + this.User.tableName + '" GROUP BY username;',
+          mysql:    'SELECT username, firstName FROM `' + this.User.tableName + '` GROUP BY username;',
+          sqlite:   'SELECT username, firstName FROM "' + this.User.tableName + '" GROUP BY username;'
+        }
+        expect(sql).to.equal(sqlMap[dialect])
+      })
+    })
+
+    describe("exec", function() {
+      beforeEach(function(done) {
+        var self = this
+
+        this
+          .User
+          .create({ username: "foo" })
+          .then(function() {
+            return self.User.create({ username: "bar" })
+          })
+          .then(function() {
+            return self.User.create({ username: "baz" })
+          })
+          .then(function() { done() })
+      })
+
+      it("selects all users with name 'foo'", function(done) {
+        this
+          .User
+          .where({ username: "foo" })
+          .exec()
+          .success(function(users) {
+            expect(users).to.have.length(1)
+            expect(users[0].username).to.equal("foo")
+            done()
+          })
+      })
+
+      it("returns an instanceof DAO", function(done) {
+        var DAO = require(__dirname + "/../lib/dao")
+
+        this.User.where({ username: "foo" }).exec().success(function(users) {
+          expect(users[0]).to.be.instanceOf(DAO)
+          done()
+        })
+      })
+
+      it("returns all users in the db", function(done) {
+        this.User.select().exec().success(function(users) {
+          expect(users).to.have.length(3)
+          done()
+        })
+      })
+
+      it("can handle or queries", function(done) {
+        this
+          .User
+          .where(this.User.dataset().username.equals("bar").or(this.User.dataset().username.equals("baz")))
+          .exec()
+          .success(function(users) {
+            expect(users).to.have.length(2)
+            done()
+          })
       })
     })
   })
