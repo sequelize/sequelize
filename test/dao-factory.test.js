@@ -337,7 +337,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
 
       UserNull.sync({ force: true }).success(function() {
-        UserNull.create({ username: 'foo', smth: null }).error(function(err) {
+        UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
           expect(err).to.exist
 
           if (dialect === "mysql") {
