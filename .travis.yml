@@ -12,8 +12,7 @@ notifications:
     - 40e8850aaba9854ac4c9963bd33f8b@253477
 
 env:
-  - MYSQL_VERSION=mysql-5.5.27 DB=mysql DIALECT=mysql
-  - MYSQL_VERSION=mysql-5.6.12 DB=mysql DIALECT=mysql
+  - DB=mysql DIALECT=mysql
   - DB=mysql DIALECT=postgres
   - DB=mysql DIALECT=postgres-native
   - DB=mysql DIALECT=sqlite
