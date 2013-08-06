@@ -1,6 +1,5 @@
 {
     "globals": {
-        "jasmine": false,
         "spyOn": false,
         "it": false,
         "console": false,
