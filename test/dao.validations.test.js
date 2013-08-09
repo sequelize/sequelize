@@ -292,6 +292,13 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           })
         })
 
+        it('correctly throws an error using create method ', function(done) {
+          this.Project.create({name: 'nope'}).error(function(err) {
+            expect(err).to.have.ownProperty('name')
+            done()
+          })
+        })
+
         it('correctly validates using create method ', function(done) {
           var self = this
           this.Project.create({}).success(function(project) {
@@ -323,7 +330,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
           User.sync({ force: true }).success(function() {
             User.create({id: 'helloworld'}).error(function(err) {
-              expect(err).to.deep.equal({id: ['Invalid integer: id']})
+              expect(err).to.deep.equal({id: ['Invalid integer']})
               done()
             })
           })
@@ -367,14 +374,6 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
               done()
             })
           })
-        })
-      })
-
-      it('correctly throws an error using create method ', function(done) {
-        var self = this
-        this.Project.create({name: 'nope'}).error(function(err) {
-          expect(err).to.have.ownProperty('name')
-          done()
         })
       })
     })
