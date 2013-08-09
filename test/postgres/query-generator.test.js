@@ -240,6 +240,9 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {order: "id DESC"}],
           expectation: "SELECT * FROM \"myTable\" ORDER BY \"id\" DESC;"
         }, {
+          arguments: ['myTable', {order: "id,name DESC"}],
+          expectation: "SELECT * FROM \"myTable\" ORDER BY \"id\",\"name\" DESC;"
+        }, {
           arguments: ['myTable', {group: "name"}],
           expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\";"
         }, {
@@ -302,6 +305,10 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['myTable', {order: "id DESC"}],
           expectation: "SELECT * FROM myTable ORDER BY id DESC;",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          arguments: ['myTable', {order: "id,name DESC"}],
+          expectation: "SELECT * FROM myTable ORDER BY id,name DESC;",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {group: "name"}],
