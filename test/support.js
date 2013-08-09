@@ -116,6 +116,18 @@ var Support = {
 
 var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() })
 
+// For Postgres' HSTORE functionality and to properly execute it's commands we'll need this...
+before(function(done) {
+  var dialect = Support.getTestDialect()
+  if (dialect !== "postgres" && dialect !== "postgres-native") {
+    return done()
+  }
+
+  sequelize.query('CREATE EXTENSION IF NOT EXISTS hstore', null, {raw: true}).success(function() {
+    done()
+  })
+})
+
 beforeEach(function(done) {
   this.sequelize = sequelize
   Support.clearDatabase(this.sequelize, function() {
