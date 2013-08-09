@@ -261,46 +261,110 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
     }
 
     describe('#create', function() {
-      beforeEach(function(done) {
-        var self = this
+      describe('generic', function() {
+        beforeEach(function(done) {
+          var self = this
 
-        var Project = this.sequelize.define('Project', {
-          name: {
-            type: Sequelize.STRING,
-            allowNull: false,
-            defaultValue: 'unknown',
-            validate: {
-              isIn: [['unknown', 'hello', 'test']]
+          var Project = this.sequelize.define('Project', {
+            name: {
+              type: Sequelize.STRING,
+              allowNull: false,
+              defaultValue: 'unknown',
+              validate: {
+                isIn: [['unknown', 'hello', 'test']]
+              }
             }
-          }
+          })
+
+          var Task = this.sequelize.define('Task', {
+            something: Sequelize.INTEGER
+          })
+
+          Project.hasOne(Task)
+          Task.hasOne(Project)
+
+          Project.sync({ force: true }).success(function() {
+            Task.sync({ force: true }).success(function() {
+              self.Project = Project
+              self.Task = Task
+              done()
+            })
+          })
         })
 
-        var Task = this.sequelize.define('Task', {
-          something: Sequelize.INTEGER
-        })
-
-        Project.hasOne(Task)
-        Task.hasOne(Project)
-
-        Project.sync({ force: true }).success(function() {
-          Task.sync({ force: true }).success(function() {
-            self.Project = Project
-            self.Task = Task
-            done()
+        it('correctly validates using create method ', function(done) {
+          var self = this
+          this.Project.create({}).success(function(project) {
+            self.Task.create({something: 1}).success(function(task) {
+              project.setTask(task).success(function(task) {
+                expect(task.ProjectId).to.not.be.null
+                task.setProject(project).success(function(project) {
+                  expect(project.ProjectId).to.not.be.null
+                  done()
+                })
+              })
+            })
           })
         })
       })
 
-      it('correctly validates using create method ', function(done) {
-        var self = this
-        this.Project.create({}).success(function(project) {
-          self.Task.create({something: 1}).success(function(task) {
-            project.setTask(task).success(function(task) {
-              expect(task.ProjectId).to.not.be.null
-              task.setProject(project).success(function(project) {
-                expect(project.ProjectId).to.not.be.null
-                done()
-              })
+      describe('explicitly validating id/primary/auto incremented columns', function() {
+        it('should emit an error when we try to enter in a string for the id key without validation arguments', function(done) {
+          var User = this.sequelize.define('UserId', {
+            id: {
+              type: Sequelize.INTEGER,
+              autoIncrement: true,
+              primaryKey: true,
+              validate: {
+                isInt: true
+              }
+            }
+          })
+
+          User.sync({ force: true }).success(function() {
+            User.create({id: 'helloworld'}).error(function(err) {
+              expect(err).to.deep.equal({id: ['Invalid integer: id']})
+              done()
+            })
+          })
+        })
+
+        it('should emit an error when we try to enter in a string for the id key with validation arguments', function(done) {
+          var User = this.sequelize.define('UserId', {
+            id: {
+              type: Sequelize.INTEGER,
+              autoIncrement: true,
+              primaryKey: true,
+              validate: {
+                isInt: { args: true, msg: 'ID must be an integer!' }
+              }
+            }
+          })
+
+          User.sync({ force: true }).success(function() {
+            User.create({id: 'helloworld'}).error(function(err) {
+              expect(err).to.deep.equal({id: ['ID must be an integer!']})
+              done()
+            })
+          })
+        })
+
+        it('should emit an error when we try to enter in a string for an auto increment key (not named id)', function(done) {
+          var User = this.sequelize.define('UserId', {
+            username: {
+              type: Sequelize.INTEGER,
+              autoIncrement: true,
+              primaryKey: true,
+              validate: {
+                isInt: { args: true, msg: 'Username must be an integer!' }
+              }
+            }
+          })
+
+          User.sync({ force: true }).success(function() {
+            User.create({username: 'helloworldhelloworld'}).error(function(err) {
+              expect(err).to.deep.equal({username: ['Username must be an integer!']})
+              done()
             })
           })
         })
