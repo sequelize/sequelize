@@ -27,6 +27,8 @@
 - [BUG] Fixed BLOB/TEXT columns having a default value declared in MySQL [#793](https://github.com/sequelize/sequelize/pull/793). thanks to durango
 - [BUG] You can now use .find() on any single integer primary key when throwing just a number as an argument [#796](https://github.com/sequelize/sequelize/pull/796). thanks to durango
 - [BUG] Adding unique to a column for Postgres in the migrator should be fixed [#795](https://github.com/sequelize/sequelize/pull/795). thanks to durango
+- [BUG] For MySQL users, if their collation allows case insensitivity then allow enums to be case insensitive as well [#794](https://github.com/sequelize/sequelize/pull/794). thanks to durango
+- [BUG] Custom primary key (not keys, just singular) should no longer be a problem for models when using any of the data retrievals with just a number or through associations [#771](https://github.com/sequelize/sequelize/pull/771). thanks to sdephold & durango
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
