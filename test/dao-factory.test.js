@@ -1666,6 +1666,45 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               done()
             })
           })
+
+          it('returns both includes and their attributes requested', function(done) {
+            var self = Object.create(this)
+            self.Customer      = self.sequelize.define('Customer', { name: Sequelize.STRING })
+            self.Profile = self.sequelize.define('Profile', { name: Sequelize.STRING, address: Sequelize.STRING, secret: Sequelize.STRING })
+            self.Customer
+              .hasOne(self.Profile, { as: 'PrivateProfile', foreignKey: 'privateProfileId' })
+              .hasOne(self.Profile, { as: 'PublicProfile', foreignKey: 'publicProfileId' })
+
+            self.Customer.sync({ force: true }).success(function() {
+              self.Profile.sync({ force: true }).success(function() {
+                self.Customer.create({ name: 'Test Cust' }).success(function(testCust) {
+                  self.Profile.create({ name: 'publicprofile', address: 'foo street', secret: '' }).success(function(pub) {
+                    self.Profile.create({ name: 'privateprofile', address: 'blah street', secret: 'myprecious' }).success(function(priv) {
+                      testCust.setPrivateProfile(priv).success(function() {
+                        testCust.setPublicProfile(pub).success(function() {
+                          self.Customer.find({
+                            where:   { name: 'Test Cust' },
+                            include: [
+                              { daoFactory: self.Profile, as: 'PrivateProfile', attributes: ['name', 'secret'] },
+                              { daoFactory: self.Profile, as: 'PublicProfile', attributes: ['name', 'address']}
+                            ]
+                          }).complete(function(err, cust) {
+                            expect(err).to.be.null
+                            expect(cust).to.exist
+                            expect(cust.privateProfile).to.exist
+                            expect(cust.publicProfile).to.exist
+                            expect(cust.privateProfile.selectedValues).to.deep.equal({ name: 'privateprofile', secret: 'myprecious' })
+                            expect(cust.publicProfile.selectedValues).to.deep.equal({ name: 'publicprofile', address: 'foo street' })
+                            done()
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
         })
       })
 
