@@ -26,6 +26,80 @@ if (dialect.match(/^postgres/)) {
       done()
     })
 
+    describe('integers', function() {
+      describe('integer', function() {
+        beforeEach(function(done) {
+          this.User = this.sequelize.define('User', {
+            aNumber: DataTypes.INTEGER
+          })
+
+          this.User.sync({ force: true }).success(function() {
+            done()
+          })
+        })
+
+        it('positive', function(done) {
+          var User = this.User
+
+          User.create({aNumber: 2147483647}).success(function(user) {
+            expect(user.aNumber).to.equal(2147483647)
+            User.find({where: {aNumber: 2147483647}}).success(function(_user) {
+              expect(_user.aNumber).to.equal(2147483647)
+              done()
+            })
+          })
+        })
+
+        it('negative', function(done) {
+          var User = this.User
+
+          User.create({aNumber: -2147483647}).success(function(user) {
+            expect(user.aNumber).to.equal(-2147483647)
+            User.find({where: {aNumber: -2147483647}}).success(function(_user) {
+              expect(_user.aNumber).to.equal(-2147483647)
+              done()
+            })
+          })
+        })
+      })
+
+      describe('bigint', function() {
+        beforeEach(function(done) {
+          this.User = this.sequelize.define('User', {
+            aNumber: DataTypes.BIGINT
+          })
+
+          this.User.sync({ force: true }).success(function() {
+            done()
+          })
+        })
+
+        it('positive', function(done) {
+          var User = this.User
+
+          User.create({aNumber: '9223372036854775807'}).success(function(user) {
+            expect(user.aNumber).to.equal('9223372036854775807')
+            User.find({where: {aNumber: '9223372036854775807'}}).success(function(_user) {
+              expect(_user.aNumber).to.equal('9223372036854775807')
+              done()
+            })
+          })
+        })
+
+        it('negative', function(done) {
+          var User = this.User
+
+          User.create({aNumber: '-9223372036854775807'}).success(function(user) {
+            expect(user.aNumber).to.equal('-9223372036854775807')
+            User.find({where: {aNumber: '-9223372036854775807'}}).success(function(_user) {
+              expect(_user.aNumber).to.equal('-9223372036854775807')
+              done()
+            })
+          })
+        })
+      })
+    })
+
     describe('model', function() {
       it("create handles array correctly", function(done) {
         this.User

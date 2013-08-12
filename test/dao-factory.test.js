@@ -336,8 +336,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         smth:     { type: Sequelize.STRING, allowNull: false }
       })
 
+      this.sequelize.options.omitNull = false
+
       UserNull.sync({ force: true }).success(function() {
-        UserNull.create({ username: 'foo', smth: null }).error(function(err) {
+        UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
           expect(err).to.exist
 
           if (dialect === "mysql") {
@@ -2481,7 +2483,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    if (dialect === "mysql") {
+    if (dialect === "mysql" || dialect === "sqlite") {
       it("should take schemaDelimiter into account if applicable", function(done){
         var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'})
         var UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {age: Sequelize.INTEGER})
@@ -2500,6 +2502,49 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     }
+
+    it("should describeTable using the default schema settings", function(done) {
+      var self = this
+        , UserPublic = this.sequelize.define('Public', {
+        username: Sequelize.STRING
+      })
+
+      var _done = _.after(2, function() {
+        done()
+      })
+
+      UserPublic.sync({ force: true }).success(function() {
+        UserPublic.schema('special').sync({ force: true }).success(function() {
+          self.sequelize.queryInterface.describeTable('Publics')
+          .on('sql', function(sql) {
+            if (dialect === "sqlite" || dialect === "mysql") {
+              expect(sql).to.not.contain('special')
+              _done()
+            }
+          })
+          .success(function(table) {
+            if (dialect === "postgres" || dialect === "postgres-native") {
+              expect(table.id.defaultValue).to.not.contain('special')
+              _done()
+            }
+
+            self.sequelize.queryInterface.describeTable('Publics', 'special')
+            .on('sql', function(sql) {
+              if (dialect === "sqlite" || dialect === "mysql") {
+                expect(sql).to.contain('special')
+                _done()
+              }
+            })
+            .success(function(table) {
+              if (dialect === "postgres" || dialect === "postgres-native") {
+                expect(table.id.defaultValue).to.contain('special')
+                _done()
+              }
+            })
+          })
+        })
+      })
+    })
 
     it("should be able to create and update records under any valid schematic", function(done){
       var self = this

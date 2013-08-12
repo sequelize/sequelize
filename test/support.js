@@ -116,12 +116,8 @@ var Support = {
 
 var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() })
 
-before(function(done) {
-  this.sequelize = sequelize
-  done()
-})
-
 beforeEach(function(done) {
+  this.sequelize = sequelize
   Support.clearDatabase(this.sequelize, function() {
     done()
   })
