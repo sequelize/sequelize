@@ -22,6 +22,12 @@
   [ "${lines[0]}" = "  Usage: sequelize [options]" ]
 }
 
+@test "--version prints the current version" {
+  run bin/sequelize --version
+  [ $status -eq 0 ]
+  [ "${lines[0]}" = `cat package.json|grep version|cut -f2 -d:|cut -f2 -d\"` ]
+}
+
 @test "-V prints the current version" {
   run bin/sequelize -V
   [ $status -eq 0 ]
