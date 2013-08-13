@@ -14,3 +14,10 @@
   [ $status -eq 0 ]
   [ "${lines[0]}" = "  Usage: sequelize [options]" ]
 }
+
+@test "-h prints the help" {
+  run bin/sequelize -h
+
+  [ $status -eq 0 ]
+  [ "${lines[0]}" = "  Usage: sequelize [options]" ]
+}
