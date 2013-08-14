@@ -4,6 +4,7 @@ before_script:
 
 script:
   - "make test"
+  - "make binary"
 
 notifications:
   email:
