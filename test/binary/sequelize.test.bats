@@ -203,3 +203,19 @@
 
   cd ../../..
 }
+
+@test "--create-migration calls the done callback" {
+  cd test/binary/tmp
+  rm -rf ./*
+
+  ../../../bin/sequelize -i
+  ../../../bin/sequelize --create-migration "foo"
+
+  run cat migrations/*-foo.js
+
+  [ $status -eq 0 ]
+  [ $(expr "${lines[3]}" : "    done()") -ne 0 ]
+  [ $(expr "${lines[7]}" : "    done()") -ne 0 ]
+
+  cd ../../..
+}
