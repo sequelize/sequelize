@@ -219,3 +219,51 @@
 
   cd ../../..
 }
+
+@test "-c creates a new file with the current timestamp" {
+  cd test/binary/tmp
+  rm -rf ./*
+
+  ../../../bin/sequelize -i
+  ../../../bin/sequelize -c "foo"
+
+  needle=`node -e "var d=new Date(); var f=function(i){ return (parseInt(i, 10) < 10 ? '0' + i : i)  }; console.log([d.getFullYear(), f(d.getMonth() + 1), f(d.getDate()), f(d.getHours()), f(d.getMinutes()), f(d.getSeconds())].join(''))"`
+  run ls -1 migrations
+
+  [ $status -eq 0 ]
+  [ $(expr "${lines[0]}" : "${needle}-foo.js") -ne 0 ]
+
+  cd ../../..
+}
+
+@test "-c adds a skeleton with an up and a down method" {
+  cd test/binary/tmp
+  rm -rf ./*
+
+  ../../../bin/sequelize -i
+  ../../../bin/sequelize -c "foo"
+
+  run cat migrations/*-foo.js
+
+  [ $status -eq 0 ]
+  [ $(expr "${lines[1]}" : "  up: function(migration, DataTypes, done) {") -ne 0 ]
+  [ $(expr "${lines[5]}" : "  down: function(migration, DataTypes, done) {") -ne 0 ]
+
+  cd ../../..
+}
+
+@test "-c calls the done callback" {
+  cd test/binary/tmp
+  rm -rf ./*
+
+  ../../../bin/sequelize -i
+  ../../../bin/sequelize -c "foo"
+
+  run cat migrations/*-foo.js
+
+  [ $status -eq 0 ]
+  [ $(expr "${lines[3]}" : "    done()") -ne 0 ]
+  [ $(expr "${lines[7]}" : "    done()") -ne 0 ]
+
+  cd ../../..
+}
