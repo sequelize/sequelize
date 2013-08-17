@@ -381,6 +381,13 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
+
+      it("get associated objects with an eager load", function(done) {
+        this.User.find({where: {username: 'John'}, include: [ this.Task ]}).success(function (john) {
+          expect(john.tasks).to.have.length(2);
+          done();
+        })
+      })
     })
 
     it("removes the reference id, which was added in the first place", function(done) {
