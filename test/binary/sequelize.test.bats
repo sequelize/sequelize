@@ -267,3 +267,30 @@
 
   cd ../../..
 }
+
+@test "--migrate creates a SequelizeMeta table" {
+  cd test/binary/tmp
+  rm -rf ./*
+
+  ../../../bin/sequelize -i
+  cp ../../assets/migrations/*-createPerson.js ./migrations/
+  cat ../../support.js|sed s,/../,/../../../, > ./support.js
+
+  # adjust the config.json
+  node -e "var ld = require('lodash');var c = require('../../config/config.js'); console.log(JSON.stringify(ld.extend(c, c[process.env.DIALECT || 'mysql'])))" > config/config.json
+
+  # drop all the tables
+  sequelize="global.beforeEach = function(){};\
+  var Support = require('./support');\
+  var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() });\
+  "
+  node -e "$sequelize Support.clearDatabase(sequelize, function() {});"
+
+  ../../../bin/sequelize --migrate
+
+  run node -e "$sequelize sequelize.getQueryInterface().showAllTables().success(function(tables){ tables.forEach(function(table){ console.log(table) }) })"
+
+  [ $status -eq 0 ]
+  [ "${lines[0]}" = "Person" ]
+  [ "${lines[1]}" = "SequelizeMeta" ]
+}
