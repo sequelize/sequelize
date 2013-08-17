@@ -2,7 +2,6 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + '/../config/config')
   , DataTypes = require(__dirname + "/../../lib/data-types")
 
 chai.Assertion.includeStack = true
@@ -24,6 +23,13 @@ if (dialect.match(/^postgres/)) {
     afterEach(function(done) {
       this.sequelize.options.quoteIdentifiers = true
       done()
+    })
+
+    it('describeTable should tell me that a column is hstore and not USER-DEFINED', function(done) {
+      this.sequelize.queryInterface.describeTable('Users').success(function(table) {
+        expect(table.document.type).to.equal('HSTORE')
+        done()
+      })
     })
 
     describe('integers', function() {
