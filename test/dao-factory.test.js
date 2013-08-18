@@ -1404,6 +1404,35 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('returns the selected fields for both the base table and the included table as instance.selectedValues', function(done) {
+        var self = this
+        self.Mission = self.sequelize.define('Mission', {
+          title:  {type: Sequelize.STRING, defaultValue: 'another mission!!'},
+          foo:    {type: Sequelize.INTEGER, defaultValue: 4},
+        })
+
+        self.Mission.belongsTo(self.User)
+        self.User.hasMany(self.Mission)
+
+        self.Mission.sync({ force: true }).success(function() {
+          self.Mission.create().success(function(mission) {
+            self.User.create({username: 'Brain Picker'}).success(function(user) {
+              mission.setUser(user).success(function() {
+                self.User.find({
+                  where: { username: 'Brain Picker' },
+                  attributes: ['username'],
+                  include: [{model: self.Mission, as: self.Mission.tableName, attributes: ['title']}]
+                }).success(function(user) {
+                  expect(user.selectedValues).to.deep.equal({ username: 'Brain Picker' })
+                  expect(user.missions[0].selectedValues).to.deep.equal({title: 'another mission!!'})
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+
       it('always honors ZERO as primary key', function(_done) {
         var self = this
           , permutations = [
@@ -1635,6 +1664,45 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }).complete(function(err, worker) {
               expect(worker.toDo.title).to.equal('homework')
               done()
+            })
+          })
+
+          it('returns both includes and their attributes requested', function(done) {
+            var self = Object.create(this)
+            self.Customer      = self.sequelize.define('Customer', { name: Sequelize.STRING })
+            self.Profile = self.sequelize.define('Profile', { name: Sequelize.STRING, address: Sequelize.STRING, secret: Sequelize.STRING })
+            self.Customer
+              .hasOne(self.Profile, { as: 'PrivateProfile', foreignKey: 'privateProfileId' })
+              .hasOne(self.Profile, { as: 'PublicProfile', foreignKey: 'publicProfileId' })
+
+            self.Customer.sync({ force: true }).success(function() {
+              self.Profile.sync({ force: true }).success(function() {
+                self.Customer.create({ name: 'Test Cust' }).success(function(testCust) {
+                  self.Profile.create({ name: 'publicprofile', address: 'foo street', secret: '' }).success(function(pub) {
+                    self.Profile.create({ name: 'privateprofile', address: 'blah street', secret: 'myprecious' }).success(function(priv) {
+                      testCust.setPrivateProfile(priv).success(function() {
+                        testCust.setPublicProfile(pub).success(function() {
+                          self.Customer.find({
+                            where:   { name: 'Test Cust' },
+                            include: [
+                              { daoFactory: self.Profile, as: 'PrivateProfile', attributes: ['name', 'secret'] },
+                              { daoFactory: self.Profile, as: 'PublicProfile', attributes: ['name', 'address']}
+                            ]
+                          }).complete(function(err, cust) {
+                            expect(err).to.be.null
+                            expect(cust).to.exist
+                            expect(cust.privateProfile).to.exist
+                            expect(cust.publicProfile).to.exist
+                            expect(cust.privateProfile.selectedValues).to.deep.equal({ name: 'privateprofile', secret: 'myprecious' })
+                            expect(cust.publicProfile.selectedValues).to.deep.equal({ name: 'publicprofile', address: 'foo street' })
+                            done()
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
             })
           })
         })
