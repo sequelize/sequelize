@@ -1002,14 +1002,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should be able to handle false/true values just fine...', function(done) {
       var User = this.User
+        , escapeChar = (dialect === "postgres" || dialect === "postgres-native") ? '"' : '`'
       User.bulkCreate([
         {username: 'boo5', aBool: false},
         {username: 'boo6', aBool: true}
       ]).success(function() {
-        User.all({where: ['"aBool" = ?', false]}).success(function(users) {
+        User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', false]}).success(function(users) {
           expect(users).to.have.length(1)
           expect(users[0].username).to.equal('boo5')
-          User.all({where: ['"aBool" = ?', true]}).success(function(_users) {
+          User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', true]}).success(function(_users) {
             expect(_users).to.have.length(1)
             expect(_users[0].username).to.equal('boo6')
             done()
@@ -1020,6 +1021,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should be able to handle false/true values through associations as well...', function(done) {
       var User = this.User
+        , escapeChar = (dialect === "postgres" || dialect === "postgres-native") ? '"' : '`'
       var Passports = this.sequelize.define('Passports', {
         isActive: Sequelize.BOOLEAN
       })
@@ -1043,8 +1045,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     User.find(2).success(function(_user) {
                       Passports.find(2).success(function(_passport) {
                         _user.setPassports([_passport]).success(function() {
-                          _user.getPassports({where: ['"isActive" = ?', false]}).success(function(theFalsePassport) {
-                            user.getPassports({where: ['"isActive" = ?', true]}).success(function(theTruePassport) {
+                          _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).success(function(theFalsePassport) {
+                            user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).success(function(theTruePassport) {
                               expect(theFalsePassport).to.have.length(1)
                               expect(theFalsePassport[0].isActive).to.be.false
                               expect(theTruePassport).to.have.length(1)
