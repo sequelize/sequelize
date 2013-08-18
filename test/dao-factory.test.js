@@ -1404,6 +1404,36 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('returns the selected fields for both the base table and the included table as instance.selectedValues', function(done) {
+        var self = this
+        self.Mission = self.sequelize.define('Mission', {
+          title:  {type: Sequelize.STRING, defaultValue: 'another mission!!'},
+          foo:    {type: Sequelize.INTEGER, defaultValue: 4},
+        })
+
+        self.Mission.belongsTo(self.User)
+        self.User.hasMany(self.Mission)
+
+        self.Mission.sync({ force: true }).success(function() {
+          self.Mission.create().success(function(mission) {
+            self.User.create({username: 'Brain Picker'}).success(function(user) {
+              mission.setUser(user).success(function() {
+                self.User.find({
+                  where: { username: 'Brain Picker' },
+                  attributes: ['username'],
+                  include: [{model: self.Mission, as: self.Mission.tableName, attributes: ['title']}]
+                }).success(function(user) {
+                  expect(user.selectedValues).to.deep.equal({ username: 'Brain Picker' })
+                  expect(user.missions[0].selectedValues).to.deep.equal({ id: 1, title: 'another mission!!'})
+                  expect(user.missions[0].foo).not.to.exist
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+
       it('always honors ZERO as primary key', function(_done) {
         var self = this
           , permutations = [
