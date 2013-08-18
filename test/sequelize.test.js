@@ -202,7 +202,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar, :three as baz', null, { raw: true }, { one: 1, two: 2 })
-      }).to.throw(Error, /Named parameter ":\w+" as no value in the given object\./g)
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
       done()
     })
 
@@ -210,7 +210,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 2)
-      }).to.throw(Error, /Named parameter ":\w+" as no value in the given object\./g)
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
       done()
     })
 
@@ -218,7 +218,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, {})
-      }).to.throw(Error, /Named parameter ":\w+" as no value in the given object\./g)
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
       done()
     })
 
@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 'foobar')
-      }).to.throw(Error, /Named parameter ":\w+" as no value in the given object\./g)
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
       done()
     })
 
@@ -234,7 +234,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, new Date())
-      }).to.throw(Error, /Named parameter ":\w+" as no value in the given object\./g)
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
       done()
     })
 
