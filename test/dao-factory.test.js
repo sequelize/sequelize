@@ -2898,4 +2898,64 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
   })
+
+  describe("blob", function() {
+    beforeEach(function(done) {
+      this.BlobUser = this.sequelize.define("blobUser", {
+        data: Sequelize.BLOB
+      })
+
+      this.BlobUser.sync({ force: true }).success(function() {
+        done()
+      })
+    })
+
+    describe("buffers", function () {
+      it("should be able to take a buffer as parameter to a BLOB field", function (done) {
+        this.BlobUser.create({
+          data: new Buffer('Sequelize')
+        }).success(function (user) {
+          expect(user).to.be.ok
+          done()
+        })
+      })
+
+      it("should return a buffer when fetching a blob", function (done) {
+        var self = this
+        this.BlobUser.create({
+          data: new Buffer('Sequelize')
+        }).success(function (user) {
+          self.BlobUser.find(user.id).success(function (user) {
+            expect(user.data).to.be.an.instanceOf(Buffer)
+            expect(user.data.toString()).to.have.string('Sequelize')
+            done()
+          })
+        })
+      })
+    })
+
+    describe("strings", function () {
+      it("should be able to take a string as parameter to a BLOB field", function (done) {
+        this.BlobUser.create({
+          data: 'Sequelize'
+        }).success(function (user) {
+          expect(user).to.be.ok
+          done()
+        })
+      })
+
+      it("should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string", function (done) {
+        var self = this
+        this.BlobUser.create({
+          data: 'Sequelize'
+        }).success(function (user) {
+          self.BlobUser.find(user.id).success(function (user) {
+            expect(user.data).to.be.an.instanceOf(Buffer)
+            expect(user.data.toString()).to.have.string('Sequelize')
+            done()
+          })
+        })
+      })
+    })
+  })
 })

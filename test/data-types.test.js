@@ -27,6 +27,11 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     [Sequelize.NOW, 'NOW', 'NOW'],
     [Sequelize.BOOLEAN, 'BOOLEAN', 'TINYINT(1)'],
 
+    [Sequelize.BLOB, 'BLOB', 'BLOB'],
+    [Sequelize.BLOB('tiny'), 'BLOB(\'tiny\')', 'TINYBLOB'],
+    [Sequelize.BLOB('medium'), 'BLOB(\'medium\')', 'MEDIUMBLOB'],
+    [Sequelize.BLOB('long'), 'BLOB(\'long\')', 'LONGBLOB'],
+
     [Sequelize.INTEGER, 'INTEGER', 'INTEGER'],
     [Sequelize.INTEGER.UNSIGNED, 'INTEGER.UNSIGNED', 'INTEGER UNSIGNED'],
     [Sequelize.INTEGER(11), 'INTEGER(11)','INTEGER(11)'],
