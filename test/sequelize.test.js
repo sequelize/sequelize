@@ -177,6 +177,67 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
+    it('replaces named parameters with the passed object', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2 }])
+        done()
+      })
+    })
+
+    it('replaces named parameters with the passed object using the same key twice', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }])
+        done()
+      })
+    })
+
+    it('replaces named parameters with the passed object having a null property', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: null }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: null }])
+        done()
+      })
+    })
+
+    it('throw an exception when key is missing in the passed object', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar, :three as baz', null, { raw: true }, { one: 1, two: 2 })
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed number', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 2)
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed empty object', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, {})
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed string', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 'foobar')
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed date', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, new Date())
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
     it('handles AS in conjunction with functions just fine', function(done) {
       this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
         expect(moment(result[0].t).isValid()).to.be.true

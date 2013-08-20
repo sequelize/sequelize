@@ -26,6 +26,8 @@ postgres:
 	@DIALECT=postgres make test
 postgres-native:
 	@DIALECT=postgres-native make test
+binary:
+	@./test/binary/sequelize.test.bats
 
 # test aliases
 
