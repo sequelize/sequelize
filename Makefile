@@ -36,6 +36,6 @@ postgresn: postgres-native
 
 # test all the dialects \o/
 
-all: sqlite mysql postgres postgres-native binary
+all: sqlite mysql postgres postgres-native
 
-.PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test binary
+.PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test

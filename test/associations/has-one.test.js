@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
             Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
               user.setTaskXYZ(task).success(function() {
                 user.getTaskXYZ({where: ['status = ?', 'active']}).success(function(task) {
-                  expect(task).to.equal(null)
+                  expect(task).to.be.null
                   done()
                 })
               })

@@ -21,7 +21,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       secretValue:  DataTypes.STRING,
       data:         DataTypes.STRING,
       intVal:       DataTypes.INTEGER,
-      theDate:      DataTypes.DATE
+      theDate:      DataTypes.DATE,
+      aBool:        DataTypes.BOOLEAN
     })
     this.User.sync({ force: true }).success(function() {
       done()
@@ -997,6 +998,72 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       ]).success(function(user2){
           done()
         })
+    })
+
+    it('should be able to handle false/true values just fine...', function(done) {
+      var User = this.User
+        , escapeChar = (dialect === "postgres" || dialect === "postgres-native") ? '"' : '`'
+      User.bulkCreate([
+        {username: 'boo5', aBool: false},
+        {username: 'boo6', aBool: true}
+      ]).success(function() {
+        User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', false]}).success(function(users) {
+          expect(users).to.have.length(1)
+          expect(users[0].username).to.equal('boo5')
+          User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', true]}).success(function(_users) {
+            expect(_users).to.have.length(1)
+            expect(_users[0].username).to.equal('boo6')
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be able to handle false/true values through associations as well...', function(done) {
+      var User = this.User
+        , escapeChar = (dialect === "postgres" || dialect === "postgres-native") ? '"' : '`'
+      var Passports = this.sequelize.define('Passports', {
+        isActive: Sequelize.BOOLEAN
+      })
+
+      User.hasMany(Passports)
+      Passports.belongsTo(User)
+
+      User.sync({ force: true }).success(function() {
+        Passports.sync({ force: true }).success(function() {
+          User.bulkCreate([
+            {username: 'boo5', aBool: false},
+            {username: 'boo6', aBool: true}
+          ]).success(function() {
+            Passports.bulkCreate([
+              {isActive: true},
+              {isActive: false}
+            ]).success(function() {
+              User.find(1).success(function(user) {
+                Passports.find(1).success(function(passport) {
+                  user.setPassports([passport]).success(function() {
+                    User.find(2).success(function(_user) {
+                      Passports.find(2).success(function(_passport) {
+                        _user.setPassports([_passport]).success(function() {
+                          _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).success(function(theFalsePassport) {
+                            user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).success(function(theTruePassport) {
+                              expect(theFalsePassport).to.have.length(1)
+                              expect(theFalsePassport[0].isActive).to.be.false
+                              expect(theTruePassport).to.have.length(1)
+                              expect(theTruePassport[0].isActive).to.be.true
+                              done()
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
     })
 
     it('should be able to retun a record with primaryKey being null for new inserts', function(done) {
@@ -2228,6 +2295,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(info.count).to.equal(3)
         expect(Array.isArray(info.rows)).to.be.ok
         expect(info.rows.length).to.equal(1)
+        done()
+      })
+    })
+    it("handles attributes", function(done) {
+      this.User.findAndCountAll({where: "id != " + this.users[0].id, attributes: ['data']}).success(function(info) {
+        expect(info.count).to.equal(2)
+        expect(Array.isArray(info.rows)).to.be.ok
+        expect(info.rows.length).to.equal(2)
+        expect(info.rows[0].selectedValues).to.not.have.property('username')
+        expect(info.rows[1].selectedValues).to.not.have.property('username')
         done()
       })
     })
