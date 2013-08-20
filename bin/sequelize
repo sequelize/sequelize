@@ -114,8 +114,8 @@ if(typeof program.env === 'string') {
   configuration.environment = program.env
 }
 
-if(program.migrate) {
-  if(configFileExists()) {
+if (program.migrate) {
+  if (configFileExists()) {
     var config
       , options  = {}
 
@@ -130,8 +130,9 @@ if(program.migrate) {
       if(['database', 'username', 'password'].indexOf(key) == -1) {
         options[key] = value
       }
-      if(key === "use_env_variable") {
-        if(process.env[value]) {
+
+      if (key === "use_env_variable") {
+        if (process.env[value]) {
           var db_info = process.env[value].match(
                   /([^:]+):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
           config.database = db_info[6];
@@ -153,17 +154,22 @@ if(program.migrate) {
       , migratorOptions = { path: configuration.migrationsPath }
       , migrator        = sequelize.getMigrator(migratorOptions)
 
-    if(program.undo) {
+    if (program.undo) {
       sequelize.migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
         Meta.find({ order: 'id DESC' }).success(function(meta) {
-          if(meta) {
+          if (meta) {
             migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
           }
-          migrator.migrate({ method: 'down' })
+
+          migrator.migrate({ method: 'down' }).success(function() {
+            process.exit(0)
+          })
         })
       })
     } else {
-      sequelize.migrate()
+      sequelize.migrate().success(function() {
+        process.exit(0)
+      })
     }
   } else {
     console.log('Cannot find "' + relativeConfigFile() + '". Have you run "sequelize --init"?')
