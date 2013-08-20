@@ -93,4 +93,117 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
       })
     })
   })(['--init', '-i'])
+
+  ;(function(flags) {
+    flags.forEach(function(flag) {
+      var prepare = function(callback) {
+        exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
+          exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function() {
+            exec("../../bin/sequelize " + flag + " 'foo'", { cwd: __dirname + '/tmp' }, callback)
+          })
+        })
+      }
+
+      describe(flag, function() {
+        it("creates a new file with the current timestamp", function(done) {
+          prepare(function() {
+            exec("ls -1 migrations", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+              var date   = new Date()
+                , format = function(i) { return (parseInt(i, 10) < 10 ? '0' + i : i)  }
+                , sDate  = [date.getFullYear(), format(date.getMonth() + 1), format(date.getDate()), format(date.getHours()), format(date.getMinutes())].join('')
+
+              expect(stdout).to.match(new RegExp(sDate + "..-foo.js"))
+              done()
+            })
+          })
+        })
+
+        it("adds a skeleton with an up and a down method", function(done) {
+          prepare(function() {
+            exec("cat migrations/*-foo.js", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+              expect(stdout).to.include('up: function(migration, DataTypes, done) {')
+              expect(stdout).to.include('down: function(migration, DataTypes, done) {')
+              done()
+            })
+          })
+        })
+
+        it("calls the done callback", function(done) {
+          prepare(function() {
+            exec("cat migrations/*-foo.js", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+              expect(stdout).to.include('done()')
+              expect(stdout.match(/(done\(\))/)).to.have.length(2)
+              done()
+            })
+          })
+        })
+      })
+    })
+  })(['--create-migration', '-c'])
+
+  ;(function(flags) {
+    flags.forEach(function(flag) {
+      var prepare = function(callback) {
+        exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
+          exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function() {
+            exec("cp ../assets/migrations/*-createPerson.js ./migrations/", { cwd: __dirname + '/tmp' }, function() {
+              exec("cat ../support.js|sed s,/../,/../../, > ./support.js", { cwd: __dirname + '/tmp' }, function() {
+                var dialect = Support.getTestDialect()
+                  , config  = require(__dirname + '/config/config.js')
+
+                config.sqlite.storage = __dirname + "/tmp/test.sqlite"
+                config = _.extend(config, config[dialect], { dialect: dialect })
+
+                exec("echo '" + JSON.stringify(config) + "' > config/config.json", { cwd: __dirname + '/tmp' }, function() {
+                  exec("../../bin/sequelize " + flag, { cwd: __dirname + "/tmp" }, callback)
+                })
+              })
+            })
+          })
+        })
+      }
+
+      describe(flag, function() {
+        it("creates a SequelizeMeta table", function(done) {
+          var sequelize = this.sequelize
+
+          if (this.sequelize.options.dialect === 'sqlite') {
+            var options = this.sequelize.options
+            options.storage = __dirname + "/tmp/test.sqlite"
+            sequelize = new Support.Sequelize("", "", "", options)
+          }
+
+          prepare(function() {
+            sequelize.getQueryInterface().showAllTables().success(function(tables) {
+              tables = tables.sort()
+
+              expect(tables).to.have.length(2)
+              expect(tables[1]).to.equal("SequelizeMeta")
+              done()
+            })
+          }.bind(this))
+        })
+
+        it("creates the respective table", function(done) {
+          var sequelize = this.sequelize
+
+          if (this.sequelize.options.dialect === 'sqlite') {
+            var options = this.sequelize.options
+            options.storage = __dirname + "/tmp/test.sqlite"
+            sequelize = new Support.Sequelize("", "", "", options)
+          }
+
+          prepare(function() {
+            sequelize.getQueryInterface().showAllTables().success(function(tables) {
+              tables = tables.sort()
+
+              expect(tables).to.have.length(2)
+              expect(tables[0]).to.equal("Person")
+              done()
+            })
+          }.bind(this))
+        })
+      })
+    })
+  })(['--migrate', '-m'])
 })
