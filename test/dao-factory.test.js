@@ -709,10 +709,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).to.equal(2)
-          expect(users[0].username).to.equal("Peter")
-          expect(parseInt(+users[0].createdAt/5000, 10)).to.equal(parseInt(+new Date()/5000, 10))
-          expect(users[1].username).to.equal("Paul")
-          expect(parseInt(+users[1].createdAt/5000, 10)).to.equal(parseInt(+new Date()/5000, 10))
+          expect(users[0].username).to.equal('Peter')
+          expect(parseInt(+users[0].createdAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1.5)
+          expect(users[1].username).to.equal('Paul')
+          expect(parseInt(+users[1].createdAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1.5)
           done()
         })
       })
