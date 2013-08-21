@@ -145,13 +145,9 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     flags.forEach(function(flag) {
       var prepare = function(callback) {
         exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function(error, stdout) {
-          console.log(error, stdout)
           exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function(error, stdout) {
-            console.log(error, stdout)
             exec("cp ../assets/migrations/*-createPerson.js ./migrations/", { cwd: __dirname + '/tmp' }, function(error, stdout) {
-              console.log(error, stdout)
               exec("cat ../support.js|sed s,/../,/../../, > ./support.js", { cwd: __dirname + '/tmp' }, function(error, stdout) {
-                console.log(error, stdout)
                 var dialect = Support.getTestDialect()
                   , config  = require(__dirname + '/config/config.js')
 
@@ -159,7 +155,6 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
                 config = _.extend(config, config[dialect], { dialect: dialect })
 
                 exec("echo '" + JSON.stringify(config) + "' > config/config.json", { cwd: __dirname + '/tmp' }, function(error, stdout) {
-                  console.log(error, stdout)
                   exec("../../bin/sequelize " + flag, { cwd: __dirname + "/tmp" }, callback)
                 })
               })
