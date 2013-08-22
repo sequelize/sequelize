@@ -39,7 +39,7 @@
     "lodash": "~1.3.1",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
-    "validator": "~1.4.0",
+    "validator": "~1.5.0",
     "moment": "~2.1.0",
     "commander": "~2.0.0",
     "dottie": "0.0.8-0",
@@ -56,7 +56,7 @@
     "yuidocjs": "~0.3.36",
     "chai": "~1.7.2",
     "mocha": "~1.12.0",
-    "chai-datetime": "~1.0.0",
+    "chai-datetime": "~1.1.1",
     "sinon": "~1.7.3"
   },
   "keywords": [
