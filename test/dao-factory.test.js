@@ -1502,8 +1502,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             id: 'a string based id',
             name: 'John'
           }).success(function(u) {
-            expect(u.id).not.to.exist
-
             UserPrimary.find('a string based id').success(function(u2) {
               expect(u2.id).to.equal('a string based id')
               expect(u2.name).to.equal('John')
