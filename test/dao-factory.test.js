@@ -1500,11 +1500,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserPrimary.sync({ force: true }).success(function() {
           UserPrimary.create({
             id: 'a string based id',
-            name: 'John'
+            name: 'Johnno'
           }).success(function(u) {
             UserPrimary.find('a string based id').success(function(u2) {
               expect(u2.id).to.equal('a string based id')
-              expect(u2.name).to.equal('John')
+              expect(u2.name).to.equal('Johnno')
               done()
             })
           })
