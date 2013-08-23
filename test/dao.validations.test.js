@@ -494,5 +494,27 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         })
       })
     })
+
+    it('validates enums', function() {
+      var values = ['value1', 'value2']
+
+      var Bar = this.sequelize.define('Bar' + config.rand(), {
+        field: {
+          type: Sequelize.ENUM,
+          values: values,
+          validate: {
+            isIn: [values]
+          }
+        }
+      })
+
+      var failingBar = Bar.build({ field: 'value3' })
+
+      failingBar.validate().success(function(errors) {
+        expect(errors).not.to.be.null
+        expect(errors.field).to.have.length(1)
+        expect(errors.field[0]).to.equal("Unexpected value or invalid argument")
+      })
+    })
   })
 })
