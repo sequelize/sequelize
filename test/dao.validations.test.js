@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         Model.sync({ force: true }).success(function() {
           Model.create({name: 'World'}).success(function(model) {
             model.updateAttributes({name: ''}).error(function(err) {
-              expect(err).to.deep.equal({ name: [ 'String is empty: name', 'String is empty: name' ] })
+              expect(err).to.deep.equal({ name: [ 'String is empty' ] })
               done()
             })
           })
@@ -296,7 +296,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         Model.sync({ force: true }).success(function() {
           Model.create({name: 'World'}).success(function(model) {
             Model.update({name: ''}, {id: 1}).error(function(err) {
-              expect(err).to.deep.equal({ name: [ 'String is empty: name', 'String is empty: name' ] })
+              expect(err).to.deep.equal({ name: [ 'String is empty' ] })
               done()
             })
           })
@@ -427,10 +427,11 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
           it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', function(done) {
             var user = this.User.build({id: 'helloworld'})
-              , errors = user.validate()
 
-            expect(errors).to.deep.equal({ id: [ 'ID must be an integer!' ] })
-            done()
+            user.validate().success(function(errors) {
+              expect(errors).to.deep.equal({ id: [ 'ID must be an integer!' ] })
+              done()
+            })
           })
 
           it('should emit an error when we try to .save()', function(done) {
