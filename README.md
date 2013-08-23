@@ -65,7 +65,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - ~~Model#delete~~ (renamed to [Model.destroy()](http://sequelizejs.com/documentation#instances-destroy))
 - ~~Validate a model before it gets saved.~~ Implemented in [#601](https://github.com/sequelize/sequelize/pull/601), thanks to @durango
 - Move validation of enum attribute value to validate method
-- ~~BLOB [#99](https://github.com/sequelize/sequelize/pull/842), thanks to @janmeier
+- ~~BLOB~~  [#842](https://github.com/sequelize/sequelize/pull/842), thanks to @janmeier
 - ~~Support for foreign keys~~ Implemented in [#595](https://github.com/sequelize/sequelize/pull/595), thanks to @optilude
 
 ### 1.7.x
