@@ -126,6 +126,14 @@ if (dialect.match(/^postgres/)) {
           expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" INTEGER); COMMENT ON TABLE \"myTable\" IS 'I''m a comment!';",
         },
         {
+          arguments: ['myTable', {data: "BLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" bytea);"
+        },
+        {
+          arguments: ['myTable', {data: "LONGBLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" bytea);"
+        },
+        {
           arguments: ['mySchema.myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));"
         },
@@ -349,6 +357,9 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}],
           expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000 +00:00') RETURNING *;"
+        }, {
+          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          expectation: "INSERT INTO \"myTable\" (\"data\") VALUES (E'\\\\x53657175656c697a65') RETURNING *;"
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
           expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1) RETURNING *;"

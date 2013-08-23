@@ -85,6 +85,14 @@ if (dialect.match(/^mysql/)) {
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER) COMMENT 'I\\'m a comment!' ENGINE=InnoDB;"
         },
         {
+          arguments: ['myTable', {data: "BLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;"
+        },
+        {
+          arguments: ['myTable', {data: "LONGBLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;"
+        },
+        {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {engine: 'MyISAM'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;"
         },
@@ -219,6 +227,9 @@ if (dialect.match(/^mysql/)) {
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
           expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);"
+        }, {
+          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          expectation: "INSERT INTO `myTable` (`data`) VALUES (X'53657175656c697a65');"
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);"

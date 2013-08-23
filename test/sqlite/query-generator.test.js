@@ -79,6 +79,14 @@ if (dialect === 'sqlite') {
 
       createTableQuery: [
         {
+          arguments: ['myTable', {data: "BLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB);"
+        },
+        {
+          arguments: ['myTable', {data: "LONGBLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB);"
+        },
+        {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));"
         },
@@ -103,6 +111,9 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['myTable', { name: "'bar'" }],
           expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar''');"
+        }, {
+          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          expectation: "INSERT INTO `myTable` (`data`) VALUES (X'53657175656c697a65');"
         }, {
           arguments: ['myTable', { name: "bar", value: null }],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
