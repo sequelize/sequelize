@@ -593,6 +593,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
+
+      it('allows null values', function(done) {
+        var Enum = this.sequelize.define('Enum', {
+          state: {
+            type: Sequelize.ENUM,
+            values: ['happy', 'sad'],
+            allowNull: true
+          }
+        })
+
+        Enum.sync({ force: true }).success(function() {
+          Enum.create({state: null}).success(function(_enum) {
+            expect(_enum.state).to.be.null
+            done()
+          })
+        })
+      })
     })
   })
 
