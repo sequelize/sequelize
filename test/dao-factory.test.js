@@ -1554,6 +1554,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('finds entries via a string primary key called id', function(done) {
+        var self = this
+          , UserPrimary = self.sequelize.define('UserWithPrimaryKey', {
+          id: {type: Sequelize.STRING, primaryKey: true},
+          name: Sequelize.STRING
+        })
+
+        UserPrimary.sync({ force: true }).success(function() {
+          UserPrimary.create({
+            id: 'a string based id',
+            name: 'Johnno'
+          }).success(function(u) {
+            UserPrimary.find('a string based id').success(function(u2) {
+              expect(u2.id).to.equal('a string based id')
+              expect(u2.name).to.equal('Johnno')
+              done()
+            })
+          })
+        })
+      })
+
+
       it('returns the selected fields as instance.selectedValues', function(done) {
         var self = this
         this.User.create({
