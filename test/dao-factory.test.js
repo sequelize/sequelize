@@ -107,6 +107,53 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).to.throw(Error, 'A model validator function must not have the same name as a field. Model: Foo, field/validation name: field')
       done()
     })
+
+    it('should allow me to override updatedAt, createdAt, and deletedAt fields', function(done) {
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: Sequelize.INTEGER
+      }, {
+        timestamps: true,
+        updatedAt: 'updatedOn',
+        createdAt: 'dateCreated',
+        deletedAt: 'deletedAtThisTime',
+        paranoid: true
+      })
+
+      UserTable.sync({force: true}).success(function() {
+        UserTable.create({aNumber: 4}).success(function(user) {
+          expect(user.updatedOn).to.exist
+          expect(user.dateCreated).to.exist
+          user.destroy().success(function(user) {
+            expect(user.deletedAtThisTime).to.exist
+            done()
+          })
+        })
+      })
+    })
+
+    it('should allow me to override updatedAt, createdAt, and deletedAt fields with underscored being true', function(done) {
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: Sequelize.INTEGER
+      }, {
+        timestamps: true,
+        updatedAt: 'updatedOn',
+        createdAt: 'dateCreated',
+        deletedAt: 'deletedAtThisTime',
+        paranoid: true,
+        underscored: true
+      })
+
+      UserTable.sync({force: true}).success(function() {
+        UserTable.create({aNumber: 4}).success(function(user) {
+          expect(user.updated_on).to.exist
+          expect(user.date_created).to.exist
+          user.destroy().success(function(user) {
+            expect(user.deleted_at_this_time).to.exist
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('build', function() {
