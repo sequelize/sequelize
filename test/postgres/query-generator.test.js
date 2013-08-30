@@ -139,7 +139,7 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
-          expectation: "DROP TYPE IF EXISTS \"enum_myTable_title\"; CREATE TYPE \"enum_myTable_title\" AS ENUM(\"A\", \"B\", \"C\"); CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" \"enum_myTable_title\", \"name\" VARCHAR(255));"
+          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" \"enum_myTable_title\", \"name\" VARCHAR(255));"
         },
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY'}],
@@ -163,7 +163,7 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
-          expectation: "DROP TYPE IF EXISTS enum_myTable_title; CREATE TYPE enum_myTable_title AS ENUM(\"A\", \"B\", \"C\"); CREATE TABLE IF NOT EXISTS myTable (title enum_myTable_title, name VARCHAR(255));",
+          expectation: "CREATE TABLE IF NOT EXISTS myTable (title enum_myTable_title, name VARCHAR(255));",
           context: {options: {quoteIdentifiers: false}}
         },
         {
