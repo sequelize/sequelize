@@ -1797,6 +1797,42 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             })
           })
         })
+
+        it('eager loads with non-id primary keys', function(done) {
+          var self = this
+          self.User = self.sequelize.define('UserPKeagerbelong', { 
+            username: { 
+              type: Sequelize.STRING,
+              primaryKey: true
+            } 
+          })
+          self.Group = self.sequelize.define('GroupPKeagerbelong', { 
+            name: { 
+              type: Sequelize.STRING,
+              primaryKey: true
+            } 
+          })
+          self.User.belongsTo(self.Group)
+
+          self.sequelize.sync({ force: true }).success(function() {
+            self.User.create({ username: 'someone', GroupPKeagerbelongId: 'people' }).success(function() {
+              self.Group.create({ name: 'people' }).success(function() {
+                self.User.find({
+                   where: {
+                    username: 'someone'
+                  },
+                   include: [self.Group]
+                 }).complete(function (err, someUser) {
+                   expect(err).to.be.null
+                   expect(someUser).to.exist
+                   expect(someUser.username).to.equal('someone')
+                   expect(someUser.groupPKeagerbelong.name).to.equal('people')
+                   done()
+                 })
+              })
+            })
+          })
+        })
       })
 
       describe('hasOne', function() {
@@ -1828,6 +1864,42 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(worker.task).to.exist
             expect(worker.task.title).to.equal('homework')
             done()
+          })
+        })
+
+        it('eager loads with non-id primary keys', function(done) {
+          var self = this
+          self.User = self.sequelize.define('UserPKeagerone', { 
+            username: { 
+              type: Sequelize.STRING,
+              primaryKey: true
+            } 
+          })
+          self.Group = self.sequelize.define('GroupPKeagerone', { 
+            name: { 
+              type: Sequelize.STRING,
+              primaryKey: true
+            } 
+          })
+          self.Group.hasOne(self.User)
+
+          self.sequelize.sync({ force: true }).success(function() {
+            self.User.create({ username: 'someone', GroupPKeageroneId: 'people' }).success(function() {
+              self.Group.create({ name: 'people' }).success(function() {
+                self.Group.find({
+                   where: {
+                    name: 'people'
+                  },
+                   include: [self.User]
+                 }).complete(function (err, someGroup) {
+                   expect(err).to.be.null
+                   expect(someGroup).to.exist
+                   expect(someGroup.name).to.equal('people')
+                   expect(someGroup.userPKeagerone.username).to.equal('someone')
+                   done()
+                 })
+              })
+            })
           })
         })
       })
@@ -1914,6 +1986,46 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(worker.tasks).to.exist
             expect(worker.tasks[0].title).to.equal('homework')
             done()
+          })
+        })
+
+        it('eager loads with non-id primary keys', function(done) {
+          var self = this
+          self.User = self.sequelize.define('UserPKeagerone', { 
+            username: { 
+              type: Sequelize.STRING,
+              primaryKey: true
+            } 
+          })
+          self.Group = self.sequelize.define('GroupPKeagerone', { 
+            name: { 
+              type: Sequelize.STRING,
+              primaryKey: true
+            } 
+          })
+          self.Group.hasMany(self.User)
+          self.User.hasMany(self.Group)
+
+          self.sequelize.sync({ force: true }).success(function() {
+            self.User.create({ username: 'someone' }).success(function(someUser) {
+              self.Group.create({ name: 'people' }).success(function(someGroup) {
+                someUser.setGroupPKeagerones([someGroup]).complete(function (err, data) {
+                  expect(err).to.be.null
+                  self.User.find({
+                    where: {
+                      username: 'someone'
+                    },
+                    include: [self.Group]
+                  }).complete(function (err, someUser) {
+                    expect(err).to.be.null
+                    expect(someUser).to.exist
+                    expect(someUser.username).to.equal('someone')
+                    expect(someUser.groupPKeagerones[0].name).to.equal('people')
+                    done()
+                  })
+                }) 
+              })
+            })
           })
         })
       })
