@@ -567,6 +567,89 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         done()
       })
     })
+
+    describe('join table model', function () {
+      describe('inserting in join table', function () {
+        beforeEach(function (done) {
+          this.User = this.sequelize.define('User', {})
+          this.Project = this.sequelize.define('Project', {})
+          this.UserProjects = this.sequelize.define('UserProjects', {
+            status: DataTypes.STRING
+          })
+
+          this.User.hasMany(this.Project, { joinTableModel: this.UserProjects })
+          this.Project.hasMany(this.User, { joinTableModel: this.UserProjects })
+          
+          this.sequelize.sync().success(function() { done() })
+        })
+
+        describe('add', function () {
+          it('should insert data provided on the object into the join table', function (done) {
+            var self = this
+            self.User.create().success(function (u) {
+              self.Project.create().success(function (p) {
+                p.UserProjects = {
+                  status: 'active'
+                }
+
+                u.addProject(p).success(function() {
+                  self.UserProjects.find({ where: { UserId: u.id, ProjectId: p.id }}).success(function (up) {
+                    expect(up.status).to.equal('active')
+                    done()
+                  })
+                })
+              })  
+            })
+          })
+
+          it('should insert data provided as a second argument into the join table', function (done) {
+            var self = this
+            self.User.create().success(function (u) {
+              self.Project.create().success(function (p) {
+                u.addProject(p, { status: 'active' }).success(function() {
+                  self.UserProjects.find({ where: { UserId: u.id, ProjectId: p.id }}).success(function (up) {
+                    expect(up.status).to.equal('active')
+                    done()
+                  })
+                })
+              })  
+            })
+          })
+        })
+
+        describe('set', function () {
+          it('should be able to combine properties on the associated objects, and default values', function (done) {
+            var self = this
+              , _done = _.after(2, done)
+
+            self.User.create().success(function (u) {
+              self.Project.bulkCreate([{}, {}]).success(function () {
+                self.Project.findAll().success(function (projects) {
+                  var p1 = projects[0]
+                    , p2 = projects[1]
+
+                  p1.UserProjects = {
+                    status: 'inactive'
+                  }
+
+                  u.setProjects([p1, p2], { status: 'active' }).success(function() {
+                    self.UserProjects.find({ where: { UserId: u.id, ProjectId: p1.id }}).success(function (up) {
+                      expect(up.status).to.equal('inactive')
+                      _done()
+                    })
+
+                    self.UserProjects.find({ where: { UserId: u.id, ProjectId: p2.id }}).success(function (up) {
+                      expect(up.status).to.equal('active')
+                      _done()
+                    })
+                  })
+                })
+              })  
+            })
+          })
+        })
+      })
+    })
   })
 
   describe("Foreign key constraints", function() {
