@@ -51,6 +51,23 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
   })
 
+  describe('model', function() {
+    it('throws an error if the dao being accessed is undefined', function() {
+      var self = this
+      expect(function() {
+        self.sequelize.model('Project')
+      }).to.throw(/project has not been defined/i)
+    })
+
+    it('returns the dao factory defined by daoName', function() {
+      var project = this.sequelize.define('Project', {
+        name: DataTypes.STRING
+      })
+
+      expect(this.sequelize.model('Project')).to.equal(project)
+    })
+  })
+
   describe('query', function() {
     afterEach(function(done) {
       this.sequelize.options.quoteIdentifiers = true
