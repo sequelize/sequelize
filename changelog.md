@@ -35,6 +35,7 @@
 - [BUG] Default schemas should now be utilized when describing tables [#812](https://github.com/sequelize/sequelize/pull/812). thanks to durango
 - [BUG] Fixed eager loading for many-to-many associations. [#834](https://github.com/sequelize/sequelize/pull/834). thanks to lemon-tree
 - [BUG] allowNull: true enums can now be null [#857](https://github.com/sequelize/sequelize/pull/857). thanks to durango
+- [BUG] Fixes Postgres' ability to search within arrays. [#879](https://github.com/sequelize/sequelize/pull/879). thanks to durango
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
@@ -63,7 +64,7 @@
 - [FEATURE] Blob support. janmeier
 - [FEATURE] We can now define our own custom timestamp columns [#856](https://github.com/sequelize/sequelize/pull/856). thanks to durango
 - [FEATURE] Scopes. [#748](https://github.com/sequelize/sequelize/pull/748). durango
-- [FEATURE] Model#find() / Model#findAll() is now working with strings. [#855](https://github.com/sequelize/sequelize/pull/855). Thanks to whito. 
+- [FEATURE] Model#find() / Model#findAll() is now working with strings. [#855](https://github.com/sequelize/sequelize/pull/855). Thanks to whito.
 - [FEATURE] Shortcut method for getting a defined model. [#868](https://github.com/sequelize/sequelize/pull/868). Thanks to jwilm.
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
