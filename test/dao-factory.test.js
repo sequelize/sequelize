@@ -1064,6 +1064,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to find rows where attribute is in a list of values', function () {
+      this.User.findAll({
+        where: {
+          username: ['boo', 'boo2']
+        }
+      }).success(function(users){
+        expect(users).to.have.length(2);
+      });
+    })
+
     it('should be able to find a row using like', function(done) {
       this.User.findAll({
         where: {
