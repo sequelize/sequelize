@@ -26,6 +26,28 @@ if (dialect.match(/^postgres/)) {
       done()
     })
 
+    it('should be able to search within an array', function(done) {
+      this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
+        expect(sql).to.equal('SELECT * FROM "Users" WHERE "Users"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
+        done()
+      })
+    })
+
+    it('should be able to find a record while searching in an array', function(done) {
+      var self = this
+      this.User.bulkCreate([
+        {username: 'bob', email: ['myemail@email.com']},
+        {username: 'tony', email: ['wrongemail@email.com']}
+      ]).success(function() {
+        self.User.all({where: {email: ['myemail@email.com']}}).success(function(user) {
+          expect(user).to.be.instanceof(Array)
+          expect(user).to.have.length(1)
+          expect(user[0].username).to.equal('bob')
+          done()
+        })
+      })
+    })
+
     it('describeTable should tell me that a column is hstore and not USER-DEFINED', function(done) {
       this.sequelize.queryInterface.describeTable('Users').success(function(table) {
         expect(table.document.type).to.equal('HSTORE')
