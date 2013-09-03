@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
         Model.sync({ force: true }).success(function() {
           Model.create({name: 'World'}).success(function(model) {
-            Model.update({name: ''}, {id: 1}).error(function(err) {
+            Model.update({name: ''}, {id: 1}, {validate:true}).error(function(err) {
               expect(err).to.deep.equal({ name: [ 'String is empty: name', 'String is empty: name' ] })
               done()
             })
