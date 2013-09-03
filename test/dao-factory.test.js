@@ -1441,6 +1441,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('does not modify the passed arguments', function (done) {
+        var options = { where: ['specialKey = ?', 'awesome']}
+
+        this.UserPrimary.find(options).success(function(user) {
+          expect(options).to.deep.equal({ where: ['specialKey = ?', 'awesome']})
+          done()
+        })
+      })
+
       it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function(done) {
         this.UserPrimary.find('a string').success(function(user) {
           expect(user.specialKey).to.equal('a string')
@@ -2454,6 +2463,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       it("finds all entries", function(done) {
         this.User.all().on('success', function(users) {
           expect(users.length).to.equal(2)
+          done()
+        })
+      })
+
+      it('does not modify the passed arguments', function (done) {
+        var options = { where: ['username = ?', 'awesome']}
+
+        this.User.findAll(options).success(function(user) {
+          expect(options).to.deep.equal({ where: ['username = ?', 'awesome']})
           done()
         })
       })
