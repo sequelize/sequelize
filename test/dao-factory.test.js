@@ -2492,7 +2492,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       it("sorts the results via a date column", function(done) {
         var self = this
         self.User.create({username: 'user3', data: 'bar', theDate: moment().add('hours', 2).toDate()}).success(function(){
-          self.User.findAll({ order: 'theDate DESC' }).success(function(users) {
+          self.User.findAll({ order: ['theDate', 'DESC'] }).success(function(users) {
             expect(users[0].id).to.be.above(users[2].id)
             done()
           })
