@@ -163,12 +163,40 @@ if (dialect.match(/^mysql/)) {
           expectation: "SELECT * FROM `myTable` ORDER BY id DESC;",
           context: QueryGenerator
         }, {
+          arguments: ['myTable', {order: ["id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["myTable.id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `myTable`.`id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [["id", 'DESC']]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id` DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [{raw: 'f1(f2(id))', direction: 'DESC'}]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;",
+          context: QueryGenerator
+        }, { // Function-ception!
+          arguments: ['myTable', {order: [{fn: 'f1', cols: [ { fn: 'f2', cols: ['id']}], direction: 'DESC'}]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [[{ fn: 'max', cols: ['id']}, 'DESC'], { fn: 'min', cols: ['first', 'second'], direction: 'ASC'}]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY max(`id`) DESC, min(`first`, `second`) ASC;",
+          context: QueryGenerator
+        }, {
           arguments: ['myTable', {group: "name"}],
-          expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
+          expectation: "SELECT * FROM `myTable` GROUP BY name;",
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: ["name"]}],
           expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: [{ fn: 'max', cols: ['id']}]}],
+          expectation: "SELECT * FROM `myTable` GROUP BY max(`id`);",
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: ["name", "title"]}],
@@ -176,7 +204,7 @@ if (dialect.match(/^mysql/)) {
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: "name", order: "id DESC"}],
-          expectation: "SELECT * FROM `myTable` GROUP BY `name` ORDER BY id DESC;",
+          expectation: "SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;",
           context: QueryGenerator
         }, {
           arguments: ['myTable', {limit: 10}],

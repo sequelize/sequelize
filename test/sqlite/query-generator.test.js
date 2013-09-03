@@ -104,6 +104,123 @@ if (dialect === 'sqlite') {
         }
       ],
 
+      selectQuery: [
+        {
+          arguments: ['myTable'],
+          expectation: "SELECT * FROM `myTable`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {attributes: ['id', 'name']}],
+          expectation: "SELECT `id`, `name` FROM `myTable`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: {id: 2}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`id`=2;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: {name: 'foo'}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name`='foo';",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name`='foo\'\';DROP TABLE myTable;';",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: 2}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`id`=2;",
+          context: QueryGenerator
+        }, {
+          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
+          expectation: 'SELECT count(*) as `count` FROM `foo`;',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: "foo='bar'"}],
+          expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: "id DESC"}],
+          expectation: "SELECT * FROM `myTable` ORDER BY id DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["myTable.id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `myTable`.`id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [["id", 'DESC']]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id` DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [{raw: 'f1(f2(id))', direction: 'DESC'}]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;",
+          context: QueryGenerator
+        }, { // Function-ception!
+          arguments: ['myTable', {order: [{fn: 'f1', cols: [ { fn: 'f2', cols: ['id']}], direction: 'DESC'}]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [[{ fn: 'max', cols: ['id']}, 'DESC'], { fn: 'min', cols: ['first', 'second'], direction: 'ASC'}]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY max(`id`) DESC, min(`first`, `second`) ASC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: "name"}],
+          expectation: "SELECT * FROM `myTable` GROUP BY name;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: ["name"]}],
+          expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: [{ fn: 'max', cols: ['id']}]}],
+          expectation: "SELECT * FROM `myTable` GROUP BY max(`id`);",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: ["name", "title"]}],
+          expectation: "SELECT * FROM `myTable` GROUP BY `name`, `title`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: "name", order: "id DESC"}],
+          expectation: "SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {limit: 10}],
+          expectation: "SELECT * FROM `myTable` LIMIT 10;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {limit: 10, offset: 2}],
+          expectation: "SELECT * FROM `myTable` LIMIT 2, 10;",
+          context: QueryGenerator
+        }, {
+          title: 'uses default limit if only offset is specified',
+          arguments: ['myTable', {offset: 2}],
+          expectation: "SELECT * FROM `myTable` LIMIT 2, 10000000000000;",
+          context: QueryGenerator
+        }, {
+          title: 'multiple where arguments',
+          arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat`='canoe' AND `myTable`.`weather`='cold';",
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (object)',
+          arguments: ['myTable', {where: {}}],
+          expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (string)',
+          arguments: ['myTable', {where: ''}],
+          expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (null)',
+          arguments: ['myTable', {where: null}],
+          expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+          context: QueryGenerator
+        }
+      ],
+
       insertQuery: [
         {
           arguments: ['myTable', { name: 'foo' }],
