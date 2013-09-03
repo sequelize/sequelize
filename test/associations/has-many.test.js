@@ -569,19 +569,66 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
     })
 
     describe('join table model', function () {
-      describe('inserting in join table', function () {
-        beforeEach(function (done) {
-          this.User = this.sequelize.define('User', {})
-          this.Project = this.sequelize.define('Project', {})
-          this.UserProjects = this.sequelize.define('UserProjects', {
-            status: DataTypes.STRING
-          })
-
-          this.User.hasMany(this.Project, { joinTableModel: this.UserProjects })
-          this.Project.hasMany(this.User, { joinTableModel: this.UserProjects })
-          
-          this.sequelize.sync().success(function() { done() })
+      beforeEach(function (done) {
+        this.User = this.sequelize.define('User', {})
+        this.Project = this.sequelize.define('Project', {})
+        this.UserProjects = this.sequelize.define('UserProjects', {
+          status: DataTypes.STRING,
+          data: DataTypes.INTEGER
         })
+
+        this.User.hasMany(this.Project, { joinTableModel: this.UserProjects })
+        this.Project.hasMany(this.User, { joinTableModel: this.UserProjects })
+        
+        this.sequelize.sync().success(function() { done() })
+      })
+
+      describe('fetching from join table', function () {
+        it('should contain the data from the join table on .UserProjects a DAO', function (done) {
+          var self = this
+
+          self.User.create().success(function (u) {
+            self.Project.create().success(function (p) {
+              u.addProject(p, { status: 'active', data: 42 }).success(function() {
+                u.getProjects().success(function(projects) {
+                  var project = projects[0]
+
+                  expect(project.UserProjects).to.be.defined
+                  expect(project.status).not.to.exist
+                  expect(project.UserProjects.status).to.equal('active')
+                  expect(project.UserProjects.data).to.equal(42)
+
+                  done()
+                })
+              })
+            })  
+          })
+        })
+
+        it('should be able to limit the join table attributes returned', function (done) {
+          var self = this
+
+          self.User.create().success(function (u) {
+            self.Project.create().success(function (p) {
+              u.addProject(p, { status: 'active', data: 42 }).success(function() {
+                u.getProjects({ joinTableAttributes: ['status']}).success(function(projects) {
+                  var project = projects[0]
+
+                  expect(project.UserProjects).to.be.defined
+                  expect(project.status).not.to.exist
+                  expect(project.UserProjects.status).to.equal('active')
+                  expect(project.UserProjects.data).not.to.exist
+
+                  done()
+                })
+              })
+            })  
+          })
+        })
+      })
+
+      describe('inserting in join table', function () {
+        
 
         describe('add', function () {
           it('should insert data provided on the object into the join table', function (done) {
