@@ -1013,7 +1013,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         UserDestroy.create({newId: '123ABC', email: 'hello'}).success(function() {
           UserDestroy.find({where: {email: 'hello'}}).success(function(user) {
             user.destroy().on('sql', function(sql) {
-              expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId" IN (SELECT "newId" FROM "UserDestroys" WHERE "newId"=\'123ABC\' LIMIT 1)')
+              if (dialect === "postgres" || dialect === "postgres-native") {
+                expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId" IN (SELECT "newId" FROM "UserDestroys" WHERE "newId"=\'123ABC\' LIMIT 1)')
+              }
+              else if (dialect === "mysql") {
+                expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
+              } else {
+                expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")
+              }
               done()
             })
           })
