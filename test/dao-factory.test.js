@@ -1064,13 +1064,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('should be able to find rows where attribute is in a list of values', function () {
+    it('should be able to find rows where attribute is in a list of values', function (done) {
       this.User.findAll({
         where: {
           username: ['boo', 'boo2']
         }
       }).success(function(users){
         expect(users).to.have.length(2);
+        done()
+      });
+    })
+
+    it('should not break when trying to find rows using an array of primary keys', function (done) {
+      this.User.findAll({
+        where: {
+          id: [1, 2, 3]
+        }
+      }).success(function(users){
+        done();
       });
     })
 
