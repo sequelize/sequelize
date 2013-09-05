@@ -333,7 +333,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
-    it("casts empty arrays correctly for postgresql", function(done) {
+    it("casts empty arrays correctly for postgresql insert", function(done) {
       if (dialect !== "postgres" && dialect !== "postgresql-native") {
         expect('').to.equal('')
         return done()
@@ -352,6 +352,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+    it("casts empty array correct for postgres update", function(done) {
+      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+        expect('').to.equal('')
+        return done()
+      }
+
+      var User = this.sequelize.define('UserWithArray', {
+        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+      })
+
+      User.sync({force: true}).success(function() {
+        User.create({myvals: [1,2,3,4], mystr: ["One", "Two", "Three", "Four"]}).on('success', function(user){
+         user.myvals = []
+          user.mystr = []
+          user.save().on('sql', function(sql) {
+            expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1)
+            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1)
+            done()
+          })
+        })
+      })
+    })
+
 
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
@@ -1809,17 +1833,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerbelong', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerbelong', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerbelong', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerbelong', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.User.belongsTo(self.Group)
 
@@ -1878,17 +1902,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerone', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerone', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerone', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerone', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.Group.hasOne(self.User)
 
@@ -2000,17 +2024,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerone', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerone', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerone', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerone', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.Group.hasMany(self.User)
           self.User.hasMany(self.Group)
@@ -2032,7 +2056,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     expect(someUser.groupPKeagerones[0].name).to.equal('people')
                     done()
                   })
-                }) 
+                })
               })
             })
           })
