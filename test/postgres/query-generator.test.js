@@ -17,6 +17,7 @@ if (dialect.match(/^postgres/)) {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
+        numbers: {type: DataTypes.ARRAY(DataTypes.FLOAT)},
         document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
       })
       this.User.sync({ force: true }).success(function() {
@@ -361,6 +362,9 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {data: new Buffer('Sequelize') }],
           expectation: "INSERT INTO \"myTable\" (\"data\") VALUES (E'\\\\x53657175656c697a65') RETURNING *;"
         }, {
+          arguments: ['myTable', {name: 'foo', numbers: new Uint8Array([1,2,3])}],
+          expectation: "INSERT INTO \"myTable\" (\"name\",\"numbers\") VALUES ('foo',ARRAY[1,2,3]) RETURNING *;"
+        }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
           expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1) RETURNING *;"
         }, {
@@ -401,6 +405,10 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}],
           expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00') RETURNING *;",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          arguments: ['myTable', {name: 'foo', numbers: new Uint8Array([1,2,3])}],
+          expectation: "INSERT INTO myTable (name,numbers) VALUES ('foo',ARRAY[1,2,3]) RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
@@ -536,6 +544,9 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
           expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *"
         }, {
+          arguments: ['myTable', {numbers: new Uint8Array([1,2,3])}, {name: 'foo'}],
+          expectation: "UPDATE \"myTable\" SET \"numbers\"=ARRAY[1,2,3] WHERE \"name\"='foo' RETURNING *"
+        }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
           expectation: "UPDATE \"myTable\" SET \"name\"='foo'';DROP TABLE myTable;' WHERE \"name\"='foo' RETURNING *"
         }, {
@@ -573,6 +584,10 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
           expectation: "UPDATE myTable SET bar=2 WHERE name='foo' RETURNING *",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          arguments: ['myTable', {numbers: new Uint8Array([1,2,3])}, {name: 'foo'}],
+          expectation: "UPDATE myTable SET numbers=ARRAY[1,2,3] WHERE name='foo' RETURNING *",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
