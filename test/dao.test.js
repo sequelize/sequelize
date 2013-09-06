@@ -1000,6 +1000,34 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('destroys a record with a primary key of something other than id', function(done) {
+      var UserDestroy = this.sequelize.define('UserDestroy', {
+        newId: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        },
+        email: DataTypes.STRING
+      })
+
+      UserDestroy.sync().success(function() {
+        UserDestroy.create({newId: '123ABC', email: 'hello'}).success(function() {
+          UserDestroy.find({where: {email: 'hello'}}).success(function(user) {
+            user.destroy().on('sql', function(sql) {
+              if (dialect === "postgres" || dialect === "postgres-native") {
+                expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId" IN (SELECT "newId" FROM "UserDestroys" WHERE "newId"=\'123ABC\' LIMIT 1)')
+              }
+              else if (dialect === "mysql") {
+                expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
+              } else {
+                expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")
+              }
+              done()
+            })
+          })
+        })
+      })
+    })
+
     it("sets deletedAt property to a specific date when deleting an instance", function(done) {
       var self = this
       this.ParanoidUser.create({ username: 'fnord' }).success(function() {
