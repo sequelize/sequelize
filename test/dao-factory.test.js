@@ -1809,17 +1809,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerbelong', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerbelong', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerbelong', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerbelong', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.User.belongsTo(self.Group)
 
@@ -1878,17 +1878,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerone', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerone', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerone', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerone', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.Group.hasOne(self.User)
 
@@ -2000,17 +2000,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerone', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerone', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerone', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerone', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.Group.hasMany(self.User)
           self.User.hasMany(self.Group)
@@ -2032,7 +2032,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     expect(someUser.groupPKeagerones[0].name).to.equal('people')
                     done()
                   })
-                }) 
+                })
               })
             })
           })

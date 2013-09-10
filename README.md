@@ -33,6 +33,7 @@ changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/
 - Associations
 - Importing definitions from single files
 - Promises
+- Hooks/callbacks/lifecycle events
 
 ## Documentation and Updates ##
 
@@ -62,7 +63,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Support for update of tables without primary key
 - MariaDB support
 - ~~Support for update and delete calls for whole tables without previous loading of instances~~ Implemented in [#569](https://github.com/sequelize/sequelize/pull/569) thanks to @optiltude
-- Eager loading of nested associations [#388](https://github.com/sdepold/sequelize/issues/388#issuecomment-12019099)
+- Eager loading of nested associations [#388](https://github.com/sequelize/sequelize/issues/388)
 - ~~Model#delete~~ (renamed to [Model.destroy()](http://sequelizejs.com/documentation#instances-destroy))
 - ~~Validate a model before it gets saved.~~ Implemented in [#601](https://github.com/sequelize/sequelize/pull/601), thanks to @durango
 - Move validation of enum attribute value to validate method

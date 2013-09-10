@@ -423,11 +423,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
 
         it("doesn't save an instance if value is not in the range of enums", function(done) {
-          var self = this
-          expect(function() {
-            self.Review.create({ status: 'fnord' })
-          }).to.throw(Error, 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
-          done()
+          this.Review.create({status: 'fnord'}).error(function(err) {
+            expect(err).to.deep.equal({ status: [ 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished' ] })
+            done()
+          })
         })
       })
     })
