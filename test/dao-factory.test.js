@@ -333,7 +333,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
-    it("casts empty arrays correctly for postgresql", function(done) {
+    it("casts empty arrays correctly for postgresql insert", function(done) {
       if (dialect !== "postgres" && dialect !== "postgresql-native") {
         expect('').to.equal('')
         return done()
@@ -352,6 +352,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+    it("casts empty array correct for postgres update", function(done) {
+      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+        expect('').to.equal('')
+        return done()
+      }
+
+      var User = this.sequelize.define('UserWithArray', {
+        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+      })
+
+      User.sync({force: true}).success(function() {
+        User.create({myvals: [1,2,3,4], mystr: ["One", "Two", "Three", "Four"]}).on('success', function(user){
+         user.myvals = []
+          user.mystr = []
+          user.save().on('sql', function(sql) {
+            expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1)
+            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1)
+            done()
+          })
+        })
+      })
+    })
+
 
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
@@ -1062,6 +1086,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       ]).success(function(user2) {
         done()
       })
+    })
+
+    it('should be able to find rows where attribute is in a list of values', function (done) {
+      this.User.findAll({
+        where: {
+          username: ['boo', 'boo2']
+        }
+      }).success(function(users){
+        expect(users).to.have.length(2);
+        done()
+      });
+    })
+
+    it('should not break when trying to find rows using an array of primary keys', function (done) {
+      this.User.findAll({
+        where: {
+          id: [1, 2, 3]
+        }
+      }).success(function(users){
+        done();
+      });
     })
 
     it('should be able to find a row using like', function(done) {
