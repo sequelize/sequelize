@@ -1486,18 +1486,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
-      it('does not modify the passed arguments - find', function (done) {
+      it('does not modify the passed arguments', function (done) {
         var options = { where: ['specialkey = ?', 'awesome']}
 
         this.UserPrimary.find(options).success(function(user) {
-          expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']})
-          done()
-        })
-      })
-      it('does not modify the passed arguments - count', function (done) {
-        var options = { where: ['specialkey = ?', 'awesome']}
-
-        this.UserPrimary.count(options).success(function(count) {
           expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']})
           done()
         })
@@ -2757,6 +2749,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(count).to.equal(2)
           done()
         })
+      })
+    })
+
+    it('does not modify the passed arguments', function (done) {
+      var options = { where: ['username = ?', 'user1']}
+
+      this.UserPrimary.count(options).success(function(count) {
+        expect(options).to.deep.equal({ where: ['username = ?', 'user1']})
+        done()
       })
     })
 
