@@ -2755,7 +2755,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('does not modify the passed arguments', function (done) {
       var options = { where: ['username = ?', 'user1']}
 
-      this.UserPrimary.count(options).success(function(count) {
+      this.User.count(options).success(function(count) {
         expect(options).to.deep.equal({ where: ['username = ?', 'user1']})
         done()
       })
