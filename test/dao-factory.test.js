@@ -2752,6 +2752,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('does not modify the passed arguments', function (done) {
+      var options = { where: ['username = ?', 'user1']}
+
+      this.User.count(options).success(function(count) {
+        expect(options).to.deep.equal({ where: ['username = ?', 'user1']})
+        done()
+      })
+    })
+
     it('allows sql logging', function(done) {
       this.User.count().on('sql', function(sql) {
         expect(sql).to.exist
