@@ -261,6 +261,34 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
     }
 
     describe('#update', function() {
+      it('should allow us to update specific columns without tripping the validations', function(done) {
+        var User = this.sequelize.define('model', {
+          username: Sequelize.STRING,
+          email: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            validate: {
+              isEmail: {
+                msg: 'You must enter a valid email address'
+              }
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({username: 'bob', email: 'hello@world.com'}).success(function(user) {
+            User.update({username: 'toni'}, {id: user.id})
+            .error(function(err) { console.log(err) })
+            .success(function() {
+              User.find(1).success(function(user) {
+                expect(user.username).to.equal('toni')
+                done()
+              })
+            })
+          })
+        })
+      })
+
       it('should be able to emit an error upon updating when a validation has failed from an instance', function(done) {
         var Model = this.sequelize.define('model', {
           name: {
