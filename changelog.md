@@ -38,6 +38,7 @@
 - [BUG] Postgres requires empty array to be explicitly cast on update [#890](https://github.com/sequelize/sequelize/pull/890). thanks to robraux
 - [BUG] Added tests & bugfixes for DAO-Factory.update and array of values in where clause [#880](https://github.com/sequelize/sequelize/pull/880). thanks to domasx2
 - [BUG] sqlite no longer leaks a global `db` variable [#900](https://github.com/sequelize/sequelize/pull/900). thanks to xming
+- [BUG] Fix for counts queries with no result [#906](https://github.com/sequelize/sequelize/pull/906). thanks to iamjochem
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
