@@ -247,13 +247,73 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
         }, {
           arguments: ['myTable', {order: "id DESC"}],
-          expectation: "SELECT * FROM \"myTable\" ORDER BY \"id\" DESC;"
+          expectation: "SELECT * FROM \"myTable\" ORDER BY id DESC;"
         }, {
+          arguments: ['myTable', {order: ["id"]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["myTable.id"]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."id";',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [["id", 'DESC']]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "id" DESC;',
+          context: QueryGenerator
+        }, {
+         title: 'raw arguments are neither quoted nor escaped',
+          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
+          context: QueryGenerator
+        }, {
+          title: 'functions can take functions as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return { 
+              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']] 
+            }
+          }],
+          expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2("id")) DESC;',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'functions can take all types as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              order: [
+                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'], 
+                [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
+              ]
+            }
+          }],
+          expectation: 'SELECT * FROM "myTable" ORDER BY f1("myTable"."id") DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55.000 +00:00\') ASC;',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'single string argument is not quoted',
           arguments: ['myTable', {group: "name"}],
-          expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\";"
+          expectation: "SELECT * FROM \"myTable\" GROUP BY name;"
         }, {
           arguments: ['myTable', {group: ["name"]}],
           expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\";"
+        },  {
+          title: 'functions work for group by',
+         arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
+            }
+          }],
+          expectation: "SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\");",
+          needsSequelize: true
+        },{
+          title: 'It is possible to mix sequelize.fn and string arguments to group by',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
+            }
+          }],
+          expectation: "SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\"), \"title\";",
+          context: QueryGenerator,
+          needsSequelize: true
         }, {
           arguments: ['myTable', {group: ["name","title"]}],
           expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\", \"title\";"
@@ -807,6 +867,9 @@ if (dialect.match(/^postgres/)) {
           it(title, function(done) {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
+            if (test.needsSequelize) {
+              test.arguments[1] = test.arguments[1](this.sequelize)
+            }
             QueryGenerator.options = context.options
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)
