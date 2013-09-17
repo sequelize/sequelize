@@ -1900,6 +1900,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 { model: self.Task, as: 'DoTo' }
               ]
             }).success(function () {
+              // Just being able to include both shows that this test works, so no assertions needed
               done()
             })
           })
@@ -2037,7 +2038,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   { model: self.Task, as: 'DoTo' }
                 ]
               }).success(function () {
-                // Just being able to include both is shows that this test works, so no assertions
+                // Just being able to include both shows that this test works, so no assertions needed
                 done()
               })
             })
@@ -2180,6 +2181,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   { model: self.Task, as: 'DoTos' }
                 ]
               }).success(function () {
+                // Just being able to include both shows that this test works, so no assertions needed
                 done()
               })
             })
