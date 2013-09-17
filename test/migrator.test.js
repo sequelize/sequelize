@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).to.be.null
-            expect(migrations).to.have.length(15)
+            expect(migrations).to.have.length(14)
             expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
             done()
           })
