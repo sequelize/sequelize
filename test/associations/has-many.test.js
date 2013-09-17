@@ -1,4 +1,4 @@
-/* jshint camelcase: false */
+/* jshint camelcase: false, expr: true */
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
@@ -11,6 +11,18 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("HasMany"), function() {
+  describe("Model.associations", function () {
+    it("should store all assocations when associting to the same table multiple times", function () {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {});
+
+      Group.hasMany(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
+      Group.hasMany(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
+
+      expect(Object.keys(Group.associations)).to.deep.equal(['primaryUsers', 'secondaryUsers'])
+    })
+  })
+
   describe('(1:N)', function() {
     describe('hasSingle', function() {
       beforeEach(function(done) {
