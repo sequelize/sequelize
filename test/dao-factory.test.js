@@ -1887,6 +1887,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             })
           })
         })
+
+        it('allows mulitple assocations of the same model with different alias', function (done) {
+          var self = this
+
+          this.Worker.belongsTo(this.Task, { as: 'ToDo' })
+          this.Worker.belongsTo(this.Task, { as: 'DoTo' })
+          this.init(function () {
+            self.Worker.find({
+              include: [
+                { model: self.Task, as: 'ToDo' },
+                { model: self.Task, as: 'DoTo' }
+              ]
+            }).success(function () {
+              // Just being able to include both shows that this test works, so no assertions needed
+              done()
+            })
+          })
+        })
       })
 
       describe('hasOne', function() {
@@ -2006,6 +2024,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }).complete(function(err, worker) {
               expect(worker.toDo.title).to.equal('homework')
               done()
+            })
+          })
+
+           it('allows mulitple assocations of the same model with different alias', function (done) {
+            var self = this
+
+            this.Worker.hasOne(this.Task, { as: 'DoTo' })
+            this.init(function () {
+              self.Worker.find({
+                include: [
+                  { model: self.Task, as: 'ToDo' },
+                  { model: self.Task, as: 'DoTo' }
+                ]
+              }).success(function () {
+                // Just being able to include both shows that this test works, so no assertions needed
+                done()
+              })
             })
           })
         })
@@ -2132,6 +2167,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }).complete(function(err, worker) {
               expect(worker.toDos[0].title).to.equal('homework')
               done()
+            })
+          })
+
+          it('allows mulitple assocations of the same model with different alias', function (done) {
+            var self = this
+
+            this.Worker.hasMany(this.Task, { as: 'DoTos' })
+            this.init(function () {
+              self.Worker.find({
+                include: [
+                  { model: self.Task, as: 'ToDos' },
+                  { model: self.Task, as: 'DoTos' }
+                ]
+              }).success(function () {
+                // Just being able to include both shows that this test works, so no assertions needed
+                done()
+              })
             })
           })
         })
