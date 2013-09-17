@@ -3,6 +3,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , dialect   = Support.getTestDialect()
   , DataTypes = require(__dirname + "/../../lib/data-types")
+  , _         = require('lodash')
 
 chai.Assertion.includeStack = true
 
@@ -25,10 +26,93 @@ if (dialect.match(/^postgres/)) {
       done()
     })
 
+    it('should be able to search within an array', function(done) {
+      this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
+        expect(sql).to.equal('SELECT * FROM "Users" WHERE "Users"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
+        done()
+      })
+    })
+
+    it('should be able to find a record while searching in an array', function(done) {
+      var self = this
+      this.User.bulkCreate([
+        {username: 'bob', email: ['myemail@email.com']},
+        {username: 'tony', email: ['wrongemail@email.com']}
+      ]).success(function() {
+        self.User.all({where: {email: ['myemail@email.com']}}).success(function(user) {
+          expect(user).to.be.instanceof(Array)
+          expect(user).to.have.length(1)
+          expect(user[0].username).to.equal('bob')
+          done()
+        })
+      })
+    })
+
     it('describeTable should tell me that a column is hstore and not USER-DEFINED', function(done) {
       this.sequelize.queryInterface.describeTable('Users').success(function(table) {
         expect(table.document.type).to.equal('HSTORE')
         done()
+      })
+    })
+
+    describe('enums', function() {
+      it('should be able to ignore enum types that already exist', function(done) {
+        var User = this.sequelize.define('UserEnums', {
+          mood: DataTypes.ENUM('happy', 'sad', 'meh')
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.sync().success(function() {
+            done()
+          })
+        })
+      })
+
+      it('should be able to create/drop enums multiple times', function(done) {
+        var User = this.sequelize.define('UserEnums', {
+          mood: DataTypes.ENUM('happy', 'sad', 'meh')
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.sync({ force: true }).success(function() {
+            done()
+          })
+        })
+      })
+
+      it('should be able to add enum types', function(done) {
+        var self = this
+          , User = this.sequelize.define('UserEnums', {
+          mood: DataTypes.ENUM('happy', 'sad', 'meh')
+        })
+
+        var _done = _.after(4, function() {
+          done()
+        })
+
+        User.sync({ force: true }).success(function() {
+          User = self.sequelize.define('UserEnums', {
+            mood: DataTypes.ENUM('neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful')
+          })
+
+          User.sync().success(function() {
+            expect(User.rawAttributes.mood.values).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful'])
+            _done()
+          }).on('sql', function(sql) {
+            if (sql.indexOf('neutral') > -1) {
+              expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'")
+              _done()
+            }
+            else if (sql.indexOf('ecstatic') > -1) {
+              expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'")
+              _done()
+            }
+            else if (sql.indexOf('joyful') > -1) {
+              expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'")
+              _done()
+            }
+          })
+        })
       })
     })
 

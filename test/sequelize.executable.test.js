@@ -144,17 +144,17 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
   ;(function(flags) {
     flags.forEach(function(flag) {
       var prepare = function(callback) {
-        exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
-          exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function() {
-            exec("cp ../assets/migrations/*-createPerson.js ./migrations/", { cwd: __dirname + '/tmp' }, function() {
-              exec("cat ../support.js|sed s,/../,/../../, > ./support.js", { cwd: __dirname + '/tmp' }, function() {
+        exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+          exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+            exec("cp ../assets/migrations/*-createPerson.js ./migrations/", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+              exec("cat ../support.js|sed s,/../,/../../, > ./support.js", { cwd: __dirname + '/tmp' }, function(error, stdout) {
                 var dialect = Support.getTestDialect()
                   , config  = require(__dirname + '/config/config.js')
 
                 config.sqlite.storage = __dirname + "/tmp/test.sqlite"
                 config = _.extend(config, config[dialect], { dialect: dialect })
 
-                exec("echo '" + JSON.stringify(config) + "' > config/config.json", { cwd: __dirname + '/tmp' }, function() {
+                exec("echo '" + JSON.stringify(config) + "' > config/config.json", { cwd: __dirname + '/tmp' }, function(error, stdout) {
                   exec("../../bin/sequelize " + flag, { cwd: __dirname + "/tmp" }, callback)
                 })
               })

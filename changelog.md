@@ -31,6 +31,12 @@
 - [BUG] Custom primary key (not keys, just singular) should no longer be a problem for models when using any of the data retrievals with just a number or through associations [#771](https://github.com/sequelize/sequelize/pull/771). thanks to sdephold & durango
 - [BUG] Default schemas should now be utilized when describing tables [#812](https://github.com/sequelize/sequelize/pull/812). thanks to durango
 - [BUG] Fixed eager loading for many-to-many associations. [#834](https://github.com/sequelize/sequelize/pull/834). thanks to lemon-tree
+- [BUG] allowNull: true enums can now be null [#857](https://github.com/sequelize/sequelize/pull/857). thanks to durango
+- [BUG] Fixes Postgres' ability to search within arrays. [#879](https://github.com/sequelize/sequelize/pull/879). thanks to durango
+- [BUG] Find and finAll would modify the options objects, now the objects are cloned at the start of the method [#884](https://github.com/sequelize/sequelize/pull/884) thanks to janmeier
+- [BUG] Add support for typed arrays in SqlString.escape and SqlString.arrayToList [#891](https://github.com/sequelize/sequelize/pull/891). thanks to LJ1102
+- [BUG] Postgres requires empty array to be explicitly cast on update [#890](https://github.com/sequelize/sequelize/pull/890). thanks to robraux
+- [BUG] Added tests & bugfixes for DAO-Factory.update and array of values in where clause [#880](https://github.com/sequelize/sequelize/pull/880). thanks to domasx2
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
@@ -56,6 +62,11 @@
 - [FEATURE] bulkCreate() now has a third argument which gives you the ability to validate each row before attempting to bulkInsert [#797](https://github.com/sequelize/sequelize/pull/797). thanks to durango
 - [FEATURE] Added `isDirty` to model instances. [#798](https://github.com/sequelize/sequelize/pull/798). Thanks to mstorgaard
 - [FEATURE] Added possibility to use env variable for the database connection. [#784](https://github.com/sequelize/sequelize/pull/784). Thanks to sykopomp.
+- [FEATURE] Blob support. janmeier
+- [FEATURE] We can now define our own custom timestamp columns [#856](https://github.com/sequelize/sequelize/pull/856). thanks to durango
+- [FEATURE] Scopes. [#748](https://github.com/sequelize/sequelize/pull/748). durango
+- [FEATURE] Model#find() / Model#findAll() is now working with strings. [#855](https://github.com/sequelize/sequelize/pull/855). Thanks to whito.
+- [FEATURE] Shortcut method for getting a defined model. [#868](https://github.com/sequelize/sequelize/pull/868). Thanks to jwilm.
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango

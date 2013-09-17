@@ -253,6 +253,78 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       }
     }
 
+    describe('#update', function() {
+      it('should allow us to update specific columns without tripping the validations', function(done) {
+        var User = this.sequelize.define('model', {
+          username: Sequelize.STRING,
+          email: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            validate: {
+              isEmail: {
+                msg: 'You must enter a valid email address'
+              }
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({username: 'bob', email: 'hello@world.com'}).success(function(user) {
+            User.update({username: 'toni'}, {id: user.id})
+            .error(function(err) { console.log(err) })
+            .success(function() {
+              User.find(1).success(function(user) {
+                expect(user.username).to.equal('toni')
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      it('should be able to emit an error upon updating when a validation has failed from an instance', function(done) {
+        var Model = this.sequelize.define('model', {
+          name: {
+            type: Sequelize.STRING,
+            validate: {
+              notNull: true, // won't allow null
+              notEmpty: true // don't allow empty strings
+            }
+          }
+        })
+
+        Model.sync({ force: true }).success(function() {
+          Model.create({name: 'World'}).success(function(model) {
+            model.updateAttributes({name: ''}).error(function(err) {
+              expect(err).to.deep.equal({ name: [ 'String is empty: name', 'String is empty: name' ] })
+              done()
+            })
+          })
+        })
+      })
+
+      it('should be able to emit an error upon updating when a validation has failed from the factory', function(done) {
+        var Model = this.sequelize.define('model', {
+          name: {
+            type: Sequelize.STRING,
+            validate: {
+              notNull: true, // won't allow null
+              notEmpty: true // don't allow empty strings
+            }
+          }
+        })
+
+        Model.sync({ force: true }).success(function() {
+          Model.create({name: 'World'}).success(function(model) {
+            Model.update({name: ''}, {id: 1}).error(function(err) {
+              expect(err).to.deep.equal({ name: [ 'String is empty: name', 'String is empty: name' ] })
+              done()
+            })
+          })
+        })
+      })
+    })
+
     describe('#create', function() {
       describe('generic', function() {
         beforeEach(function(done) {
@@ -301,7 +373,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         })
       })
 
-      describe('explicitly validating id/primary/auto incremented columns', function() {
+      describe('explicitly validating primary/auto incremented columns', function() {
         it('should emit an error when we try to enter in a string for the id key without validation arguments', function(done) {
           var User = this.sequelize.define('UserId', {
             id: {
@@ -322,26 +394,6 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           })
         })
 
-        it('should emit an error when we try to enter in a string for the id key with validation arguments', function(done) {
-          var User = this.sequelize.define('UserId', {
-            id: {
-              type: Sequelize.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-              validate: {
-                isInt: { args: true, msg: 'ID must be an integer!' }
-              }
-            }
-          })
-
-          User.sync({ force: true }).success(function() {
-            User.create({id: 'helloworld'}).error(function(err) {
-              expect(err).to.deep.equal({id: ['ID must be an integer!']})
-              done()
-            })
-          })
-        })
-
         it('should emit an error when we try to enter in a string for an auto increment key (not named id)', function(done) {
           var User = this.sequelize.define('UserId', {
             username: {
@@ -357,6 +409,48 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           User.sync({ force: true }).success(function() {
             User.create({username: 'helloworldhelloworld'}).error(function(err) {
               expect(err).to.deep.equal({username: ['Username must be an integer!']})
+              done()
+            })
+          })
+        })
+
+        describe("primaryKey with the name as id with arguments for it's validation", function() {
+          beforeEach(function(done) {
+            this.User = this.sequelize.define('UserId', {
+              id: {
+                type: Sequelize.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+                validate: {
+                  isInt: { args: true, msg: 'ID must be an integer!' }
+                }
+              }
+            })
+
+            this.User.sync({ force: true }).success(function() {
+              done()
+            })
+          })
+
+          it('should emit an error when we try to enter in a string for the id key with validation arguments', function(done) {
+            this.User.create({id: 'helloworld'}).error(function(err) {
+              expect(err).to.deep.equal({id: ['ID must be an integer!']})
+              done()
+            })
+          })
+
+          it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', function(done) {
+            var user = this.User.build({id: 'helloworld'})
+              , errors = user.validate()
+
+            expect(errors).to.deep.equal({ id: [ 'ID must be an integer!' ] })
+            done()
+          })
+
+          it('should emit an error when we try to .save()', function(done) {
+            var user = this.User.build({id: 'helloworld'})
+            user.save().error(function(err) {
+              expect(err).to.deep.equal({ id: [ 'ID must be an integer!' ] })
               done()
             })
           })
@@ -445,6 +539,27 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       var successfulFoo = Foo.build({ field1: 33, field2: null })
       expect(successfulFoo.validate()).to.be.null
       done()
+    })
+
+    it('validates enums', function() {
+      var values = ['value1', 'value2']
+
+      var Bar = this.sequelize.define('Bar' + config.rand(), {
+        field: {
+          type: Sequelize.ENUM,
+          values: values,
+          validate: {
+            isIn: [values]
+          }
+        }
+      })
+
+      var failingBar = Bar.build({ field: 'value3' })
+        , errors     = failingBar.validate()
+
+      expect(errors).not.to.be.null
+      expect(errors.field).to.have.length(1)
+      expect(errors.field[0]).to.equal("Unexpected value or invalid argument: field")
     })
   })
 })
