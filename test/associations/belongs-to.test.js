@@ -10,12 +10,13 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   describe("Model.associations", function () {
     it("should store all assocations when associting to the same table multiple times", function () {
       var User = this.sequelize.define('User', {})
-        , Group = this.sequelize.define('Group', {});
+        , Group = this.sequelize.define('Group', {})
 
-      Group.belongsTo(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
-      Group.belongsTo(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
+      Group.belongsTo(User)
+      Group.belongsTo(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' })
+      Group.belongsTo(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' })
 
-      expect(Object.keys(Group.associations)).to.deep.equal(['primaryUsers', 'secondaryUsers'])
+      expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers'])
     })
   })
 
