@@ -269,15 +269,16 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         })
 
         User.sync({ force: true }).success(function() {
-          User.create({username: 'bob', email: 'hello@world.com'}).success(function(user) {
-            User.update({username: 'toni'}, {id: user.id})
-            .error(function(err) { console.log(err) })
-            .success(function() {
-              User.find(1).success(function(user) {
-                expect(user.username).to.equal('toni')
-                done()
+          User.create({ username: 'bob', email: 'hello@world.com' }).success(function(user) {
+            User
+              .update({ username: 'toni' }, { id: user.id })
+              .error(function(err) { console.log(err) })
+              .success(function() {
+                User.find(1).success(function(user) {
+                  expect(user.username).to.equal('toni')
+                  done()
+                })
               })
-            })
           })
         })
       })
