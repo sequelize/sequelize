@@ -5,6 +5,9 @@ before_script:
 script:
   - "make test"
 
+notifications:
+  email: false
+
 env:
   - DB=mysql DIALECT=mysql
   - DB=mysql DIALECT=postgres
