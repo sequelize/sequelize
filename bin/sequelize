@@ -77,16 +77,15 @@ var createMigrationsFolder = function(force) {
 var readConfig = function() {
   var config
   try {
-    config = fs.readFileSync(configuration.configFile)
+    config = require(configuration.configFile);
   } catch(e) {
     throw new Error('Error reading "' + relativeConfigFile() + '".')
   }
 
-  try {
-    config = JSON.parse(config)
-  } catch (e) {
-    throw new Error('Error parsing "' + relativeConfigFile() + '" as JSON.')
+  if(typeof config != 'object') {
+    throw new Error('Config must be an object: ' + relativeConfigFile());
   }
+
   console.log('Loaded configuration file "' + relativeConfigFile() + '".')
   if (config[configuration.environment]) {
     console.log('Using environment "' + configuration.environment + '".')
