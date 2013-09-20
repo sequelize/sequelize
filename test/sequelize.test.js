@@ -380,6 +380,15 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       expect(Project).to.exist
       done()
     })
+    it("imports a dao definition from a function", function(done) {
+      var Project = this.sequelize.import('Project', function(sequelize, DataTypes) {
+        return sequelize.define('Project' + parseInt(Math.random() * 9999999999999999), {
+          name: DataTypes.STRING
+        })
+      })    
+      expect(Project).to.exist
+      done()
+    })
   })
 
   describe('define', function() {
