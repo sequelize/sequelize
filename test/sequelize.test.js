@@ -375,8 +375,14 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
   })
 
   describe('import', function() {
-    it("imports a dao definition from a file", function(done) {
+    it("imports a dao definition from a file absolute path", function(done) {
       var Project = this.sequelize.import(__dirname + "/assets/project")
+      expect(Project).to.exist
+      done()
+    })
+
+    it("imports a dao definition from a file relative path", function(done) {
+      var Project = this.sequelize.import("assets/project")
       expect(Project).to.exist
       done()
     })
