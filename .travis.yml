@@ -10,6 +10,8 @@ notifications:
     - sascha@depold.com
   hipchat:
     - 40e8850aaba9854ac4c9963bd33f8b@253477
+  irc:
+    - "chat.freenode.net#sequelizejs"
 
 env:
   - DB=mysql DIALECT=mysql
@@ -22,3 +24,8 @@ language: node_js
 node_js:
   - "0.8"
   - "0.10"
+
+branches:
+  only:
+    - master
+    - milestones/2.0.0

@@ -333,7 +333,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
-    it("casts empty arrays correctly for postgresql", function(done) {
+    it("casts empty arrays correctly for postgresql insert", function(done) {
       if (dialect !== "postgres" && dialect !== "postgresql-native") {
         expect('').to.equal('')
         return done()
@@ -352,6 +352,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+    it("casts empty array correct for postgres update", function(done) {
+      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+        expect('').to.equal('')
+        return done()
+      }
+
+      var User = this.sequelize.define('UserWithArray', {
+        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+      })
+
+      User.sync({force: true}).success(function() {
+        User.create({myvals: [1,2,3,4], mystr: ["One", "Two", "Three", "Four"]}).on('success', function(user){
+         user.myvals = []
+          user.mystr = []
+          user.save().on('sql', function(sql) {
+            expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1)
+            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1)
+            done()
+          })
+        })
+      })
+    })
+
 
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
@@ -1064,6 +1088,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to find rows where attribute is in a list of values', function (done) {
+      this.User.findAll({
+        where: {
+          username: ['boo', 'boo2']
+        }
+      }).success(function(users){
+        expect(users).to.have.length(2);
+        done()
+      });
+    })
+
+    it('should not break when trying to find rows using an array of primary keys', function (done) {
+      this.User.findAll({
+        where: {
+          id: [1, 2, 3]
+        }
+      }).success(function(users){
+        done();
+      });
+    })
+
     it('should be able to find a row using like', function(done) {
       this.User.findAll({
         where: {
@@ -1426,14 +1471,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var self = this
         this.User.create({username: 'barfooz'}).success(function(user) {
           self.UserPrimary = self.sequelize.define('UserPrimary', {
-            specialKey: {
+            specialkey: {
               type: DataTypes.STRING,
               primaryKey: true
             }
           })
 
           self.UserPrimary.sync({force: true}).success(function() {
-            self.UserPrimary.create({specialKey: 'a string'}).success(function() {
+            self.UserPrimary.create({specialkey: 'a string'}).success(function() {
               self.user = user
               done()
             })
@@ -1441,9 +1486,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('does not modify the passed arguments', function (done) {
+        var options = { where: ['specialkey = ?', 'awesome']}
+
+        this.UserPrimary.find(options).success(function(user) {
+          expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']})
+          done()
+        })
+      })
+
       it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function(done) {
         this.UserPrimary.find('a string').success(function(user) {
-          expect(user.specialKey).to.equal('a string')
+          expect(user.specialkey).to.equal('a string')
           done()
         })
       })
@@ -1800,17 +1854,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerbelong', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerbelong', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerbelong', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerbelong', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.User.belongsTo(self.Group)
 
@@ -1830,6 +1884,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                    done()
                  })
               })
+            })
+          })
+        })
+
+        it('allows mulitple assocations of the same model with different alias', function (done) {
+          var self = this
+
+          this.Worker.belongsTo(this.Task, { as: 'ToDo' })
+          this.Worker.belongsTo(this.Task, { as: 'DoTo' })
+          this.init(function () {
+            self.Worker.find({
+              include: [
+                { model: self.Task, as: 'ToDo' },
+                { model: self.Task, as: 'DoTo' }
+              ]
+            }).success(function () {
+              // Just being able to include both shows that this test works, so no assertions needed
+              done()
             })
           })
         })
@@ -1869,17 +1941,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerone', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerone', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerone', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerone', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.Group.hasOne(self.User)
 
@@ -1954,6 +2026,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               done()
             })
           })
+
+           it('allows mulitple assocations of the same model with different alias', function (done) {
+            var self = this
+
+            this.Worker.hasOne(this.Task, { as: 'DoTo' })
+            this.init(function () {
+              self.Worker.find({
+                include: [
+                  { model: self.Task, as: 'ToDo' },
+                  { model: self.Task, as: 'DoTo' }
+                ]
+              }).success(function () {
+                // Just being able to include both shows that this test works, so no assertions needed
+                done()
+              })
+            })
+          })
         })
       })
 
@@ -1991,17 +2080,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('eager loads with non-id primary keys', function(done) {
           var self = this
-          self.User = self.sequelize.define('UserPKeagerone', { 
-            username: { 
+          self.User = self.sequelize.define('UserPKeagerone', {
+            username: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
-          self.Group = self.sequelize.define('GroupPKeagerone', { 
-            name: { 
+          self.Group = self.sequelize.define('GroupPKeagerone', {
+            name: {
               type: Sequelize.STRING,
               primaryKey: true
-            } 
+            }
           })
           self.Group.hasMany(self.User)
           self.User.hasMany(self.Group)
@@ -2023,7 +2112,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     expect(someUser.groupPKeagerones[0].name).to.equal('people')
                     done()
                   })
-                }) 
+                })
               })
             })
           })
@@ -2078,6 +2167,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }).complete(function(err, worker) {
               expect(worker.toDos[0].title).to.equal('homework')
               done()
+            })
+          })
+
+          it('allows mulitple assocations of the same model with different alias', function (done) {
+            var self = this
+
+            this.Worker.hasMany(this.Task, { as: 'DoTos' })
+            this.init(function () {
+              self.Worker.find({
+                include: [
+                  { model: self.Task, as: 'ToDos' },
+                  { model: self.Task, as: 'DoTos' }
+                ]
+              }).success(function () {
+                // Just being able to include both shows that this test works, so no assertions needed
+                done()
+              })
             })
           })
         })
@@ -2458,6 +2564,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('does not modify the passed arguments', function (done) {
+        var options = { where: ['username = ?', 'awesome']}
+
+        this.User.findAll(options).success(function(user) {
+          expect(options).to.deep.equal({ where: ['username = ?', 'awesome']})
+          done()
+        })
+      })
+
       it("finds all users matching the passed conditions", function(done) {
         this.User.findAll({where: "id != " + this.users[1].id}).success(function(users) {
           expect(users.length).to.equal(1)
@@ -2492,7 +2607,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       it("sorts the results via a date column", function(done) {
         var self = this
         self.User.create({username: 'user3', data: 'bar', theDate: moment().add('hours', 2).toDate()}).success(function(){
-          self.User.findAll({ order: 'theDate DESC' }).success(function(users) {
+          self.User.findAll({ order: [['theDate', 'DESC']] }).success(function(users) {
             expect(users[0].id).to.be.above(users[2].id)
             done()
           })
@@ -2686,6 +2801,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(count).to.equal(2)
           done()
         })
+      })
+    })
+
+    it('does not modify the passed arguments', function (done) {
+      var options = { where: ['username = ?', 'user1']}
+
+      this.User.count(options).success(function(count) {
+        expect(options).to.deep.equal({ where: ['username = ?', 'user1']})
+        done()
       })
     })
 
