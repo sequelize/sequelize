@@ -72,6 +72,7 @@
 - [FEATURE] Shortcut method for getting a defined model. [#868](https://github.com/sequelize/sequelize/pull/868). Thanks to jwilm.
 - [FEATURE] Added Sequelize.fn() and Sequelize.col() to properly call columns and functions within Sequelize. [#882](https://github.com/sequelize/sequelize/pull/882). thanks to janmeier
 - [FEATURE] Sequelize.import supports relative paths. [#901](https://github.com/sequelize/sequelize/pull/901). thanks to accerqueira.
+- [FEATURE] Sequelize.import can now handle functions. [#911](https://github.com/sequelize/sequelize/pull/911). Thanks to davidrivera.
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango
