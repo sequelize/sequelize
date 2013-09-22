@@ -308,6 +308,14 @@ if (dialect.match(/^mysql/)) {
         }, {
           arguments: ['myTable', {foo: true}],
           expectation: "INSERT INTO `myTable` (`foo`) VALUES (true);"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              foo: sequelize.fn('NOW')
+            }
+          }],
+          expectation: "INSERT INTO `myTable` (`foo`) VALUES (NOW());",
+          needsSequelize: true
         }
       ],
 
@@ -375,6 +383,22 @@ if (dialect.match(/^mysql/)) {
         }, {
           arguments: ['myTable', {bar: true}, {name: 'foo'}],
           expectation: "UPDATE `myTable` SET `bar`=true WHERE `name`='foo'"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.fn('NOW')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=NOW() WHERE `name`='foo'",
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.col('foo')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name`='foo'",
+          needsSequelize: true
         }
       ],
 

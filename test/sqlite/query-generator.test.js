@@ -294,6 +294,14 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
           expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
           context: {options: {omitNull: true}}
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              foo: sequelize.fn('NOW')
+            }
+          }],
+          expectation: "INSERT INTO `myTable` (`foo`) VALUES (NOW());",
+          needsSequelize: true
         }
       ],
 
@@ -373,6 +381,22 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
           expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'",
           context: {options: {omitNull: true}}
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.fn('NOW')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=NOW() WHERE `name`='foo'",
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.col('foo')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name`='foo'",
+          needsSequelize: true
         }
       ],
 

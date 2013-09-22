@@ -333,6 +333,68 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
+    it('is possible to use funtions when creating an instance', function (done) {
+      var self = this
+      this.User.create({
+        secretValue: this.sequelize.fn('upper', 'sequelize')
+      }).success(function (user) {
+        self.User.find(user.id).success(function (user) {
+          expect(user.secretValue).to.equal('SEQUELIZE')
+          done()
+        })
+      })
+    })
+    it('is possible to use functions as default values', function (done) {
+      var self = this
+        , userWithDefaults
+
+      if (dialect.indexOf('postgres') === 0) {
+        this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"').success(function() {
+          userWithDefaults = self.sequelize.define('userWithDefaults', {
+            uuid: {
+              type: 'UUID',
+              defaultValue: self.sequelize.fn('uuid_generate_v4')
+            }
+          })
+
+          userWithDefaults.sync({force: true}).success(function () {
+            userWithDefaults.create({}).success(function (user) {
+              // uuid validation regex taken from http://stackoverflow.com/a/13653180/800016
+              expect(user.uuid).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+              done()
+            })
+          })
+        })
+      } else if (dialect === 'sqlite') {
+        // The definition here is a bit hacky. sqlite expects () around the expression for default values, so we call a function without a name
+        // to enclose the date function in (). http://www.sqlite.org/syntaxdiagrams.html#column-constraint
+        userWithDefaults = self.sequelize.define('userWithDefaults', {
+          year: {
+            type: Sequelize.STRING,
+            defaultValue: self.sequelize.fn('', self.sequelize.fn('date', 'now'))
+          }
+        })
+
+        userWithDefaults.sync({force: true}).success(function () {
+          userWithDefaults.create({}).success(function (user) {
+            userWithDefaults.find(user.id).success(function (user) {
+              var now = new Date()
+                , pad = function (number) {
+                  if (number > 9) {
+                    return number
+                  } 
+                  return '0' + number
+                }
+              expect(user.year).to.equal(now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()))
+              done()
+            })
+          })
+        })
+      } else {
+        // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
+        done()
+      }
+    })
     it("casts empty arrays correctly for postgresql insert", function(done) {
       if (dialect !== "postgres" && dialect !== "postgresql-native") {
         expect('').to.equal('')
@@ -952,6 +1014,21 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               done()
             })
           })
+      })
+    })
+
+    it('updates with function and column value', function (done) {
+      var self = this
+
+      this.User.create({
+        username: 'John'
+      }).success(function(user) {
+        self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {username: 'John'}).success(function () {
+          self.User.all().success(function(users) {
+            expect(users[0].username).to.equal('JOHN')
+            done()
+          })
+        })
       })
     })
 
