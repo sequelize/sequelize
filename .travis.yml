@@ -6,12 +6,7 @@ script:
   - "make test"
 
 notifications:
-  email:
-    - sascha@depold.com
-  hipchat:
-    - 40e8850aaba9854ac4c9963bd33f8b@253477
-  irc:
-    - "chat.freenode.net#sequelizejs"
+  email: false
 
 env:
   - DB=mysql DIALECT=mysql
