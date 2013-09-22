@@ -451,6 +451,14 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;') RETURNING *;"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              foo: sequelize.fn('NOW')
+            }
+          }],
+          expectation: "INSERT INTO \"myTable\" (\"foo\") VALUES (NOW()) RETURNING *;",
+          needsSequelize: true
         },
 
         // Variants when quoteIdentifiers is false
@@ -630,6 +638,22 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
           expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo' RETURNING *"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.fn('NOW')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE \"myTable\" SET \"bar\"=NOW() WHERE \"name\"='foo' RETURNING *",
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.col('foo')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE \"myTable\" SET \"bar\"=\"foo\" WHERE \"name\"='foo' RETURNING *",
+          needsSequelize: true
         },
 
         // Variants when quoteIdentifiers is false

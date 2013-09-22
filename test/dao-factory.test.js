@@ -333,6 +333,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
+    it('is possible to use funtions when creating an instance', function (done) {
+      var self = this
+      this.User.create({
+        secretValue: this.sequelize.fn('upper', 'sequelize')
+      }).success(function (user) {
+        self.User.find(user.id).success(function (user) {
+          expect(user.secretValue).to.equal('SEQUELIZE')
+          done()
+        })
+      })
+    })
     it("casts empty arrays correctly for postgresql insert", function(done) {
       if (dialect !== "postgres" && dialect !== "postgresql-native") {
         expect('').to.equal('')
@@ -952,6 +963,21 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               done()
             })
           })
+      })
+    })
+
+    it('updates with function and column value', function (done) {
+      var self = this
+
+      this.User.create({
+        username: 'John'
+      }).success(function(user) {
+        self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {username: 'John'}).success(function () {
+          self.User.all().success(function(users) {
+            expect(users[0].username).to.equal('JOHN')
+            done()
+          })
+        })
       })
     })
 
