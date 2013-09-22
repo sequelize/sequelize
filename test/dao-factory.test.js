@@ -349,18 +349,20 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         , userWithDefaults
 
       if (dialect.indexOf('postgres') === 0) {
-        userWithDefaults = self.sequelize.define('userWithDefaults', {
-          uuid: {
-            type: 'UUID',
-            defaultValue: self.sequelize.fn('uuid_generate_v4')
-          }
-        })
+        this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"').success(function() {
+          userWithDefaults = self.sequelize.define('userWithDefaults', {
+            uuid: {
+              type: 'UUID',
+              defaultValue: self.sequelize.fn('uuid_generate_v4')
+            }
+          })
 
-        userWithDefaults.sync({force: true}).success(function () {
-          userWithDefaults.create({}).success(function (user) {
-            // uuid validation regex taken from http://stackoverflow.com/a/13653180/800016
-            expect(user.uuid).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-            done()
+          userWithDefaults.sync({force: true}).success(function () {
+            userWithDefaults.create({}).success(function (user) {
+              // uuid validation regex taken from http://stackoverflow.com/a/13653180/800016
+              expect(user.uuid).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+              done()
+            })
           })
         })
       } else if (dialect === 'sqlite') {
