@@ -641,6 +641,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       }, 1000)
     })
 
+    it('updates with function and column value', function (done) {
+      var self = this
+
+      this.User.create({
+        aNumber: 42
+      }).success(function(user) {
+        user.bNumber = self.sequelize.col('aNumber')
+        user.username = self.sequelize.fn('upper', 'sequelize')
+
+        user.save().success(function(){
+          self.User.find(user.id).success(function(user2) {
+            expect(user2.username).to.equal('SEQUELIZE')
+            expect(user2.bNumber).to.equal(42)
+            done()
+          })
+        })
+      })
+    })
+
     describe('without timestamps option', function() {
       it("doesn't update the updatedAt column", function(done) {
         var User2 = this.sequelize.define('User2', {
