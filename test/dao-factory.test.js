@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 , pad = function (number) {
                   if (number > 9) {
                     return number
-                  } 
+                  }
                   return '0' + number
                 }
               expect(user.year).to.equal(now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()))
@@ -2273,6 +2273,62 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         this.User.create({username: 'barfooz'}).success(function(user) {
           self.user = user
           done()
+        })
+      })
+
+      describe('should return an error when we declared onNullError to not equal false', function() {
+        describe('returns an error from the factory', function() {
+          beforeEach(function(done) {
+            this.User = this.sequelize.define('UserTest', {
+              username: Sequelize.STRING
+            }, {
+              onNullError: 'No users were found!'
+            })
+
+            this.User.sync({ force: true }).success(function() {
+              done()
+            })
+          })
+
+          it('on find', function(done) {
+            this.User.find({where: {username: ''}}).error(function(err) {
+              expect(err).to.equal('No users were found!')
+              done()
+            })
+          })
+
+          it('on all', function(done) {
+            this.User.all().error(function(err) {
+              expect(err).to.equal('No users were found!')
+              done()
+            })
+          })
+        })
+
+        describe('returns an error from the function options', function() {
+          beforeEach(function(done) {
+            this.User = this.sequelize.define('UserTest', {
+              username: Sequelize.STRING
+            })
+
+            this.User.sync({ force: true }).success(function() {
+              done()
+            })
+          })
+
+          it('on find', function(done) {
+            this.User.find({where: {username: ''}}, {onNullError: 'No users were found!'}).error(function(err) {
+              expect(err).to.equal('No users were found!')
+              done()
+            })
+          })
+
+          it('on all', function(done) {
+            this.User.all({}, {onNullError: 'No users were found!'}).error(function(err) {
+              expect(err).to.equal('No users were found!')
+              done()
+            })
+          })
         })
       })
 
