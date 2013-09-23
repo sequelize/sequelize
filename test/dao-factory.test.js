@@ -108,6 +108,39 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       done()
     })
 
+    it('should allow me to set a default value for createdAt and updatedAt', function(done) {
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: Sequelize.INTEGER,
+        createdAt: {
+          type: Sequelize.DATE,
+          defaultValue: moment('2012-01-01').toDate()
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+          defaultValue: moment('2012-01-02').toDate()
+        }
+      }, { timestamps: true })
+
+      UserTable.sync({ force: true }).success(function() {
+        UserTable.create({aNumber: 5}).success(function(user) {
+          UserTable.bulkCreate([
+            {aNumber: 10},
+            {aNumber: 12}
+          ]).success(function() {
+            UserTable.all({where: {aNumber: { gte: 10 }}}).success(function(users) {
+              expect(moment(user.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01')
+              expect(moment(user.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02')
+              users.forEach(function(u) {
+                expect(moment(u.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01')
+                expect(moment(u.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02')
+              })
+              done()
+            })
+          })
+        })
+      })
+    })
+
     it('should allow me to override updatedAt, createdAt, and deletedAt fields', function(done) {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: Sequelize.INTEGER
@@ -382,7 +415,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 , pad = function (number) {
                   if (number > 9) {
                     return number
-                  } 
+                  }
                   return '0' + number
                 }
               expect(user.year).to.equal(now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()))
