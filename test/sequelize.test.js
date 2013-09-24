@@ -7,6 +7,7 @@ var chai      = require('chai')
   , Sequelize = require(__dirname + '/../index')
   , config    = require(__dirname + "/config/config")
   , moment    = require('moment')
+  , sinon     = require('sinon')
 
 chai.Assertion.includeStack = true
 
@@ -358,6 +359,37 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           expect(err.message.toString()).to.match(/.*Access\ denied.*/)
         }
         done()
+      })
+    })
+
+    describe("doesn't emit logging when explicitly saying not to", function() {
+      afterEach(function(done) {
+        this.sequelize.options.logging = false
+        done()
+      })
+
+      beforeEach(function(done) {
+        this.spy = sinon.spy()
+        var self = this
+        this.sequelize.options.logging = function() { self.spy() }
+        this.User = this.sequelize.define('UserTest', { username: DataTypes.STRING })
+        done()
+      })
+
+      it('through Sequelize.sync()', function(done) {
+        var self = this
+        this.sequelize.sync({ force: true, logging: false }).success(function() {
+          expect(self.spy.notCalled).to.be.true
+          done()
+        })
+      })
+
+      it('through DAOFactory.sync()', function(done) {
+        var self = this
+        this.User.sync({ force: true, logging: false }).success(function() {
+          expect(self.spy.notCalled).to.be.true
+          done()
+        })
       })
     })
   })
