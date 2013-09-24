@@ -382,10 +382,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 , pad = function (number) {
                   if (number > 9) {
                     return number
-                  } 
+                  }
                   return '0' + number
                 }
-              expect(user.year).to.equal(now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()))
+
+              expect(user.year).to.equal(now.getUTCFullYear() + '-' + pad(now.getUTCMonth() + 1) + '-' + pad(now.getUTCDate()))
               done()
             })
           })
@@ -1119,6 +1120,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
       var self = this
+        , ident = self.sequelize.queryInterface.QueryGenerator.quoteIdentifier
+        , escape = self.sequelize.queryInterface.QueryGenerator.quote
         , ParanoidUser = self.sequelize.define('ParanoidUser', {
           username:     Sequelize.STRING,
           secretValue:  Sequelize.STRING,
@@ -1133,19 +1136,57 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       ParanoidUser.sync({ force: true }).success(function() {
         ParanoidUser.bulkCreate(data).success(function() {
-          var date = parseInt(+new Date()/5000, 10)
+          // since we save in UTC, let's format to UTC time
+          var date = moment().utc().format('YYYY-MM-DD h:mm')
           ParanoidUser.destroy({secretValue: '42'}).success(function() {
             ParanoidUser.findAll({order: 'id'}).success(function(users) {
-              expect(users.length).to.equal(3)
+              expect(users.length).to.equal(1)
+              expect(users[0].username).to.equal("Bob")
 
-              expect(users[0].username).to.equal("Peter")
-              expect(users[1].username).to.equal("Paul")
-              expect(users[2].username).to.equal("Bob")
+              self.sequelize.query('SELECT * FROM ' + ident('ParanoidUsers') + ' WHERE ' + ident('deletedAt') + ' IS NOT NULL ORDER BY ' + ident('id'), null, {raw: true}).success(function(users) {
+                expect(users[0].username).to.equal("Peter")
+                expect(users[1].username).to.equal("Paul")
 
-              expect(parseInt(+users[0].deletedAt/5000, 10)).to.equal(date)
-              expect(parseInt(+users[1].deletedAt/5000, 10)).to.equal(date)
+                if (dialect === "sqlite") {
+                  expect(moment(users[0].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
+                  expect(moment(users[1].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
+                } else {
+                  expect(moment(users[0].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                  expect(moment(users[1].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                }
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
 
-              done()
+    describe("can't find records marked as deleted with paranoid being true", function() {
+      it('with the DAOFactory', function(done) {
+        var User = this.sequelize.define('UserCol', {
+          username: Sequelize.STRING
+        }, { paranoid: true })
+
+        User.sync({ force: true }).success(function() {
+          User.bulkCreate([
+            {username: 'Toni'},
+            {username: 'Tobi'},
+            {username: 'Max'}
+          ]).success(function() {
+            User.find(1).success(function(user) {
+              user.destroy().success(function() {
+                User.find(1).success(function(user) {
+                  expect(user).to.be.null
+                  User.count().success(function(cnt) {
+                    expect(cnt).to.equal(2)
+                    User.all().success(function(users) {
+                      expect(users).to.have.length(2)
+                      done()
+                    })
+                  })
+                })
+              })
             })
           })
         })
@@ -2693,6 +2734,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       it("handles offset and limit", function(done) {
         var self = this
+
         this.User.bulkCreate([{username: 'bobby'}, {username: 'tables'}]).success(function() {
           self.User.findAll({ limit: 2, offset: 2 }).success(function(users) {
             expect(users.length).to.equal(2)
@@ -2780,6 +2822,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         done()
       })
     })
+
     it("handles attributes", function(done) {
       this.User.findAndCountAll({where: "id != " + this.users[0].id, attributes: ['data']}).success(function(info) {
         expect(info.count).to.equal(2)
