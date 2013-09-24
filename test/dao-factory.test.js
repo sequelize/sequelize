@@ -69,6 +69,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       done()
     })
 
+    it('allows us us to predefine the ID column with our own specs', function(done) {
+      var User = this.sequelize.define('UserCol', {
+        id: {
+          type: Sequelize.STRING,
+          defaultValue: 'User',
+          primaryKey: true
+        }
+      })
+
+      User.sync({ force: true }).success(function() {
+        User.create({id: 'My own ID!'}).success(function(user) {
+          expect(user.id).to.equal('My own ID!')
+          done()
+        })
+      })
+    })
+
     it("throws an error if 2 autoIncrements are passed", function(done) {
       var self = this
       expect(function() {
@@ -382,7 +399,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 , pad = function (number) {
                   if (number > 9) {
                     return number
-                  } 
+                  }
                   return '0' + number
                 }
               expect(user.year).to.equal(now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()))
