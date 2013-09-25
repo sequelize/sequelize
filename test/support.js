@@ -35,7 +35,8 @@ var Support = {
       logging: options.logging,
       dialect: options.dialect,
       port:    options.port || process.env.SEQ_PORT || config[options.dialect].port,
-      pool:    options.pool
+      pool:    options.pool,
+      connectionOptions: options.connectionOptions || {}
     }
 
     if (!!options.host) {
