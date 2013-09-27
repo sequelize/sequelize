@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
     it('should accept four parameters (database, username, password, options)', function(done) {
       var sequelize = new Sequelize('dbname', 'root', 'pass', {
         port: 999,
-        connectionOptions: {
+        dialectOptions: {
           supportBigNumbers: true,
           bigNumberStrings: true
         }
@@ -114,8 +114,8 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       expect(config.username).to.equal('root')
       expect(config.password).to.equal('pass')
       expect(config.port).to.equal(999)
-      expect(config.connectionOptions.supportBigNumbers).to.be.true
-      expect(config.connectionOptions.bigNumberStrings).to.be.true
+      expect(config.dialectOptions.supportBigNumbers).to.be.true
+      expect(config.dialectOptions.bigNumberStrings).to.be.true
       done()
     })
   })
