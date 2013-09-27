@@ -35,7 +35,7 @@
     "validator": "1.1.1",
     "moment": "~1.7.0",
     "commander": "~0.6.0",
-    "generic-pool": "1.0.9",
+    "generic-pool": "1.0.12",
     "dottie": "0.0.6-1",
     "toposort-class": "0.1.4"
   },
@@ -47,8 +47,7 @@
     "mariasql": "~0.1.18",
     "buster": "~0.6.0",
     "watchr": "~2.2.0",
-    "yuidocjs": "~0.3.36",
-    "mariasql": "~0.1.18"
+    "yuidocjs": "~0.3.36"
   },
   "keywords": [
     "mysql",

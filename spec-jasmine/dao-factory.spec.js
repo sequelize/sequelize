@@ -1,6 +1,6 @@
 var config    = require("./config/config")
   , Sequelize = require("../index")
-  , dialects  = ['sqlite', 'mysql', 'postgres']
+  , dialects  = ['sqlite', 'mysql', 'mariadb', 'postgres']
 
 describe('DAOFactory', function() {
   dialects.forEach(function(dialect) {
