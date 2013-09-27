@@ -3533,10 +3533,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
   describe('references', function() {
     this.timeout(3000)
+
     beforeEach(function(done) {
-      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
-      this.Author.sync({ force: true }).success(function() {
-        done()
+      var self = this
+
+      Support.clearDatabase(this.sequelize, function() {
+        self.Author = self.sequelize.define('author', { firstName: Sequelize.STRING })
+        self.Author.sync({ force: true }).success(function() {
+          done()
+        })
       })
     })
 
