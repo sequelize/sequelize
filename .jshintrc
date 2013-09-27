@@ -1,6 +1,5 @@
 {
     "globals": {
-        "jasmine": false,
         "spyOn": false,
         "it": false,
         "console": false,
@@ -18,5 +17,6 @@
     "unused": true,
     "asi": true,
     "evil": false,
-    "laxcomma": true
+    "laxcomma": true,
+    "es5": true
 }

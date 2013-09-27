@@ -1,134 +1,35 @@
 #!/usr/bin/env node
 
-const path      = require("path")
-    , fs        = require("fs")
-    , program   = require("commander")
-    , Sequelize = require(__dirname + '/../index')
-    , moment    = require("moment")
-    , _         = Sequelize.Utils._
+var path      = require("path")
+  , fs        = require("fs")
+  , program   = require("commander")
+  , Sequelize = require(__dirname + '/../index')
+  , moment    = require("moment")
+  , _         = Sequelize.Utils._
 
-var configPath       = process.cwd() + '/config'
-  , environment      = process.env.NODE_ENV || 'development'
-  , migrationsPath   = process.cwd() + '/migrations'
-  , packageJsonPath  = __dirname + '/../package.json'
-  , packageJson      = JSON.parse(fs.readFileSync(packageJsonPath).toString())
-  , configFile       = configPath + '/config.json'
-  , configPathExists = fs.existsSync(configPath)
-  , configFileExists = fs.existsSync(configFile)
-
-var writeConfig = function(config) {
-  !configPathExists && fs.mkdirSync(configPath)
-
-  config = JSON.stringify(config)
-  config = config.replace('{', '{\n  ')
-  config = config.replace(/,/g, ",\n  ")
-  config = config.replace('}', "\n}")
-
-  fs.writeFileSync(configFile, config)
+var configuration = {
+  configFile: process.cwd() + '/config/config.json',
+  environment: process.env.NODE_ENV || 'development',
+  version: require(__dirname + '/../package.json').version,
+  migrationsPath: process.cwd() + '/migrations'
 }
 
-var createMigrationsFolder = function(force) {
-  if(force) {
-    console.log('Deleting the migrations folder.')
-    try {
-      fs.readdirSync(migrationsPath).forEach(function(filename) {
-        fs.unlinkSync(migrationsPath + '/' + filename)
-      })
-    } catch(e) {}
-    try {
-      fs.rmdirSync(migrationsPath)
-      console.log('Successfully deleted the migrations folder.')
-    } catch(e) {}
-  }
-
-  console.log('Creating migrations folder.')
-  try {
-    fs.mkdirSync(migrationsPath)
-    console.log('Successfully create migrations folder.')
-  } catch(e) {
-    console.log('Migrations folder already exist.')
-  }
+var configFileExists = function() {
+  return fs.existsSync(configuration.configFile)
 }
 
-var readConfig = function() {
-  var config
-  try {
-    config = fs.readFileSync(configFile)
-  } catch(e) {
-    throw new Error('Error reading "config/config.json".')
-  }
-
-  try {
-    config = JSON.parse(config)
-  } catch (e) {
-    throw new Error('Error parsing "config/config.json" as JSON.')
-  }
-
-  if (config[environment]) {
-    config = config[environment]
-  }
-  return config
+var relativeConfigFile = function() {
+  return path.relative(process.cwd(), configuration.configFile)
 }
 
-program
-  .version(packageJson.version)
-  .option('-i, --init', 'Initializes the project.')
-  .option('-e, --env <environment>', 'Specify the environment.')
-  .option('-m, --migrate', 'Run pending migrations.')
-  .option('-u, --undo', 'Undo the last migration.')
-  .option('-f, --force', 'Forces the action to be done.')
-  .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
-  .parse(process.argv)
+var writeDefaultConfig = function(config) {
+  var configPath = path.dirname(configuration.configFile)
 
-if(typeof program.env === 'string') {
-  environment = program.env
-}
-console.log("Using environment '" + environment + "'.")
-
-if(program.migrate) {
-  if(configFileExists) {
-    var config
-      , options  = {}
-
-    try {
-      config = readConfig()
-    } catch(e) {
-      console.log(e.message)
-      process.exit(1)
-    }
-
-    _.each(config, function(value, key) {
-      if(['database', 'username', 'password'].indexOf(key) == -1) {
-        options[key] = value
-      }
-    })
-
-    options = _.extend(options, { logging: false })
-
-    var sequelize       = new Sequelize(config.database, config.username, config.password, options)
-      , migratorOptions = { path: migrationsPath }
-      , migrator        = sequelize.getMigrator(migratorOptions)
-
-    if(program.undo) {
-      sequelize.migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
-        Meta.find({ order: 'id DESC' }).success(function(meta) {
-          if(meta) {
-            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
-          }
-
-          migrator.migrate({ method: 'down' })
-        })
-      })
-    } else {
-      sequelize.migrate()
-    }
-  } else {
-    console.log('Cannot find "config/config.json". Have you run "sequelize --init"?')
-    process.exit(1)
+  if (!fs.existsSync(configPath)) {
+    fs.mkdirSync(configPath)
   }
-} else if(program.init) {
-  if(!configFileExists || !!program.force) {
-    writeConfig({
+
+  config = JSON.stringify({
       development: {
         username: "root",
         password: null,
@@ -147,11 +48,139 @@ if(program.migrate) {
         database: 'database_production',
         host: '127.0.0.1'
       }
+    }, undefined, 2) + "\n"
+
+  fs.writeFileSync(configuration.configFile, config)
+}
+
+var createMigrationsFolder = function(force) {
+  if(force) {
+    console.log('Deleting the migrations folder. (--force)')
+    try {
+      fs.readdirSync(configuration.migrationsPath).forEach(function(filename) {
+        fs.unlinkSync(configuration.migrationsPath + '/' + filename)
+      })
+    } catch(e) {}
+    try {
+      fs.rmdirSync(configuration.migrationsPath)
+      console.log('Successfully deleted the migrations folder.')
+    } catch(e) {}
+  }
+
+  try {
+    fs.mkdirSync(configuration.migrationsPath)
+    console.log('Successfully created migrations folder at "' + configuration.migrationsPath + '".')
+  } catch(e) {
+  }
+}
+
+var readConfig = function() {
+  var config
+  try {
+    config = require(configuration.configFile);
+  } catch(e) {
+    throw new Error('Error reading "' + relativeConfigFile() + '".')
+  }
+
+  if(typeof config != 'object') {
+    throw new Error('Config must be an object: ' + relativeConfigFile());
+  }
+
+  console.log('Loaded configuration file "' + relativeConfigFile() + '".')
+  if (config[configuration.environment]) {
+    console.log('Using environment "' + configuration.environment + '".')
+    config = config[configuration.environment]
+  }
+  return config
+}
+
+program
+  .version(configuration.version)
+  .option('-i, --init', 'Initializes the project.')
+  .option('-e, --env <environment>', 'Specify the environment.')
+  .option('-m, --migrate', 'Run pending migrations.')
+  .option('-u, --undo', 'Undo the last migration.')
+  .option('-f, --force', 'Forces the action to be done.')
+  .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
+  .option('--config <config_file>', 'Specifies alternate config file.')
+  .parse(process.argv)
+
+if(typeof program.config === 'string') {
+  configuration.configFile = program.config
+}
+
+if(typeof program.env === 'string') {
+  configuration.environment = program.env
+}
+
+if (program.migrate) {
+  if (configFileExists()) {
+    var config
+      , options  = {}
+
+    try {
+      config = readConfig()
+    } catch(e) {
+      console.log(e.message)
+      process.exit(1)
+    }
+
+    _.each(config, function(value, key) {
+      if(['database', 'username', 'password'].indexOf(key) == -1) {
+        options[key] = value
+      }
+
+      if (key === "use_env_variable") {
+        if (process.env[value]) {
+          var db_info = process.env[value].match(
+                  /([^:]+):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+          config.database = db_info[6];
+          config.username = db_info[2];
+          config.password = db_info[3];
+          options = _.extend(options, {
+            host: db_info[4],
+            port: db_info[5],
+            dialect: db_info[1],
+            protocol: db_info[1]
+          });
+        }
+      }
     })
 
-    console.log('Created "config/config.json"')
+    options = _.extend(options, { logging: false })
+
+    var sequelize       = new Sequelize(config.database, config.username, config.password, options)
+      , migratorOptions = { path: configuration.migrationsPath }
+      , migrator        = sequelize.getMigrator(migratorOptions)
+
+    if (program.undo) {
+      sequelize.migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
+        Meta.find({ order: 'id DESC' }).success(function(meta) {
+          if (meta) {
+            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
+          }
+
+          migrator.migrate({ method: 'down' }).success(function() {
+            process.exit(0)
+          })
+        })
+      })
+    } else {
+      sequelize.migrate().success(function() {
+        process.exit(0)
+      })
+    }
   } else {
-    console.log('"config/config.json" already exists. Run "sequelize --init --force" to overwrite.')
+    console.log('Cannot find "' + relativeConfigFile() + '". Have you run "sequelize --init"?')
+    process.exit(1)
+  }
+} else if(program.init) {
+  if(!configFileExists() || !!program.force) {
+    writeDefaultConfig()
+
+    console.log('Created "' + relativeConfigFile() + '"')
+  } else {
+    console.log('The file "' + relativeConfigFile() + '" already exists. Run "sequelize --init --force" to overwrite it.')
     process.exit(1)
   }
 
@@ -175,9 +204,11 @@ if(program.migrate) {
     "    done()",
     "  }",
     "}"
-  ].join('\n')
+  ].join('\n') + "\n"
 
-  fs.writeFileSync(migrationsPath + '/' + migrationName, migrationContent)
+  fs.writeFileSync(configuration.migrationsPath + '/' + migrationName, migrationContent)
+  console.log('New migration "' + migrationName + '" was added to "' +
+              path.relative(process.cwd(), configuration.migrationsPath) + '/".')
 } else {
-  console.log('Try "sequelize --help" for usage information.')
+  console.log('No action specified. Try "sequelize --help" for usage information.')
 }

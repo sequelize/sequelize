@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "1.7.0-alpha1",
+  "version": "1.7.0-beta.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -17,8 +17,15 @@
       "email": "sky@skytrife.com"
     },
     {
-      "name": "Jan Aagaard Meier (Innofluence)",
-      "email": "jam@innofluence.com"
+      "name": "Jan Aagaard Meier",
+      "email": [
+        "janzeh@gmail.com",
+        "jmei@itu.dk"
+      ]
+    },
+    {
+      "name": "Daniel Durante",
+      "email": "me@danieldurante.com"
     }
   ],
   "repository": {
@@ -29,25 +36,29 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "lodash": "~1.2.1",
+    "lodash": "~2.1.0",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
-    "validator": "1.1.1",
-    "moment": "~1.7.0",
-    "commander": "~0.6.0",
-    "generic-pool": "1.0.12",
-    "dottie": "0.0.6-1",
-    "toposort-class": "0.1.4"
+    "validator": "~1.5.0",
+    "moment": "~2.2.1",
+    "commander": "~2.0.0",
+    "dottie": "0.0.8-0",
+    "toposort-class": "~0.2.0",
+    "generic-pool": "2.0.4",
+    "promise": "~3.2.0",
+    "sql": "~0.26.0"
   },
   "devDependencies": {
-    "jasmine-node": "1.5.0",
-    "sqlite3": "~2.1.5",
-    "mysql": "~2.0.0-alpha7",
-    "pg": "~0.10.2",
-    "mariasql": "~0.1.18",
-    "buster": "~0.6.0",
-    "watchr": "~2.2.0",
-    "yuidocjs": "~0.3.36"
+    "sqlite3": "~2.1.12",
+    "mysql": "~2.0.0-alpha8",
+    "pg": "~2.6.0",
+    "watchr": "~2.4.3",
+    "yuidocjs": "~0.3.36",
+    "chai": "~1.8.0",
+    "mocha": "~1.13.0",
+    "chai-datetime": "~1.1.1",
+    "sinon": "~1.7.3",
+    "mariasql": "~0.1.19"
   },
   "keywords": [
     "mysql",
@@ -57,22 +68,14 @@
   ],
   "main": "index",
   "scripts": {
-    "test": "npm run test-jasmine && npm run test-buster",
-    "test-jasmine": "jasmine-node spec-jasmine/",
-    "test-buster": "npm run test-buster-mysql && npm run test-buster-postgres && npm run test-buster-postgres-native && npm run test-buster-sqlite && npm run test-buster-mariadb",
-    "test-buster-travis": "buster-test",
-    "test-buster-mysql": "DIALECT=mysql buster-test",
-    "test-buster-postgres": "DIALECT=postgres buster-test",
-    "test-buster-postgres-native": "DIALECT=postgres-native buster-test",
-    "test-buster-sqlite": "DIALECT=sqlite buster-test",
-    "test-buster-mariadb": "DIALECT=mariadb buster-test",
+    "test": "make all",
     "docs": "node_modules/.bin/yuidoc . -o docs"
   },
   "bin": {
     "sequelize": "bin/sequelize"
   },
   "engines": {
-    "node": ">=0.4.6"
+    "node": ">=0.6.21"
   },
   "license": "MIT"
 }

@@ -1,17 +1,85 @@
 # v1.7.0 #
 - [DEPENDENCIES] Upgraded validator for IPv6 support. [#603](https://github.com/sequelize/sequelize/pull/603). thanks to durango
-- [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [DEPENDENCIES] replaced underscore by lodash. [#954](https://github.com/sequelize/sequelize/pull/594). thanks to durango
+- [DEPENDENCIES] Upgraded pg to 2.0.0. [#711](https://github.com/sequelize/sequelize/pull/711). thanks to durango
+- [DEPENDENCIES] Upgraded command to 2.0.0 and generic-pool to 2.0.4. thanks to durango
+- [DEPENDENCIES] No longer require semver. thanks to durango
 - [BUG] Fix string escape with postgresql on raw SQL queries. [#586](https://github.com/sequelize/sequelize/pull/586). thanks to zanamixx
 - [BUG] "order by" is now after "group by". [#585](https://github.com/sequelize/sequelize/pull/585). thanks to mekanics
 - [BUG] Added decimal support for min/max. [#583](https://github.com/sequelize/sequelize/pull/583). thanks to durango
 - [BUG] Null dates don't break SQLite anymore. [#572](https://github.com/sequelize/sequelize/pull/572). thanks to mweibel
+- [BUG] Correctly handle booleans in MySQL. [#608](https://github.com/sequelize/sequelize/pull/608). Thanks to terraflubb
+- [BUG] Fixed empty where conditions in MySQL. [#619](https://github.com/sequelize/sequelize/pull/619). Thanks to terraflubb
+- [BUG] Allow overriding of default columns. [#635](https://github.com/sequelize/sequelize/pull/635). Thanks to sevastos
+- [BUG] Fix where params for belongsTo [#658](https://github.com/sequelize/sequelize/pull/658). Thanks to mweibel
+- [BUG] Default ports are now declared in the connector manager, which means the default port for PG correctly becomes 5432. [#633](https://github.com/sequelize/sequelize/issues/633). durango
+- [BUG] Columns with type BOOLEAN were always added to toJSON output, even if they were not selected [see](https://gist.github.com/gchaincl/45aca14e93934bf4a05e). janmeier
+- [BUG] Hstore is now fully supported [#695](https://github.com/sequelize/sequelize/pull/695). thanks to tadman
+- [BUG] Correct join table name for tables with custom names [#698](https://github.com/sequelize/sequelize/pull/698). thanks to jjclark1982
+- [BUG] PostgreSQL should now be able to insert empty arrays with typecasting. [#718](https://github.com/sequelize/sequelize/pull/718). thanks to durango
+- [BUG] Fields should be escaped by quoteIdentifier for max/min functions which allows SQL reserved keywords to be used. [#719](https://github.com/sequelize/sequelize/pull/719). thanks to durango
+- [BUG] Fixed bug when trying to save objects with eagerly loaded attributes [#716](https://github.com/sequelize/sequelize/pull/716). thanks to iamjochen
+- [BUG] Strings for .find() should be fixed. Also added support for string primary keys to be found easily. [#737](https://github.com/sequelize/sequelize/pull/737). thanks to durango
+- [BUG] bulkCreate would have problems with a disparate field list [#738](https://github.com/sequelize/sequelize/pull/738). thanks to durango
+- [BUG] Fixed problems with quoteIdentifiers and {raw: false} option on raw queries [#751](https://github.com/sequelize/sequelize/pull/751). thanks to janmeier
+- [BUG] Fixed SQL escaping with sqlite and unified escaping [#700](https://github.com/sequelize/sequelize/pull/700). thanks to PiPeep
+- [BUG] Fixed Postgres' pools [ff57af63](https://github.com/sequelize/sequelize/commit/ff57af63c2eb395b4828a5984a22984acdc2a5e1)
+- [BUG] Fixed BLOB/TEXT columns having a default value declared in MySQL [#793](https://github.com/sequelize/sequelize/pull/793). thanks to durango
+- [BUG] You can now use .find() on any single integer primary key when throwing just a number as an argument [#796](https://github.com/sequelize/sequelize/pull/796). thanks to durango
+- [BUG] Adding unique to a column for Postgres in the migrator should be fixed [#795](https://github.com/sequelize/sequelize/pull/795). thanks to durango
+- [BUG] For MySQL users, if their collation allows case insensitivity then allow enums to be case insensitive as well [#794](https://github.com/sequelize/sequelize/pull/794). thanks to durango
+- [BUG] Custom primary key (not keys, just singular) should no longer be a problem for models when using any of the data retrievals with just a number or through associations [#771](https://github.com/sequelize/sequelize/pull/771). thanks to sdephold & durango
+- [BUG] Default schemas should now be utilized when describing tables [#812](https://github.com/sequelize/sequelize/pull/812). thanks to durango
+- [BUG] Fixed eager loading for many-to-many associations. [#834](https://github.com/sequelize/sequelize/pull/834). thanks to lemon-tree
+- [BUG] allowNull: true enums can now be null [#857](https://github.com/sequelize/sequelize/pull/857). thanks to durango
+- [BUG] Fixes Postgres' ability to search within arrays. [#879](https://github.com/sequelize/sequelize/pull/879). thanks to durango
+- [BUG] Find and finAll would modify the options objects, now the objects are cloned at the start of the method [#884](https://github.com/sequelize/sequelize/pull/884) thanks to janmeier. Improved in [#899](https://github.com/sequelize/sequelize/pull/899) thanks to hackwaly
+- [BUG] Add support for typed arrays in SqlString.escape and SqlString.arrayToList [#891](https://github.com/sequelize/sequelize/pull/891). thanks to LJ1102
+- [BUG] Postgres requires empty array to be explicitly cast on update [#890](https://github.com/sequelize/sequelize/pull/890). thanks to robraux
+- [BUG] Added tests & bugfixes for DAO-Factory.update and array of values in where clause [#880](https://github.com/sequelize/sequelize/pull/880). thanks to domasx2
+- [BUG] sqlite no longer leaks a global `db` variable [#900](https://github.com/sequelize/sequelize/pull/900). thanks to xming
+- [BUG] Fix for counts queries with no result [#906](https://github.com/sequelize/sequelize/pull/906). thanks to iamjochem
+- [BUG] Allow include when the same table is referenced multiple times using hasMany [#913](https://github.com/sequelize/sequelize/pull/913). thanks to janmeier
+- [BUG] Allow definition of defaultValue for the timestamp columns (createdAt, updatedAt, deletedAt) [#930](https://github.com/sequelize/sequelize/pull/930). Thank to durango
+- [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
 - [FEATURE] Support for bulk insert (`<DAOFactory>.bulkCreate()`, update (`<DAOFactory>.update()`) and delete (`<DAOFactory>.destroy()`) [#569](https://github.com/sequelize/sequelize/pull/569). thanks to optilude
 - [FEATURE] Add an extra `queryOptions` parameter to `DAOFactory.find` and `DAOFactory.findAll`. This allows a user to specify `{ raw: true }`, meaning that the raw result should be returned, instead of built DAOs. Usefull for queries returning large datasets, see [#611](https://github.com/sequelize/sequelize/pull/611) janmeier
 - [FEATURE] Added convenient data types. [#616](https://github.com/sequelize/sequelize/pull/616). Thanks to Costent
 - [FEATURE] Binary is more verbose now. [#612](https://github.com/sequelize/sequelize/pull/612). Thanks to terraflubb
+- [FEATURE] Promises/A support. [#626](https://github.com/sequelize/sequelize/pull/626). Thanks to kevinbeaty
+- [FEATURE] Added Getters/Setters method for DAO. [#538](https://github.com/sequelize/sequelize/pull/538). Thanks to iamjochem
+- [FEATURE] Added model wide validations. [#640](https://github.com/sequelize/sequelize/pull/640). Thanks to tremby
+- [FEATURE] `findOrCreate` now returns an additional flag (`created`), that is true if a model was created, and false if it was found [#648](https://github.com/sequelize/sequelize/pull/648). janmeier
+- [FEATURE] Field and table comments for MySQL and PG. [#523](https://github.com/sequelize/sequelize/pull/523). MySQL by iamjochen. PG by janmeier
+- [FEATURE] BigInts can now be used for autoincrement/serial columns. [#673](https://github.com/sequelize/sequelize/pull/673). thanks to sevastos
+- [FEATURE] Use moment for better postgres timestamp strings. [#710](https://github.com/sequelize/sequelize/pull/710). Thanks to seth-admittedly
+- [FEATURE] Keep milliseconds in timestamps for postgres. [#712](https://github.com/sequelize/sequelize/pull/712). Thanks to seth-admittedly
+- [FEATURE] You can now set lingo's language through Sequelize. [#713](https://github.com/sequelize/sequelize/pull/713). Thanks to durango
+- [FEATURE] Added a `findAndCountAll`, useful for pagination. [#533](https://github.com/sequelize/sequelize/pull/533). Thanks to iamjochen
+- [FEATURE] Made explicit migrations possible. [#728](https://github.com/sequelize/sequelize/pull/728). Thanks to freezy
+- [FEATURE] Added support for where clauses containing !=, < etc. and support for date ranges  [#727](https://github.com/sequelize/sequelize/pull/727). Thanks to durango
+- [FEATURE] Added support for model instances being referenced [#761](https://github.com/sequelize/sequelize/pull/761) thanks to sdepold
+- [FEATURE] Added support for specifying the path to load a module for a dialect. [#766](https://github.com/sequelize/sequelize/pull/766) thanks to sonnym.
+- [FEATURE] Drop index if exists has been added to sqlite [#766](https://github.com/sequelize/sequelize/pull/776) thanks to coderbuzz
+- [FEATURE] bulkCreate() now has a third argument which gives you the ability to validate each row before attempting to bulkInsert [#797](https://github.com/sequelize/sequelize/pull/797). thanks to durango
+- [FEATURE] Added `isDirty` to model instances. [#798](https://github.com/sequelize/sequelize/pull/798). Thanks to mstorgaard
+- [FEATURE] Added possibility to use env variable for the database connection. [#784](https://github.com/sequelize/sequelize/pull/784). Thanks to sykopomp.
+- [FEATURE] Blob support. janmeier
+- [FEATURE] We can now define our own custom timestamp columns [#856](https://github.com/sequelize/sequelize/pull/856). thanks to durango
+- [FEATURE] Scopes. [#748](https://github.com/sequelize/sequelize/pull/748). durango
+- [FEATURE] Model#find() / Model#findAll() is now working with strings. [#855](https://github.com/sequelize/sequelize/pull/855). Thanks to whito.
+- [FEATURE] Shortcut method for getting a defined model. [#868](https://github.com/sequelize/sequelize/pull/868). Thanks to jwilm.
+- [FEATURE] Added Sequelize.fn() and Sequelize.col() to properly call columns and functions within Sequelize. [#882](https://github.com/sequelize/sequelize/pull/882). thanks to janmeier
+- [FEATURE] Sequelize.import supports relative paths. [#901](https://github.com/sequelize/sequelize/pull/901). thanks to accerqueira.
+- [FEATURE] Sequelize.import can now handle functions. [#911](https://github.com/sequelize/sequelize/pull/911). Thanks to davidrivera.
+- [FEATURE] Uses sequelize.fn and sequelize.col functionality to allow you to use the value of another column or a function when updating. It also allows you to use a function as a default value when supported (in sqlite and postgres). [#928](https://github.com/sequelize/sequelize/pull/928). thanks to janmeier
+- [FEATURE] Added possibility to pass options to node-mysql. [#929](https://github.com/sequelize/sequelize/pull/929). thanks to poying
+- [FEATURE] Triggers for Postgres. [#915](https://github.com/sequelize/sequelize/pull/915). Thanks to jonathana.
+- [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
+- [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
+- [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango
 
 # v1.6.0 #
 - [DEPENDENCIES] upgrade mysql to alpha7. You *MUST* use this version or newer for DATETIMEs to work

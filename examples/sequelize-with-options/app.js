@@ -1,10 +1,10 @@
 var Sequelize = require(__dirname + "/../../index")
-  , config    = require(__dirname + "/../../test/config")
+  , config    = require(__dirname + "/../../spec/config/config")
   , sequelize = new Sequelize(config.database, config.username, config.password, {
       // use other database server or port
       host: 'my.srv.tld',
       port: 12345,
-      
+
       // disable logging
       logging: false
     })
