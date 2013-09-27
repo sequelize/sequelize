@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         logging: function(){}
       }, options || {})
 
-      // this.sequelize.options.logging = console.log
+      //this.sequelize.options.logging = console.log
       var migrator = new Migrator(this.sequelize, options)
 
       migrator
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
   describe('getUndoneMigrations', function() {
     it("returns no files if timestamps are after the files timestamp", function(done) {
-      this.init({ from: 20120101010101 }, function(migrator) {
+      this.init({ from: 20140101010101 }, function(migrator) {
         migrator.getUndoneMigrations(function(err, migrations) {
           expect(err).to.be.null
           expect(migrations.length).to.equal(0)
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).to.be.null
-            expect(migrations).to.have.length(7)
+            expect(migrations).to.have.length(14)
             expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
             done()
           })
@@ -286,7 +286,8 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         })
       })
     })
-  })
+
+})
 
   describe('renameColumn', function() {
     it("renames the signature column from user to sig", function(done) {
@@ -307,5 +308,145 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
       })
     })
   })
-})
 
+  if (dialect.match(/^postgres/)) {
+
+    describe('function migrations', function() {
+      var generateFunctionCountQuery = function generateFunctionCountQuery(functionName, langName) {
+        return [
+            'SELECT * FROM pg_proc p LEFT OUTER JOIN pg_language l ON (l.oid = p.prolang)',
+            'WHERE p.proname = \'' + functionName + '\' AND l.lanname = \'' + langName + '\';'
+          ].join('\n')
+      }
+      var FUNC_NAME = 'get_an_answer'
+      var RENAME_FUNC_NAME = 'get_the_answer'
+
+      // Set up the table and trigger
+      before(function(done){
+        this.init({ from: 20130909174103, to: 20130909174103}, function(migrator) {
+          migrator.migrate().success(function(){
+            done()
+          })
+        })
+      })
+
+
+      it("creates a function " + FUNC_NAME + "()", function(done) {
+        this.sequelize.query(generateFunctionCountQuery(FUNC_NAME, 'plpgsql')).success(function(rows){
+          expect(rows.length).to.equal(1)
+          done()
+        })
+      })
+
+      it("renames a function " + FUNC_NAME + "() to " + RENAME_FUNC_NAME + "()", function(done) {
+        var self = this
+        this.init({ from: 20130909174253, to: 20130909174253 }, function(migrator) {
+          migrator.migrate().success(function(){
+            self.sequelize.query(generateFunctionCountQuery(FUNC_NAME, 'plpgsql')).success(function(rows){
+              expect(rows.length).to.equal(0)
+              self.sequelize.query(generateFunctionCountQuery(RENAME_FUNC_NAME, 'plpgsql')).success(function(rows){
+                expect(rows.length).to.equal(1)
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      it("deletes a function " + RENAME_FUNC_NAME + "()", function(done) {
+        var self = this
+        this.init({ from: 20130909175000, to: 20130909175000 }, function(migrator) {
+          migrator.migrate().success(function(){
+            self.sequelize.query(generateFunctionCountQuery(RENAME_FUNC_NAME, 'plpgsql')).success(function(rows){
+              expect(rows.length).to.equal(0)
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('test trigger migrations', function() {
+      var generateTriggerCountQuery = function generateTriggerCountQuery(triggerName) {
+        return 'SELECT * FROM pg_trigger where tgname = \'' + triggerName + '\''
+      }
+      var generateTableCountQuery = function generateTableCountQuery(functionName, schemaName) {
+        return 'SELECT * FROM pg_tables where tablename = \'' + functionName + '\' and schemaname = \'' + schemaName + '\''
+      }
+      var TRIGGER_NAME = 'updated_at'
+      var RENAME_TRIGGER_NAME = 'update_updated_at'
+      var TABLE_NAME = 'trigger_test'
+      var CATALOG_NAME = 'public'
+
+      // Make sure the function is present
+      before(function(done){
+        this.sequelize.query("CREATE FUNCTION bump_updated_at()\n" +
+            "RETURNS TRIGGER AS $$\n" +
+            "BEGIN\n" +
+            "NEW.updated_at = now();\n" +
+            "RETURN NEW;\n" +
+            "END;\n" +
+            "$$ language 'plpgsql';"
+        ).success(function() {done()})
+
+      })
+
+      // Clean up the function
+      after(function(done){
+        this.sequelize.query("DROP FUNCTION IF EXISTS bump_updated_at()").success(function(){ done(); })
+      })
+
+      it("creates a trigger updated_at on trigger_test", function(done) {
+        var self = this
+        this.init({ from: 20130909175939, to: 20130909180846}, function(migrator) {
+          migrator.migrate().success(function(){
+            self.sequelize.query(generateTableCountQuery(TABLE_NAME, CATALOG_NAME)).success(function(rows){
+              expect(rows.length).to.equal(1)
+              self.sequelize.query(generateTriggerCountQuery(TRIGGER_NAME)).success(function(rows){
+                expect(rows.length).to.equal(1)
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      it("renames a trigger on " + TABLE_NAME + " from " + TRIGGER_NAME + " to " + RENAME_TRIGGER_NAME, function(done){
+        var self = this
+        this.init({ from: 20130909175939, to: 20130909181148}, function(migrator) {
+          migrator.migrate().success(function(){
+            self.sequelize.query(generateTableCountQuery(TABLE_NAME, CATALOG_NAME)).success(function(rows){
+              expect(rows.length).to.equal(1)
+              self.sequelize.query(generateTriggerCountQuery(RENAME_TRIGGER_NAME)).success(function(rows){
+                expect(rows.length).to.equal(1)
+                self.sequelize.query(generateTriggerCountQuery(TRIGGER_NAME)).success(function(rows){
+                  expect(rows.length).to.equal(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it("deletes a trigger " + TRIGGER_NAME + " on trigger_test", function(done) {
+        var self = this
+        this.init({ from: 20130909175939, to: 20130909185621}, function(migrator) {
+          migrator.migrate().success(function(){
+            self.sequelize.query(generateTriggerCountQuery(TRIGGER_NAME)).success(function(rows){
+              expect(rows.length).to.equal(0)
+              migrator.migrate({method: 'down'}).success(function(){
+                self.sequelize.query(generateTableCountQuery(TABLE_NAME, CATALOG_NAME)).success(function(rows){
+                  expect(rows.length).to.equal(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+
+    })
+
+  } // if dialect postgres
+})
