@@ -32,10 +32,11 @@ var Support = {
     options.pool    = options.pool || config.pool
 
     var sequelizeOptions = {
-      logging: options.logging,
-      dialect: options.dialect,
-      port:    options.port || process.env.SEQ_PORT || config[options.dialect].port,
-      pool:    options.pool
+      logging:        options.logging,
+      dialect:        options.dialect,
+      port:           options.port || process.env.SEQ_PORT || config[options.dialect].port,
+      pool:           options.pool,
+      dialectOptions: options.dialectOptions || {}
     }
 
     if (!!options.host) {
