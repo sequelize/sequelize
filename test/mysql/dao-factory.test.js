@@ -8,7 +8,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-if (dialect.match(/^mysql/)) {
+if (dialect.match(/^mysql|mariadb/)) {
   describe("[MYSQL Specific] DAOFactory", function () {
     describe('constructor', function() {
       it("handles extended attributes (unique)", function(done) {

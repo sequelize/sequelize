@@ -3462,7 +3462,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserPublic.schema('special').sync({ force: true }).success(function() {
           self.sequelize.queryInterface.describeTable('Publics')
           .on('sql', function(sql) {
-            if (dialect === "sqlite" || dialect === "mysql") {
+            if (dialect === "sqlite" || dialect === "mysql" || dialect === 'mariadb') {
               expect(sql).to.not.contain('special')
               _done()
             }
@@ -3475,7 +3475,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
             self.sequelize.queryInterface.describeTable('Publics', 'special')
             .on('sql', function(sql) {
-              if (dialect === "sqlite" || dialect === "mysql") {
+              if (dialect === "sqlite" || dialect === "mysql" || dialect === 'mariadb') {
                 expect(sql).to.contain('special')
                 _done()
               }
@@ -3673,7 +3673,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     describe("dataset", function() {
       it("returns a node-sql instance with the correct dialect", function() {
-        expect(this.User.dataset().sql.dialectName).to.equal(dialect)
+        var _dialect = dialect === 'mariadb' ? 'mysql' : dialect
+
+        expect(this.User.dataset().sql.dialectName).to.equal(_dialect)
       })
 
       it("allows me to generate sql queries", function() {

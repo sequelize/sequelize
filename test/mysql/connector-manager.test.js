@@ -7,7 +7,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-if (dialect.match(/^mysql/)) {
+if (dialect.match(/^mysql|mariadb/)) {
   describe('[MYSQL Specific] Connector Manager', function() {
     this.timeout(10000)
 
