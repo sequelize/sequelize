@@ -3491,6 +3491,44 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to reference a table with a schema set', function(done) {
+      var self = this
+      var sequelize = this.sequelize
+
+      var UserPub = this.sequelize.define('UserPub', {
+        username: Sequelize.STRING
+      }, { schema: 'prefix' })
+
+      var ItemPub = this.sequelize.define('ItemPub', {
+        name: Sequelize.STRING
+      }, { schema: 'prefix' })
+
+      UserPub.hasMany(ItemPub, {
+        foreignKeyConstraint: true
+      })
+
+      var run = function() {
+        UserPub.sync({ force: true }).success(function() {
+          ItemPub.sync({ force: true }).on('sql', function(sql) {
+            if (dialect === "postgres") {
+              expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/)
+            } else {
+              expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/)
+            }
+            done()
+          })
+        })
+      }
+
+      if (dialect === "postgres") {
+        this.sequelize.queryInterface.createSchema('prefix').success(function() {
+          run.call(self)
+        })
+      } else {
+        run.call(self)
+      }
+    })
+
     it("should be able to create and update records under any valid schematic", function(done){
       var self = this
 

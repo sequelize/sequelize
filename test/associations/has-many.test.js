@@ -592,7 +592,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         this.User.hasMany(this.Project, { joinTableModel: this.UserProjects })
         this.Project.hasMany(this.User, { joinTableModel: this.UserProjects })
-        
+
         this.sequelize.sync().success(function() { done() })
       })
 
@@ -614,7 +614,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                   done()
                 })
               })
-            })  
+            })
           })
         })
 
@@ -635,13 +635,13 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                   done()
                 })
               })
-            })  
+            })
           })
         })
       })
 
       describe('inserting in join table', function () {
-        
+
 
         describe('add', function () {
           it('should insert data provided on the object into the join table', function (done) {
@@ -658,7 +658,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                     done()
                   })
                 })
-              })  
+              })
             })
           })
 
@@ -672,7 +672,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                     done()
                   })
                 })
-              })  
+              })
             })
           })
         })
@@ -704,7 +704,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                     })
                   })
                 })
-              })  
+              })
             })
           })
         })
