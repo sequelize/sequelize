@@ -489,6 +489,38 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('allows multiple column unique keys to be defined', function(done) {
+      var User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: 'user_and_email' },
+        email: { type: Sequelize.STRING, unique: 'user_and_email' },
+        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+      })
+
+      User.sync({ force: true }).on('sql', function(sql) {
+        expect(sql).to.match(/UNIQUE \(username, email\)/)
+        expect(sql).to.match(/UNIQUE \(aCol, bCol\)/)
+        done()
+      })
+    })
+
+    it('allows us to customize the error message for unique constraint', function(done) {
+      var User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
+        email: { type: Sequelize.STRING, unique: 'user_and_email' },
+        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+      })
+
+      User.sync({ force: true }).success(function() {
+        User.create({username: 'tobi', email: 'tobi@tobi.me'}).success(function() {
+          User.create({username: 'tobi', email: 'tobi@tobi.me'}).error(function(err) {
+            expect(err).to.equal('User and email must be unique')
+            done()
+          })
+        })
+      })
+    })
 
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
