@@ -66,7 +66,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Eager loading of nested associations [#388](https://github.com/sequelize/sequelize/issues/388)
 - ~~Model#delete~~ (renamed to [Model.destroy()](http://sequelizejs.com/documentation#instances-destroy))
 - ~~Validate a model before it gets saved.~~ Implemented in [#601](https://github.com/sequelize/sequelize/pull/601), thanks to @durango
-- Move validation of enum attribute value to validate method
+- ~~Move validation of enum attribute value to validate method~~ Implemented in [#894](https://github.com/sequelize/sequelize/pull/894) thanks to @durango
 - ~~BLOB~~  [#842](https://github.com/sequelize/sequelize/pull/842), thanks to @janmeier
 - ~~Support for foreign keys~~ Implemented in [#595](https://github.com/sequelize/sequelize/pull/595), thanks to @optilude
 

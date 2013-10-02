@@ -3491,6 +3491,44 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to reference a table with a schema set', function(done) {
+      var self = this
+      var sequelize = this.sequelize
+
+      var UserPub = this.sequelize.define('UserPub', {
+        username: Sequelize.STRING
+      }, { schema: 'prefix' })
+
+      var ItemPub = this.sequelize.define('ItemPub', {
+        name: Sequelize.STRING
+      }, { schema: 'prefix' })
+
+      UserPub.hasMany(ItemPub, {
+        foreignKeyConstraint: true
+      })
+
+      var run = function() {
+        UserPub.sync({ force: true }).success(function() {
+          ItemPub.sync({ force: true }).on('sql', function(sql) {
+            if (dialect === "postgres") {
+              expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/)
+            } else {
+              expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/)
+            }
+            done()
+          })
+        })
+      }
+
+      if (dialect === "postgres") {
+        this.sequelize.queryInterface.createSchema('prefix').success(function() {
+          run.call(self)
+        })
+      } else {
+        run.call(self)
+      }
+    })
+
     it("should be able to create and update records under any valid schematic", function(done){
       var self = this
 
@@ -3533,17 +3571,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
   describe('references', function() {
     this.timeout(3000)
+
     beforeEach(function(done) {
-      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
-      this.Author.sync({ force: true }).success(function() {
-        done()
+      var self = this
+
+      this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
+        self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
+          self.Author = self.sequelize.define('author', { firstName: Sequelize.STRING })
+          self.Author.sync({ force: true }).success(function() {
+            done()
+          })
+        })
       })
     })
 
     afterEach(function(done) {
       var self = this
 
-      self.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
+      this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
         self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
           done()
         })
@@ -3567,11 +3612,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-        }
-        else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (dialect === 'mysql' || dialect === 'mariadb') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
-        }
-        else if (dialect === 'sqlite') {
+        } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else {
           throw new Error('Undefined dialect!')
@@ -3598,11 +3641,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-        }
-        else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (dialect === 'mysql' || dialect === 'mariadb') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
-        }
-        else if (dialect === 'sqlite') {
+        } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else {
           throw new Error('Undefined dialect!')
@@ -3639,15 +3680,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(function(err) {
         if (dialect === 'mysql') {
           expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/)
-        }
-        else if (dialect === 'mariadb') {
+        } else if (dialect === 'mariadb') {
           expect(err.message).to.match(/Can\'t create table/)
-        }
-        else if (dialect === 'sqlite') {
+        } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2)
-        }
-        else if (dialect === 'postgres') {
+        } else if (dialect === 'postgres') {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/)
         } else {
           throw new Error('Undefined dialect!')

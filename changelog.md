@@ -77,6 +77,8 @@
 - [FEATURE] Uses sequelize.fn and sequelize.col functionality to allow you to use the value of another column or a function when updating. It also allows you to use a function as a default value when supported (in sqlite and postgres). [#928](https://github.com/sequelize/sequelize/pull/928). thanks to janmeier
 - [FEATURE] Added possibility to pass options to node-mysql. [#929](https://github.com/sequelize/sequelize/pull/929). thanks to poying
 - [FEATURE] Triggers for Postgres. [#915](https://github.com/sequelize/sequelize/pull/915). Thanks to jonathana.
+- [FEATURE] Support for join tables. [#877](https://github.com/sequelize/sequelize/pull/877). Thanks to janmeier.
+- [FEATURE] Support for hooks. [#894](https://github.com/sequelize/sequelize/pull/894). Thanks to durango.
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango
