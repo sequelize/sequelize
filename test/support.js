@@ -82,7 +82,7 @@ var Support = {
         sequelize.query(sequelize.getQueryInterface().QueryGenerator.enableForeignKeyConstraintsQuery()).success(callback)
       }))
     } else {
-      dropAll(callback)
+      dropAll(callback)()
     }
   },
 
