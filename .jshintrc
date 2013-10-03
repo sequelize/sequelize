@@ -10,6 +10,7 @@
         "waitsFor": false,
         "runs": false
     },
+    "node": true,
     "camelcase": true,
     "curly": true,
     "forin": true,
@@ -18,5 +19,7 @@
     "asi": true,
     "evil": false,
     "laxcomma": true,
-    "es5": true
+    "es5": true,
+    "quotmark": false,
+    "strict": false
 }
