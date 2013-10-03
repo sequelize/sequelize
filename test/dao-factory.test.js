@@ -328,6 +328,61 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
+  describe('findOrInitialize', function() {
+    describe('returns an instance if it already exists', function() {
+      it('with a single find field', function (done) {
+        var self = this
+
+        this.User.create({ username: 'Username' }).success(function (user) {
+          self.User.findOrInitialize({
+            username: user.username
+          }).success(function (_user, initialized) {
+            expect(_user.id).to.equal(user.id)
+            expect(_user.username).to.equal('Username')
+            expect(initialized).to.be.false
+            done()
+          })
+        })
+      })
+
+      it('with multiple find fields', function(done) {
+        var self = this
+
+        this.User.create({ username: 'Username', data: 'data' }).success(function (user) {
+          self.User.findOrInitialize({
+            username: user.username,
+            data: user.data
+          }).success(function (_user, initialized) {
+            expect(_user.id).to.equal(user.id)
+            expect(_user.username).to.equal('Username')
+            expect(_user.data).to.equal('data')
+            expect(initialized).to.be.false
+            done()
+          })
+        })
+      })
+
+      it('builds a new instance with default value.', function(done) {
+        var data = {
+            username: 'Username'
+          },
+          default_values = {
+            data: 'ThisIsData'
+          }
+
+        this.User.findOrInitialize(data, default_values).success(function(user, initialized) {
+          expect(user.id).to.be.null
+          expect(user.username).to.equal('Username')
+          expect(user.data).to.equal('ThisIsData')
+          expect(initialized).to.be.true
+          expect(user.isNewRecord).to.be.true
+          expect(user.isDirty).to.be.true
+          done()
+        })
+      })
+    })
+  })
+
   describe('findOrCreate', function () {
     it("Returns instace if already existent. Single find field.", function(done) {
       var self = this,
