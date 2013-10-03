@@ -122,15 +122,14 @@ if (dialect.match(/^mysql/)) {
           })
 
           User.sync({ force: true }).success(function() {
-            expect(function() {
-              User.create({mood: 'happy'})
-            }).to.throw(Error, 'Value "happy" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver')
-
-            expect(function() {
+            User.create({mood: 'happy'}).error(function(err) {
+              expect(err).to.deep.equal({ mood: [ 'Value "happy" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver' ] })
               var u = User.build({mood: 'SAD'})
-              u.save()
-            }).to.throw(Error, 'Value "SAD" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver')
-            done()
+              u.save().error(function(err) {
+                expect(err).to.deep.equal({ mood: [ 'Value "SAD" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver' ] })
+                done()
+              })
+            })
           })
         })
       })

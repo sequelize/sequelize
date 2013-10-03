@@ -12,11 +12,12 @@ teaser:
 	echo ''
 
 test:
-	@make teaser && \
-	./node_modules/mocha/bin/mocha \
-	--colors \
-	--reporter $(REPORTER) \
-	$(TESTS)
+	@if [ "$$GREP" ]; then \
+		make teaser && ./node_modules/mocha/bin/mocha --colors --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+	else \
+		make teaser && ./node_modules/mocha/bin/mocha --colors --reporter $(REPORTER) $(TESTS); \
+	fi
+
 
 sqlite:
 	@DIALECT=sqlite make test
