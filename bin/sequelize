@@ -197,13 +197,13 @@ if (program.migrate) {
     "module.exports = {",
     "  up: function(migration, DataTypes, done) {",
     "    // add altering commands here, calling 'done' when finished",
-    "    done()",
+    "    done();",
     "  },",
     "  down: function(migration, DataTypes, done) {",
     "    // add reverting commands here, calling 'done' when finished",
-    "    done()",
+    "    done();",
     "  }",
-    "}"
+    "};"
   ].join('\n') + "\n"
 
   fs.writeFileSync(configuration.migrationsPath + '/' + migrationName, migrationContent)
