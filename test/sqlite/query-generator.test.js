@@ -91,6 +91,10 @@ if (dialect === 'sqlite') {
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));"
         },
         {
+          arguments: ['myTable', {title: 'VARCHAR(255) BINARY', number: 'INTEGER(5) UNSIGNED'}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER UNSIGNED(5));"
+        },
+        {
           arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255));"
         },
