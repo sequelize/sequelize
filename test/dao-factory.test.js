@@ -3578,7 +3578,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
         self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
           self.Author = self.sequelize.define('author', { firstName: Sequelize.STRING })
-          self.Author.sync({ force: true }).success(function() {
+          self.Author.sync().success(function() {
             done()
           })
         })
@@ -3609,6 +3609,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
@@ -3638,6 +3639,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
@@ -3667,6 +3669,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().success(function() {
         if (dialect === 'sqlite') {
           // sorry ... but sqlite is too stupid to understand whats going on ...
