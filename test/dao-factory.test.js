@@ -2061,13 +2061,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           var self = this;
 
           var User = self.sequelize.define('User', {
-            id:  {type: Sequelize.INTEGER(11), autoIncrement: true, primaryKey: true},
+            id:  {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true},
             username:  {type: Sequelize.STRING}
           })
 
           var Message = self.sequelize.define('Message', {
-            id:  {type: Sequelize.INTEGER(11), autoIncrement: true, primaryKey: true},
-            user_id:  {type: Sequelize.INTEGER(11)},
+            id:  {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true},
+            user_id:  {type: Sequelize.INTEGER},
             message:  {type: Sequelize.STRING}
           })
 
