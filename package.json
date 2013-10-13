@@ -36,7 +36,7 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "lodash": "~2.0.0",
+    "lodash": "~2.2.0",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
     "validator": "~1.5.0",
@@ -46,15 +46,15 @@
     "toposort-class": "~0.2.0",
     "generic-pool": "2.0.4",
     "promise": "~3.2.0",
-    "sql": "~0.26.0"
+    "sql": "~0.28.0"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
-    "mysql": "~2.0.0-alpha8",
+    "mysql": "~2.0.0-alpha9",
     "pg": "~2.6.0",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
-    "chai": "~1.7.2",
+    "chai": "~1.8.0",
     "mocha": "~1.13.0",
     "chai-datetime": "~1.1.1",
     "sinon": "~1.7.3"

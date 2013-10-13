@@ -69,6 +69,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       done()
     })
 
+    it('allows us us to predefine the ID column with our own specs', function(done) {
+      var User = this.sequelize.define('UserCol', {
+        id: {
+          type: Sequelize.STRING,
+          defaultValue: 'User',
+          primaryKey: true
+        }
+      })
+
+      User.sync({ force: true }).success(function() {
+        User.create({id: 'My own ID!'}).success(function(user) {
+          expect(user.id).to.equal('My own ID!')
+          done()
+        })
+      })
+    })
+
     it("throws an error if 2 autoIncrements are passed", function(done) {
       var self = this
       expect(function() {
@@ -106,6 +123,39 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       }).to.throw(Error, 'A model validator function must not have the same name as a field. Model: Foo, field/validation name: field')
       done()
+    })
+
+    it('should allow me to set a default value for createdAt and updatedAt', function(done) {
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: Sequelize.INTEGER,
+        createdAt: {
+          type: Sequelize.DATE,
+          defaultValue: moment('2012-01-01').toDate()
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+          defaultValue: moment('2012-01-02').toDate()
+        }
+      }, { timestamps: true })
+
+      UserTable.sync({ force: true }).success(function() {
+        UserTable.create({aNumber: 5}).success(function(user) {
+          UserTable.bulkCreate([
+            {aNumber: 10},
+            {aNumber: 12}
+          ]).success(function() {
+            UserTable.all({where: {aNumber: { gte: 10 }}}).success(function(users) {
+              expect(moment(user.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01')
+              expect(moment(user.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02')
+              users.forEach(function(u) {
+                expect(moment(u.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01')
+                expect(moment(u.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02')
+              })
+              done()
+            })
+          })
+        })
+      })
     })
 
     it('should allow me to override updatedAt, createdAt, and deletedAt fields', function(done) {
@@ -197,7 +247,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       done()
     })
 
-    it("stores the the passed values in a special variable", function(done) {
+    it("stores the passed values in a special variable", function(done) {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).to.deep.equal({ username: 'John Wayne' })
       done()
@@ -279,7 +329,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findOrCreate', function () {
-    it("Returns instace if already existent. Single find field.", function(done) {
+    it("Returns instance if already existent. Single find field.", function(done) {
       var self = this,
         data = {
           username: 'Username'
@@ -297,7 +347,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it("Returns instace if already existent. Multiple find fields.", function(done) {
+    it("Returns instance if already existent. Multiple find fields.", function(done) {
       var self = this,
         data = {
           username: 'Username',
@@ -385,7 +435,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   }
                   return '0' + number
                 }
-              expect(user.year).to.equal(now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()))
+
+              expect(user.year).to.equal(now.getUTCFullYear() + '-' + pad(now.getUTCMonth() + 1) + '-' + pad(now.getUTCDate()))
               done()
             })
           })
@@ -615,7 +666,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('can omitt autoincremental columns', function(done) {
+    it('can omit autoincremental columns', function(done) {
       var self = this
         , data = { title: 'Iliad' }
         , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT]
@@ -1059,7 +1110,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
   describe('destroy', function() {
     it('deletes a record from the database if dao is not paranoid', function(done) {
-      var UserDestroy = this.sequelize.define('UserDestory', {
+      var UserDestroy = this.sequelize.define('UserDestroy', {
           name: Sequelize.STRING,
           bio: Sequelize.TEXT
         })
@@ -1119,6 +1170,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
       var self = this
+        , ident = self.sequelize.queryInterface.QueryGenerator.quoteIdentifier
+        , escape = self.sequelize.queryInterface.QueryGenerator.quote
         , ParanoidUser = self.sequelize.define('ParanoidUser', {
           username:     Sequelize.STRING,
           secretValue:  Sequelize.STRING,
@@ -1133,19 +1186,57 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       ParanoidUser.sync({ force: true }).success(function() {
         ParanoidUser.bulkCreate(data).success(function() {
-          var date = parseInt(+new Date()/5000, 10)
+          // since we save in UTC, let's format to UTC time
+          var date = moment().utc().format('YYYY-MM-DD h:mm')
           ParanoidUser.destroy({secretValue: '42'}).success(function() {
             ParanoidUser.findAll({order: 'id'}).success(function(users) {
-              expect(users.length).to.equal(3)
+              expect(users.length).to.equal(1)
+              expect(users[0].username).to.equal("Bob")
 
-              expect(users[0].username).to.equal("Peter")
-              expect(users[1].username).to.equal("Paul")
-              expect(users[2].username).to.equal("Bob")
+              self.sequelize.query('SELECT * FROM ' + ident('ParanoidUsers') + ' WHERE ' + ident('deletedAt') + ' IS NOT NULL ORDER BY ' + ident('id'), null, {raw: true}).success(function(users) {
+                expect(users[0].username).to.equal("Peter")
+                expect(users[1].username).to.equal("Paul")
 
-              expect(parseInt(+users[0].deletedAt/5000, 10)).to.equal(date)
-              expect(parseInt(+users[1].deletedAt/5000, 10)).to.equal(date)
+                if (dialect === "sqlite") {
+                  expect(moment(users[0].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
+                  expect(moment(users[1].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
+                } else {
+                  expect(moment(users[0].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                  expect(moment(users[1].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                }
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
 
-              done()
+    describe("can't find records marked as deleted with paranoid being true", function() {
+      it('with the DAOFactory', function(done) {
+        var User = this.sequelize.define('UserCol', {
+          username: Sequelize.STRING
+        }, { paranoid: true })
+
+        User.sync({ force: true }).success(function() {
+          User.bulkCreate([
+            {username: 'Toni'},
+            {username: 'Tobi'},
+            {username: 'Max'}
+          ]).success(function() {
+            User.find(1).success(function(user) {
+              user.destroy().success(function() {
+                User.find(1).success(function(user) {
+                  expect(user).to.be.null
+                  User.count().success(function(cnt) {
+                    expect(cnt).to.equal(2)
+                    User.all().success(function(users) {
+                      expect(users).to.have.length(2)
+                      done()
+                    })
+                  })
+                })
+              })
             })
           })
         })
@@ -1357,7 +1448,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('should be able to retun a record with primaryKey being null for new inserts', function(done) {
+    it('should be able to return a record with primaryKey being null for new inserts', function(done) {
       var Session = this.sequelize.define('Session', {
           token: { type: DataTypes.TEXT, allowNull: false },
           lastUpdate: { type: DataTypes.DATE, allowNull: false }
@@ -2736,6 +2827,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       it("handles offset and limit", function(done) {
         var self = this
+
         this.User.bulkCreate([{username: 'bobby'}, {username: 'tables'}]).success(function() {
           self.User.findAll({ limit: 2, offset: 2 }).success(function(users) {
             expect(users.length).to.equal(2)
@@ -2823,6 +2915,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         done()
       })
     })
+
     it("handles attributes", function(done) {
       this.User.findAndCountAll({where: "id != " + this.users[0].id, attributes: ['data']}).success(function(info) {
         expect(info.count).to.equal(2)
@@ -3441,6 +3534,44 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to reference a table with a schema set', function(done) {
+      var self = this
+      var sequelize = this.sequelize
+
+      var UserPub = this.sequelize.define('UserPub', {
+        username: Sequelize.STRING
+      }, { schema: 'prefix' })
+
+      var ItemPub = this.sequelize.define('ItemPub', {
+        name: Sequelize.STRING
+      }, { schema: 'prefix' })
+
+      UserPub.hasMany(ItemPub, {
+        foreignKeyConstraint: true
+      })
+
+      var run = function() {
+        UserPub.sync({ force: true }).success(function() {
+          ItemPub.sync({ force: true }).on('sql', function(sql) {
+            if (dialect === "postgres") {
+              expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/)
+            } else {
+              expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/)
+            }
+            done()
+          })
+        })
+      }
+
+      if (dialect === "postgres") {
+        this.sequelize.queryInterface.createSchema('prefix').success(function() {
+          run.call(self)
+        })
+      } else {
+        run.call(self)
+      }
+    })
+
     it("should be able to create and update records under any valid schematic", function(done){
       var self = this
 
@@ -3483,17 +3614,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
   describe('references', function() {
     this.timeout(3000)
+
     beforeEach(function(done) {
-      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
-      this.Author.sync({ force: true }).success(function() {
-        done()
+      var self = this
+
+      this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
+        self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
+          self.Author = self.sequelize.define('author', { firstName: Sequelize.STRING })
+          self.Author.sync().success(function() {
+            done()
+          })
+        })
       })
     })
 
     afterEach(function(done) {
       var self = this
 
-      self.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
+      this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
         self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
           done()
         })
@@ -3514,14 +3652,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-        }
-        else if (dialect === 'mysql') {
+        } else if (dialect === 'mysql') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
-        }
-        else if (dialect === 'sqlite') {
+        } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else {
           throw new Error('Undefined dialect!')
@@ -3545,14 +3682,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-        }
-        else if (dialect === 'mysql') {
+        } else if (dialect === 'mysql') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
-        }
-        else if (dialect === 'sqlite') {
+        } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else {
           throw new Error('Undefined dialect!')
@@ -3576,6 +3712,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().success(function() {
         if (dialect === 'sqlite') {
           // sorry ... but sqlite is too stupid to understand whats going on ...
@@ -3589,12 +3726,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(function(err) {
         if (dialect === 'mysql') {
           expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/)
-        }
-        else if (dialect === 'sqlite') {
+        } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2)
-        }
-        else if (dialect === 'postgres') {
+        } else if (dialect === 'postgres') {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/)
         } else {
           throw new Error('Undefined dialect!')
