@@ -247,7 +247,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       done()
     })
 
-    it("stores the the passed values in a special variable", function(done) {
+    it("stores the passed values in a special variable", function(done) {
       var user = this.User.build({ username: 'John Wayne' })
       expect(user.selectedValues).to.deep.equal({ username: 'John Wayne' })
       done()
@@ -329,7 +329,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findOrCreate', function () {
-    it("Returns instace if already existent. Single find field.", function(done) {
+    it("Returns instance if already existent. Single find field.", function(done) {
       var self = this,
         data = {
           username: 'Username'
@@ -347,7 +347,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it("Returns instace if already existent. Multiple find fields.", function(done) {
+    it("Returns instance if already existent. Multiple find fields.", function(done) {
       var self = this,
         data = {
           username: 'Username',
@@ -744,7 +744,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('can omitt autoincremental columns', function(done) {
+    it('can omit autoincremental columns', function(done) {
       var self = this
         , data = { title: 'Iliad' }
         , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT]
@@ -1203,7 +1203,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
   describe('destroy', function() {
     it('deletes a record from the database if dao is not paranoid', function(done) {
-      var UserDestroy = this.sequelize.define('UserDestory', {
+      var UserDestroy = this.sequelize.define('UserDestroy', {
           name: Sequelize.STRING,
           bio: Sequelize.TEXT
         })
@@ -1498,7 +1498,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('should be able to retun a record with primaryKey being null for new inserts', function(done) {
+    it('should be able to return a record with primaryKey being null for new inserts', function(done) {
       var Session = this.sequelize.define('Session', {
           token: { type: DataTypes.TEXT, allowNull: false },
           lastUpdate: { type: DataTypes.DATE, allowNull: false }
@@ -3671,7 +3671,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
         self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
           self.Author = self.sequelize.define('author', { firstName: Sequelize.STRING })
-          self.Author.sync({ force: true }).success(function() {
+          self.Author.sync().success(function() {
             done()
           })
         })
@@ -3702,6 +3702,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
@@ -3731,6 +3732,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
@@ -3760,6 +3762,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Author.hasMany(Post)
       Post.belongsTo(this.Author)
 
+      // The posts table gets dropped in the before filter.
       Post.sync().success(function() {
         if (dialect === 'sqlite') {
           // sorry ... but sqlite is too stupid to understand whats going on ...
