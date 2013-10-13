@@ -28,12 +28,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
     describe('hasSingle', function() {
       beforeEach(function(done) {
         var self = this
-        this.Article = this.sequelize.define('Article', {
-          'title': DataTypes.STRING
-        })
-        this.Label   = this.sequelize.define('Label', {
-          'text': DataTypes.STRING
-        })
+
+        this.Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
+        this.Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING })
 
         this.Article.hasMany(this.Label)
 
