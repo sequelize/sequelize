@@ -383,6 +383,82 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
+    it('is possible to use casting when creating an instance', function (done) {
+      var self = this
+        , type = dialect === "mysql" ? 'signed' : 'integer'
+        , _done = _.after(2, function() {
+          done()
+        })
+
+      this.User.create({
+        intVal: this.sequelize.cast('1', type)
+      }).on('sql', function (sql) {
+        expect(sql).to.match(new RegExp('CAST\\(1 AS ' + type.toUpperCase() + '\\)'))
+        _done()
+      })
+      .success(function (user) {
+        self.User.find(user.id).success(function (user) {
+          expect(user.intVal).to.equal(1)
+          _done()
+        })
+      })
+    })
+
+    it('is possible to use casting multiple times mixed in with other utilities', function (done) {
+      var self  = this
+        , type  = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer')
+        , _done = _.after(2, function() {
+          done()
+        })
+
+      if (dialect === "mysql") {
+        type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed')
+      }
+
+      this.User.create({
+        intVal: type
+      }).on('sql', function (sql) {
+        if (dialect === "mysql") {
+          expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)')
+        } else {
+          expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)')
+        }
+
+        _done()
+      }).success(function (user) {
+        self.User.find(user.id).success(function (user) {
+          expect(user.intVal).to.equal(-1)
+          _done()
+        })
+      })
+    })
+
+    it('is possible to just use .literal() to bypass escaping', function (done) {
+      var self = this
+
+      this.User.create({
+        intVal: this.sequelize.literal('CAST(1-2 AS ' + (dialect === "mysql" ? 'SIGNED' : 'INTEGER') + ')')
+      }).success(function (user) {
+        self.User.find(user.id).success(function (user) {
+          expect(user.intVal).to.equal(-1)
+          done()
+        })
+      })
+    })
+
+    it('is possible for .literal() to contain other utility functions', function (done) {
+      var self = this
+
+      this.User.create({
+        intVal: this.sequelize.literal(this.sequelize.cast('1-2', (dialect === "mysql" ? 'SIGNED' : 'INTEGER')))
+      }).success(function (user) {
+        self.User.find(user.id).success(function (user) {
+          expect(user.intVal).to.equal(-1)
+          done()
+        })
+      })
+    })
+
     it('is possible to use funtions when creating an instance', function (done) {
       var self = this
       this.User.create({
@@ -394,6 +470,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
     it('is possible to use functions as default values', function (done) {
       var self = this
         , userWithDefaults
@@ -446,6 +523,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         done()
       }
     })
+
     it("casts empty arrays correctly for postgresql insert", function(done) {
       if (dialect !== "postgres" && dialect !== "postgresql-native") {
         expect('').to.equal('')
@@ -1065,6 +1143,21 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               done()
             })
           })
+      })
+    })
+
+    it('updates with casting', function (done) {
+      var self = this
+
+      this.User.create({
+        username: 'John'
+      }).success(function(user) {
+        self.User.update({username: self.sequelize.cast('1', 'char')}, {username: 'John'}).success(function() {
+          self.User.all().success(function(users) {
+            expect(users[0].username).to.equal('1')
+            done()
+          })
+        })
       })
     })
 
