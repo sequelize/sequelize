@@ -63,27 +63,14 @@ var Support = {
   },
 
   clearDatabase: function(sequelize, callback) {
-    var disablequery = sequelize.getQueryInterface().QueryGenerator.disableForeignKeyConstraintsQuery()
-      , dropAll = function (cb) {
-          return function () {
-            sequelize
-              .getQueryInterface()
-              .dropAllTables() 
-              .success(function() {
-                sequelize.daoFactoryManager.daos = []
-                cb && cb()
-              })
-              .error(function(err) { console.log("Error clearing database " + err) })
-          }            
-        }
-
-    if (disablequery) {
-      sequelize.query(disablequery).success(dropAll(function () {
-        sequelize.query(sequelize.getQueryInterface().QueryGenerator.enableForeignKeyConstraintsQuery()).success(callback)
-      }))
-    } else {
-      dropAll(callback)()
-    }
+    sequelize
+      .getQueryInterface()
+      .dropAllTables()
+      .success(function() {
+        sequelize.daoFactoryManager.daos = []
+        callback && callback()
+      })
+      .error(function(err) { console.log(err) })
   },
 
   getSupportedDialects: function() {
