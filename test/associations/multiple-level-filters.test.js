@@ -7,16 +7,16 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
-  it('can filter through relations', function(done) {
+  it('can filter through belongsTo', function(done) {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING })
 
     Project.belongsTo(User);
-    //User.hasMany(Project)
+    User.hasMany(Project)
 
     Task.belongsTo(Project);
-    //Project.hasMany(Task);
+    Project.hasMany(Task);
 
 
     this.sequelize.sync({ force: true }).success(function() {
@@ -62,6 +62,71 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                 expect(tasks.length).to.be.equal(2);
                 expect(tasks[0].title).to.be.equal('fight empire');
                 expect(tasks[1].title).to.be.equal('stablish republic');
+                done();
+              }catch(e){
+                done(e);
+              }
+            })
+          });
+        });
+      });
+    })
+  })
+
+  it('can filter through hasMany', function(done) {
+    var User = this.sequelize.define('User', {username: DataTypes.STRING })
+      , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
+      , Project = this.sequelize.define('Project', { title: DataTypes.STRING })
+
+    Project.belongsTo(User);
+    User.hasMany(Project)
+
+    Task.belongsTo(Project);
+    Project.hasMany(Task);
+
+
+    this.sequelize.sync({ force: true }).success(function() {
+      User.bulkCreate([{
+        id: 101,
+        username: 'leia'
+      }, {
+        id: 102,
+        username: 'vader'
+      }]).success(function() {
+        Project.bulkCreate([{
+          id: 201,
+          UserId: 101,
+          title: 'republic'
+        },{
+          id: 202,
+          UserId: 102,
+          title: 'empire'
+        }]).success(function() {
+          Task.bulkCreate([{
+            id: 301,
+            ProjectId: 201,
+            title: 'fight empire'
+          },{
+            id: 302,
+            ProjectId: 201,
+            title: 'stablish republic'
+          },{
+            id: 303,
+            ProjectId: 202,
+            title: 'destroy rebel alliance'
+          },{
+            id: 304,
+            ProjectId: 202,
+            title: 'rule everything'
+          }]).success(function() {
+            User.findAll({
+              where: {
+                'projects.tasks.title': 'fight empire'
+              }
+            }).success(function(users){
+              try{
+                expect(users.length).to.be.equal(1);
+                expect(users[0].username).to.be.equal('leia');
                 done();
               }catch(e){
                 done(e);
