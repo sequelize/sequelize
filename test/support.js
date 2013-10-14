@@ -57,7 +57,7 @@ var Support = {
   },
 
   getSequelizeInstance: function(db, user, pass, options) {
-    options = options || {};
+    options = options || {}
     options.dialect = options.dialect || this.getTestDialect()
     return new Sequelize(db, user, pass, options)
   },
@@ -141,6 +141,7 @@ before(function(done) {
 
 beforeEach(function(done) {
   this.sequelize = sequelize
+
   Support.clearDatabase(this.sequelize, function() {
     done()
   })

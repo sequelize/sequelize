@@ -28,12 +28,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
     describe('hasSingle', function() {
       beforeEach(function(done) {
         var self = this
-        this.Article = this.sequelize.define('Article', {
-          'title': DataTypes.STRING
-        })
-        this.Label   = this.sequelize.define('Label', {
-          'text': DataTypes.STRING
-        })
+
+        this.Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
+        this.Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING })
 
         this.Article.hasMany(this.Label)
 
@@ -707,6 +704,71 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
               })
             })
           })
+        })
+      })
+    })
+
+    describe('belongsTo and hasMany at once', function() {
+      beforeEach(function() {
+        this.A = this.sequelize.define('a', { name: Sequelize.STRING })
+        this.B = this.sequelize.define('b', { name: Sequelize.STRING })
+      })
+
+      describe('source belongs to target', function() {
+        beforeEach(function(done) {
+          this.A.belongsTo(this.B, { as: 'relation1' })
+          this.A.hasMany(this.B, { as: 'relation2' })
+          this.B.hasMany(this.A, { as: 'relation2' })
+
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
+          })
+        })
+
+        it('correctly uses bId in A', function(done) {
+          var self = this
+
+          var a1 = this.A.build({ name: 'a1' })
+            , b1 = this.B.build({ name: 'b1' })
+
+          a1
+            .save()
+            .then(function() { return b1.save() })
+            .then(function() { return a1.setRelation1(b1) })
+            .then(function() { return self.A.find({ where: { name: 'a1' } }) })
+            .done(function(a) {
+              expect(a.bId).to.be.eq(b1.id)
+              done()
+            })
+        })
+      })
+
+      describe('target belongs to source', function() {
+        beforeEach(function(done) {
+          this.B.belongsTo(this.A, { as: 'relation1' })
+          this.A.hasMany(this.B, { as: 'relation2' })
+          this.B.hasMany(this.A, { as: 'relation2' })
+
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
+          })
+        })
+
+        it('correctly uses bId in A', function(done) {
+          var self = this
+
+          var a1 = this.A.build({ name: 'a1' })
+            , b1 = this.B.build({ name: 'b1' })
+
+          a1
+            .save()
+            .then(function() { return b1.save() })
+            .then(function() { return b1.setRelation1(a1) })
+            .then(function() { return self.B.find({ where: { name: 'b1' } }) })
+            .done(function(b) {
+              expect(b.aId).to.be.eq(a1.id)
+              done()
+            })
         })
       })
     })
