@@ -2056,6 +2056,61 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
 
+        it('getting parent data in many to one relationship', function(done) {
+
+          var self = this;
+
+          var User = self.sequelize.define('User', {
+            id:  {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true},
+            username:  {type: Sequelize.STRING}
+          })
+
+          var Message = self.sequelize.define('Message', {
+            id:  {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true},
+            user_id:  {type: Sequelize.INTEGER},
+            message:  {type: Sequelize.STRING}
+          })
+
+          User.hasMany(Message)
+          Message.belongsTo(User, { foreignKey: 'user_id' })
+
+          Message.sync({ force: true }).success(function() {
+            User.sync({ force: true }).success(function() {
+              User.create({username: 'test_testerson'}).success(function(user) {
+                Message.create({user_id: user.id, message: 'hi there!'}).success(function(message) {
+                  Message.create({user_id: user.id, message: 'a second message'}).success(function(message) {
+                    Message.findAll({
+
+                      where: {user_id: user.id},
+                      attributes: [
+                        'user_id',
+                        'message'
+                      ],
+                      include: [{ model: User, as: User.tableName, attributes: ['username'] }]
+
+                    }).success(function(messages) {
+
+                        expect(messages.length).to.equal(2);
+
+                        expect(messages[0].message).to.equal('hi there!');
+                        expect(messages[0].user.username).to.equal('test_testerson');
+
+                        expect(messages[1].message).to.equal('a second message');
+                        expect(messages[1].user.username).to.equal('test_testerson');
+
+                        done()
+
+                      })
+
+                  })
+                })
+              })
+
+            })
+          })
+
+        })
+
         it('allows mulitple assocations of the same model with different alias', function (done) {
           var self = this
 
