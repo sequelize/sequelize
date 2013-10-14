@@ -8,8 +8,6 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Hooks"), function () {
-  this.timeout(10000)
-
   describe('#validate', function() {
     describe('via define', function() {
       describe('on success', function() {
