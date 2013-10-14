@@ -1032,7 +1032,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               if (dialect === "postgres" || dialect === "postgres-native") {
                 expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId" IN (SELECT "newId" FROM "UserDestroys" WHERE "newId"=\'123ABC\' LIMIT 1)')
               }
-              else if (dialect === "mysql" || dialect === 'mariadb') {
+              else if (Support.dialectIsMySQL()) {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
               } else {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")

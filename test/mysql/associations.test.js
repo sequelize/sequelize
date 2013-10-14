@@ -7,7 +7,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-if (dialect.match(/^mysql|mariadb/)) {
+if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Associations', function() {
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {

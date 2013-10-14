@@ -440,7 +440,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   describe('create', function() {
     it('is possible to use casting when creating an instance', function (done) {
       var self = this
-        , type = dialect === "mysql" ? 'signed' : 'integer'
+        , type = Support.dialectIsMySQL() ? 'signed' : 'integer'
         , _done = _.after(2, function() {
           done()
         })
@@ -466,14 +466,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done()
         })
 
-      if (dialect === "mysql") {
+      if (Support.dialectIsMySQL()) {
         type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed')
       }
 
       this.User.create({
         intVal: type
       }).on('sql', function (sql) {
-        if (dialect === "mysql") {
+        if (Support.dialectIsMySQL()) {
           expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)')
         } else {
           expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)')
@@ -492,7 +492,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var self = this
 
       this.User.create({
-        intVal: this.sequelize.literal('CAST(1-2 AS ' + (dialect === "mysql" ? 'SIGNED' : 'INTEGER') + ')')
+        intVal: this.sequelize.literal('CAST(1-2 AS ' + (Support.dialectIsMySQL() ? 'SIGNED' : 'INTEGER') + ')')
       }).success(function (user) {
         self.User.find(user.id).success(function (user) {
           expect(user.intVal).to.equal(-1)
@@ -505,7 +505,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var self = this
 
       this.User.create({
-        intVal: this.sequelize.literal(this.sequelize.cast('1-2', (dialect === "mysql" ? 'SIGNED' : 'INTEGER')))
+        intVal: this.sequelize.literal(this.sequelize.cast('1-2', (Support.dialectIsMySQL() ? 'SIGNED' : 'INTEGER')))
       }).success(function (user) {
         self.User.find(user.id).success(function (user) {
           expect(user.intVal).to.equal(-1)
@@ -580,7 +580,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it("casts empty arrays correctly for postgresql insert", function(done) {
-      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+      if (dialect !== "postgres") {
         expect('').to.equal('')
         return done()
       }
@@ -599,7 +599,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
     it("casts empty array correct for postgres update", function(done) {
-      if (dialect !== "postgres" && dialect !== "postgresql-native") {
+      if (dialect !== "postgres") {
         expect('').to.equal('')
         return done()
       }
@@ -636,7 +636,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             if (dialect === "sqlite") {
               expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
             }
-            else if (dialect === "mysql" || dialect === 'mariadb') {
+            else if (Support.dialectIsMySQL()) {
               expect(err.message).to.match(/.*Duplicate\ entry.*/)
             } else {
               expect(err.message).to.match(/.*duplicate\ key\ value.*/)
@@ -660,7 +660,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
           expect(err).to.exist
 
-          if (dialect === "mysql" || dialect === 'mariadb') {
+          if (Support.dialectIsMySQL()) {
             // We need to allow two different errors for MySQL, see:
             // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
             expect(err.message).to.match(/(Column 'smth' cannot be null|Field 'smth' doesn't have a default value)/)
@@ -678,7 +678,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               if (dialect === "sqlite") {
                 expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
               }
-              else if (dialect === "mysql" || dialect === 'mariadb') {
+              else if (Support.dialectIsMySQL()) {
                 expect(err.message).to.match(/Duplicate entry 'foo' for key 'username'/)
               } else {
                 expect(err.message).to.match(/.*duplicate key value violates unique constraint.*/)
@@ -1487,7 +1487,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should be able to handle false/true values just fine...', function(done) {
       var User = this.User
-        , escapeChar = (dialect === "postgres" || dialect === "postgres-native") ? '"' : '`'
+        , escapeChar = (dialect === "postgres") ? '"' : '`'
 
       User.bulkCreate([
         {username: 'boo5', aBool: false},
@@ -1508,7 +1508,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should be able to handle false/true values through associations as well...', function(done) {
       var User = this.User
-        , escapeChar = (dialect === "postgres" || dialect === "postgres-native") ? '"' : '`'
+        , escapeChar = (dialect === "postgres") ? '"' : '`'
       var Passports = this.sequelize.define('Passports', {
         isActive: Sequelize.BOOLEAN
       })
@@ -3626,12 +3626,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(schemas[0]).to.be.instanceof(Array)
         // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
         // Postgres supports schemas natively
-        expect(schemas[0]).to.have.length((dialect === "postgres" || dialect === "postgres-native" ? 2 : 1))
+        expect(schemas[0]).to.have.length((dialect === "postgres" ? 2 : 1))
         done()
       })
     })
 
-    if (dialect === "mysql" || dialect === "sqlite") {
+    if (Support.dialectIsMySQL() || dialect === "sqlite") {
       it("should take schemaDelimiter into account if applicable", function(done){
         var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'})
         var UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {age: Sequelize.INTEGER})
@@ -3665,26 +3665,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserPublic.schema('special').sync({ force: true }).success(function() {
           self.sequelize.queryInterface.describeTable('Publics')
           .on('sql', function(sql) {
-            if (dialect === "sqlite" || dialect === "mysql" || dialect === 'mariadb') {
+            if (dialect === "sqlite" || Support.dialectIsMySQL()) {
               expect(sql).to.not.contain('special')
               _done()
             }
           })
           .success(function(table) {
-            if (dialect === "postgres" || dialect === "postgres-native") {
+            if (dialect === "postgres") {
               expect(table.id.defaultValue).to.not.contain('special')
               _done()
             }
 
             self.sequelize.queryInterface.describeTable('Publics', 'special')
             .on('sql', function(sql) {
-              if (dialect === "sqlite" || dialect === "mysql" || dialect === 'mariadb') {
+              if (dialect === "sqlite" || Support.dialectIsMySQL()) {
                 expect(sql).to.contain('special')
                 _done()
               }
             })
             .success(function(table) {
-              if (dialect === "postgres" || dialect === "postgres-native") {
+              if (dialect === "postgres") {
                 expect(table.id.defaultValue).to.contain('special')
                 _done()
               }
@@ -3814,7 +3814,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (Support.dialectIsMySQL()) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
@@ -3844,7 +3844,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Post.sync().on('sql', function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (Support.dialectIsMySQL()) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
@@ -3882,7 +3882,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done()
         }
       }).error(function(err) {
-        if (dialect === 'mysql') {
+        if (Support.dialectIsMySQL(true)) {
           expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/)
         } else if (dialect === 'mariadb') {
           expect(err.message).to.match(/Can\'t create table/)

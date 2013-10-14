@@ -13,7 +13,7 @@ chai.Assertion.includeStack = true
 var qq = function(str) {
   if (dialect == 'postgres' || dialect == 'sqlite') {
     return '"' + str + '"'
-  } else if (dialect == 'mysql' || dialect === 'mariadb') {
+  } else if (Support.dialectIsMySQL()) {
     return '`' + str + '`'
   } else {
     return str
@@ -147,7 +147,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
-    if (dialect == 'mysql' || dialect === 'mariadb') {
+    if (Support.dialectIsMySQL()) {
       it('executes stored procedures', function(done) {
         var self = this
         self.sequelize.query(this.insertQuery).success(function() {

@@ -9,7 +9,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-if (dialect.match(/^mysql|mariadb/)) {
+if (Support.dialectIsMySQL()) {
   describe("[MYSQL Specific] QueryGenerator", function () {
     var suites = {
       attributesToSQL: [

@@ -7,7 +7,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-if (dialect.match(/^mysql|mariadb/)) {
+if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Connector Manager', function() {
     it('works correctly after being idle', function(done) {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
