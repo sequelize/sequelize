@@ -355,7 +355,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         };
 
       this.User.create(data).success(function (user) {
-        self.User.findOrCreate(data).success(function (_user, created) {
+        self.User.findOrCreate(data).done(function (err, _user, created) {
           expect(_user.id).to.equal(user.id)
           expect(_user.username).to.equal('Username')
           expect(_user.data).to.equal('ThisIsData')
