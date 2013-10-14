@@ -3570,8 +3570,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('references', function() {
-    this.timeout(3000)
-
     beforeEach(function(done) {
       var self = this
 

@@ -128,6 +128,7 @@ before(function(done) {
 
 beforeEach(function(done) {
   this.sequelize = sequelize
+
   Support.clearDatabase(this.sequelize, function() {
     done()
   })

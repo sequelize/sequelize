@@ -13,6 +13,8 @@ chai.use(datetime)
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("DAO"), function () {
+  this.timeout(10000)
+
   beforeEach(function(done) {
     this.User = this.sequelize.define('User', {
       username:  { type: DataTypes.STRING },
@@ -449,7 +451,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it("should update read only attributes as well (updatedAt)", function(done) {
       var self = this
-      this.timeout = 2000
 
       this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
         var originallyUpdatedAt = originalUser.updatedAt
@@ -565,8 +566,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('save', function() {
-    this.timeout(3000) // for update timestamp
-
     it('only updates fields in passed array', function(done) {
       var self   = this
         , userId = null
