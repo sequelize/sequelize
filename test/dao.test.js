@@ -13,8 +13,6 @@ chai.use(datetime)
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("DAO"), function () {
-  this.timeout(10000)
-
   beforeEach(function(done) {
     this.User = this.sequelize.define('User', {
       username:  { type: DataTypes.STRING },
