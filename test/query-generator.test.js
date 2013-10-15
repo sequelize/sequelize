@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser("QueryGenerators"), function () {
 
       User.sync({ force: true }).success(function() {
         var sql = ''
-        if (dialect === "mysql") {
+        if (Support.dialectIsMySQL()) {
           sql = 'SELECT COLUMN_COMMENT as cmt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = \'' + self.sequelize.config.database + '\' AND TABLE_NAME = \'Users\' AND COLUMN_NAME = \'username\'';
         }
         else if (dialect === "postgres" || dialect === "postgres-native") {

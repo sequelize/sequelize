@@ -57,7 +57,8 @@
     "chai": "~1.8.0",
     "mocha": "~1.13.0",
     "chai-datetime": "~1.1.1",
-    "sinon": "~1.7.3"
+    "sinon": "~1.7.3",
+    "mariasql": "git://github.com/sequelize/node-mariasql.git"
   },
   "keywords": [
     "mysql",
