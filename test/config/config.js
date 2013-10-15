@@ -38,5 +38,17 @@ module.exports = {
       maxConnections: process.env.SEQ_PG_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
       maxIdleTime:    process.env.SEQ_PG_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
     }
+  },
+
+  mariadb: {
+    database: process.env.SEQ_MYSQL_DB   || process.env.SEQ_DB   || 'sequelize_test',
+    username: process.env.SEQ_MYSQL_USER || process.env.SEQ_USER || "root",
+    password: process.env.SEQ_MYSQL_PW   || process.env.SEQ_PW   || null,
+    host:     process.env.SEQ_MYSQL_HOST || process.env.SEQ_HOST || '127.0.0.1',
+    port:     process.env.SEQ_MYSQL_PORT || process.env.SEQ_PORT || 3306,
+    pool:     {
+      maxConnections: process.env.SEQ_MYSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 1,
+      maxIdleTime:    process.env.SEQ_MYSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+    }
   }
 }

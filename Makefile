@@ -19,6 +19,8 @@ test:
 	fi
 
 
+mariadb:
+	@DIALECT=mariadb make test
 sqlite:
 	@DIALECT=sqlite make test
 mysql:
@@ -37,6 +39,6 @@ postgresn: postgres-native
 
 # test all the dialects \o/
 
-all: sqlite mysql postgres postgres-native
+all: sqlite mysql postgres postgres-native mariadb
 
 .PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test
