@@ -158,7 +158,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should allow me to set a function as default value', function(done) {
+      var defaultFunction = sinon.stub().returns(5)
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: {
+          type: Sequelize.INTEGER,
+          defaultValue: defaultFunction 
+        }
+      }, { timestamps: true })
 
+      UserTable.sync({ force: true }).success(function() {
+        UserTable.create().success(function(user) {
+            UserTable.create().success(function(user2) {
+              expect(user.aNumber).to.equal(5)
+              expect(user2.aNumber).to.equal(5)
+              expect(defaultFunction).to.have.been.called.twice
+              done()
+            })
+          })
+        })
+      })
+    })
 
     it('should allow me to override updatedAt, createdAt, and deletedAt fields', function(done) {
       var UserTable = this.sequelize.define('UserCol', {
