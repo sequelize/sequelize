@@ -82,6 +82,7 @@
 - [FEATURE] Support for hooks. [#894](https://github.com/sequelize/sequelize/pull/894). Thanks to durango.
 - [FEATURE] Support for literals and casts. [#950](https://github.com/sequelize/sequelize/pull/950). Thanks to durango.
 - [FEATURE] Model#findOrBuild. [#960](https://github.com/sequelize/sequelize/pull/960). Thanks to durango.
+- [FEATURE] Support for MariaDB. [#948](https://github.com/sequelize/sequelize/pull/948). Thanks to reedog117 and janmeier.
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango
