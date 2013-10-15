@@ -21,36 +21,27 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
 
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
-        id: 101,
         username: 'leia'
       }, {
-        id: 102,
         username: 'vader'
       }]).success(function() {
         Project.bulkCreate([{
-          id: 201,
-          UserId: 101,
+          UserId: 1,
           title: 'republic'
         },{
-          id: 202,
-          UserId: 102,
           title: 'empire'
         }]).success(function() {
           Task.bulkCreate([{
-            id: 301,
-            ProjectId: 201,
+            ProjectId: 1,
             title: 'fight empire'
           },{
-            id: 302,
-            ProjectId: 201,
+            ProjectId: 1,
             title: 'stablish republic'
           },{
-            id: 303,
-            ProjectId: 202,
+            ProjectId: 2,
             title: 'destroy rebel alliance'
           },{
-            id: 304,
-            ProjectId: 202,
+            ProjectId: 2,
             title: 'rule everything'
           }]).success(function() {
             Task.findAll({
@@ -87,42 +78,34 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
 
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
-        id: 101,
         username: 'leia'
       }, {
-        id: 102,
         username: 'vader'
       }]).success(function() {
         Project.bulkCreate([{
-          id: 201,
-          UserId: 101,
+          UserId: 1,
           title: 'republic'
         },{
-          id: 202,
-          UserId: 102,
+          UserId: 2,
           title: 'empire'
         }]).success(function() {
           Task.bulkCreate([{
-            id: 301,
-            ProjectId: 201,
+            ProjectId: 1,
             title: 'fight empire'
           },{
-            id: 302,
-            ProjectId: 201,
+            ProjectId: 1,
             title: 'stablish republic'
           },{
-            id: 303,
-            ProjectId: 202,
+            ProjectId: 2,
             title: 'destroy rebel alliance'
           },{
-            id: 304,
-            ProjectId: 202,
+            ProjectId: 2,
             title: 'rule everything'
           }]).success(function() {
             Task.findAll({
               where: {
                 'project.user.username': 'leia',
-                'project.user.id': 101
+                'project.user.id': 1
               }
             }).success(function(tasks){
               try{
@@ -154,36 +137,28 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
 
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
-        id: 101,
         username: 'leia'
       }, {
-        id: 102,
         username: 'vader'
       }]).success(function() {
         Project.bulkCreate([{
-          id: 201,
-          UserId: 101,
+          UserId: 1,
           title: 'republic'
         },{
-          id: 202,
-          UserId: 102,
+          UserId: 2,
           title: 'empire'
         }]).success(function() {
           Task.bulkCreate([{
-            id: 301,
-            ProjectId: 201,
+            ProjectId: 1,
             title: 'fight empire'
           },{
-            id: 302,
-            ProjectId: 201,
+            ProjectId: 1,
             title: 'stablish republic'
           },{
-            id: 303,
-            ProjectId: 202,
+            ProjectId: 2,
             title: 'destroy rebel alliance'
           },{
-            id: 304,
-            ProjectId: 202,
+            ProjectId: 2,
             title: 'rule everything'
           }]).success(function() {
             User.findAll({
@@ -214,25 +189,21 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
 
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
-        id: 101,
         username: 'leia'
       }, {
-        id: 102,
         username: 'vader'
       }]).success(function() {
         Project.bulkCreate([{
-          id: 201,
           title: 'republic'
         },{
-          id: 202,
           title: 'empire'
         }]).success(function() {
-          User.find(101).success(function(user){
-            Project.find(201).success(function(project){
+          User.find(1).success(function(user){
+            Project.find(1).success(function(project){
               user.setProjects([project]).success(function(){
 
-                User.find(102).success(function(user){
-                  Project.find(202).success(function(project){
+                User.find(2).success(function(user){
+                  Project.find(2).success(function(project){
                     user.setProjects([project]).success(function(){
                       User.findAll({
                         where: {
