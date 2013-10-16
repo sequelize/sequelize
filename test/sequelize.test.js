@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
   describe('createFromConfigFile', function() {
     it('should create an instance from config', function(done) {
-      var sequelize = Sequelize.createFromConfig({
+      var sequelize = Sequelize.createFromConfigFile({
         env: 'development',
         path: __dirname + '/config/config.json'
       })
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     it('should throw error if environment does not exist in file', function(done) {
       var path = __dirname + '/config/config.json'
       expect(function() {
-        Sequelize.createFromConfig({
+        Sequelize.createFromConfigFile({
           env: 'wrong',
           path: path
         })
