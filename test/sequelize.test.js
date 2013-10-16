@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
   })
 
-  describe('createFromConfig', function() {
+  describe('createFromConfigFile', function() {
     it('should create an instance from config', function(done) {
       var sequelize = Sequelize.createFromConfig({
         env: 'development',
