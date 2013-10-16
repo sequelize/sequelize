@@ -1,4 +1,5 @@
 /* jshint camelcase: false */
+/* jshint expr: true */
 var chai      = require('chai')
   , Sequelize = require('../index')
   , expect    = chai.expect
@@ -172,11 +173,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             UserTable.create().success(function(user2) {
               expect(user.aNumber).to.equal(5)
               expect(user2.aNumber).to.equal(5)
-              expect(defaultFunction).to.have.been.called.twice
+              expect(defaultFunction.callCount).to.equal(2)
               done()
             })
           })
-        })
       })
     })
 
