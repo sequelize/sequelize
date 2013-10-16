@@ -47,6 +47,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       expect(sequelize).to.be.ok
       expect(sequelize.config.host).to.equal('127.0.0.1')
       expect(sequelize.config.database).to.equal('dev_db')
+      expect(sequelize.config.password).to.equal('password')
       expect(sequelize.config.username).to.equal('dev')
       done()
     })
