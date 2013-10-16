@@ -1,0 +1,16 @@
+{
+  "development": {
+    "database": "dev_db",
+    "username": "dev",
+    "password": "password",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "database": "prod_db",
+    "username": "prod",
+    "password": "password_prod",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
