@@ -158,6 +158,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should allow me to set a function as default value', function(done) {
+      var defaultFunction = sinon.stub().returns(5)
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: {
+          type: Sequelize.INTEGER,
+          defaultValue: defaultFunction
+        }
+      }, { timestamps: true })
+
+      UserTable.sync({ force: true }).success(function() {
+        UserTable.create().success(function(user) {
+            UserTable.create().success(function(user2) {
+              expect(user.aNumber).to.equal(5)
+              expect(user2.aNumber).to.equal(5)
+              expect(defaultFunction.callCount).to.equal(2)
+              done()
+            })
+          })
+      })
+    })
+
     it('should allow me to override updatedAt, createdAt, and deletedAt fields', function(done) {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: Sequelize.INTEGER
@@ -246,6 +267,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       expect(Task.build().flag).to.be.false
       done()
     })
+
+    it("returns proper defaultValues after save when setter is set", function(done) {
+      var Task = this.sequelize.define('TaskBuild', {
+        title:  {type: Sequelize.STRING(50), allowNull: false, defaultValue: ''},
+      }, {
+        setterMethods: {
+          title: function(){}
+        }
+      })
+      Task.sync({force: true}).success(function() {
+        Task.build().save().success(function(record) {
+          expect(record.title).to.be.a('string')
+          expect(record.title).to.equal('')
+          done()
+        }).error(done)
+      }).error(done)
+    })
+
 
     it("stores the passed values in a special variable", function(done) {
       var user = this.User.build({ username: 'John Wayne' })
