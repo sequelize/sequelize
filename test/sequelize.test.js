@@ -39,6 +39,12 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
   })
 
+  describe('getDialect', function() {
+    it('returns the defined dialect', function() {
+      expect(this.sequelize.getDialect()).to.equal(dialect)
+    })
+  })
+
   describe('isDefined', function() {
     it("returns false if the dao wasn't defined before", function() {
       expect(this.sequelize.isDefined('Project')).to.be.false
@@ -502,17 +508,18 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           , self = this
 
         this.sequelize.query(sql, null, { plain: true, raw: true }).success(function(r1) {
-          expect(r1.connection_count).to.equal(2)
-
           self.sequelize.transaction(function(t) {
             self.sequelize.query(sql, null, { plain: true, raw: true, transaction: t}).success(function(r2) {
-              expect(r1.connection_count).to.equal(3)
+              expect(r2.connection_count).to.equal(r1.connection_count + 1)
+              t.commit()
             })
           }).done(function() {
-            self.sequelize.query(sql, null, { plain: true, raw: true, transaction: t}).success(function(r2) {
-              expect(r1.connection_count).to.equal(2)
-              done()
-            })
+            setTimeout(function() {
+              self.sequelize.query(sql, null, { plain: true, raw: true }).success(function(r3) {
+                expect(r3.connection_count).to.equal(r1.connection_count)
+                done()
+              })
+            }, 1000)
           })
         })
       })
