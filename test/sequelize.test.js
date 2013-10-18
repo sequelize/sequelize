@@ -504,22 +504,23 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
 
       it("correctly handles multiple transactions", function(done) {
-        var TransactionTest = this.sequelize.define('TransactionTest', { name: DataTypes.STRING })
+        var TransactionTest = this.sequelize.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
           , self            = this
-          , count           = function(transaction, callback) {
-                                self
-                                  .sequelize
-                                  .query('SELECT count(*) as cnt FROM `TransactionTests`', null, { plain: true, raw: true, transaction: transaction })
-                                  .success(function(result) {
-                                    callback(result.cnt)
-                                  })
-                              }
+
+        var count = function(transaction, callback) {
+          var sql = self.sequelize.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] })
+
+          self
+            .sequelize
+            .query(sql, null, { plain: true, raw: true, transaction: transaction })
+            .success(function(result) { callback(result.cnt) })
+        }
 
         TransactionTest.sync({ force: true }).success(function() {
           self.sequelize.transaction(function(t1) {
-            self.sequelize.query('INSERT INTO `TransactionTests` (`name`) VALUES ("foo");', null, { plain: true, raw: true, transaction: t1 }).success(function() {
+            self.sequelize.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
               self.sequelize.transaction(function(t2) {
-                self.sequelize.query('INSERT INTO `TransactionTests` (`name`) VALUES ("bar");', null, { plain: true, raw: true, transaction: t2 }).success(function() {
+                self.sequelize.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'bar\');', null, { plain: true, raw: true, transaction: t2 }).success(function() {
                   count(null, function(cnt) {
                     expect(cnt).to.equal(0)
 
