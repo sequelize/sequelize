@@ -6,12 +6,12 @@ var chai        = require('chai')
 describe(Support.getTestDialectTeaser("Transaction"), function () {
   describe('constructor', function() {
     it('stores options', function() {
-      var transaction = new Transaction()
+      var transaction = new Transaction(this.sequelize)
       expect(transaction.options).to.be.an.instanceOf(Object)
     })
 
     it('generates an identifier', function() {
-      var transaction = new Transaction()
+      var transaction = new Transaction(this.sequelize)
       expect(transaction.id).to.exist
     })
   })
@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
 
   describe('done', function() {
     it('gets called when the transaction gets commited', function(done) {
-      var transaction = new Transaction()
+      var transaction = new Transaction(this.sequelize)
       transaction.done(done)
       transaction.commit()
     })
