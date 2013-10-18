@@ -465,5 +465,26 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
       })
     })
+
+    describe('transaction', function() {
+      it('is a transaction method available', function() {
+        expect(Support.Sequelize).to.respondTo('transaction')
+      })
+
+      it('passes a transaction object to the callback', function(done) {
+        var Transaction = require(__dirname + '/../lib/transaction')
+
+        this.sequelize.transaction(function(t) {
+          expect(t).to.be.instanceOf(Transaction)
+          done()
+        })
+      })
+
+      it("creates a new connection", function(done) {
+        this.sequelize.transaction(function(t) {
+          done()
+        })
+      })
+    })
   })
 })
