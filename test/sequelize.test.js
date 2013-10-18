@@ -492,7 +492,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       it('allows me to define a callback on the result', function(done) {
         this
           .sequelize
-          .transaction(function(t) { console.log(t); t.commit() })
+          .transaction(function(t) { t.commit() })
           .done(done)
       })
 
