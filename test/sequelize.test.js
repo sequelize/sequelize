@@ -7,6 +7,7 @@ var chai      = require('chai')
   , Sequelize = require(__dirname + '/../index')
   , config    = require(__dirname + "/config/config")
   , moment    = require('moment')
+  , Transaction = require(__dirname + '/../lib/transaction')
 
 chai.Assertion.includeStack = true
 
@@ -472,17 +473,47 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
 
       it('passes a transaction object to the callback', function(done) {
-        var Transaction = require(__dirname + '/../lib/transaction')
-
         this.sequelize.transaction(function(t) {
           expect(t).to.be.instanceOf(Transaction)
           done()
         })
       })
 
-      it("creates a new connection", function(done) {
+      it('returns a transaction object', function() {
+        expect(this.sequelize.transaction(function(){})).to.be.instanceOf(Transaction)
+      })
+
+      it('allows me to define a callback on the result', function(done) {
+        this
+          .sequelize
+          .transaction(function(t) { console.log(t); t.commit() })
+          .done(done)
+      })
+
+      it('allows me to define a callback on the transaction object', function(done) {
         this.sequelize.transaction(function(t) {
-          done()
+          t.done(done)
+          t.commit()
+        })
+      })
+
+      it("creates a new connection", function(done) {
+        var sql  = "SELECT count(*) connection_count FROM INFORMATION_SCHEMA.PROCESSLIST WHERE DB = 'sequelize_test';"
+          , self = this
+
+        this.sequelize.query(sql, null, { plain: true, raw: true }).success(function(r1) {
+          expect(r1.connection_count).to.equal(2)
+
+          self.sequelize.transaction(function(t) {
+            self.sequelize.query(sql, null, { plain: true, raw: true, transaction: t}).success(function(r2) {
+              expect(r1.connection_count).to.equal(3)
+            })
+          }).done(function() {
+            self.sequelize.query(sql, null, { plain: true, raw: true, transaction: t}).success(function(r2) {
+              expect(r1.connection_count).to.equal(2)
+              done()
+            })
+          })
         })
       })
     })

@@ -15,4 +15,24 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
       expect(transaction.id).to.exist
     })
   })
+
+  describe('commit', function() {
+    it('is a commit message available', function() {
+      expect(Transaction).to.respondTo('commit')
+    })
+  })
+
+  describe('rollback', function() {
+    it('is a rollback message available', function() {
+      expect(Transaction).to.respondTo('rollback')
+    })
+  })
+
+  describe('done', function() {
+    it('gets called when the transaction gets commited', function(done) {
+      var transaction = new Transaction()
+      transaction.done(done)
+      transaction.commit()
+    })
+  })
 })
