@@ -503,27 +503,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
 
-      it("creates a new connection", function(done) {
-        var sql  = "SELECT count(*) connection_count FROM INFORMATION_SCHEMA.PROCESSLIST WHERE DB = 'sequelize_test';"
-          , self = this
-
-        this.sequelize.query(sql, null, { plain: true, raw: true }).success(function(r1) {
-          self.sequelize.transaction(function(t) {
-            self.sequelize.query(sql, null, { plain: true, raw: true, transaction: t}).success(function(r2) {
-              expect(r2.connection_count).to.equal(r1.connection_count + 1)
-              t.commit()
-            })
-          }).done(function() {
-            setTimeout(function() {
-              self.sequelize.query(sql, null, { plain: true, raw: true }).success(function(r3) {
-                expect(r3.connection_count).to.equal(r1.connection_count)
-                done()
-              })
-            }, 1000)
-          })
-        })
-      })
-
       it("correctly handles multiple transactions", function(done) {
         var TransactionTest = this.sequelize.define('TransactionTest', { name: DataTypes.STRING })
           , self            = this
