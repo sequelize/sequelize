@@ -34,7 +34,7 @@ var Support = {
     options.pool    = options.pool || config.pool
 
     var sequelizeOptions = {
-      // logging:        options.logging,
+      logging:        options.logging,
       dialect:        options.dialect,
       port:           options.port || process.env.SEQ_PORT || config.port,
       pool:           options.pool,
