@@ -34,7 +34,7 @@ var Support = {
     options.pool    = options.pool || config.pool
 
     var sequelizeOptions = {
-      logging:        options.logging,
+      // logging:        options.logging,
       dialect:        options.dialect,
       port:           options.port || process.env.SEQ_PORT || config.port,
       pool:           options.pool,
@@ -47,6 +47,10 @@ var Support = {
 
     if (!!options.define) {
       sequelizeOptions.define = options.define
+    }
+
+    if (!!config.storage) {
+      sequelizeOptions.storage = config.storage
     }
 
     if (process.env.DIALECT === 'postgres-native') {

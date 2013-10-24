@@ -26,6 +26,7 @@ module.exports = {
   },
 
   sqlite: {
+    storage: __dirname + '/../tmp/db.sqlite'
   },
 
   postgres: {
