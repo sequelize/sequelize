@@ -449,7 +449,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it("should update read only attributes as well (updatedAt)", function(done) {
       var self = this
-      this.timeout = 2000
 
       this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
         var originallyUpdatedAt = originalUser.updatedAt
@@ -565,8 +564,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('save', function() {
-    this.timeout(3000) // for update timestamp
-
     it('only updates fields in passed array', function(done) {
       var self   = this
         , userId = null
@@ -1035,7 +1032,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               if (dialect === "postgres" || dialect === "postgres-native") {
                 expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId" IN (SELECT "newId" FROM "UserDestroys" WHERE "newId"=\'123ABC\' LIMIT 1)')
               }
-              else if (dialect === "mysql") {
+              else if (Support.dialectIsMySQL()) {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
               } else {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")
@@ -1112,6 +1109,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
           self.User.find(query).success(function(user) {
             expect(user.username).to.equal('fnord')
+            done()
+          })
+        })
+      })
+    })
+    it("returns null for null, undefined, and unset boolean values", function(done) {
+      var Setting = this.sequelize.define('SettingHelper', {
+        setting_key: DataTypes.STRING,
+          bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value3: { type: DataTypes.BOOLEAN, allowNull: true }
+      }, { timestamps: false, logging: false })
+
+      Setting.sync({ force: true }).success(function() {
+        Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined }).success(function() {
+          Setting.find({ where: { setting_key: 'test' } }).success(function(setting) {
+            expect(setting.bool_value).to.equal(null)
+            expect(setting.bool_value2).to.equal(null)
+            expect(setting.bool_value3).to.equal(null)
             done()
           })
         })
