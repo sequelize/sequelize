@@ -950,18 +950,37 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
-      it('can safely sync multiple times', function(done) {
-        var Enum = this.sequelize.define('Enum', {
-          state: {
-            type: Sequelize.ENUM,
-            values: ['happy', 'sad'],
-            allowNull: true
-          }
+      describe('can safely sync multiple times', function(done) {
+        it('through the factory', function(done) {
+          var Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          })
+
+          Enum.sync({ force: true }).success(function() {
+            Enum.sync().success(function() {
+              Enum.sync({ force: true }).complete(done)
+            })
+          })
         })
 
-        Enum.sync({ force: true }).success(function() {
-          Enum.sync().success(function() {
-            Enum.sync({ force: true }).complete(done)
+        it('through sequelize', function(done) {
+          var self = this
+            , Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          })
+
+          this.sequelize.sync({ force: true }).success(function() {
+            self.sequelize.sync().success(function() {
+              self.sequelize.sync({ force: true }).complete(done)
+            })
           })
         })
       })
