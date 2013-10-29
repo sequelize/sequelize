@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: {
           type: Sequelize.INTEGER,
-          defaultValue: defaultFunction 
+          defaultValue: defaultFunction
         }
       }, { timestamps: true })
 
@@ -1413,7 +1413,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('should delete a paranoid record if I set force to true', function(done) {
+    it.only('should delete a paranoid record if I set force to true', function(done) {
       var self = this
       var User = this.sequelize.define('paranoiduser', {
         username: Sequelize.STRING
@@ -1438,7 +1438,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                         self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', null, {raw: true, plain: true}).success(function(result) {
                           expect(result.username).to.equal('Tony')
                           User.destroy({username: ['Tony', 'Max']}, {force: true}).success(function() {
-                            User.all().success(function(users) {
+                            self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true}).success(function(users) {
                               expect(users).to.have.length(1)
                               expect(users[0].username).to.equal('Tobi')
                               done()
