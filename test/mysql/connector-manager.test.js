@@ -7,10 +7,8 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-if (dialect.match(/^mysql/)) {
+if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Connector Manager', function() {
-    this.timeout(10000)
-
     it('works correctly after being idle', function(done) {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
       , spy = sinon.spy()

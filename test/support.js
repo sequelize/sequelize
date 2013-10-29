@@ -101,6 +101,19 @@ var Support = {
     return envDialect
   },
 
+  dialectIsMySQL: function(strict) {
+    var envDialect = process.env.DIALECT || 'mysql'
+    if (strict === undefined) {
+      strict = false
+    }
+
+    if (strict) {
+      return envDialect === 'mysql'
+    } else {
+      return ['mysql', 'mariadb'].indexOf(envDialect) !== -1
+    }
+  },
+
   getTestDialectTeaser: function(moduleName) {
     var dialect = this.getTestDialect()
 
@@ -128,6 +141,7 @@ before(function(done) {
 
 beforeEach(function(done) {
   this.sequelize = sequelize
+
   Support.clearDatabase(this.sequelize, function() {
     done()
   })
