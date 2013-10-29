@@ -31,8 +31,11 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
   describe('done', function() {
     it('gets called when the transaction gets commited', function(done) {
       var transaction = new Transaction(this.sequelize)
+
       transaction.done(done)
-      transaction.commit()
+      transaction.prepareEnvironment(function() {
+        transaction.commit()
+      })
     })
   })
 })
