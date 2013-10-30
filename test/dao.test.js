@@ -337,6 +337,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    it('with timestamps set to true', function (done) {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+
+      User.sync({ force: true }).success(function() {
+        User.create({aNumber: 1}).success(function (user) {
+          var oldDate = user.updatedAt
+          setTimeout(function () {
+            user.increment('aNumber', 1).success(function() {
+              User.find(1).success(function (user) {
+                expect(user.updatedAt).to.be.afterTime(oldDate)
+                done()
+              })
+            })
+          }, 1000)
+        })
+      })
+    })
   })
 
   describe('decrement', function () {
@@ -412,6 +432,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             expect(user3.bNumber).to.be.equal(-2)
             done()
           })
+        })
+      })
+    })
+
+    it('with timestamps set to true', function (done) {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+
+      User.sync({ force: true }).success(function() {
+        User.create({aNumber: 1}).success(function (user) {
+          var oldDate = user.updatedAt
+          setTimeout(function () {
+            user.decrement('aNumber', 1).success(function() {
+              User.find(1).success(function (user) {
+                expect(user.updatedAt).to.be.afterTime(oldDate)
+                done()
+              })
+            })
+          }, 1000)
         })
       })
     })
