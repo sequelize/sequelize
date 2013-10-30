@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: {
           type: Sequelize.INTEGER,
-          defaultValue: defaultFunction 
+          defaultValue: defaultFunction
         }
       }, { timestamps: true })
 
@@ -620,6 +620,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
     it("casts empty array correct for postgres update", function(done) {
       if (dialect !== "postgres") {
         expect('').to.equal('')
@@ -653,8 +654,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
 
       User.sync({ force: true }).on('sql', function(sql) {
-        expect(sql).to.match(/UNIQUE \(username, email\)/)
-        expect(sql).to.match(/UNIQUE \(aCol, bCol\)/)
+        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_username_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
+        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_aCol_bCol)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
         done()
       })
     })
