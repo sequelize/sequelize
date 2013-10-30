@@ -13,12 +13,14 @@ teaser:
 
 test:
 	@if [ "$$GREP" ]; then \
-		make teaser && ./node_modules/mocha/bin/mocha --colors --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		make teaser && ./node_modules/mocha/bin/mocha --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
-		make teaser && ./node_modules/mocha/bin/mocha --colors --reporter $(REPORTER) $(TESTS); \
+		make teaser && ./node_modules/mocha/bin/mocha --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
 	fi
 
 
+mariadb:
+	@DIALECT=mariadb make test
 sqlite:
 	@DIALECT=sqlite make test
 mysql:
@@ -37,6 +39,6 @@ postgresn: postgres-native
 
 # test all the dialects \o/
 
-all: sqlite mysql postgres postgres-native
+all: sqlite mysql postgres postgres-native mariadb
 
 .PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test

@@ -41,6 +41,7 @@
 - [BUG] Fix for counts queries with no result [#906](https://github.com/sequelize/sequelize/pull/906). thanks to iamjochem
 - [BUG] Allow include when the same table is referenced multiple times using hasMany [#913](https://github.com/sequelize/sequelize/pull/913). thanks to janmeier
 - [BUG] Allow definition of defaultValue for the timestamp columns (createdAt, updatedAt, deletedAt) [#930](https://github.com/sequelize/sequelize/pull/930). Thank to durango
+- [BUG] Don't delete foreign keys of many-to-many associations, if still needed. [#961](https://github.com/sequelize/sequelize/pull/961). thanks to sdepold
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
@@ -79,6 +80,10 @@
 - [FEATURE] Triggers for Postgres. [#915](https://github.com/sequelize/sequelize/pull/915). Thanks to jonathana.
 - [FEATURE] Support for join tables. [#877](https://github.com/sequelize/sequelize/pull/877). Thanks to janmeier.
 - [FEATURE] Support for hooks. [#894](https://github.com/sequelize/sequelize/pull/894). Thanks to durango.
+- [FEATURE] Support for literals and casts. [#950](https://github.com/sequelize/sequelize/pull/950). Thanks to durango.
+- [FEATURE] Model#findOrBuild. [#960](https://github.com/sequelize/sequelize/pull/960). Thanks to durango.
+- [FEATURE] Support for MariaDB. [#948](https://github.com/sequelize/sequelize/pull/948). Thanks to reedog117 and janmeier.
+- [FEATURE] Filter through associations. [#991](https://github.com/sequelize/sequelize/pull/991). Thanks to snit-ram.
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango

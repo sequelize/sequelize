@@ -1,6 +1,6 @@
-# Sequelize [![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize) #
+# Sequelize [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/sequelize/sequelize/trend.png)](https://bitdeli.com/free "Bitdeli Badge") [![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize) #
 
-MySQL, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
+MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
 
 ## Important Notes ##
 
@@ -61,7 +61,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - Transactions
 - Associations of not yet saved objects: [#864](https://github.com/sequelize/sequelize/issues/864)
 - Support for update of tables without primary key
-- MariaDB support
+- ~~MariaDB support~~
 - ~~Support for update and delete calls for whole tables without previous loading of instances~~ Implemented in [#569](https://github.com/sequelize/sequelize/pull/569) thanks to @optiltude
 - Eager loading of nested associations [#388](https://github.com/sequelize/sequelize/issues/388)
 - ~~Model#delete~~ (renamed to [Model.destroy()](http://sequelizejs.com/documentation#instances-destroy))
