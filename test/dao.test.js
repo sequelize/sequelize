@@ -1114,6 +1114,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+    it("returns null for null, undefined, and unset boolean values", function(done) {
+      var Setting = this.sequelize.define('SettingHelper', {
+        setting_key: DataTypes.STRING,
+          bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value3: { type: DataTypes.BOOLEAN, allowNull: true }
+      }, { timestamps: false, logging: false })
+
+      Setting.sync({ force: true }).success(function() {
+        Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined }).success(function() {
+          Setting.find({ where: { setting_key: 'test' } }).success(function(setting) {
+            expect(setting.bool_value).to.equal(null)
+            expect(setting.bool_value2).to.equal(null)
+            expect(setting.bool_value3).to.equal(null)
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('equals', function() {

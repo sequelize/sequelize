@@ -1,4 +1,5 @@
 /* jshint camelcase: false */
+/* jshint expr: true */
 var chai      = require('chai')
   , Sequelize = require('../index')
   , expect    = chai.expect
@@ -155,6 +156,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             })
           })
         })
+      })
+    })
+
+    it('should allow me to set a function as default value', function(done) {
+      var defaultFunction = sinon.stub().returns(5)
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: {
+          type: Sequelize.INTEGER,
+          defaultValue: defaultFunction 
+        }
+      }, { timestamps: true })
+
+      UserTable.sync({ force: true }).success(function() {
+        UserTable.create().success(function(user) {
+            UserTable.create().success(function(user2) {
+              expect(user.aNumber).to.equal(5)
+              expect(user2.aNumber).to.equal(5)
+              expect(defaultFunction.callCount).to.equal(2)
+              done()
+            })
+          })
       })
     })
 
