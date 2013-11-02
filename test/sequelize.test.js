@@ -557,7 +557,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
             self
               .sequelize
               .query(sql, null, { plain: true, raw: true, transaction: transaction })
-              .success(function(result) { callback(result.cnt) })
+              .success(function(result) { callback(parseInt(result.cnt, 10)) })
           }
 
           TransactionTest.sync({ force: true }).success(function() {
