@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: {
           type: Sequelize.INTEGER,
-          defaultValue: defaultFunction 
+          defaultValue: defaultFunction
         }
       }, { timestamps: true })
 
@@ -946,6 +946,41 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           Enum.create({state: null}).success(function(_enum) {
             expect(_enum.state).to.be.null
             done()
+          })
+        })
+      })
+
+      describe('can safely sync multiple times', function(done) {
+        it('through the factory', function(done) {
+          var Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          })
+
+          Enum.sync({ force: true }).success(function() {
+            Enum.sync().success(function() {
+              Enum.sync({ force: true }).complete(done)
+            })
+          })
+        })
+
+        it('through sequelize', function(done) {
+          var self = this
+            , Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          })
+
+          this.sequelize.sync({ force: true }).success(function() {
+            self.sequelize.sync().success(function() {
+              self.sequelize.sync({ force: true }).complete(done)
+            })
           })
         })
       })
