@@ -1,3 +1,4 @@
+/* jshint expr:true */
 var chai      = require('chai')
   , expect    = chai.expect
   , Sequelize = require(__dirname + '/../index')
@@ -549,6 +550,43 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
               done('xnor failed')
             } else {
               done()
+            }
+          }
+        }
+      })
+
+      Foo
+        .build({ field1: null, field2: null })
+        .validate()
+        .success(function(errors) {
+          expect(errors).not.to.be.null
+          expect(errors).to.deep.equal({ 'xnor': ['xnor failed'] })
+
+          Foo
+            .build({ field1: 33, field2: null })
+            .validate()
+            .success(function(errors) {
+              expect(errors).not.exist
+              done()
+            })
+        })
+    })
+
+    it('validates a model with no async callback', function(done) {
+      var Foo = this.sequelize.define('Foo' + config.rand(), {
+        field1: {
+          type: Sequelize.INTEGER,
+          allowNull: true
+        },
+        field2: {
+          type: Sequelize.INTEGER,
+          allowNull: true
+        }
+      }, {
+        validate: {
+          xnor: function() {
+            if ((this.field1 === null) === (this.field2 === null)) {
+              throw new Error('xnor failed')
             }
           }
         }
