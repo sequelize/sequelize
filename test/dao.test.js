@@ -290,6 +290,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('with single field and no value', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment('aNumber').complete(function() {
+          self.User.find(1).complete(function(err, user2) {
+            expect(user2.aNumber).to.be.equal(1)
+            done()
+          })
+        })
+      })
+    })
+
     it('should still work right with other concurrent updates', function(done) {
       var self = this
       this.User.find(1).complete(function (err, user1) {
@@ -382,6 +394,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         user1.decrement('aNumber', 2).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
+            done()
+          })
+        })
+      })
+    })
+
+    it('with single field and no value', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.decrement('aNumber').complete(function() {
+          self.User.find(1).complete(function(err, user2) {
+            expect(user2.aNumber).to.be.equal(-1)
             done()
           })
         })
