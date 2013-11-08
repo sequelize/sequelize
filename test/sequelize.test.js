@@ -375,25 +375,22 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
-    it("fails with incorrect database credentials", function(done) {
-      // sqlite doesn't have a concept of database credentials
-      if (dialect === "sqlite") {
-        expect(true).to.be.true
-        return done()
-      }
+    if (dialect !== "sqlite") {
+      it("fails with incorrect database credentials", function(done) {
+        this.sequelizeWithInvalidCredentials = new Sequelize("omg", "bar", null, this.sequelize.options)
 
-      var sequelize2 = Support.getSequelizeInstance('foo', 'bar', null, { logging: false })
-        , User2      = sequelize2.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
+        var User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
-      User2.sync().error(function(err) {
-        if (dialect === "postgres" || dialect === "postgres-native") {
-          expect(err.message).to.equal('role "bar" does not exist')
-        } else {
-          expect(err.message.toString()).to.match(/.*Access\ denied.*/)
-        }
-        done()
+        User2.sync().complete(function(err) {
+          if (dialect === "postgres" || dialect === "postgres-native") {
+            expect(err.message).to.match(/(role "bar" does not exist)|(password authentication failed for user "bar")/)
+          } else {
+            expect(err.message.toString()).to.match(/.*Access\ denied.*/)
+          }
+          done()
+        })
       })
-    })
+    }
   })
 
   describe('drop should work', function() {
