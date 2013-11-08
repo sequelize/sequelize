@@ -40,18 +40,18 @@
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
     "validator": "~1.5.0",
-    "moment": "~2.2.1",
+    "moment": "~2.4.0",
     "commander": "~2.0.0",
     "dottie": "0.0.8-0",
     "toposort-class": "~0.2.0",
     "generic-pool": "2.0.4",
     "promise": "~3.2.0",
-    "sql": "~0.28.0"
+    "sql": "~0.31.0"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
     "mysql": "~2.0.0-alpha9",
-    "pg": "~2.6.0",
+    "pg": "~2.8.1",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
     "chai": "~1.8.0",
