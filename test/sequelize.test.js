@@ -40,6 +40,32 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
   })
 
+  if (dialect !== 'sqlite') {
+    describe('authenticate', function() {
+      describe('with valid credentials', function() {
+        it('triggers the success event', function(done) {
+          this.sequelize.authenticate().success(done)
+        })
+      })
+
+      describe('with invalid credentials', function() {
+        beforeEach(function() {
+          this.sequelizeWithInvalidCredentials = new Sequelize("omg", "wtf", "lol", this.sequelize.options)
+        })
+
+        it('triggers the error event', function(done) {
+          this
+            .sequelizeWithInvalidCredentials
+            .authenticate()
+            .complete(function(err, result) {
+              expect(err).to.not.be.null
+              done()
+            })
+        })
+      })
+    })
+  }
+
   describe('getDialect', function() {
     it('returns the defined dialect', function() {
       expect(this.sequelize.getDialect()).to.equal(dialect)
