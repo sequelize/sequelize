@@ -169,6 +169,12 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
         }).to.throw('No value has been passed.')
       })
 
+      it('does not throw an error if the value is not defined and the parameter is optional', function() {
+        expect(function() {
+          Utils.validateParameter(undefined, Object, { optional: true })
+        }).to.not.throw()
+      })
+
       it('throws an error if the expectation is not defined', function() {
         expect(function() {
           Utils.validateParameter(1)
