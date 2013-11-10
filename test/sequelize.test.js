@@ -498,37 +498,39 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     describe('transaction', function() {
-      if (dialect === 'sqlite') {
-        beforeEach(function() {
-          this.sequelize.options.storage = path.join(__dirname, 'tmp', 'db.sqlite')
-          this.sequelize = new Sequelize(this.sequelize.config.datase, null, null, this.sequelize.options)
+      beforeEach(function(done) {
+        var self = this
+
+        Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+          self.sequelizeWithTransaction = sequelize
+          done()
         })
-      }
+      })
 
       it('is a transaction method available', function() {
         expect(Support.Sequelize).to.respondTo('transaction')
       })
 
       it('passes a transaction object to the callback', function(done) {
-        this.sequelize.transaction(function(t) {
+        this.sequelizeWithTransaction.transaction(function(t) {
           expect(t).to.be.instanceOf(Transaction)
           done()
         })
       })
 
       it('returns a transaction object', function() {
-        expect(this.sequelize.transaction(function(){})).to.be.instanceOf(Transaction)
+        expect(this.sequelizeWithTransaction.transaction(function(){})).to.be.instanceOf(Transaction)
       })
 
       it('allows me to define a callback on the result', function(done) {
         this
-          .sequelize
+          .sequelizeWithTransaction
           .transaction(function(t) { t.commit() })
           .done(done)
       })
 
       it('allows me to define a callback on the transaction object', function(done) {
-        this.sequelize.transaction(function(t) {
+        this.sequelizeWithTransaction.transaction(function(t) {
           t.done(done)
           t.commit()
         })
@@ -536,21 +538,21 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
       if (dialect === 'sqlite') {
         it("correctly scopes transaction from other connections", function(done) {
-          var TransactionTest = this.sequelize.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
+          var TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
             , self            = this
 
           var count = function(transaction, callback) {
-            var sql = self.sequelize.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] })
+            var sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] })
 
             self
-              .sequelize
+              .sequelizeWithTransaction
               .query(sql, null, { plain: true, raw: true, transaction: transaction })
               .success(function(result) { callback(result.cnt) })
           }
 
           TransactionTest.sync({ force: true }).success(function() {
-            self.sequelize.transaction(function(t1) {
-              self.sequelize.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
+            self.sequelizeWithTransaction.transaction(function(t1) {
+              self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
                 count(null, function(cnt) {
                   expect(cnt).to.equal(0)
 
@@ -571,23 +573,23 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       } else {
         it("correctly handles multiple transactions", function(done) {
-          var TransactionTest = this.sequelize.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
+          var TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
             , self            = this
 
           var count = function(transaction, callback) {
-            var sql = self.sequelize.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] })
+            var sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] })
 
             self
-              .sequelize
+              .sequelizeWithTransaction
               .query(sql, null, { plain: true, raw: true, transaction: transaction })
               .success(function(result) { callback(parseInt(result.cnt, 10)) })
           }
 
           TransactionTest.sync({ force: true }).success(function() {
-            self.sequelize.transaction(function(t1) {
-              self.sequelize.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
-                self.sequelize.transaction(function(t2) {
-                  self.sequelize.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'bar\');', null, { plain: true, raw: true, transaction: t2 }).success(function() {
+            self.sequelizeWithTransaction.transaction(function(t1) {
+              self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
+                self.sequelizeWithTransaction.transaction(function(t2) {
+                  self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'bar\');', null, { plain: true, raw: true, transaction: t2 }).success(function() {
                     count(null, function(cnt) {
                       expect(cnt).to.equal(0)
 

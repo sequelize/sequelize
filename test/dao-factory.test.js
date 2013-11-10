@@ -406,7 +406,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findOrCreate', function () {
-    it("Returns instance if already existent. Single find field.", function(done) {
+    it("returns instance if already existent. Single find field.", function(done) {
       var self = this,
         data = {
           username: 'Username'
@@ -461,20 +461,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it("supports transactions", function(done) {
       var self = this
 
-      this.sequelize.transaction(function(t) {
-        self.User.findOrCreate({ username: 'Username' }, { data: 'some data' }, { transaction: t }).complete(function(err) {
-          expect(err).to.be.null
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING, data: Sequelize.STRING })
 
-          self.User.count().success(function(count) {
-            expect(count).to.equal(0)
-            t.commit().success(function() {
-              self.User.count().success(function(count) {
-                expect(count).to.equal(1)
-                done()
+        User
+          .sync({ force: true })
+          .success(function() {
+            sequelize.transaction(function(t) {
+              User.findOrCreate({ username: 'Username' }, { data: 'some data' }, { transaction: t }).complete(function(err) {
+                expect(err).to.be.null
+
+                User.count().success(function(count) {
+                  expect(count).to.equal(0)
+                  t.commit().success(function() {
+                    User.count().success(function(count) {
+                      expect(count).to.equal(1)
+                      done()
+                    })
+                  })
+                })
               })
             })
           })
-        })
       })
     })
   })
@@ -483,14 +491,20 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('supports transactions', function(done) {
       var self = this
 
-      this.sequelize.transaction(function(t) {
-        self.User.create({ username: 'user' }, { transaction: t}).success(function() {
-          self.User.count().success(function(count) {
-            expect(count).to.equal(0)
-            t.commit().success(function() {
-              self.User.count().success(function(count) {
-                expect(count).to.equal(1)
-                done()
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'user' }, { transaction: t}).success(function() {
+              User.count().success(function(count) {
+                expect(count).to.equal(0)
+                t.commit().success(function() {
+                  User.count().success(function(count) {
+                    expect(count).to.equal(1)
+                    done()
+                  })
+                })
               })
             })
           })
@@ -1842,6 +1856,29 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('find', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.find({ username: 'foo' }).success(function(user1) {
+                User.find({ username: 'foo' }, { transaction: t }).success(function(user2) {
+                  expect(user1).to.be.null
+                  expect(user2).to.not.be.null
+
+                  t.rollback().success(function() {
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe('general / basic function', function() {
       beforeEach(function(done) {
         var self = this
@@ -2658,6 +2695,32 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findAll', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.findAll({ username: 'foo' }).success(function(users1) {
+                User.findAll({ transaction: t }).success(function(users2) {
+                  User.findAll({ username: 'foo' }, { transaction: t }).success(function(users3) {
+                    expect(users1.length).to.equal(0)
+                    expect(users2.length).to.equal(1)
+                    expect(users3.length).to.equal(1)
+
+                    t.rollback().success(function() {
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe('eager loading', function() {
       describe('belongsTo', function() {
         beforeEach(function(done) {
