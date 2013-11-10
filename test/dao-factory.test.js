@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: {
           type: Sequelize.INTEGER,
-          defaultValue: defaultFunction 
+          defaultValue: defaultFunction
         }
       }, { timestamps: true })
 
@@ -455,6 +455,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(user.data).to.equal('ThisIsData')
         expect(created).to.be.true
         done()
+      })
+    })
+
+    it("supports transactions", function(done) {
+      var self = this
+
+      this.sequelize.transaction(function(t) {
+        self.User.findOrCreate({ username: 'Username' }, { data: 'some data' }, { transaction: t }).complete(function(err) {
+          expect(err).to.be.null
+
+          self.User.count().success(function(count) {
+            expect(count).to.equal(0)
+            t.commit().success(function() {
+              self.User.count().success(function(count) {
+                expect(count).to.equal(1)
+                done()
+              })
+            })
+          })
+        })
       })
     })
   })
