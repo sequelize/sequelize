@@ -1,4 +1,5 @@
 var fs        = require('fs')
+  , path      = require('path')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
   , Config    = require(__dirname + "/config/config")
@@ -22,6 +23,17 @@ var Support = {
         options.onComplete(sequelize, DataTypes)
       }
     })
+  },
+
+  prepareTransactionTest: function(dialect, sequelize, callback) {
+    if (dialect === 'sqlite') {
+      var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: path.join(__dirname, 'tmp', 'db.sqlite') })
+        , _sequelize = new Sequelize(sequelize.config.datase, null, null, options)
+
+      _sequelize.sync({ force: true }).success(function() { callback(_sequelize) })
+    } else {
+      callback(sequelize)
+    }
   },
 
   createSequelizeInstance: function(options) {
