@@ -460,6 +460,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
+    it('supports transactions', function(done) {
+      var self = this
+
+      this.sequelize.transaction(function(t) {
+        self.User.create({ username: 'user' }, { transaction: t}).success(function() {
+          self.User.count().success(function(count) {
+            expect(count).to.equal(0)
+            t.commit().success(function() {
+              self.User.count().success(function(count) {
+                expect(count).to.equal(1)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('is possible to use casting when creating an instance', function (done) {
       var self = this
         , type = Support.dialectIsMySQL() ? 'signed' : 'integer'
@@ -620,6 +638,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
     it("casts empty array correct for postgres update", function(done) {
       if (dialect !== "postgres") {
         expect('').to.equal('')
@@ -643,7 +662,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
-
 
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
