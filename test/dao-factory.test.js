@@ -351,6 +351,29 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findOrInitialize', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.findOrInitialize({ username: 'foo' }).success(function(user1) {
+                User.findOrInitialize({ username: 'foo' }, { transaction: t }).success(function(user2) {
+                  User.findOrInitialize({ username: 'foo' }, { foo: 'asd' }, { transaction: t }).success(function(user3) {
+                    expect(user1.isNewRecord).to.be.true
+                    expect(user2.isNewRecord).to.be.false
+                    expect(user3.isNewRecord).to.be.false
+                    t.commit().success(done)
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe('returns an instance if it already exists', function() {
       it('with a single find field', function (done) {
         var self = this
