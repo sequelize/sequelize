@@ -226,6 +226,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it('should work with both paranoid and underscored being true', function(done) {
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: Sequelize.INTEGER
+      }, {
+        paranoid: true,
+        underscored: true
+      })
+    
+      UserTable.sync({force: true}).success(function() {
+        UserTable.create({aNumber: 30}).success(function(user) {
+          UserTable.count().success(function(c) {
+            expect(c).to.equal(1)
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('build', function() {
