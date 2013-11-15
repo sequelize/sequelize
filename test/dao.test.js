@@ -1314,6 +1314,28 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('updateAttributes', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.updateAttributes({ username: 'bar' }, { transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].username).to.equal('foo')
+                    expect(users2[0].username).to.equal('bar')
+                    t.rollback().success(function(){ done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("updates attributes in the database", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         expect(user.username).to.equal('user')
