@@ -1448,6 +1448,28 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('destroy', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.destroy({ transaction: t }).success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(1)
+                    expect(count2).to.equal(0)
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('deletes a record from the database if dao is not paranoid', function(done) {
       var UserDestroy = this.sequelize.define('UserDestroy', {
           name: Support.Sequelize.STRING,
