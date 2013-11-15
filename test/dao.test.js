@@ -575,7 +575,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                 User.count({ transaction: t }).success(function(count2) {
                   expect(count1).to.equal(0)
                   expect(count2).to.equal(1)
-                  t.rollback().success(done)
+                  t.rollback().success(function(){ done() })
                 })
               })
             })

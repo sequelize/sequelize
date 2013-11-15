@@ -25,6 +25,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       theDate:      DataTypes.DATE,
       aBool:        DataTypes.BOOLEAN
     })
+
     this.User.sync({ force: true }).success(function() {
       done()
     })
@@ -364,7 +365,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     expect(user1.isNewRecord).to.be.true
                     expect(user2.isNewRecord).to.be.false
                     expect(user3.isNewRecord).to.be.false
-                    t.commit().success(done)
+                    t.commit().success(function() { done() })
                   })
                 })
               })
@@ -1041,7 +1042,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   User.count({ transaction: t }).success(function(count2) {
                     expect(count1).to.equal(0)
                     expect(count2).to.equal(2)
-                    t.rollback().success(done)
+                    t.rollback().success(function(){ done() })
                   })
                 })
               })
@@ -1266,7 +1267,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   User.all({ transaction: t }).success(function(users2) {
                     expect(users1[0].username).to.equal('foo')
                     expect(users2[0].username).to.equal('bar')
-                    t.rollback().success(done)
+                    t.rollback().success(function(){ done() })
                   })
                 })
               })
@@ -1410,7 +1411,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   User.count({ transaction: t }).success(function(count2) {
                     expect(count1).to.equal(1)
                     expect(count2).to.equal(0)
-                    t.rollback().success(done)
+                    t.rollback().success(function(){ done() })
                   })
                 })
               })
@@ -3216,7 +3217,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 User.findAndCountAll({ transaction: t }).success(function(info2) {
                   expect(info1.count).to.equal(0)
                   expect(info2.count).to.equal(1)
-                  t.rollback().success(done)
+                  t.rollback().success(function(){ done() })
                 })
               })
             })
@@ -3303,7 +3304,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 User.all({ transaction: t }).success(function(users2) {
                   expect(users1.length).to.equal(0)
                   expect(users2.length).to.equal(1)
-                  t.rollback().success(done)
+                  t.rollback().success(function(){ done() })
                 })
               })
             })
@@ -3392,7 +3393,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 User.count({ transaction: t }).success(function(count2) {
                   expect(count1).to.equal(0)
                   expect(count2).to.equal(1)
-                  t.rollback().success(done)
+                  t.rollback().success(function(){ done() })
                 })
               })
             })
@@ -3470,7 +3471,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 User.min('age', { transaction: t }).success(function(min2) {
                   expect(min1).to.be.not.ok
                   expect(min2).to.equal(2)
-                  t.rollback().success(done)
+                  t.rollback().success(function(){ done() })
                 })
               })
             })
@@ -3538,7 +3539,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 User.max('age', { transaction: t }).success(function(min2) {
                   expect(min1).to.be.not.ok
                   expect(min2).to.equal(5)
-                  t.rollback().success(done)
+                  t.rollback().success(function(){ done() })
                 })
               })
             })
@@ -4239,13 +4240,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         this
           .User
-          .create({ username: "foo" })
-          .then(function() {
-            return self.User.create({ username: "bar" })
-          })
-          .then(function() {
-            return self.User.create({ username: "baz" })
-          })
+          .sync({ force: true })
+          .then(function() { return self.User.create({ username: "foo" }) })
+          .then(function() { return self.User.create({ username: "bar" }) })
+          .then(function() { return self.User.create({ username: "baz" }) })
           .then(function() { done() })
       })
 
@@ -4260,7 +4258,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   User.where({ username: "foo" }).exec({ transaction: t }).success(function(users2) {
                     expect(users1).to.have.length(0)
                     expect(users2).to.have.length(1)
-                    done()
+                    t.rollback().success(function() { done() })
                   })
                 })
               })
