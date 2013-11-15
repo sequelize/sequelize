@@ -3459,6 +3459,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { age: Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
+              User.min('age').success(function(min1) {
+                User.min('age', { transaction: t }).success(function(min2) {
+                  expect(min1).to.be.not.ok
+                  expect(min2).to.equal(2)
+                  t.rollback().success(done)
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("should return the min value", function(done) {
       var self = this
       this.UserWithAge.bulkCreate([{age: 3}, { age: 2 }]).success(function() {
