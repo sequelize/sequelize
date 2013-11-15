@@ -4249,6 +4249,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           .then(function() { done() })
       })
 
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING })
+
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction(function(t) {
+              User.create({ username: 'foo' }, { transaction: t }).success(function() {
+                User.where({ username: "foo" }).exec().success(function(users1) {
+                  User.where({ username: "foo" }).exec({ transaction: t }).success(function(users2) {
+                    expect(users1).to.have.length(0)
+                    expect(users2).to.have.length(1)
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
       it("selects all users with name 'foo'", function(done) {
         this
           .User
