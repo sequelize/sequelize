@@ -1279,8 +1279,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   describe('destroy', function() {
     it('deletes a record from the database if dao is not paranoid', function(done) {
       var UserDestroy = this.sequelize.define('UserDestroy', {
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
+          name: Support.Sequelize.STRING,
+          bio: Support.Sequelize.TEXT
         })
 
       UserDestroy.sync({ force: true }).success(function() {
@@ -1300,8 +1300,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('allows sql logging of delete statements', function(done) {
       var UserDelete = this.sequelize.define('UserDelete', {
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
+          name: Support.Sequelize.STRING,
+          bio: Support.Sequelize.TEXT
         })
 
       UserDelete.sync({ force: true }).success(function() {
