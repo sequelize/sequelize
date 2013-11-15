@@ -312,6 +312,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('with single field and no value', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment('aNumber').complete(function() {
+          self.User.find(1).complete(function(err, user2) {
+            expect(user2.aNumber).to.be.equal(1)
+            done()
+          })
+        })
+      })
+    })
+
     it('should still work right with other concurrent updates', function(done) {
       var self = this
       this.User.find(1).complete(function (err, user1) {
@@ -356,6 +368,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             expect(user3.bNumber).to.be.equal(2)
             done()
           })
+        })
+      })
+    })
+
+    it('with timestamps set to true', function (done) {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+
+      User.sync({ force: true }).success(function() {
+        User.create({aNumber: 1}).success(function (user) {
+          var oldDate = user.updatedAt
+          setTimeout(function () {
+            user.increment('aNumber', 1).success(function() {
+              User.find(1).success(function (user) {
+                expect(user.updatedAt).to.be.afterTime(oldDate)
+                done()
+              })
+            })
+          }, 1000)
         })
       })
     })
@@ -412,6 +444,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('with single field and no value', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.decrement('aNumber').complete(function() {
+          self.User.find(1).complete(function(err, user2) {
+            expect(user2.aNumber).to.be.equal(-1)
+            done()
+          })
+        })
+      })
+    })
+
     it('should still work right with other concurrent updates', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
@@ -456,6 +500,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             expect(user3.bNumber).to.be.equal(-2)
             done()
           })
+        })
+      })
+    })
+
+    it('with timestamps set to true', function (done) {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+
+      User.sync({ force: true }).success(function() {
+        User.create({aNumber: 1}).success(function (user) {
+          var oldDate = user.updatedAt
+          setTimeout(function () {
+            user.decrement('aNumber', 1).success(function() {
+              User.find(1).success(function (user) {
+                expect(user.updatedAt).to.be.afterTime(oldDate)
+                done()
+              })
+            })
+          }, 1000)
         })
       })
     })
@@ -1173,6 +1237,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
           self.User.find(query).success(function(user) {
             expect(user.username).to.equal('fnord')
+            done()
+          })
+        })
+      })
+    })
+    it("returns null for null, undefined, and unset boolean values", function(done) {
+      var Setting = this.sequelize.define('SettingHelper', {
+        setting_key: DataTypes.STRING,
+          bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value3: { type: DataTypes.BOOLEAN, allowNull: true }
+      }, { timestamps: false, logging: false })
+
+      Setting.sync({ force: true }).success(function() {
+        Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined }).success(function() {
+          Setting.find({ where: { setting_key: 'test' } }).success(function(setting) {
+            expect(setting.bool_value).to.equal(null)
+            expect(setting.bool_value2).to.equal(null)
+            expect(setting.bool_value3).to.equal(null)
             done()
           })
         })

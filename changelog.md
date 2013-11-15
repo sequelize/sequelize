@@ -42,6 +42,7 @@
 - [BUG] Allow include when the same table is referenced multiple times using hasMany [#913](https://github.com/sequelize/sequelize/pull/913). thanks to janmeier
 - [BUG] Allow definition of defaultValue for the timestamp columns (createdAt, updatedAt, deletedAt) [#930](https://github.com/sequelize/sequelize/pull/930). Thank to durango
 - [BUG] Don't delete foreign keys of many-to-many associations, if still needed. [#961](https://github.com/sequelize/sequelize/pull/961). thanks to sdepold
+- [BUG] Update timestamps when incrementing and decrementing [#1023](https://github.com/sequelize/sequelize/pull/1023). durango
 - [FEATURE] Validate a model before it gets saved. [#601](https://github.com/sequelize/sequelize/pull/601). thanks to durango
 - [FEATURE] Schematics. [#564](https://github.com/sequelize/sequelize/pull/564). thanks to durango
 - [FEATURE] Foreign key constraints. [#595](https://github.com/sequelize/sequelize/pull/595). thanks to optilude
@@ -84,6 +85,7 @@
 - [FEATURE] Model#findOrBuild. [#960](https://github.com/sequelize/sequelize/pull/960). Thanks to durango.
 - [FEATURE] Support for MariaDB. [#948](https://github.com/sequelize/sequelize/pull/948). Thanks to reedog117 and janmeier.
 - [FEATURE] Filter through associations. [#991](https://github.com/sequelize/sequelize/pull/991). Thanks to snit-ram.
+- [FEATURE] Possibility to disable loging for .sync [#937](https://github.com/sequelize/sequelize/pull/937). Thanks to durango
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango
