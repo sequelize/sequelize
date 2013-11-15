@@ -3313,6 +3313,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('count', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.count().success(function(count1) {
+                User.count({ transaction: t }).success(function(count2) {
+                  expect(count1).to.equal(0)
+                  expect(count2).to.equal(1)
+                  t.rollback().success(done)
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('counts all created objects', function(done) {
       var self = this
       this.User.bulkCreate([{username: 'user1'}, {username: 'user2'}]).success(function() {
