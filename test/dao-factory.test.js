@@ -3527,6 +3527,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { age: Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
+              User.max('age').success(function(min1) {
+                User.max('age', { transaction: t }).success(function(min2) {
+                  expect(min1).to.be.not.ok
+                  expect(min2).to.equal(5)
+                  t.rollback().success(done)
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("should return the max value for a field named the same as an SQL reserved keyword", function(done) {
       var self = this
       this.UserWithAge.bulkCreate([{age: 2, order: 3}, {age: 3, order: 5}]).success(function(){
