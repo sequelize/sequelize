@@ -526,6 +526,28 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('reload', function () {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            sequelize.transaction(function(t) {
+              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+                user.reload().success(function(user) {
+                  expect(user.username).to.equal('foo')
+                  user.reload({ transaction: t }).success(function(user) {
+                    expect(user.username).to.equal('bar')
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("should return a reference to the same DAO instead of creating a new one", function(done) {
       this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
         originalUser.updateAttributes({ username: 'Doe John' }).complete(function() {
