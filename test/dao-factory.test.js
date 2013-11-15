@@ -1398,41 +1398,22 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('destroy', function() {
-    it('deletes a record from the database if dao is not paranoid', function(done) {
-      var UserDestroy = this.sequelize.define('UserDestroy', {
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
-        })
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
 
-      UserDestroy.sync({ force: true }).success(function() {
-        UserDestroy.create({name: 'hallo', bio: 'welt'}).success(function(u) {
-          UserDestroy.all().success(function(users) {
-            expect(users.length).to.equal(1)
-            u.destroy().success(function() {
-              UserDestroy.all().success(function(users) {
-                expect(users.length).to.equal(0)
-                done()
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function() {
+            sequelize.transaction(function(t) {
+              User.destroy({}, { transaction: t }).success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(1)
+                    expect(count2).to.equal(0)
+                    t.rollback().success(done)
+                  })
+                })
               })
-            })
-          })
-        })
-      })
-    })
-
-    it('allows sql logging of delete statements', function(done) {
-      var UserDelete = this.sequelize.define('UserDelete', {
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
-        })
-
-      UserDelete.sync({ force: true }).success(function() {
-        UserDelete.create({name: 'hallo', bio: 'welt'}).success(function(u) {
-          UserDelete.all().success(function(users) {
-            expect(users.length).to.equal(1)
-            u.destroy().on('sql', function(sql) {
-              expect(sql).to.exist
-              expect(sql.toUpperCase().indexOf("DELETE")).to.be.above(-1)
-              done()
             })
           })
         })

@@ -1275,4 +1275,47 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
   })
+
+  describe('destroy', function() {
+    it('deletes a record from the database if dao is not paranoid', function(done) {
+      var UserDestroy = this.sequelize.define('UserDestroy', {
+          name: Sequelize.STRING,
+          bio: Sequelize.TEXT
+        })
+
+      UserDestroy.sync({ force: true }).success(function() {
+        UserDestroy.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          UserDestroy.all().success(function(users) {
+            expect(users.length).to.equal(1)
+            u.destroy().success(function() {
+              UserDestroy.all().success(function(users) {
+                expect(users.length).to.equal(0)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('allows sql logging of delete statements', function(done) {
+      var UserDelete = this.sequelize.define('UserDelete', {
+          name: Sequelize.STRING,
+          bio: Sequelize.TEXT
+        })
+
+      UserDelete.sync({ force: true }).success(function() {
+        UserDelete.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          UserDelete.all().success(function(users) {
+            expect(users.length).to.equal(1)
+            u.destroy().on('sql', function(sql) {
+              expect(sql).to.exist
+              expect(sql.toUpperCase().indexOf("DELETE")).to.be.above(-1)
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
 })
