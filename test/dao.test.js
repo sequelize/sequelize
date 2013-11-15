@@ -266,6 +266,28 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { number: Support.Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ number: 1 }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.increment('number', { by: 2, transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].number).to.equal(1)
+                    expect(users2[0].number).to.equal(3)
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('with array', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
@@ -342,6 +364,28 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   describe('decrement', function () {
     beforeEach(function(done) {
       this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).complete(done)
+    })
+
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { number: Support.Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ number: 3 }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.decrement('number', { by: 2, transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].number).to.equal(3)
+                    expect(users2[0].number).to.equal(1)
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
     })
 
     it('with array', function(done) {
