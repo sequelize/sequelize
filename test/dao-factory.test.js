@@ -1514,395 +1514,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe('special where conditions/smartWhere object', function() {
-    beforeEach(function(done) {
-      var self = this
-
-      this.User.bulkCreate([
-        {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
-        {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00'}
-      ]).success(function(user2) {
-        done()
-      })
-    })
-
-    it('should be able to find rows where attribute is in a list of values', function (done) {
-      this.User.findAll({
-        where: {
-          username: ['boo', 'boo2']
-        }
-      }).success(function(users){
-        expect(users).to.have.length(2);
-        done()
-      });
-    })
-
-    it('should not break when trying to find rows using an array of primary keys', function (done) {
-      this.User.findAll({
-        where: {
-          id: [1, 2, 3]
-        }
-      }).success(function(users){
-        done();
-      });
-    })
-
-    it('should be able to find a row using like', function(done) {
-      this.User.findAll({
-        where: {
-          username: {
-            like: '%2'
-          }
-        }
-      }).success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users).to.have.length(1)
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not like', function(done) {
-      this.User.findAll({
-        where: {
-          username: {
-            nlike: '%2'
-          }
-        }
-      }).success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users).to.have.length(1)
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row between a certain date using the between shortcut', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            '..': ['2013-01-02', '2013-01-11']
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row not between a certain integer using the not between shortcut', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            '!..': [8, 10]
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to handle false/true values just fine...', function(done) {
-      var User = this.User
-        , escapeChar = (dialect === "postgres") ? '"' : '`'
-
-      User.bulkCreate([
-        {username: 'boo5', aBool: false},
-        {username: 'boo6', aBool: true}
-      ]).success(function() {
-        User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', false]}).success(function(users) {
-          expect(users).to.have.length(1)
-          expect(users[0].username).to.equal('boo5')
-
-          User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', true]}).success(function(_users) {
-            expect(_users).to.have.length(1)
-            expect(_users[0].username).to.equal('boo6')
-            done()
-          })
-        })
-      })
-    })
-
-    it('should be able to handle false/true values through associations as well...', function(done) {
-      var User = this.User
-        , escapeChar = (dialect === "postgres") ? '"' : '`'
-      var Passports = this.sequelize.define('Passports', {
-        isActive: Sequelize.BOOLEAN
-      })
-
-      User.hasMany(Passports)
-      Passports.belongsTo(User)
-
-      User.sync({ force: true }).success(function() {
-        Passports.sync({ force: true }).success(function() {
-          User.bulkCreate([
-            {username: 'boo5', aBool: false},
-            {username: 'boo6', aBool: true}
-          ]).success(function() {
-            Passports.bulkCreate([
-              {isActive: true},
-              {isActive: false}
-            ]).success(function() {
-              User.find(1).success(function(user) {
-                Passports.find(1).success(function(passport) {
-                  user.setPassports([passport]).success(function() {
-                    User.find(2).success(function(_user) {
-                      Passports.find(2).success(function(_passport) {
-                        _user.setPassports([_passport]).success(function() {
-                          _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).success(function(theFalsePassport) {
-                            user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).success(function(theTruePassport) {
-                              expect(theFalsePassport).to.have.length(1)
-                              expect(theFalsePassport[0].isActive).to.be.false
-                              expect(theTruePassport).to.have.length(1)
-                              expect(theTruePassport[0].isActive).to.be.true
-                              done()
-                            })
-                          })
-                        })
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          })
-        })
-      })
-    })
-
-    it('should be able to return a record with primaryKey being null for new inserts', function(done) {
-      var Session = this.sequelize.define('Session', {
-          token: { type: DataTypes.TEXT, allowNull: false },
-          lastUpdate: { type: DataTypes.DATE, allowNull: false }
-        }, {
-            charset: 'utf8',
-            collate: 'utf8_general_ci',
-            omitNull: true
-          })
-
-        , User = this.sequelize.define('User', {
-            name: { type: DataTypes.STRING, allowNull: false, unique: true },
-            password: { type: DataTypes.STRING, allowNull: false },
-            isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
-          }, {
-            charset: 'utf8',
-            collate: 'utf8_general_ci'
-          })
-
-      User.hasMany(Session, { as: 'Sessions' })
-      Session.belongsTo(User)
-
-      Session.sync({ force: true }).success(function() {
-        User.sync({ force: true }).success(function() {
-          User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
-            var sess = Session.build({
-              lastUpdate: new Date(),
-              token: '123'
-            })
-
-            user.addSession(sess).success(function(u) {
-              expect(u.token).to.equal('123')
-              done()
-            })
-          })
-        })
-      })
-    })
-
-    it('should be able to find a row between a certain date', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: ['2013-01-02', '2013-01-11']
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row between a certain date and an additional where clause', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: ['2013-01-02', '2013-01-11']
-          },
-          intVal: 10
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row not between a certain integer', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            nbetween: [8, 10]
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not between and between logic', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: ['2012-12-10', '2013-01-02'],
-            nbetween: ['2013-01-04', '2013-01-20']
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not between and between logic with dates', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: [new Date('2012-12-10'), new Date('2013-01-02')],
-            nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using greater than or equal to logic with dates', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            gte: new Date('2013-01-09')
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using greater than or equal to', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            gte: 6
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo2')
-        expect(user.intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using greater than', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            gt: 5
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo2')
-        expect(user.intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using lesser than or equal to', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            lte: 5
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo')
-        expect(user.intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using lesser than', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            lt: 6
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo')
-        expect(user.intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should have no problem finding a row using lesser and greater than', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            lt: 6,
-            gt: 4
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not equal to logic', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            ne: 10
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo')
-        expect(user.intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find multiple users with any of the special where logic properties', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            lte: 10
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        expect(users[1].username).to.equal('boo2')
-        expect(users[1].intVal).to.equal(10)
-        done()
-      })
-    })
-  })
-
   describe('find', function() {
     it('supports transactions', function(done) {
       Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
@@ -2768,6 +2379,397 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    describe('special where conditions/smartWhere object', function() {
+      beforeEach(function(done) {
+        var self = this
+
+        this.User.bulkCreate([
+          {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
+          {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00'}
+        ]).success(function(user2) {
+          done()
+        })
+      })
+
+      it('should be able to find rows where attribute is in a list of values', function (done) {
+        this.User.findAll({
+          where: {
+            username: ['boo', 'boo2']
+          }
+        }).success(function(users){
+          expect(users).to.have.length(2);
+          done()
+        });
+      })
+
+      it('should not break when trying to find rows using an array of primary keys', function (done) {
+        this.User.findAll({
+          where: {
+            id: [1, 2, 3]
+          }
+        }).success(function(users){
+          done();
+        });
+      })
+
+      it('should be able to find a row using like', function(done) {
+        this.User.findAll({
+          where: {
+            username: {
+              like: '%2'
+            }
+          }
+        }).success(function(users) {
+          expect(users).to.be.an.instanceof(Array)
+          expect(users).to.have.length(1)
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not like', function(done) {
+        this.User.findAll({
+          where: {
+            username: {
+              nlike: '%2'
+            }
+          }
+        }).success(function(users) {
+          expect(users).to.be.an.instanceof(Array)
+          expect(users).to.have.length(1)
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row between a certain date using the between shortcut', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              '..': ['2013-01-02', '2013-01-11']
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row not between a certain integer using the not between shortcut', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              '!..': [8, 10]
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to handle false/true values just fine...', function(done) {
+        var User = this.User
+          , escapeChar = (dialect === "postgres") ? '"' : '`'
+
+        User.bulkCreate([
+          {username: 'boo5', aBool: false},
+          {username: 'boo6', aBool: true}
+        ]).success(function() {
+          User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', false]}).success(function(users) {
+            expect(users).to.have.length(1)
+            expect(users[0].username).to.equal('boo5')
+
+            User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', true]}).success(function(_users) {
+              expect(_users).to.have.length(1)
+              expect(_users[0].username).to.equal('boo6')
+              done()
+            })
+          })
+        })
+      })
+
+      it('should be able to handle false/true values through associations as well...', function(done) {
+        var User = this.User
+          , escapeChar = (dialect === "postgres") ? '"' : '`'
+        var Passports = this.sequelize.define('Passports', {
+          isActive: Sequelize.BOOLEAN
+        })
+
+        User.hasMany(Passports)
+        Passports.belongsTo(User)
+
+        User.sync({ force: true }).success(function() {
+          Passports.sync({ force: true }).success(function() {
+            User.bulkCreate([
+              {username: 'boo5', aBool: false},
+              {username: 'boo6', aBool: true}
+            ]).success(function() {
+              Passports.bulkCreate([
+                {isActive: true},
+                {isActive: false}
+              ]).success(function() {
+                User.find(1).success(function(user) {
+                  Passports.find(1).success(function(passport) {
+                    user.setPassports([passport]).success(function() {
+                      User.find(2).success(function(_user) {
+                        Passports.find(2).success(function(_passport) {
+                          _user.setPassports([_passport]).success(function() {
+                            _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).success(function(theFalsePassport) {
+                              user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).success(function(theTruePassport) {
+                                expect(theFalsePassport).to.have.length(1)
+                                expect(theFalsePassport[0].isActive).to.be.false
+                                expect(theTruePassport).to.have.length(1)
+                                expect(theTruePassport[0].isActive).to.be.true
+                                done()
+                              })
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('should be able to return a record with primaryKey being null for new inserts', function(done) {
+        var Session = this.sequelize.define('Session', {
+            token: { type: DataTypes.TEXT, allowNull: false },
+            lastUpdate: { type: DataTypes.DATE, allowNull: false }
+          }, {
+              charset: 'utf8',
+              collate: 'utf8_general_ci',
+              omitNull: true
+            })
+
+          , User = this.sequelize.define('User', {
+              name: { type: DataTypes.STRING, allowNull: false, unique: true },
+              password: { type: DataTypes.STRING, allowNull: false },
+              isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+            }, {
+              charset: 'utf8',
+              collate: 'utf8_general_ci'
+            })
+
+        User.hasMany(Session, { as: 'Sessions' })
+        Session.belongsTo(User)
+
+        Session.sync({ force: true }).success(function() {
+          User.sync({ force: true }).success(function() {
+            User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
+              var sess = Session.build({
+                lastUpdate: new Date(),
+                token: '123'
+              })
+
+              user.addSession(sess).success(function(u) {
+                expect(u.token).to.equal('123')
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      it('should be able to find a row between a certain date', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: ['2013-01-02', '2013-01-11']
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row between a certain date and an additional where clause', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: ['2013-01-02', '2013-01-11']
+            },
+            intVal: 10
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row not between a certain integer', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              nbetween: [8, 10]
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not between and between logic', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: ['2012-12-10', '2013-01-02'],
+              nbetween: ['2013-01-04', '2013-01-20']
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not between and between logic with dates', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: [new Date('2012-12-10'), new Date('2013-01-02')],
+              nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using greater than or equal to logic with dates', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              gte: new Date('2013-01-09')
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using greater than or equal to', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              gte: 6
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo2')
+          expect(user.intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using greater than', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              gt: 5
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo2')
+          expect(user.intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using lesser than or equal to', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              lte: 5
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo')
+          expect(user.intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using lesser than', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              lt: 6
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo')
+          expect(user.intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should have no problem finding a row using lesser and greater than', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              lt: 6,
+              gt: 4
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not equal to logic', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              ne: 10
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo')
+          expect(user.intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find multiple users with any of the special where logic properties', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              lte: 10
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          expect(users[1].username).to.equal('boo2')
+          expect(users[1].intVal).to.equal(10)
+          done()
+        })
+      })
+    })
+
+
 
     describe('eager loading', function() {
       describe('belongsTo', function() {
