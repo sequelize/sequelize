@@ -1254,6 +1254,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('update', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function() {
+            sequelize.transaction(function(t) {
+              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].username).to.equal('foo')
+                    expect(users2[0].username).to.equal('bar')
+                    t.rollback().success(done)
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('updates the attributes that we select only without updating createdAt', function(done) {
       var User = this.sequelize.define('User1', {
         username: Sequelize.STRING,
