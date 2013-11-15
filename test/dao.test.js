@@ -564,6 +564,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('save', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.build({ username: 'foo' }).save({ transaction: t }).success(function() {
+              User.count().success(function(count1) {
+                User.count({ transaction: t }).success(function(count2) {
+                  expect(count1).to.equal(0)
+                  expect(count2).to.equal(1)
+                  t.rollback().success(done)
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('only updates fields in passed array', function(done) {
       var self   = this
         , userId = null
