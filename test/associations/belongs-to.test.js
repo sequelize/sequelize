@@ -20,6 +20,39 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
     })
   })
 
+  describe('getAssociation', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
+
+        Group.belongsTo(User)
+
+        sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Group.create({ name: 'bar' }).success(function(group) {
+              sequelize.transaction(function(t) {
+                group.setUser(user, { transaction: t }).success(function() {
+                  Group.all().success(function(groups) {
+                    groups[0].getUser().success(function(associatedUser) {
+                      expect(associatedUser).to.be.null
+                      Group.all({ transaction: t }).success(function(groups) {
+                        groups[0].getUser({ transaction: t }).success(function(associatedUser) {
+                          expect(associatedUser).to.be.not.null
+                          t.rollback().success(function() { done() })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   describe('setAssociation', function() {
     it('supports transactions', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
