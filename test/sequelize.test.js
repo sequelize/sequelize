@@ -533,7 +533,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       beforeEach(function(done) {
         var self = this
 
-        Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
           self.sequelizeWithTransaction = sequelize
           done()
         })

@@ -25,7 +25,9 @@ var Support = {
     })
   },
 
-  prepareTransactionTest: function(dialect, sequelize, callback) {
+  prepareTransactionTest: function(sequelize, callback) {
+    var dialect = Support.getTestDialect()
+
     if (dialect === 'sqlite') {
       var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: path.join(__dirname, 'tmp', 'db.sqlite') })
         , _sequelize = new Sequelize(sequelize.config.datase, null, null, options)

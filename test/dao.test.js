@@ -267,7 +267,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     it('supports transactions', function(done) {
-      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { number: Support.Sequelize.INTEGER })
 
         User.sync({ force: true }).success(function() {
@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     it('supports transactions', function(done) {
-      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { number: Support.Sequelize.INTEGER })
 
         User.sync({ force: true }).success(function() {
@@ -527,7 +527,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
   describe('reload', function () {
     it('supports transactions', function(done) {
-      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
@@ -695,7 +695,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
   describe('save', function() {
     it('supports transactions', function(done) {
-      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
@@ -1315,7 +1315,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
   describe('updateAttributes', function() {
     it('supports transactions', function(done) {
-      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
@@ -1449,7 +1449,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
   describe('destroy', function() {
     it('supports transactions', function(done) {
-      Support.prepareTransactionTest(dialect, this.sequelize, function(sequelize) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
