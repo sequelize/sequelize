@@ -217,12 +217,12 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                 sequelize.transaction(function(t) {
                   article.setLabels([ label ], { transaction: t }).success(function() {
                     Label
-                      .findAll({ where: { articleId: article.id }, transaction: undefined })
+                      .findAll({ where: { ArticleId: article.id }, transaction: undefined })
                       .success(function(labels) {
                         expect(labels.length).to.equal(0)
 
                         Label
-                          .findAll({ where: { articleId: article.id }, transaction: t })
+                          .findAll({ where: { ArticleId: article.id }, transaction: t })
                           .success(function(labels) {
                             expect(labels.length).to.equal(1)
                             t.rollback().success(function() { done() })

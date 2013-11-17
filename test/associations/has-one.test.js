@@ -75,9 +75,36 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
   })
 
   describe('setAssociation', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
+
+        Group.hasOne(User)
+
+        sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Group.create({ name: 'bar' }).success(function(group) {
+              sequelize.transaction(function(t) {
+                group.setUser(user, { transaction: t }).success(function() {
+                  Group.all().success(function(groups) {
+                    groups[0].getUser().success(function(associatedUser) {
+                      expect(associatedUser).to.be.null
+                      t.rollback().success(function() { done() })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('can set an association with predefined primary keys', function(done) {
       var User = this.sequelize.define('UserXYZZ', { userCoolIdTag: { type: Sequelize.INTEGER, primaryKey: true }, username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZZ', { taskOrSomething: { type: Sequelize.INTEGER, primaryKey: true }, title: Sequelize.STRING })
+        , self = this
 
       User.hasOne(Task, {foreignKey: 'userCoolIdTag'})
 
