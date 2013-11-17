@@ -459,6 +459,38 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+          Label.hasMany(Article)
+
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Article.all({ transaction: t }).success(function(articles) {
+                      articles[0].getLabels().success(function(labels) {
+                        expect(labels).to.have.length(0)
+                        Article.all({ transaction: t }).success(function(articles) {
+                          articles[0].getLabels({ transaction: t }).success(function(labels) {
+                            expect(labels).to.have.length(1)
+                            t.rollback().success(function() { done() })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
       it("gets all associated objects when no options are passed", function(done) {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks().success(function (tasks) {
