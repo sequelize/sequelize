@@ -291,7 +291,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('with array', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.increment(['aNumber'], 2).complete(function() {
+        user1.increment(['aNumber'], { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(2)
             done()
@@ -303,7 +303,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('with single field', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.increment('aNumber', 2).complete(function() {
+        user1.increment('aNumber', { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(2)
             done()
@@ -332,7 +332,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).complete(function () {
-            user1.increment(['aNumber'], 2).complete(function() {
+            user1.increment(['aNumber'], { by: 2 }).complete(function() {
               self.User.find(1).complete(function(err, user5) {
                 expect(user5.aNumber).to.be.equal(3)
                 done()
@@ -353,16 +353,16 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           })
         })
 
-        user1.increment(['aNumber'], 2).complete(_done)
-        user1.increment(['aNumber'], 2).complete(_done)
-        user1.increment(['aNumber'], 2).complete(_done)
+        user1.increment(['aNumber'], { by: 2 }).complete(_done)
+        user1.increment(['aNumber'], { by: 2 }).complete(_done)
+        user1.increment(['aNumber'], { by: 2 }).complete(_done)
       })
     })
 
     it('with key value pair', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.increment({ 'aNumber': 1, 'bNumber': 2}).success(function() {
+        user1.increment({ 'aNumber': 1, 'bNumber': 2 }).success(function() {
           self.User.find(1).complete(function (err, user3) {
             expect(user3.aNumber).to.be.equal(1)
             expect(user3.bNumber).to.be.equal(2)
@@ -381,7 +381,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         User.create({aNumber: 1}).success(function (user) {
           var oldDate = user.updatedAt
           setTimeout(function () {
-            user.increment('aNumber', 1).success(function() {
+            user.increment('aNumber', { by: 1 }).success(function() {
               User.find(1).success(function (user) {
                 expect(user.updatedAt).to.be.afterTime(oldDate)
                 done()
@@ -423,7 +423,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('with array', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.decrement(['aNumber'], 2).complete(function() {
+        user1.decrement(['aNumber'], { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
             done()
@@ -435,7 +435,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('with single field', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.decrement('aNumber', 2).complete(function() {
+        user1.decrement('aNumber', { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
             done()
@@ -464,7 +464,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).complete(function () {
-            user1.decrement(['aNumber'], 2).complete(function() {
+            user1.decrement(['aNumber'], { by: 2 }).complete(function() {
               self.User.find(1).complete(function(err, user5) {
                 expect(user5.aNumber).to.be.equal(-1)
                 done()
@@ -485,9 +485,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           })
         })
 
-        user1.decrement(['aNumber'], 2).complete(_done)
-        user1.decrement(['aNumber'], 2).complete(_done)
-        user1.decrement(['aNumber'], 2).complete(_done)
+        user1.decrement(['aNumber'], { by: 2 }).complete(_done)
+        user1.decrement(['aNumber'], { by: 2 }).complete(_done)
+        user1.decrement(['aNumber'], { by: 2 }).complete(_done)
       })
     })
 
@@ -513,7 +513,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         User.create({aNumber: 1}).success(function (user) {
           var oldDate = user.updatedAt
           setTimeout(function () {
-            user.decrement('aNumber', 1).success(function() {
+            user.decrement('aNumber', { by: 1 }).success(function() {
               User.find(1).success(function (user) {
                 expect(user.updatedAt).to.be.afterTime(oldDate)
                 done()

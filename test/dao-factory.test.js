@@ -874,7 +874,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var self = this
         , data = { username: 'Peter', secretValue: '42' }
 
-      this.User.create(data, ['username']).success(function(user) {
+      this.User.create(data, { fields: ['username'] }).success(function(user) {
         self.User.find(user.id).success(function(_user) {
           expect(_user.username).to.equal(data.username)
           expect(_user.secretValue).not.to.equal(data.secretValue)
@@ -1107,7 +1107,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         , data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '23'}]
 
-      this.User.bulkCreate(data, ['username']).success(function() {
+      this.User.bulkCreate(data, { fields: ['username'] }).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).to.equal(2)
           expect(users[0].username).to.equal("Peter")
@@ -1228,7 +1228,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           {name: 'foo', code: '123'},
           {code: '1234'},
           {name: 'bar', code: '1'}
-        ], null, {validate: true}).error(function(errors) {
+        ], { validate: true }).error(function(errors) {
           expect(errors).to.not.be.null
           expect(errors).to.be.instanceof(Array)
           expect(errors).to.have.length(2)
@@ -1262,7 +1262,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         Tasks.bulkCreate([
           {name: 'foo', code: '123'},
           {code: '1234'}
-        ], ['code'], {validate: true}).success(function() {
+        ], { fields: ['code'], validate: true }).success(function() {
           // we passed!
           done()
         })
