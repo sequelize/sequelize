@@ -46,7 +46,8 @@
     "toposort-class": "~0.2.0",
     "generic-pool": "2.0.4",
     "promise": "~3.2.0",
-    "sql": "~0.31.0"
+    "sql": "~0.31.0",
+    "circular-json": "~0.1.5"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
