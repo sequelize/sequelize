@@ -13,9 +13,9 @@ teaser:
 
 test:
 	@if [ "$$GREP" ]; then \
-		make teaser && ./node_modules/mocha/bin/mocha --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		make teaser && ./node_modules/mocha/bin/mocha --colors -t 10000 --check-leaks --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
-		make teaser && ./node_modules/mocha/bin/mocha --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
+		make teaser && ./node_modules/mocha/bin/mocha --colors -t 10000 --check-leaks --reporter $(REPORTER) $(TESTS); \
 	fi
 
 
