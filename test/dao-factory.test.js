@@ -520,7 +520,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         User.sync({ force: true }).success(function() {
           sequelize.transaction(function(t) {
-            User.create({ username: 'user' }, { transaction: t}).success(function() {
+            User.create({ username: 'user' }, { transaction: t }).success(function() {
               User.count().success(function(count) {
                 expect(count).to.equal(0)
                 t.commit().success(function() {
