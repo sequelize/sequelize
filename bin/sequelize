@@ -5,6 +5,7 @@ var path      = require("path")
   , program   = require("commander")
   , Sequelize = require(__dirname + '/../index')
   , moment    = require("moment")
+  , url       = require("url")
   , _         = Sequelize.Utils._
 
 var configuration = {
@@ -78,11 +79,27 @@ var createMigrationsFolder = function(force) {
 }
 
 var readConfig = function() {
-  var config
-  try {
-    config = require(configuration.configFile);
-  } catch(e) {
-    throw new Error('Error reading "' + relativeConfigFile() + '".')
+  if(process.env.DATABASE_URL) {
+    var urlParts = url.parse(process.env.DATABASE_URL);
+    var config = {
+    username: urlParts.auth.split(':')[0],
+    password: urlParts.auth.split(':')[1],
+    database: urlParts.pathname.substring(1),
+    dialect: urlParts.protocol.slice(0, -1),
+    protocol: urlParts.protocol.slice(0, -1),
+    host: urlParts.hostname,
+    port: urlParts.port
+    }
+    return config;
+
+  } else {
+    var config
+    try {
+      config = require(configuration.configFile);
+    } catch(e) {
+      throw new Error('Error reading "' + relativeConfigFile() + '".')
+    }
+
   }
 
   if(typeof config != 'object') {
@@ -94,7 +111,6 @@ var readConfig = function() {
     console.log('Using environment "' + configuration.environment + '".')
     config = config[configuration.environment]
   }
-  return config
 }
 
 program
@@ -117,16 +133,9 @@ if(typeof program.env === 'string') {
 }
 
 if (program.migrate) {
-  if (configFileExists()) {
-    var config
-      , options  = {}
-
-    try {
-      config = readConfig()
-    } catch(e) {
-      console.log(e.message)
-      process.exit(1)
-    }
+  if (process.env.DATABASE_URL || configFileExists()) {
+      var config = readConfig()
+        , options  = {}
 
     _.each(config, function(value, key) {
       if(['database', 'username', 'password'].indexOf(key) == -1) {
@@ -180,7 +189,6 @@ if (program.migrate) {
 } else if(program.init) {
   if(!configFileExists() || !!program.force) {
     writeDefaultConfig()
-
     console.log('Created "' + relativeConfigFile() + '"')
   } else {
     console.log('The file "' + relativeConfigFile() + '" already exists. Run "sequelize --init --force" to overwrite it.')
@@ -193,18 +201,16 @@ if (program.migrate) {
 
   var migrationName = [
     moment().format('YYYYMMDDHHmmss'),
-    (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
+    (typeof program.createMigration == 'string') ? program.createMigration : 'unnamed-migration'
   ].join('-') + '.js'
 
   var migrationContent = [
     "module.exports = {",
-    "  up: function(migration, DataTypes, done) {",
-    "    // add altering commands here, calling 'done' when finished",
-    "    done()",
+    "  up: function(migration, DataTypes) {",
+    "    // add altering commands here",
     "  },",
-    "  down: function(migration, DataTypes, done) {",
-    "    // add reverting commands here, calling 'done' when finished",
-    "    done()",
+    "  down: function(migration) {",
+    "    // add reverting commands here",
     "  }",
     "}"
   ].join('\n') + "\n"
