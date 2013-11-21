@@ -109,7 +109,11 @@ program
   .parse(process.argv)
 
 if(typeof program.config === 'string') {
-  configuration.configFile = program.config
+  if (program.config[0] === '/') {
+    configuration.configFile = program.config
+  } else {
+    configuration.configFile = path.join(process.cwd(), program.config);
+  }
 }
 
 if(typeof program.env === 'string') {
