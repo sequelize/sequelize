@@ -1,4 +1,4 @@
-/* jshint camelcase: false */
+/* jshint camelcase: false, expr: true */
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
@@ -7,6 +7,19 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("BelongsTo"), function() {
+  describe("Model.associations", function () {
+    it("should store all assocations when associting to the same table multiple times", function () {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {})
+
+      Group.belongsTo(User)
+      Group.belongsTo(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' })
+      Group.belongsTo(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' })
+
+      expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers'])
+    })
+  })
+
   describe('setAssociation', function() {
     it('can set the association with declared primary keys...', function(done) {
       var User = this.sequelize.define('UserXYZ', { user_id: {type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING })
@@ -188,6 +201,31 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
             })
           })
         })
+      })
+    })
+  })
+
+  describe("Association column", function() {
+    it('has correct type for non-id primary keys with non-integer type', function(done) {
+      var User = this.sequelize.define('UserPKBT', { 
+        username: { 
+          type: DataTypes.STRING
+        }
+      })
+        , self = this
+
+      var Group = this.sequelize.define('GroupPKBT', { 
+        name: { 
+          type: DataTypes.STRING,
+          primaryKey: true
+        }
+      })
+
+      User.belongsTo(Group)
+
+      self.sequelize.sync({ force: true }).success(function() {
+        expect(User.rawAttributes.GroupPKBTId.type.toString()).to.equal(DataTypes.STRING.toString())
+        done()
       })
     })
   })

@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "1.7.0-alpha3",
+  "version": "1.7.0-beta.1",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -36,28 +36,29 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "lodash": "~1.3.1",
+    "lodash": "~2.2.0",
     "underscore.string": "~2.3.0",
     "lingo": "~0.0.5",
-    "validator": "~1.4.0",
-    "moment": "~2.1.0",
+    "validator": "~1.5.0",
+    "moment": "~2.2.1",
     "commander": "~2.0.0",
     "dottie": "0.0.8-0",
     "toposort-class": "~0.2.0",
     "generic-pool": "2.0.4",
     "promise": "~3.2.0",
-    "sql": "~0.26.0"
+    "sql": "~0.28.0"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
-    "mysql": "~2.0.0-alpha8",
-    "pg": "~2.3.1",
+    "mysql": "~2.0.0-alpha9",
+    "pg": "~2.6.0",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
-    "chai": "~1.7.2",
-    "mocha": "~1.12.0",
-    "chai-datetime": "~1.0.0",
-    "sinon": "~1.7.3"
+    "chai": "~1.8.0",
+    "mocha": "~1.13.0",
+    "chai-datetime": "~1.1.1",
+    "sinon": "~1.7.3",
+    "mariasql": "git://github.com/sequelize/node-mariasql.git"
   },
   "keywords": [
     "mysql",
@@ -74,7 +75,7 @@
     "sequelize": "bin/sequelize"
   },
   "engines": {
-    "node": ">=0.4.6"
+    "node": ">=0.6.21"
   },
   "license": "MIT"
 }

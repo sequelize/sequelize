@@ -1,4 +1,4 @@
-/* jshint camelcase: false */
+/* jshint camelcase: false, expr: true */
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
@@ -7,6 +7,19 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("HasOne"), function() {
+  describe("Model.associations", function () {
+    it("should store all assocations when associting to the same table multiple times", function () {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {})
+
+      Group.hasOne(User)
+      Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' })
+      Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' })
+
+      expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers'])
+    })
+  })
+
   describe('getAssocation', function() {
     it('should be able to handle a where object that\'s a first class citizen.', function(done) {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
@@ -19,7 +32,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
             Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
               user.setTaskXYZ(task).success(function() {
                 user.getTaskXYZ({where: ['status = ?', 'active']}).success(function(task) {
-                  expect(task).to.equal(null)
+                  expect(task).to.be.null
                   done()
                 })
               })
@@ -227,6 +240,31 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
       })
     })
 
+  })
+
+  describe("Association column", function() {
+    it('has correct type for non-id primary keys with non-integer type', function(done) {
+      var User = this.sequelize.define('UserPKBT', { 
+        username: { 
+          type: Sequelize.STRING
+        }
+      })
+        , self = this
+
+      var Group = this.sequelize.define('GroupPKBT', { 
+        name: { 
+          type: Sequelize.STRING,
+          primaryKey: true
+        }
+      })
+
+      Group.hasOne(User)
+
+      self.sequelize.sync({ force: true }).success(function() {
+        expect(User.rawAttributes.GroupPKBTId.type.toString()).to.equal(Sequelize.STRING.toString())
+        done()
+      })
+    })
   })
 
   describe("Association options", function() {

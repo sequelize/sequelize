@@ -290,6 +290,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('with single field and no value', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment('aNumber').complete(function() {
+          self.User.find(1).complete(function(err, user2) {
+            expect(user2.aNumber).to.be.equal(1)
+            done()
+          })
+        })
+      })
+    })
+
     it('should still work right with other concurrent updates', function(done) {
       var self = this
       this.User.find(1).complete(function (err, user1) {
@@ -337,6 +349,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    it('with timestamps set to true', function (done) {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+
+      User.sync({ force: true }).success(function() {
+        User.create({aNumber: 1}).success(function (user) {
+          var oldDate = user.updatedAt
+          setTimeout(function () {
+            user.increment('aNumber', 1).success(function() {
+              User.find(1).success(function (user) {
+                expect(user.updatedAt).to.be.afterTime(oldDate)
+                done()
+              })
+            })
+          }, 1000)
+        })
+      })
+    })
   })
 
   describe('decrement', function () {
@@ -362,6 +394,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         user1.decrement('aNumber', 2).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
+            done()
+          })
+        })
+      })
+    })
+
+    it('with single field and no value', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.decrement('aNumber').complete(function() {
+          self.User.find(1).complete(function(err, user2) {
+            expect(user2.aNumber).to.be.equal(-1)
             done()
           })
         })
@@ -415,6 +459,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    it('with timestamps set to true', function (done) {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+
+      User.sync({ force: true }).success(function() {
+        User.create({aNumber: 1}).success(function (user) {
+          var oldDate = user.updatedAt
+          setTimeout(function () {
+            user.decrement('aNumber', 1).success(function() {
+              User.find(1).success(function (user) {
+                expect(user.updatedAt).to.be.afterTime(oldDate)
+                done()
+              })
+            })
+          }, 1000)
+        })
+      })
+    })
   })
 
   describe('reload', function () {
@@ -449,7 +513,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it("should update read only attributes as well (updatedAt)", function(done) {
       var self = this
-      this.timeout = 2000
 
       this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
         var originallyUpdatedAt = originalUser.updatedAt
@@ -565,8 +628,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('save', function() {
-    this.timeout(3000) // for update timestamp
-
     it('only updates fields in passed array', function(done) {
       var self   = this
         , userId = null
@@ -639,6 +700,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           done()
         })
       }, 1000)
+    })
+
+    it('updates with function and column value', function (done) {
+      var self = this
+
+      this.User.create({
+        aNumber: 42
+      }).success(function(user) {
+        user.bNumber = self.sequelize.col('aNumber')
+        user.username = self.sequelize.fn('upper', 'sequelize')
+
+        user.save().success(function(){
+          self.User.find(user.id).success(function(user2) {
+            expect(user2.username).to.equal('SEQUELIZE')
+            expect(user2.bNumber).to.equal(42)
+            done()
+          })
+        })
+      })
     })
 
     describe('without timestamps option', function() {
@@ -1000,6 +1080,34 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('destroys a record with a primary key of something other than id', function(done) {
+      var UserDestroy = this.sequelize.define('UserDestroy', {
+        newId: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        },
+        email: DataTypes.STRING
+      })
+
+      UserDestroy.sync().success(function() {
+        UserDestroy.create({newId: '123ABC', email: 'hello'}).success(function() {
+          UserDestroy.find({where: {email: 'hello'}}).success(function(user) {
+            user.destroy().on('sql', function(sql) {
+              if (dialect === "postgres" || dialect === "postgres-native") {
+                expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId" IN (SELECT "newId" FROM "UserDestroys" WHERE "newId"=\'123ABC\' LIMIT 1)')
+              }
+              else if (Support.dialectIsMySQL()) {
+                expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
+              } else {
+                expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")
+              }
+              done()
+            })
+          })
+        })
+      })
+    })
+
     it("sets deletedAt property to a specific date when deleting an instance", function(done) {
       var self = this
       this.ParanoidUser.create({ username: 'fnord' }).success(function() {
@@ -1065,6 +1173,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
           self.User.find(query).success(function(user) {
             expect(user.username).to.equal('fnord')
+            done()
+          })
+        })
+      })
+    })
+    it("returns null for null, undefined, and unset boolean values", function(done) {
+      var Setting = this.sequelize.define('SettingHelper', {
+        setting_key: DataTypes.STRING,
+          bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value3: { type: DataTypes.BOOLEAN, allowNull: true }
+      }, { timestamps: false, logging: false })
+
+      Setting.sync({ force: true }).success(function() {
+        Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined }).success(function() {
+          Setting.find({ where: { setting_key: 'test' } }).success(function(setting) {
+            expect(setting.bool_value).to.equal(null)
+            expect(setting.bool_value2).to.equal(null)
+            expect(setting.bool_value3).to.equal(null)
             done()
           })
         })
