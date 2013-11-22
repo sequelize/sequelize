@@ -6087,6 +6087,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on success', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.beforeDelete(function(user, fn) {
             beforeHook = true
             fn()
@@ -6107,6 +6110,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on error', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.beforeDelete(function(user, fn) {
             beforeHook = true
             fn()
@@ -6142,6 +6148,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on success', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.hook('beforeDelete', function(user, fn) {
             beforeHook = true
             fn()
@@ -6162,6 +6171,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on error', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.hook('beforeDelete', function(user, fn) {
             beforeHook = true
             fn()
