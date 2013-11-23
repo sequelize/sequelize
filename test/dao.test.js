@@ -169,13 +169,13 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
-    it("returns true for bulk non-changed attribute + model with timestamps", function(done) {
+    it("returns false for bulk non-changed attribute + model with timestamps", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         user.setAttributes({
           username: 'user'
         })
 
-        expect(user.isDirty).to.be.rue
+        expect(user.isDirty).to.be.false
         done()
       })
     })
