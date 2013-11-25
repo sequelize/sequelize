@@ -7,13 +7,14 @@ var chai      = require('chai')
   , Sequelize = require(__dirname + '/../index')
   , config    = require(__dirname + "/config/config")
   , moment    = require('moment')
+  , sinon     = require('sinon')
 
 chai.Assertion.includeStack = true
 
 var qq = function(str) {
   if (dialect == 'postgres' || dialect == 'sqlite') {
     return '"' + str + '"'
-  } else if (dialect == 'mysql') {
+  } else if (Support.dialectIsMySQL()) {
     return '`' + str + '`'
   } else {
     return str
@@ -48,6 +49,23 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         name: DataTypes.STRING
       })
       expect(this.sequelize.isDefined('Project')).to.be.true
+    })
+  })
+
+  describe('model', function() {
+    it('throws an error if the dao being accessed is undefined', function() {
+      var self = this
+      expect(function() {
+        self.sequelize.model('Project')
+      }).to.throw(/project has not been defined/i)
+    })
+
+    it('returns the dao factory defined by daoName', function() {
+      var project = this.sequelize.define('Project', {
+        name: DataTypes.STRING
+      })
+
+      expect(this.sequelize.model('Project')).to.equal(project)
     })
   })
 
@@ -130,7 +148,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
-    if (dialect == 'mysql') {
+    if (Support.dialectIsMySQL()) {
       it('executes stored procedures', function(done) {
         var self = this
         self.sequelize.query(this.insertQuery).success(function() {
@@ -175,6 +193,67 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }])
         done()
       })
+    })
+
+    it('replaces named parameters with the passed object', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2 }])
+        done()
+      })
+    })
+
+    it('replaces named parameters with the passed object using the same key twice', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }])
+        done()
+      })
+    })
+
+    it('replaces named parameters with the passed object having a null property', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: null }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: null }])
+        done()
+      })
+    })
+
+    it('throw an exception when key is missing in the passed object', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar, :three as baz', null, { raw: true }, { one: 1, two: 2 })
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed number', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 2)
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed empty object', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, {})
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed string', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 'foobar')
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
+    })
+
+    it('throw an exception with the passed date', function(done) {
+      var self = this
+      expect(function() {
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, new Date())
+      }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g)
+      done()
     })
 
     it('handles AS in conjunction with functions just fine', function(done) {
@@ -282,6 +361,37 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         done()
       })
     })
+
+    describe("doesn't emit logging when explicitly saying not to", function() {
+      afterEach(function(done) {
+        this.sequelize.options.logging = false
+        done()
+      })
+
+      beforeEach(function(done) {
+        this.spy = sinon.spy()
+        var self = this
+        this.sequelize.options.logging = function() { self.spy() }
+        this.User = this.sequelize.define('UserTest', { username: DataTypes.STRING })
+        done()
+      })
+
+      it('through Sequelize.sync()', function(done) {
+        var self = this
+        this.sequelize.sync({ force: true, logging: false }).success(function() {
+          expect(self.spy.notCalled).to.be.true
+          done()
+        })
+      })
+
+      it('through DAOFactory.sync()', function(done) {
+        var self = this
+        this.User.sync({ force: true, logging: false }).success(function() {
+          expect(self.spy.notCalled).to.be.true
+          done()
+        })
+      })
+    })
   })
 
   describe('drop should work', function() {
@@ -297,8 +407,20 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
   })
 
   describe('import', function() {
-    it("imports a dao definition from a file", function(done) {
+    it("imports a dao definition from a file absolute path", function(done) {
       var Project = this.sequelize.import(__dirname + "/assets/project")
+
+      expect(Project).to.exist
+      done()
+    })
+
+    it("imports a dao definition from a function", function(done) {
+      var Project = this.sequelize.import('Project', function(sequelize, DataTypes) {
+        return sequelize.define('Project' + parseInt(Math.random() * 9999999999999999), {
+          name: DataTypes.STRING
+        })
+      })
+
       expect(Project).to.exist
       done()
     })
@@ -345,11 +467,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
 
         it("doesn't save an instance if value is not in the range of enums", function(done) {
-          var self = this
-          expect(function() {
-            self.Review.create({ status: 'fnord' })
-          }).to.throw(Error, 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
-          done()
+          this.Review.create({status: 'fnord'}).error(function(err) {
+            expect(err).to.deep.equal({ status: [ 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished' ] })
+            done()
+          })
         })
       })
     })

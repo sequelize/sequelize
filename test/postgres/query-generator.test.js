@@ -17,6 +17,7 @@ if (dialect.match(/^postgres/)) {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
+        numbers: {type: DataTypes.ARRAY(DataTypes.FLOAT)},
         document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
       })
       this.User.sync({ force: true }).success(function() {
@@ -126,12 +127,20 @@ if (dialect.match(/^postgres/)) {
           expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" INTEGER); COMMENT ON TABLE \"myTable\" IS 'I''m a comment!';",
         },
         {
+          arguments: ['myTable', {data: "BLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" bytea);"
+        },
+        {
+          arguments: ['myTable', {data: "LONGBLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" bytea);"
+        },
+        {
           arguments: ['mySchema.myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));"
         },
         {
           arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
-          expectation: "DROP TYPE IF EXISTS \"enum_myTable_title\"; CREATE TYPE \"enum_myTable_title\" AS ENUM(\"A\", \"B\", \"C\"); CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" \"enum_myTable_title\", \"name\" VARCHAR(255));"
+          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" \"enum_myTable_title\", \"name\" VARCHAR(255));"
         },
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY'}],
@@ -155,7 +164,7 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
-          expectation: "DROP TYPE IF EXISTS enum_myTable_title; CREATE TYPE enum_myTable_title AS ENUM(\"A\", \"B\", \"C\"); CREATE TABLE IF NOT EXISTS myTable (title enum_myTable_title, name VARCHAR(255));",
+          expectation: "CREATE TABLE IF NOT EXISTS myTable (title enum_myTable_title, name VARCHAR(255));",
           context: {options: {quoteIdentifiers: false}}
         },
         {
@@ -238,13 +247,73 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
         }, {
           arguments: ['myTable', {order: "id DESC"}],
-          expectation: "SELECT * FROM \"myTable\" ORDER BY \"id\" DESC;"
+          expectation: "SELECT * FROM \"myTable\" ORDER BY id DESC;"
         }, {
+          arguments: ['myTable', {order: ["id"]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["myTable.id"]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."id";',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [["id", 'DESC']]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "id" DESC;',
+          context: QueryGenerator
+        }, {
+         title: 'raw arguments are neither quoted nor escaped',
+          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
+          context: QueryGenerator
+        }, {
+          title: 'functions can take functions as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return { 
+              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']] 
+            }
+          }],
+          expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2("id")) DESC;',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'functions can take all types as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              order: [
+                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'], 
+                [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
+              ]
+            }
+          }],
+          expectation: 'SELECT * FROM "myTable" ORDER BY f1("myTable"."id") DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55.000 +00:00\') ASC;',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'single string argument is not quoted',
           arguments: ['myTable', {group: "name"}],
-          expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\";"
+          expectation: "SELECT * FROM \"myTable\" GROUP BY name;"
         }, {
           arguments: ['myTable', {group: ["name"]}],
           expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\";"
+        },  {
+          title: 'functions work for group by',
+         arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
+            }
+          }],
+          expectation: "SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\");",
+          needsSequelize: true
+        },{
+          title: 'It is possible to mix sequelize.fn and string arguments to group by',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
+            }
+          }],
+          expectation: "SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\"), \"title\";",
+          context: QueryGenerator,
+          needsSequelize: true
         }, {
           arguments: ['myTable', {group: ["name","title"]}],
           expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\", \"title\";"
@@ -350,6 +419,12 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}],
           expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000 +00:00') RETURNING *;"
         }, {
+          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          expectation: "INSERT INTO \"myTable\" (\"data\") VALUES (E'\\\\x53657175656c697a65') RETURNING *;"
+        }, {
+          arguments: ['myTable', {name: 'foo', numbers: new Uint8Array([1,2,3])}],
+          expectation: "INSERT INTO \"myTable\" (\"name\",\"numbers\") VALUES ('foo',ARRAY[1,2,3]) RETURNING *;"
+        }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
           expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1) RETURNING *;"
         }, {
@@ -376,6 +451,14 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;') RETURNING *;"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              foo: sequelize.fn('NOW')
+            }
+          }],
+          expectation: "INSERT INTO \"myTable\" (\"foo\") VALUES (NOW()) RETURNING *;",
+          needsSequelize: true
         },
 
         // Variants when quoteIdentifiers is false
@@ -390,6 +473,10 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}],
           expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00') RETURNING *;",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          arguments: ['myTable', {name: 'foo', numbers: new Uint8Array([1,2,3])}],
+          expectation: "INSERT INTO myTable (name,numbers) VALUES ('foo',ARRAY[1,2,3]) RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
@@ -525,6 +612,9 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
           expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *"
         }, {
+          arguments: ['myTable', {numbers: new Uint8Array([1,2,3])}, {name: 'foo'}],
+          expectation: "UPDATE \"myTable\" SET \"numbers\"=ARRAY[1,2,3] WHERE \"name\"='foo' RETURNING *"
+        }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
           expectation: "UPDATE \"myTable\" SET \"name\"='foo'';DROP TABLE myTable;' WHERE \"name\"='foo' RETURNING *"
         }, {
@@ -548,6 +638,22 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
           expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo' RETURNING *"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.fn('NOW')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE \"myTable\" SET \"bar\"=NOW() WHERE \"name\"='foo' RETURNING *",
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.col('foo')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE \"myTable\" SET \"bar\"=\"foo\" WHERE \"name\"='foo' RETURNING *",
+          needsSequelize: true
         },
 
         // Variants when quoteIdentifiers is false
@@ -562,6 +668,10 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
           expectation: "UPDATE myTable SET bar=2 WHERE name='foo' RETURNING *",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          arguments: ['myTable', {numbers: new Uint8Array([1,2,3])}, {name: 'foo'}],
+          expectation: "UPDATE myTable SET numbers=ARRAY[1,2,3] WHERE name='foo' RETURNING *",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
@@ -781,6 +891,9 @@ if (dialect.match(/^postgres/)) {
           it(title, function(done) {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
+            if (test.needsSequelize) {
+              test.arguments[1] = test.arguments[1](this.sequelize)
+            }
             QueryGenerator.options = context.options
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)

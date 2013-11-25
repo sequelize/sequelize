@@ -9,7 +9,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-if (dialect.match(/^mysql/)) {
+if (Support.dialectIsMySQL()) {
   describe("[MYSQL Specific] QueryGenerator", function () {
     var suites = {
       attributesToSQL: [
@@ -85,6 +85,14 @@ if (dialect.match(/^mysql/)) {
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER) COMMENT 'I\\'m a comment!' ENGINE=InnoDB;"
         },
         {
+          arguments: ['myTable', {data: "BLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;"
+        },
+        {
+          arguments: ['myTable', {data: "LONGBLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;"
+        },
+        {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {engine: 'MyISAM'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;"
         },
@@ -155,20 +163,77 @@ if (dialect.match(/^mysql/)) {
           expectation: "SELECT * FROM `myTable` ORDER BY id DESC;",
           context: QueryGenerator
         }, {
+          arguments: ['myTable', {order: ["id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["myTable.id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `myTable`.`id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [["id", 'DESC']]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id` DESC;",
+          context: QueryGenerator
+        }, {
+          title: 'raw arguments are neither quoted nor escaped',
+          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;",
+          context: QueryGenerator
+        }, {
+          title: 'functions can take functions as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']]
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'functions can take all types as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              order: [
+                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'],
+                [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
+              ]
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'single string argument is not quoted',
           arguments: ['myTable', {group: "name"}],
+          expectation: "SELECT * FROM `myTable` GROUP BY name;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable',  { group: ["name"] }],
           expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {group: ["name"]}],
-          expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
-          context: QueryGenerator
+          title: 'functions work for group by',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);",
+          context: QueryGenerator,
+          needsSequelize: true
         }, {
-          arguments: ['myTable', {group: ["name", "title"]}],
-          expectation: "SELECT * FROM `myTable` GROUP BY `name`, `title`;",
-          context: QueryGenerator
+          title: 'It is possible to mix sequelize.fn and string arguments to group by',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;",
+          context: QueryGenerator,
+          needsSequelize: true
         }, {
           arguments: ['myTable', {group: "name", order: "id DESC"}],
-          expectation: "SELECT * FROM `myTable` GROUP BY `name` ORDER BY id DESC;",
+          expectation: "SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;",
           context: QueryGenerator
         }, {
           arguments: ['myTable', {limit: 10}],
@@ -220,6 +285,9 @@ if (dialect.match(/^mysql/)) {
           arguments: ['myTable', {name: 'foo', foo: 1}],
           expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);"
         }, {
+          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          expectation: "INSERT INTO `myTable` (`data`) VALUES (X'53657175656c697a65');"
+        }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);"
         }, {
@@ -240,6 +308,14 @@ if (dialect.match(/^mysql/)) {
         }, {
           arguments: ['myTable', {foo: true}],
           expectation: "INSERT INTO `myTable` (`foo`) VALUES (true);"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              foo: sequelize.fn('NOW')
+            }
+          }],
+          expectation: "INSERT INTO `myTable` (`foo`) VALUES (NOW());",
+          needsSequelize: true
         }
       ],
 
@@ -307,6 +383,22 @@ if (dialect.match(/^mysql/)) {
         }, {
           arguments: ['myTable', {bar: true}, {name: 'foo'}],
           expectation: "UPDATE `myTable` SET `bar`=true WHERE `name`='foo'"
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.fn('NOW')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=NOW() WHERE `name`='foo'",
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.col('foo')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name`='foo'",
+          needsSequelize: true
         }
       ],
 
@@ -358,10 +450,10 @@ if (dialect.match(/^mysql/)) {
       showIndexQuery: [
         {
           arguments: ['User'],
-          expectation: 'SHOW INDEX FROM User'
+          expectation: 'SHOW INDEX FROM `User`'
         }, {
           arguments: ['User', { database: 'sequelize' }],
-          expectation: "SHOW INDEX FROM User FROM sequelize"
+          expectation: "SHOW INDEX FROM `User` FROM `sequelize`"
         }
       ],
 
@@ -415,6 +507,9 @@ if (dialect.match(/^mysql/)) {
           it(title, function(done) {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
+            if (test.needsSequelize) {
+              test.arguments[1] = test.arguments[1](this.sequelize)
+            }
             QueryGenerator.options = context.options
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)

@@ -79,8 +79,20 @@ if (dialect === 'sqlite') {
 
       createTableQuery: [
         {
+          arguments: ['myTable', {data: "BLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB);"
+        },
+        {
+          arguments: ['myTable', {data: "LONGBLOB"}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB);"
+        },
+        {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));"
+        },
+        {
+          arguments: ['myTable', {title: 'VARCHAR(255) BINARY', number: 'INTEGER(5) UNSIGNED PRIMARY KEY '}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER UNSIGNED(5) PRIMARY KEY);"
         },
         {
           arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
@@ -96,6 +108,156 @@ if (dialect === 'sqlite') {
         }
       ],
 
+      selectQuery: [
+        {
+          arguments: ['myTable'],
+          expectation: "SELECT * FROM `myTable`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {attributes: ['id', 'name']}],
+          expectation: "SELECT `id`, `name` FROM `myTable`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: {id: 2}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`id`=2;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: {name: 'foo'}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name`='foo';",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name`='foo\'\';DROP TABLE myTable;';",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: 2}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`id`=2;",
+          context: QueryGenerator
+        }, {
+          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
+          expectation: 'SELECT count(*) as `count` FROM `foo`;',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {where: "foo='bar'"}],
+          expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: "id DESC"}],
+          expectation: "SELECT * FROM `myTable` ORDER BY id DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ["myTable.id"]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `myTable`.`id`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [["id", 'DESC']]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY `id` DESC;",
+          context: QueryGenerator
+        }, {
+          title: 'raw arguments are neither quoted nor escaped',
+          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;",
+          context: QueryGenerator
+        }, {
+          title: 'functions can take functions as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return { 
+              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']] 
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'functions can take all types as arguments',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              order: [
+                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'], 
+                [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
+              ]
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'single string argument is not quoted',
+          arguments: ['myTable', {group: "name"}],
+          expectation: "SELECT * FROM `myTable` GROUP BY name;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: ["name"]}],
+          expectation: "SELECT * FROM `myTable` GROUP BY `name`;",
+          context: QueryGenerator
+        }, {
+          title: 'functions work for group by',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'It is possible to mix sequelize.fn and string arguments to group by',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
+            }
+          }],
+          expectation: "SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', {group: ["name", "title"]}],
+          expectation: "SELECT * FROM `myTable` GROUP BY `name`, `title`;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {group: "name", order: "id DESC"}],
+          expectation: "SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {limit: 10}],
+          expectation: "SELECT * FROM `myTable` LIMIT 10;",
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {limit: 10, offset: 2}],
+          expectation: "SELECT * FROM `myTable` LIMIT 2, 10;",
+          context: QueryGenerator
+        }, {
+          title: 'uses default limit if only offset is specified',
+          arguments: ['myTable', {offset: 2}],
+          expectation: "SELECT * FROM `myTable` LIMIT 2, 10000000000000;",
+          context: QueryGenerator
+        }, {
+          title: 'multiple where arguments',
+          arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat`='canoe' AND `myTable`.`weather`='cold';",
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (object)',
+          arguments: ['myTable', {where: {}}],
+          expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (string)',
+          arguments: ['myTable', {where: ''}],
+          expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (null)',
+          arguments: ['myTable', {where: null}],
+          expectation: "SELECT * FROM `myTable` WHERE 1=1;",
+          context: QueryGenerator
+        }
+      ],
+
       insertQuery: [
         {
           arguments: ['myTable', { name: 'foo' }],
@@ -103,6 +265,9 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['myTable', { name: "'bar'" }],
           expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar''');"
+        }, {
+          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          expectation: "INSERT INTO `myTable` (`data`) VALUES (X'53657175656c697a65');"
         }, {
           arguments: ['myTable', { name: "bar", value: null }],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
@@ -133,6 +298,14 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
           expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
           context: {options: {omitNull: true}}
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              foo: sequelize.fn('NOW')
+            }
+          }],
+          expectation: "INSERT INTO `myTable` (`foo`) VALUES (NOW());",
+          needsSequelize: true
         }
       ],
 
@@ -212,6 +385,22 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
           expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name`='foo'",
           context: {options: {omitNull: true}}
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.fn('NOW')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=NOW() WHERE `name`='foo'",
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', function (sequelize) {
+            return {
+              bar: sequelize.col('foo')
+            }
+          }, {name: 'foo'}],
+          expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name`='foo'",
+          needsSequelize: true
         }
       ],
 
@@ -246,6 +435,9 @@ if (dialect === 'sqlite') {
           it(title, function(done) {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
+            if (test.needsSequelize) {
+              test.arguments[1] = test.arguments[1](this.sequelize)
+            }
             QueryGenerator.options = context.options
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)

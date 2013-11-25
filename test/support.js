@@ -1,7 +1,7 @@
 var fs        = require('fs')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
-  , config    = require(__dirname + "/config/config")
+  , Config    = require(__dirname + "/config/config")
 
 var Support = {
   Sequelize: Sequelize,
@@ -26,16 +26,19 @@ var Support = {
 
   createSequelizeInstance: function(options) {
     options = options || {}
-
     options.dialect = options.dialect || 'mysql'
+
+    var config = Config[options.dialect]
+
     options.logging = (options.hasOwnProperty('logging') ? options.logging : false)
     options.pool    = options.pool || config.pool
 
     var sequelizeOptions = {
-      logging: options.logging,
-      dialect: options.dialect,
-      port:    options.port || process.env.SEQ_PORT || config[options.dialect].port,
-      pool:    options.pool
+      logging:        options.logging,
+      dialect:        options.dialect,
+      port:           options.port || process.env.SEQ_PORT || config.port,
+      pool:           options.pool,
+      dialectOptions: options.dialectOptions || {}
     }
 
     if (!!options.host) {
@@ -50,16 +53,11 @@ var Support = {
       sequelizeOptions.native = true
     }
 
-    return this.getSequelizeInstance(
-      process.env.SEQ_DB || config[options.dialect].database,
-      process.env.SEQ_USER  || process.env.SEQ_USERNAME || config[options.dialect].username,
-      process.env.SEQ_PW    || process.env.SEQ_PASSWORD || config[options.dialect].password,
-      sequelizeOptions
-    )
+    return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions)
   },
 
   getSequelizeInstance: function(db, user, pass, options) {
-    options = options || {};
+    options = options || {}
     options.dialect = options.dialect || this.getTestDialect()
     return new Sequelize(db, user, pass, options)
   },
@@ -103,6 +101,19 @@ var Support = {
     return envDialect
   },
 
+  dialectIsMySQL: function(strict) {
+    var envDialect = process.env.DIALECT || 'mysql'
+    if (strict === undefined) {
+      strict = false
+    }
+
+    if (strict) {
+      return envDialect === 'mysql'
+    } else {
+      return ['mysql', 'mariadb'].indexOf(envDialect) !== -1
+    }
+  },
+
   getTestDialectTeaser: function(moduleName) {
     var dialect = this.getTestDialect()
 
@@ -116,8 +127,21 @@ var Support = {
 
 var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() })
 
+// For Postgres' HSTORE functionality and to properly execute it's commands we'll need this...
+before(function(done) {
+  var dialect = Support.getTestDialect()
+  if (dialect !== "postgres" && dialect !== "postgres-native") {
+    return done()
+  }
+
+  sequelize.query('CREATE EXTENSION IF NOT EXISTS hstore', null, {raw: true}).success(function() {
+    done()
+  })
+})
+
 beforeEach(function(done) {
   this.sequelize = sequelize
+
   Support.clearDatabase(this.sequelize, function() {
     done()
   })
