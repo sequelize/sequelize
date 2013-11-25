@@ -1688,7 +1688,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         this.User.find({ limit: 10 }).success(function(user) {
           // it returns an object instead of an array
           expect(Array.isArray(user)).to.not.be.ok
-          expect(user.hasOwnProperty('username')).to.be.ok
+          expect(user.dataValues.hasOwnProperty('username')).to.be.ok
           done()
         })
       })
