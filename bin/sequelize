@@ -78,11 +78,11 @@ var createMigrationsFolder = function(force) {
 }
 
 var readConfig = function() {
-  var config
   try {
-    config = require(configuration.configFile);
+    var fullPath = path.join(process.cwd(), configuration.configFile);
+      , config = require(fullPath);
   } catch(e) {
-    throw new Error('Error reading "' + relativeConfigFile() + '".')
+    throw new Error('Error reading "' + relativeConfigFile() + '".');
   }
 
   if(typeof config != 'object') {
