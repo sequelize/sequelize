@@ -202,6 +202,13 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
+    it('replaces named parameters with the passed object and ignore those which does not qualify', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }])
+        done()
+      })
+    })
+
     it('replaces named parameters with the passed object using the same key twice', function(done) {
       this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
         expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }])
