@@ -262,6 +262,18 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         done()
       })
     })
+
+    if (Support.getTestDialect() === 'postgres') {
+      it('supports WITH queries', function(done) {
+        this
+          .sequelize
+          .query("WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t")
+          .success(function(results) {
+            expect(results).to.deep.equal([ { "sum": "5050" } ])
+            done()
+          })
+      })
+    }
   })
 
   describe('define', function() {
