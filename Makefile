@@ -37,16 +37,22 @@ binary:
 	@./test/binary/sequelize.test.bats
 
 mariadb-cover:
+	rm -rf coverage
 	@DIALECT=mariadb make cover
 sqlite-cover:
+	rm -rf coverage
 	@DIALECT=sqlite make cover
 mysql-cover:
+	rm -rf coverage
 	@DIALECT=mysql make cover
 postgres-cover:
+	rm -rf coverage
 	@DIALECT=postgres make cover
 postgres-native-cover:
+	rm -rf coverage
 	@DIALECT=postgres-native make cover
 binary-cover:
+	rm -rf coverage
 	@./test/binary/sequelize.test.bats
 
 merge-coverage:
