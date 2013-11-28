@@ -2506,6 +2506,45 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
 
+        it('including two has many relations should not result in duplicate values', function(done) {
+          var self = this
+
+          self.Contact = self.sequelize.define('Contact', { name: DataTypes.TEXT })
+          self.Photo = self.sequelize.define('Photo', { img: DataTypes.TEXT })
+          self.PhoneNumber = self.sequelize.define('PhoneNumber', { phone: DataTypes.TEXT })
+
+          self.Contact.hasMany(self.Photo, { as: 'Photos' })
+          self.Contact.hasMany(self.PhoneNumber)
+
+          self.sequelize.sync({ force: true }).success(function() {
+            self.Contact.create({ name: 'Boris' }).success(function(someContact) {
+              self.Photo.create({ img: 'img.jpg' }).success(function(somePhoto) {
+                self.PhoneNumber.create({ phone: '000000' }).success(function(somePhone1) {
+                  self.PhoneNumber.create({ phone: '111111' }).success(function(somePhone2) {
+                    someContact.setPhotos([somePhoto]).complete(function (err, data) {
+                      expect(err).to.be.null
+                      someContact.setPhoneNumbers([somePhone1, somePhone2]).complete(function (err, data) {
+                        self.Contact.find({
+                          where: {
+                            name: 'Boris'
+                          },
+                          include: [self.PhoneNumber, { daoFactory: self.Photo, as: 'Photos' }]
+                        }).complete(function (err, fetchedContact) {
+                          expect(err).to.be.null
+                          expect(fetchedContact).to.exist
+                          expect(fetchedContact.photos.length).to.equal(1)
+                          expect(fetchedContact.phoneNumbers.length).to.equal(2)
+                          done()
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+
         it('eager loads with non-id primary keys', function(done) {
           var self = this
           self.User = self.sequelize.define('UserPKeagerone', {
