@@ -7,4 +7,4 @@ npm-debug.log
 *~
 test/binary/tmp/*
 test/tmp/*
-coverage-mysql
+coverage-*
