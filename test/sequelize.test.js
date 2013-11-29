@@ -1,5 +1,6 @@
 var chai      = require('chai')
   , expect    = chai.expect
+  , assert    = chai.assert
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
   , dialect   = Support.getTestDialect()
@@ -373,7 +374,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
       User2.sync().error(function(err) {
         if (dialect === "postgres" || dialect === "postgres-native") {
-          expect(err.message).to.equal('role "bar" does not exist')
+          assert([
+            'role "bar" does not exist',
+            'password authentication failed for user "bar"'
+          ].indexOf(err.message) !== -1)
         } else {
           expect(err.message.toString()).to.match(/.*Access\ denied.*/)
         }

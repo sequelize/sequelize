@@ -30,7 +30,10 @@ if (dialect.match(/^postgres/)) {
 
           Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'})
           Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'})
-          done()
+
+          setTimeout(function () {
+            done()
+          }, 50)
         })
 
         it("should not use a combined name", function(done) {
