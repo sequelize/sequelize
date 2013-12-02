@@ -79,8 +79,11 @@ var createMigrationsFolder = function(force) {
 
 var readConfig = function() {
   try {
-    var fullPath = path.join(process.cwd(), configuration.configFile)
-      , config   = require(fullPath);
+    var fullPath = configuration.configFile;
+    if(fullPath.charAt(0) !== '/') {
+      fullPath = path.join(process.cwd(), fullPath);
+    }
+    var config = require(fullPath);
   } catch(e) {
     throw new Error('Error reading "' + relativeConfigFile() + '".');
   }
