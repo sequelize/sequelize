@@ -1454,8 +1454,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var self = this
 
       this.User.bulkCreate([
-        {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
-        {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00'}
+        {username: 'boo',  intVal: 5,    theDate: '2013-01-01 12:00'},
+        {username: 'boo2', intVal: 10,   theDate: '2013-01-10 12:00'},
+        {username: 'boo3', intVal: null, theDate: null}
       ]).success(function(user2) {
         done()
       })
@@ -1464,10 +1465,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('should be able to find rows where attribute is in a list of values', function (done) {
       this.User.findAll({
         where: {
-          username: ['boo', 'boo2']
+          username: ['boo', 'boo2', 'boo3']
         }
       }).success(function(users){
-        expect(users).to.have.length(2);
+        expect(users).to.have.length(3);
         done()
       });
     })
@@ -1475,9 +1476,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('should not break when trying to find rows using an array of primary keys', function (done) {
       this.User.findAll({
         where: {
-          id: [1, 2, 3]
+          id: [1, 2, 3, 4]
         }
       }).success(function(users){
+        expect(users).to.have.length(3)
         done();
       });
     })
@@ -1507,9 +1509,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
       }).success(function(users) {
         expect(users).to.be.an.instanceof(Array)
-        expect(users).to.have.length(1)
+        expect(users).to.have.length(2)
         expect(users[0].username).to.equal('boo')
         expect(users[0].intVal).to.equal(5)
+        expect(users[1].username).to.equal('boo3')
+        expect(users[1].intVal).to.equal(null)
         done()
       })
     })
@@ -1522,6 +1526,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo2')
         expect(users[0].intVal).to.equal(10)
         done()
@@ -1536,6 +1541,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo')
         expect(users[0].intVal).to.equal(5)
         done()
@@ -1657,6 +1663,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo2')
         expect(users[0].intVal).to.equal(10)
         done()
@@ -1672,6 +1679,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           intVal: 10
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo2')
         expect(users[0].intVal).to.equal(10)
         done()
@@ -1686,6 +1694,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo')
         expect(users[0].intVal).to.equal(5)
         done()
@@ -1701,6 +1710,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo')
         expect(users[0].intVal).to.equal(5)
         done()
@@ -1716,6 +1726,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo')
         expect(users[0].intVal).to.equal(5)
         done()
@@ -1730,6 +1741,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo2')
         expect(users[0].intVal).to.equal(10)
         done()
@@ -1801,6 +1813,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(1)
         expect(users[0].username).to.equal('boo')
         expect(users[0].intVal).to.equal(5)
         done()
@@ -1821,6 +1834,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to find a row using not equal to null logic', function(done) {
+      this.User.findAll({
+        where: {
+          intVal: {
+            ne: null
+          }
+        }
+      }).success(function(users) {
+        expect(users).to.have.length(2)
+        expect(users[0].username).to.equal('boo')
+        expect(users[0].intVal).to.equal(5)
+        expect(users[1].username).to.equal('boo2')
+        expect(users[1].intVal).to.equal(10)
+        done()
+      })
+    })
+
     it('should be able to find multiple users with any of the special where logic properties', function(done) {
       this.User.findAll({
         where: {
@@ -1829,6 +1859,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         }
       }).success(function(users) {
+        expect(users).to.have.length(2)
         expect(users[0].username).to.equal('boo')
         expect(users[0].intVal).to.equal(5)
         expect(users[1].username).to.equal('boo2')
