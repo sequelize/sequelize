@@ -7,6 +7,7 @@ var chai      = require('chai')
   , config    = require(__dirname + "/config/config")
   , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
+  , uuid      = require('node-uuid')
   , _         = require('lodash')
 
 chai.use(datetime)
@@ -16,6 +17,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   beforeEach(function(done) {
     this.User = this.sequelize.define('User', {
       username:  { type: DataTypes.STRING },
+      uuidv1:    { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
+      uuidv4:    { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber:   { type: DataTypes.INTEGER },
       bNumber:   { type: DataTypes.INTEGER },
@@ -568,6 +571,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('default values', function() {
+    describe('uuid', function() {
+      it('should store a string in uuidv1 and uuidv4', function(done) {
+        var user = this.User.build({ username: 'a user'})
+        expect(user.uuidv1).to.be.a('string')
+        expect(user.uuidv4).to.be.a('string')
+        done()
+      })
+      it('should store a string of length 36 in uuidv1 and uuidv4', function(done) {
+        var user = this.User.build({ username: 'a user'})
+        expect(user.uuidv1).to.have.length(36)
+        expect(user.uuidv4).to.have.length(36)
+        done()
+      })
+      it('should store a valid uuid in uuidv1 and uuidv4 that can be parsed to something of length 16', function(done) {
+        var user = this.User.build({ username: 'a user'})
+        expect(uuid.parse(user.uuidv1)).to.have.length(16)
+        expect(uuid.parse(user.uuidv4)).to.have.length(16)
+        done()
+      })
+    })
     describe('current date', function() {
       it('should store a date in touchedAt', function(done) {
         var user = this.User.build({ username: 'a user'})
