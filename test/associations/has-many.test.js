@@ -535,7 +535,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
       Task.hasMany(User)
       expect(Task.attributes.UserId).not.to.exist
-      done()
+      setTimeout(function () {
+        done()
+      }, 50)
     })
 
     describe('setAssociations', function() {

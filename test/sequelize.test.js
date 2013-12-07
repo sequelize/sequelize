@@ -1,5 +1,6 @@
 var chai        = require('chai')
   , expect      = chai.expect
+  , assert      = chai.assert
   , Support     = require(__dirname + '/support')
   , DataTypes   = require(__dirname + "/../lib/data-types")
   , dialect     = Support.getTestDialect()
@@ -236,6 +237,13 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
+    it('replaces named parameters with the passed object and ignore those which does not qualify', function(done) {
+      this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }])
+        done()
+      })
+    })
+
     it('replaces named parameters with the passed object using the same key twice', function(done) {
       this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
         expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }])
@@ -296,6 +304,18 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         done()
       })
     })
+
+    if (Support.getTestDialect() === 'postgres') {
+      it('supports WITH queries', function(done) {
+        this
+          .sequelize
+          .query("WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t")
+          .success(function(results) {
+            expect(results).to.deep.equal([ { "sum": "5050" } ])
+            done()
+          })
+      })
+    }
   })
 
   describe('define', function() {
@@ -382,9 +402,13 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
         var User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
-        User2.sync().complete(function(err) {
+        User2.sync().error(function(err) {
           if (dialect === "postgres" || dialect === "postgres-native") {
-            expect(err.message).to.match(/(role "bar" does not exist)|(password authentication failed for user "bar")/)
+            assert([
+              'role "bar" does not exist',
+              'FATAL:  role "bar" does not exist',
+              'password authentication failed for user "bar"'
+            ].indexOf(err.message.trim()) !== -1)
           } else {
             expect(err.message.toString()).to.match(/.*Access\ denied.*/)
           }
