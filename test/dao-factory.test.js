@@ -25,6 +25,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       theDate:      DataTypes.DATE,
       aBool:        DataTypes.BOOLEAN
     })
+
     this.User.sync({ force: true }).success(function() {
       done()
     })
@@ -164,7 +165,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: {
           type: Sequelize.INTEGER,
-          defaultValue: defaultFunction 
+          defaultValue: defaultFunction
         }
       }, { timestamps: true })
 
@@ -351,6 +352,29 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findOrInitialize', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.findOrInitialize({ username: 'foo' }).success(function(user1) {
+                User.findOrInitialize({ username: 'foo' }, { transaction: t }).success(function(user2) {
+                  User.findOrInitialize({ username: 'foo' }, { foo: 'asd' }, { transaction: t }).success(function(user3) {
+                    expect(user1.isNewRecord).to.be.true
+                    expect(user2.isNewRecord).to.be.false
+                    expect(user3.isNewRecord).to.be.false
+                    t.commit().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe('returns an instance if it already exists', function() {
       it('with a single find field', function (done) {
         var self = this
@@ -406,7 +430,35 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findOrCreate', function () {
-    it("Returns instance if already existent. Single find field.", function(done) {
+    it("supports transactions", function(done) {
+      var self = this
+
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING, data: Sequelize.STRING })
+
+        User
+          .sync({ force: true })
+          .success(function() {
+            sequelize.transaction(function(t) {
+              User.findOrCreate({ username: 'Username' }, { data: 'some data' }, { transaction: t }).complete(function(err) {
+                expect(err).to.be.null
+
+                User.count().success(function(count) {
+                  expect(count).to.equal(0)
+                  t.commit().success(function() {
+                    User.count().success(function(count) {
+                      expect(count).to.equal(1)
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+      })
+    })
+
+    it("returns instance if already existent. Single find field.", function(done) {
       var self = this,
         data = {
           username: 'Username'
@@ -460,6 +512,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
+    it('supports transactions', function(done) {
+      var self = this
+
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'user' }, { transaction: t }).success(function() {
+              User.count().success(function(count) {
+                expect(count).to.equal(0)
+                t.commit().success(function() {
+                  User.count().success(function(count) {
+                    expect(count).to.equal(1)
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('is possible to use casting when creating an instance', function (done) {
       var self = this
         , type = Support.dialectIsMySQL() ? 'signed' : 'integer'
@@ -620,6 +696,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
     it("casts empty array correct for postgres update", function(done) {
       if (dialect !== "postgres") {
         expect('').to.equal('')
@@ -643,7 +720,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
-
 
     it("doesn't allow duplicated records with unique:true", function(done) {
       var User = this.sequelize.define('UserWithUniqueUsername', {
@@ -798,7 +874,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var self = this
         , data = { username: 'Peter', secretValue: '42' }
 
-      this.User.create(data, ['username']).success(function(user) {
+      this.User.create(data, { fields: ['username'] }).success(function(user) {
         self.User.find(user.id).success(function(_user) {
           expect(_user.username).to.equal(data.username)
           expect(_user.secretValue).not.to.equal(data.secretValue)
@@ -949,10 +1025,67 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
+
+      describe('can safely sync multiple times', function(done) {
+        it('through the factory', function(done) {
+          var Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          })
+
+          Enum.sync({ force: true }).success(function() {
+            Enum.sync().success(function() {
+              Enum.sync({ force: true }).complete(done)
+            })
+          })
+        })
+
+        it('through sequelize', function(done) {
+          var self = this
+            , Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          })
+
+          this.sequelize.sync({ force: true }).success(function() {
+            self.sequelize.sync().success(function() {
+              self.sequelize.sync({ force: true }).complete(done)
+            })
+          })
+        })
+      })
     })
   })
 
   describe('bulkCreate', function() {
+    it("supports transactions", function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User
+              .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
+              .success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(0)
+                    expect(count2).to.equal(2)
+                    t.rollback().success(function(){ done() })
+                  })
+                })
+              })
+          })
+        })
+      })
+    })
+
     it('properly handles disparate field lists', function(done) {
       var self = this
         , data = [{username: 'Peter', secretValue: '42' },
@@ -974,7 +1107,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         , data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '23'}]
 
-      this.User.bulkCreate(data, ['username']).success(function() {
+      this.User.bulkCreate(data, { fields: ['username'] }).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).to.equal(2)
           expect(users[0].username).to.equal("Peter")
@@ -1095,7 +1228,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           {name: 'foo', code: '123'},
           {code: '1234'},
           {name: 'bar', code: '1'}
-        ], null, {validate: true}).error(function(errors) {
+        ], { validate: true }).error(function(errors) {
           expect(errors).to.not.be.null
           expect(errors).to.be.instanceof(Array)
           expect(errors).to.have.length(2)
@@ -1129,7 +1262,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         Tasks.bulkCreate([
           {name: 'foo', code: '123'},
           {code: '1234'}
-        ], ['code'], {validate: true}).success(function() {
+        ], { fields: ['code'], validate: true }).success(function() {
           // we passed!
           done()
         })
@@ -1157,6 +1290,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('update', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function() {
+            sequelize.transaction(function(t) {
+              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].username).to.equal('foo')
+                    expect(users2[0].username).to.equal('bar')
+                    t.rollback().success(function(){ done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('updates the attributes that we select only without updating createdAt', function(done) {
       var User = this.sequelize.define('User1', {
         username: Sequelize.STRING,
@@ -1279,41 +1434,22 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('destroy', function() {
-    it('deletes a record from the database if dao is not paranoid', function(done) {
-      var UserDestroy = this.sequelize.define('UserDestroy', {
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
-        })
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
 
-      UserDestroy.sync({ force: true }).success(function() {
-        UserDestroy.create({name: 'hallo', bio: 'welt'}).success(function(u) {
-          UserDestroy.all().success(function(users) {
-            expect(users.length).to.equal(1)
-            u.destroy().success(function() {
-              UserDestroy.all().success(function(users) {
-                expect(users.length).to.equal(0)
-                done()
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function() {
+            sequelize.transaction(function(t) {
+              User.destroy({}, { transaction: t }).success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(1)
+                    expect(count2).to.equal(0)
+                    t.rollback().success(function(){ done() })
+                  })
+                })
               })
-            })
-          })
-        })
-      })
-    })
-
-    it('allows sql logging of delete statements', function(done) {
-      var UserDelete = this.sequelize.define('UserDelete', {
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
-        })
-
-      UserDelete.sync({ force: true }).success(function() {
-        UserDelete.create({name: 'hallo', bio: 'welt'}).success(function(u) {
-          UserDelete.all().success(function(users) {
-            expect(users.length).to.equal(1)
-            u.destroy().on('sql', function(sql) {
-              expect(sql).to.exist
-              expect(sql.toUpperCase().indexOf("DELETE")).to.be.above(-1)
-              done()
             })
           })
         })
@@ -1414,158 +1550,21 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe('special where conditions/smartWhere object', function() {
-    beforeEach(function(done) {
-      var self = this
+  describe('find', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
 
-      this.User.bulkCreate([
-        {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
-        {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00'}
-      ]).success(function(user2) {
-        done()
-      })
-    })
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.find({ username: 'foo' }).success(function(user1) {
+                User.find({ username: 'foo' }, { transaction: t }).success(function(user2) {
+                  expect(user1).to.be.null
+                  expect(user2).to.not.be.null
 
-    it('should be able to find rows where attribute is in a list of values', function (done) {
-      this.User.findAll({
-        where: {
-          username: ['boo', 'boo2']
-        }
-      }).success(function(users){
-        expect(users).to.have.length(2);
-        done()
-      });
-    })
-
-    it('should not break when trying to find rows using an array of primary keys', function (done) {
-      this.User.findAll({
-        where: {
-          id: [1, 2, 3]
-        }
-      }).success(function(users){
-        done();
-      });
-    })
-
-    it('should be able to find a row using like', function(done) {
-      this.User.findAll({
-        where: {
-          username: {
-            like: '%2'
-          }
-        }
-      }).success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users).to.have.length(1)
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not like', function(done) {
-      this.User.findAll({
-        where: {
-          username: {
-            nlike: '%2'
-          }
-        }
-      }).success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users).to.have.length(1)
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row between a certain date using the between shortcut', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            '..': ['2013-01-02', '2013-01-11']
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row not between a certain integer using the not between shortcut', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            '!..': [8, 10]
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to handle false/true values just fine...', function(done) {
-      var User = this.User
-        , escapeChar = (dialect === "postgres") ? '"' : '`'
-
-      User.bulkCreate([
-        {username: 'boo5', aBool: false},
-        {username: 'boo6', aBool: true}
-      ]).success(function() {
-        User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', false]}).success(function(users) {
-          expect(users).to.have.length(1)
-          expect(users[0].username).to.equal('boo5')
-
-          User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', true]}).success(function(_users) {
-            expect(_users).to.have.length(1)
-            expect(_users[0].username).to.equal('boo6')
-            done()
-          })
-        })
-      })
-    })
-
-    it('should be able to handle false/true values through associations as well...', function(done) {
-      var User = this.User
-        , escapeChar = (dialect === "postgres") ? '"' : '`'
-      var Passports = this.sequelize.define('Passports', {
-        isActive: Sequelize.BOOLEAN
-      })
-
-      User.hasMany(Passports)
-      Passports.belongsTo(User)
-
-      User.sync({ force: true }).success(function() {
-        Passports.sync({ force: true }).success(function() {
-          User.bulkCreate([
-            {username: 'boo5', aBool: false},
-            {username: 'boo6', aBool: true}
-          ]).success(function() {
-            Passports.bulkCreate([
-              {isActive: true},
-              {isActive: false}
-            ]).success(function() {
-              User.find(1).success(function(user) {
-                Passports.find(1).success(function(passport) {
-                  user.setPassports([passport]).success(function() {
-                    User.find(2).success(function(_user) {
-                      Passports.find(2).success(function(_passport) {
-                        _user.setPassports([_passport]).success(function() {
-                          _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).success(function(theFalsePassport) {
-                            user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).success(function(theTruePassport) {
-                              expect(theFalsePassport).to.have.length(1)
-                              expect(theFalsePassport[0].isActive).to.be.false
-                              expect(theTruePassport).to.have.length(1)
-                              expect(theTruePassport[0].isActive).to.be.true
-                              done()
-                            })
-                          })
-                        })
-                      })
-                    })
+                  t.rollback().success(function() {
+                    done()
                   })
                 })
               })
@@ -1575,235 +1574,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('should be able to return a record with primaryKey being null for new inserts', function(done) {
-      var Session = this.sequelize.define('Session', {
-          token: { type: DataTypes.TEXT, allowNull: false },
-          lastUpdate: { type: DataTypes.DATE, allowNull: false }
-        }, {
-            charset: 'utf8',
-            collate: 'utf8_general_ci',
-            omitNull: true
-          })
-
-        , User = this.sequelize.define('User', {
-            name: { type: DataTypes.STRING, allowNull: false, unique: true },
-            password: { type: DataTypes.STRING, allowNull: false },
-            isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
-          }, {
-            charset: 'utf8',
-            collate: 'utf8_general_ci'
-          })
-
-      User.hasMany(Session, { as: 'Sessions' })
-      Session.belongsTo(User)
-
-      Session.sync({ force: true }).success(function() {
-        User.sync({ force: true }).success(function() {
-          User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
-            var sess = Session.build({
-              lastUpdate: new Date(),
-              token: '123'
-            })
-
-            user.addSession(sess).success(function(u) {
-              expect(u.token).to.equal('123')
-              done()
-            })
-          })
-        })
-      })
-    })
-
-    it('should be able to find a row between a certain date', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: ['2013-01-02', '2013-01-11']
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row between a certain date and an additional where clause', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: ['2013-01-02', '2013-01-11']
-          },
-          intVal: 10
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row not between a certain integer', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            nbetween: [8, 10]
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not between and between logic', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: ['2012-12-10', '2013-01-02'],
-            nbetween: ['2013-01-04', '2013-01-20']
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not between and between logic with dates', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            between: [new Date('2012-12-10'), new Date('2013-01-02')],
-            nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using greater than or equal to logic with dates', function(done) {
-      this.User.findAll({
-        where: {
-          theDate: {
-            gte: new Date('2013-01-09')
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo2')
-        expect(users[0].intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using greater than or equal to', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            gte: 6
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo2')
-        expect(user.intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using greater than', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            gt: 5
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo2')
-        expect(user.intVal).to.equal(10)
-        done()
-      })
-    })
-
-    it('should be able to find a row using lesser than or equal to', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            lte: 5
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo')
-        expect(user.intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using lesser than', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            lt: 6
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo')
-        expect(user.intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should have no problem finding a row using lesser and greater than', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            lt: 6,
-            gt: 4
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find a row using not equal to logic', function(done) {
-      this.User.find({
-        where: {
-          intVal: {
-            ne: 10
-          }
-        }
-      }).success(function(user) {
-        expect(user.username).to.equal('boo')
-        expect(user.intVal).to.equal(5)
-        done()
-      })
-    })
-
-    it('should be able to find multiple users with any of the special where logic properties', function(done) {
-      this.User.findAll({
-        where: {
-          intVal: {
-            lte: 10
-          }
-        }
-      }).success(function(users) {
-        expect(users[0].username).to.equal('boo')
-        expect(users[0].intVal).to.equal(5)
-        expect(users[1].username).to.equal('boo2')
-        expect(users[1].intVal).to.equal(10)
-        done()
-      })
-    })
-  })
-
-  describe('find', function() {
     describe('general / basic function', function() {
       beforeEach(function(done) {
         var self = this
@@ -1918,7 +1688,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         this.User.find({ limit: 10 }).success(function(user) {
           // it returns an object instead of an array
           expect(Array.isArray(user)).to.not.be.ok
-          expect(user.hasOwnProperty('username')).to.be.ok
+          expect(user.dataValues.hasOwnProperty('username')).to.be.ok
           done()
         })
       })
@@ -2471,6 +2241,45 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
 
+        it('including two has many relations should not result in duplicate values', function(done) {
+          var self = this
+
+          self.Contact = self.sequelize.define('Contact', { name: DataTypes.TEXT })
+          self.Photo = self.sequelize.define('Photo', { img: DataTypes.TEXT })
+          self.PhoneNumber = self.sequelize.define('PhoneNumber', { phone: DataTypes.TEXT })
+
+          self.Contact.hasMany(self.Photo, { as: 'Photos' })
+          self.Contact.hasMany(self.PhoneNumber)
+
+          self.sequelize.sync({ force: true }).success(function() {
+            self.Contact.create({ name: 'Boris' }).success(function(someContact) {
+              self.Photo.create({ img: 'img.jpg' }).success(function(somePhoto) {
+                self.PhoneNumber.create({ phone: '000000' }).success(function(somePhone1) {
+                  self.PhoneNumber.create({ phone: '111111' }).success(function(somePhone2) {
+                    someContact.setPhotos([somePhoto]).complete(function (err, data) {
+                      expect(err).to.be.null
+                      someContact.setPhoneNumbers([somePhone1, somePhone2]).complete(function (err, data) {
+                        self.Contact.find({
+                          where: {
+                            name: 'Boris'
+                          },
+                          include: [self.PhoneNumber, { daoFactory: self.Photo, as: 'Photos' }]
+                        }).complete(function (err, fetchedContact) {
+                          expect(err).to.be.null
+                          expect(fetchedContact).to.exist
+                          expect(fetchedContact.photos.length).to.equal(1)
+                          expect(fetchedContact.phoneNumbers.length).to.equal(2)
+                          done()
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+
         it('eager loads with non-id primary keys', function(done) {
           var self = this
           self.User = self.sequelize.define('UserPKeagerone', {
@@ -2620,6 +2429,423 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findAll', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.findAll({ username: 'foo' }).success(function(users1) {
+                User.findAll({ transaction: t }).success(function(users2) {
+                  User.findAll({ username: 'foo' }, { transaction: t }).success(function(users3) {
+                    expect(users1.length).to.equal(0)
+                    expect(users2.length).to.equal(1)
+                    expect(users3.length).to.equal(1)
+
+                    t.rollback().success(function() {
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    describe('special where conditions/smartWhere object', function() {
+      beforeEach(function(done) {
+        var self = this
+
+        this.User.bulkCreate([
+          {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
+          {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00'}
+        ]).success(function(user2) {
+          done()
+        })
+      })
+
+      it('should be able to find rows where attribute is in a list of values', function (done) {
+        this.User.findAll({
+          where: {
+            username: ['boo', 'boo2']
+          }
+        }).success(function(users){
+          expect(users).to.have.length(2);
+          done()
+        });
+      })
+
+      it('should not break when trying to find rows using an array of primary keys', function (done) {
+        this.User.findAll({
+          where: {
+            id: [1, 2, 3]
+          }
+        }).success(function(users){
+          done();
+        });
+      })
+
+      it('should be able to find a row using like', function(done) {
+        this.User.findAll({
+          where: {
+            username: {
+              like: '%2'
+            }
+          }
+        }).success(function(users) {
+          expect(users).to.be.an.instanceof(Array)
+          expect(users).to.have.length(1)
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not like', function(done) {
+        this.User.findAll({
+          where: {
+            username: {
+              nlike: '%2'
+            }
+          }
+        }).success(function(users) {
+          expect(users).to.be.an.instanceof(Array)
+          expect(users).to.have.length(1)
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row between a certain date using the between shortcut', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              '..': ['2013-01-02', '2013-01-11']
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row not between a certain integer using the not between shortcut', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              '!..': [8, 10]
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to handle false/true values just fine...', function(done) {
+        var User = this.User
+          , escapeChar = (dialect === "postgres") ? '"' : '`'
+
+        User.bulkCreate([
+          {username: 'boo5', aBool: false},
+          {username: 'boo6', aBool: true}
+        ]).success(function() {
+          User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', false]}).success(function(users) {
+            expect(users).to.have.length(1)
+            expect(users[0].username).to.equal('boo5')
+
+            User.all({where: [escapeChar + 'aBool' + escapeChar + ' = ?', true]}).success(function(_users) {
+              expect(_users).to.have.length(1)
+              expect(_users[0].username).to.equal('boo6')
+              done()
+            })
+          })
+        })
+      })
+
+      it('should be able to handle false/true values through associations as well...', function(done) {
+        var User = this.User
+          , escapeChar = (dialect === "postgres") ? '"' : '`'
+        var Passports = this.sequelize.define('Passports', {
+          isActive: Sequelize.BOOLEAN
+        })
+
+        User.hasMany(Passports)
+        Passports.belongsTo(User)
+
+        User.sync({ force: true }).success(function() {
+          Passports.sync({ force: true }).success(function() {
+            User.bulkCreate([
+              {username: 'boo5', aBool: false},
+              {username: 'boo6', aBool: true}
+            ]).success(function() {
+              Passports.bulkCreate([
+                {isActive: true},
+                {isActive: false}
+              ]).success(function() {
+                User.find(1).success(function(user) {
+                  Passports.find(1).success(function(passport) {
+                    user.setPassports([passport]).success(function() {
+                      User.find(2).success(function(_user) {
+                        Passports.find(2).success(function(_passport) {
+                          _user.setPassports([_passport]).success(function() {
+                            _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).success(function(theFalsePassport) {
+                              user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).success(function(theTruePassport) {
+                                expect(theFalsePassport).to.have.length(1)
+                                expect(theFalsePassport[0].isActive).to.be.false
+                                expect(theTruePassport).to.have.length(1)
+                                expect(theTruePassport[0].isActive).to.be.true
+                                done()
+                              })
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('should be able to return a record with primaryKey being null for new inserts', function(done) {
+        var Session = this.sequelize.define('Session', {
+            token: { type: DataTypes.TEXT, allowNull: false },
+            lastUpdate: { type: DataTypes.DATE, allowNull: false }
+          }, {
+              charset: 'utf8',
+              collate: 'utf8_general_ci',
+              omitNull: true
+            })
+
+          , User = this.sequelize.define('User', {
+              name: { type: DataTypes.STRING, allowNull: false, unique: true },
+              password: { type: DataTypes.STRING, allowNull: false },
+              isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+            }, {
+              charset: 'utf8',
+              collate: 'utf8_general_ci'
+            })
+
+        User.hasMany(Session, { as: 'Sessions' })
+        Session.belongsTo(User)
+
+        Session.sync({ force: true }).success(function() {
+          User.sync({ force: true }).success(function() {
+            User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
+              var sess = Session.build({
+                lastUpdate: new Date(),
+                token: '123'
+              })
+
+              user.addSession(sess).success(function(u) {
+                expect(u.token).to.equal('123')
+                done()
+              })
+            })
+          })
+        })
+      })
+
+      it('should be able to find a row between a certain date', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: ['2013-01-02', '2013-01-11']
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row between a certain date and an additional where clause', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: ['2013-01-02', '2013-01-11']
+            },
+            intVal: 10
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row not between a certain integer', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              nbetween: [8, 10]
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not between and between logic', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: ['2012-12-10', '2013-01-02'],
+              nbetween: ['2013-01-04', '2013-01-20']
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not between and between logic with dates', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              between: [new Date('2012-12-10'), new Date('2013-01-02')],
+              nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using greater than or equal to logic with dates', function(done) {
+        this.User.findAll({
+          where: {
+            theDate: {
+              gte: new Date('2013-01-09')
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo2')
+          expect(users[0].intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using greater than or equal to', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              gte: 6
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo2')
+          expect(user.intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using greater than', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              gt: 5
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo2')
+          expect(user.intVal).to.equal(10)
+          done()
+        })
+      })
+
+      it('should be able to find a row using lesser than or equal to', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              lte: 5
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo')
+          expect(user.intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using lesser than', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              lt: 6
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo')
+          expect(user.intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should have no problem finding a row using lesser and greater than', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              lt: 6,
+              gt: 4
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find a row using not equal to logic', function(done) {
+        this.User.find({
+          where: {
+            intVal: {
+              ne: 10
+            }
+          }
+        }).success(function(user) {
+          expect(user.username).to.equal('boo')
+          expect(user.intVal).to.equal(5)
+          done()
+        })
+      })
+
+      it('should be able to find multiple users with any of the special where logic properties', function(done) {
+        this.User.findAll({
+          where: {
+            intVal: {
+              lte: 10
+            }
+          }
+        }).success(function(users) {
+          expect(users[0].username).to.equal('boo')
+          expect(users[0].intVal).to.equal(5)
+          expect(users[1].username).to.equal('boo2')
+          expect(users[1].intVal).to.equal(10)
+          done()
+        })
+      })
+    })
+
+
+
     describe('eager loading', function() {
       describe('belongsTo', function() {
         beforeEach(function(done) {
@@ -3053,6 +3279,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+
+              User.findAndCountAll().success(function(info1) {
+                User.findAndCountAll({ transaction: t }).success(function(info2) {
+                  expect(info1.count).to.equal(0)
+                  expect(info2.count).to.equal(1)
+                  t.rollback().success(function(){ done() })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("handles where clause [only]", function(done) {
       this.User.findAndCountAll({where: "id != " + this.users[0].id}).success(function(info) {
         expect(info.count).to.equal(2)
@@ -3117,6 +3364,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         {username: 'user2', data: 'bar'}
       ]).complete(function() {
         done()
+      })
+    })
+
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.all().success(function(users1) {
+                User.all({ transaction: t }).success(function(users2) {
+                  expect(users1.length).to.equal(0)
+                  expect(users2.length).to.equal(1)
+                  t.rollback().success(function(){ done() })
+                })
+              })
+            })
+          })
+        })
       })
     })
 
@@ -3189,6 +3456,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('count', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.count().success(function(count1) {
+                User.count({ transaction: t }).success(function(count2) {
+                  expect(count1).to.equal(0)
+                  expect(count2).to.equal(1)
+                  t.rollback().success(function(){ done() })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('counts all created objects', function(done) {
       var self = this
       this.User.bulkCreate([{username: 'user1'}, {username: 'user2'}]).success(function() {
@@ -3247,6 +3534,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { age: Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
+              User.min('age').success(function(min1) {
+                User.min('age', { transaction: t }).success(function(min2) {
+                  expect(min1).to.be.not.ok
+                  expect(min2).to.equal(2)
+                  t.rollback().success(function(){ done() })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("should return the min value", function(done) {
       var self = this
       this.UserWithAge.bulkCreate([{age: 3}, { age: 2 }]).success(function() {
@@ -3291,6 +3598,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.UserWithAge.sync({ force: true }).success(function() {
         self.UserWithDec.sync({ force: true }).success(function() {
           done()
+        })
+      })
+    })
+
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { age: Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
+              User.max('age').success(function(min1) {
+                User.max('age', { transaction: t }).success(function(min2) {
+                  expect(min1).to.be.not.ok
+                  expect(min2).to.equal(5)
+                  t.rollback().success(function(){ done() })
+                })
+              })
+            })
+          })
         })
       })
     })
@@ -3987,14 +4314,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         this
           .User
-          .create({ username: "foo" })
-          .then(function() {
-            return self.User.create({ username: "bar" })
-          })
-          .then(function() {
-            return self.User.create({ username: "baz" })
-          })
+          .sync({ force: true })
+          .then(function() { return self.User.create({ username: "foo" }) })
+          .then(function() { return self.User.create({ username: "bar" }) })
+          .then(function() { return self.User.create({ username: "baz" }) })
           .then(function() { done() })
+      })
+
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING })
+
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction(function(t) {
+              User.create({ username: 'foo' }, { transaction: t }).success(function() {
+                User.where({ username: "foo" }).exec().success(function(users1) {
+                  User.where({ username: "foo" }).exec({ transaction: t }).success(function(users2) {
+                    expect(users1).to.have.length(0)
+                    expect(users2).to.have.length(1)
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
       })
 
       it("selects all users with name 'foo'", function(done) {

@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   this.User.bulkCreate([
                     {username: 'Bob', mood: 'cold'},
                     {username: 'Tobi', mood: 'hot'}
-                  ], [], {hooks: true}).success(function(bulkUsers) {
+                  ], { fields: [], hooks: true }).success(function(bulkUsers) {
                     expect(beforeBulkCreate).to.be.true
                     expect(afterBulkCreate).to.be.true
                     expect(bulkUsers).to.be.instanceof(Array)
@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   this.User.bulkCreate([
                     {username: 'Bob', mood: 'cold'},
                     {username: 'Tobi', mood: 'hot'}
-                  ], null, {hooks: true}).success(function(bulkUsers) {
+                  ], { hooks: true }).success(function(bulkUsers) {
                     expect(beforeBulkCreate).to.be.true
                     expect(afterBulkCreate).to.be.true
                     expect(bulkUsers).to.be.instanceof(Array)
@@ -4320,7 +4320,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], ['aNumber'], {hooks: true}).success(function(records) {
+        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], hooks: true }).success(function(records) {
           records.forEach(function(record) {
             expect(record.username).to.equal('User' + record.id)
             expect(record.beforeHookTest).to.be.true
@@ -4354,7 +4354,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], ['aNumber'], {hooks: true}).error(function(err) {
+        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], hooks: true }).error(function(err) {
           expect(err).to.equal('You shall not pass!')
           expect(beforeBulkCreate).to.be.true
           expect(afterBulkCreate).to.be.false
@@ -5272,7 +5272,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], ['aNumber']).success(function() {
+        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
           self.User.update({aNumber: 10}, {aNumber: 1}, {hooks: true}).error(function(err) {
             expect(err).to.equal('You shall not pass!')
             expect(beforeBulk).to.be.true
@@ -6059,7 +6059,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], ['aNumber']).success(function() {
+        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
           self.User.destroy({aNumber: 1}, {hooks: true}).error(function(err) {
             expect(err).to.equal('You shall not pass!')
             expect(beforeBulk).to.be.true
@@ -6087,6 +6087,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on success', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.beforeDelete(function(user, fn) {
             beforeHook = true
             fn()
@@ -6107,6 +6110,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on error', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.beforeDelete(function(user, fn) {
             beforeHook = true
             fn()
@@ -6142,6 +6148,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on success', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.hook('beforeDelete', function(user, fn) {
             beforeHook = true
             fn()
@@ -6162,6 +6171,9 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         it('on error', function(done) {
+          var beforeHook
+            , afterHook
+
           this.User.hook('beforeDelete', function(user, fn) {
             beforeHook = true
             fn()

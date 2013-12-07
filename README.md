@@ -58,7 +58,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 
 ### 1.7.0
 - ~~Check if lodash is a proper alternative to current underscore usage.~~
-- Transactions
+- ~~Transactions~~
 - Associations of not yet saved objects: [#864](https://github.com/sequelize/sequelize/issues/864)
 - Support for update of tables without primary key
 - ~~MariaDB support~~
@@ -69,6 +69,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 - ~~Move validation of enum attribute value to validate method~~ Implemented in [#894](https://github.com/sequelize/sequelize/pull/894) thanks to @durango
 - ~~BLOB~~  [#842](https://github.com/sequelize/sequelize/pull/842), thanks to @janmeier
 - ~~Support for foreign keys~~ Implemented in [#595](https://github.com/sequelize/sequelize/pull/595), thanks to @optilude
+- Support for socket paths. [#982](https://github.com/sequelize/sequelize/issues/982)
 
 ### 1.7.x
 - Complete support for non-id primary keys

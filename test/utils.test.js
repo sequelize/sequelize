@@ -1,8 +1,10 @@
 var chai    = require('chai')
+  , spies   = require('chai-spies')
   , expect  = chai.expect
   , Utils   = require(__dirname + '/../lib/utils')
   , Support = require(__dirname + '/support')
 
+chai.use(spies)
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Utils"), function() {
@@ -156,6 +158,61 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
       var where = ['foo = ?', 0]
       expect(Utils.format(where)).to.equal('foo = 0')
       done()
+    })
+  })
+
+  describe('validateParameter', function() {
+    describe('method signature', function() {
+      it('throws an error if the value is not defined', function() {
+        expect(function() {
+          Utils.validateParameter()
+        }).to.throw('No value has been passed.')
+      })
+
+      it('does not throw an error if the value is not defined and the parameter is optional', function() {
+        expect(function() {
+          Utils.validateParameter(undefined, Object, { optional: true })
+        }).to.not.throw()
+      })
+
+      it('throws an error if the expectation is not defined', function() {
+        expect(function() {
+          Utils.validateParameter(1)
+        }).to.throw('No expectation has been passed.')
+      })
+    })
+
+    describe('expectation', function() {
+      it('uses the typeof method if the expectation is a string', function() {
+        expect(Utils.validateParameter(1, 'number')).to.be.true
+      })
+
+      it('uses the instanceof method if the expectation is a class', function() {
+        expect(Utils.validateParameter(new Number(1), Number)).to.be.true
+      })
+    })
+
+    describe('failing expectations', function() {
+      it('throws an error if the expectation does not match', function() {
+        expect(function() {
+          Utils.validateParameter(1, String)
+        }).to.throw(/The parameter.*is no.*/)
+      })
+
+      it('does not throw an error if throwError is false', function() {
+        expect(Utils.validateParameter(1, String, { throwError: false })).to.be.false
+      })
+    })
+
+    describe('deprecation warning', function() {
+      it('uses the passed function', function() {
+        var spy = chai.spy(function(s){})
+        Utils.validateParameter([], Object, {
+          deprecated: Array,
+          onDeprecated: spy
+        })
+        expect(spy).to.have.been.called()
+      })
     })
   })
 })

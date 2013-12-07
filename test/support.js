@@ -1,4 +1,5 @@
 var fs        = require('fs')
+  , path      = require('path')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
   , Config    = require(__dirname + "/config/config")
@@ -24,6 +25,19 @@ var Support = {
     })
   },
 
+  prepareTransactionTest: function(sequelize, callback) {
+    var dialect = Support.getTestDialect()
+
+    if (dialect === 'sqlite') {
+      var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: path.join(__dirname, 'tmp', 'db.sqlite') })
+        , _sequelize = new Sequelize(sequelize.config.datase, null, null, options)
+
+      _sequelize.sync({ force: true }).success(function() { callback(_sequelize) })
+    } else {
+      callback(sequelize)
+    }
+  },
+
   createSequelizeInstance: function(options) {
     options = options || {}
     options.dialect = options.dialect || 'mysql'
@@ -47,6 +61,10 @@ var Support = {
 
     if (!!options.define) {
       sequelizeOptions.define = options.define
+    }
+
+    if (!!config.storage) {
+      sequelizeOptions.storage = config.storage
     }
 
     if (process.env.DIALECT === 'postgres-native') {
