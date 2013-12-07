@@ -9,7 +9,7 @@ chai.Assertion.includeStack = true
 describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   describe("Model.associations", function () {
     it("should store all assocations when associting to the same table multiple times", function () {
-      var User = this.sequelize.define('User', {})
+      var User  = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {})
 
       Group.belongsTo(User)
@@ -20,7 +20,66 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
     })
   })
 
+  describe('getAssociation', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
+
+        Group.belongsTo(User)
+
+        sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Group.create({ name: 'bar' }).success(function(group) {
+              sequelize.transaction(function(t) {
+                group.setUser(user, { transaction: t }).success(function() {
+                  Group.all().success(function(groups) {
+                    groups[0].getUser().success(function(associatedUser) {
+                      expect(associatedUser).to.be.null
+                      Group.all({ transaction: t }).success(function(groups) {
+                        groups[0].getUser({ transaction: t }).success(function(associatedUser) {
+                          expect(associatedUser).to.be.not.null
+                          t.rollback().success(function() { done() })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   describe('setAssociation', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
+
+        Group.belongsTo(User)
+
+        sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Group.create({ name: 'bar' }).success(function(group) {
+              sequelize.transaction(function(t) {
+                group.setUser(user, { transaction: t }).success(function() {
+                  Group.all().success(function(groups) {
+                    groups[0].getUser().success(function(associatedUser) {
+                      expect(associatedUser).to.be.null
+                      t.rollback().success(function() { done() })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('can set the association with declared primary keys...', function(done) {
       var User = this.sequelize.define('UserXYZ', { user_id: {type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING })
         , Task = this.sequelize.define('TaskXYZ', { task_id: {type: DataTypes.INTEGER, primaryKey: true }, title: DataTypes.STRING })
@@ -207,15 +266,15 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
 
   describe("Association column", function() {
     it('has correct type for non-id primary keys with non-integer type', function(done) {
-      var User = this.sequelize.define('UserPKBT', { 
-        username: { 
+      var User = this.sequelize.define('UserPKBT', {
+        username: {
           type: DataTypes.STRING
         }
       })
         , self = this
 
-      var Group = this.sequelize.define('GroupPKBT', { 
-        name: { 
+      var Group = this.sequelize.define('GroupPKBT', {
+        name: {
           type: DataTypes.STRING,
           primaryKey: true
         }

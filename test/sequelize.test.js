@@ -1,14 +1,16 @@
-var chai      = require('chai')
-  , expect    = chai.expect
-  , assert    = chai.assert
-  , Support   = require(__dirname + '/support')
-  , DataTypes = require(__dirname + "/../lib/data-types")
-  , dialect   = Support.getTestDialect()
-  , _         = require('lodash')
-  , Sequelize = require(__dirname + '/../index')
-  , config    = require(__dirname + "/config/config")
-  , moment    = require('moment')
-  , sinon     = require('sinon')
+var chai        = require('chai')
+  , expect      = chai.expect
+  , assert      = chai.assert
+  , Support     = require(__dirname + '/support')
+  , DataTypes   = require(__dirname + "/../lib/data-types")
+  , dialect     = Support.getTestDialect()
+  , _           = require('lodash')
+  , Sequelize   = require(__dirname + '/../index')
+  , config      = require(__dirname + "/config/config")
+  , moment      = require('moment')
+  , Transaction = require(__dirname + '/../lib/transaction')
+  , path        = require('path')
+  , sinon       = require('sinon')
 
 chai.Assertion.includeStack = true
 
@@ -37,6 +39,38 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       expect(sequelize.config.port).to.equal(1234)
       expect(sequelize.config.host).to.equal('127.0.0.1')
       done()
+    })
+  })
+
+  if (dialect !== 'sqlite') {
+    describe('authenticate', function() {
+      describe('with valid credentials', function() {
+        it('triggers the success event', function(done) {
+          this.sequelize.authenticate().success(done)
+        })
+      })
+
+      describe('with invalid credentials', function() {
+        beforeEach(function() {
+          this.sequelizeWithInvalidCredentials = new Sequelize("omg", "wtf", "lol", this.sequelize.options)
+        })
+
+        it('triggers the error event', function(done) {
+          this
+            .sequelizeWithInvalidCredentials
+            .authenticate()
+            .complete(function(err, result) {
+              expect(err).to.not.be.null
+              done()
+            })
+        })
+      })
+    })
+  }
+
+  describe('getDialect', function() {
+    it('returns the defined dialect', function() {
+      expect(this.sequelize.getDialect()).to.equal(dialect)
     })
   })
 
@@ -362,28 +396,26 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
-    it("fails with incorrect database credentials", function(done) {
-      // sqlite doesn't have a concept of database credentials
-      if (dialect === "sqlite") {
-        expect(true).to.be.true
-        return done()
-      }
+    if (dialect !== "sqlite") {
+      it("fails with incorrect database credentials", function(done) {
+        this.sequelizeWithInvalidCredentials = new Sequelize("omg", "bar", null, this.sequelize.options)
 
-      var sequelize2 = Support.getSequelizeInstance('foo', 'bar', null, { logging: false })
-        , User2      = sequelize2.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
+        var User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
-      User2.sync().error(function(err) {
-        if (dialect === "postgres" || dialect === "postgres-native") {
-          assert([
-            'role "bar" does not exist',
-            'password authentication failed for user "bar"'
-          ].indexOf(err.message) !== -1)
-        } else {
-          expect(err.message.toString()).to.match(/.*Access\ denied.*/)
-        }
-        done()
+        User2.sync().error(function(err) {
+          if (dialect === "postgres" || dialect === "postgres-native") {
+            assert([
+              'role "bar" does not exist',
+              'FATAL:  role "bar" does not exist',
+              'password authentication failed for user "bar"'
+            ].indexOf(err.message.trim()) !== -1)
+          } else {
+            expect(err.message.toString()).to.match(/.*Access\ denied.*/)
+          }
+          done()
+        })
       })
-    })
+    }
 
     describe("doesn't emit logging when explicitly saying not to", function() {
       afterEach(function(done) {
@@ -519,6 +551,134 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
 
       })
+    })
+
+    describe('transaction', function() {
+      beforeEach(function(done) {
+        var self = this
+
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          self.sequelizeWithTransaction = sequelize
+          done()
+        })
+      })
+
+      it('is a transaction method available', function() {
+        expect(Support.Sequelize).to.respondTo('transaction')
+      })
+
+      it('passes a transaction object to the callback', function(done) {
+        this.sequelizeWithTransaction.transaction(function(t) {
+          expect(t).to.be.instanceOf(Transaction)
+          done()
+        })
+      })
+
+      it('returns a transaction object', function() {
+        expect(this.sequelizeWithTransaction.transaction(function(){})).to.be.instanceOf(Transaction)
+      })
+
+      it('allows me to define a callback on the result', function(done) {
+        this
+          .sequelizeWithTransaction
+          .transaction(function(t) { t.commit() })
+          .done(done)
+      })
+
+      it('allows me to define a callback on the transaction object', function(done) {
+        this.sequelizeWithTransaction.transaction(function(t) {
+          t.done(done)
+          t.commit()
+        })
+      })
+
+      if (dialect === 'sqlite') {
+        it("correctly scopes transaction from other connections", function(done) {
+          var TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
+            , self            = this
+
+          var count = function(transaction, callback) {
+            var sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] })
+
+            self
+              .sequelizeWithTransaction
+              .query(sql, null, { plain: true, raw: true, transaction: transaction })
+              .success(function(result) { callback(result.cnt) })
+          }
+
+          TransactionTest.sync({ force: true }).success(function() {
+            self.sequelizeWithTransaction.transaction(function(t1) {
+              self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
+                count(null, function(cnt) {
+                  expect(cnt).to.equal(0)
+
+                  count(t1, function(cnt) {
+                    expect(cnt).to.equal(1)
+
+                    t1.commit().success(function() {
+                      count(null, function(cnt) {
+                        expect(cnt).to.equal(1)
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      } else {
+        it("correctly handles multiple transactions", function(done) {
+          var TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
+            , self            = this
+
+          var count = function(transaction, callback) {
+            var sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] })
+
+            self
+              .sequelizeWithTransaction
+              .query(sql, null, { plain: true, raw: true, transaction: transaction })
+              .success(function(result) { callback(parseInt(result.cnt, 10)) })
+          }
+
+          TransactionTest.sync({ force: true }).success(function() {
+            self.sequelizeWithTransaction.transaction(function(t1) {
+              self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
+                self.sequelizeWithTransaction.transaction(function(t2) {
+                  self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'bar\');', null, { plain: true, raw: true, transaction: t2 }).success(function() {
+                    count(null, function(cnt) {
+                      expect(cnt).to.equal(0)
+
+                      count(t1, function(cnt) {
+                        expect(cnt).to.equal(1)
+
+                        count(t2, function(cnt) {
+                          expect(cnt).to.equal(1)
+
+                          t2.rollback().success(function() {
+                            count(t2, function(cnt) {
+                              expect(cnt).to.equal(0)
+
+                              t1.commit().success(function() {
+                                count(null, function(cnt) {
+                                  expect(cnt).to.equal(1)
+                                })
+                              })
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            }).done(function() {
+              done()
+            })
+          })
+        })
+      }
+
     })
   })
 })

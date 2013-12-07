@@ -58,7 +58,7 @@ A very basic roadmap. Chances aren't too bad, that not mentioned things are impl
 
 ### 1.7.0
 - ~~Check if lodash is a proper alternative to current underscore usage.~~
-- Transactions
+- ~~Transactions~~
 - Associations of not yet saved objects: [#864](https://github.com/sequelize/sequelize/issues/864)
 - Support for update of tables without primary key
 - ~~MariaDB support~~

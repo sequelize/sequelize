@@ -269,10 +269,32 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { number: Support.Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ number: 1 }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.increment('number', { by: 2, transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].number).to.equal(1)
+                    expect(users2[0].number).to.equal(3)
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('with array', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.increment(['aNumber'], 2).complete(function() {
+        user1.increment(['aNumber'], { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(2)
             done()
@@ -284,7 +306,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('with single field', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.increment('aNumber', 2).complete(function() {
+        user1.increment('aNumber', { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(2)
             done()
@@ -313,7 +335,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).complete(function () {
-            user1.increment(['aNumber'], 2).complete(function() {
+            user1.increment(['aNumber'], { by: 2 }).complete(function() {
               self.User.find(1).complete(function(err, user5) {
                 expect(user5.aNumber).to.be.equal(3)
                 done()
@@ -334,16 +356,16 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           })
         })
 
-        user1.increment(['aNumber'], 2).complete(_done)
-        user1.increment(['aNumber'], 2).complete(_done)
-        user1.increment(['aNumber'], 2).complete(_done)
+        user1.increment(['aNumber'], { by: 2 }).complete(_done)
+        user1.increment(['aNumber'], { by: 2 }).complete(_done)
+        user1.increment(['aNumber'], { by: 2 }).complete(_done)
       })
     })
 
     it('with key value pair', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.increment({ 'aNumber': 1, 'bNumber': 2}).success(function() {
+        user1.increment({ 'aNumber': 1, 'bNumber': 2 }).success(function() {
           self.User.find(1).complete(function (err, user3) {
             expect(user3.aNumber).to.be.equal(1)
             expect(user3.bNumber).to.be.equal(2)
@@ -362,7 +384,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         User.create({aNumber: 1}).success(function (user) {
           var oldDate = user.updatedAt
           setTimeout(function () {
-            user.increment('aNumber', 1).success(function() {
+            user.increment('aNumber', { by: 1 }).success(function() {
               User.find(1).success(function (user) {
                 expect(user.updatedAt).to.be.afterTime(oldDate)
                 done()
@@ -379,10 +401,32 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).complete(done)
     })
 
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { number: Support.Sequelize.INTEGER })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ number: 3 }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.decrement('number', { by: 2, transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].number).to.equal(3)
+                    expect(users2[0].number).to.equal(1)
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('with array', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.decrement(['aNumber'], 2).complete(function() {
+        user1.decrement(['aNumber'], { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
             done()
@@ -394,7 +438,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('with single field', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
-        user1.decrement('aNumber', 2).complete(function() {
+        user1.decrement('aNumber', { by: 2 }).complete(function() {
           self.User.find(1).complete(function(err, user3) {
             expect(user3.aNumber).to.be.equal(-2)
             done()
@@ -423,7 +467,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).complete(function () {
-            user1.decrement(['aNumber'], 2).complete(function() {
+            user1.decrement(['aNumber'], { by: 2 }).complete(function() {
               self.User.find(1).complete(function(err, user5) {
                 expect(user5.aNumber).to.be.equal(-1)
                 done()
@@ -444,9 +488,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           })
         })
 
-        user1.decrement(['aNumber'], 2).complete(_done)
-        user1.decrement(['aNumber'], 2).complete(_done)
-        user1.decrement(['aNumber'], 2).complete(_done)
+        user1.decrement(['aNumber'], { by: 2 }).complete(_done)
+        user1.decrement(['aNumber'], { by: 2 }).complete(_done)
+        user1.decrement(['aNumber'], { by: 2 }).complete(_done)
       })
     })
 
@@ -472,7 +516,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         User.create({aNumber: 1}).success(function (user) {
           var oldDate = user.updatedAt
           setTimeout(function () {
-            user.decrement('aNumber', 1).success(function() {
+            user.decrement('aNumber', { by: 1 }).success(function() {
               User.find(1).success(function (user) {
                 expect(user.updatedAt).to.be.afterTime(oldDate)
                 done()
@@ -485,6 +529,28 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('reload', function () {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            sequelize.transaction(function(t) {
+              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+                user.reload().success(function(user) {
+                  expect(user.username).to.equal('foo')
+                  user.reload({ transaction: t }).success(function(user) {
+                    expect(user.username).to.equal('bar')
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("should return a reference to the same DAO instead of creating a new one", function(done) {
       this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
         originalUser.updateAttributes({ username: 'Doe John' }).complete(function() {
@@ -651,6 +717,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('save', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.build({ username: 'foo' }).save({ transaction: t }).success(function() {
+              User.count().success(function(count1) {
+                User.count({ transaction: t }).success(function(count2) {
+                  expect(count1).to.equal(0)
+                  expect(count2).to.equal(1)
+                  t.rollback().success(function(){ done() })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('only updates fields in passed array', function(done) {
       var self   = this
         , userId = null
@@ -1251,6 +1337,28 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('updateAttributes', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.updateAttributes({ username: 'bar' }, { transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].username).to.equal('foo')
+                    expect(users2[0].username).to.equal('bar')
+                    t.rollback().success(function(){ done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("updates attributes in the database", function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         expect(user.username).to.equal('user')
@@ -1355,6 +1463,71 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                 expect(download.finishedAt).to.not.be.ok
                 done()
               })
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('destroy', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.destroy({ transaction: t }).success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(1)
+                    expect(count2).to.equal(0)
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('deletes a record from the database if dao is not paranoid', function(done) {
+      var UserDestroy = this.sequelize.define('UserDestroy', {
+          name: Support.Sequelize.STRING,
+          bio: Support.Sequelize.TEXT
+        })
+
+      UserDestroy.sync({ force: true }).success(function() {
+        UserDestroy.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          UserDestroy.all().success(function(users) {
+            expect(users.length).to.equal(1)
+            u.destroy().success(function() {
+              UserDestroy.all().success(function(users) {
+                expect(users.length).to.equal(0)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('allows sql logging of delete statements', function(done) {
+      var UserDelete = this.sequelize.define('UserDelete', {
+          name: Support.Sequelize.STRING,
+          bio: Support.Sequelize.TEXT
+        })
+
+      UserDelete.sync({ force: true }).success(function() {
+        UserDelete.create({name: 'hallo', bio: 'welt'}).success(function(u) {
+          UserDelete.all().success(function(users) {
+            expect(users.length).to.equal(1)
+            u.destroy().on('sql', function(sql) {
+              expect(sql).to.exist
+              expect(sql.toUpperCase().indexOf("DELETE")).to.be.above(-1)
+              done()
             })
           })
         })

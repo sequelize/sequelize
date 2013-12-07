@@ -41,6 +41,37 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Article.all({ transaction: t }).success(function(articles) {
+                      articles[0].hasLabel(label).success(function(hasLabel) {
+                        expect(hasLabel).to.be.false
+                        Article.all({ transaction: t }).success(function(articles) {
+                          articles[0].hasLabel(label, { transaction: t }).success(function(hasLabel) {
+                            expect(hasLabel).to.be.true
+                            t.rollback().success(function() { done() })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
       it('does not have any labels assigned to it initially', function(done) {
         var chainer = new Sequelize.Utils.QueryChainer([
           this.Article.create({ title: 'Articl2e' }),
@@ -106,6 +137,37 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Article.all({ transaction: t }).success(function(articles) {
+                      articles[0].hasLabels([ label ]).success(function(hasLabel) {
+                        expect(hasLabel).to.be.false
+                        Article.all({ transaction: t }).success(function(articles) {
+                          articles[0].hasLabels([ label ], { transaction: t }).success(function(hasLabel) {
+                            expect(hasLabel).to.be.true
+                            t.rollback().success(function() { done() })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
       it('answers false if only some labels have been assigned', function(done) {
         var chainer = new Sequelize.Utils.QueryChainer([
           this.Article.create({ title: 'Article' }),
@@ -142,6 +204,38 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
     })
 
     describe('setAssociations', function() {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Label
+                      .findAll({ where: { ArticleId: article.id }, transaction: undefined })
+                      .success(function(labels) {
+                        expect(labels.length).to.equal(0)
+
+                        Label
+                          .findAll({ where: { ArticleId: article.id }, transaction: t })
+                          .success(function(labels) {
+                            expect(labels.length).to.equal(1)
+                            t.rollback().success(function() { done() })
+                          })
+                      })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
       it("clears associations when passing null to the set-method", function(done) {
         var User = this.sequelize.define('User', { username: DataTypes.STRING })
           , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
@@ -359,6 +453,38 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             chainer.run().success(function (results, john, task1, task2) {
               john.setTasks([task1, task2]).success(function() {
                 done()
+              })
+            })
+          })
+        })
+      })
+
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+          Label.hasMany(Article)
+
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Article.all({ transaction: t }).success(function(articles) {
+                      articles[0].getLabels().success(function(labels) {
+                        expect(labels).to.have.length(0)
+                        Article.all({ transaction: t }).success(function(articles) {
+                          articles[0].getLabels({ transaction: t }).success(function(labels) {
+                            expect(labels).to.have.length(1)
+                            t.rollback().success(function() { done() })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
               })
             })
           })

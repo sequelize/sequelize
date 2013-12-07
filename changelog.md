@@ -86,6 +86,7 @@
 - [FEATURE] Support for MariaDB. [#948](https://github.com/sequelize/sequelize/pull/948). Thanks to reedog117 and janmeier.
 - [FEATURE] Filter through associations. [#991](https://github.com/sequelize/sequelize/pull/991). Thanks to snit-ram.
 - [FEATURE] Possibility to disable loging for .sync [#937](https://github.com/sequelize/sequelize/pull/937). Thanks to durango
+- [FEATURE] Support for transactions. [1062](https://github.com/sequelize/sequelize/pull/1062).
 - [REFACTORING] hasMany now uses a single SQL statement when creating and destroying associations, instead of removing each association seperately [690](https://github.com/sequelize/sequelize/pull/690). Inspired by [#104](https://github.com/sequelize/sequelize/issues/104). janmeier
 - [REFACTORING] Consistent handling of offset across dialects. Offset is now always applied, and limit is set to max table size of not limit is given [#725](https://github.com/sequelize/sequelize/pull/725). janmeier
 - [REFACTORING] Moved Jasmine to Buster and then Buster to Mocha + Chai. sdepold and durango
