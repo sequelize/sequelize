@@ -47,7 +47,8 @@
     "generic-pool": "2.0.4",
     "bluebird": "~0.11.5",
     "sql": "~0.28.0",
-    "node-uuid": "~1.4.1"
+    "node-uuid": "~1.4.1",
+    "tedious": "~0.1.5"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
