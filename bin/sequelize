@@ -22,6 +22,15 @@ var relativeConfigFile = function() {
   return path.relative(process.cwd(), configuration.configFile)
 }
 
+// Taken from
+// http://stackoverflow.com/questions/15375544/how-can-i-robustly-detect-a-relative-path-in-node-js/17521358#17521358
+var isRelativePath = function(p) {
+  var normal = path.normalize(p)
+    , absolute = path.resolve(p);
+
+  return normal != absolute;
+}
+
 var writeDefaultConfig = function(config) {
   var configPath = path.dirname(configuration.configFile)
 
@@ -109,7 +118,11 @@ program
   .parse(process.argv)
 
 if(typeof program.config === 'string') {
-  configuration.configFile = program.config
+  if (isRelativePath(program.config)) {
+    configuration.configFile = path.join(process.cwd(), program.config);
+  } else {
+    configuration.configFile = program.config
+  }
 }
 
 if(typeof program.env === 'string') {
