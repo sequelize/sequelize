@@ -51,7 +51,7 @@
   "devDependencies": {
     "sqlite3": "~2.1.12",
     "mysql": "~2.0.0-alpha9",
-    "pg": "~2.6.0",
+    "pg": "~2.8.3",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
     "chai": "~1.8.0",
