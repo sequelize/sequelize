@@ -1566,6 +1566,49 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it('should delete a paranoid record if I set force to true', function(done) {
+      var self = this
+      var User = this.sequelize.define('paranoiduser', {
+        username: Sequelize.STRING
+      }, { paranoid: true })
+
+      User.sync({ force: true }).success(function() {
+        User.bulkCreate([
+          {username: 'Bob'},
+          {username: 'Tobi'},
+          {username: 'Max'},
+          {username: 'Tony'}
+        ]).success(function() {
+          User.find({where: {username: 'Bob'}}).success(function(user) {
+            user.destroy({force: true}).success(function() {
+              User.find({where: {username: 'Bob'}}).success(function(user) {
+                expect(user).to.be.null
+                User.find({where: {username: 'Tobi'}}).success(function(tobi) {
+                  tobi.destroy().success(function() {
+                    self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', null, {raw: true, plain: true}).success(function(result) {
+                      expect(result.username).to.equal('Tobi')
+                      User.destroy({username: 'Tony'}).success(function() {
+                        self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', null, {raw: true, plain: true}).success(function(result) {
+                          expect(result.username).to.equal('Tony')
+                          User.destroy({username: ['Tony', 'Max']}, {force: true}).success(function() {
+                            self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true}).success(function(users) {
+                              expect(users).to.have.length(1)
+                              expect(users[0].username).to.equal('Tobi')
+                              done()
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('find', function() {
