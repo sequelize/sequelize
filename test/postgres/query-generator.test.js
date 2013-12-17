@@ -333,6 +333,11 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
           expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"mySchema\".\"myTable\".\"name\"='foo'';DROP TABLE mySchema.myTable;';"
+        }, {
+          title: 'buffer as where argument',
+          arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\"=E'\\\\x53657175656c697a65';",
+          context: QueryGenerator
         },
 
         // Variants when quoteIdentifiers is false
