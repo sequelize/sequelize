@@ -148,20 +148,17 @@ $ sudo docker pull mhansen/sequelize-contribution
 ```
 
 Start the container and save references to container id and ip:
-
 ```console
 $ CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
 $ CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
 ```
 
 Run tests:
-
 ```console
 $ SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
 ```
 
 Stop the container:
-
 ```console
 $ sudo docker stop $CONTAINER
 ```
