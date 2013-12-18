@@ -142,20 +142,20 @@ get SQLite tests for free :)
 #### 3a. Docker
 If you don't feel like setting up databases and users, you can use our [docker](http://docker.io) [image](https://index.docker.io/u/mhansen/sequelize-contribution/) for sequelize contribution.
 
-1. Getting the image:
+Getting the image:
 
 ```sudo docker pull mhansen/sequelize-contribution```
 
-2. Start the container and save references to container id and ip:
+Start the container and save references to container id and ip:
 
 ```CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
 CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER)```
 
-3. Run tests:
+Run tests:
 
 ```SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all```
 
-4. Stop the container:
+Stop the container:
 
 ```sudo docker stop $container```
 
