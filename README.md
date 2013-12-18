@@ -105,6 +105,20 @@ a productive developer, I would recommend the latest v0.8. Also I usually recomm
 Once Node.JS is installed on your computer, you will also have access to the lovely
 Node Package Manager (NPM).
 
+#### 1a. Docker
+If you don't feel like setting up databases and users, you can use our [docker](http://docker.io) image for sequelize contribution.
+
+Running:
+```
+sudo docker pull mhansen/sequelize-contribution && \
+CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution) && \
+CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER) && \
+SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all && \
+sudo docker stop $CONTAINER
+
+```
+Will run the docker image, run all tests and stop the container again.
+
 ### 2. Database... Come to me! ###
 
 First class citizen of Sequelize was MySQL. Over time, Sequelize began to
