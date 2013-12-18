@@ -163,7 +163,7 @@ $ SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
 Stop the container:
 
 ```console
-$ sudo docker stop $container
+$ sudo docker stop $CONTAINER
 ```
 
 When running tests repeatedly, you only need to redo step 3 if you haven't stopped the container.
