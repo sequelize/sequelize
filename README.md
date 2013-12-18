@@ -140,7 +140,7 @@ $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 get SQLite tests for free :)
 
 #### 3a. Docker
-If you don't feel like setting up databases and users, you can use our [docker](http://docker.io) image for sequelize contribution.
+If you don't feel like setting up databases and users, you can use our [docker](http://docker.io) [image](https://index.docker.io/u/mhansen/sequelize-contribution/) for sequelize contribution.
 
 Running:
 ```
@@ -149,7 +149,6 @@ CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution) && \
 CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER) && \
 SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all && \
 sudo docker stop $CONTAINER
-
 ```
 Will run the docker image, run all tests and stop the container again.
 
