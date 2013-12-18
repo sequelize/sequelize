@@ -144,20 +144,20 @@ If you don't feel like setting up databases and users, you can use our [docker](
 
 1. Getting the image:
 
-    sudo docker pull mhansen/sequelize-contribution`
+```sudo docker pull mhansen/sequelize-contribution```
 
 2. Start the container and save references to container id and ip:
 
-    CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
-    CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
+```CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
+CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER)```
 
 3. Run tests:
 
-    SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
+```SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all```
 
 4. Stop the container:
 
-    sudo docker stop $container
+```sudo docker stop $container```
 
 When running tests repeatedly, you only need to redo step 3 if you haven't stopped the container.
 
