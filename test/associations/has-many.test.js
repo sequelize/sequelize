@@ -909,9 +909,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         Group.hasMany(User, { as: 'MyUsers', through: 'group_user'})
 
         this.sequelize.sync({force:true}).success(function () {
-          self.sequelize.query("SHOW TABLES LIKE 'group_user'").success(function (res) {
-            expect(res).to.deep.equal(['group_user'])
-            done()
+          self.sequelize.getQueryInterface().showAllTables().success(function (result) {
+             expect(result.indexOf('group_user')).not.to.equal(-1)
+             done()
           })
         })
       })
@@ -926,9 +926,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         Group.hasMany(User, { as: 'MyUsers', through: UserGroup})
 
         this.sequelize.sync({force:true}).success(function () {
-          self.sequelize.query("SHOW TABLES LIKE 'user_groups'").success(function (res) {
-            expect(res).to.deep.equal(['user_groups'])
-            done()
+           self.sequelize.getQueryInterface().showAllTables().success(function (result) {
+             expect(result.indexOf('user_groups')).not.to.equal(-1)
+             done()
           })
         })
       })
