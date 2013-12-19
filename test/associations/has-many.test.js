@@ -899,7 +899,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
-    describe('as', function () {
+    describe('alias', function () {
       it("creates the join table when through is a string", function (done) {
         var self = this
           , User = this.sequelize.define('User', {})
