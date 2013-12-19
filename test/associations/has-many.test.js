@@ -700,7 +700,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             expect(tableName).to.equal(associationName)
           }
         }
-        done()
+        setTimeout(function () {
+          done()
+        }, 50)
       })
     })
 
@@ -945,7 +947,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         expect(Group.associations.MyUsers.through.rawAttributes.UserId).to.exist;
         expect(Group.associations.MyUsers.through.rawAttributes.GroupId).to.exist;
 
-        done();
+        setTimeout(function () {
+          done()
+        }, 50)
       })
 
       it("correctly identifies its counterpart when through is a model", function (done) {
@@ -962,7 +966,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         expect(Group.associations.MyUsers.through.rawAttributes.UserId).to.exist;
         expect(Group.associations.MyUsers.through.rawAttributes.GroupId).to.exist;
 
-        done();
+        setTimeout(function () {
+          done()
+        }, 50)
       })
     })
   })

@@ -38,12 +38,16 @@ if (dialect.match(/^postgres/)) {
 
         it("should not use a combined name", function(done) {
           expect(this.sequelize.daoFactoryManager.getDAO('ms_table1sms_table2s')).not.to.exist
-          done()
+          setTimeout(function () {
+            done()
+          }, 50)
         })
 
         it("should use the specified name", function(done) {
           expect(this.sequelize.daoFactoryManager.getDAO('table1_to_table2')).to.exist
-          done()
+          setTimeout(function () {
+            done()
+          }, 50)
         })
       })
     })
