@@ -693,9 +693,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           expect(associationName).not.to.equal(this.User.tableName)
           expect(associationName).not.to.equal(this.Task.tableName)
 
-          var joinTableName = this.User.associations[associationName].options.joinTableName
-          if (typeof joinTableName !== 'undefined') {
-            expect(joinTableName).to.equal(associationName)
+          var through = this.User.associations[associationName].through
+          if (typeof through !== 'undefined') {
+            expect(through.tableName).to.equal(associationName)
           }
           var tableName = this.User.associations[associationName].options.tableName
           if (typeof tableName !== 'undefined') {
