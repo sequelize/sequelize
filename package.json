@@ -48,13 +48,9 @@
     "sql": "~0.31.0",
     "circular-json": "~0.1.5",
     "bluebird": "~0.11.5",
-<<<<<<< HEAD
-    "node-uuid": "~1.4.1"
-=======
     "sql": "~0.28.0",
     "node-uuid": "~1.4.1",
     "tedious": "~0.1.5"
->>>>>>> 7593e20f937a55b18790478f601fb0b003becbf4
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
