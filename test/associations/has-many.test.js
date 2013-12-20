@@ -676,10 +676,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           { tableName: 'tasks' }
         )
 
-        this.User.hasMany(this.Task,
-          { joinTableName: 'user_has_tasks' }
-        )
-        this.Task.hasMany(this.User)
+        this.User.hasMany(this.Task, { joinTableName: 'user_has_tasks' })
+        this.Task.hasMany(this.User, { joinTableName: 'user_has_tasks' })
 
         this.User.sync({ force: true }).success(function() {
           self.Task.sync({force: true}).success(function() {
@@ -702,7 +700,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             expect(tableName).to.equal(associationName)
           }
         }
-        done()
+        setTimeout(function () {
+          done()
+        }, 50)
       })
     })
 
@@ -898,6 +898,77 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
               done()
             })
         })
+      })
+    })
+
+    describe('alias', function () {
+      it("creates the join table when through is a string", function (done) {
+        var self = this
+          , User = this.sequelize.define('User', {})
+          , Group = this.sequelize.define('Group', {})
+
+        User.hasMany(Group, { as: 'MyGroups', through: 'group_user'})
+        Group.hasMany(User, { as: 'MyUsers', through: 'group_user'})
+
+        this.sequelize.sync({force:true}).success(function () {
+          self.sequelize.getQueryInterface().showAllTables().success(function (result) {
+             expect(result.indexOf('group_user')).not.to.equal(-1)
+             done()
+          })
+        })
+      })
+
+      it("creates the join table when through is a model", function (done) {
+        var self = this
+          , User = this.sequelize.define('User', {})
+          , Group = this.sequelize.define('Group', {})
+          , UserGroup = this.sequelize.define('GroupUser', {}, {tableName: 'user_groups'})
+
+        User.hasMany(Group, { as: 'MyGroups', through: UserGroup})
+        Group.hasMany(User, { as: 'MyUsers', through: UserGroup})
+
+        this.sequelize.sync({force:true}).success(function () {
+           self.sequelize.getQueryInterface().showAllTables().success(function (result) {
+             expect(result.indexOf('user_groups')).not.to.equal(-1)
+             done()
+          })
+        })
+      })
+
+      it("correctly identifies its counterpart when through is a string", function (done) {
+        var self = this
+          , User = this.sequelize.define('User', {})
+          , Group = this.sequelize.define('Group', {})
+
+        User.hasMany(Group, { as: 'MyGroups', through: 'group_user'})
+        Group.hasMany(User, { as: 'MyUsers', through: 'group_user'})
+
+        expect(Group.associations.MyUsers.through === User.associations.MyGroups.through);
+        expect(Group.associations.MyUsers.through.rawAttributes.UserId).to.exist;
+        expect(Group.associations.MyUsers.through.rawAttributes.GroupId).to.exist;
+
+        setTimeout(function () {
+          done()
+        }, 50)
+      })
+
+      it("correctly identifies its counterpart when through is a model", function (done) {
+        var self = this
+          , User = this.sequelize.define('User', {})
+          , Group = this.sequelize.define('Group', {})
+          , UserGroup = this.sequelize.define('GroupUser', {}, {tableName: 'user_groups'})
+
+        User.hasMany(Group, { as: 'MyGroups', through: UserGroup})
+        Group.hasMany(User, { as: 'MyUsers', through: UserGroup})
+
+        expect(Group.associations.MyUsers.through === User.associations.MyGroups.through);
+
+        expect(Group.associations.MyUsers.through.rawAttributes.UserId).to.exist;
+        expect(Group.associations.MyUsers.through.rawAttributes.GroupId).to.exist;
+
+        setTimeout(function () {
+          done()
+        }, 50)
       })
     })
   })
