@@ -12,6 +12,18 @@ module.exports = {
     return parseInt(Math.random() * 999, 10)
   },
 
+  mssql: {
+    database: 'sequelize',
+    username: 'sdepold_SQLLogin_1',
+    password: '4y1cl577cm',
+    host:     'sequelize.mssql.somee.com',
+    port:     1433,
+    pool:     {
+      maxConnections: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+      maxIdleTime:    process.env.SEQ_MSSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 30
+    }
+  },
+
   //make maxIdleTime small so that tests exit promptly
   mysql: {
     database: process.env.SEQ_MYSQL_DB   || process.env.SEQ_DB   || 'sequelize_test',
