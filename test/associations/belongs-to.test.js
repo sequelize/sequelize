@@ -31,13 +31,17 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         sequelize.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             Group.create({ name: 'bar' }).success(function(group) {
+              console.log(0)
               sequelize.transaction(function(t) {
+                console.log(1)
                 group.setUser(user, { transaction: t }).success(function() {
+                  console.log(2)
                   Group.all().success(function(groups) {
                     groups[0].getUser().success(function(associatedUser) {
                       expect(associatedUser).to.be.null
                       Group.all({ transaction: t }).success(function(groups) {
                         groups[0].getUser({ transaction: t }).success(function(associatedUser) {
+                          console.log(associatedUser)
                           expect(associatedUser).to.be.not.null
                           t.rollback().success(function() { done() })
                         })
