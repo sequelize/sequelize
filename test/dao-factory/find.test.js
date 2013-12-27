@@ -904,9 +904,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               }],
               createTags: function (callback) {
                 self.Tag.bulkCreate([
-                  {title: 'Furniture'},
-                  {title: 'Clothing'},
-                  {title: 'People'}
+                  {name: 'Furniture'},
+                  {name: 'Clothing'},
+                  {name: 'People'}
                 ]).done(callback)
               },
               tags: ['createTags', function (callback) {
