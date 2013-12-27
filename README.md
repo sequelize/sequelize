@@ -10,6 +10,8 @@ There is a parallel "branch" of the project, released as `2.0.0-alphaX` in NPM. 
 and will get all the changes of the master. However, `2.0.0` will contain backwards compatibility breaking changes. Check the
 changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/2.0.0/changelog.md
 
+##### 2.0.0 API should be considered unstable
+
 ### 1.6.0 ###
 
 - We changed the way timestamps are handled. From v1.6.0 on timestamps are stored and loaded as UTC.
