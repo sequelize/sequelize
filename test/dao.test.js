@@ -1080,7 +1080,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('returns a response that can be stringified', function(done) {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
-      expect(JSON.stringify(user)).to.deep.equal('{"username":"test.user","age":99,"isAdmin":true,"id":null}')
+      expect(JSON.stringify(user)).to.deep.equal('{"id":null,"username":"test.user","age":99,"isAdmin":true}')
       done()
     })
 
