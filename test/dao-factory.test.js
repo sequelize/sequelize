@@ -368,6 +368,49 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       expect(p.price2).to.equal(20)
       done()
     })
+
+    /*describe('include', function () {
+      it('should support basic includes', function () {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        })
+        var Tag = this.sequelize.define('Tag', {
+          name: Sequelize.STRING
+        })
+        var User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        })
+
+        Product.hasMany(Tag)
+        Product.belongsTo(User)
+
+        var product = Product.build({
+          id: 1,
+          title: 'Chair',
+          tags: [
+            {id: 1, name: 'Alpha'},
+            {id: 2, name: 'Beta'}
+          ],
+          user: {
+            id: 1,
+            first_name: 'Mick',
+            last_name: 'Hansen'
+          }
+        }, {
+          include: [
+            User,
+            Tag
+          ]
+        })
+
+        expect(product.tags).to.be.ok
+        expect(product.tags.length).to.equal(2)
+        expect(product.tags[0].Model).to.equal(Tag)
+        expect(product.user).to.be.ok
+        expect(product.user.Model).to.equal(User)
+      })
+    })*/
   })
 
   describe('findOrInitialize', function() {
