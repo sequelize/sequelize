@@ -368,6 +368,101 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       expect(p.price2).to.equal(20)
       done()
     })
+
+    describe('include', function () {
+      it('should support basic includes', function () {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        })
+        var Tag = this.sequelize.define('Tag', {
+          name: Sequelize.STRING
+        })
+        var User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        })
+
+        Product.hasMany(Tag)
+        Product.belongsTo(User)
+
+        var product = Product.build({
+          id: 1,
+          title: 'Chair',
+          tags: [
+            {id: 1, name: 'Alpha'},
+            {id: 2, name: 'Beta'}
+          ],
+          user: {
+            id: 1,
+            first_name: 'Mick',
+            last_name: 'Hansen'
+          }
+        }, {
+          include: [
+            User,
+            Tag
+          ]
+        })
+
+        expect(product.tags).to.be.ok
+        expect(product.tags.length).to.equal(2)
+        expect(product.tags[0].Model).to.equal(Tag)
+        expect(product.user).to.be.ok
+        expect(product.user.Model).to.equal(User)
+      })
+
+      it('should support includes with aliases', function () {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        })
+        var Tag = this.sequelize.define('Tag', {
+          name: Sequelize.STRING
+        })
+        var User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        })
+
+        Product.hasMany(Tag, {as: 'Categories'})
+        Product.hasMany(User, {as: 'Followers', through: 'product_followers'})
+        User.hasMany(Product, {as: 'Following', through: 'product_followers'})
+
+        var product = Product.build({
+          id: 1,
+          title: 'Chair',
+          categories: [
+            {id: 1, name: 'Alpha'},
+            {id: 2, name: 'Beta'},
+            {id: 3, name: 'Charlie'},
+            {id: 4, name: 'Delta'}
+          ],
+          followers: [
+            {
+              id: 1,
+              first_name: 'Mick',
+              last_name: 'Hansen'
+            },
+            {
+              id: 2,
+              first_name: 'Jan',
+              last_name: 'Meier'
+            }
+          ]
+        }, {
+          include: [
+            {model: User, as: 'Followers'},
+            {model: Tag, as: 'Categories'}
+          ]
+        })
+
+        expect(product.categories).to.be.ok
+        expect(product.categories.length).to.equal(4)
+        expect(product.categories[0].Model).to.equal(Tag)
+        expect(product.followers).to.be.ok
+        expect(product.followers.length).to.equal(2)
+        expect(product.followers[0].Model).to.equal(User)
+      })
+    })
   })
 
   describe('findOrInitialize', function() {
