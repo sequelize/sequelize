@@ -39,11 +39,11 @@ changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/
 
 ## Documentation and Updates ##
 
-You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
+You can find the documentation and announcements of updates on the [project's website](http://sequelizejs.com).
 If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
 Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
 
-- [Documentation](http://www.sequelizejs.com)
+- [Documentation](http://sequelizejs.com)
 - [Twitter](http://twitter.com/sdepold)
 - [IRC](http://webchat.freenode.net?channels=sequelizejs)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
