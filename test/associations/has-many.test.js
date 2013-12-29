@@ -886,6 +886,40 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
+
+      describe('removing from the join table', function () {
+        it('should remove a single entry without any attributes (and timestamps off) on the through model', function (done) {
+          var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+            , Task = this.sequelize.define('Task', {}, {timestamps: false})
+            , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false})
+
+          Worker.hasMany(Task, { through: WorkerTasks })
+          Task.hasMany(Worker, { through: WorkerTasks })
+
+          this.sequelize.sync().done(function(err) { 
+            expect(err).not.to.be.ok
+            Worker.create().done(function (err, worker) {
+              expect(err).not.to.be.ok
+              Task.bulkCreate([{}, {}]).done(function (err) {
+                expect(err).not.to.be.ok
+                Task.findAll().done(function (err, tasks) {
+                  expect(err).not.to.be.ok
+                  worker.setTasks(tasks).done(function (err) {
+                    worker.removeTask(tasks[0]).done(function (err) {
+                      expect(err).not.to.be.ok
+
+                      worker.getTasks().done(function (err, tasks) {
+                        expect(tasks.length).to.equal(1)
+                        done()
+                      })  
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
     })
 
     describe('belongsTo and hasMany at once', function() {
