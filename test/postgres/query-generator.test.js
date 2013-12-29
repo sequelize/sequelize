@@ -415,6 +415,10 @@ if (dialect.match(/^postgres/)) {
 
       insertQuery: [
         {
+          arguments: ['myTable', {}],
+          expectation: "INSERT INTO \"myTable\" DEFAULT VALUES RETURNING *;"
+        },
+        {
           arguments: ['myTable', {name: 'foo'}],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
         }, {

@@ -898,7 +898,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           this.sequelize.sync().done(function(err) { 
             expect(err).not.to.be.ok
-            Worker.create().done(function (err, worker) {
+            Worker.create({}).done(function (err, worker) {
               expect(err).not.to.be.ok
               Task.bulkCreate([{}, {}]).done(function (err) {
                 expect(err).not.to.be.ok
