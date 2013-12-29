@@ -915,8 +915,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                     })
                   })
                 })
-              }).on('sql', function (sql) {
-                console.log(sql)
               })
             })
           })
