@@ -766,8 +766,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       describe('inserting in join table', function () {
-
-
         describe('add', function () {
           it('should insert data provided on the object into the join table', function (done) {
             var self = this
@@ -800,6 +798,32 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
               })
             })
           })
+
+          it('should be able to add twice (second call result in UPDATE call) without any attributes (and timestamps off) on the through model', function (done) {
+            var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+              , Task = this.sequelize.define('Task', {}, {timestamps: false})
+              , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false})
+
+            Worker.hasMany(Task, { through: WorkerTasks })
+            Task.hasMany(Worker, { through: WorkerTasks })
+
+            this.sequelize.sync().done(function(err) { 
+              expect(err).not.to.be.ok
+              Worker.create().done(function (err, worker) {
+                expect(err).not.to.be.ok
+                Task.create().done(function (err, task) {
+                  expect(err).not.to.be.ok
+                  worker.addTask(task).done(function (err) {
+                    expect(err).not.to.be.ok
+                    worker.addTask(task).done(function (err) {
+                      expect(err).not.to.be.ok
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
         })
 
         describe('set', function () {
@@ -826,6 +850,34 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                     self.UserProjects.find({ where: { UserId: u.id, ProjectId: p2.id }}).success(function (up) {
                       expect(up.status).to.equal('active')
                       _done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+
+          it('should be able to set twice (second call result in UPDATE calls) without any attributes (and timestamps off) on the through model', function (done) {
+            var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+              , Task = this.sequelize.define('Task', {}, {timestamps: false})
+              , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false})
+
+            Worker.hasMany(Task, { through: WorkerTasks })
+            Task.hasMany(Worker, { through: WorkerTasks })
+
+            this.sequelize.sync().done(function(err) { 
+              expect(err).not.to.be.ok
+              Worker.create().done(function (err, worker) {
+                expect(err).not.to.be.ok
+                Task.bulkCreate([{}, {}]).done(function (err) {
+                  expect(err).not.to.be.ok
+                  Task.findAll().done(function (err, tasks) {
+                    expect(err).not.to.be.ok
+                    worker.setTasks(tasks).done(function (err) {
+                      worker.setTasks(tasks).done(function (err) {
+                        expect(err).not.to.be.ok
+                        done()
+                      })
                     })
                   })
                 })
