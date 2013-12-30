@@ -161,7 +161,61 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             user.tasks.forEach(function (task) {
               expect(task.project).to.be.ok
             })
-            
+
+            done()
+          })
+        })
+      })
+    })
+
+    it('should support a simple nested belongsTo -> hasMany include', function (done) {
+      var Task = this.sequelize.define('Task', {})
+        , Worker = this.sequelize.define('Worker', {})
+        , Project = this.sequelize.define('Project', {})
+
+      Worker.belongsTo(Project)
+      Project.hasMany(Task)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          worker: function (callback) {
+            Worker.create().done(callback)
+          },
+          project: function (callback) {
+            Project.create().done(callback)
+          },
+          tasks: function(callback) {
+            Task.bulkCreate([
+              {},
+              {},
+              {},
+              {}
+            ]).done(function () {
+              Task.findAll().done(callback)
+            })
+          },
+          projectTasks: ['project', 'tasks', function (callback, results) {
+            results.project.setTasks(results.tasks).done(callback)
+          }],
+          projectWorker: ['project', 'worker', function (callback, results) {
+            results.worker.setProject(results.project).done(callback)
+          }]
+        }, function (err, results) {
+          Worker.find({
+            where: {
+              id: results.worker.id
+            },
+            include: [
+              {model: Project, include: [
+                {model: Task}
+              ]}
+            ]
+          }).done(function (err, worker) {
+            expect(err).not.to.be.ok
+            expect(worker.project).to.be.ok
+            expect(worker.project.tasks).to.be.ok
+            expect(worker.project.tasks.length).to.equal(4)
+
             done()
           })
         })
