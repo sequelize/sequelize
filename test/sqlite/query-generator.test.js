@@ -255,6 +255,11 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {where: null}],
           expectation: "SELECT * FROM `myTable` WHERE 1=1;",
           context: QueryGenerator
+        }, {
+          title: 'buffer as where argument',
+          arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field`=X'53657175656c697a65';",
+          context: QueryGenerator
         }
       ],
 

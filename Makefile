@@ -1,4 +1,4 @@
-REPORTER ?= dot
+REPORTER ?= spec
 TESTS = $(shell find ./test/* -name "*.test.js")
 DIALECT ?= mysql
 

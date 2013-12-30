@@ -11,6 +11,7 @@ var chai      = require('chai')
   , datetime  = require('chai-datetime')
   , _         = require('lodash')
   , moment    = require('moment')
+  , async     = require('async')
 
 chai.use(datetime)
 chai.Assertion.includeStack = true
@@ -227,6 +228,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it('should work with both paranoid and underscored being true', function(done) {
+      var UserTable = this.sequelize.define('UserCol', {
+        aNumber: Sequelize.INTEGER
+      }, {
+        paranoid: true,
+        underscored: true
+      })
+    
+      UserTable.sync({force: true}).success(function() {
+        UserTable.create({aNumber: 30}).success(function(user) {
+          UserTable.count().success(function(c) {
+            expect(c).to.equal(1)
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('build', function() {
@@ -349,6 +368,101 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       expect(p.price2).to.equal(20)
       done()
     })
+
+    describe('include', function () {
+      it('should support basic includes', function () {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        })
+        var Tag = this.sequelize.define('Tag', {
+          name: Sequelize.STRING
+        })
+        var User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        })
+
+        Product.hasMany(Tag)
+        Product.belongsTo(User)
+
+        var product = Product.build({
+          id: 1,
+          title: 'Chair',
+          tags: [
+            {id: 1, name: 'Alpha'},
+            {id: 2, name: 'Beta'}
+          ],
+          user: {
+            id: 1,
+            first_name: 'Mick',
+            last_name: 'Hansen'
+          }
+        }, {
+          include: [
+            User,
+            Tag
+          ]
+        })
+
+        expect(product.tags).to.be.ok
+        expect(product.tags.length).to.equal(2)
+        expect(product.tags[0].Model).to.equal(Tag)
+        expect(product.user).to.be.ok
+        expect(product.user.Model).to.equal(User)
+      })
+
+      it('should support includes with aliases', function () {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        })
+        var Tag = this.sequelize.define('Tag', {
+          name: Sequelize.STRING
+        })
+        var User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        })
+
+        Product.hasMany(Tag, {as: 'Categories'})
+        Product.hasMany(User, {as: 'Followers', through: 'product_followers'})
+        User.hasMany(Product, {as: 'Following', through: 'product_followers'})
+
+        var product = Product.build({
+          id: 1,
+          title: 'Chair',
+          categories: [
+            {id: 1, name: 'Alpha'},
+            {id: 2, name: 'Beta'},
+            {id: 3, name: 'Charlie'},
+            {id: 4, name: 'Delta'}
+          ],
+          followers: [
+            {
+              id: 1,
+              first_name: 'Mick',
+              last_name: 'Hansen'
+            },
+            {
+              id: 2,
+              first_name: 'Jan',
+              last_name: 'Meier'
+            }
+          ]
+        }, {
+          include: [
+            {model: User, as: 'Followers'},
+            {model: Tag, as: 'Categories'}
+          ]
+        })
+
+        expect(product.categories).to.be.ok
+        expect(product.categories.length).to.equal(4)
+        expect(product.categories[0].Model).to.equal(Tag)
+        expect(product.followers).to.be.ok
+        expect(product.followers.length).to.equal(2)
+        expect(product.followers[0].Model).to.equal(User)
+      })
+    })
   })
 
   describe('findOrInitialize', function() {
@@ -429,104 +543,20 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe('findOrCreate', function () {
-    it("supports transactions", function(done) {
-      var self = this
-
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING, data: Sequelize.STRING })
-
-        User
-          .sync({ force: true })
-          .success(function() {
-            sequelize.transaction(function(t) {
-              User.findOrCreate({ username: 'Username' }, { data: 'some data' }, { transaction: t }).complete(function(err) {
-                expect(err).to.be.null
-
-                User.count().success(function(count) {
-                  expect(count).to.equal(0)
-                  t.commit().success(function() {
-                    User.count().success(function(count) {
-                      expect(count).to.equal(1)
-                      done()
-                    })
-                  })
-                })
-              })
-            })
-          })
-      })
-    })
-
-    it("returns instance if already existent. Single find field.", function(done) {
-      var self = this,
-        data = {
-          username: 'Username'
-        };
-
-      this.User.create(data).success(function (user) {
-        self.User.findOrCreate({
-          username: user.username
-        }).success(function (_user, created) {
-          expect(_user.id).to.equal(user.id)
-          expect(_user.username).to.equal('Username')
-          expect(created).to.be.false
-          done()
-        })
-      })
-    })
-
-    it("Returns instance if already existent. Multiple find fields.", function(done) {
-      var self = this,
-        data = {
-          username: 'Username',
-          data: 'ThisIsData'
-        };
-
-      this.User.create(data).success(function (user) {
-        self.User.findOrCreate(data).done(function (err, _user, created) {
-          expect(_user.id).to.equal(user.id)
-          expect(_user.username).to.equal('Username')
-          expect(_user.data).to.equal('ThisIsData')
-          expect(created).to.be.false
-          done()
-        })
-      })
-    })
-
-    it("creates new instance with default value.", function(done) {
-      var data = {
-          username: 'Username'
-        },
-        default_values = {
-          data: 'ThisIsData'
-        };
-
-      this.User.findOrCreate(data, default_values).success(function(user, created) {
-        expect(user.username).to.equal('Username')
-        expect(user.data).to.equal('ThisIsData')
-        expect(created).to.be.true
-        done()
-      })
-    })
-  })
-
-  describe('create', function() {
+  describe('update', function() {
     it('supports transactions', function(done) {
-      var self = this
-
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING })
+        var User = sequelize.define('User', { username: Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
-            User.create({ username: 'user' }, { transaction: t }).success(function() {
-              User.count().success(function(count) {
-                expect(count).to.equal(0)
-                t.commit().success(function() {
-                  User.count().success(function(count) {
-                    expect(count).to.equal(1)
-                    done()
+          User.create({ username: 'foo' }).success(function() {
+            sequelize.transaction(function(t) {
+              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+                User.all().success(function(users1) {
+                  User.all({ transaction: t }).success(function(users2) {
+                    expect(users1[0].username).to.equal('foo')
+                    expect(users2[0].username).to.equal('bar')
+                    t.rollback().success(function(){ done() })
                   })
                 })
               })
@@ -536,305 +566,118 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('is possible to use casting when creating an instance', function (done) {
-      var self = this
-        , type = Support.dialectIsMySQL() ? 'signed' : 'integer'
-        , _done = _.after(2, function() {
-          done()
+    it('updates the attributes that we select only without updating createdAt', function(done) {
+      var User = this.sequelize.define('User1', {
+        username: Sequelize.STRING,
+        secretValue: Sequelize.STRING
+      }, {
+          paranoid:true
         })
 
-      this.User.create({
-        intVal: this.sequelize.cast('1', type)
-      }).on('sql', function (sql) {
-        expect(sql).to.match(new RegExp('CAST\\(1 AS ' + type.toUpperCase() + '\\)'))
-        _done()
-      })
-      .success(function (user) {
-        self.User.find(user.id).success(function (user) {
-          expect(user.intVal).to.equal(1)
-          _done()
-        })
-      })
-    })
-
-    it('is possible to use casting multiple times mixed in with other utilities', function (done) {
-      var self  = this
-        , type  = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer')
-        , _done = _.after(2, function() {
-          done()
-        })
-
-      if (Support.dialectIsMySQL()) {
-        type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed')
-      }
-
-      this.User.create({
-        intVal: type
-      }).on('sql', function (sql) {
-        if (Support.dialectIsMySQL()) {
-          expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)')
-        } else {
-          expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)')
-        }
-
-        _done()
-      }).success(function (user) {
-        self.User.find(user.id).success(function (user) {
-          expect(user.intVal).to.equal(-1)
-          _done()
-        })
-      })
-    })
-
-    it('is possible to just use .literal() to bypass escaping', function (done) {
-      var self = this
-
-      this.User.create({
-        intVal: this.sequelize.literal('CAST(1-2 AS ' + (Support.dialectIsMySQL() ? 'SIGNED' : 'INTEGER') + ')')
-      }).success(function (user) {
-        self.User.find(user.id).success(function (user) {
-          expect(user.intVal).to.equal(-1)
-          done()
-        })
-      })
-    })
-
-    it('is possible for .literal() to contain other utility functions', function (done) {
-      var self = this
-
-      this.User.create({
-        intVal: this.sequelize.literal(this.sequelize.cast('1-2', (Support.dialectIsMySQL() ? 'SIGNED' : 'INTEGER')))
-      }).success(function (user) {
-        self.User.find(user.id).success(function (user) {
-          expect(user.intVal).to.equal(-1)
-          done()
-        })
-      })
-    })
-
-    it('is possible to use funtions when creating an instance', function (done) {
-      var self = this
-      this.User.create({
-        secretValue: this.sequelize.fn('upper', 'sequelize')
-      }).success(function (user) {
-        self.User.find(user.id).success(function (user) {
-          expect(user.secretValue).to.equal('SEQUELIZE')
-          done()
-        })
-      })
-    })
-
-    it('is possible to use functions as default values', function (done) {
-      var self = this
-        , userWithDefaults
-
-      if (dialect.indexOf('postgres') === 0) {
-        this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"').success(function() {
-          userWithDefaults = self.sequelize.define('userWithDefaults', {
-            uuid: {
-              type: 'UUID',
-              defaultValue: self.sequelize.fn('uuid_generate_v4')
-            }
-          })
-
-          userWithDefaults.sync({force: true}).success(function () {
-            userWithDefaults.create({}).success(function (user) {
-              // uuid validation regex taken from http://stackoverflow.com/a/13653180/800016
-              expect(user.uuid).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-              done()
-            })
+      User.sync({ force: true }).success(function() {
+        User.create({username: 'Peter', secretValue: '42'}).success(function(user) {
+          user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
+            expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+            done()
           })
         })
-      } else if (dialect === 'sqlite') {
-        // The definition here is a bit hacky. sqlite expects () around the expression for default values, so we call a function without a name
-        // to enclose the date function in (). http://www.sqlite.org/syntaxdiagrams.html#column-constraint
-        userWithDefaults = self.sequelize.define('userWithDefaults', {
-          year: {
-            type: Sequelize.STRING,
-            defaultValue: self.sequelize.fn('', self.sequelize.fn('date', 'now'))
-          }
+      })
+    })
+
+    it('allows sql logging of updated statements', function(done) {
+      var User = this.sequelize.define('User', {
+        name: Sequelize.STRING,
+        bio: Sequelize.TEXT
+      }, {
+          paranoid:true
         })
 
-        userWithDefaults.sync({force: true}).success(function () {
-          userWithDefaults.create({}).success(function (user) {
-            userWithDefaults.find(user.id).success(function (user) {
-              var now = new Date()
-                , pad = function (number) {
-                  if (number > 9) {
-                    return number
-                  }
-                  return '0' + number
+      User.sync({ force: true }).success(function() {
+        User.create({ name: 'meg', bio: 'none' }).success(function(u) {
+          expect(u).to.exist
+          expect(u).not.to.be.null
+          u.updateAttributes({name: 'brian'}).on('sql', function(sql) {
+            expect(sql).to.exist
+            expect(sql.toUpperCase().indexOf("UPDATE")).to.be.above(-1)
+            done()
+          })
+        })
+      })
+    })
+
+    it('updates only values that match filter', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+
+        self.User.update({username: 'Bill'}, {secretValue: '42'})
+          .success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).to.equal(3)
+
+              users.forEach(function (user) {
+                if (user.secretValue == '42') {
+                  expect(user.username).to.equal("Bill")
+                } else {
+                  expect(user.username).to.equal("Bob")
                 }
-
-              expect(user.year).to.equal(now.getUTCFullYear() + '-' + pad(now.getUTCMonth() + 1) + '-' + pad(now.getUTCDate()))
-              done()
-            })
-          })
-        })
-      } else {
-        // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
-        done()
-      }
-    })
-
-    it("casts empty arrays correctly for postgresql insert", function(done) {
-      if (dialect !== "postgres") {
-        expect('').to.equal('')
-        return done()
-      }
-
-      var User = this.sequelize.define('UserWithArray', {
-        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
-        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
-      })
-
-      User.sync({force: true}).success(function() {
-        User.create({myvals: [], mystr: []}).on('sql', function(sql){
-          expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1)
-          expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1)
-          done()
-        })
-      })
-    })
-
-    it("casts empty array correct for postgres update", function(done) {
-      if (dialect !== "postgres") {
-        expect('').to.equal('')
-        return done()
-      }
-
-      var User = this.sequelize.define('UserWithArray', {
-        myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
-        mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
-      })
-
-      User.sync({force: true}).success(function() {
-        User.create({myvals: [1,2,3,4], mystr: ["One", "Two", "Three", "Four"]}).on('success', function(user){
-         user.myvals = []
-          user.mystr = []
-          user.save().on('sql', function(sql) {
-            expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1)
-            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1)
-            done()
-          })
-        })
-      })
-    })
-
-    it("doesn't allow duplicated records with unique:true", function(done) {
-      var User = this.sequelize.define('UserWithUniqueUsername', {
-        username: { type: Sequelize.STRING, unique: true }
-      })
-
-      User.sync({ force: true }).success(function() {
-        User.create({ username:'foo' }).success(function() {
-          User.create({ username: 'foo' }).error(function(err) {
-            expect(err).to.exist
-
-            if (dialect === "sqlite") {
-              expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
-            }
-            else if (Support.dialectIsMySQL()) {
-              expect(err.message).to.match(/.*Duplicate\ entry.*/)
-            } else {
-              expect(err.message).to.match(/.*duplicate\ key\ value.*/)
-            }
-
-            done()
-          })
-        })
-      })
-    })
-
-    it("raises an error if created object breaks definition contraints", function(done) {
-      var UserNull = this.sequelize.define('UserWithNonNullSmth', {
-        username: { type: Sequelize.STRING, unique: true },
-        smth:     { type: Sequelize.STRING, allowNull: false }
-      })
-
-      this.sequelize.options.omitNull = false
-
-      UserNull.sync({ force: true }).success(function() {
-        UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
-          expect(err).to.exist
-
-          if (Support.dialectIsMySQL()) {
-            // We need to allow two different errors for MySQL, see:
-            // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
-            expect(err.message).to.match(/(Column 'smth' cannot be null|Field 'smth' doesn't have a default value)/)
-          }
-          else if (dialect === "sqlite") {
-            expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
-          } else {
-            expect(err.message).to.match(/.*column "smth" violates not-null.*/)
-          }
-
-          UserNull.create({ username: 'foo', smth: 'foo' }).success(function() {
-            UserNull.create({ username: 'foo', smth: 'bar' }).error(function(err) {
-              expect(err).to.exist
-
-              if (dialect === "sqlite") {
-                expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
-              }
-              else if (Support.dialectIsMySQL()) {
-                expect(err.message).to.match(/Duplicate entry 'foo' for key 'username'/)
-              } else {
-                expect(err.message).to.match(/.*duplicate key value violates unique constraint.*/)
-              }
+              })
 
               done()
             })
           })
-        })
       })
     })
 
-    it('raises an error if you mess up the datatype', function(done) {
+    it('updates with casting', function (done) {
       var self = this
-      expect(function() {
-        self.sequelize.define('UserBadDataType', {
-          activity_date: Sequelize.DATe
-        })
-      }).to.throw(Error, 'Unrecognized data type for field activity_date')
 
-      expect(function() {
-        self.sequelize.define('UserBadDataType', {
-          activity_date: {type: Sequelize.DATe}
-        })
-      }).to.throw(Error, 'Unrecognized data type for field activity_date')
-      done()
-    })
-
-    it('sets a 64 bit int in bigint', function(done) {
-      var User = this.sequelize.define('UserWithBigIntFields', {
-        big: Sequelize.BIGINT
-      })
-
-      User.sync({ force: true }).success(function() {
-        User.create({ big: '9223372036854775807' }).on('success', function(user) {
-          expect(user.big).to.be.equal( '9223372036854775807' )
-          done()
-        })
-      })
-    })
-
-    it('sets auto increment fields', function(done) {
-      var User = this.sequelize.define('UserWithAutoIncrementField', {
-        userid: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false }
-      })
-
-      User.sync({ force: true }).success(function() {
-        User.create({}).on('success', function(user) {
-          expect(user.userid).to.equal(1)
-
-          User.create({}).on('success', function(user) {
-            expect(user.userid).to.equal(2)
+      this.User.create({
+        username: 'John'
+      }).success(function(user) {
+        self.User.update({username: self.sequelize.cast('1', 'char')}, {username: 'John'}).success(function() {
+          self.User.all().success(function(users) {
+            expect(users[0].username).to.equal('1')
             done()
           })
         })
       })
     })
 
+    it('updates with function and column value', function (done) {
+      var self = this
+
+      this.User.create({
+        username: 'John'
+      }).success(function(user) {
+        self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {username: 'John'}).success(function () {
+          self.User.all().success(function(users) {
+            expect(users[0].username).to.equal('JOHN')
+            done()
+          })
+        })
+      })
+    })
+
+    it('sets updatedAt to the current timestamp', function(done) {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).success(function() {
+          self.User.findAll({order: 'id'}).success(function(users) {
+            expect(users.length).to.equal(3)
+
+            expect(users[0].username).to.equal("Bill")
+            expect(users[1].username).to.equal("Bill")
+            expect(users[2].username).to.equal("Bob")
+
+<<<<<<< HEAD
     it('allows the usage of options as attribute', function(done) {
       var User = this.sequelize.define('UserWithNameAndOptions', {
         name: Sequelize.STRING,
@@ -3264,34 +3107,114 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe('findAndCountAll', function() {
-    beforeEach(function(done) {
+  describe('destroy', function() {
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function() {
+            sequelize.transaction(function(t) {
+              User.destroy({}, { transaction: t }).success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(1)
+                    expect(count2).to.equal(0)
+                    t.rollback().success(function(){ done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('deletes values that match filter', function(done) {
       var self = this
-      this.User.bulkCreate([
-        {username: 'user', data: 'foobar'},
-        {username: 'user2', data: 'bar'},
-        {username: 'bobby', data: 'foo'}
-      ]).success(function() {
-        self.User.all().success(function(users){
-          self.users = users
-          done()
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.destroy({secretValue: '42'})
+          .success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).to.equal(1)
+              expect(users[0].username).to.equal("Bob")
+              done()
+            })
+          })
+      })
+    })
+
+    it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
+      var self = this
+        , ident = self.sequelize.queryInterface.QueryGenerator.quoteIdentifier
+        , escape = self.sequelize.queryInterface.QueryGenerator.quote
+        , ParanoidUser = self.sequelize.define('ParanoidUser', {
+          username:     Sequelize.STRING,
+          secretValue:  Sequelize.STRING,
+          data:         Sequelize.STRING,
+          intVal:       { type: Sequelize.INTEGER, defaultValue: 1}
+        }, {
+            paranoid: true
+          })
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+
+      ParanoidUser.sync({ force: true }).success(function() {
+        ParanoidUser.bulkCreate(data).success(function() {
+          // since we save in UTC, let's format to UTC time
+          var date = moment().utc().format('YYYY-MM-DD h:mm')
+          ParanoidUser.destroy({secretValue: '42'}).success(function() {
+            ParanoidUser.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).to.equal(1)
+              expect(users[0].username).to.equal("Bob")
+
+              self.sequelize.query('SELECT * FROM ' + ident('ParanoidUsers') + ' WHERE ' + ident('deletedAt') + ' IS NOT NULL ORDER BY ' + ident('id'), null, {raw: true}).success(function(users) {
+                expect(users[0].username).to.equal("Peter")
+                expect(users[1].username).to.equal("Paul")
+
+                if (dialect === "sqlite") {
+                  expect(moment(users[0].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
+                  expect(moment(users[1].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
+                } else {
+                  expect(moment(users[0].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                  expect(moment(users[1].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                }
+                done()
+              })
+            })
+          })
         })
       })
     })
 
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING })
+    describe("can't find records marked as deleted with paranoid being true", function() {
+      it('with the DAOFactory', function(done) {
+        var User = this.sequelize.define('UserCol', {
+          username: Sequelize.STRING
+        }, { paranoid: true })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
-            User.create({ username: 'foo' }, { transaction: t }).success(function() {
-
-              User.findAndCountAll().success(function(info1) {
-                User.findAndCountAll({ transaction: t }).success(function(info2) {
-                  expect(info1.count).to.equal(0)
-                  expect(info2.count).to.equal(1)
-                  t.rollback().success(function(){ done() })
+          User.bulkCreate([
+            {username: 'Toni'},
+            {username: 'Tobi'},
+            {username: 'Max'}
+          ]).success(function() {
+            User.find(1).success(function(user) {
+              user.destroy().success(function() {
+                User.find(1).success(function(user) {
+                  expect(user).to.be.null
+                  User.count().success(function(cnt) {
+                    expect(cnt).to.equal(2)
+                    User.all().success(function(users) {
+                      expect(users).to.have.length(2)
+                      done()
+                    })
+                  })
                 })
               })
             })
@@ -3300,97 +3223,46 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it("handles where clause [only]", function(done) {
-      this.User.findAndCountAll({where: "id != " + this.users[0].id}).success(function(info) {
-        expect(info.count).to.equal(2)
-        expect(Array.isArray(info.rows)).to.be.ok
-        expect(info.rows.length).to.equal(2)
-        done()
-      })
-    })
+    it('should delete a paranoid record if I set force to true', function(done) {
+      var self = this
+      var User = this.sequelize.define('paranoiduser', {
+        username: Sequelize.STRING
+      }, { paranoid: true })
 
-    it("handles where clause with ordering [only]", function(done) {
-      this.User.findAndCountAll({where: "id != " + this.users[0].id, order: 'id ASC'}).success(function(info) {
-        expect(info.count).to.equal(2)
-        expect(Array.isArray(info.rows)).to.be.ok
-        expect(info.rows.length).to.equal(2)
-        done()
-      })
-    })
-
-    it("handles offset", function(done) {
-      this.User.findAndCountAll({offset: 1}).success(function(info) {
-        expect(info.count).to.equal(3)
-        expect(Array.isArray(info.rows)).to.be.ok
-        expect(info.rows.length).to.equal(2)
-        done()
-      })
-    })
-
-    it("handles limit", function(done) {
-      this.User.findAndCountAll({limit: 1}).success(function(info) {
-        expect(info.count).to.equal(3)
-        expect(Array.isArray(info.rows)).to.be.ok
-        expect(info.rows.length).to.equal(1)
-        done()
-      })
-    })
-
-    it("handles offset and limit", function(done) {
-      this.User.findAndCountAll({offset: 1, limit: 1}).success(function(info) {
-        expect(info.count).to.equal(3)
-        expect(Array.isArray(info.rows)).to.be.ok
-        expect(info.rows.length).to.equal(1)
-        done()
-      })
-    })
-
-    it("handles attributes", function(done) {
-      this.User.findAndCountAll({where: "id != " + this.users[0].id, attributes: ['data']}).success(function(info) {
-        expect(info.count).to.equal(2)
-        expect(Array.isArray(info.rows)).to.be.ok
-        expect(info.rows.length).to.equal(2)
-        expect(info.rows[0].selectedValues).to.not.have.property('username')
-        expect(info.rows[1].selectedValues).to.not.have.property('username')
-        done()
-      })
-    })
-  })
-
-  describe('all', function() {
-    beforeEach(function(done) {
-      this.User.bulkCreate([
-        {username: 'user', data: 'foobar'},
-        {username: 'user2', data: 'bar'}
-      ]).complete(function() {
-        done()
-      })
-    })
-
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING })
-
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
-            User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.all().success(function(users1) {
-                User.all({ transaction: t }).success(function(users2) {
-                  expect(users1.length).to.equal(0)
-                  expect(users2.length).to.equal(1)
-                  t.rollback().success(function(){ done() })
+      User.sync({ force: true }).success(function() {
+        User.bulkCreate([
+          {username: 'Bob'},
+          {username: 'Tobi'},
+          {username: 'Max'},
+          {username: 'Tony'}
+        ]).success(function() {
+          User.find({where: {username: 'Bob'}}).success(function(user) {
+            user.destroy({force: true}).success(function() {
+              User.find({where: {username: 'Bob'}}).success(function(user) {
+                expect(user).to.be.null
+                User.find({where: {username: 'Tobi'}}).success(function(tobi) {
+                  tobi.destroy().success(function() {
+                    self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', null, {raw: true, plain: true}).success(function(result) {
+                      expect(result.username).to.equal('Tobi')
+                      User.destroy({username: 'Tony'}).success(function() {
+                        self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', null, {raw: true, plain: true}).success(function(result) {
+                          expect(result.username).to.equal('Tony')
+                          User.destroy({username: ['Tony', 'Max']}, {force: true}).success(function() {
+                            self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true}).success(function(users) {
+                              expect(users).to.have.length(1)
+                              expect(users[0].username).to.equal('Tobi')
+                              done()
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
                 })
               })
             })
           })
         })
-      })
-    })
-
-    it("should return all users", function(done) {
-      this.User.all().on('success', function(users) {
-        expect(users.length).to.equal(2)
-        done()
       })
     })
   })
@@ -3658,290 +3530,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(sql.toUpperCase().indexOf("SELECT")).to.be.above(-1)
         done()
       })
-    })
-  })
-
-  describe('scopes', function() {
-    beforeEach(function(done) {
-      this.ScopeMe = this.sequelize.define('ScopeMe', {
-        username: Sequelize.STRING,
-        email: Sequelize.STRING,
-        access_level: Sequelize.INTEGER,
-        other_value: Sequelize.INTEGER
-      }, {
-        defaultScope: {
-          where: {
-            access_level: {
-              gte: 5
-            }
-          }
-        },
-        scopes: {
-          orderScope: {
-            order: 'access_level DESC'
-          },
-          limitScope: {
-            limit: 2
-          },
-          sequelizeTeam: {
-            where: ['email LIKE \'%@sequelizejs.com\'']
-          },
-          fakeEmail: {
-            where: ['email LIKE \'%@fakeemail.com\'']
-          },
-          highValue: {
-            where: {
-              other_value: {
-                gte: 10
-              }
-            }
-          },
-          isTony: {
-            where: {
-              username: 'tony'
-            }
-          },
-          canBeTony: {
-            where: {
-              username: ['tony']
-            }
-          },
-          canBeDan: {
-            where: {
-              username: {
-                in: 'dan'
-              }
-            }
-          },
-          actualValue: function(value) {
-            return {
-              where: {
-                other_value: value
-              }
-            }
-          },
-          complexFunction: function(email, accessLevel) {
-            return {
-              where: ['email like ? AND access_level >= ?', email + '%', accessLevel]
-            }
-          },
-          lowAccess: {
-            where: {
-              access_level: {
-                lte: 5
-              }
-            }
-          },
-          escape: {
-            where: {
-              username: "escape'd"
-            }
-          }
-        }
-      })
-
-      this.sequelize.sync({force: true}).success(function() {
-        var records = [
-          {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
-          {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
-          {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7}
-        ];
-        this.ScopeMe.bulkCreate(records).success(function() {
-          done()
-        })
-      }.bind(this))
-    })
-
-    it("should have no problems with escaping SQL", function(done) {
-      var self = this
-      this.ScopeMe.create({username: 'escape\'d', email: 'fake@fakemail.com'}).success(function(){
-        self.ScopeMe.scope('escape').all().success(function(users){
-          expect(users).to.be.an.instanceof(Array)
-          expect(users.length).to.equal(1)
-          expect(users[0].username).to.equal('escape\'d');
-          done()
-        })
-      })
-    })
-
-    it("should be able to use a defaultScope if declared", function(done) {
-      this.ScopeMe.all().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(2)
-        expect([10,5].indexOf(users[0].access_level) !== -1).to.be.true
-        expect([10,5].indexOf(users[1].access_level) !== -1).to.be.true
-        expect(['dan', 'tobi'].indexOf(users[0].username) !== -1).to.be.true
-        expect(['dan', 'tobi'].indexOf(users[1].username) !== -1).to.be.true
-        done()
-      })
-    })
-
-    it("should be able to amend the default scope with a find object", function(done) {
-      this.ScopeMe.findAll({where: {username: 'dan'}}).success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(1)
-        expect(users[0].username).to.equal('dan')
-        done()
-      })
-    })
-
-    it("should be able to override the default scope", function(done) {
-      this.ScopeMe.scope('fakeEmail').findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(1)
-        expect(users[0].username).to.equal('tobi')
-        done()
-      })
-    })
-
-    it("should be able to combine two scopes", function(done) {
-      this.ScopeMe.scope(['sequelizeTeam', 'highValue']).findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(1)
-        expect(users[0].username).to.equal('dan')
-        done()
-      })
-    })
-
-    it("should be able to call a scope that's a function", function(done) {
-      this.ScopeMe.scope({method: ['actualValue', 11]}).findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(1)
-        expect(users[0].username).to.equal('tobi')
-        done()
-      })
-    })
-
-    it("should be able to handle multiple function scopes", function(done) {
-      this.ScopeMe.scope([{method: ['actualValue', 10]}, {method: ['complexFunction', 'dan', '5']}]).findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(1)
-        expect(users[0].username).to.equal('dan')
-        done()
-      })
-    })
-
-    it("should be able to stack the same field in the where clause", function(done) {
-      this.ScopeMe.scope(['canBeDan', 'canBeTony']).findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(2)
-        expect(['dan', 'tony'].indexOf(users[0].username) !== -1).to.be.true
-        expect(['dan', 'tony'].indexOf(users[1].username) !== -1).to.be.true
-        done()
-      })
-    })
-
-    it("should be able to merge scopes", function(done) {
-      this.ScopeMe.scope(['highValue', 'isTony', {merge: true, method: ['actualValue', 7]}]).findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(1)
-        expect(users[0].username).to.equal('tony')
-        done()
-      })
-    })
-
-    it("should give us the correct order if we declare an order in our scope", function(done) {
-      this.ScopeMe.scope('sequelizeTeam', 'orderScope').findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(2)
-        expect(users[0].username).to.equal('dan')
-        expect(users[1].username).to.equal('tony')
-        done()
-      })
-    })
-
-    it("should give us the correct order as well as a limit if we declare such in our scope", function(done) {
-      this.ScopeMe.scope(['orderScope', 'limitScope']).findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(2)
-        expect(users[0].username).to.equal('tobi')
-        expect(users[1].username).to.equal('dan')
-        done()
-      })
-    })
-
-    it("should have no problems combining scopes and traditional where object", function(done) {
-      this.ScopeMe.scope('sequelizeTeam').findAll({where: {other_value: 10}}).success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(1)
-        expect(users[0].username).to.equal('dan')
-        expect(users[0].access_level).to.equal(5)
-        expect(users[0].other_value).to.equal(10)
-        done()
-      })
-    })
-
-    it("should be able to remove all scopes", function(done) {
-      this.ScopeMe.scope(null).findAll().success(function(users) {
-        expect(users).to.be.an.instanceof(Array)
-        expect(users.length).to.equal(3)
-        done()
-      })
-    })
-
-    it("should have no problem performing findOrCreate", function(done) {
-      this.ScopeMe.findOrCreate({username: 'fake'}).success(function(user) {
-        expect(user.username).to.equal('fake')
-        done()
-      })
-    })
-
-    it("should be able to hold multiple scope objects", function(done) {
-      var sequelizeTeam = this.ScopeMe.scope('sequelizeTeam', 'orderScope')
-        , tobi = this.ScopeMe.scope({method: ['actualValue', 11]})
-
-      sequelizeTeam.all().success(function(team) {
-        tobi.all().success(function(t) {
-          expect(team).to.be.an.instanceof(Array)
-          expect(team.length).to.equal(2)
-          expect(team[0].username).to.equal('dan')
-          expect(team[1].username).to.equal('tony')
-
-          expect(t).to.be.an.instanceof(Array)
-          expect(t.length).to.equal(1)
-          expect(t[0].username).to.equal('tobi')
-          done()
-        })
-      })
-    })
-
-    it("should gracefully omit any scopes that don't exist", function(done) {
-      this.ScopeMe.scope('sequelizeTeam', 'orderScope', 'doesntexist').all().success(function(team) {
-        expect(team).to.be.an.instanceof(Array)
-        expect(team.length).to.equal(2)
-        expect(team[0].username).to.equal('dan')
-        expect(team[1].username).to.equal('tony')
-        done()
-      })
-    })
-
-    it("should gracefully omit any scopes that don't exist through an array", function(done) {
-      this.ScopeMe.scope(['sequelizeTeam', 'orderScope', 'doesntexist']).all().success(function(team) {
-        expect(team).to.be.an.instanceof(Array)
-        expect(team.length).to.equal(2)
-        expect(team[0].username).to.equal('dan')
-        expect(team[1].username).to.equal('tony')
-        done()
-      })
-    })
-
-    it("should gracefully omit any scopes that don't exist through an object", function(done) {
-      this.ScopeMe.scope('sequelizeTeam', 'orderScope', {method: 'doesntexist'}).all().success(function(team) {
-        expect(team).to.be.an.instanceof(Array)
-        expect(team.length).to.equal(2)
-        expect(team[0].username).to.equal('dan')
-        expect(team[1].username).to.equal('tony')
-        done()
-      })
-    })
-
-    it("should emit an error for scopes that don't exist with silent: false", function(done) {
-      try {
-        this.ScopeMe.scope('doesntexist', {silent: false})
-      } catch (err) {
-        expect(err.message).to.equal('Invalid scope doesntexist called.')
-        done()
-      }
     })
   })
 

@@ -48,15 +48,12 @@ var Support = {
     options.pool    = options.pool || config.pool
 
     var sequelizeOptions = {
+      host:           options.host || config.host,
       logging:        options.logging,
       dialect:        options.dialect,
       port:           options.port || process.env.SEQ_PORT || config.port,
       pool:           options.pool,
       dialectOptions: options.dialectOptions || {}
-    }
-
-    if (!!options.host) {
-      sequelizeOptions.host = options.host
     }
 
     if (!!options.define) {

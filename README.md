@@ -10,6 +10,8 @@ There is a parallel "branch" of the project, released as `2.0.0-alphaX` in NPM. 
 and will get all the changes of the master. However, `2.0.0` will contain backwards compatibility breaking changes. Check the
 changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/2.0.0/changelog.md
 
+##### 2.0.0 API should be considered unstable
+
 ### 1.6.0 ###
 
 - We changed the way timestamps are handled. From v1.6.0 on timestamps are stored and loaded as UTC.
@@ -37,11 +39,11 @@ changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/
 
 ## Documentation and Updates ##
 
-You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
+You can find the documentation and announcements of updates on the [project's website](http://sequelizejs.com).
 If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
 Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
 
-- [Documentation](http://www.sequelizejs.com)
+- [Documentation](http://sequelizejs.com)
 - [Twitter](http://twitter.com/sdepold)
 - [IRC](http://webchat.freenode.net?channels=sequelizejs)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
@@ -105,7 +107,16 @@ a productive developer, I would recommend the latest v0.8. Also I usually recomm
 Once Node.JS is installed on your computer, you will also have access to the lovely
 Node Package Manager (NPM).
 
-### 2. Database... Come to me! ###
+### 2. Install the dependencies ###
+
+Just "cd" into sequelize directory and run `npm install`, see an example below:
+
+```console
+$ cd path/to/sequelize
+$ npm install
+```
+
+### 3. Database... Come to me! ###
 
 First class citizen of Sequelize was MySQL. Over time, Sequelize began to
 become compatible to SQLite and PostgreSQL. In order to provide a fully
@@ -130,15 +141,31 @@ $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 **AND ONE LAST THING:** Once `npm install` worked for you (see below), you'll
 get SQLite tests for free :)
 
+#### 3a. Docker
+If you don't feel like setting up databases and users, you can use our [docker](http://docker.io) [image](https://index.docker.io/u/mhansen/sequelize-contribution/) for sequelize contribution.
 
-### 3. Install the dependencies ###
-
-Just "cd" into sequelize directory and run `npm install`, see an example below:
-
+Getting the image:
 ```console
-$ cd path/to/sequelize
-$ npm install
+$ sudo docker pull mhansen/sequelize-contribution
 ```
+
+Start the container and save references to container id and ip:
+```console
+$ CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
+$ CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
+```
+
+Run tests:
+```console
+$ SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
+```
+
+Stop the container:
+```console
+$ sudo docker stop $CONTAINER
+```
+
+When running tests repeatedly, you only need to redo step 3 if you haven't stopped the container.
 
 ### 4. Run the tests ###
 
