@@ -883,6 +883,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should allow blank arrays (return immediatly)', function (done) {
+      var Worker = this.sequelize.define('Worker', {})
+      Worker.sync().done(function(err) { 
+        Worker.bulkCreate([]).done(function (err, workers) {
+          expect(err).not.to.be.ok
+          expect(workers).to.be.ok
+          expect(workers.length).to.equal(0)
+          done()
+        })
+      })
+    })
+
     it('should allow blank creates (with timestamps: false)', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
       Worker.sync().done(function(err) { 
