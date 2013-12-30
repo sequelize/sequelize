@@ -894,6 +894,20 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should return instances with primary key values (autoincremented)', function (done) {
+      var Worker = this.sequelize.define('Worker', {})
+      Worker.sync().done(function(err) { 
+        Worker.bulkCreate([{}, {}]).done(function (err, workers) {
+          expect(err).not.to.be.ok
+          expect(workers).to.be.ok
+          workers.forEach(function (worker) {
+            expect(worker.id).to.be.ok
+          })
+          done()
+        })
+      })
+    })
+
     describe('enums', function() {
       it('correctly restores enum values', function(done) {
         var self = this

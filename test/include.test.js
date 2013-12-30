@@ -106,4 +106,32 @@ it('should support a simple nested hasOne -> hasOne include', function (done) {
       })
     })
   })
+
+  it('should support a simple nested hasMany -> belongsTo include', function (done) {
+    var Task = this.sequelize.define('Task', {})
+      , User = this.sequelize.define('User', {})
+      , Project = this.sequelize.define('Project', {})
+
+    User.hasMany(Task)
+    Task.belongsTo(Project)
+
+    this.sequelize.sync({force: true}).done(function () {
+      async.auto({
+        user: function (callback) {
+          User.create().done(callback)
+        },
+        projects: function (callback) {
+          Project.bulkCreate([{}, {}]).done(callback)
+        },
+        tasks: ['projects', function(callback, results) {
+          Task.bulkCreate([
+            {ProjectId: results.projects[0].id},
+            {ProjectId: results.projects[1].id},
+            {ProjectId: results.projects[0].id},
+            {ProjectId: results.projects[1].id}
+          ]).done(callback)
+        }]
+      }, done);
+    });
+  })
 })
