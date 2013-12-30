@@ -221,5 +221,80 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should support a simple nested hasMany <-> hasMany include', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          })
+
+      User.hasMany(Product)
+      Product.hasMany(Tag)
+      Tag.hasMany(Product)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          user: function (callback) {
+            User.create().done(callback)
+          },
+          products: function (callback) {
+            Product.bulkCreate([
+              {title: 'Chair'},
+              {title: 'Desk'},
+              {title: 'Dress'},
+              {title: 'Bed'}
+            ]).done(function () {
+              Product.findAll().done(callback)
+            })
+          },
+          tags: function(callback) {
+            Tag.bulkCreate([
+              {name: 'A'},
+              {name: 'B'},
+              {name: 'C'}
+            ]).done(function () {
+              Tag.findAll().done(callback)
+            })
+          },
+          userProducts: ['user', 'products', function (callback, results) {
+            results.user.setProducts(results.products).done(callback)
+          }],
+          productTags: ['products', 'tags', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            chainer.add(results.products[0].setTags([results.tags[0], results.tags[2]]))
+            chainer.add(results.products[1].setTags([results.tags[1]]))
+            chainer.add(results.products[2].setTags([results.tags[0], results.tags[1], results.tags[2]]))
+
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.find({
+            where: {
+              id: results.user.id
+            },
+            include: [
+              {model: Product, include: [
+                {model: Tag}
+              ]}
+            ]
+          }).done(function (err, user) {
+            expect(err).not.to.be.ok            
+
+            expect(user.products.length).to.equal(4)
+            expect(user.products[0].tags.length).to.equal(2)
+            expect(user.products[1].tags.length).to.equal(1)
+            expect(user.products[2].tags.length).to.equal(3)
+            expect(user.products[3].tags.length).to.equal(0)
+            done()
+          })
+        })
+      })
+    })
   })
 })
