@@ -16,6 +16,10 @@ var chai      = require('chai')
 chai.use(datetime)
 chai.Assertion.includeStack = true
 
+var sortById = function(a, b) {
+  return a.id < b.id ? -1 : 1
+}
+
 describe(Support.getTestDialectTeaser("Include"), function () {
   describe('find', function () {
     it('should support a simple nested belongsTo -> belongsTo include', function (done) {
@@ -428,12 +432,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               ]}
             ]
           }).done(function (err, user) {
+            user.memberships.sort(sortById)
             expect(user.memberships.length).to.equal(2)
             expect(user.memberships[0].group.name).to.equal('Developers')
             expect(user.memberships[0].rank.canRemove).to.equal(1)
             expect(user.memberships[1].group.name).to.equal('Designers')
             expect(user.memberships[1].rank.canRemove).to.equal(0)
 
+            user.products.sort(sortById)
             expect(user.products.length).to.equal(2)
             expect(user.products[0].tags.length).to.equal(2)
             expect(user.products[1].tags.length).to.equal(1)
@@ -608,11 +614,6 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 }).done(function (err, users) {
                   expect(err).not.to.be.ok
                   users.forEach(function (user, i) {
-
-                    var sortById = function(a, b) {
-                      return a.id < b.id ? -1 : 1
-                    }
-
                     user.memberships.sort(sortById)
                     expect(user.memberships.length).to.equal(2)
                     expect(user.memberships[0].group.name).to.equal('Developers')
