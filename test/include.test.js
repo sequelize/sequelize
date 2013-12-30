@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     Task.belongsTo(User)
     User.belongsTo(Group)
 
-    this.sequelize.sync().then(function () {
+    this.sequelize.sync({force: true}).done(function () {
       async.auto({
         task: function (callback) {
           Task.create().done(callback)
@@ -53,8 +53,12 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]}
           ]
         }).done(function (err, task) {
+          console.log(err && err.sql)
+          expect(err).not.to.be.ok
           expect(task.user).to.be.ok
           expect(task.user.group).to.be.ok
+        }).on('sql', function (sql) {
+          console.log(sql)
         })
       })
     })
