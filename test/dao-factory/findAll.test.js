@@ -482,14 +482,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done()
         })
 
-        it('throws an error about missing attributes if include contains an object with daoFactory', function(done) {
-          var self = this
-          expect(function() {
-            self.Worker.all({ include: [ { daoFactory: self.Worker } ] })
-          }).to.throw(Error, 'Include malformed. Expected attributes: daoFactory, as!')
-          done()
-        })
-
         it('throws an error if included DaoFactory is not associated', function(done) {
           var self = this
           expect(function() {
