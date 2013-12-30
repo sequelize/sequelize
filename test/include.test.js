@@ -61,4 +61,49 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
   })
+
+it('should support a simple nested hasOne -> hasOne include', function (done) {
+    var Task = this.sequelize.define('Task', {})
+      , User = this.sequelize.define('User', {})
+      , Group = this.sequelize.define('Group', {})
+
+    User.hasOne(Task)
+    Group.hasOne(User)
+
+    this.sequelize.sync({force: true}).done(function () {
+      async.auto({
+        task: function (callback) {
+          Task.create().done(callback)
+        },
+        user: function (callback) {
+          User.create().done(callback)
+        },
+        group: function (callback) {
+          Group.create().done(callback)
+        },
+        userTask: ['user', 'task', function (callback, results) {
+          results.user.setTask(results.task).done(callback)
+        }],
+        groupUser: ['group', 'user', function (callback, results) {
+          results.group.setUser(results.user).done(callback)
+        }]
+      }, function (err, results) {
+        expect(err).not.to.be.ok
+
+        Group.find({
+          id: results.group.id,
+          include: [
+            {model: User, include: [
+              {model: Task}
+            ]}
+          ]
+        }).done(function (err, group) {
+          expect(err).not.to.be.ok
+          expect(group.user).to.be.ok
+          expect(group.user.task).to.be.ok
+          done()
+        })
+      })
+    })
+  })
 })
