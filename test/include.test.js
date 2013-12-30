@@ -53,12 +53,10 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]}
           ]
         }).done(function (err, task) {
-          console.log(err && err.sql)
           expect(err).not.to.be.ok
           expect(task.user).to.be.ok
           expect(task.user.group).to.be.ok
-        }).on('sql', function (sql) {
-          console.log(sql)
+          done()
         })
       })
     })
