@@ -618,10 +618,12 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                   include: [Page]
                 }).success(function(leBook) {
                   page.updateAttributes({ content: 'something totally different' }).success(function(page) {
+                    expect(leBook.pages.length).to.equal(1)
                     expect(leBook.pages[0].content).to.equal('om nom nom')
                     expect(page.content).to.equal('something totally different')
 
                     leBook.reload().success(function(leBook) {
+                      expect(leBook.pages.length).to.equal(1)
                       expect(leBook.pages[0].content).to.equal('something totally different')
                       expect(page.content).to.equal('something totally different')
                       done()
@@ -792,15 +794,13 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       // timeout is needed, in order to check the update of the timestamp
       var build = function(callback) {
         user      = User.build({ username: 'user' })
-        updatedAt = user.updatedAt
-        expect(updatedAt.getTime()).to.be.above(now)
+  
+        var save = user.save()
 
-        setTimeout(function() {
-          user.save().success(function() {
-            expect(updatedAt.getTime()).to.be.below(user.updatedAt.getTime())
-            callback()
-          })
-        }, 1000)
+        save.success(function() {
+          expect(now).to.be.below(user.updatedAt.getTime())
+          callback()
+        })
       }
 
       // closures are fun :)
@@ -1079,7 +1079,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('returns a response that can be stringified', function(done) {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
-      expect(JSON.stringify(user)).to.deep.equal('{"id":null,"username":"test.user","age":99,"isAdmin":true}')
+      expect(JSON.stringify(user)).to.deep.equal('{"username":"test.user","age":99,"isAdmin":true,"id":null}')
       done()
     })
 
@@ -1235,7 +1235,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       this.ParanoidUser.create({ username: 'fnord' }).success(function() {
         self.ParanoidUser.findAll().success(function(users) {
           users[0].updateAttributes({username: 'newFnord'}).success(function(user) {
-            expect(user.deletedAt).to.be.null
+            expect(user.deletedAt).not.to.exist
             done()
           })
         })
@@ -1248,7 +1248,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         self.ParanoidUser.findAll().success(function(users) {
           self.ParanoidUser.create({ username: 'linkedFnord' }).success(function(linkedUser) {
             users[0].setParanoidUser( linkedUser ).success(function(user) {
-              expect(user.deletedAt).to.be.null
+              expect(user.deletedAt).not.to.exist
               done()
             })
           })
