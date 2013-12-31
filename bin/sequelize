@@ -88,7 +88,7 @@ var createMigrationsFolder = function(force) {
 }
 
 var parseDbUrl = function(urlString) {
-  var parsed,
+  var urlParts,
       config = {};
   try {
     urlParts = url.parse(urlString)
