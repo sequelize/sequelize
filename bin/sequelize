@@ -6,6 +6,7 @@ var path      = require("path")
   , Sequelize = require(__dirname + '/../index')
   , moment    = require("moment")
   , _         = Sequelize.Utils._
+  , parseDatabaseUrl = require('parse-database-url')
 
 var configuration = {
   configFile: process.cwd() + '/config/config.json',
@@ -86,19 +87,50 @@ var createMigrationsFolder = function(force) {
   }
 }
 
+var parseDbUrl = function(url) {
+  var parsed,
+      config;
+  try {
+    parsed = parseDatabaseUrl(url);
+    //var dialect = parsed.driver == 'postgrest' ? 'pg' : parsed.driver;
+
+    config = {
+      username : parsed.user || null,
+      password : parsed.password || null,
+      database : parsed.database || null,
+      host     : parsed.host || null,
+      port     : parsed.port || null,
+      dialect  : parsed.driver || null
+    }
+  } catch (e) {
+    throw new Error('Error parsing url: ' + url);
+  }
+  
+  return config
+};
+
 var readConfig = function() {
   var config
-  try {
-    config = require(configuration.configFile);
-  } catch(e) {
-    throw new Error('Error reading "' + relativeConfigFile() + '".')
+  if (program.url) {
+    config = parseDbUrl(program.url);
+  } else {
+    try {
+      config = require(configuration.configFile);
+    } catch(e) {
+      throw new Error('Error reading "' + relativeConfigFile() + '".')
+    }
   }
 
   if(typeof config != 'object') {
     throw new Error('Config must be an object: ' + relativeConfigFile());
   }
 
-  console.log('Loaded configuration file "' + relativeConfigFile() + '".')
+  if (program.url) {
+    console.log('Parsed url ' + program.url);
+  } else {
+    console.log('Loaded configuration file "' + relativeConfigFile() + '".');
+  }
+
   if (config[configuration.environment]) {
     console.log('Using environment "' + configuration.environment + '".')
     config = config[configuration.environment]
@@ -114,6 +146,7 @@ program
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
+  .option('-U, --url <url>', 'Database url.  An alternative to a config file')
   .option('--config <config_file>', 'Specifies alternate config file.')
   .parse(process.argv)
 
@@ -130,7 +163,7 @@ if(typeof program.env === 'string') {
 }
 
 if (program.migrate) {
-  if (configFileExists()) {
+  if (configFileExists() || program.url) {
     var config
       , options  = {}
 
