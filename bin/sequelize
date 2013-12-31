@@ -98,6 +98,10 @@ var parseDbUrl = function(urlString) {
     config.host = urlParts.hostname;
     config.port = urlParts.port;
 
+    if (config.dialect === 'sqlite') {
+      config.storage = '/' + config.database;
+    }
+
     if (urlParts.auth) {
       config.username = urlParts.auth.split(':')[0]
       config.password = urlParts.auth.split(':')[1]
@@ -105,7 +109,7 @@ var parseDbUrl = function(urlString) {
   } catch (e) {
     throw new Error('Error parsing url: ' + url);
   }
-  
+
   return config
 };
 
