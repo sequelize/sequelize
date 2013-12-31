@@ -1036,6 +1036,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it("should allow dates in min", function(done){
+      var self = this
+      this.User.bulkCreate([{theDate: new Date(2000, 01, 01)}, {theDate: new Date(1990, 01, 01)}]).success(function(){
+        self.User.min('theDate').success(function(min){
+          expect(min).to.be.a('Date');
+          expect(new Date(1990, 01, 01)).to.equalDate(min)
+          done()
+        })
+      })
+    })
   })
 
   describe('max', function() {
@@ -1102,6 +1113,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.UserWithDec.bulkCreate([{value: 3.5}, {value: 5.5}]).success(function(){
         self.UserWithDec.max('value').success(function(max){
           expect(max).to.equal(5.5)
+          done()
+        })
+      })
+    })
+
+    it("should allow dates in max", function(done) {
+      var self = this
+      this.User.bulkCreate([{theDate: new Date(2013, 12, 31)}, {theDate: new Date(2000, 01, 01)}]).success(function(){
+        self.User.max('theDate').success(function(max){
+          expect(max).to.be.a('Date');
+          expect(max).to.equalDate(new Date(2013, 12, 31))
           done()
         })
       })
