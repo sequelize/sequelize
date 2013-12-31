@@ -6,7 +6,7 @@ var path      = require("path")
   , Sequelize = require(__dirname + '/../index')
   , moment    = require("moment")
   , _         = Sequelize.Utils._
-  , parseDatabaseUrl = require('parse-database-url')
+  , url       = require("url")
 
 var configuration = {
   configFile: process.cwd() + '/config/config.json',
@@ -87,20 +87,20 @@ var createMigrationsFolder = function(force) {
   }
 }
 
-var parseDbUrl = function(url) {
+var parseDbUrl = function(urlString) {
   var parsed,
-      config;
+      config = {};
   try {
-    parsed = parseDatabaseUrl(url);
-    //var dialect = parsed.driver == 'postgrest' ? 'pg' : parsed.driver;
+    urlParts = url.parse(urlString)
+    config.database = urlParts.path.replace(/^\//,  '');
+    config.dialect = urlParts.protocol;
+    config.dialect = config.dialect.replace(/:$/, '');
+    config.host = urlParts.hostname;
+    config.port = urlParts.port;
 
-    config = {
-      username : parsed.user || null,
-      password : parsed.password || null,
-      database : parsed.database || null,
-      host     : parsed.host || null,
-      port     : parsed.port || null,
-      dialect  : parsed.driver || null
+    if (urlParts.auth) {
+      config.username = urlParts.auth.split(':')[0]
+      config.password = urlParts.auth.split(':')[1]
     }
   } catch (e) {
     throw new Error('Error parsing url: ' + url);
