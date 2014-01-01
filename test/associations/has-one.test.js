@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
       Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' })
       Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' })
 
-      expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers'])
+      expect(Object.keys(Group.associations)).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers'])
     })
   })
 

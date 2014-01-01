@@ -944,7 +944,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
                   user.age = user.age + 1 // happy birthday joe
 
-                  user.save().success(function() {
+                  user.save().done(function(err) {
+                    expect(err).not.to.be.ok
+
                     expect(user.username).to.equal('joe')
                     expect(user.age).to.equal(2)
                     expect(user.projects).to.exist
@@ -1078,7 +1080,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
     it('returns a response that can be stringified', function(done) {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
-      expect(JSON.stringify(user)).to.deep.equal('{"username":"test.user","age":99,"isAdmin":true,"id":null}')
+      expect(JSON.stringify(user)).to.deep.equal('{"id":null,"username":"test.user","age":99,"isAdmin":true}')
       done()
     })
 

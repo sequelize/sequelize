@@ -10,6 +10,8 @@ There is a parallel "branch" of the project, released as `2.0.0-alphaX` in NPM. 
 and will get all the changes of the master. However, `2.0.0` will contain backwards compatibility breaking changes. Check the
 changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/2.0.0/changelog.md
 
+##### 2.0.0 API should be considered unstable
+
 ### 1.6.0 ###
 
 - We changed the way timestamps are handled. From v1.6.0 on timestamps are stored and loaded as UTC.
@@ -37,11 +39,11 @@ changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/
 
 ## Documentation and Updates ##
 
-You can find the documentation and announcements of updates on the [project's website](http://www.sequelizejs.com).
+You can find the documentation and announcements of updates on the [project's website](http://sequelizejs.com).
 If you want to know about latest development and releases, follow me on [Twitter](http://twitter.com/sdepold).
 Also make sure to take a look at the examples in the repository. The website will contain them soon, as well.
 
-- [Documentation](http://www.sequelizejs.com)
+- [Documentation](http://sequelizejs.com)
 - [Twitter](http://twitter.com/sdepold)
 - [IRC](http://webchat.freenode.net?channels=sequelizejs)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)

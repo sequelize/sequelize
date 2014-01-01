@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       Group.belongsTo(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' })
       Group.belongsTo(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' })
 
-      expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers'])
+      expect(Object.keys(Group.associations)).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers'])
     })
   })
 

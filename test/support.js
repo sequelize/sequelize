@@ -137,6 +137,19 @@ var Support = {
     }
 
     return "[" + dialect.toUpperCase() + "] " + moduleName
+  },
+
+  getTestUrl: function(config) {
+    var url,
+        dbConfig = config[config.dialect];
+
+    if (config.dialect === 'sqlite') {
+      url = 'sqlite://' + dbConfig.storage;
+    } else {
+      url = config.dialect + "://" + dbConfig.username
+      + "@" + dbConfig.host + ":" + dbConfig.port + "/" + dbConfig.database;
+    }
+    return url;
   }
 }
 
