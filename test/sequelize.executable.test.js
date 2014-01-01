@@ -206,4 +206,70 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
       })
     })
   })(['--migrate', '-m'])
+
+  ;(function(flags) {
+    flags.forEach(function(flag) {
+      var prepare = function(callback) {
+        exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+          exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+            exec("cp ../assets/migrations/*-createPerson.js ./migrations/", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+              exec("cat ../support.js|sed s,/../,/../../, > ./support.js", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+                var dialect = Support.getTestDialect()
+                  , config  = require(__dirname + '/config/config.js')
+
+                config.sqlite.storage = __dirname + "/tmp/test.sqlite"
+                config = _.extend(config, config[dialect], { dialect: dialect })
+                var url = Support.getTestUrl(config);
+                exec("echo '" + JSON.stringify(config) + "' > config/config.json", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+                  exec("../../bin/sequelize -m " + flag + " " + url, { cwd: __dirname + "/tmp" }, callback)
+                })
+              })
+            })
+          })
+        })
+      }
+
+      describe(flag, function() {
+        it("creates a SequelizeMeta table", function(done) {
+          var sequelize = this.sequelize
+
+          if (this.sequelize.options.dialect === 'sqlite') {
+            var options = this.sequelize.options
+            options.storage = __dirname + "/tmp/test.sqlite"
+            sequelize = new Support.Sequelize("", "", "", options)
+          }
+
+          prepare(function() {
+            sequelize.getQueryInterface().showAllTables().success(function(tables) {
+              tables = tables.sort()
+
+              expect(tables).to.have.length(2)
+              expect(tables[1]).to.equal("SequelizeMeta")
+              done()
+            })
+          }.bind(this))
+        })
+
+        it("creates the respective table via url", function(done) {
+          var sequelize = this.sequelize
+
+          if (this.sequelize.options.dialect === 'sqlite') {
+            var options = this.sequelize.options
+            options.storage = __dirname + "/tmp/test.sqlite"
+            sequelize = new Support.Sequelize("", "", "", options)
+          }
+
+          prepare(function() {
+            sequelize.getQueryInterface().showAllTables().success(function(tables) {
+              tables = tables.sort()
+
+              expect(tables).to.have.length(2)
+              expect(tables[0]).to.equal("Person")
+              done()
+            })
+          }.bind(this))
+        })
+      })
+    })
+  })(['--url', '-U'])
 })
