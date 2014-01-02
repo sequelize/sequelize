@@ -130,7 +130,7 @@ if (dialect.match(/^postgres/)) {
           }
 
           for (var x = 0; x < 5; ++x) {
-            tasks[tasks.length] = {id: i+1, name: 'Task' + Math.random()}
+            tasks[tasks.length] = {id: x+1, name: 'Task' + Math.random()}
           }
 
           self.User.sync({ force: true }).success(function() {
