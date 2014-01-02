@@ -18,7 +18,6 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
     Task.belongsTo(Project);
     Project.hasMany(Task);
 
-
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
         username: 'leia'
@@ -47,8 +46,15 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
             Task.findAll({
               where: {
                 'project.user.username': 'leia'
-              }
-            }).success(function(tasks){
+              },
+              include: [
+                {model: Project, include: [
+                  User
+                ]}
+              ]
+            }).done(function(err, tasks){
+              expect(err).not.to.be.ok
+
               try{
                 expect(tasks.length).to.be.equal(2);
                 expect(tasks[0].title).to.be.equal('fight empire');
@@ -106,7 +112,12 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
               where: {
                 'project.user.username': 'leia',
                 'project.user.id': 1
-              }
+              },
+              include: [
+                {model: Project, include: [
+                  User
+                ]}
+              ]
             }).success(function(tasks){
               try{
                 expect(tasks.length).to.be.equal(2);
@@ -133,7 +144,6 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
 
     Task.belongsTo(Project);
     Project.hasMany(Task);
-
 
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
@@ -164,8 +174,13 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
             User.findAll({
               where: {
                 'projects.tasks.title': 'fight empire'
-              }
-            }).success(function(users){
+              },
+              include: [
+                {model: Project, include: [
+                  Task
+                ]}
+              ]
+            }).done(function(err, users){
               try{
                 expect(users.length).to.be.equal(1);
                 expect(users[0].username).to.be.equal('leia');
@@ -208,7 +223,10 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                       User.findAll({
                         where: {
                           'projects.title': 'republic'
-                        }
+                        },
+                        include: [
+                          {model: Project}
+                        ]
                       }).success(function(users){
                         try{
                           expect(users.length).to.be.equal(1);
