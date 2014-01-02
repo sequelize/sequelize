@@ -744,81 +744,81 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     })
 
     it('should support the order attribute on multiple associated entities', function(done) {
-      var A = this.sequelize.define('A', {})
-        , B = this.sequelize.define('B', {'test': DataTypes.STRING})
-        , C = this.sequelize.define('C', {'position': DataTypes.INTEGER})
+      var User = this.sequelize.define('User', {})
+        , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
+        , Order = this.sequelize.define('Order', {'position': DataTypes.INTEGER})
 
-        A.belongsTo(B, {'as': 'ba', 'through': 'abajt'})
-        A.belongsTo(B, {'as': 'bb', 'through': 'abbjt'})
-        A.belongsTo(C)
-        B.hasMany(A, {'as': 'a', 'through': 'abjt'})
-        C.hasMany(A)
+        User.belongsTo(Item, {'as': 'itemA'})
+        User.belongsTo(Item, {'as': 'itemB'})
+        User.belongsTo(Order)
+        Item.hasMany(User)
+        Order.hasMany(User)
 
         this.sequelize.sync().done(function() {
           async.auto({
-            as: function(callback) {
-              A.bulkCreate([{}, {}, {}]).done(function() {
-                A.findAll().done(callback)
+            users: function(callback) {
+              User.bulkCreate([{}, {}, {}]).done(function() {
+                User.findAll().done(callback)
               })
             },
-            bs: function(callback) {
-              B.bulkCreate([
+            items: function(callback) {
+              Item.bulkCreate([
                 {'test': 'abc'},
                 {'test': 'def'},
                 {'test': 'ghi'},
                 {'test': 'jkl'}
               ]).done(function() {
-                B.findAll().done(callback)
+                Item.findAll().done(callback)
               })
             },
-            cs: function(callback) {
-              C.bulkCreate([
-                {'position': 1},
+            orders: function(callback) {
+              Order.bulkCreate([
                 {'position': 2},
-                {'position': 3}
+                {'position': 3},
+                {'position': 1}
               ]).done(function() {
-                C.findAll().done(callback)
+                Order.findAll().done(callback)
               })
             },
-            associate: ['as', 'bs', 'cs', function(callback, results) {
+            associate: ['users', 'items', 'orders', function(callback, results) {
               var chainer = new Sequelize.Utils.QueryChainer()
 
-              var a1 = results.as[0]
-              var a2 = results.as[1]
-              var a3 = results.as[2]
+              var user1 = results.users[0]
+              var user2 = results.users[1]
+              var user3 = results.users[2]
 
-              var b1 = results.bs[0]
-              var b2 = results.bs[1]
-              var b3 = results.bs[2]
-              var b4 = results.bs[3]
+              var item1 = results.items[0]
+              var item2 = results.items[1]
+              var item3 = results.items[2]
+              var item4 = results.items[3]
 
-              var c1 = results.cs[0]
-              var c2 = results.cs[1]
-              var c3 = results.cs[2]
+              var order1 = results.orders[0]
+              var order2 = results.orders[1]
+              var order3 = results.orders[2]
 
-              chainer.add(a1.setBa(b1))
-              chainer.add(a1.setBb(b2))
-              chainer.add(a1.setC(c3))
+              chainer.add(user1.setItemA(item1))
+              chainer.add(user1.setItemB(item2))
+              chainer.add(user1.setOrder(order3))
 
-              chainer.add(a2.setBa(b3))
-              chainer.add(a2.setBb(b4))
-              chainer.add(a2.setC(c2))
+              chainer.add(user2.setItemA(item3))
+              chainer.add(user2.setItemB(item4))
+              chainer.add(user2.setOrder(order2))
 
-              chainer.add(a3.setBa(b1))
-              chainer.add(a3.setBb(b4))
-              chainer.add(a3.setC(c1))
+              chainer.add(user3.setItemA(item1))
+              chainer.add(user3.setItemB(item4))
+              chainer.add(user3.setOrder(order1))
 
               chainer.run().done(callback)
             }]}, function() {
-              A.findAll({'where': {'ba.test': 'abc'}, 'include': [{'model': B, 'as': 'ba'}, {'model': B, 'as': 'bb'}, C], 'order': 'c.position'}).done(function(err, as) {
+              User.findAll({'where': {'itemA.test': 'abc'}, 'include': [{'model': Item, 'as': 'itemA'}, {'model': Item, 'as': 'itemB'}, Order], 'order': 'order.position'}).done(function(err, as) {
                 expect(err).not.to.be.ok
                 expect(as.length).to.eql(2)
 
-                expect(as[0].ba[0].test).to.eql('abc')
-                expect(as[1].ba[0].test).to.eql('abc')
+                expect(as[0].itemA[0].test).to.eql('abc')
+                expect(as[1].itemA[0].test).to.eql('abc')
 
-                expect(as[0].c.position).to.eql(1)
-                expect(as[1].c.position).to.eql(3)
+                expect(as[0].order.position).to.eql(1)
+                expect(as[1].order.position).to.eql(3)
 
                 done()
           })
