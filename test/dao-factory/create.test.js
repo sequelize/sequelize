@@ -700,7 +700,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it.only('properly handles disparate field lists', function(done) {
+    it('properly handles disparate field lists', function(done) {
       var self = this
         , data = [{username: 'Peter', secretValue: '42' },
                   {username: 'Paul'},
