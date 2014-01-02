@@ -184,5 +184,21 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    describe('previous', function () {
+      it('should return the previous value', function () {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING}
+        })
+
+        var user = User.build({
+          name: 'Jan Meier'
+        })
+        user.set('name', 'Mick Hansen')
+        
+        expect(user.previous('name')).to.equal('Jan Meier')
+        expect(user.get('name')).to.equal('Mick Hansen')
+      })
+    })
   })
 })
