@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               ]}
             ]
           }).done(function (err, user) {
-            expect(err).not.to.be.ok            
+            expect(err).not.to.be.ok
 
             expect(user.products.length).to.equal(4)
             expect(user.products[0].tags.length).to.equal(2)
@@ -608,7 +608,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                       Tag,
                       {model: Tag, as: 'Category'},
                       Price
-                    ]}              
+                    ]}
                   ],
                   order: 'id ASC'
                 }).done(function (err, users) {
