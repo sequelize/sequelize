@@ -1106,7 +1106,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
   })
 
   describe('#create', function() {
-    describe('via deifne', function() {
+    describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
           it('should return the user from the callback', function(done) {
