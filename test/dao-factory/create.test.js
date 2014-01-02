@@ -700,7 +700,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('properly handles disparate field lists', function(done) {
+    it.only('properly handles disparate field lists', function(done) {
       var self = this
         , data = [{username: 'Peter', secretValue: '42' },
                   {username: 'Paul'},
@@ -713,6 +713,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(users[0].secretValue).to.be.null
           done()
         })
+      }).on('sql', function (sql) {
+        console.log(sql)
       })
     })
 
