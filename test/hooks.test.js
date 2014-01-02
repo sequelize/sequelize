@@ -23,6 +23,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               }, {
                 hooks: {
                   beforeValidate: function(user, fn) {
+                    console.log("beforeValidate")
                     user.mood = 'happy'
                     fn(null, user)
                   },
@@ -111,7 +112,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
                     self.User.all().success(function(users) {
                       expect(users[0].mood).to.equal('happy')
-                      expect(users[0].mood).to.equal('happy')
+                      expect(users[1].mood).to.equal('happy')
                       done()
                     })
                   })

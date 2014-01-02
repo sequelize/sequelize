@@ -713,8 +713,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(users[0].secretValue).to.be.null
           done()
         })
-      }).on('sql', function (sql) {
-        console.log(sql)
       })
     })
 
