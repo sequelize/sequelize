@@ -742,5 +742,88 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should support the order attribute on multiple associated entities', function(done) {
+      var A = this.sequelize.define('A', {})
+        , B = this.sequelize.define('B', {'test': DataTypes.STRING})
+        , C = this.sequelize.define('C', {'position': DataTypes.INTEGER})
+
+        A.belongsTo(B, {'as': 'ba', 'through': 'abajt'})
+        A.belongsTo(B, {'as': 'bb', 'through': 'abbjt'})
+        A.belongsTo(C)
+        B.hasMany(A, {'as': 'a', 'through': 'abjt'})
+        C.hasMany(A)
+
+        this.sequelize.sync().done(function() {
+          async.auto({
+            as: function(callback) {
+              A.bulkCreate([{}, {}, {}]).done(function() {
+                A.findAll().done(callback)
+              })
+            },
+            bs: function(callback) {
+              B.bulkCreate([
+                {'test': 'abc'},
+                {'test': 'def'},
+                {'test': 'ghi'},
+                {'test': 'jkl'}
+              ]).done(function() {
+                B.findAll().done(callback)
+              })
+            },
+            cs: function(callback) {
+              C.bulkCreate([
+                {'position': 1},
+                {'position': 2},
+                {'position': 3}
+              ]).done(function() {
+                C.findAll().done(callback)
+              })
+            },
+            associate: ['as', 'bs', 'cs', function(callback, results) {
+              var chainer = new Sequelize.Utils.QueryChainer()
+
+              var a1 = results.as[0]
+              var a2 = results.as[1]
+              var a3 = results.as[2]
+
+              var b1 = results.bs[0]
+              var b2 = results.bs[1]
+              var b3 = results.bs[2]
+              var b4 = results.bs[3]
+
+              var c1 = results.cs[0]
+              var c2 = results.cs[1]
+              var c3 = results.cs[2]
+
+              chainer.add(a1.setBa(b1))
+              chainer.add(a1.setBb(b2))
+              chainer.add(a1.setC(c3))
+
+              chainer.add(a2.setBa(b3))
+              chainer.add(a2.setBb(b4))
+              chainer.add(a2.setC(c2))
+
+              chainer.add(a3.setBa(b1))
+              chainer.add(a3.setBb(b4))
+              chainer.add(a3.setC(c1))
+
+              chainer.run().done(callback)
+            }]}, function() {
+              A.findAll({'where': {'ba.test': 'abc'}, 'include': [{'model': B, 'as': 'ba'}, {'model': B, 'as': 'bb'}, C], 'order': 'c.position'}).done(function(err, as) {
+                expect(err).not.to.be.ok
+                expect(as.length).to.eql(2)
+
+                expect(as[0].ba[0].test).to.eql('abc')
+                expect(as[1].ba[0].test).to.eql('abc')
+
+                expect(as[0].c.position).to.eql(1)
+                expect(as[1].c.position).to.eql(3)
+
+                done()
+          })
+        })
+      })
+    })
   })
 })
