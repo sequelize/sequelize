@@ -748,8 +748,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
         , Order = this.sequelize.define('Order', {'position': DataTypes.INTEGER})
 
-      User.belongsTo(Item, {'as': 'itemA'})
-      User.belongsTo(Item, {'as': 'itemB'})
+      User.belongsTo(Item, {'as': 'itemA', foreignKey: 'itemA_id'})
+      User.belongsTo(Item, {'as': 'itemB', foreignKey: 'itemB_id'})
       User.belongsTo(Order)
 
       this.sequelize.sync().done(function() {
