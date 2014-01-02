@@ -743,7 +743,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should support the order attribute on multiple associated entities', function(done) {
+    xit('should support the order attribute on multiple associated entities', function(done) {
       var User = this.sequelize.define('User', {})
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
         , Order = this.sequelize.define('Order', {'position': DataTypes.INTEGER})
