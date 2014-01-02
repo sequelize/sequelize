@@ -135,5 +135,54 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    describe('changed', function () {
+      it('should return false if previous value is undefined', function () {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING}
+        })
+
+        var user = User.build()
+        user.set('name', 'Mick Hansen')
+        expect(user.changed('name')).to.be.false
+        expect(user.changed()).to.be.false
+        expect(user.isDirty).to.be.false
+      })
+
+      it('should return true if previous value is defined and different', function () {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING}
+        })
+
+        var user = User.build({
+          name: 'Jan Meier'
+        })
+        user.set('name', 'Mick Hansen')
+        expect(user.changed('name')).to.be.true
+        expect(user.changed()).to.be.true
+        expect(user.isDirty).to.be.true
+      })
+
+      it('should return false immediately after saving', function (done) {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING}
+        })
+
+        var user = User.build({
+          name: 'Jan Meier'
+        })
+        user.set('name', 'Mick Hansen')
+        expect(user.changed('name')).to.be.true
+        expect(user.changed()).to.be.true
+        expect(user.isDirty).to.be.true
+
+        user.save().done(function (err) {
+          expect(user.changed('name')).to.be.false
+          expect(user.changed()).to.be.false
+          expect(user.isDirty).to.be.false
+          done()
+        })
+      })
+    })
   })
 })
