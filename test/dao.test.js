@@ -920,8 +920,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           overdue_days: DataTypes.INTEGER
         }, { timestamps: false })
 
-        this.UserEager.hasMany(this.ProjectEager,   { as: 'Projects'   })
-        this.ProjectEager.belongsTo(this.UserEager, { as: 'Poobah'     })
+        this.UserEager.hasMany(this.ProjectEager,   { as: 'Projects'  })
+        this.ProjectEager.belongsTo(this.UserEager, { as: 'Poobah'    })
 
         self.UserEager.sync({force: true}).success(function() {
           self.ProjectEager.sync({force: true}).success(function() {
@@ -1016,7 +1016,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             self.ProjectEager.create({ title: 'party', overdue_days: 2 }).success(function(party)  {
               user.setProjects([homework, party]).success(function() {
                 self.ProjectEager.findAll({include: [{model: self.UserEager, as: 'Poobah'}]}).success(function(projects) {
-
                   expect(projects.length).to.equal(2)
                   expect(projects[0].poobah).to.exist
                   expect(projects[1].poobah).to.exist
