@@ -920,8 +920,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           overdue_days: DataTypes.INTEGER
         }, { timestamps: false })
 
-        this.UserEager.hasMany(this.ProjectEager,   { as: 'Projects', foreignKey: 'ProjectId' })
-        this.ProjectEager.belongsTo(this.UserEager, { as: 'Poobah', foreignKey: 'ProjectId' })
+        this.UserEager.hasMany(this.ProjectEager,   { as: 'Projects' })
+        this.ProjectEager.belongsTo(this.UserEager, { as: 'Poobah' })
 
         self.UserEager.sync({force: true}).success(function() {
           self.ProjectEager.sync({force: true}).success(function() {
