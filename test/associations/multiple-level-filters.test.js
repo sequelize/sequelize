@@ -46,12 +46,12 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
             Task.findAll({
               where: {
                 'project.user.username': 'leia'
-              },
+              }/*,
               include: [
                 {model: Project, include: [
                   User
                 ]}
-              ]
+              ]*/
             }).done(function(err, tasks){
               expect(err).not.to.be.ok
 
@@ -112,12 +112,12 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
               where: {
                 'project.user.username': 'leia',
                 'project.user.id': 1
-              },
+              }/*,
               include: [
                 {model: Project, include: [
                   User
                 ]}
-              ]
+              ]*/
             }).success(function(tasks){
               try{
                 expect(tasks.length).to.be.equal(2);
@@ -174,12 +174,12 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
             User.findAll({
               where: {
                 'projects.tasks.title': 'fight empire'
-              },
+              }/*,
               include: [
                 {model: Project, include: [
                   Task
                 ]}
-              ]
+              ]*/
             }).done(function(err, users){
               try{
                 expect(users.length).to.be.equal(1);
@@ -223,10 +223,10 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                       User.findAll({
                         where: {
                           'projects.title': 'republic'
-                        },
+                        }/*,
                         include: [
                           {model: Project}
-                        ]
+                        ]*/
                       }).success(function(users){
                         try{
                           expect(users.length).to.be.equal(1);
