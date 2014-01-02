@@ -126,17 +126,19 @@ if (dialect.match(/^postgres/)) {
           this.Task.hasMany(this.User, {as:'Users'})
 
           for (var i = 0; i < 5; ++i) {
-            users[users.length] = {id: i, name: 'User' + Math.random()}
+            users[users.length] = {id: i+1, name: 'User' + Math.random()}
           }
 
           for (var x = 0; x < 5; ++x) {
-            tasks[tasks.length] = {id: i, name: 'Task' + Math.random()}
+            tasks[tasks.length] = {id: i+1, name: 'Task' + Math.random()}
           }
 
           self.User.sync({ force: true }).success(function() {
             self.Task.sync({ force: true }).success(function() {
-              self.User.bulkCreate(users).success(function() {
-                self.Task.bulkCreate(tasks).success(function() {
+              self.User.bulkCreate(users).done(function(err) {
+                expect(err).not.to.be.ok
+                self.Task.bulkCreate(tasks).done(function(err) {
+                  expect(err).not.to.be.ok
                   self.User.all().success(function(_users) {
                     self.Task.all().success(function(_tasks) {
                       self.user = _users[0]
