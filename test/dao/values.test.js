@@ -145,7 +145,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         var user = User.build()
         user.set('name', 'Mick Hansen')
         expect(user.changed('name')).to.be.false
-        expect(user.changed()).to.be.false
+        expect(user.changed()).not.to.be.ok
         expect(user.isDirty).to.be.false
       })
 
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
         user.set('name', 'Mick Hansen')
         expect(user.changed('name')).to.be.true
-        expect(user.changed()).to.be.true
+        expect(user.changed()).to.be.ok
         expect(user.isDirty).to.be.true
       })
 
@@ -168,20 +168,38 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           name: {type: DataTypes.STRING}
         })
 
+        User.sync().done(function (err) {
+          var user = User.build({
+            name: 'Jan Meier'
+          })
+          user.set('name', 'Mick Hansen')
+          expect(user.changed('name')).to.be.true
+          expect(user.changed()).to.be.ok
+          expect(user.isDirty).to.be.true
+
+          user.save().done(function (err) {
+            expect(err).not.to.be.ok
+            expect(user.changed('name')).to.be.false
+            expect(user.changed()).not.to.be.ok
+            expect(user.isDirty).to.be.false
+            done()
+          })
+        })
+      })
+
+      it('setting the same value twice should not impact the result', function () {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING}
+        })
         var user = User.build({
           name: 'Jan Meier'
         })
         user.set('name', 'Mick Hansen')
+        user.set('name', 'Mick Hansen')
         expect(user.changed('name')).to.be.true
-        expect(user.changed()).to.be.true
+        expect(user.changed()).to.be.ok
         expect(user.isDirty).to.be.true
-
-        user.save().done(function (err) {
-          expect(user.changed('name')).to.be.false
-          expect(user.changed()).to.be.false
-          expect(user.isDirty).to.be.false
-          done()
-        })
+        expect(user.previous('name')).to.equal('Jan Meier')
       })
     })
 
