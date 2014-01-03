@@ -478,6 +478,40 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should support self associated hasMany (with through) include', function (done) {
+      var Group = this.sequelize.define('Group', {
+        name: DataTypes.STRING
+      })
+
+      Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
+
+      this.sequelize.sync().done(function (err) {
+        Group.bulkCreate([
+          {name: 'SoccerMoms'},
+          {name: 'Coca Cola'},
+          {name: 'Dell'},
+          {name: 'Pepsi'}
+        ]).done(function () {
+          Group.findAll().done(function (err, groups) {
+            groups[0].setOutsourcingCompanies(groups.slice(1)).done(function (err) {
+              expect(err).not.to.be.ok
+
+              Group.find({
+                where: {
+                  id: groups[0].id,
+                },
+                include: [{model: Group, as: 'OutsourcingCompanies'}]
+              }).done(function (err, group) {
+                expect(err).not.to.be.ok
+                expect(group.outsourcingCompanies.length).to.equal(3)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('findAll', function () {
