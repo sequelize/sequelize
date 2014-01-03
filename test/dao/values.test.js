@@ -136,6 +136,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    describe('get', function () {
+      
+    })
+
     describe('changed', function () {
       it('should return false if object was built from database', function (done) {
         var User = this.sequelize.define('User', {
