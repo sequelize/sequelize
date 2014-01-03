@@ -137,19 +137,23 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     describe('changed', function () {
-      it('should return false if previous value is undefined', function () {
+      it('should return false if object was built from database', function (done) {
         var User = this.sequelize.define('User', {
           name: {type: DataTypes.STRING}
         })
 
-        var user = User.build()
-        user.set('name', 'Mick Hansen')
-        expect(user.changed('name')).to.be.false
-        expect(user.changed()).not.to.be.ok
-        expect(user.isDirty).to.be.false
+        User.sync().done(function (err) {
+          User.create({name: 'Jan Meier'}).done(function (err, user) {
+            expect(err).not.to.be.ok
+            expect(user.changed('name')).to.be.false
+            expect(user.changed()).not.to.be.ok
+            expect(user.isDirty).to.be.false
+            done()
+          });
+        })
       })
 
-      it('should return true if previous value is defined and different', function () {
+      it('should return true if previous value is different', function () {
         var User = this.sequelize.define('User', {
           name: {type: DataTypes.STRING}
         })
