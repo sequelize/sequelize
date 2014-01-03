@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               ]}
             ]
           }).done(function (err, user) {
-            expect(err).not.to.be.ok            
+            expect(err).not.to.be.ok
 
             expect(user.products.length).to.equal(4)
             expect(user.products[0].tags.length).to.equal(2)
@@ -454,6 +454,64 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should support specifying attributes', function (done) {
+      var Project = this.sequelize.define('Project', {
+        title: Sequelize.STRING
+      })
+
+      var Task = this.sequelize.define('Task', {
+        title: Sequelize.STRING,
+        description: Sequelize.TEXT
+      })
+
+      Project.hasMany(Task)
+      Task.belongsTo(Project)
+
+      this.sequelize.sync().done(function() {
+        Task.create({title: 'FooBar'}).done(function (err) {
+          Task.findAll({attributes: ['title'], include: [Project]}).done(function(err, tasks) {
+            expect(err).not.to.be.ok
+            expect(tasks[0].title).to.equal('FooBar')
+            done()
+          })
+        })
+      })
+    })
+
+    it('should support self associated hasMany (with through) include', function (done) {
+      var Group = this.sequelize.define('Group', {
+        name: DataTypes.STRING
+      })
+
+      Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
+
+      this.sequelize.sync().done(function (err) {
+        Group.bulkCreate([
+          {name: 'SoccerMoms'},
+          {name: 'Coca Cola'},
+          {name: 'Dell'},
+          {name: 'Pepsi'}
+        ]).done(function () {
+          Group.findAll().done(function (err, groups) {
+            groups[0].setOutsourcingCompanies(groups.slice(1)).done(function (err) {
+              expect(err).not.to.be.ok
+
+              Group.find({
+                where: {
+                  id: groups[0].id,
+                },
+                include: [{model: Group, as: 'OutsourcingCompanies'}]
+              }).done(function (err, group) {
+                expect(err).not.to.be.ok
+                expect(group.outsourcingCompanies.length).to.equal(3)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('findAll', function () {
@@ -608,7 +666,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                       Tag,
                       {model: Tag, as: 'Category'},
                       Price
-                    ]}              
+                    ]}
                   ],
                   order: 'id ASC'
                 }).done(function (err, users) {
@@ -737,6 +795,95 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             as.forEach(function (a) {
               expect(a.b.c.d.e.f.g.h).to.be.ok
             })
+            done()
+          })
+        })
+      })
+    })
+
+    it('should support ordering with only belongsTo includes', function(done) {
+      var User = this.sequelize.define('User', {})
+        , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
+        , Order = this.sequelize.define('Order', {'position': DataTypes.INTEGER})
+
+      User.belongsTo(Item, {'as': 'itemA', foreignKey: 'itemA_id'})
+      User.belongsTo(Item, {'as': 'itemB', foreignKey: 'itemB_id'})
+      User.belongsTo(Order)
+
+      this.sequelize.sync().done(function() {
+        async.auto({
+          users: function(callback) {
+            User.bulkCreate([{}, {}, {}]).done(function() {
+              User.findAll().done(callback)
+            })
+          },
+          items: function(callback) {
+            Item.bulkCreate([
+              {'test': 'abc'},
+              {'test': 'def'},
+              {'test': 'ghi'},
+              {'test': 'jkl'}
+            ]).done(function() {
+              Item.findAll({order: ['id']}).done(callback)
+            })
+          },
+          orders: function(callback) {
+            Order.bulkCreate([
+              {'position': 2},
+              {'position': 3},
+              {'position': 1}
+            ]).done(function() {
+              Order.findAll({order: ['id']}).done(callback)
+            })
+          },
+          associate: ['users', 'items', 'orders', function(callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            var user1 = results.users[0]
+            var user2 = results.users[1]
+            var user3 = results.users[2]
+
+            var item1 = results.items[0]
+            var item2 = results.items[1]
+            var item3 = results.items[2]
+            var item4 = results.items[3]
+
+            var order1 = results.orders[0]
+            var order2 = results.orders[1]
+            var order3 = results.orders[2]
+
+            chainer.add(user1.setItemA(item1))
+            chainer.add(user1.setItemB(item2))
+            chainer.add(user1.setOrder(order3))
+
+            chainer.add(user2.setItemA(item3))
+            chainer.add(user2.setItemB(item4))
+            chainer.add(user2.setOrder(order2))
+
+            chainer.add(user3.setItemA(item1))
+            chainer.add(user3.setItemB(item4))
+            chainer.add(user3.setOrder(order1))
+
+            chainer.run().done(callback)
+          }]
+        }, function() {
+          User.findAll({
+            'where': {'itemA.test': 'abc'}, 
+            'include': [
+              {'model': Item, 'as': 'itemA'},
+              {'model': Item, 'as': 'itemB'},
+              Order],
+            'order': ['Order.position']
+          }).done(function(err, as) {
+            expect(err).not.to.be.ok
+            expect(as.length).to.eql(2)
+
+            expect(as[0].itemA.test).to.eql('abc')
+            expect(as[1].itemA.test).to.eql('abc')
+
+            expect(as[0].order.position).to.eql(1)
+            expect(as[1].order.position).to.eql(2)
+
             done()
           })
         })
