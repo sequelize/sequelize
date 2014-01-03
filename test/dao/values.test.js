@@ -137,7 +137,37 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     describe('get', function () {
-      
+      it('should use custom getters in get(key)', function () {
+        var Product = this.sequelize.define('Product', {
+          price: {
+            type: Sequelize.STRING,
+            get: function() {
+              return this.dataValues['price'] * 100
+            }
+          }
+        })
+
+        var product = Product.build({
+          price: 10
+        })
+        expect(product.get('price')).to.equal(1000)
+      })
+
+      it('should use custom getters in toJSON', function () {
+        var Product = this.sequelize.define('Product', {
+          price: {
+            type: Sequelize.STRING,
+            get: function() {
+              return this.dataValues['price'] * 100
+            }
+          }
+        })
+
+        var product = Product.build({
+          price: 10
+        })
+        expect(product.toJSON()).to.deep.equal({price: 1000, id: null})
+      })
     })
 
     describe('changed', function () {
