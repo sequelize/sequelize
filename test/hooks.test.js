@@ -1870,7 +1870,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
   })
 
   describe('#updateAttributes', function() {
-    describe('via deifne', function() {
+    describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
           it('should return the user from the callback', function(done) {
@@ -1988,7 +1988,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
             User.sync({ force: true }).success(function() {
               User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+                user.updateAttributes({username: 'Chong'}).done(function(err, user) {
                   expect(user.username).to.equal('Chong')
                   expect(user.mood).to.equal('happy')
                   expect(beforeHook).to.be.true
