@@ -1289,7 +1289,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
-    it.only("returns null for null, undefined, and unset boolean values", function(done) {
+    it("returns null for null, undefined, and unset boolean values", function(done) {
       var Setting = this.sequelize.define('SettingHelper', {
         setting_key: DataTypes.STRING,
           bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
