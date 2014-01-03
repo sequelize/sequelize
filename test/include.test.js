@@ -454,6 +454,30 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should support specifying attributes', function (done) {
+      var Project = this.sequelize.define('Project', {
+        title: Sequelize.STRING
+      })
+
+      var Task = this.sequelize.define('Task', {
+        title: Sequelize.STRING,
+        description: Sequelize.TEXT
+      })
+
+      Project.hasMany(Task)
+      Task.belongsTo(Project)
+
+      this.sequelize.sync().done(function() {
+        Task.create({title: 'FooBar'}).done(function (err) {
+          Task.findAll({attributes: ['title'], include: [Project]}).done(function(err, tasks) {
+            expect(err).not.to.be.ok
+            expect(tasks[0].title).to.equal('FooBar')
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('findAll', function () {
