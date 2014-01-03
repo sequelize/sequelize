@@ -137,10 +137,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     describe('get', function () {
-      it('should use custom getters in get(key)', function () {
+      it('should use custom attribute getters in get(key)', function () {
         var Product = this.sequelize.define('Product', {
           price: {
-            type: Sequelize.STRING,
+            type: Sequelize.FLOAT,
             get: function() {
               return this.dataValues['price'] * 100
             }
@@ -153,6 +153,25 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(product.get('price')).to.equal(1000)
       })
 
+      it('should custom virtual getters in get(key)', function () {
+        var Product = this.sequelize.define('Product', {
+          priceInCents: {
+            type: Sequelize.FLOAT
+          }
+        }, {
+          getterMethods: {
+            price: function() {
+              return this.dataValues['priceInCents'] / 100
+            }
+          }
+        })
+
+        var product = Product.build({
+          priceInCents: 1000
+        })
+        expect(product.get('price')).to.equal(10)
+      })
+
       it('should use custom getters in toJSON', function () {
         var Product = this.sequelize.define('Product', {
           price: {
@@ -161,12 +180,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               return this.dataValues['price'] * 100
             }
           }
+        }, {
+          getterMethods: {
+            withTaxes: function() {
+              return this.get('price') * 1.25
+            }
+          }
         })
 
         var product = Product.build({
           price: 10
         })
-        expect(product.toJSON()).to.deep.equal({price: 1000, id: null})
+        expect(product.toJSON()).to.deep.equal({withTaxes: 1250, price: 1000, id: null})
       })
     })
 
