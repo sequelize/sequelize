@@ -429,6 +429,19 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
     }) // end optimization using bulk create, destroy and update
+
+    describe('selfAssociations', function () {
+      it('should work', function (done) {
+        var Group = this.sequelize.define('Group', {})
+
+        Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
+
+        this.sequelize.sync().done(function (err) {
+          expect(err).not.to.be.ok
+          done()
+        })
+      })
+    })
   })
 
   describe('(N:M)', function() {
