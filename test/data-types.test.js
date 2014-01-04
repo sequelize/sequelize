@@ -6,8 +6,43 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser('DataTypes'), function() {
-  it('should return DECIMAL for the default decimal type', function(done) {
-    expect(Sequelize.DECIMAL.toString()).to.equal('DECIMAL')
+  it('should return false when comparing DECIMAL and DECIMAL(10,2)', function(done) {
+    expect(Sequelize.DECIMAL).to.not.equal(Sequelize.DECIMAL(10,2))
+    done()
+  })
+
+  it('DECIMAL(10,2) should be an instance of DECIMAL', function(done) {
+    expect(Sequelize.DECIMAL(10,2)).to.be.an.instanceof(Sequelize.DECIMAL)
+    done()
+  })
+
+  it('should return false when comparing FLOAT and FLOAT(11)', function(done) {
+    expect(Sequelize.FLOAT).to.not.equal(Sequelize.FLOAT(11))
+    done()
+  })
+
+  it('FLOAT(11) should be an instance of FLOAT', function(done) {
+    expect(Sequelize.FLOAT(11)).to.be.an.instanceof(Sequelize.FLOAT)
+    done()
+  })
+
+  it('should return false when comparing STRING and STRING(4096)', function(done) {
+    expect(Sequelize.STRING).to.not.equal(Sequelize.STRING(4096))
+    done()
+  })
+
+  it('STRING(4096) should be an instance of STRING', function(done) {
+    expect(Sequelize.STRING(4096)).to.be.an.instanceof(Sequelize.STRING)
+    done()
+  })
+
+  it('should return false when comparing BIGINT and BIGINT(11)', function(done) {
+    expect(Sequelize.BIGINT).to.not.equal(Sequelize.BIGINT(11))
+    done()
+  })
+
+  it('BIGINT(11) should be an instance of BIGINT', function(done) {
+    expect(Sequelize.BIGINT(11)).to.be.an.instanceof(Sequelize.BIGINT)
     done()
   })
 
