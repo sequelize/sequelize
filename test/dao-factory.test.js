@@ -265,6 +265,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
         flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
       })
+
       expect(Task.build().title).to.equal('a task!')
       expect(Task.build().foo).to.equal(2)
       expect(Task.build().bar).to.not.be.ok
@@ -548,12 +549,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Sequelize.STRING })
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function() {
+        User.sync({ force: true }).done(function() {
+          User.create({ username: 'foo' }).done(function() {
             sequelize.transaction(function(t) {
-              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
-                User.all().success(function(users1) {
-                  User.all({ transaction: t }).success(function(users2) {
+              User.update({ username: 'bar' }, {}, { transaction: t }).done(function(err) {
+                User.all().done(function(err, users1) {
+                  User.all({ transaction: t }).done(function(err, users2) {
                     expect(users1[0].username).to.equal('foo')
                     expect(users2[0].username).to.equal('bar')
                     t.rollback().success(function(){ done() })
@@ -669,7 +670,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   { username: 'Bob',   secretValue: '43' }]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.update({username: 'Bill'}, {secretValue: '42'}).success(function() {
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err) {
+          console.log(err)
+          expect(err).not.to.be.ok
           self.User.findAll({order: 'id'}).success(function(users) {
             expect(users.length).to.equal(3)
 

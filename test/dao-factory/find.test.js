@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           where: { id: 1 },
           attributes: ['id', ['username', 'name']]
         }).success(function(user) {
-          expect(user.name).to.equal('barfooz')
+          expect(user.dataValues.name).to.equal('barfooz')
           done()
         })
       })

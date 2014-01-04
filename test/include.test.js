@@ -365,9 +365,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           ranks: function(callback) {
             Rank.bulkCreate([
               {name: 'Admin', canInvite: 1, canRemove: 1},
-              {name: 'Member', canInvite: 1}
+              {name: 'Member', canInvite: 1, canRemove: 0}
             ]).done(function () {
               Rank.findAll().done(callback)
+            }).on('sql', function (sql) {
+              console.log(sql)
             })
           },
           memberships: ['user', 'groups', 'ranks', function (callback, results) {
@@ -579,7 +581,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           ranks: function(callback) {
             Rank.bulkCreate([
               {name: 'Admin', canInvite: 1, canRemove: 1},
-              {name: 'Member', canInvite: 1}
+              {name: 'Member', canInvite: 1, canRemove: 0}
             ]).done(function () {
               Rank.findAll().done(callback)
             })
