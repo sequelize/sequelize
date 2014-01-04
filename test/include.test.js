@@ -1098,6 +1098,73 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should be possible to extend the on clause with a where option on a hasMany include with a through model', function (done) {
+      var Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          })
+        , ProductTag = this.sequelize.define('ProductTag', {
+            priority: DataTypes.INTEGER
+        })
+
+      Product.hasMany(Tag, {through: ProductTag})
+      Tag.hasMany(Product, {through: ProductTag})
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          products: function (callback) {
+            Product.bulkCreate([
+              {title: 'Chair'},
+              {title: 'Desk'},
+              {title: 'Dress'}
+            ]).done(function () {
+              Product.findAll().done(callback)
+            })
+          },
+          tags: function(callback) {
+            Tag.bulkCreate([
+              {name: 'A'},
+              {name: 'B'},
+              {name: 'C'}
+            ]).done(function () {
+              Tag.findAll().done(callback)
+            })
+          },
+          productTags: ['products', 'tags', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            chainer.add(results.products[0].addTag(results.tags[0], {priority: 1}))
+            chainer.add(results.products[0].addTag(results.tags[1], {priority: 2}))
+
+            chainer.add(results.products[1].addTag(results.tags[1], {priority: 1}))
+
+            chainer.add(results.products[2].addTag(results.tags[0], {priority: 3}))
+            chainer.add(results.products[2].addTag(results.tags[1], {priority: 1}))
+            chainer.add(results.products[2].addTag(results.tags[2], {priority: 2}))
+
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          Product.findAll({
+            include: [
+              {model: Tag, where: {name: 'C'}}
+            ]
+          }).done(function (err, products) {
+            expect(err).not.to.be.ok
+
+            expect(products.length).to.equal(1)
+            expect(products[0].tags.length).to.equal(1)
+
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('findAndCountAll', function () {
