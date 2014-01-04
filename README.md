@@ -2,6 +2,9 @@
 
 MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
 
+- [Getting Started](http://sequelizejs.com/articles/getting-started)
+- [Documentation](http://sequelizejs.com/docs)
+
 ## Important Notes ##
 
 ### 2.0.0 ###
