@@ -890,7 +890,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should support through models with attributes', function (done) {
+    it('should include attributes from through models', function (done) {
       var Product = this.sequelize.define('Product', {
             title: DataTypes.STRING
           })
@@ -967,6 +967,46 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+    it('should support a required belongsTo include', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('group', {})
+
+      User.belongsTo(Group)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          groups: function (callback) {
+            Group.bulkCreate([{}, {}]).done(function () {
+              Group.findAll().done(callback)
+            })
+          },
+          users: function (callback) {
+            User.bulkCreate([{}, {}, {}]).done(function () {
+              User.findAll().done(callback)
+            })
+          },
+          userGroups: ['users', 'groups', function (callback, results) {
+            results.users[2].setGroup(results.groups[1]).done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.findAll({
+            include: [
+              {model: Group, required: true}
+            ]
+          }).done(function (err, users) {
+            expect(err).not.to.be.ok
+            expect(users.length).to.equal(1)
+            expect(users[0].group).to.be.ok
+            done()
+          })
+        })
+      })
+    })
+  })
+
+  describe('findAndCountAll', function () {
     xit('should include associations to findAndCountAll', function(done) {
       var User = this.sequelize.define('User', {})
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
@@ -1009,12 +1049,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             expect(result.rows.length).to.eql(1)
             expect(result.rows[0].item.test).to.eql('def')
-
-            done()
           })
         })
-      })
+      }) 
     })
-
   })
 })
