@@ -812,7 +812,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             })
           })
 
-          it.only('should be able to add twice (second call result in UPDATE call) without any attributes (and timestamps off) on the through model', function (done) {
+          it('should be able to add twice (second call result in UPDATE call) without any attributes (and timestamps off) on the through model', function (done) {
             var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
               , Task = this.sequelize.define('Task', {}, {timestamps: false})
               , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false})
