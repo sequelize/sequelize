@@ -133,6 +133,36 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         })
       })
     })
+
+    it('should not clobber atributes', function (done) {
+      var Comment = this.sequelize.define('comment', {
+        text: DataTypes.STRING
+      });
+
+      var Post = this.sequelize.define('post', {
+        title: DataTypes.STRING
+      });
+
+      Post.hasOne(Comment);
+      Comment.belongsTo(Post);
+
+      this.sequelize.sync().done(function (err) {
+        Post.create({
+          title: 'Post title',
+        }).done(function(err, post) {
+          Comment.create({
+            text: 'OLD VALUE',
+          }).done(function(err, comment) {
+            comment.setPost(post).done(function(err) {
+              expect(comment.text).to.equal('UPDATED VALUE');
+              done()
+            });
+
+            comment.text = 'UPDATED VALUE';
+          });
+        });
+      })
+    })
   })
 
   describe("Foreign key constraints", function() {
