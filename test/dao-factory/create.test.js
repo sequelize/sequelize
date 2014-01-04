@@ -598,7 +598,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('should allow blank creates (with timestamps: false)', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
       Worker.sync().done(function(err) { 
-        Worker.create().done(function (err, worker) {
+        Worker.create({}, {fields: []}).done(function (err, worker) {
+          expect(err).not.to.be.ok
+          expect(worker).to.be.ok
+          done()
+        })
+      })
+    })
+
+    it('should allow truly blank creates', function (done) {
+      var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+      Worker.sync().done(function(err) { 
+        Worker.create({}, {fields: []}).done(function (err, worker) {
           expect(err).not.to.be.ok
           expect(worker).to.be.ok
           done()
