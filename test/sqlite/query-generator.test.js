@@ -444,6 +444,7 @@ if (dialect === 'sqlite') {
               test.arguments[1] = test.arguments[1](this.sequelize)
             }
             QueryGenerator.options = context.options
+            QueryGenerator._dialect = this.sequelize.dialect
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)
             done()
