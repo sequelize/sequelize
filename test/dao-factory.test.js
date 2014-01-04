@@ -1252,7 +1252,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }
     })
 
-    it.only("should be able to create and update records under any valid schematic", function(done){
+    it("should be able to create and update records under any valid schematic", function(done){
       var self = this
 
       self.UserPublic.sync({ force: true }).done(function(err, UserPublicSync){
@@ -1288,7 +1288,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               }
               done()
             }).error(function (err) {
-              console.log(err)
               expect(err).not.to.be.ok
             })
           })
