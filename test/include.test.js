@@ -1165,6 +1165,183 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should be possible to extend the on clause with a where option on nested includes', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          })
+        , Price = this.sequelize.define('Price', {
+            value: DataTypes.FLOAT
+          })
+        , Customer = this.sequelize.define('Customer', {
+            name: DataTypes.STRING
+        })
+        , Group = this.sequelize.define('Group', {
+            name: DataTypes.STRING
+          })
+        , GroupMember = this.sequelize.define('GroupMember', {
+
+          })
+        , Rank = this.sequelize.define('Rank', {
+            name: DataTypes.STRING,
+            canInvite: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            },
+            canRemove: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            }
+          })
+
+      User.hasMany(Product)
+      Product.belongsTo(User)
+
+      Product.hasMany(Tag)
+      Tag.hasMany(Product)
+      Product.belongsTo(Tag, {as: 'Category'})
+
+      Product.hasMany(Price)
+      Price.belongsTo(Product)
+
+      User.hasMany(GroupMember, {as: 'Memberships'})
+      GroupMember.belongsTo(User)
+      GroupMember.belongsTo(Rank)
+      GroupMember.belongsTo(Group)
+      Group.hasMany(GroupMember, {as: 'Memberships'})
+
+      this.sequelize.sync({force: true}).done(function () {
+        var count = 4
+          , i = -1
+
+        async.auto({
+          groups: function(callback) {
+            Group.bulkCreate([
+              {name: 'Developers'},
+              {name: 'Designers'}
+            ]).done(function () {
+              Group.findAll().done(callback)
+            })
+          },
+          ranks: function(callback) {
+            Rank.bulkCreate([
+              {name: 'Admin', canInvite: 1, canRemove: 1},
+              {name: 'Member', canInvite: 1, canRemove: 0}
+            ]).done(function () {
+              Rank.findAll().done(callback)
+            })
+          },
+          tags: function(callback) {
+            Tag.bulkCreate([
+              {name: 'A'},
+              {name: 'B'},
+              {name: 'C'}
+            ]).done(function () {
+              Tag.findAll().done(callback)
+            })
+          },
+          loop: ['groups', 'ranks', 'tags', function (done, results) {
+            var groups = results.groups
+              , ranks = results.ranks
+              , tags = results.tags
+
+            async.whilst(
+              function () { return i < count; },
+              function (callback) {
+                i++
+
+                async.auto({
+                  user: function (callback) {
+                    User.create().done(callback)
+                  },
+                  memberships: ['user', function (callback, results) {
+                    GroupMember.bulkCreate([
+                      {UserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                      {UserId: results.user.id, GroupId: groups[1].id, RankId: ranks[1].id}
+                    ]).done(callback)
+                  }],
+                  products: function (callback) {
+                    Product.bulkCreate([
+                      {title: 'Chair'},
+                      {title: 'Desk'}
+                    ]).done(function () {
+                      Product.findAll().done(callback)
+                    })
+                  },
+                  userProducts: ['user', 'products', function (callback, results) {
+                    results.user.setProducts([
+                      results.products[(i * 2)+0],
+                      results.products[(i * 2)+1]
+                    ]).done(callback)
+                  }],
+                  productTags: ['products', function (callback, results) {
+                    var chainer = new Sequelize.Utils.QueryChainer()
+
+                    chainer.add(results.products[(i * 2) + 0].setTags([
+                      tags[0],
+                      tags[2]
+                    ]))
+                    chainer.add(results.products[(i * 2) + 1].setTags([
+                      tags[1]
+                    ]))
+                    chainer.add(results.products[(i * 2) + 0].setCategory(tags[1]))
+
+                    chainer.run().done(callback)
+                  }],
+                  prices: ['products', function (callback, results) {
+                    Price.bulkCreate([
+                      {ProductId: results.products[(i * 2) + 0].id, value: 5},
+                      {ProductId: results.products[(i * 2) + 0].id, value: 10},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 5},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 10},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 15},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 20}
+                    ]).done(callback)
+                  }]
+                }, callback)
+              },
+              function (err) {
+                expect(err).not.to.be.ok
+
+                User.findAll({
+                  include: [
+                    {model: GroupMember, as: 'Memberships', include: [
+                      Group,
+                      {model: Rank, where: {name: 'Admin'}}
+                    ]},
+                    {model: Product, include: [
+                      Tag,
+                      {model: Tag, as: 'Category'},
+                      {model: Price, where: {
+                        value: {
+                          gt: 15
+                        }
+                      }}
+                    ]}
+                  ],
+                  order: 'id ASC'
+                }).done(function (err, users) {
+                  expect(err).not.to.be.ok
+                  
+                  users.forEach(function (user) {
+                    expect(user.memberships.length).to.equal(1)
+                    expect(user.memberships[0].rank.name).to.equal('Admin')
+                    expect(user.products.length).to.equal(1)
+                    expect(user.products[0].prices.length).to.equal(1)
+                  })
+
+                  done()
+                })
+              }
+            )
+          }]
+        }, done)
+      })
+    })
   })
 
   describe('findAndCountAll', function () {
