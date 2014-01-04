@@ -890,7 +890,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should support through models with attributes', function (done) {
+    it('should include attributes from through models', function (done) {
       var Product = this.sequelize.define('Product', {
             title: DataTypes.STRING
           })
@@ -967,6 +967,384 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+    it('should support a required belongsTo include', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {})
+
+      User.belongsTo(Group)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          groups: function (callback) {
+            Group.bulkCreate([{}, {}]).done(function () {
+              Group.findAll().done(callback)
+            })
+          },
+          users: function (callback) {
+            User.bulkCreate([{}, {}, {}]).done(function () {
+              User.findAll().done(callback)
+            })
+          },
+          userGroups: ['users', 'groups', function (callback, results) {
+            results.users[2].setGroup(results.groups[1]).done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.findAll({
+            include: [
+              {model: Group, required: true}
+            ]
+          }).done(function (err, users) {
+            expect(err).not.to.be.ok
+            expect(users.length).to.equal(1)
+            expect(users[0].group).to.be.ok
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be possible to extend the on clause with a where option on a belongsTo include', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {
+            name: DataTypes.STRING
+          })
+
+      User.belongsTo(Group)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          groups: function (callback) {
+            Group.bulkCreate([
+              {name: 'A'},
+              {name: 'B'}
+            ]).done(function () {
+              Group.findAll().done(callback)
+            })
+          },
+          users: function (callback) {
+            User.bulkCreate([{}, {}]).done(function () {
+              User.findAll().done(callback)
+            })
+          },
+          userGroups: ['users', 'groups', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+            chainer.add(results.users[0].setGroup(results.groups[1]))
+            chainer.add(results.users[1].setGroup(results.groups[0]))
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.findAll({
+            include: [
+              {model: Group, where: {name: 'A'}}
+            ]
+          }).done(function (err, users) {
+            expect(err).not.to.be.ok
+            expect(users.length).to.equal(1)
+            expect(users[0].group).to.be.ok
+            expect(users[0].group.name).to.equal('A')
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be possible to extend the on clause with a where option on a hasOne include', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Project = this.sequelize.define('Project', {
+            title: DataTypes.STRING
+          })
+
+      User.hasOne(Project, {as: 'LeaderOf'})
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          projects: function (callback) {
+            Project.bulkCreate([
+              {title: 'Alpha'},
+              {title: 'Beta'}
+            ]).done(function () {
+              Project.findAll().done(callback)
+            })
+          },
+          users: function (callback) {
+            User.bulkCreate([{}, {}]).done(function () {
+              User.findAll().done(callback)
+            })
+          },
+          userProjects: ['users', 'projects', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+            chainer.add(results.users[1].setLeaderOf(results.projects[1]))
+            chainer.add(results.users[0].setLeaderOf(results.projects[0]))
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.findAll({
+            include: [
+              {model: Project, as: 'LeaderOf', where: {title: 'Beta'}}
+            ]
+          }).done(function (err, users) {
+            expect(err).not.to.be.ok
+            expect(users.length).to.equal(1)
+            expect(users[0].leaderOf).to.be.ok
+            expect(users[0].leaderOf.title).to.equal('Beta')
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be possible to extend the on clause with a where option on a hasMany include with a through model', function (done) {
+      var Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          })
+        , ProductTag = this.sequelize.define('ProductTag', {
+            priority: DataTypes.INTEGER
+        })
+
+      Product.hasMany(Tag, {through: ProductTag})
+      Tag.hasMany(Product, {through: ProductTag})
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          products: function (callback) {
+            Product.bulkCreate([
+              {title: 'Chair'},
+              {title: 'Desk'},
+              {title: 'Dress'}
+            ]).done(function () {
+              Product.findAll().done(callback)
+            })
+          },
+          tags: function(callback) {
+            Tag.bulkCreate([
+              {name: 'A'},
+              {name: 'B'},
+              {name: 'C'}
+            ]).done(function () {
+              Tag.findAll().done(callback)
+            })
+          },
+          productTags: ['products', 'tags', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            chainer.add(results.products[0].addTag(results.tags[0], {priority: 1}))
+            chainer.add(results.products[0].addTag(results.tags[1], {priority: 2}))
+
+            chainer.add(results.products[1].addTag(results.tags[1], {priority: 1}))
+
+            chainer.add(results.products[2].addTag(results.tags[0], {priority: 3}))
+            chainer.add(results.products[2].addTag(results.tags[1], {priority: 1}))
+            chainer.add(results.products[2].addTag(results.tags[2], {priority: 2}))
+
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          Product.findAll({
+            include: [
+              {model: Tag, where: {name: 'C'}}
+            ]
+          }).done(function (err, products) {
+            expect(err).not.to.be.ok
+
+            expect(products.length).to.equal(1)
+            expect(products[0].tags.length).to.equal(1)
+
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be possible to extend the on clause with a where option on nested includes', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          })
+        , Price = this.sequelize.define('Price', {
+            value: DataTypes.FLOAT
+          })
+        , Customer = this.sequelize.define('Customer', {
+            name: DataTypes.STRING
+        })
+        , Group = this.sequelize.define('Group', {
+            name: DataTypes.STRING
+          })
+        , GroupMember = this.sequelize.define('GroupMember', {
+
+          })
+        , Rank = this.sequelize.define('Rank', {
+            name: DataTypes.STRING,
+            canInvite: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            },
+            canRemove: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            }
+          })
+
+      User.hasMany(Product)
+      Product.belongsTo(User)
+
+      Product.hasMany(Tag)
+      Tag.hasMany(Product)
+      Product.belongsTo(Tag, {as: 'Category'})
+
+      Product.hasMany(Price)
+      Price.belongsTo(Product)
+
+      User.hasMany(GroupMember, {as: 'Memberships'})
+      GroupMember.belongsTo(User)
+      GroupMember.belongsTo(Rank)
+      GroupMember.belongsTo(Group)
+      Group.hasMany(GroupMember, {as: 'Memberships'})
+
+      this.sequelize.sync({force: true}).done(function () {
+        var count = 4
+          , i = -1
+
+        async.auto({
+          groups: function(callback) {
+            Group.bulkCreate([
+              {name: 'Developers'},
+              {name: 'Designers'}
+            ]).done(function () {
+              Group.findAll().done(callback)
+            })
+          },
+          ranks: function(callback) {
+            Rank.bulkCreate([
+              {name: 'Admin', canInvite: 1, canRemove: 1},
+              {name: 'Member', canInvite: 1, canRemove: 0}
+            ]).done(function () {
+              Rank.findAll().done(callback)
+            })
+          },
+          tags: function(callback) {
+            Tag.bulkCreate([
+              {name: 'A'},
+              {name: 'B'},
+              {name: 'C'}
+            ]).done(function () {
+              Tag.findAll().done(callback)
+            })
+          },
+          loop: ['groups', 'ranks', 'tags', function (done, results) {
+            var groups = results.groups
+              , ranks = results.ranks
+              , tags = results.tags
+
+            async.whilst(
+              function () { return i < count; },
+              function (callback) {
+                i++
+
+                async.auto({
+                  user: function (callback) {
+                    User.create().done(callback)
+                  },
+                  memberships: ['user', function (callback, results) {
+                    GroupMember.bulkCreate([
+                      {UserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                      {UserId: results.user.id, GroupId: groups[1].id, RankId: ranks[1].id}
+                    ]).done(callback)
+                  }],
+                  products: function (callback) {
+                    Product.bulkCreate([
+                      {title: 'Chair'},
+                      {title: 'Desk'}
+                    ]).done(function () {
+                      Product.findAll().done(callback)
+                    })
+                  },
+                  userProducts: ['user', 'products', function (callback, results) {
+                    results.user.setProducts([
+                      results.products[(i * 2)+0],
+                      results.products[(i * 2)+1]
+                    ]).done(callback)
+                  }],
+                  productTags: ['products', function (callback, results) {
+                    var chainer = new Sequelize.Utils.QueryChainer()
+
+                    chainer.add(results.products[(i * 2) + 0].setTags([
+                      tags[0],
+                      tags[2]
+                    ]))
+                    chainer.add(results.products[(i * 2) + 1].setTags([
+                      tags[1]
+                    ]))
+                    chainer.add(results.products[(i * 2) + 0].setCategory(tags[1]))
+
+                    chainer.run().done(callback)
+                  }],
+                  prices: ['products', function (callback, results) {
+                    Price.bulkCreate([
+                      {ProductId: results.products[(i * 2) + 0].id, value: 5},
+                      {ProductId: results.products[(i * 2) + 0].id, value: 10},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 5},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 10},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 15},
+                      {ProductId: results.products[(i * 2) + 1].id, value: 20}
+                    ]).done(callback)
+                  }]
+                }, callback)
+              },
+              function (err) {
+                expect(err).not.to.be.ok
+
+                User.findAll({
+                  include: [
+                    {model: GroupMember, as: 'Memberships', include: [
+                      Group,
+                      {model: Rank, where: {name: 'Admin'}}
+                    ]},
+                    {model: Product, include: [
+                      Tag,
+                      {model: Tag, as: 'Category'},
+                      {model: Price, where: {
+                        value: {
+                          gt: 15
+                        }
+                      }}
+                    ]}
+                  ],
+                  order: 'id ASC'
+                }).done(function (err, users) {
+                  expect(err).not.to.be.ok
+                  
+                  users.forEach(function (user) {
+                    expect(user.memberships.length).to.equal(1)
+                    expect(user.memberships[0].rank.name).to.equal('Admin')
+                    expect(user.products.length).to.equal(1)
+                    expect(user.products[0].prices.length).to.equal(1)
+                  })
+
+                  done()
+                })
+              }
+            )
+          }]
+        }, done)
+      })
+    })
+  })
+
+  describe('findAndCountAll', function () {
     xit('should include associations to findAndCountAll', function(done) {
       var User = this.sequelize.define('User', {})
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
@@ -1009,12 +1387,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             expect(result.rows.length).to.eql(1)
             expect(result.rows[0].item.test).to.eql('def')
-
-            done()
           })
         })
-      })
+      }) 
     })
-
   })
 })
