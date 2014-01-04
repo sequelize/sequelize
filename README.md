@@ -2,6 +2,9 @@
 
 MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
 
+`npm install sequelize // Will install 1.x.x (currently 1.7.x) branch - stable and BC`
+`npm install sequelize@unstable // Will install 2.x. branch - unstable and BC breaking`
+
 - [Getting Started](http://sequelizejs.com/articles/getting-started)
 - [Documentation](http://sequelizejs.com/docs)
 
