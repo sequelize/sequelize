@@ -11,11 +11,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     done()
   })
 
-  it('should return DECIMAL(10,2) for the default decimal type with arguments', function(done) {
-    expect(Sequelize.DECIMAL(10, 2)).to.equal('DECIMAL(10,2)')
-    done()
-  })
-
   var tests = [
     [Sequelize.STRING, 'STRING', 'VARCHAR(255)'],
     [Sequelize.STRING(1234), 'STRING(1234)', 'VARCHAR(1234)'],
@@ -61,7 +56,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     [Sequelize.FLOAT(11, 12).UNSIGNED, 'FLOAT(11,12).UNSIGNED', 'FLOAT(11,12) UNSIGNED'],
     [Sequelize.FLOAT(11, 12).UNSIGNED.ZEROFILL,'FLOAT(11,12).UNSIGNED.ZEROFILL','FLOAT(11,12) UNSIGNED ZEROFILL'],
     [Sequelize.FLOAT(11, 12).ZEROFILL,'FLOAT(11,12).ZEROFILL', 'FLOAT(11,12) ZEROFILL'],
-    [Sequelize.FLOAT(11, 12).ZEROFILL.UNSIGNED,'FLOAT(11,12).ZEROFILL.UNSIGNED', 'FLOAT(11,12) UNSIGNED ZEROFILL']
+    [Sequelize.FLOAT(11, 12).ZEROFILL.UNSIGNED,'FLOAT(11,12).ZEROFILL.UNSIGNED', 'FLOAT(11,12) UNSIGNED ZEROFILL'],
+
+    [Sequelize.DECIMAL, 'DECIMAL', 'DECIMAL'],
+    [Sequelize.DECIMAL(10,2), 'DECIMAL(10,2)','DECIMAL(10,2)']
   ]
 
   tests.forEach(function(test) {
