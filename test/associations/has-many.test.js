@@ -645,7 +645,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
                 expect(sql).to.have.string("INSERT INTO")
-                expect(sql).to.have.string("VALUES (1,1),(2,1)")
+                expect(sql).to.have.string("VALUES (1,1),(1,2)")
               })).success(function () {
                 expect(spy.calledTwice).to.be.ok
                 done()

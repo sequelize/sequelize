@@ -124,7 +124,7 @@ if (dialect === 'sqlite') {
             })
           })
 
-          it("should make aliased attributes available", function(done) {
+          xit("should make aliased attributes available", function(done) {
             this.User.find({ where: { name:'user' }, attributes: ['id', ['name', 'username']] }).success(function(user) {
               expect(user.username).to.equal('user')
               done()

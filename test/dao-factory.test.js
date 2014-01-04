@@ -265,6 +265,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         foobar: {type: Sequelize.TEXT, defaultValue: 'asd'},
         flag:   {type: Sequelize.BOOLEAN, defaultValue: false}
       })
+
       expect(Task.build().title).to.equal('a task!')
       expect(Task.build().foo).to.equal(2)
       expect(Task.build().bar).to.not.be.ok
@@ -548,12 +549,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Sequelize.STRING })
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function() {
+        User.sync({ force: true }).done(function() {
+          User.create({ username: 'foo' }).done(function() {
             sequelize.transaction(function(t) {
-              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
-                User.all().success(function(users1) {
-                  User.all({ transaction: t }).success(function(users2) {
+              User.update({ username: 'bar' }, {}, { transaction: t }).done(function(err) {
+                User.all().done(function(err, users1) {
+                  User.all({ transaction: t }).done(function(err, users2) {
                     expect(users1[0].username).to.equal('foo')
                     expect(users2[0].username).to.equal('bar')
                     t.rollback().success(function(){ done() })
@@ -669,7 +670,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   { username: 'Bob',   secretValue: '43' }]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.update({username: 'Bill'}, {secretValue: '42'}).success(function() {
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err) {
+          console.log(err)
+          expect(err).not.to.be.ok
           self.User.findAll({order: 'id'}).success(function(users) {
             expect(users.length).to.equal(3)
 
@@ -1252,7 +1255,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it("should be able to create and update records under any valid schematic", function(done){
       var self = this
 
-      self.UserPublic.sync({ force: true }).success(function(UserPublicSync){
+      self.UserPublic.sync({ force: true }).done(function(err, UserPublicSync){
+        expect(err).not.to.be.ok
         UserPublicSync.create({age: 3}).on('sql', function(UserPublic){
           self.UserSpecialSync.schema('special').create({age: 3})
           .on('sql', function(UserSpecial){
@@ -1272,7 +1276,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1)
             }
           })
-          .success(function(UserSpecial){
+          .done(function(err, UserSpecial){
+            expect(err).not.to.be.ok
             UserSpecial.updateAttributes({age: 5})
             .on('sql', function(user){
               expect(user).to.exist
@@ -1282,8 +1287,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1)
               }
               done()
+            }).error(function (err) {
+              expect(err).not.to.be.ok
             })
           })
+        }).error(function (err) {
+          expect(err).not.to.be.ok
         })
       })
     })

@@ -28,6 +28,7 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
           UserId: 1,
           title: 'republic'
         },{
+          UserId: 2,
           title: 'empire'
         }]).success(function() {
           Task.bulkCreate([{
