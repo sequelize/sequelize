@@ -368,8 +368,6 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               {name: 'Member', canInvite: 1, canRemove: 0}
             ]).done(function () {
               Rank.findAll().done(callback)
-            }).on('sql', function (sql) {
-              console.log(sql)
             })
           },
           memberships: ['user', 'groups', 'ranks', function (callback, results) {
@@ -885,6 +883,83 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             expect(as[0].order.position).to.eql(1)
             expect(as[1].order.position).to.eql(2)
+
+            done()
+          })
+        })
+      })
+    })
+
+    it('should support through models with attributes', function (done) {
+      var Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          })
+        , ProductTag = this.sequelize.define('ProductTag', {
+            priority: DataTypes.INTEGER
+        })
+
+      Product.hasMany(Tag, {through: ProductTag})
+      Tag.hasMany(Product, {through: ProductTag})
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          products: function (callback) {
+            Product.bulkCreate([
+              {title: 'Chair'},
+              {title: 'Desk'},
+              {title: 'Dress'}
+            ]).done(function () {
+              Product.findAll().done(callback)
+            })
+          },
+          tags: function(callback) {
+            Tag.bulkCreate([
+              {name: 'A'},
+              {name: 'B'},
+              {name: 'C'}
+            ]).done(function () {
+              Tag.findAll().done(callback)
+            })
+          },
+          productTags: ['products', 'tags', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            chainer.add(results.products[0].addTag(results.tags[0], {priority: 1}))
+            chainer.add(results.products[0].addTag(results.tags[1], {priority: 2}))
+
+            chainer.add(results.products[1].addTag(results.tags[1], {priority: 1}))
+
+            chainer.add(results.products[2].addTag(results.tags[0], {priority: 3}))
+            chainer.add(results.products[2].addTag(results.tags[1], {priority: 1}))
+            chainer.add(results.products[2].addTag(results.tags[2], {priority: 2}))
+
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          Product.findAll({
+            include: [
+              {model: Tag}
+            ],
+            order: [
+              ['id', 'ASC'],
+              ['Tags.id', 'ASC']
+            ]
+          }).done(function (err, products) {
+            expect(err).not.to.be.ok
+
+            expect(products[0].tags[0].productTag.priority).to.equal(1)
+            expect(products[0].tags[1].productTag.priority).to.equal(2)
+
+            expect(products[1].tags[0].productTag.priority).to.equal(1)
+
+            expect(products[2].tags[0].productTag.priority).to.equal(3)
+            expect(products[2].tags[1].productTag.priority).to.equal(1)
+            expect(products[2].tags[2].productTag.priority).to.equal(2)
 
             done()
           })
