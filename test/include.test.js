@@ -969,7 +969,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
     it('should support a required belongsTo include', function (done) {
       var User = this.sequelize.define('User', {})
-        , Group = this.sequelize.define('group', {})
+        , Group = this.sequelize.define('Group', {})
 
       User.belongsTo(Group)
 
@@ -999,6 +999,100 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(err).not.to.be.ok
             expect(users.length).to.equal(1)
             expect(users[0].group).to.be.ok
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be possible to extend the on clause with a where option on a belongsTo include', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {
+            name: DataTypes.STRING
+          })
+
+      User.belongsTo(Group)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          groups: function (callback) {
+            Group.bulkCreate([
+              {name: 'A'},
+              {name: 'B'}
+            ]).done(function () {
+              Group.findAll().done(callback)
+            })
+          },
+          users: function (callback) {
+            User.bulkCreate([{}, {}]).done(function () {
+              User.findAll().done(callback)
+            })
+          },
+          userGroups: ['users', 'groups', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+            chainer.add(results.users[0].setGroup(results.groups[1]))
+            chainer.add(results.users[1].setGroup(results.groups[0]))
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.findAll({
+            include: [
+              {model: Group, where: {name: 'A'}}
+            ]
+          }).done(function (err, users) {
+            expect(err).not.to.be.ok
+            expect(users.length).to.equal(1)
+            expect(users[0].group).to.be.ok
+            expect(users[0].group.name).to.equal('A')
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be possible to extend the on clause with a where option on a hasOne include', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Project = this.sequelize.define('Project', {
+            title: DataTypes.STRING
+          })
+
+      User.hasOne(Project, {as: 'LeaderOf'})
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          projects: function (callback) {
+            Project.bulkCreate([
+              {title: 'Alpha'},
+              {title: 'Beta'}
+            ]).done(function () {
+              Project.findAll().done(callback)
+            })
+          },
+          users: function (callback) {
+            User.bulkCreate([{}, {}]).done(function () {
+              User.findAll().done(callback)
+            })
+          },
+          userProjects: ['users', 'projects', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+            chainer.add(results.users[1].setLeaderOf(results.projects[1]))
+            chainer.add(results.users[0].setLeaderOf(results.projects[0]))
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.findAll({
+            include: [
+              {model: Project, as: 'LeaderOf', where: {title: 'Beta'}}
+            ]
+          }).done(function (err, users) {
+            expect(err).not.to.be.ok
+            expect(users.length).to.equal(1)
+            expect(users[0].leaderOf).to.be.ok
+            expect(users[0].leaderOf.title).to.equal('Beta')
             done()
           })
         })
