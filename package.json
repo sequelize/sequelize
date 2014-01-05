@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "1.7.0-beta.5",
+  "version": "1.7.0-beta7",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -26,6 +26,10 @@
     {
       "name": "Daniel Durante",
       "email": "me@danieldurante.com"
+    },
+    {
+      "name": "Mick Hansen",
+      "email": "mick.kasper.hansen@gmail.com"
     }
   ],
   "repository": {

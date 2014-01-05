@@ -598,7 +598,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('should allow blank creates (with timestamps: false)', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
       Worker.sync().done(function(err) { 
-        Worker.create().done(function (err, worker) {
+        Worker.create({}, {fields: []}).done(function (err, worker) {
+          expect(err).not.to.be.ok
+          expect(worker).to.be.ok
+          done()
+        })
+      })
+    })
+
+    it('should allow truly blank creates', function (done) {
+      var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+      Worker.sync().done(function(err) { 
+        Worker.create({}, {fields: []}).done(function (err, worker) {
           expect(err).not.to.be.ok
           expect(worker).to.be.ok
           done()
@@ -902,6 +913,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(err).not.to.be.ok
           expect(workers).to.be.ok
           done()
+        })
+      })
+    })
+
+    it('should allow autoincremented attributes to be set', function (done) {
+      var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+      Worker.sync().done(function(err) { 
+        Worker.bulkCreate([
+          {id: 5},
+          {id: 10}
+        ]).done(function (err) {
+          expect(err).not.to.be.ok
+          Worker.findAll({order: 'id ASC'}).done(function (err, workers) {
+            expect(workers[0].id).to.equal(5)
+            expect(workers[1].id).to.equal(10)
+            done()
+          })
         })
       })
     })

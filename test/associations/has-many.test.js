@@ -429,6 +429,19 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
     }) // end optimization using bulk create, destroy and update
+
+    describe('selfAssociations', function () {
+      it('should work', function (done) {
+        var Group = this.sequelize.define('Group', {})
+
+        Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
+
+        this.sequelize.sync().done(function (err) {
+          expect(err).not.to.be.ok
+          done()
+        })
+      })
+    })
   })
 
   describe('(N:M)', function() {
@@ -632,7 +645,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
                 expect(sql).to.have.string("INSERT INTO")
-                expect(sql).to.have.string("VALUES (1,1),(2,1)")
+                expect(sql).to.have.string("VALUES (1,1),(1,2)")
               })).success(function () {
                 expect(spy.calledTwice).to.be.ok
                 done()
