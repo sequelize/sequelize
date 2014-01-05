@@ -2,6 +2,7 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 
 # v1.7.0-beta8
 - max()/min() now supports dates [#1200](https://github.com/sequelize/sequelize/pull/1200)
+- findAndCountAll now supports the include option
 
 #### Backwards compatibility changes
 - You will now need to include the relevant subtables to query on them in finders (find/findAll)
