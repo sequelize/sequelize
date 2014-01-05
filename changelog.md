@@ -6,6 +6,7 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 
 #### Backwards compatibility changes
 - You will now need to include the relevant subtables to query on them in finders (find/findAll)
+- Subquery logic no longer depends on where objects with keys containing '.', instead where options on the include options [#1199](https://github.com/sequelize/sequelize/pull/1199)
 
 # v1.7.0-beta7 #
 - Nested eager loading / prefetching is now supported. [Docs](http://sequelizejs.com/docs/latest/models#nested-eager-loading)
