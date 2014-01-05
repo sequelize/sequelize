@@ -35,13 +35,14 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
               sequelize.transaction(function(t) {
                 console.log(1)
                 group.setUser(user, { transaction: t }).success(function() {
-                  console.log(2)
+                  console.log(2, group.values)
                   Group.all().success(function(groups) {
+                    console.log('groups without transaction', groups[0].values)
                     groups[0].getUser().success(function(associatedUser) {
                       expect(associatedUser).to.be.null
                       Group.all({ transaction: t }).success(function(groups) {
+                        console.log('groups with transaction', groups[0].values)
                         groups[0].getUser({ transaction: t }).success(function(associatedUser) {
-                          console.log(associatedUser)
                           expect(associatedUser).to.be.not.null
                           t.rollback().success(function() { done() })
                         })
