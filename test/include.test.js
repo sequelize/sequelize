@@ -1345,7 +1345,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
   })
 
   describe('findAndCountAll', function () {
-    xit('should include associations to findAndCountAll', function(done) {
+    it.only('should include associations to findAndCountAll', function(done) {
       var User = this.sequelize.define('User', {})
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
 
@@ -1387,6 +1387,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             expect(result.rows.length).to.eql(1)
             expect(result.rows[0].item.test).to.eql('def')
+          }).on('sql', function (sql) {
+            console.log(sql)
           })
         })
       }) 
