@@ -1345,7 +1345,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
   })
 
   describe('findAndCountAll', function () {
-    xit('should include associations to findAndCountAll', function(done) {
+    it('should include associations to findAndCountAll', function(done) {
       var User = this.sequelize.define('User', {})
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
 
@@ -1381,12 +1381,17 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.run().done(callback)
           }]
         }, function() {
-          User.findAndCountAll({'where': {'item.test': 'def'}, 'include': [Item]}).done(function(err, result) {
+          User.findAndCountAll({include: [
+            {model: Item, where: {
+              test: 'def'
+            }}
+          ]}).done(function(err, result) {
             expect(err).not.to.be.ok
             expect(result.count).to.eql(1)
 
             expect(result.rows.length).to.eql(1)
             expect(result.rows[0].item.test).to.eql('def')
+            done()
           })
         })
       }) 
