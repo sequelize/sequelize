@@ -1,4 +1,22 @@
-# v1.7.0 #
+Notice: All 1.7.x changed are present in 2.0.x aswell
+
+# v1.7.0-beta8
+- max()/min() now supports dates [#1200](https://github.com/sequelize/sequelize/pull/1200)
+
+#### Backwards compatibility changes
+- You will now need to include the relevant subtables to query on them in finders (find/findAll)
+
+# v1.7.0-beta7 #
+- Nested eager loading / prefetching is now supported. [Docs](http://sequelizejs.com/docs/latest/models#nested-eager-loading)
+- Eager loading / prefetching now supports inner joins and extending the ON statement [#1199](https://github.com/sequelize/sequelize/pull/1199)
+- Eager loading / prefetching now returns the attributes of through models aswell [#1198](https://github.com/sequelize/sequelize/pull/1198)
+- New set/get/changed/previous feature [#1182](https://github.com/sequelize/sequelize/pull/1182)
+- Various bug fixes 
+
+#### Backwards compatibility changes
+None
+
+# v1.7.0-beta1 #
 - [DEPENDENCIES] Upgraded validator for IPv6 support. [#603](https://github.com/sequelize/sequelize/pull/603). thanks to durango
 - [DEPENDENCIES] replaced underscore by lodash. [#954](https://github.com/sequelize/sequelize/pull/594). thanks to durango
 - [DEPENDENCIES] Upgraded pg to 2.0.0. [#711](https://github.com/sequelize/sequelize/pull/711). thanks to durango
