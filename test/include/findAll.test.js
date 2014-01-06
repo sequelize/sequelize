@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 Tag.findAll().done(callback)
               })
             },
-            loop: ['groups', 'ranks', 'tags', function (done, results) {
+            loop: ['groups', 'ranks', 'tags', 'companies', function (done, results) {
               var groups = results.groups
                 , ranks = results.ranks
                 , tags = results.tags
