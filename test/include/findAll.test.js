@@ -112,7 +112,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 {name: 'Bonanza'},
                 {name: 'NYSE'},
                 {name: 'Coshopr'}
-              ]).done(function () {
+              ]).done(function (err) {
+                if (err) return callback(err);
                 Company.findAll().done(callback)
               })
             },
@@ -169,7 +170,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                         {title: 'Bed'},
                         {title: 'Pen'},
                         {title: 'Monitor'}
-                      ]).done(function () {
+                      ]).done(function (err) {
+                        if (err) return callback(err);
                         Product.findAll().done(callback)
                       })
                     },
