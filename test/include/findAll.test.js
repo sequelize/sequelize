@@ -391,11 +391,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                       Price
                     ]}
                   ],
-                  order: 'id ASC'
+                  order: [
+                    ['Users.id', 'ASC']
+                  ]
                 }).done(function (err, users) {
                   expect(err).not.to.be.ok
                   users.forEach(function (user, i) {
                     user.memberships.sort(sortById)
+
                     expect(user.memberships.length).to.equal(2)
                     expect(user.memberships[0].group.name).to.equal('Developers')
                     expect(user.memberships[0].rank.canRemove).to.equal(1)
@@ -1138,8 +1141,6 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(product.prices.length).to.be.ok
           })
           done()
-        }).on('sql', function (sql) {
-          console.log(sql)
         })
       })
     })
