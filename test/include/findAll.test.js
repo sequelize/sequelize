@@ -1144,7 +1144,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it.only('should be possible use limit and a where on a hasMany with additional includes', function (done) {
+    it('should be possible use limit and a where on a hasMany with additional includes', function (done) {
       var self = this
       this.fixtureA(function () {
         self.models.Product.findAll({
@@ -1167,6 +1167,34 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             product.prices.forEach(function (price) {
               expect(price.value).to.be.above(5)
+            })
+          })
+          done()
+        })
+      })
+    })
+
+    it('should be possible use limit and a where on a hasMany with a through model with additional includes', function (done) {
+      var self = this
+      this.fixtureA(function () {
+        self.models.Product.findAll({
+          include: [
+            {model: self.models.Company},
+            {model: self.models.Tag, where: {name: ['A', 'B','C']}},
+            {model: self.models.Price}
+          ],
+          limit: 10,
+          order: 'id ASC'
+        }).done(function (err, products) {
+          expect(err).not.to.be.ok
+          expect(products.length).to.equal(10)
+
+          products.forEach(function (product) {
+            expect(product.tags.length).to.be.ok
+            expect(product.prices.length).to.be.ok
+
+            product.tags.forEach(function (tag) {
+              expect(['A', 'B', 'C']).to.include(tag.name)
             })
           })
           done()
