@@ -1165,13 +1165,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(product.tags.length).to.be.ok
             expect(product.prices.length).to.be.ok
 
-            product.tags.forEach(function (tag) {
-              //expect(tag.name).to.equal('A')
+            product.prices.forEach(function (price) {
+              expect(price.value).to.be.above(5)
             })
           })
           done()
-        }).on('sql', function (sql) {
-          console.log(sql)
         })
       })
     })
