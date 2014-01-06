@@ -889,7 +889,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it.only('should be possible to extend the on clause with a where option on nested includes', function (done) {
+    it('should be possible to extend the on clause with a where option on nested includes', function (done) {
       var User = this.sequelize.define('User', {})
         , Product = this.sequelize.define('Product', {
             title: DataTypes.STRING
