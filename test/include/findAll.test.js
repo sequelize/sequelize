@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                         {ProductId: results.products[(i * 5) + 1].id, value: 15},
                         {ProductId: results.products[(i * 5) + 1].id, value: 20},
                         {ProductId: results.products[(i * 5) + 2].id, value: 20},
-                       {ProductId: results.products[(i * 5) + 3].id, value: 20}
+                        {ProductId: results.products[(i * 5) + 3].id, value: 20}
                       ]).done(callback)
                     }]
                   }, callback)
@@ -1138,6 +1138,40 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(product.prices.length).to.be.ok
           })
           done()
+        }).on('sql', function (sql) {
+          console.log(sql)
+        })
+      })
+    })
+
+    it.only('should be possible use limit and a where on a hasMany with additional includes', function (done) {
+      var self = this
+      this.fixtureA(function () {
+        self.models.Product.findAll({
+          include: [
+            {model: self.models.Company},
+            {model: self.models.Tag},
+            {model: self.models.Price, where: {
+              value: {gt: 5}
+            }}
+          ],
+          limit: 6,
+          order: 'id ASC'
+        }).done(function (err, products) {
+          expect(err).not.to.be.ok
+          expect(products.length).to.equal(6)
+
+          products.forEach(function (product) {
+            expect(product.tags.length).to.be.ok
+            expect(product.prices.length).to.be.ok
+
+            product.tags.forEach(function (tag) {
+              //expect(tag.name).to.equal('A')
+            })
+          })
+          done()
+        }).on('sql', function (sql) {
+          console.log(sql)
         })
       })
     })
