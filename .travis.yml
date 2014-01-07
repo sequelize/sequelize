@@ -3,7 +3,7 @@ before_script:
   - "psql -c 'create database sequelize_test;' -U postgres"
 
 script:
-  - "make test"
+  - "make coveralls"
 
 notifications:
   email:
@@ -30,7 +30,7 @@ branches:
   only:
     - master
     - milestones/2.0.0
-    
+
 cache:
   directories:
     - node_modules
