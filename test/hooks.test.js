@@ -23,7 +23,6 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               }, {
                 hooks: {
                   beforeValidate: function(user, fn) {
-                    console.log("beforeValidate")
                     user.mood = 'happy'
                     fn(null, user)
                   },

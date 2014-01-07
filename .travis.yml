@@ -30,7 +30,7 @@ branches:
   only:
     - master
     - milestones/2.0.0
-    
+
 cache:
   directories:
     - node_modules
