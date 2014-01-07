@@ -295,6 +295,31 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe('createAssociations', function() {
+      it('creates a new associated object', function(done) {
+        var Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
+          , Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING })
+
+        Article.hasMany(Label)
+
+        Article.sync({ force: true }).success(function() {
+          Label.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              article.createLabel({ text: 'bar' }).success(function(label) {
+
+                Label
+                  .findAll({ where: { ArticleId: article.id }})
+                  .success(function(labels) {
+                    expect(labels.length).to.equal(1)
+                    done()
+                  })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe("getting assocations with options", function() {
       beforeEach(function(done) {
         var self = this
@@ -620,6 +645,30 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe('createAssociations', function() {
+      it('creates a new associated object', function(done) {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+        User.hasMany(Task)
+        Task.hasMany(User)
+
+        User.sync({ force: true }).success(function() {
+          Task.sync({ force: true }).success(function() {
+            Task.create({ title: 'task' }).success(function(task) {
+              task.createUser({ username: 'foo' }).success(function() {
+                task.getUsers().success(function(_users) {
+                  expect(_users).to.have.length(1)
+
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe('optimizations using bulk create, destroy and update', function () {
       beforeEach(function (done) {
         var self = this
@@ -820,7 +869,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Worker.hasMany(Task, { through: WorkerTasks })
             Task.hasMany(Worker, { through: WorkerTasks })
 
-            this.sequelize.sync().done(function(err) { 
+            this.sequelize.sync().done(function(err) {
               expect(err).not.to.be.ok
               Worker.create().done(function (err, worker) {
                 expect(err).not.to.be.ok
@@ -878,7 +927,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Worker.hasMany(Task, { through: WorkerTasks })
             Task.hasMany(Worker, { through: WorkerTasks })
 
-            this.sequelize.sync().done(function(err) { 
+            this.sequelize.sync().done(function(err) {
               expect(err).not.to.be.ok
               Worker.create().done(function (err, worker) {
                 expect(err).not.to.be.ok
@@ -909,7 +958,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Worker.hasMany(Task, { through: WorkerTasks })
           Task.hasMany(Worker, { through: WorkerTasks })
 
-          this.sequelize.sync().done(function(err) { 
+          this.sequelize.sync().done(function(err) {
             expect(err).not.to.be.ok
             Worker.create({}).done(function (err, worker) {
               expect(err).not.to.be.ok
@@ -924,7 +973,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                       worker.getTasks().done(function (err, tasks) {
                         expect(tasks.length).to.equal(1)
                         done()
-                      })  
+                      })
                     })
                   })
                 })
