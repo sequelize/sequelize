@@ -265,6 +265,40 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe.only('addAssociations', function() {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.addLabel(label, { transaction: t }).success(function() {
+                    Label
+                      .findAll({ where: { ArticleId: article.id }, transaction: undefined })
+                      .success(function(labels) {
+                        expect(labels.length).to.equal(0)
+
+                        Label
+                          .findAll({ where: { ArticleId: article.id }, transaction: t })
+                          .success(function(labels) {
+                            expect(labels.length).to.equal(1)
+                            t.rollback().success(function() { done() })
+                          })
+                      })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("clears associations when passing null to the set-method with omitNull set to true", function(done) {
       this.sequelize.options.omitNull = true
 
@@ -820,7 +854,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Worker.hasMany(Task, { through: WorkerTasks })
             Task.hasMany(Worker, { through: WorkerTasks })
 
-            this.sequelize.sync().done(function(err) { 
+            this.sequelize.sync().done(function(err) {
               expect(err).not.to.be.ok
               Worker.create().done(function (err, worker) {
                 expect(err).not.to.be.ok
@@ -878,7 +912,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Worker.hasMany(Task, { through: WorkerTasks })
             Task.hasMany(Worker, { through: WorkerTasks })
 
-            this.sequelize.sync().done(function(err) { 
+            this.sequelize.sync().done(function(err) {
               expect(err).not.to.be.ok
               Worker.create().done(function (err, worker) {
                 expect(err).not.to.be.ok
@@ -909,7 +943,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Worker.hasMany(Task, { through: WorkerTasks })
           Task.hasMany(Worker, { through: WorkerTasks })
 
-          this.sequelize.sync().done(function(err) { 
+          this.sequelize.sync().done(function(err) {
             expect(err).not.to.be.ok
             Worker.create({}).done(function (err, worker) {
               expect(err).not.to.be.ok
@@ -924,7 +958,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                       worker.getTasks().done(function (err, tasks) {
                         expect(tasks.length).to.equal(1)
                         done()
-                      })  
+                      })
                     })
                   })
                 })
