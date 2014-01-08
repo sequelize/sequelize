@@ -1709,10 +1709,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it('should not fail with an include', function(done) {
-      var tableName = '"' + this.Project.tableName + '"'
+      var tableName = ''
+      if(this.Project.tableName) {
+        tableName = '"' + this.Project.tableName + '".'
+      }
       this.User.findAll({
         where: [
-          tableName + '."title" = \'republic\' '
+          tableName + '"title" = \'republic\' '
         ],
         include: [
           {model: this.Project}
@@ -1730,10 +1733,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it('should not overwrite a specified deletedAt', function(done) {
-      var tableName = '"' + this.User.tableName + '"'
+      var tableName = ''
+      if(this.User.tableName) {
+        tableName = '"' + this.User.tableName + '".'
+      }
       this.User.findAll({
         where: [
-          tableName + '."deletedAt" IS NOT NULL '
+          tableName + '"deletedAt" IS NOT NULL '
         ],
         include: [
           {model: this.Project}
