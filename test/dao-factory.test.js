@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         paranoid: true,
         underscored: true
       })
-    
+
       UserTable.sync({force: true}).success(function() {
         UserTable.create({aNumber: 30}).success(function(user) {
           UserTable.count().success(function(c) {
@@ -462,6 +462,25 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(product.followers).to.be.ok
         expect(product.followers.length).to.equal(2)
         expect(product.followers[0].Model).to.equal(User)
+      })
+    })
+  })
+
+  describe('find', function() {
+    it('supports the transaction option in the first parameter', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.find({ where: { username: 'foo' }, transaction: t }).success(function(user) {
+                expect(user).to.not.be.null
+                t.rollback().success(function() { done() })
+              })
+            })
+          })
+        })
       })
     })
   })
