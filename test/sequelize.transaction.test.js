@@ -21,19 +21,24 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
   })
 
   describe('error', function() {
-    it("gets triggered once an error occurs", function(done) {
-      var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() })
+    if (Support.getTestDialect() === 'sqlite') {
+      // not sure if we can test this in sqlite ...
+      // how could we enforce an authentication error in sqlite?
+    } else {
+      it("gets triggered once an error occurs", function(done) {
+        var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() })
 
-      // lets overwrite the host to get an error
-      sequelize.config.username = 'foobarbaz'
+        // lets overwrite the host to get an error
+        sequelize.config.username = 'foobarbaz'
 
-      sequelize
-        .transaction(function() {})
-        .error(function(err) {
-          expect(err).to.not.be.undefined
-          done()
-        })
-    })
+        sequelize
+          .transaction(function() {})
+          .error(function(err) {
+            expect(err).to.not.be.undefined
+            done()
+          })
+      })
+    }
   })
 
   describe('callback', function() {
