@@ -1710,12 +1710,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should not fail with an include', function(done) {
       var tableName = ''
+        , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
+        , escape = this.sequelize.queryInterface.QueryGenerator.escape
       if(this.Project.tableName) {
-        tableName = '"' + this.Project.tableName + '".'
+        tableName = ident(this.Project.tableName) + '.'
       }
       this.User.findAll({
         where: [
-          tableName + '"title" = \'republic\' '
+          tableName + ident('title') + ' = ' + escape('republic')
         ],
         include: [
           {model: this.Project}
@@ -1734,12 +1736,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should not overwrite a specified deletedAt', function(done) {
       var tableName = ''
+        , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
       if(this.User.tableName) {
-        tableName = '"' + this.User.tableName + '".'
+        tableName = ident(this.User.tableName) + '.'
       }
       this.User.findAll({
         where: [
-          tableName + '"deletedAt" IS NOT NULL '
+          tableName + ident('deletedAt') + ' IS NOT NULL '
         ],
         include: [
           {model: this.Project}
