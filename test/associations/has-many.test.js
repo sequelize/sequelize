@@ -352,6 +352,34 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
+
+      it('supports transactions', function(done) {
+        var self = this
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+
+          Article.sync({ force: true }).success(function() {
+            Label.sync({ force: true }).success(function() {
+              Article.create({ title: 'foo' }).success(function(article) {
+                sequelize.transaction(function (t) {
+                  article.createLabel({ text: 'bar' }, { transaction: t }).success(function(label) {
+                    Label.findAll({ where: { ArticleId: article.id }}).success(function(labels) {
+                      expect(labels.length).to.equal(0)
+                      Label.findAll({ where: { ArticleId: article.id }}, { transaction: t }).success(function(labels) {
+                        expect(labels.length).to.equal(1)
+                        t.rollback().success(function() { done() })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
     })
 
     describe("getting assocations with options", function() {
@@ -695,6 +723,36 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                   expect(_users).to.have.length(1)
 
                   done()
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('supports transactions', function(done) {
+        var self = this
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: DataTypes.STRING })
+            , Task = sequelize.define('Task', { title: DataTypes.STRING })
+
+          User.hasMany(Task)
+          Task.hasMany(User)
+
+          User.sync({ force: true }).success(function() {
+            Task.sync({ force: true }).success(function() {
+              Task.create({ title: 'task' }).success(function(task) {
+                sequelize.transaction(function (t) {
+                  task.createUser({ username: 'foo' }, { transaction: t }).success(function() {
+                    task.getUsers().success(function(users) {
+                      expect(users).to.have.length(0)
+
+                      task.getUsers({ transaction: t }).success(function(users) {
+                        expect(users).to.have.length(1)
+                        t.rollback().success(function() { done() })
+                      })
+                    })
+                  })
                 })
               })
             })
