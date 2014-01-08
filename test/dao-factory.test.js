@@ -467,7 +467,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('find', function() {
-    it.only('supports the transaction option in the first parameter', function(done) {
+    it('supports the transaction option in the first parameter', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
 
