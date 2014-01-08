@@ -656,27 +656,23 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
     describe('addAssociations', function() {
       it('supports transactions', function(done) {
-        var self = this
-
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-          var User = self.sequelize.define('User', { username: DataTypes.STRING })
-            , Task = self.sequelize.define('Task', { title: DataTypes.STRING })
+          var User = sequelize.define('User', { username: DataTypes.STRING })
+            , Task = sequelize.define('Task', { title: DataTypes.STRING })
 
           User.hasMany(Task)
           Task.hasMany(User)
 
-          User.sync({ force: true }).success(function() {
-            Task.sync({ force: true }).success(function() {
-              User.create({ username: 'foo' }).success(function(user) {
-                Task.create({ title: 'task' }).success(function(task) {
-                  self.sequelize.transaction(function(t){
-                    task.addUser(user, { transaction: t }).success(function() {
-                      task.hasUser(user).success(function(hasUser) {
-                        expect(hasUser).to.be.false
-                        task.hasUser(user, { transaction: t }).success(function(hasUser) {
-                          expect(hasUser).to.be.true
-                          t.rollback().success(function() { done() })
-                        })
+          sequelize.sync({ force: true }).success(function() {
+            User.create({ username: 'foo' }).success(function(user) {
+              Task.create({ title: 'task' }).success(function(task) {
+                sequelize.transaction(function(t){
+                  task.addUser(user, { transaction: t }).success(function() {
+                    task.hasUser(user).success(function(hasUser) {
+                      expect(hasUser).to.be.false
+                      task.hasUser(user, { transaction: t }).success(function(hasUser) {
+                        expect(hasUser).to.be.true
+                        t.rollback().success(function() { done() })
                       })
                     })
                   })
