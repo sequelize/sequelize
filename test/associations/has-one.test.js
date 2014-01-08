@@ -160,6 +160,57 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
     })
   })
 
+  describe('createAssociation', function() {
+    it('creates an associated model instance', function(done) {
+      var User = this.sequelize.define('User', { username: Sequelize.STRING })
+        , Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+
+      User.hasOne(Task)
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'bob' }).success(function(user) {
+          user.createTask({ title: 'task' }).success(function() {
+            user.getTask().success(function(task) {
+              expect(task).not.to.be.null
+              expect(task.title).to.equal('task')
+
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User  = sequelize.define('User', { username: Sequelize.STRING })
+          , Group = sequelize.define('Group', { name: Sequelize.STRING })
+
+        User.hasOne(Group)
+
+        sequelize.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            sequelize.transaction(function(t) {
+              user.createGroup({ name: 'testgroup' }, { transaction: t }).success(function(group) {
+                User.all().success(function (users) {
+                  users[0].getGroup().success(function (group) {
+                    expect(group).to.be.null;
+                    User.all({ transaction: t }).success(function (users) {
+                      users[0].getGroup({ transaction: t }).success(function (group) {
+                        expect(group).to.be.not.null;
+                        t.rollback().success(function() { done() })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   describe("Foreign key constraints", function() {
     it("are not enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
