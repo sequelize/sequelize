@@ -1660,4 +1660,96 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
   })
+
+
+  describe('paranoid is true and where is an array', function() {
+
+    beforeEach(function(done) {
+      this.User = this.sequelize.define('User', {username: DataTypes.STRING }, { paranoid: true })
+      this.Project = this.sequelize.define('Project', { title: DataTypes.STRING }, { paranoid: true })
+      
+      this.Project.hasMany(this.User)
+      this.User.hasMany(this.Project)
+      
+      var self = this
+      this.sequelize.sync({ force: true }).success(function() {
+        self.User.bulkCreate([{
+          username: 'leia'
+        }, {
+          username: 'luke'
+        }, {
+          username: 'vader'
+        }]).success(function() {
+          self.Project.bulkCreate([{
+            title: 'republic'
+          },{
+            title: 'empire'
+          }]).success(function() {
+            self.User.findAll().success(function(users){
+              self.Project.findAll().success(function(projects){
+                var leia = users[0]
+                  , luke = users[1]
+                  , vader = users[2]
+                  , republic = projects[0]
+                  , empire = projects[1]
+                leia.setProjects([republic]).success(function(){
+                  luke.setProjects([republic]).success(function(){
+                    vader.setProjects([empire]).success(function(){
+                      leia.destroy().success(function() {
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('should not fail with an include', function(done) {
+      var tableName = '"' + this.Project.tableName + '"'
+      this.User.findAll({
+        where: [
+          tableName + '."title" = \'republic\' '
+        ],
+        include: [
+          {model: this.Project}
+        ]
+      }).success(function(users){
+
+        try{
+          expect(users.length).to.be.equal(1)
+          expect(users[0].username).to.be.equal('luke')
+          done()
+        }catch(e){
+          done(e)
+        }
+      }).error(done)
+    })
+
+    it('should not overwrite a specified deletedAt', function(done) {
+      var tableName = '"' + this.User.tableName + '"'
+      this.User.findAll({
+        where: [
+          tableName + '."deletedAt" IS NOT NULL '
+        ],
+        include: [
+          {model: this.Project}
+        ]
+      }).success(function(users){
+
+        try{
+          expect(users.length).to.be.equal(1)
+          expect(users[0].username).to.be.equal('leia')
+          done()
+        }catch(e){
+          done(e)
+        }
+      }).error(done)
+    })
+  
+  })
+
 })
