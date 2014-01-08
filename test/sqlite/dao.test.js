@@ -20,19 +20,20 @@ if (dialect === 'sqlite') {
     describe('findAll', function() {
       it("handles dates correctly", function(done) {
         var self = this
+          , user = this.User.build({ username: 'user' })
 
-        this.User
-          .create({ username: 'user', createdAt: new Date(2011, 04, 04) })
-          .success(function() {
-            self.User.create({ username: 'new user' }).success(function() {
-              self.User.findAll({
-                where: ['createdAt > ?', new Date(2012, 01, 01)]
-              }).success(function(users) {
-                expect(users).to.have.length(1)
-                done()
-              })
+        user.dataValues['createdAt'] = new Date(2011, 04, 04)
+
+        user.save().success(function() {
+          self.User.create({ username: 'new user' }).success(function() {
+            self.User.findAll({
+              where: ['createdAt > ?', new Date(2012, 01, 01)]
+            }).success(function(users) {
+              expect(users).to.have.length(1)
+              done()
             })
           })
+        })
       })
     })
   })

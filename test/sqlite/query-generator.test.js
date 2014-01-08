@@ -255,6 +255,11 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {where: null}],
           expectation: "SELECT * FROM `myTable` WHERE 1=1;",
           context: QueryGenerator
+        }, {
+          title: 'buffer as where argument',
+          arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field`=X'53657175656c697a65';",
+          context: QueryGenerator
         }
       ],
 
@@ -439,6 +444,7 @@ if (dialect === 'sqlite') {
               test.arguments[1] = test.arguments[1](this.sequelize)
             }
             QueryGenerator.options = context.options
+            QueryGenerator._dialect = this.sequelize.dialect
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)
             done()

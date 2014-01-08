@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         .find(1)
         .then(function(user) {
           expect(user.id).to.equal(1)
-          return user.increment(['aNumber'], 2)
+          return user.increment(['aNumber'], { by: 2 })
         })
         .then(function(user) {
           // The following assertion would rock hard, but it's not implemented :(
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
             .then(function (user2) {
               return user2
                 .updateAttributes({ aNumber: user2.aNumber + 1 })
-                .then(function() { return user1.increment(['aNumber'], 2) })
+                .then(function() { return user1.increment(['aNumber'], { by: 2 }) })
                 .then(function() { return self.User.find(1) })
                 .then(function(user5) {
                   expect(user5.aNumber).to.equal(3)
@@ -112,7 +112,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       this.User
         .find(1)
         .then(function(user1) {
-          return user1.decrement(['aNumber'], 2)
+          return user1.decrement(['aNumber'], { by: 2 })
         })
         .then(function(user2) {
           return self.User.find(1)
@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       this.User
         .find(1)
         .then(function(user1) {
-          return user1.decrement(['aNumber'], 2)
+          return user1.decrement(['aNumber'], { by: 2 })
         })
         .then(function(user3) {
           return self.User.find(1)
@@ -155,9 +155,9 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
               })
           })
 
-          user1.decrement(['aNumber'], 2).done(_done)
-          user1.decrement(['aNumber'], 2).done(_done)
-          user1.decrement(['aNumber'], 2).done(_done)
+          user1.decrement(['aNumber'], { by: 2 }).done(_done)
+          user1.decrement(['aNumber'], { by: 2 }).done(_done)
+          user1.decrement(['aNumber'], { by: 2 }).done(_done)
         })
       })
   })

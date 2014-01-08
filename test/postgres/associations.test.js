@@ -30,17 +30,24 @@ if (dialect.match(/^postgres/)) {
 
           Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'})
           Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'})
-          done()
+
+          setTimeout(function () {
+            done()
+          }, 50)
         })
 
         it("should not use a combined name", function(done) {
           expect(this.sequelize.daoFactoryManager.getDAO('ms_table1sms_table2s')).not.to.exist
-          done()
+          setTimeout(function () {
+            done()
+          }, 50)
         })
 
         it("should use the specified name", function(done) {
           expect(this.sequelize.daoFactoryManager.getDAO('table1_to_table2')).to.exist
-          done()
+          setTimeout(function () {
+            done()
+          }, 50)
         })
       })
     })
@@ -119,17 +126,19 @@ if (dialect.match(/^postgres/)) {
           this.Task.hasMany(this.User, {as:'Users'})
 
           for (var i = 0; i < 5; ++i) {
-            users[users.length] = {id: i, name: 'User' + Math.random()}
+            users[users.length] = {id: i+1, name: 'User' + Math.random()}
           }
 
           for (var x = 0; x < 5; ++x) {
-            tasks[tasks.length] = {id: i, name: 'Task' + Math.random()}
+            tasks[tasks.length] = {id: x+1, name: 'Task' + Math.random()}
           }
 
           self.User.sync({ force: true }).success(function() {
             self.Task.sync({ force: true }).success(function() {
-              self.User.bulkCreate(users).success(function() {
-                self.Task.bulkCreate(tasks).success(function() {
+              self.User.bulkCreate(users).done(function(err) {
+                expect(err).not.to.be.ok
+                self.Task.bulkCreate(tasks).done(function(err) {
+                  expect(err).not.to.be.ok
                   self.User.all().success(function(_users) {
                     self.Task.all().success(function(_tasks) {
                       self.user = _users[0]

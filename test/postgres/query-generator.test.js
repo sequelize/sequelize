@@ -333,6 +333,11 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
           expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"mySchema\".\"myTable\".\"name\"='foo'';DROP TABLE mySchema.myTable;';"
+        }, {
+          title: 'buffer as where argument',
+          arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\"=E'\\\\x53657175656c697a65';",
+          context: QueryGenerator
         },
 
         // Variants when quoteIdentifiers is false
@@ -409,6 +414,10 @@ if (dialect.match(/^postgres/)) {
       ],
 
       insertQuery: [
+        {
+          arguments: ['myTable', {}],
+          expectation: "INSERT INTO \"myTable\" DEFAULT VALUES RETURNING *;"
+        },
         {
           arguments: ['myTable', {name: 'foo'}],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
@@ -895,6 +904,7 @@ if (dialect.match(/^postgres/)) {
               test.arguments[1] = test.arguments[1](this.sequelize)
             }
             QueryGenerator.options = context.options
+            QueryGenerator._dialect = this.sequelize.dialect
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)
             done()
