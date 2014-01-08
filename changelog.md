@@ -1,5 +1,8 @@
 Notice: All 1.7.x changed are present in 2.0.x aswell
 
+# v1.7.0-rc1
+- instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
+
 # v1.7.0-beta8
 - max()/min() now supports dates [#1200](https://github.com/sequelize/sequelize/pull/1200)
 - findAndCountAll now supports the include option
