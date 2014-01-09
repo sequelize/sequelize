@@ -23,7 +23,6 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               }, {
                 hooks: {
                   beforeValidate: function(user, fn) {
-                    console.log("beforeValidate")
                     user.mood = 'happy'
                     fn(null, user)
                   },
@@ -6989,6 +6988,170 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   done()
                 })
               })
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('passing DAO instances', function() {
+
+    describe('beforeValidate / afterValidate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeValidate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterValidate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            expect(beforeHooked).to.be.true
+            expect(afterHooked).to.be.true
+            done()
+          })
+        })
+      })
+    })
+
+    describe('beforeCreate / afterCreate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeCreate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterCreate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            expect(beforeHooked).to.be.true
+            expect(afterHooked).to.be.true
+            done()
+          })
+        })
+      })
+    })
+
+    describe('beforeDestroy / afterDestroy', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeDestroy: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterDestroy: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.destroy().success(function() {
+              expect(beforeHooked).to.be.true
+              expect(afterHooked).to.be.true
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('beforeDelete / afterDelete', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeDelete: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterDelete: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.destroy().success(function() {
+              expect(beforeHooked).to.be.true
+              expect(afterHooked).to.be.true
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('beforeUpdate / afterUpdate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeUpdate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterUpdate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.save({ username: 'bawb' }).success(function() {
+              expect(beforeHooked).to.be.true
+              expect(afterHooked).to.be.true
+              done()
             })
           })
         })

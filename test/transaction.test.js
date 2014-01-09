@@ -16,14 +16,26 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
     })
   })
 
+  describe('success', function() {
+    it("is a success method available", function() {
+      expect(Transaction).to.respondTo("success")
+    })
+  })
+
+  describe('error', function() {
+    it("is an error method available", function() {
+      expect(Transaction).to.respondTo("error")
+    })
+  })
+
   describe('commit', function() {
-    it('is a commit message available', function() {
+    it('is a commit method available', function() {
       expect(Transaction).to.respondTo('commit')
     })
   })
 
   describe('rollback', function() {
-    it('is a rollback message available', function() {
+    it('is a rollback method available', function() {
       expect(Transaction).to.respondTo('rollback')
     })
   })
