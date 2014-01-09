@@ -5,7 +5,7 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 - fixes a few bugs with transactions in regards to associations
 - add error handling for transaction creation
 
-### Backwards compatability changes
+#### Backwards compatability changes
 - Hooks are no longer passing value hashes. Instead, they are now passing instances of the model.
 - Hook callbacks no longer take two arguments (previously: `err, newValues`). They only take the error argument since values can be changed directly on the model instance.
 
