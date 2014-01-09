@@ -1686,10 +1686,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     beforeEach(function(done) {
       this.User = this.sequelize.define('User', {username: DataTypes.STRING }, { paranoid: true })
       this.Project = this.sequelize.define('Project', { title: DataTypes.STRING }, { paranoid: true })
-      
+
       this.Project.hasMany(this.User)
       this.User.hasMany(this.Project)
-      
+
       var self = this
       this.sequelize.sync({ force: true }).success(function() {
         self.User.bulkCreate([{
@@ -1777,7 +1777,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
       }).error(done)
     })
-  
+
   })
 
 })

@@ -6994,4 +6994,138 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       })
     })
   })
+
+  describe('passing DAO instances', function() {
+
+    describe('beforeValidate / afterValidate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeValidate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            },
+            afterValidate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            done()
+          })
+        })
+      })
+    })
+
+    describe('beforeCreate / afterCreate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeCreate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            },
+            afterCreate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            done()
+          })
+        })
+      })
+    })
+
+    describe('beforeDestroy / afterDestroy', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeDestroy: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            },
+            afterDestroy: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.destroy().success(function() {
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('beforeDelete / afterDelete', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeDelete: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            },
+            afterDelete: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.destroy().success(function() {
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('beforeUpdate / afterUpdate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeUpdate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            },
+            afterUpdate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.save({ username: 'bawb' }).success(function() {
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
 })
