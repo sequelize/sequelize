@@ -6995,7 +6995,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
     })
   })
 
-  describe.only('passing DAO instances', function() {
+  describe('passing DAO instances', function() {
 
     describe('beforeValidate / afterValidate', function() {
       it('should pass a DAO instance to the hook', function(done){
