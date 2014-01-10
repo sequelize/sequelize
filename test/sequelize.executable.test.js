@@ -250,7 +250,7 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
           }.bind(this))
         })
 
-        it("stops executation if no migrations have been done yet", function(done) {
+        it("stops execution if no migrations have been done yet", function(done) {
           var sequelize = this.sequelize
 
           if (this.sequelize.options.dialect === 'sqlite') {
