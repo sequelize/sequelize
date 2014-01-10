@@ -414,12 +414,12 @@ if (dialect.match(/^postgres/)) {
           title: 'use != if ne !== null',
           arguments: ['myTable', {where: {field: {ne: 0}}}],
           expectation: "SELECT * FROM myTable WHERE myTable.field != 0;",
-          context: QueryGenerator
+          context: {options: {quoteIdentifiers: false}}
         }, {
           title: 'use IS NOT if ne === null',
           arguments: ['myTable', {where: {field: {ne: null}}}],
           expectation: "SELECT * FROM myTable WHERE myTable.field IS NOT NULL;",
-          context: QueryGenerator
+          context: {options: {quoteIdentifiers: false}}
         }
       ],
 
