@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     it('is done properly for special characters', function(done) {
       // Ideally we should test more: "\0\n\r\b\t\\\'\"\x1a"
       // But this causes sqlite to fail and exits the entire test suite immediately
-      var bio = dialect + "'\"\n" // Need to add the dialect here so in case of failure I know what DB it failed for
+      var bio  = dialect + "'\"\n" // Need to add the dialect here so in case of failure I know what DB it failed for
         , self = this
 
       this.User.create({ username: bio }).success(function(u1) {
@@ -795,7 +795,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       // timeout is needed, in order to check the update of the timestamp
       var build = function(callback) {
         user      = User.build({ username: 'user' })
-  
+
         var save = user.save()
 
         save.success(function() {
