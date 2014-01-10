@@ -597,7 +597,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow blank creates (with timestamps: false)', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) { 
+      Worker.sync().done(function(err) {
         Worker.create({}, {fields: []}).done(function (err, worker) {
           expect(err).not.to.be.ok
           expect(worker).to.be.ok
@@ -608,7 +608,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow truly blank creates', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) { 
+      Worker.sync().done(function(err) {
         Worker.create({}, {fields: []}).done(function (err, worker) {
           expect(err).not.to.be.ok
           expect(worker).to.be.ok
@@ -896,7 +896,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow blank arrays (return immediatly)', function (done) {
       var Worker = this.sequelize.define('Worker', {})
-      Worker.sync().done(function(err) { 
+      Worker.sync().done(function(err) {
         Worker.bulkCreate([]).done(function (err, workers) {
           expect(err).not.to.be.ok
           expect(workers).to.be.ok
@@ -908,7 +908,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow blank creates (with timestamps: false)', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) { 
+      Worker.sync().done(function(err) {
         Worker.bulkCreate([{}, {}]).done(function (err, workers) {
           expect(err).not.to.be.ok
           expect(workers).to.be.ok
@@ -919,7 +919,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow autoincremented attributes to be set', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) { 
+      Worker.sync().done(function(err) {
         Worker.bulkCreate([
           {id: 5},
           {id: 10}
