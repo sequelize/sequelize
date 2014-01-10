@@ -273,6 +273,16 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field`=X'53657175656c697a65';",
           context: QueryGenerator
+        }, {
+          title: 'use != if ne !== null',
+          arguments: ['myTable', {where: {field: {ne: 0}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;",
+          context: QueryGenerator
+        }, {
+          title: 'use IS NOT if ne === null',
+          arguments: ['myTable', {where: {field: {ne: null}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;",
+          context: QueryGenerator
         }
       ],
 
