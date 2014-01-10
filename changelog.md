@@ -3,6 +3,15 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 # v2.0.0 (alpha1) #
 - [FEATURE] async validations. [#580](https://github.com/sequelize/sequelize/pull/580). thanks to Interlock
 
+# v1.7.0-rc1
+- instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
+- fixes a few bugs with transactions in regards to associations
+- add error handling for transaction creation
+
+#### Backwards compatability changes
+- Hooks are no longer passing value hashes. Instead, they are now passing instances of the model.
+- Hook callbacks no longer take two arguments (previously: `err, newValues`). They only take the error argument since values can be changed directly on the model instance.
+
 # v1.7.0-beta8
 - max()/min() now supports dates [#1200](https://github.com/sequelize/sequelize/pull/1200)
 - findAndCountAll now supports the include option
@@ -16,7 +25,7 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 - Eager loading / prefetching now supports inner joins and extending the ON statement [#1199](https://github.com/sequelize/sequelize/pull/1199)
 - Eager loading / prefetching now returns the attributes of through models aswell [#1198](https://github.com/sequelize/sequelize/pull/1198)
 - New set/get/changed/previous feature [#1182](https://github.com/sequelize/sequelize/pull/1182)
-- Various bug fixes 
+- Various bug fixes
 
 #### Backwards compatibility changes
 None

@@ -165,6 +165,55 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
     })
   })
 
+  describe('createAssociation', function() {
+    it('creates an associated model instance', function(done) {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+      Task.belongsTo(User)
+
+      this.sequelize.sync({ force: true }).success(function() {
+        Task.create({ title: 'task' }).success(function(task) {
+          task.createUser({ username: 'bob' }).success(function() {
+            task.getUser().success(function(user) {
+              expect(user).not.to.be.null
+              expect(user.username).to.equal('bob')
+
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    it('supports transactions', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
+
+        Group.belongsTo(User)
+
+        sequelize.sync({ force: true }).success(function() {
+          Group.create({ name: 'bar' }).success(function(group) {
+            sequelize.transaction(function(t) {
+              group.createUser({ username: 'foo' }, { transaction: t }).success(function() {
+                group.getUser().success(function(user) {
+                  expect(user).to.be.null
+
+                  group.getUser({ transaction: t }).success(function(user) {
+                    expect(user).not.to.be.null
+
+                    t.rollback().success(function() { done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   describe("Foreign key constraints", function() {
     it("are not enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
