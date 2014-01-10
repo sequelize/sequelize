@@ -211,7 +211,7 @@ if (program.migrate) {
       migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
         Meta.find({ order: 'id DESC' }).success(function(meta) {
           if (meta) {
-            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
+            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta.values), true)
             migrator.migrate({ method: 'down' }).success(function() {
               process.exit(0)
             })
