@@ -185,11 +185,12 @@ if (program.migrate) {
 
       if (key === "use_env_variable") {
         if (process.env[value]) {
-          var db_info = process.env[value].match(
-                  /([^:]+):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+          var db_info = process.env[value].match(/([^:]+):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+
           config.database = db_info[6];
           config.username = db_info[2];
           config.password = db_info[3];
+
           options = _.extend(options, {
             host: db_info[4],
             port: db_info[5],
@@ -207,15 +208,17 @@ if (program.migrate) {
       , migrator        = sequelize.getMigrator(migratorOptions)
 
     if (program.undo) {
-      sequelize.migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
+      migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
         Meta.find({ order: 'id DESC' }).success(function(meta) {
           if (meta) {
-            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta), true)
-          }
-
-          migrator.migrate({ method: 'down' }).success(function() {
+            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta.values), true)
+            migrator.migrate({ method: 'down' }).success(function() {
+              process.exit(0)
+            })
+          } else {
+            console.log("There are no pending migrations.")
             process.exit(0)
-          })
+          }
         })
       })
     } else {
