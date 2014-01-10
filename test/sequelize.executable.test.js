@@ -305,7 +305,7 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
         })
       })
     })
-  })(['--migrate --undo', '-mu'])
+  })(['--migrate --undo', '-mu', '--undo', '-u'])
 
   ;(function(flags) {
     flags.forEach(function(flag) {
