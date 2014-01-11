@@ -193,6 +193,40 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
         expect(product.toJSON()).to.deep.equal({withTaxes: 1250, price: 1000, id: null})
       })
+
+      it('should work with save', function (done) {
+        var Contact = this.sequelize.define('Contact', {
+          first: { type: Sequelize.STRING },
+          last: { type: Sequelize.STRING },
+          tags: { 
+            type: Sequelize.STRING,
+            get: function(field) {
+              var val = this.getDataValue(field);
+              return JSON.parse(val);
+            },
+            set: function(val, field) {
+              this.setDataValue(field, JSON.stringify(val));
+            }
+          }
+        });
+
+        this.sequelize.sync().done(function () {
+          var contact = Contact.build({
+            first: 'My',
+            last: 'Name',
+            tags: ['yes','no']
+          });
+          expect(contact.get('tags')).to.deep.equal(['yes', 'no'])
+
+          contact.save().done(function(err, me) {
+            expect(err).not.to.be.ok
+            var idToTest = me.id;
+
+            expect(me.get('tags')).to.deep.equal(['yes', 'no'])
+            done();
+          });
+        });
+      })
     })
 
     describe('changed', function () {
