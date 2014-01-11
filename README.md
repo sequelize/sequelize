@@ -4,7 +4,7 @@ MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node
 
 ### Install
 
-To install 1.x.x (currently 1.7.x) - which has a stable API and is backwards compatible:
+To install 1.x.x (currently 1.7.x) - which has a stable API and is mostly backwards compatible:
 
 `npm install sequelize`
 
@@ -26,7 +26,7 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 ### 2.0.0 ###
 
 There is a parallel "branch" of the project, released as `2.0.0-alphaX` in NPM. All those releases are based on the master
-and will get all the changes of the master. However, `2.0.0` will contain backwards compatibility breaking changes. Check the
+and will get all the changes of the master. However, `2.0.0` will contain major backwards compatibility breaking changes. Check the
 changelog of the branch: https://github.com/sequelize/sequelize/blob/milestones/2.0.0/changelog.md
 
 ##### 2.0.0 API should be considered unstable
