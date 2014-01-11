@@ -653,9 +653,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       it('allows values passed as parameters to Sequelize.ENUM', function(done) {
         var Enum = this.sequelize.define('Enum', {
-          state: {
-            type: Sequelize.ENUM('happy', 'sad')
-          }
+          state: Sequelize.ENUM('happy', 'sad')
         })
 
         Enum.sync({ force: true }).success(function() {
@@ -667,9 +665,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       it('allows values passed as an array to Sequelize.ENUM', function(done) {
         var Enum = this.sequelize.define('Enum', {
-          state: {
-            type: Sequelize.ENUM(['happy', 'sad'])
-          }
+          state: Sequelize.ENUM(['happy', 'sad'])
         })
 
         Enum.sync({ force: true }).success(function() {
