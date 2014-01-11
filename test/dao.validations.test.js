@@ -651,7 +651,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
     })
 
-    it('skips validations for the given fields', function() {
+    it('skips validations for the given fields', function(done) {
       var values = ['value1', 'value2']
 
       var Bar = this.sequelize.define('Bar' + config.rand(), {
@@ -665,9 +665,11 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
 
       var failingBar = Bar.build({ field: 'value3' })
-        , errors     = failingBar.validate({ skip: ['field'] })
-
-      expect(errors).to.be.null
+      
+      failingBar.validate({ skip: ['field'] }).success(function(errors) {
+        expect(errors).not.to.exist
+        done()
+      })
     })
   })
 })
