@@ -7,7 +7,7 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 - `sequelize --undo` will now actually undo migrations. Its basically an alias for `sequelize --migrate --undo`. [#1059](https://github.com/sequelize/sequelize/pull/1059)
 - fix bug where `{where: {ne: null}}` would result in `!= NULL` instead of `IS NOT NULL` [#1231](https://github.com/sequelize/sequelize/pull/1059)
 - fixes a bug with validation skipping using the `fields` options. [#1233](https://github.com/sequelize/sequelize/pull/1233)
-- fixes a bug with postgres and setters [#1234](https://github.com/sequelize/sequelize/issues/123)
+- fixes a bug with postgres and setters [#1234](https://github.com/sequelize/sequelize/issues/1234)
 
 #### Backwards compatability changes
 - Hooks are no longer passing value hashes. Instead, they are now passing instances of the model.
