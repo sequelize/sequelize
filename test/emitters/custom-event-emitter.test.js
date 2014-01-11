@@ -60,4 +60,46 @@ describe(Support.getTestDialectTeaser("CustomEventEmitter"), function () {
       proxy.emit('success')
     })
   })
+
+  describe("when emitting an error event with an array of errors", function() {
+    describe("if no error handler is given", function() {
+      it("should throw the first error", function(done) {
+        var emitter = new CustomEventEmitter()
+
+        expect(function () {
+          emitter.emit("error", [
+            [
+              new Error("First error"),
+              new Error("Second error")
+            ], [
+              new Error("Third error")
+            ]
+          ])
+        }).to.throw("First error")
+
+        done()
+      })
+    })
+
+    describe("if an error handler is given", function() {
+      it("should return the whole array", function(done) {
+        var emitter = new CustomEventEmitter()
+        var errors = [
+          [
+            new Error("First error"),
+            new Error("Second error")
+          ], [
+            new Error("Third error")
+          ]
+        ]
+
+        emitter.error(function (err) {
+          expect(err).to.equal(errors)
+
+          done()
+        })
+        emitter.emit("error", errors)
+      })
+    })
+  })
 })
