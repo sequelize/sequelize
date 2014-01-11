@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         paranoid: true,
         underscored: true
       })
-    
+
       UserTable.sync({force: true}).success(function() {
         UserTable.create({aNumber: 30}).success(function(user) {
           UserTable.count().success(function(c) {
@@ -462,6 +462,25 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(product.followers).to.be.ok
         expect(product.followers.length).to.equal(2)
         expect(product.followers[0].Model).to.equal(User)
+      })
+    })
+  })
+
+  describe('find', function() {
+    it('supports the transaction option in the first parameter', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          sequelize.transaction(function(t) {
+            User.create({ username: 'foo' }, { transaction: t }).success(function() {
+              User.find({ where: { username: 'foo' }, transaction: t }).success(function(user) {
+                expect(user).to.not.be.null
+                t.rollback().success(function() { done() })
+              })
+            })
+          })
+        })
       })
     })
   })
@@ -1660,4 +1679,105 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
   })
+
+
+  describe('paranoid is true and where is an array', function() {
+
+    beforeEach(function(done) {
+      this.User = this.sequelize.define('User', {username: DataTypes.STRING }, { paranoid: true })
+      this.Project = this.sequelize.define('Project', { title: DataTypes.STRING }, { paranoid: true })
+
+      this.Project.hasMany(this.User)
+      this.User.hasMany(this.Project)
+
+      var self = this
+      this.sequelize.sync({ force: true }).success(function() {
+        self.User.bulkCreate([{
+          username: 'leia'
+        }, {
+          username: 'luke'
+        }, {
+          username: 'vader'
+        }]).success(function() {
+          self.Project.bulkCreate([{
+            title: 'republic'
+          },{
+            title: 'empire'
+          }]).success(function() {
+            self.User.findAll().success(function(users){
+              self.Project.findAll().success(function(projects){
+                var leia = users[0]
+                  , luke = users[1]
+                  , vader = users[2]
+                  , republic = projects[0]
+                  , empire = projects[1]
+                leia.setProjects([republic]).success(function(){
+                  luke.setProjects([republic]).success(function(){
+                    vader.setProjects([empire]).success(function(){
+                      leia.destroy().success(function() {
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('should not fail with an include', function(done) {
+      var tableName = ''
+        , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
+        , escape = this.sequelize.queryInterface.QueryGenerator.escape
+      if(this.Project.tableName) {
+        tableName = ident(this.Project.tableName) + '.'
+      }
+      this.User.findAll({
+        where: [
+          tableName + ident('title') + ' = ' + escape('republic')
+        ],
+        include: [
+          {model: this.Project}
+        ]
+      }).success(function(users){
+
+        try{
+          expect(users.length).to.be.equal(1)
+          expect(users[0].username).to.be.equal('luke')
+          done()
+        }catch(e){
+          done(e)
+        }
+      }).error(done)
+    })
+
+    it('should not overwrite a specified deletedAt', function(done) {
+      var tableName = ''
+        , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
+      if(this.User.tableName) {
+        tableName = ident(this.User.tableName) + '.'
+      }
+      this.User.findAll({
+        where: [
+          tableName + ident('deletedAt') + ' IS NOT NULL '
+        ],
+        include: [
+          {model: this.Project}
+        ]
+      }).success(function(users){
+
+        try{
+          expect(users.length).to.be.equal(1)
+          expect(users[0].username).to.be.equal('leia')
+          done()
+        }catch(e){
+          done(e)
+        }
+      }).error(done)
+    })
+
+  })
+
 })

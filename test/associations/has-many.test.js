@@ -265,6 +265,40 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe('addAssociations', function() {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.addLabel(label, { transaction: t }).success(function() {
+                    Label
+                      .findAll({ where: { ArticleId: article.id }, transaction: undefined })
+                      .success(function(labels) {
+                        expect(labels.length).to.equal(0)
+
+                        Label
+                          .findAll({ where: { ArticleId: article.id }, transaction: t })
+                          .success(function(labels) {
+                            expect(labels.length).to.equal(1)
+                            t.rollback().success(function() { done() })
+                          })
+                      })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("clears associations when passing null to the set-method with omitNull set to true", function(done) {
       this.sequelize.options.omitNull = true
 
@@ -285,6 +319,59 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                     task.getUsers().success(function(_users) {
                       expect(_users).to.have.length(0)
                       done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    describe('createAssociations', function() {
+      it('creates a new associated object', function(done) {
+        var Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
+          , Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING })
+
+        Article.hasMany(Label)
+
+        Article.sync({ force: true }).success(function() {
+          Label.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              article.createLabel({ text: 'bar' }).success(function(label) {
+
+                Label
+                  .findAll({ where: { ArticleId: article.id }})
+                  .success(function(labels) {
+                    expect(labels.length).to.equal(1)
+                    done()
+                  })
+              })
+            })
+          })
+        })
+      })
+
+      it('supports transactions', function(done) {
+        var self = this
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
+
+          Article.hasMany(Label)
+
+          Article.sync({ force: true }).success(function() {
+            Label.sync({ force: true }).success(function() {
+              Article.create({ title: 'foo' }).success(function(article) {
+                sequelize.transaction(function (t) {
+                  article.createLabel({ text: 'bar' }, { transaction: t }).success(function(label) {
+                    Label.findAll({ where: { ArticleId: article.id }}).success(function(labels) {
+                      expect(labels.length).to.equal(0)
+                      Label.findAll({ where: { ArticleId: article.id }}, { transaction: t }).success(function(labels) {
+                        expect(labels.length).to.equal(1)
+                        t.rollback().success(function() { done() })
+                      })
                     })
                   })
                 })
@@ -620,6 +707,90 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe('createAssociations', function() {
+      it('creates a new associated object', function(done) {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+        User.hasMany(Task)
+        Task.hasMany(User)
+
+        User.sync({ force: true }).success(function() {
+          Task.sync({ force: true }).success(function() {
+            Task.create({ title: 'task' }).success(function(task) {
+              task.createUser({ username: 'foo' }).success(function() {
+                task.getUsers().success(function(_users) {
+                  expect(_users).to.have.length(1)
+
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('supports transactions', function(done) {
+        var self = this
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: DataTypes.STRING })
+            , Task = sequelize.define('Task', { title: DataTypes.STRING })
+
+          User.hasMany(Task)
+          Task.hasMany(User)
+
+          User.sync({ force: true }).success(function() {
+            Task.sync({ force: true }).success(function() {
+              Task.create({ title: 'task' }).success(function(task) {
+                sequelize.transaction(function (t) {
+                  task.createUser({ username: 'foo' }, { transaction: t }).success(function() {
+                    task.getUsers().success(function(users) {
+                      expect(users).to.have.length(0)
+
+                      task.getUsers({ transaction: t }).success(function(users) {
+                        expect(users).to.have.length(1)
+                        t.rollback().success(function() { done() })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    describe('addAssociations', function() {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: DataTypes.STRING })
+            , Task = sequelize.define('Task', { title: DataTypes.STRING })
+
+          User.hasMany(Task)
+          Task.hasMany(User)
+
+          sequelize.sync({ force: true }).success(function() {
+            User.create({ username: 'foo' }).success(function(user) {
+              Task.create({ title: 'task' }).success(function(task) {
+                sequelize.transaction(function(t){
+                  task.addUser(user, { transaction: t }).success(function() {
+                    task.hasUser(user).success(function(hasUser) {
+                      expect(hasUser).to.be.false
+                      task.hasUser(user, { transaction: t }).success(function(hasUser) {
+                        expect(hasUser).to.be.true
+                        t.rollback().success(function() { done() })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     describe('optimizations using bulk create, destroy and update', function () {
       beforeEach(function (done) {
         var self = this
@@ -820,7 +991,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Worker.hasMany(Task, { through: WorkerTasks })
             Task.hasMany(Worker, { through: WorkerTasks })
 
-            this.sequelize.sync().done(function(err) { 
+            this.sequelize.sync().done(function(err) {
               expect(err).not.to.be.ok
               Worker.create().done(function (err, worker) {
                 expect(err).not.to.be.ok
@@ -878,7 +1049,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Worker.hasMany(Task, { through: WorkerTasks })
             Task.hasMany(Worker, { through: WorkerTasks })
 
-            this.sequelize.sync().done(function(err) { 
+            this.sequelize.sync().done(function(err) {
               expect(err).not.to.be.ok
               Worker.create().done(function (err, worker) {
                 expect(err).not.to.be.ok
@@ -909,7 +1080,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Worker.hasMany(Task, { through: WorkerTasks })
           Task.hasMany(Worker, { through: WorkerTasks })
 
-          this.sequelize.sync().done(function(err) { 
+          this.sequelize.sync().done(function(err) {
             expect(err).not.to.be.ok
             Worker.create({}).done(function (err, worker) {
               expect(err).not.to.be.ok
@@ -924,7 +1095,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                       worker.getTasks().done(function (err, tasks) {
                         expect(tasks.length).to.equal(1)
                         done()
-                      })  
+                      })
                     })
                   })
                 })
