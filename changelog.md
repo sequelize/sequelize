@@ -8,6 +8,7 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 - fix bug where `{where: {ne: null}}` would result in `!= NULL` instead of `IS NOT NULL` [#1231](https://github.com/sequelize/sequelize/pull/1059)
 - fixes a bug with validation skipping using the `fields` options. [#1233](https://github.com/sequelize/sequelize/pull/1233)
 - fixes a bug with postgres and setters [#1234](https://github.com/sequelize/sequelize/issues/1234)
+- fixes it so `field: {type: Sequelize.ENUM(value1, value2)}` works
 
 #### Backwards compatability changes
 - Hooks are no longer passing value hashes. Instead, they are now passing instances of the model.
