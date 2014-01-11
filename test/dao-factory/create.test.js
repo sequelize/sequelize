@@ -651,28 +651,60 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
-      it('allows values passed as parameters to Sequelize.ENUM', function(done) {
-        var Enum = this.sequelize.define('Enum', {
-          state: Sequelize.ENUM('happy', 'sad')
+      describe('when defined via { field: Sequelize.ENUM }', function() {
+        it('allows values passed as parameters', function(done) {
+          var Enum = this.sequelize.define('Enum', {
+            state: Sequelize.ENUM('happy', 'sad')
+          })
+
+          Enum.sync({ force: true }).success(function() {
+            Enum.create({ state: 'happy' }).success(function(_item) {
+              done()
+            });
+          });
         })
 
-        Enum.sync({ force: true }).success(function() {
-          Enum.create({ state: 'happy' }).success(function(_item) {
-            done()
+        it('allows values passed as an array', function(done) {
+          var Enum = this.sequelize.define('Enum', {
+            state: Sequelize.ENUM(['happy', 'sad'])
+          })
+
+          Enum.sync({ force: true }).success(function() {
+            Enum.create({ state: 'happy' }).success(function(_item) {
+              done()
+            });
           });
-        });
+        })
       })
 
-      it('allows values passed as an array to Sequelize.ENUM', function(done) {
-        var Enum = this.sequelize.define('Enum', {
-          state: Sequelize.ENUM(['happy', 'sad'])
+      describe('when defined via { field: { type: Sequelize.ENUM } }', function() {
+        it('allows values passed as parameters', function(done) {
+          var Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM('happy', 'sad')
+            }
+          })
+
+          Enum.sync({ force: true }).success(function() {
+            Enum.create({ state: 'happy' }).success(function(_item) {
+              done()
+            });
+          });
         })
 
-        Enum.sync({ force: true }).success(function() {
-          Enum.create({ state: 'happy' }).success(function(_item) {
-            done()
+        it('allows values passed as an array', function(done) {
+          var Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM(['happy', 'sad'])
+            }
+          })
+
+          Enum.sync({ force: true }).success(function() {
+            Enum.create({ state: 'happy' }).success(function(_item) {
+              done()
+            });
           });
-        });
+        })
       })
 
       describe('can safely sync multiple times', function(done) {
