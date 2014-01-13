@@ -102,4 +102,22 @@ describe(Support.getTestDialectTeaser("CustomEventEmitter"), function () {
       })
     })
   })
+
+  describe("when emitting an error event with a hash containing arrays of error strings", function() {
+    describe("if no error handler is given", function() {
+      it("should throw an error with the first error string", function(done) {
+        var emitter = new CustomEventEmitter()
+        var errors = {
+          myValidation: [ "Invalid Length" ],
+          someOtherValidation: [ "Naah don't like that value!", "It's weird, u know?" ]
+        }
+
+        expect(function () {
+          emitter.emit("error", errors)
+        }).to.throw(errors.myValidation[0])
+
+        done()
+      })
+    })
+  })
 })
