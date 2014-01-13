@@ -165,8 +165,8 @@ if (dialect === 'sqlite') {
         }, {
           title: 'functions can take functions as arguments',
           arguments: ['myTable', function (sequelize) {
-            return { 
-              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']] 
+            return {
+              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']]
             }
           }],
           expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;",
@@ -177,7 +177,7 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', function (sequelize) {
             return {
               order: [
-                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'], 
+                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'],
                 [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
               ]
             }
@@ -259,6 +259,16 @@ if (dialect === 'sqlite') {
           title: 'buffer as where argument',
           arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field`=X'53657175656c697a65';",
+          context: QueryGenerator
+        }, {
+          title: 'use != if ne !== null',
+          arguments: ['myTable', {where: {field: {ne: 0}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;",
+          context: QueryGenerator
+        }, {
+          title: 'use IS NOT if ne === null',
+          arguments: ['myTable', {where: {field: {ne: null}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;",
           context: QueryGenerator
         }
       ],

@@ -166,7 +166,7 @@ if(typeof program.env === 'string') {
   configuration.environment = program.env
 }
 
-if (program.migrate) {
+if (program.migrate || program.undo) {
   if (configFileExists() || program.url) {
     var config
       , options  = {}
