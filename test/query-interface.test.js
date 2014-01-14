@@ -110,7 +110,17 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
           expect(username.allowNull).to.be.true
           expect(username.defaultValue).to.be.null
 
-          expect(isAdmin.type).to.equal(dialect === 'postgres' ? 'BOOLEAN' : 'TINYINT(1)')
+          switch(dialect) {
+            case 'postgres':
+              expect(isAdmin.type).to.equal('BOOLEAN')
+              break
+            case 'mssql':
+              expect(isAdmin.type).to.equal('TINYINT')
+              break
+            default:
+              expect(isAdmin.type).to.equal('TINYINT(1)')
+              break
+          }
           expect(isAdmin.allowNull).to.be.true
           expect(isAdmin.defaultValue).to.be.null
 
