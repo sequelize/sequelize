@@ -1,5 +1,9 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc2
+- fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)
+- fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)
+
 # v1.7.0-rc1
 - instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
 - fixes a few bugs with transactions in regards to associations
