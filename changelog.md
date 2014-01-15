@@ -1,4 +1,8 @@
-Notice: All 1.7.x changed are present in 2.0.x aswell
+Notice: All 1.7.x changes are present in 2.0.x aswell
+
+# v1.7.0-rc2
+- fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)
+- fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)
 
 # v1.7.0-rc1
 - instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
@@ -6,6 +10,9 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 - add error handling for transaction creation
 - `sequelize --undo` will now actually undo migrations. Its basically an alias for `sequelize --migrate --undo`. [#1059](https://github.com/sequelize/sequelize/pull/1059)
 - fix bug where `{where: {ne: null}}` would result in `!= NULL` instead of `IS NOT NULL` [#1231](https://github.com/sequelize/sequelize/pull/1059)
+- fixes a bug with validation skipping using the `fields` options. [#1233](https://github.com/sequelize/sequelize/pull/1233)
+- fixes a bug with postgres and setters [#1234](https://github.com/sequelize/sequelize/issues/1234)
+- fixes it so `field: {type: Sequelize.ENUM(value1, value2)}` works
 
 #### Backwards compatability changes
 - Hooks are no longer passing value hashes. Instead, they are now passing instances of the model.
