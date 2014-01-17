@@ -49,5 +49,25 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
         transaction.commit()
       })
     })
+
+    it('works for long running transactions', function(done) {
+      var transaction = new Transaction(this.sequelize)
+        , self        = this
+
+      transaction.done(done)
+      transaction.prepareEnvironment(function() {
+        setTimeout(function() {
+          self.sequelize.query('select 1+1 as sum', null, {
+            raw: true,
+            plain: true,
+            transaction: transaction
+          }).done(function(err, result) {
+            expect(err).to.be.null
+            expect(result.sum).to.equal(2)
+            transaction.commit()
+          })
+        }, 2000)
+      })
+    })
   })
 })
