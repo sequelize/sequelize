@@ -37,22 +37,27 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
 
   describe('increment', function () {
     beforeEach(function(done) {
-      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done)
+      var self = this
+
+      this.User.create({ aNumber: 0, bNumber: 0 }).success(function(user) {
+        self.userId = user.id
+        done()
+      })
     })
 
     it('with array', function(done) {
       var self = this
 
       this.User
-        .find(1)
+        .find(this.userId)
         .then(function(user) {
-          expect(user.id).to.equal(1)
+          expect(user.id).to.equal(self.userId)
           return user.increment(['aNumber'], { by: 2 })
         })
         .then(function(user) {
           // The following assertion would rock hard, but it's not implemented :(
           // expect(user.aNumber).to.equal(2)
-          return self.User.find(1)
+          return self.User.find(self.userId)
         })
         .then(function(user) {
           expect(user.aNumber).to.equal(2)
@@ -65,15 +70,15 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
 
       // Select something
       this.User
-        .find(1)
+        .find(this.userId)
         .then(function (user1) {
         // Select the user again (simulating a concurrent query)
-          return self.User.find(1)
+          return self.User.find(self.userId)
             .then(function (user2) {
               return user2
                 .updateAttributes({ aNumber: user2.aNumber + 1 })
                 .then(function() { return user1.increment(['aNumber'], { by: 2 }) })
-                .then(function() { return self.User.find(1) })
+                .then(function() { return self.User.find(self.userId) })
                 .then(function(user5) {
                   expect(user5.aNumber).to.equal(3)
                   done()
@@ -86,12 +91,12 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       var self = this
 
       this.User
-        .find(1)
+        .find(this.userId)
         .then(function(user1) {
           return user1.increment({ 'aNumber': 1, 'bNumber': 2})
         })
         .then(function () {
-          return self.User.find(1)
+          return self.User.find(self.userId)
         })
         .then(function (user3) {
           expect(user3.aNumber).to.equal(1)
@@ -103,19 +108,24 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
 
   describe('decrement', function () {
     beforeEach(function (done) {
-      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done)
+      var self = this
+
+      this.User.create({ aNumber: 0, bNumber: 0 }).success(function(user) {
+        self.userId = user.id
+        done()
+      })
     })
 
     it('with array', function(done) {
       var self = this
 
       this.User
-        .find(1)
+        .find(self.userId)
         .then(function(user1) {
           return user1.decrement(['aNumber'], { by: 2 })
         })
         .then(function(user2) {
-          return self.User.find(1)
+          return self.User.find(self.userId)
         })
         .then(function(user3) {
           expect(user3.aNumber).to.equal(-2)
@@ -127,12 +137,12 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       var self = this
 
       this.User
-        .find(1)
+        .find(self.userId)
         .then(function(user1) {
           return user1.decrement(['aNumber'], { by: 2 })
         })
         .then(function(user3) {
-          return self.User.find(1)
+          return self.User.find(self.userId)
         })
         .then(function (user3) {
           expect(user3.aNumber).to.equal(-2)
@@ -144,11 +154,11 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       var self = this
 
       this.User
-        .find(1)
+        .find(self.userId)
         .then(function(user1) {
           var _done = _.after(3, function() {
             self.User
-              .find(1)
+              .find(self.userId)
               .then(function(user2) {
                 expect(user2.aNumber).to.equal(-6)
                 done()
