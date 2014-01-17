@@ -1,5 +1,4 @@
 var fs        = require('fs')
-  , path      = require('path')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
   , Config    = require(__dirname + "/config/config")
@@ -25,19 +24,6 @@ var Support = {
     })
   },
 
-  prepareTransactionTest: function(sequelize, callback) {
-    var dialect = Support.getTestDialect()
-
-    if (dialect === 'sqlite') {
-      var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: path.join(__dirname, 'tmp', 'db.sqlite') })
-        , _sequelize = new Sequelize(sequelize.config.datase, null, null, options)
-
-      _sequelize.sync({ force: true }).success(function() { callback(_sequelize) })
-    } else {
-      callback(sequelize)
-    }
-  },
-
   createSequelizeInstance: function(options) {
     options = options || {}
     options.dialect = options.dialect || 'mysql'
@@ -45,10 +31,9 @@ var Support = {
     var config = Config[options.dialect]
 
     options.logging = (options.hasOwnProperty('logging') ? options.logging : false)
-    options.pool    = options.pool !== undefined ? options.pool : config.pool
+    options.pool    = options.pool || config.pool
 
     var sequelizeOptions = {
-      host:           options.host || config.host,
       logging:        options.logging,
       dialect:        options.dialect,
       port:           options.port || process.env.SEQ_PORT || config.port,
@@ -56,12 +41,12 @@ var Support = {
       dialectOptions: options.dialectOptions || {}
     }
 
-    if (!!options.define) {
-      sequelizeOptions.define = options.define
+    if (!!options.host) {
+      sequelizeOptions.host = options.host
     }
 
-    if (!!config.storage) {
-      sequelizeOptions.storage = config.storage
+    if (!!options.define) {
+      sequelizeOptions.define = options.define
     }
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -137,19 +122,6 @@ var Support = {
     }
 
     return "[" + dialect.toUpperCase() + "] " + moduleName
-  },
-
-  getTestUrl: function(config) {
-    var url,
-        dbConfig = config[config.dialect];
-
-    if (config.dialect === 'sqlite') {
-      url = 'sqlite://' + dbConfig.storage;
-    } else {
-      url = config.dialect + "://" + dbConfig.username
-      + "@" + dbConfig.host + ":" + dbConfig.port + "/" + dbConfig.database;
-    }
-    return url;
   }
 }
 

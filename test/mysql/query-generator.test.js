@@ -268,21 +268,6 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', {where: null}],
           expectation: "SELECT * FROM `myTable` WHERE 1=1;",
           context: QueryGenerator
-        }, {
-          title: 'buffer as where argument',
-          arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field`=X'53657175656c697a65';",
-          context: QueryGenerator
-        }, {
-          title: 'use != if ne !== null',
-          arguments: ['myTable', {where: {field: {ne: 0}}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;",
-          context: QueryGenerator
-        }, {
-          title: 'use IS NOT if ne === null',
-          arguments: ['myTable', {where: {field: {ne: null}}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;",
-          context: QueryGenerator
         }
       ],
 
@@ -349,7 +334,7 @@ if (Support.dialectIsMySQL()) {
           expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1),('bar',2);"
         }, {
           arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', nullValue: null}]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',NULL,NULL);"
+          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',NULL);"
         }, {
           arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
@@ -360,7 +345,7 @@ if (Support.dialectIsMySQL()) {
           context: {options: {omitNull: true}} // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         }, {
           arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: undefined}, {name: 'bar', foo: 2, undefinedValue: undefined}]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`,`undefinedValue`) VALUES ('foo',1,NULL,NULL),('bar',2,NULL,NULL);",
+          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
           context: {options: {omitNull: true}} // Note: As above
         }, {
           arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
@@ -526,7 +511,6 @@ if (Support.dialectIsMySQL()) {
               test.arguments[1] = test.arguments[1](this.sequelize)
             }
             QueryGenerator.options = context.options
-            QueryGenerator._dialect = this.sequelize.dialect
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)
             done()
