@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   this.User.bulkCreate([
                     {username: 'Bob', mood: 'cold'},
                     {username: 'Tobi', mood: 'hot'}
-                  ], [], {hooks: true}).success(function(bulkUsers) {
+                  ], { fields: [], hooks: true }).success(function(bulkUsers) {
                     expect(beforeBulkCreate).to.be.true
                     expect(afterBulkCreate).to.be.true
                     expect(bulkUsers).to.be.instanceof(Array)
@@ -111,7 +111,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
                     self.User.all().success(function(users) {
                       expect(users[0].mood).to.equal('happy')
-                      expect(users[0].mood).to.equal('happy')
+                      expect(users[1].mood).to.equal('happy')
                       done()
                     })
                   })
@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   this.User.bulkCreate([
                     {username: 'Bob', mood: 'cold'},
                     {username: 'Tobi', mood: 'hot'}
-                  ], null, {hooks: true}).success(function(bulkUsers) {
+                  ], { hooks: true }).success(function(bulkUsers) {
                     expect(beforeBulkCreate).to.be.true
                     expect(afterBulkCreate).to.be.true
                     expect(bulkUsers).to.be.instanceof(Array)
@@ -1105,7 +1105,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
   })
 
   describe('#create', function() {
-    describe('via deifne', function() {
+    describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
           it('should return the user from the callback', function(done) {
@@ -1869,7 +1869,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
   })
 
   describe('#updateAttributes', function() {
-    describe('via deifne', function() {
+    describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
           it('should return the user from the callback', function(done) {
@@ -1987,7 +1987,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
             User.sync({ force: true }).success(function() {
               User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+                user.updateAttributes({username: 'Chong'}).done(function(err, user) {
                   expect(user.username).to.equal('Chong')
                   expect(user.mood).to.equal('happy')
                   expect(beforeHook).to.be.true
@@ -4320,7 +4320,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], ['aNumber'], {hooks: true}).success(function(records) {
+        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], hooks: true }).success(function(records) {
           records.forEach(function(record) {
             expect(record.username).to.equal('User' + record.id)
             expect(record.beforeHookTest).to.be.true
@@ -4354,7 +4354,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], ['aNumber'], {hooks: true}).error(function(err) {
+        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], hooks: true }).error(function(err) {
           expect(err).to.equal('You shall not pass!')
           expect(beforeBulkCreate).to.be.true
           expect(afterBulkCreate).to.be.false
@@ -5272,7 +5272,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], ['aNumber']).success(function() {
+        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
           self.User.update({aNumber: 10}, {aNumber: 1}, {hooks: true}).error(function(err) {
             expect(err).to.equal('You shall not pass!')
             expect(beforeBulk).to.be.true
@@ -6059,7 +6059,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], ['aNumber']).success(function() {
+        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
           self.User.destroy({aNumber: 1}, {hooks: true}).error(function(err) {
             expect(err).to.equal('You shall not pass!')
             expect(beforeBulk).to.be.true
@@ -6988,6 +6988,170 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   done()
                 })
               })
+            })
+          })
+        })
+      })
+    })
+  })
+
+  describe('passing DAO instances', function() {
+
+    describe('beforeValidate / afterValidate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeValidate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterValidate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            expect(beforeHooked).to.be.true
+            expect(afterHooked).to.be.true
+            done()
+          })
+        })
+      })
+    })
+
+    describe('beforeCreate / afterCreate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeCreate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterCreate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            expect(beforeHooked).to.be.true
+            expect(afterHooked).to.be.true
+            done()
+          })
+        })
+      })
+    })
+
+    describe('beforeDestroy / afterDestroy', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeDestroy: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterDestroy: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.destroy().success(function() {
+              expect(beforeHooked).to.be.true
+              expect(afterHooked).to.be.true
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('beforeDelete / afterDelete', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeDelete: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterDelete: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.destroy().success(function() {
+              expect(beforeHooked).to.be.true
+              expect(afterHooked).to.be.true
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('beforeUpdate / afterUpdate', function() {
+      it('should pass a DAO instance to the hook', function(done){
+        var beforeHooked = false
+        var afterHooked = false
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeUpdate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              beforeHooked = true
+              fn()
+            },
+            afterUpdate: function(user, fn) {
+              expect(user).to.be.instanceof(User.DAO)
+              afterHooked = true
+              fn()
+            }
+          }
+        })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'bob' }).success(function(user) {
+            user.save({ username: 'bawb' }).success(function() {
+              expect(beforeHooked).to.be.true
+              expect(afterHooked).to.be.true
+              done()
             })
           })
         })
