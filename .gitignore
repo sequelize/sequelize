@@ -7,5 +7,3 @@ npm-debug.log
 *~
 test/binary/tmp/*
 test/tmp/*
-test/sqlite/test.sqlite
-coverage-*

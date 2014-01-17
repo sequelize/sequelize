@@ -6,12 +6,12 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("Language Util"), function() {
-  beforeEach(function(done) {
+  before(function(done) {
     this.sequelize.options.language = 'es'
     done()
   })
 
-  afterEach(function(done) {
+  after(function(done) {
     this.sequelize.options.language = 'en'
     done()
   })
@@ -37,8 +37,8 @@ describe(Support.getTestDialectTeaser("Language Util"), function() {
       table2.belongsTo(table)
       table3.hasMany(table2)
 
-      expect(table.associations.androide.identifier).to.equal('arbolId')
-      expect(table2.associations.arbol).to.exist
+      expect(table.associations.androides.identifier).to.equal('arbolId')
+      expect(table2.associations.arboles).to.exist
       expect(table3.associations.androideshombres).to.exist
       done()
     })

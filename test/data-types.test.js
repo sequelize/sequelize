@@ -6,43 +6,13 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser('DataTypes'), function() {
-  it('should return false when comparing DECIMAL and DECIMAL(10,2)', function(done) {
-    expect(Sequelize.DECIMAL).to.not.equal(Sequelize.DECIMAL(10,2))
+  it('should return DECIMAL for the default decimal type', function(done) {
+    expect(Sequelize.DECIMAL.toString()).to.equal('DECIMAL')
     done()
   })
 
-  it('DECIMAL(10,2) should be an instance of DECIMAL', function(done) {
-    expect(Sequelize.DECIMAL(10,2)).to.be.an.instanceof(Sequelize.DECIMAL)
-    done()
-  })
-
-  it('should return false when comparing FLOAT and FLOAT(11)', function(done) {
-    expect(Sequelize.FLOAT).to.not.equal(Sequelize.FLOAT(11))
-    done()
-  })
-
-  it('FLOAT(11) should be an instance of FLOAT', function(done) {
-    expect(Sequelize.FLOAT(11)).to.be.an.instanceof(Sequelize.FLOAT)
-    done()
-  })
-
-  it('should return false when comparing STRING and STRING(4096)', function(done) {
-    expect(Sequelize.STRING).to.not.equal(Sequelize.STRING(4096))
-    done()
-  })
-
-  it('STRING(4096) should be an instance of STRING', function(done) {
-    expect(Sequelize.STRING(4096)).to.be.an.instanceof(Sequelize.STRING)
-    done()
-  })
-
-  it('should return false when comparing BIGINT and BIGINT(11)', function(done) {
-    expect(Sequelize.BIGINT).to.not.equal(Sequelize.BIGINT(11))
-    done()
-  })
-
-  it('BIGINT(11) should be an instance of BIGINT', function(done) {
-    expect(Sequelize.BIGINT(11)).to.be.an.instanceof(Sequelize.BIGINT)
+  it('should return DECIMAL(10,2) for the default decimal type with arguments', function(done) {
+    expect(Sequelize.DECIMAL(10, 2)).to.equal('DECIMAL(10,2)')
     done()
   })
 
@@ -55,7 +25,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     [Sequelize.TEXT, 'TEXT', 'TEXT'],
     [Sequelize.DATE, 'DATE', 'DATETIME'],
     [Sequelize.NOW, 'NOW', 'NOW'],
-    [Sequelize.UUID, 'UUID', 'UUID'],
     [Sequelize.BOOLEAN, 'BOOLEAN', 'TINYINT(1)'],
 
     [Sequelize.BLOB, 'BLOB', 'BLOB'],
@@ -91,10 +60,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     [Sequelize.FLOAT(11, 12).UNSIGNED, 'FLOAT(11,12).UNSIGNED', 'FLOAT(11,12) UNSIGNED'],
     [Sequelize.FLOAT(11, 12).UNSIGNED.ZEROFILL,'FLOAT(11,12).UNSIGNED.ZEROFILL','FLOAT(11,12) UNSIGNED ZEROFILL'],
     [Sequelize.FLOAT(11, 12).ZEROFILL,'FLOAT(11,12).ZEROFILL', 'FLOAT(11,12) ZEROFILL'],
-    [Sequelize.FLOAT(11, 12).ZEROFILL.UNSIGNED,'FLOAT(11,12).ZEROFILL.UNSIGNED', 'FLOAT(11,12) UNSIGNED ZEROFILL'],
-
-    [Sequelize.DECIMAL, 'DECIMAL', 'DECIMAL'],
-    [Sequelize.DECIMAL(10,2), 'DECIMAL(10,2)','DECIMAL(10,2)']
+    [Sequelize.FLOAT(11, 12).ZEROFILL.UNSIGNED,'FLOAT(11,12).ZEROFILL.UNSIGNED', 'FLOAT(11,12) UNSIGNED ZEROFILL']
   ]
 
   tests.forEach(function(test) {

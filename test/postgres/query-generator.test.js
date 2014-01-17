@@ -268,8 +268,8 @@ if (dialect.match(/^postgres/)) {
         }, {
           title: 'functions can take functions as arguments',
           arguments: ['myTable', function (sequelize) {
-            return {
-              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']]
+            return { 
+              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']] 
             }
           }],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2("id")) DESC;',
@@ -280,7 +280,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', function (sequelize) {
             return {
               order: [
-                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'],
+                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'], 
                 [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
               ]
             }
@@ -333,11 +333,6 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
           expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"mySchema\".\"myTable\".\"name\"='foo'';DROP TABLE mySchema.myTable;';"
-        }, {
-          title: 'buffer as where argument',
-          arguments: ['myTable', {where: { field: new Buffer("Sequelize")}}],
-          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\"=E'\\\\x53657175656c697a65';",
-          context: QueryGenerator
         },
 
         // Variants when quoteIdentifiers is false
@@ -410,24 +405,10 @@ if (dialect.match(/^postgres/)) {
           arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
           expectation: "SELECT * FROM mySchema.myTable WHERE mySchema.myTable.name='foo'';DROP TABLE mySchema.myTable;';",
           context: {options: {quoteIdentifiers: false}}
-        }, {
-          title: 'use != if ne !== null',
-          arguments: ['myTable', {where: {field: {ne: 0}}}],
-          expectation: "SELECT * FROM myTable WHERE myTable.field != 0;",
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          title: 'use IS NOT if ne === null',
-          arguments: ['myTable', {where: {field: {ne: null}}}],
-          expectation: "SELECT * FROM myTable WHERE myTable.field IS NOT NULL;",
-          context: {options: {quoteIdentifiers: false}}
         }
       ],
 
       insertQuery: [
-        {
-          arguments: ['myTable', {}],
-          expectation: "INSERT INTO \"myTable\" DEFAULT VALUES RETURNING *;"
-        },
         {
           arguments: ['myTable', {name: 'foo'}],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
@@ -914,7 +895,6 @@ if (dialect.match(/^postgres/)) {
               test.arguments[1] = test.arguments[1](this.sequelize)
             }
             QueryGenerator.options = context.options
-            QueryGenerator._dialect = this.sequelize.dialect
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
             expect(conditions).to.deep.equal(test.expectation)
             done()
