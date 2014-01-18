@@ -5,6 +5,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)
 - improves handling of uncaught errors in eventemitter [#1245](https://github.com/sequelize/sequelize/pull/1245)
 - fixes bug with mysql replication and pool settings [#1251](https://github.com/sequelize/sequelize/pull/1251)
+- through models created by N:M associations no longer inherit hooks [#1263](https://github.com/sequelize/sequelize/issues/1263)
 
 # v1.7.0-rc1
 - instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
