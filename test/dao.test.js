@@ -710,7 +710,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
-    it("gets triggered if everything was ok", function(done) {
+    it("gets triggered if everything was ok", function(done) {
       this.User.count().complete(function(err, result) {
         expect(err).to.be.null
         expect(result).to.exist
@@ -795,7 +795,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       // timeout is needed, in order to check the update of the timestamp
       var build = function(callback) {
         user      = User.build({ username: 'user' })
-  
+
         var save = user.save()
 
         save.success(function() {

@@ -1,4 +1,10 @@
-Notice: All 1.7.x changed are present in 2.0.x aswell
+Notice: All 1.7.x changes are present in 2.0.x aswell
+
+# v1.7.0-rc2
+- fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)
+- fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)
+- improves handling of uncaught errors in eventemitter [#1245](https://github.com/sequelize/sequelize/pull/1245)
+- fixes bug with mysql replication and pool settings [#1251](https://github.com/sequelize/sequelize/pull/1251)
 
 # v2.0.0 (alpha1) #
 - [FEATURE] async validations. [#580](https://github.com/sequelize/sequelize/pull/580). thanks to Interlock
@@ -11,6 +17,7 @@ Notice: All 1.7.x changed are present in 2.0.x aswell
 - fix bug where `{where: {ne: null}}` would result in `!= NULL` instead of `IS NOT NULL` [#1231](https://github.com/sequelize/sequelize/pull/1059)
 - fixes a bug with validation skipping using the `fields` options. [#1233](https://github.com/sequelize/sequelize/pull/1233)
 - fixes a bug with postgres and setters [#1234](https://github.com/sequelize/sequelize/issues/1234)
+- fixes it so `field: {type: Sequelize.ENUM(value1, value2)}` works
 
 #### Backwards compatability changes
 - Hooks are no longer passing value hashes. Instead, they are now passing instances of the model.
