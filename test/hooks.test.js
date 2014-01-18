@@ -4,6 +4,8 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../lib/data-types')
   , _         = require('lodash')
+  , Sequelize = Support.Sequelize
+  , sinon     = require('sinon')
 
 chai.Assertion.includeStack = true
 
@@ -1862,6 +1864,43 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 done()
               })
             })
+          })
+        })
+      })
+    })
+
+    it('should not trigger hooks on parent when using N:M association setters', function (done) {
+      var A = this.sequelize.define('A', {
+        name: Sequelize.STRING
+      })
+      var B = this.sequelize.define('B', {
+        name: Sequelize.STRING
+      })
+
+      var hookCalled = 0
+
+      A.addHook('afterCreate', function (instance, next) {
+        hookCalled++
+        next()
+      })
+ 
+      B.hasMany(A)
+      A.hasMany(B)
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok
+
+        var chainer = new Sequelize.Utils.QueryChainer([
+          A.create({name: 'a'}),
+          B.create({name: 'b'})
+        ])
+
+        chainer.run().done(function (err, res, a, b) {
+          expect(err).not.to.be.ok
+          a.addB(b).done(function (err) {
+            expect(err).not.to.be.ok
+            expect(hookCalled).to.equal(1)
+            done()
           })
         })
       })

@@ -857,6 +857,22 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
+
+      it.only('should be possible to order by sequelize.col()', function (done) {
+        var self = this
+        var Company = this.sequelize.define('Company', {
+          name: Sequelize.STRING
+        });
+
+        Company.sync().done(function () {
+          Company.findAll({
+            order: [self.sequelize.col('name')]
+          }).done(function(err) {
+            expect(err).not.to.be.ok
+            done()
+          })
+        })
+      })
     })
   })
 
