@@ -858,7 +858,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
-      it.only('should be possible to order by sequelize.col()', function (done) {
+      it('should be possible to order by sequelize.col()', function (done) {
         var self = this
         var Company = this.sequelize.define('Company', {
           name: Sequelize.STRING
