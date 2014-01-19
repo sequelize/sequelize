@@ -45,7 +45,7 @@ var Support = {
     var config = Config[options.dialect]
 
     options.logging = (options.hasOwnProperty('logging') ? options.logging : false)
-    options.pool    = options.pool || config.pool
+    options.pool    = options.pool !== undefined ? options.pool : config.pool
 
     var sequelizeOptions = {
       host:           options.host || config.host,

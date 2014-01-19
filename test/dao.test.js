@@ -710,7 +710,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
-    it("gets triggered if everything was ok", function(done) {
+    it("gets triggered if everything was ok", function(done) {
       this.User.count().complete(function(err, result) {
         expect(err).to.be.null
         expect(result).to.exist

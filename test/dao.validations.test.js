@@ -562,5 +562,24 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       expect(errors.field).to.have.length(1)
       expect(errors.field[0]).to.equal("Unexpected value or invalid argument: field")
     })
+
+    it('skips validations for the given fields', function() {
+      var values = ['value1', 'value2']
+
+      var Bar = this.sequelize.define('Bar' + config.rand(), {
+        field: {
+          type: Sequelize.ENUM,
+          values: values,
+          validate: {
+            isIn: [values]
+          }
+        }
+      })
+
+      var failingBar = Bar.build({ field: 'value3' })
+        , errors     = failingBar.validate({ skip: ['field'] })
+
+      expect(errors).to.be.null
+    })
   })
 })

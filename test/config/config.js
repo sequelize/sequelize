@@ -33,7 +33,7 @@ module.exports = {
     port:     process.env.SEQ_MYSQL_PORT || process.env.SEQ_PORT || 3306,
     pool:     {
       maxConnections: process.env.SEQ_MYSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
-      maxIdleTime:    process.env.SEQ_MYSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 30
+      maxIdleTime:    process.env.SEQ_MYSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
     }
   },
 
@@ -59,7 +59,7 @@ module.exports = {
     host:     process.env.SEQ_MYSQL_HOST || process.env.SEQ_HOST || '127.0.0.1',
     port:     process.env.SEQ_MYSQL_PORT || process.env.SEQ_PORT || 3306,
     pool:     {
-      maxConnections: process.env.SEQ_MYSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 1,
+      maxConnections: process.env.SEQ_MYSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
       maxIdleTime:    process.env.SEQ_MYSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
     }
   }

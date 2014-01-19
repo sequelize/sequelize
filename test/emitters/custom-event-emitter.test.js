@@ -60,4 +60,64 @@ describe(Support.getTestDialectTeaser("CustomEventEmitter"), function () {
       proxy.emit('success')
     })
   })
+
+  describe("when emitting an error event with an array of errors", function() {
+    describe("if no error handler is given", function() {
+      it("should throw the first error", function(done) {
+        var emitter = new CustomEventEmitter()
+
+        expect(function () {
+          emitter.emit("error", [
+            [
+              new Error("First error"),
+              new Error("Second error")
+            ], [
+              new Error("Third error")
+            ]
+          ])
+        }).to.throw("First error")
+
+        done()
+      })
+    })
+
+    describe("if an error handler is given", function() {
+      it("should return the whole array", function(done) {
+        var emitter = new CustomEventEmitter()
+        var errors = [
+          [
+            new Error("First error"),
+            new Error("Second error")
+          ], [
+            new Error("Third error")
+          ]
+        ]
+
+        emitter.error(function (err) {
+          expect(err).to.equal(errors)
+
+          done()
+        })
+        emitter.emit("error", errors)
+      })
+    })
+  })
+
+  describe("when emitting an error event with a hash containing arrays of error strings", function() {
+    describe("if no error handler is given", function() {
+      it("should throw an error with the first error string", function(done) {
+        var emitter = new CustomEventEmitter()
+        var errors = {
+          myValidation: [ "Invalid Length" ],
+          someOtherValidation: [ "Naah don't like that value!", "It's weird, u know?" ]
+        }
+
+        expect(function () {
+          emitter.emit("error", errors)
+        }).to.throw(errors.myValidation[0])
+
+        done()
+      })
+    })
+  })
 })

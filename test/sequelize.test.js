@@ -397,14 +397,15 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     if (dialect !== "sqlite") {
-      it("fails with incorrect database credentials", function(done) {
-        this.sequelizeWithInvalidCredentials = new Sequelize("omg", "bar", null, this.sequelize.options)
+      it("fails with incorrect database credentials (1)", function(done) {
+        this.sequelizeWithInvalidCredentials = new Sequelize("omg", "bar", null, _.omit(this.sequelize.options, ['host']))
 
         var User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
         User2.sync().error(function(err) {
           if (dialect === "postgres" || dialect === "postgres-native") {
             assert([
+              'fe_sendauth: no password supplied',
               'role "bar" does not exist',
               'FATAL:  role "bar" does not exist',
               'password authentication failed for user "bar"'
@@ -412,6 +413,20 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           } else {
             expect(err.message.toString()).to.match(/.*Access\ denied.*/)
           }
+          done()
+        })
+      })
+
+      it('fails with incorrect database credentials (2)', function (done) {
+        var sequelize = new Sequelize('db', 'user', 'pass', {
+          dialect: this.sequelize.options.dialect
+        });
+
+        var Project = sequelize.define('Project', {title: Sequelize.STRING})
+        var Task = sequelize.define('Task', {title: Sequelize.STRING})
+
+        sequelize.sync({force: true}).done(function (err) {
+          expect(err).to.be.ok
           done()
         })
       })
