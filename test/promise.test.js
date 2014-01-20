@@ -321,7 +321,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         .then(function(user) {
           expect(user.id).to.equal(1)
           expect(arguments.length).to.equal(1)
-          done();
+          done()
         })      
     })
 
@@ -333,7 +333,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
             expect(user.id).to.equal(1)
             expect(created).to.equal(false)
             expect(arguments.length).to.equal(2)
-            done();
+            done()
           })      
       })
       it('user created', function (done) {
@@ -343,7 +343,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
             expect(user.id).to.equal(2)
             expect(created).to.equal(true)
             expect(arguments.length).to.equal(2)
-            done();
+            done()
           })      
       })
       it('works for functions with only one return value', function (done) {
@@ -352,7 +352,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
           .spread(function(user) {
             expect(user.id).to.equal(1)
             expect(arguments.length).to.equal(1)
-            done();
+            done()
           })    
       })
     })    
