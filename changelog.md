@@ -1,5 +1,8 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc3
+- implements .spread for eventemitters [#1277](https://github.com/sequelize/sequelize/pull/1277)
+
 # v1.7.0-rc2
 - fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)
 - fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)
