@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       self.queryInterface.createTable('skipme', {
         name: DataTypes.STRING,
       }).success(function() {
-        self.queryInterface.dropAllTables(['skipme']).complete(function(err){
+        self.queryInterface.dropAllTables({skip: ['skipme']}).complete(function(err){
           expect(err).to.be.null
           
           self.queryInterface.showAllTables().complete(function(err, tableNames) {
