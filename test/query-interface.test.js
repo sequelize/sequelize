@@ -45,6 +45,24 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         })
       })
     })
+
+    it('should be able to skip given tables', function(done){
+      var self = this
+      self.queryInterface.createTable('skipme', {
+        name: DataTypes.STRING,
+      }).success(function() {
+        self.queryInterface.dropAllTables(['skipme']).complete(function(err){
+          expect(err).to.be.null
+          
+          self.queryInterface.showAllTables().complete(function(err, tableNames) {
+            expect(err).to.be.null
+
+            expect(tableNames).to.contain('skipme');
+            done();
+          })
+        })
+      })
+    })
   })
 
   describe('indexes', function() {
