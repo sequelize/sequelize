@@ -235,7 +235,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', {group: "name", order: "id DESC"}],
           expectation: "SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;",
           context: QueryGenerator
-        },{
+        }, {
           title: 'HAVING clause works with string replacements',
           arguments: ['myTable', function (sequelize) {
             return {
