@@ -119,59 +119,61 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('correctly handles complex combinations', function(done) {
-      this.User.find({
-        where: [
-          42, "2=2", ["1=?", 1], { username: "foo" },
-          Sequelize.or(
+    ;(['find', 'findAll']).forEach(function(finderMethod) {
+      it('correctly handles complex combinations', function(done) {
+        this.User[finderMethod]({
+          where: [
             42, "2=2", ["1=?", 1], { username: "foo" },
-            Sequelize.and( 42, "2=2", ["1=?", 1], { username: "foo" } ),
-            Sequelize.or( 42, "2=2", ["1=?", 1], { username: "foo" } )
-          ),
-          Sequelize.and(
-            42, "2=2", ["1=?", 1], { username: "foo" },
-            Sequelize.or( 42, "2=2", ["1=?", 1], { username: "foo" } ),
-            Sequelize.and( 42, "2=2", ["1=?", 1], { username: "foo" } )
-          )
-        ]
-      }).on('sql', function(sql) {
-        if (Support.getTestDialect() === 'postgres') {
-          expect(sql).to.contain(
-            'WHERE (' + [
-              '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
-                '(',
-                  '"Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\' OR ',
-                  '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\') OR ',
-                  '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\')',
-                ') AND ',
-                '(',
-                  '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
-                  '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\') AND ',
-                  '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\')',
-                ')'
-              ].join("") +
-            ')'
-          )
-        } else {
-          expect(sql).to.contain(
-            "WHERE (" + [
-              "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
-                "(",
-                  "`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo' OR ",
-                  "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo') OR ",
-                  "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo')",
-                ") AND ",
-                "(",
-                  "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
-                  "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo') AND ",
-                  "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo')",
-                ")"
-              ].join("") +
-            ")"
-          )
-        }
+            Sequelize.or(
+              42, "2=2", ["1=?", 1], { username: "foo" },
+              Sequelize.and( 42, "2=2", ["1=?", 1], { username: "foo" } ),
+              Sequelize.or( 42, "2=2", ["1=?", 1], { username: "foo" } )
+            ),
+            Sequelize.and(
+              42, "2=2", ["1=?", 1], { username: "foo" },
+              Sequelize.or( 42, "2=2", ["1=?", 1], { username: "foo" } ),
+              Sequelize.and( 42, "2=2", ["1=?", 1], { username: "foo" } )
+            )
+          ]
+        }).on('sql', function(sql) {
+          if (Support.getTestDialect() === 'postgres') {
+            expect(sql).to.contain(
+              'WHERE (' + [
+                '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
+                  '(',
+                    '"Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\' OR ',
+                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\') OR ',
+                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\')',
+                  ') AND ',
+                  '(',
+                    '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
+                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\') AND ',
+                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\')',
+                  ')'
+                ].join("") +
+              ')'
+            )
+          } else {
+            expect(sql).to.contain(
+              "WHERE (" + [
+                "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
+                  "(",
+                    "`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo' OR ",
+                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo') OR ",
+                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo')",
+                  ") AND ",
+                  "(",
+                    "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
+                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo') AND ",
+                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo')",
+                  ")"
+                ].join("") +
+              ")"
+            )
+          }
 
-        done()
+          done()
+        })
       })
     })
   })
