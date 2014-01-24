@@ -1177,6 +1177,77 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
+  describe('sum', function() {
+    beforeEach(function(done) {
+      var self = this
+      this.UserWithAge = this.sequelize.define('UserWithAge', {
+        age: Sequelize.INTEGER,
+        order: Sequelize.INTEGER,
+        gender: Sequelize.ENUM('male', 'female')
+      })
+
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function() {
+        self.UserWithDec.sync({ force: true }).success(function() {
+          done()
+        })
+      })
+    })
+
+    it("should return the sum of the values for a field named the same as an SQL reserved keyword", function(done) {
+      var self = this
+      this.UserWithAge.bulkCreate([{age: 2, order: 3}, {age: 3, order: 5}]).success(function(){
+        self.UserWithAge.sum('order').success(function(sum) {
+          expect(sum).to.equal(8)
+          done()
+        })
+      })
+    })
+
+    it("should return the sum of a field in various records", function(done) {
+      var self = this
+      self.UserWithAge.bulkCreate([{age: 2}, {age: 3}]).success(function() {
+        self.UserWithAge.sum('age').success(function(sum) {
+          expect(sum).to.equal(5)
+          done()
+        })
+      })
+    })
+
+    it("should allow decimals in sum", function(done) {
+      var self = this
+      this.UserWithDec.bulkCreate([{value: 3.5}, {value: 5.25}]).success(function(){
+        self.UserWithDec.sum('value').success(function(sum){
+          expect(sum).to.equal(8.75)
+          done()
+        })
+      })
+    })
+
+    it('should accept a where clause', function (done) {
+      var options = { where: { 'gender': 'male' }}
+
+      var self = this
+      self.UserWithAge.bulkCreate([{age: 2, gender: 'male'}, {age: 3, gender: 'female'}]).success(function() {
+        self.UserWithAge.sum('age', options).success(function(sum) {
+          expect(sum).to.equal(2)
+          done()
+        })
+      })
+    })
+
+    it('allows sql logging', function(done) {
+      this.UserWithAge.sum('age').on('sql', function(sql) {
+        expect(sql).to.exist
+        expect(sql.toUpperCase().indexOf("SELECT")).to.be.above(-1)
+        done()
+      })
+    })
+  })
+
   describe('schematic support', function() {
     beforeEach(function(done){
       var self = this;

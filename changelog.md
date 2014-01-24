@@ -1,5 +1,10 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc3
+- dropAllTables now takes an option parameter with `skip` as an option [#1280](https://github.com/sequelize/sequelize/pull/1280)
+- implements .spread for eventemitters [#1277](https://github.com/sequelize/sequelize/pull/1277)
+- fixes some of the mysql connection error bugs [#1282](https://github.com/sequelize/sequelize/pull/1282)
+
 # v1.7.0-rc2
 - fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)
 - fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)

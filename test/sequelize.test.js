@@ -430,6 +430,37 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           done()
         })
       })
+
+      it('fails with incorrect database credentials (3)', function (done) {
+        var sequelize = new Sequelize('db', 'user', 'pass', {
+          dialect: this.sequelize.options.dialect,
+          port: 99999
+        });
+
+        var Project = sequelize.define('Project', {title: Sequelize.STRING})
+        var Task = sequelize.define('Task', {title: Sequelize.STRING})
+
+        sequelize.sync({force: true}).done(function (err) {
+          expect(err).to.be.ok
+          done()
+        })
+      })
+
+      it('fails with incorrect database credentials (4)', function (done) {
+        var sequelize = new Sequelize('db', 'user', 'pass', {
+          dialect: this.sequelize.options.dialect,
+          port: 99999,
+          pool: {}
+        });
+
+        var Project = sequelize.define('Project', {title: Sequelize.STRING})
+        var Task = sequelize.define('Task', {title: Sequelize.STRING})
+
+        sequelize.sync({force: true}).done(function (err) {
+          expect(err).to.be.ok
+          done()
+        })
+      })
     }
 
     describe("doesn't emit logging when explicitly saying not to", function() {
