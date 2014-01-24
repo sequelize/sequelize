@@ -85,6 +85,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('treats questionmarks in an array', function(done) {
+        this.UserPrimary.find({
+          where: ['specialkey = ?', 'awesome']
+        }).on('sql', function(sql) {
+          expect(sql).to.contain("WHERE specialkey = 'awesome'")
+          done()
+        })
+      })
+
       it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function(done) {
         this.UserPrimary.find('a string').success(function(user) {
           expect(user.specialkey).to.equal('a string')
