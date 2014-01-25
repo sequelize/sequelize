@@ -888,6 +888,47 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           done()
         }, 50)
       })
+
+      describe('primary key handling for join table', function () {
+        it('removes the primary key if it was added by sequelize', function () {
+          var self = this
+          this.UserTasks = this.sequelize.define('usertasks', {});
+
+          this.User.hasMany(this.Task, { through: this.UserTasks })
+          this.Task.hasMany(this.User, { through: this.UserTasks })
+
+          expect(Object.keys(self.UserTasks.primaryKeys)).to.deep.equal(['taskId', 'userId'])
+        })
+
+        it('keeps the primary key if it was added by the user', function () {
+          var self = this
+          this.UserTasks = this.sequelize.define('usertasks', {
+            id: {
+              type: Sequelize.INTEGER,
+              autoincrement: true,
+              primaryKey: true
+            }
+          });
+          this.UserTasks2 = this.sequelize.define('usertasks2', {
+            userTasksId: {
+              type: Sequelize.INTEGER,
+              autoincrement: true,
+              primaryKey: true
+            }
+          }); 
+
+          this.User.hasMany(this.Task, { through: this.UserTasks })
+          this.Task.hasMany(this.User, { through: this.UserTasks })
+
+          this.User.hasMany(this.Task, { through: this.UserTasks2 })
+          this.Task.hasMany(this.User, { through: this.UserTasks2 })
+
+          expect(Object.keys(self.UserTasks.primaryKeys)).to.deep.equal(['id'])
+          expect(Object.keys(self.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId'])
+
+          // TODO : check that userId, taskId, is added as a uniqueness constraint instead
+        })
+      })
     })
 
     describe('join table model', function () {
