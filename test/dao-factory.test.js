@@ -690,7 +690,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       this.User.bulkCreate(data).success(function() {
         self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err) {
-          console.log(err)
           expect(err).not.to.be.ok
           self.User.findAll({order: 'id'}).success(function(users) {
             expect(users.length).to.equal(3)
@@ -704,6 +703,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
             done()
           })
+        })
+      })
+    })
+
+    it('returns the number of affected rows', function(_done) {
+     var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+        , done = _.after(2, _done)
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(2)
+          
+          done()
+        })
+
+        self.User.update({username: 'Bill'}, {secretValue: '44'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(0)
+          
+          done()
         })
       })
     })
@@ -864,6 +887,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               })
             })
           })
+        })
+      })
+    })
+
+   it('returns the number of affected rows', function(_done) {
+     var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+        , done = _.after(2, _done)
+
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.destroy({secretValue: '42'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(2)
+          
+          done()
+        })
+
+        self.User.destroy({secretValue: '44'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(0)
+          
+          done()
         })
       })
     })
