@@ -902,6 +902,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         it('keeps the primary key if it was added by the user', function () {
           var self = this
+            , fk
+            
           this.UserTasks = this.sequelize.define('usertasks', {
             id: {
               type: Sequelize.INTEGER,
@@ -926,7 +928,10 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           expect(Object.keys(self.UserTasks.primaryKeys)).to.deep.equal(['id'])
           expect(Object.keys(self.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId'])
 
-          // TODO : check that userId, taskId, is added as a uniqueness constraint instead
+          _.each([self.UserTasks, self.UserTasks2], function (i, model) {
+            fk = Object.keys(self.UserTasks.options.uniqueKeys)[0]
+            expect(self.UserTasks.options.uniqueKeys[fk].fields).to.deep.equal([ 'taskId', 'userId' ])
+          })
         })
       })
     })
