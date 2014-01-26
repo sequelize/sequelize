@@ -64,6 +64,22 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               done()
             })
         })
+
+        it('triggers the error event when using replication', function (done) {
+          new Sequelize('sequelize', null, null, {
+            replication: {
+              read: {
+                host: 'localhost',
+                username: 'omg',
+                password: 'lol'
+              }
+            }
+          }).authenticate()
+            .complete(function(err, result) {
+              expect(err).to.not.be.null
+              done()
+            })
+        })
       })
     })
   }
