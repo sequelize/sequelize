@@ -1805,6 +1805,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
+
+      it("should work when the database returns null", function (done) {
+        var self = this
+        this.BlobUser.create({
+          // create a null column
+        }).success(function (user) {
+          self.BlobUser.find(user.id).success(function (user) {
+            expect(user.data).to.be.null
+            done()
+          })
+        })
+      })
     })
 
     describe("strings", function () {
