@@ -80,6 +80,37 @@ if (dialect.match(/^postgres/)) {
         })
       })
 
+      it("should be able to create/drop multiple enums multiple times", function(done) {
+        var DummyModel = this.sequelize.define('Dummy-pg', {
+          username: DataTypes.STRING,
+          theEnumOne: {
+            type: DataTypes.ENUM,
+            values:[
+              'one',
+              'two',
+              'three',
+            ]
+          },
+          theEnumTwo: {
+            type: DataTypes.ENUM,
+            values:[
+              'four',
+              'five',
+              'six',
+            ],
+          }
+        })
+
+        DummyModel.sync({ force: true }).done(function(err) {
+          expect(err).not.to.be.ok
+          // now sync one more time:
+          DummyModel.sync({force: true}).done(function(err) {
+            expect(err).not.to.be.ok
+            done();
+          })
+        })
+      })
+
       it('should be able to add enum types', function(done) {
         var self = this
           , User = this.sequelize.define('UserEnums', {
