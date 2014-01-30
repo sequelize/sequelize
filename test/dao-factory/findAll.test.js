@@ -957,6 +957,57 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it("handles offset with includes", function (done) {
+      var Election = this.sequelize.define('Election', {
+        name: Sequelize.STRING
+      })
+      var Citizen = this.sequelize.define('Citizen', {
+        name: Sequelize.STRING
+      })
+
+      // Associations
+      Election.belongsTo(Citizen)
+      Election.hasMany(Citizen, { as: 'Voters', through: 'ElectionsVotes' })
+      Citizen.hasMany(Election)
+      Citizen.hasMany(Election, { as: 'Votes', through: 'ElectionsVotes' })
+
+      this.sequelize.sync().done(function (err) {
+        expect(err).not.be.ok
+          
+        // Add some data
+        Citizen.create({ name: 'Alice' }).done(function (err, alice) {
+          expect(err).not.be.ok
+          Citizen.create({ name: 'Bob' }).done(function (err, bob) {
+            expect(err).not.be.ok
+            Election.create({ name: 'Some election' }).done(function (err, election) {
+              expect(err).not.be.ok
+              election.setCitizen(alice).done(function (err) {
+                expect(err).not.be.ok
+                election.setVoters([alice, bob]).done(function (err) {
+                  expect(err).not.be.ok
+                  
+                  var criteria = {
+                    offset: 5,
+                    limit: 1,
+                    include: [
+                      Citizen, // Election creator
+                      { model: Citizen, as: 'Voters' } // Election voters
+                    ]
+                  }
+                  Election.findAndCountAll(criteria).done(function (err, elections) {
+                    expect(err).not.be.ok
+                    expect(elections.count).to.equal(2)
+                    expect(elections.rows.length).to.equal(0)
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("handles attributes", function(done) {
       this.User.findAndCountAll({where: "id != " + this.users[0].id, attributes: ['data']}).success(function(info) {
         expect(info.count).to.equal(2)
