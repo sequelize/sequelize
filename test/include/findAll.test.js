@@ -895,7 +895,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     })
 
     it('should be possible to extend the on clause with a where option on nested includes', function (done) {
-      var User = this.sequelize.define('User', {})
+      var User = this.sequelize.define('User', {
+            name: DataTypes.STRING
+          })
         , Product = this.sequelize.define('Product', {
             title: DataTypes.STRING
           })
@@ -984,7 +986,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
                 async.auto({
                   user: function (callback) {
-                    User.create().done(callback)
+                    User.create({name: 'FooBarzz'}).done(callback)
                   },
                   memberships: ['user', function (callback, results) {
                     GroupMember.bulkCreate([
@@ -1123,22 +1125,26 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should be possible use limit and a where on a belongsTo with additional hasMany includes', function (done) {
+    it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', function (done) {
       var self = this
       this.fixtureA(function () {
         self.models.Product.findAll({
+          attributes: ['title'],
           include: [
             {model: self.models.Company, where: {name: 'NYSE'}},
             {model: self.models.Tag},
             {model: self.models.Price}
           ],
           limit: 3,
-          order: 'id ASC'
+          order: [
+            [self.sequelize.col(self.models.Product.tableName+'.id'), 'ASC']
+          ]
         }).done(function (err, products) {
           expect(err).not.to.be.ok
           expect(products.length).to.equal(3)
 
           products.forEach(function (product) {
+            expect(product.company.name).to.equal('NYSE')
             expect(product.tags.length).to.be.ok
             expect(product.prices.length).to.be.ok
           })
@@ -1151,6 +1157,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       var self = this
       this.fixtureA(function () {
         self.models.Product.findAll({
+
           include: [
             {model: self.models.Company},
             {model: self.models.Tag},
