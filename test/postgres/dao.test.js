@@ -224,6 +224,39 @@ if (dialect.match(/^postgres/)) {
           })
           .error(console.log)
       })
+
+      it("10.5.1 should handle enums properly when re-initializing", function(done) {
+        var DummyModel = this.sequelize.define('Dummy-pg', {
+          username: DataTypes.STRING,
+          theEnumOne: {
+            type: DataTypes.ENUM,
+            values:[
+              'one',
+              'two',
+              'three',
+            ]
+          },
+          theEnumTwo: {
+            type: DataTypes.ENUM,
+            values:[
+              'four',
+              'five',
+              'six',
+            ],
+          },
+
+        })
+        DummyModel.sync({ force: true })
+          .success(function() {
+            // now sync one more time:
+            DummyModel.sync({force: true}).success(function(){
+              done();
+            })
+            .error(done);
+          })
+          .error(done);
+      });
+
     })
 
     describe('[POSTGRES] Unquoted identifiers', function() {
