@@ -8,6 +8,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [Feature] Support for HAVING queries. [#1286](https://github.com/sequelize/sequelize/pull/1286)
 - bulkUpdate and bulkDestroy now returns affected rows. [#1293](https://github.com/sequelize/sequelize/pull/1293)
 - fixes transaction memory leak issue
+- fixes security issue where it was possible to overwrite the id attribute when defined by sequelize (screwup - and fix - by mickhansen)
 
 # v1.7.0-rc2
 - fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)

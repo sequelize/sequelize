@@ -17,7 +17,24 @@ chai.Assertion.includeStack = true
 describe(Support.getTestDialectTeaser("DAO"), function () {
   describe('Values', function () {
     describe('set', function () {
-      it('doesn\'t overwrite primary keys', function () {
+      it('doesn\'t overwrite generated primary keys', function () {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING}
+        })
+
+        var user = User.build({id: 1, name: 'Mick'})
+
+        expect(user.get('id')).to.equal(1)
+        expect(user.get('name')).to.equal('Mick')
+        user.set({
+          id: 2,
+          name: 'Jan'
+        })
+        expect(user.get('id')).to.equal(1)
+        expect(user.get('name')).to.equal('Jan')
+      })
+
+      it('doesn\'t overwrite defined primary keys', function () {
         var User = this.sequelize.define('User', {
           identifier: {type: DataTypes.STRING, primaryKey: true}
         })
