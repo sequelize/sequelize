@@ -246,6 +246,39 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it('allows multiple column unique keys to be defined', function(done) {
+      var User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: 'user_and_email' },
+        email: { type: Sequelize.STRING, unique: 'user_and_email' },
+        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+      })
+
+      User.sync({ force: true }).on('sql', function(sql) {
+        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_username_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
+        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_aCol_bCol)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
+        done()
+      })
+    })
+
+    it('allows us to customize the error message for unique constraint', function(done) {
+      var User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
+        email: { type: Sequelize.STRING, unique: 'user_and_email' },
+        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+      })
+
+      User.sync({ force: true }).success(function() {
+        User.create({username: 'tobi', email: 'tobi@tobi.me'}).success(function() {
+          User.create({username: 'tobi', email: 'tobi@tobi.me'}).error(function(err) {
+            expect(err).to.equal('User and email must be unique')
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('build', function() {
@@ -690,7 +723,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       this.User.bulkCreate(data).success(function() {
         self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err) {
-          console.log(err)
           expect(err).not.to.be.ok
           self.User.findAll({order: 'id'}).success(function(users) {
             expect(users.length).to.equal(3)
@@ -704,6 +736,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
             done()
           })
+        })
+      })
+    })
+
+    it('returns the number of affected rows', function(_done) {
+     var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+        , done = _.after(2, _done)
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(2)
+          
+          done()
+        })
+
+        self.User.update({username: 'Bill'}, {secretValue: '44'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(0)
+          
+          done()
         })
       })
     })
@@ -864,6 +920,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               })
             })
           })
+        })
+      })
+    })
+
+   it('returns the number of affected rows', function(_done) {
+     var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+        , done = _.after(2, _done)
+
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.destroy({secretValue: '42'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(2)
+          
+          done()
+        })
+
+        self.User.destroy({secretValue: '44'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(0)
+          
+          done()
         })
       })
     })
@@ -1170,6 +1251,77 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('allows sql logging', function(done) {
       this.UserWithAge.max('age').on('sql', function(sql) {
+        expect(sql).to.exist
+        expect(sql.toUpperCase().indexOf("SELECT")).to.be.above(-1)
+        done()
+      })
+    })
+  })
+
+  describe('sum', function() {
+    beforeEach(function(done) {
+      var self = this
+      this.UserWithAge = this.sequelize.define('UserWithAge', {
+        age: Sequelize.INTEGER,
+        order: Sequelize.INTEGER,
+        gender: Sequelize.ENUM('male', 'female')
+      })
+
+      this.UserWithDec = this.sequelize.define('UserWithDec', {
+        value: Sequelize.DECIMAL(10, 3)
+      })
+
+      this.UserWithAge.sync({ force: true }).success(function() {
+        self.UserWithDec.sync({ force: true }).success(function() {
+          done()
+        })
+      })
+    })
+
+    it("should return the sum of the values for a field named the same as an SQL reserved keyword", function(done) {
+      var self = this
+      this.UserWithAge.bulkCreate([{age: 2, order: 3}, {age: 3, order: 5}]).success(function(){
+        self.UserWithAge.sum('order').success(function(sum) {
+          expect(sum).to.equal(8)
+          done()
+        })
+      })
+    })
+
+    it("should return the sum of a field in various records", function(done) {
+      var self = this
+      self.UserWithAge.bulkCreate([{age: 2}, {age: 3}]).success(function() {
+        self.UserWithAge.sum('age').success(function(sum) {
+          expect(sum).to.equal(5)
+          done()
+        })
+      })
+    })
+
+    it("should allow decimals in sum", function(done) {
+      var self = this
+      this.UserWithDec.bulkCreate([{value: 3.5}, {value: 5.25}]).success(function(){
+        self.UserWithDec.sum('value').success(function(sum){
+          expect(sum).to.equal(8.75)
+          done()
+        })
+      })
+    })
+
+    it('should accept a where clause', function (done) {
+      var options = { where: { 'gender': 'male' }}
+
+      var self = this
+      self.UserWithAge.bulkCreate([{age: 2, gender: 'male'}, {age: 3, gender: 'female'}]).success(function() {
+        self.UserWithAge.sum('age', options).success(function(sum) {
+          expect(sum).to.equal(2)
+          done()
+        })
+      })
+    })
+
+    it('allows sql logging', function(done) {
+      this.UserWithAge.sum('age').on('sql', function(sql) {
         expect(sql).to.exist
         expect(sql.toUpperCase().indexOf("SELECT")).to.be.above(-1)
         done()
@@ -1649,6 +1801,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.BlobUser.find(user.id).success(function (user) {
             expect(user.data).to.be.an.instanceOf(Buffer)
             expect(user.data.toString()).to.have.string('Sequelize')
+            done()
+          })
+        })
+      })
+
+      it("should work when the database returns null", function (done) {
+        var self = this
+        this.BlobUser.create({
+          // create a null column
+        }).success(function (user) {
+          self.BlobUser.find(user.id).success(function (user) {
+            expect(user.data).to.be.null
             done()
           })
         })

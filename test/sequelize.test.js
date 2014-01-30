@@ -64,6 +64,22 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               done()
             })
         })
+
+        it('triggers the error event when using replication', function (done) {
+          new Sequelize('sequelize', null, null, {
+            replication: {
+              read: {
+                host: 'localhost',
+                username: 'omg',
+                password: 'lol'
+              }
+            }
+          }).authenticate()
+            .complete(function(err, result) {
+              expect(err).to.not.be.null
+              done()
+            })
+        })
       })
     })
   }
@@ -420,6 +436,37 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       it('fails with incorrect database credentials (2)', function (done) {
         var sequelize = new Sequelize('db', 'user', 'pass', {
           dialect: this.sequelize.options.dialect
+        });
+
+        var Project = sequelize.define('Project', {title: Sequelize.STRING})
+        var Task = sequelize.define('Task', {title: Sequelize.STRING})
+
+        sequelize.sync({force: true}).done(function (err) {
+          expect(err).to.be.ok
+          done()
+        })
+      })
+
+      it('fails with incorrect database credentials (3)', function (done) {
+        var sequelize = new Sequelize('db', 'user', 'pass', {
+          dialect: this.sequelize.options.dialect,
+          port: 99999
+        });
+
+        var Project = sequelize.define('Project', {title: Sequelize.STRING})
+        var Task = sequelize.define('Task', {title: Sequelize.STRING})
+
+        sequelize.sync({force: true}).done(function (err) {
+          expect(err).to.be.ok
+          done()
+        })
+      })
+
+      it('fails with incorrect database credentials (4)', function (done) {
+        var sequelize = new Sequelize('db', 'user', 'pass', {
+          dialect: this.sequelize.options.dialect,
+          port: 99999,
+          pool: {}
         });
 
         var Project = sequelize.define('Project', {title: Sequelize.STRING})

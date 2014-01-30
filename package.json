@@ -56,7 +56,7 @@
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
-    "mysql": "2.0.0-alpha9",
+    "mysql": "2.0.1",
     "pg": "~2.8.1",
     "watchr": "~2.4.3",
     "yuidocjs": "~0.3.36",
@@ -64,7 +64,7 @@
     "mocha": "~1.13.0",
     "chai-datetime": "~1.1.1",
     "sinon": "~1.7.3",
-    "mariasql": "git://github.com/mscdex/node-mariasql.git",
+    "mariasql": "0.1.20",
     "chai-spies": "~0.5.1",
     "lcov-result-merger": "0.0.2",
     "istanbul": "~0.1.45",

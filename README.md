@@ -20,6 +20,7 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/wiki/Collaboration)
 - [Roadmap](https://github.com/sequelize/sequelize/wiki/Roadmap)
+- [Meetups](https://github.com/sequelize/sequelize/wiki/Meetups)
 
 ## Important Notes ##
 
