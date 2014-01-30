@@ -1,5 +1,8 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc4
+- fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)
+
 # v1.7.0-rc3
 - dropAllTables now takes an option parameter with `skip` as an option [#1280](https://github.com/sequelize/sequelize/pull/1280)
 - implements .spread for eventemitters [#1277](https://github.com/sequelize/sequelize/pull/1277)
