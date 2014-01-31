@@ -112,6 +112,20 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         done()
       })
     })
+
+    it("supports .or() (only using default values)", function (done) {
+      this.User.findOrCreate(
+        Sequelize.or({username: 'Fooobzz'}, {secretValue: 'Yolo'}),
+        {username: 'Fooobzz', secretValue: 'Yolo'}
+      ).done(function (err, user, created) {
+        expect(err).not.to.be.ok
+        expect(user.username).to.equal('Fooobzz')
+        expect(user.secretValue).to.equal('Yolo')
+        expect(created).to.be.true
+
+        done()
+      })
+    })
   })
 
   describe('create', function() {
