@@ -469,7 +469,7 @@ if (Support.dialectIsMySQL()) {
       addIndexQuery: [
         {
           arguments: ['User', ['username', 'isAdmin']],
-          expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)'
+          expectation: 'CREATE INDEX user_username_is_admin ON User (`username`, `isAdmin`)'
         }, {
           arguments: [
             'User', [
@@ -477,12 +477,12 @@ if (Support.dialectIsMySQL()) {
               'isAdmin'
             ]
           ],
-          expectation: "CREATE INDEX user_username_is_admin ON User (username(10) ASC, isAdmin)"
+          expectation: "CREATE INDEX user_username_is_admin ON User (`username`(10) ASC, `isAdmin`)"
         }, {
           arguments: [
             'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}
           ],
-          expectation: "CREATE FULLTEXT INDEX bar ON User (username, isAdmin) WITH PARSER foo"
+          expectation: "CREATE FULLTEXT INDEX bar ON User (`username`, `isAdmin`) WITH PARSER foo"
         }
       ],
 
