@@ -71,7 +71,8 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       this.queryInterface.dropTable('Users').success(function() {
         self.queryInterface.createTable('Users', {
           username: DataTypes.STRING,
-          isAdmin: DataTypes.BOOLEAN
+          isAdmin: DataTypes.BOOLEAN,
+          from: DataTypes.STRING
         }).success(function() {
           done()
         })
@@ -103,6 +104,14 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
             })
           })
         })
+      })
+    })
+
+    it('does not fail on reserved keywords', function (done) {
+      this.queryInterface.addIndex('Users', ['from']).done(function(err) {
+        expect(err).to.be.null
+
+        done()
       })
     })
   })
