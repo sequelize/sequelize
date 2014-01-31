@@ -390,7 +390,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',true),('bar',false);"
         }, {
-          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {ignore: true}],
+          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {ignoreDuplicates: true}],
           expectation: "INSERT IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
         }
       ],

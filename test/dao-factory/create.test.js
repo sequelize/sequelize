@@ -991,14 +991,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it("should support the insert ignore option", function(done) {
+    it("should support the insert ignoreDuplicates option", function(done) {
       var self = this
         , data = [{ uniqueName: 'Peter', secretValue: '42' },
                   { uniqueName: 'Paul', secretValue: '23' }]
 
       this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).success(function() {
         data.push({ uniqueName: 'Michael', secretValue: '26' });
-        self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignore: true }).success(function() {
+        self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).success(function() {
           self.User.findAll({order: 'id'}).success(function(users) {
             expect(users.length).to.equal(3)
             expect(users[0].uniqueName).to.equal("Peter")
