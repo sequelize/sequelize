@@ -142,4 +142,27 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       })
     })
   })
+
+  describe('createTable', function () {
+    it('should work with enums (1)', function (done) {
+      this.queryInterface.createTable('SomeTable', {
+        someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
+      }).done(function (err) {
+        expect(err).not.to.be.ok
+        done()
+      })
+    })
+
+    it('should work with enums (2)', function (done) {
+      this.queryInterface.createTable('SomeTable', {
+        someEnum: {
+          type: DataTypes.ENUM,
+          values: ['value1', 'value2', 'value3']
+        }
+      }).done(function (err) {
+        expect(err).not.to.be.ok
+        done()
+      })
+    })
+  })
 })

@@ -2,6 +2,7 @@ var chai         = require('chai')
   , expect       = chai.expect
   , Support      = require(__dirname + '/support')
   , Migrator     = require("../lib/migrator")
+  , DataTypes     = require("../lib/data-types")
   , dialect      = Support.getTestDialect()
 
 chai.Assertion.includeStack = true
@@ -287,7 +288,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
       })
     })
 
-})
+  })
 
   describe('renameColumn', function() {
     it("renames the signature column from user to sig", function(done) {
@@ -308,7 +309,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
       })
     })
   })
-
+  
   if (dialect.match(/^postgres/)) {
 
     describe('function migrations', function() {
