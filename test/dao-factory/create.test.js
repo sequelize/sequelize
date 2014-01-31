@@ -1023,7 +1023,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
 
           self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).error(function(err) {
-            console.log('err?', err)
             expect(err).to.exist
             expect(err.message).to.match(/Postgres does not support the \'ignoreDuplicates\' option./)
 
