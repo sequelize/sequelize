@@ -4,6 +4,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)
 - fixes various issues with limit and includes [#1322](https://github.com/sequelize/sequelize/pull/1322) 
 - fixes issues with migrations/queryInterface createTable and enums
+- migration/queryInterface.addIndex() no longer fals on reserved keywords like 'from'
 
 #### Backwards compatability changes
 - find/findAll will now always return primary keys regardless of `attributes` settings. (Motivation was to fix various issues with eager loading)
