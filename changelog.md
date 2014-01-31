@@ -5,7 +5,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - fixes various issues with limit and includes [#1322](https://github.com/sequelize/sequelize/pull/1322) 
 
 #### Backwards compatability changes
-- find/findAll will not always return primary keys regardless of `attributes` settings. (Motivation was to fix various issues with eager loading)
+- find/findAll will now always return primary keys regardless of `attributes` settings. (Motivation was to fix various issues with eager loading)
 
 # v1.7.0-rc3
 - dropAllTables now takes an option parameter with `skip` as an option [#1280](https://github.com/sequelize/sequelize/pull/1280)
