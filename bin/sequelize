@@ -150,7 +150,7 @@ program
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
-  .option('-U, --url <url>', 'Database url.  An alternative to a config file')
+  .option('-U, --url <url>', 'Database url.  An alternative to a config file (default: DATABASE_URL)')
   .option('--config <config_file>', 'Specifies alternate config file.')
   .parse(process.argv)
 
@@ -167,7 +167,11 @@ if(typeof program.env === 'string') {
 }
 
 if (program.migrate || program.undo) {
-  if (configFileExists() || program.url) {
+    if(process.env.DATABASE_URL) {
+      program.url = process.env.DATABASE_URL;
+    }
+
+    if (configFileExists() || program.url) {
     var config
       , options  = {}
 
@@ -231,16 +235,8 @@ if (program.migrate || program.undo) {
     process.exit(1)
   }
 } else if(program.init) {
-  if(!configFileExists() || !!program.force) {
-    writeDefaultConfig()
-
-    console.log('Created "' + relativeConfigFile() + '"')
-  } else {
-    console.log('The file "' + relativeConfigFile() + '" already exists. Run "sequelize --init --force" to overwrite it.')
-    process.exit(1)
-  }
-
   createMigrationsFolder(program.force)
+
 } else if(program.createMigration) {
   createMigrationsFolder()
 
