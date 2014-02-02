@@ -24,7 +24,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       data:         DataTypes.STRING,
       intVal:       DataTypes.INTEGER,
       theDate:      DataTypes.DATE,
-      aBool:        DataTypes.BOOLEAN
+      aBool:        DataTypes.BOOLEAN,
+      uniqueName:   { type: DataTypes.STRING, unique: true }
     })
 
     this.User.sync({ force: true }).success(function() {
@@ -1004,6 +1005,47 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    if (Support.getTestDialect() !== 'postgres') {
+      it("should support the ignoreDuplicates option", function(done) {
+        var self = this
+          , data = [{ uniqueName: 'Peter', secretValue: '42' },
+                    { uniqueName: 'Paul', secretValue: '23' }]
+
+        this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).success(function() {
+          data.push({ uniqueName: 'Michael', secretValue: '26' });
+          self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).success(function() {
+            self.User.findAll({order: 'id'}).success(function(users) {
+              expect(users.length).to.equal(3)
+              expect(users[0].uniqueName).to.equal("Peter")
+              expect(users[0].secretValue).to.equal("42");
+              expect(users[1].uniqueName).to.equal("Paul")
+              expect(users[1].secretValue).to.equal("23");
+              expect(users[2].uniqueName).to.equal("Michael")
+              expect(users[2].secretValue).to.equal("26");
+              done()
+            });
+          });
+        })
+      })
+    } else {
+      it("should throw an error when the ignoreDuplicates option is passed", function(done) {
+        var self = this
+          , data = [{ uniqueName: 'Peter', secretValue: '42' },
+                    { uniqueName: 'Paul', secretValue: '23' }]
+
+        this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).success(function() {
+          data.push({ uniqueName: 'Michael', secretValue: '26' });
+
+          self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).error(function(err) {
+            expect(err).to.exist
+            expect(err.message).to.match(/Postgres does not support the \'ignoreDuplicates\' option./)
+
+            done();
+          })
+        })
+      })
+    }
 
     describe('enums', function() {
       it('correctly restores enum values', function(done) {

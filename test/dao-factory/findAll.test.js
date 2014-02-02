@@ -761,6 +761,224 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    describe('order by eager loaded tables', function() {
+      describe('HasMany', function() {
+        beforeEach(function(done) {
+          var self = this
+
+          self.Continent = this.sequelize.define('Continent', { name: Sequelize.STRING })
+          self.Country = this.sequelize.define('Country', { name: Sequelize.STRING })
+          self.Person = this.sequelize.define('Person', { name: Sequelize.STRING, lastName: Sequelize.STRING })
+
+          self.Continent.hasMany(self.Country)
+          self.Country.belongsTo(self.Continent)
+          self.Country.hasMany(self.Person)
+          self.Person.belongsTo(self.Country)
+          self.Country.hasMany(self.Person, { as: 'Residents', foreignKey: 'CountryResidentId' })
+          self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' })
+
+          async.forEach([ self.Continent, self.Country, self.Person ], function(model, callback) {
+            model.sync({ force: true }).done(callback)
+          }, function () {
+            async.parallel({
+              europe: function(callback) {self.Continent.create({ name: 'Europe' }).done(callback)},
+              asia: function(callback) {self.Continent.create({ name: 'Asia' }).done(callback)},
+              england: function(callback) {self.Country.create({ name: 'England' }).done(callback)},
+              france: function(callback) {self.Country.create({ name: 'France' }).done(callback)},
+              korea: function(callback) {self.Country.create({ name: 'Korea' }).done(callback)},
+              bob: function(callback) {self.Person.create({ name: 'Bob', lastName: 'Becket' }).done(callback)},
+              fred: function(callback) {self.Person.create({ name: 'Fred', lastName: 'Able' }).done(callback)},
+              pierre: function(callback) {self.Person.create({ name: 'Pierre', lastName: 'Paris' }).done(callback)},
+              kim: function(callback) {self.Person.create({ name: 'Kim', lastName: 'Z' }).done(callback)}
+            }, function(err, r) {
+              if (err) throw err
+
+              _.forEach(r, function(item, itemName) {
+                self[itemName] = item
+              })
+
+              async.parallel([
+                function(callback) {self.england.setContinent(self.europe).done(callback)},
+                function(callback) {self.france.setContinent(self.europe).done(callback)},
+                function(callback) {self.korea.setContinent(self.asia).done(callback)},
+
+                function(callback) {self.bob.setCountry(self.england).done(callback)},
+                function(callback) {self.fred.setCountry(self.england).done(callback)},
+                function(callback) {self.pierre.setCountry(self.france).done(callback)},
+                function(callback) {self.kim.setCountry(self.korea).done(callback)},
+
+                function(callback) {self.bob.setCountryResident(self.england).done(callback)},
+                function(callback) {self.fred.setCountryResident(self.france).done(callback)},
+                function(callback) {self.pierre.setCountryResident(self.korea).done(callback)},
+                function(callback) {self.kim.setCountryResident(self.england).done(callback)}
+              ], function(err) {
+                if (err) throw err
+                done()
+              })
+            })
+          })
+        })
+
+        it('sorts simply', function(done) {
+          var self = this
+          async.eachSeries([ [ 'ASC', 'Asia' ], [ 'DESC', 'Europe' ] ], function(params, callback) {
+            self.Continent.findAll({
+              order: [ [ 'name', params[0] ] ]
+            }).done(function(err, continents) {
+              expect(err).not.to.be.ok
+              expect(continents).to.exist
+              expect(continents[0]).to.exist
+              expect(continents[0].name).to.equal(params[1])
+              callback()
+            })
+          }, function() {done()})
+        })
+
+        it('sorts by 1st degree association', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'Europe', 'England' ], [ 'DESC', 'Asia', 'Korea' ] ], function(params, callback) {
+            self.Continent.findAll({
+              include: [ self.Country ],
+              order: [ [ self.Country, 'name', params[0] ] ]
+            }).done(function(err, continents) {
+              expect(err).not.to.be.ok
+              expect(continents).to.exist
+              expect(continents[0]).to.exist
+              expect(continents[0].name).to.equal(params[1])
+              expect(continents[0].countries).to.exist
+              expect(continents[0].countries[0]).to.exist
+              expect(continents[0].countries[0].name).to.equal(params[2])
+              callback()
+            })
+          }, function() {done()})
+        }),
+
+        it('sorts by 2nd degree association', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'Europe', 'England', 'Fred' ], [ 'DESC', 'Asia', 'Korea', 'Kim' ] ], function(params, callback) {
+            self.Continent.findAll({
+              include: [ { model: self.Country, include: [ self.Person ] } ],
+              order: [ [ self.Country, self.Person, 'lastName', params[0] ] ]
+            }).done(function(err, continents) {
+              expect(err).not.to.be.ok
+              expect(continents).to.exist
+              expect(continents[0]).to.exist
+              expect(continents[0].name).to.equal(params[1])
+              expect(continents[0].countries).to.exist
+              expect(continents[0].countries[0]).to.exist
+              expect(continents[0].countries[0].name).to.equal(params[2])
+              expect(continents[0].countries[0].persons).to.exist
+              expect(continents[0].countries[0].persons[0]).to.exist
+              expect(continents[0].countries[0].persons[0].name).to.equal(params[3])
+              callback()
+            })
+          }, function() {done()})
+        }),
+
+        it('sorts by 2nd degree association with alias', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'Europe', 'France', 'Fred' ], [ 'DESC', 'Europe', 'England', 'Kim' ] ], function(params, callback) {
+            self.Continent.findAll({
+              include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'Residents' } ] } ],
+              order: [ [ self.Country, {model: self.Person, as: 'Residents' }, 'lastName', params[0] ] ]
+            }).done(function(err, continents) {
+              expect(err).not.to.be.ok
+              expect(continents).to.exist
+              expect(continents[0]).to.exist
+              expect(continents[0].name).to.equal(params[1])
+              expect(continents[0].countries).to.exist
+              expect(continents[0].countries[0]).to.exist
+              expect(continents[0].countries[0].name).to.equal(params[2])
+              expect(continents[0].countries[0].residents).to.exist
+              expect(continents[0].countries[0].residents[0]).to.exist
+              expect(continents[0].countries[0].residents[0].name).to.equal(params[3])
+              callback()
+            })
+          }, function() {done()})
+        })
+      }),
+
+      describe('ManyToMany', function() {
+        beforeEach(function(done) {
+          var self = this
+
+          self.Country = this.sequelize.define('Country', { name: Sequelize.STRING })
+          self.Industry = this.sequelize.define('Industry', { name: Sequelize.STRING })
+          self.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: Sequelize.INTEGER })
+
+          self.Country.hasMany(self.Industry, {through: self.IndustryCountry})
+          self.Industry.hasMany(self.Country, {through: self.IndustryCountry})
+
+          async.forEach([ self.Country, self.Industry ], function(model, callback) {
+            model.sync({ force: true }).done(callback)
+          }, function () {
+            async.parallel({
+              england: function(callback) {self.Country.create({ name: 'England' }).done(callback)},
+              france: function(callback) {self.Country.create({ name: 'France' }).done(callback)},
+              korea: function(callback) {self.Country.create({ name: 'Korea' }).done(callback)},
+              energy: function(callback) {self.Industry.create({ name: 'Energy' }).done(callback)},
+              media: function(callback) {self.Industry.create({ name: 'Media' }).done(callback)},
+              tech: function(callback) {self.Industry.create({ name: 'Tech' }).done(callback)}
+            }, function(err, r) {
+              if (err) throw err
+
+              _.forEach(r, function(item, itemName) {
+                self[itemName] = item
+              })
+
+              async.parallel([
+                function(callback) {self.england.addIndustry(self.energy, {numYears: 20}).done(callback)},
+                function(callback) {self.england.addIndustry(self.media, {numYears: 40}).done(callback)},
+                function(callback) {self.france.addIndustry(self.media, {numYears: 80}).done(callback)},
+                function(callback) {self.korea.addIndustry(self.tech, {numYears: 30}).done(callback)}
+              ], function(err) {
+                if (err) throw err
+                done()
+              })
+            })
+          })
+        })
+
+        it('sorts by 1st degree association', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'England', 'Energy' ], [ 'DESC', 'Korea', 'Tech' ] ], function(params, callback) {
+            self.Country.findAll({
+              include: [ self.Industry ],
+              order: [ [ self.Industry, 'name', params[0] ] ]
+            }).done(function(err, countries) {
+              expect(err).not.to.be.ok
+              expect(countries).to.exist
+              expect(countries[0]).to.exist
+              expect(countries[0].name).to.equal(params[1])
+              expect(countries[0].industries).to.exist
+              expect(countries[0].industries[0]).to.exist
+              expect(countries[0].industries[0].name).to.equal(params[2])
+              callback()
+            })
+          }, function() {done()})
+        })
+
+        it('sorts by through table attribute', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'England', 'Energy' ], [ 'DESC', 'France', 'Media' ] ], function(params, callback) {
+            self.Country.findAll({
+              include: [ self.Industry ],
+              order: [ [ self.Industry, self.IndustryCountry, 'numYears', params[0] ] ]
+            }).done(function(err, countries) {
+              expect(err).not.to.be.ok
+              expect(countries).to.exist
+              expect(countries[0]).to.exist
+              expect(countries[0].name).to.equal(params[1])
+              expect(countries[0].industries).to.exist
+              expect(countries[0].industries[0]).to.exist
+              expect(countries[0].industries[0].name).to.equal(params[2])
+              callback()
+            })
+          }, function() {done()})
+        })
+      })
+    })
+
     describe('normal findAll', function() {
       beforeEach(function(done) {
         var self = this
