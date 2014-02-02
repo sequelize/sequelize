@@ -6,6 +6,7 @@ var chai      = require('chai')
   , _         = require('lodash')
   , exec      = require('child_process').exec
   , version   = (require(__dirname + '/../package.json')).version
+  , path      = require('path')
 
 chai.Assertion.includeStack = true
 
@@ -205,7 +206,14 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
         })
       })
     })
-  })(['--migrate', '-m'])
+  })([
+    '--migrate',
+    '--migrate --config ../config/config.js',
+    '--migrate --config ' + path.join(__dirname, 'config', 'config.js'),
+    '-m',
+    '-m --config ../config/config.js',
+    '-m --config ' + path.join(__dirname, 'config', 'config.js')
+  ])
 
   ;(function(flags) {
     flags.forEach(function(flag) {
