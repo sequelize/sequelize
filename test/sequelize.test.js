@@ -488,6 +488,34 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           done()
         })
       })
+
+      it('handles self dependant foreign key constraints', function (done) {
+        var block = this.sequelize.define("block", {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          name: DataTypes.STRING
+        }, {
+          tableName: "block",
+          timestamps: false,
+          paranoid: false
+        });
+
+        block.hasMany(block, {
+          as: 'childBlocks',
+          foreignKey: 'parent',
+          joinTableName: 'link_block_block',
+          useJunctionTable: true,
+          foreignKeyConstraint: true
+        });
+        block.belongsTo(block, {
+          as: 'parentBlocks',
+          foreignKey: 'child',
+          joinTableName: 'link_block_block',
+          useJunctionTable: true,
+          foreignKeyConstraint: true
+        });
+
+        this.sequelize.sync().done(done)
+      })
     }
 
     describe("doesn't emit logging when explicitly saying not to", function() {
