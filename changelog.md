@@ -1,5 +1,9 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc5
+- sync() now correctly returns with an error when foreign key constraints reference unknown tables
+- sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
+
 # v1.7.0-rc4
 - fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)
 - fixes various issues with limit and includes [#1322](https://github.com/sequelize/sequelize/pull/1322) 
