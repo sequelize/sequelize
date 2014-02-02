@@ -208,11 +208,11 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     })
   })([
     '--migrate',
-    '--migrate --config ../config/config.js',
-    '--migrate --config ' + path.join(__dirname, 'config', 'config.js'),
+    '--migrate --config ../tmp/config/config.json',
+    '--migrate --config ' + path.join(__dirname, 'tmp', 'config', 'config.json'),
     '-m',
-    '-m --config ../config/config.js',
-    '-m --config ' + path.join(__dirname, 'config', 'config.js')
+    '-m --config ../tmp/config/config.json',
+    '-m --config ' + path.join(__dirname, 'tmp', 'config', 'config.json')
   ])
 
   ;(function(flags) {
