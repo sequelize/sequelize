@@ -40,6 +40,15 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       expect(sequelize.config.host).to.equal('127.0.0.1')
       done()
     })
+
+    if (dialect === 'sqlite') {
+      it('should work with connection strings (1)', function () {
+        var sequelize = new Sequelize('sqlite://test.sqlite')
+      })
+      it('should work with connection strings (2)', function () {
+        var sequelize = new Sequelize('sqlite://test.sqlite/')
+      })
+    }
   })
 
   if (dialect !== 'sqlite') {
