@@ -235,6 +235,16 @@ if (program.migrate || program.undo) {
     process.exit(1)
   }
 } else if(program.init) {
+  if(!process.env.DATABASE_URL) {
+    if(!configFileExists() || !!program.force) {
+      writeDefaultConfig()
+
+      console.log('Created "' + relativeConfigFile() + '"')
+    } else {
+      console.log('The file "' + relativeConfigFile() + '" already exists. Run "sequelize --init --force" to overwrite it.')
+      process.exit(1)
+    }
+  }
   createMigrationsFolder(program.force)
 
 } else if(program.createMigration) {
