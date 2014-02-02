@@ -6,6 +6,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - fixes issues with migrations/queryInterface createTable and enums
 - migration/queryInterface.addIndex() no longer fals on reserved keywords like 'from'
 - bulkCreate now supports a `ignoreDuplicates` option for MySQL, SQLite and MariaDB that will use `INSERT IGNORE`
+- fixes regression bug with 1:M self associations
 
 #### Backwards compatability changes
 - find/findAll will now always return primary keys regardless of `attributes` settings. (Motivation was to fix various issues with eager loading)
