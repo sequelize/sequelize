@@ -882,6 +882,14 @@ if (dialect.match(/^postgres/)) {
           arguments: [{ id: [] }],
           expectation: "\"id\" IN (NULL)"
         },
+        {
+          arguments: [{id: {not: [1, 2, 3] }}],
+          expectation: "\"id\" NOT IN (1,2,3)"
+        },
+        {
+          arguments: [{id: {not: [] }}],
+          expectation: "\"id\" NOT IN (NULL)"
+        },
 
         // Variants when quoteIdentifiers is false
         {
@@ -894,6 +902,16 @@ if (dialect.match(/^postgres/)) {
           expectation: "id IN (NULL)",
           context: {options: {quoteIdentifiers: false}}
         },
+        {
+          arguments: [{ id: {not: [1,2,3] }}],
+          expectation: "id NOT IN (1,2,3)",
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{ id: {not: [] }}],
+          expectation: "id NOT IN (NULL)",
+          context: {options: {quoteIdentifiers: false}}
+        }
       ]
     }
 
