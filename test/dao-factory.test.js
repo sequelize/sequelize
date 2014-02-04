@@ -205,6 +205,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should allow me to disable some of the timestamp fields', function(done) {
+      var UpdatingUser = this.sequelize.define('UpdatingUser', {}, {
+        timestamps: true,
+        updatedAt: false,
+        createdAt: false,
+        deletedAt: 'deletedAtThisTime',
+        paranoid: true
+      })
+
+      UpdatingUser.sync({force: true}).success(function() {
+        UpdatingUser.create().success(function (user) {
+          expect(user.createdAt).not.to.exist
+          expect(user.false).not.to.exist //  because, you know we might accidentally add a field named 'false'
+          user.save().success(function (user) {
+            expect(user.updatedAt).not.to.exist
+            user.destroy().success(function(user) {
+              expect(user.deletedAtThisTime).to.exist
+              done()
+            })
+          })
+        })
+      })
+    })
+
     it('should allow me to override updatedAt, createdAt, and deletedAt fields with underscored being true', function(done) {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: Sequelize.INTEGER
