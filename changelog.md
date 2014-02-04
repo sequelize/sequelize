@@ -3,6 +3,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 # v1.7.0-rc5 (next)
 - sync() now correctly returns with an error when foreign key constraints reference unknown tables
 - sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
+- makes it possible to specify exactly what timestamp attributes you want to utilize [#1334](https://github.com/sequelize/sequelize/pull/1334)
 
 # v1.7.0-rc4
 - fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)
