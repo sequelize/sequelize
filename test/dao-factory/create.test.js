@@ -1090,7 +1090,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    describe.only('Unique', function() {
+    describe('Unique', function() {
       it("should set unique when unique is true", function(done) {
         var self = this
         var uniqueTrue = self.sequelize.define('uniqueTrue', {
@@ -1098,7 +1098,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
 
         uniqueTrue.sync({force: true}).on('sql', function(s) {
-          console.log(s)
           expect(s).to.match(/UNIQUE/)
           done()
         })
@@ -1111,7 +1110,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
 
         uniqueFalse.sync({force: true}).on('sql', function(s) {
-          console.log(s)
           expect(s).not.to.match(/UNIQUE/)
           done()
         })
@@ -1124,7 +1122,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
 
         uniqueUnset.sync({force: true}).on('sql', function(s) {
-          console.log(s)
           expect(s).not.to.match(/UNIQUE/)
           done()
         })
