@@ -912,15 +912,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it('properly handles a model with a length column', function (done) {
-    	var UserWithLength = this.sequelize.define('UserWithLength', {
-    		length: Sequelize.INTEGER
-    	})
+      var UserWithLength = this.sequelize.define('UserWithLength', {
+        length: Sequelize.INTEGER
+      })
 
-    	UserWithLength.sync({force:true}).success(function() {
-    		UserWithLength.bulkCreate([{ length: 42}, {length: 11}]).success(function () {
-    			done()
-    		})
-    	})
+      UserWithLength.sync({force:true}).success(function() {
+        UserWithLength.bulkCreate([{ length: 42}, {length: 11}]).success(function () {
+          done()
+        })
+      })
     })
 
     it('stores the current date in createdAt', function(done) {
