@@ -59,9 +59,37 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
 
+      describe('with an invalid connection', function() {
+        beforeEach(function() {
+          var options = _.extend({}, this.sequelize.options, { port: "99999" })
+          this.sequelizeWithInvalidConnection = new Sequelize("wat", "trololo", "wow", options)
+        })
+
+        it('triggers the error event', function(done) {
+          this
+            .sequelizeWithInvalidConnection
+            .authenticate()
+            .complete(function(err, result) {
+              expect(err).to.not.be.null
+              done()
+            })
+        })
+
+        it('triggers the actual adapter error', function(done) {
+          this
+            .sequelizeWithInvalidConnection
+            .authenticate()
+            .complete(function(err, result) {
+              expect(err.message).to.match(/Failed to authenticate/)
+
+              done()
+            })
+        })
+      })
+
       describe('with invalid credentials', function() {
         beforeEach(function() {
-          this.sequelizeWithInvalidCredentials = new Sequelize("omg", "wtf", "lol", this.sequelize.options)
+          this.sequelizeWithInvalidCredentials = new Sequelize("localhost", "wtf", "lol", this.sequelize.options)
         })
 
         it('triggers the error event', function(done) {
