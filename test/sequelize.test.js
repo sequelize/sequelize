@@ -80,7 +80,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
-              expect(err.message).to.match(/Failed to authenticate/)
+              if (dialect !== 'postgres') {
+                expect(err.message).to.match(/Failed to authenticate/)
+              } else {
+                expect(err.message).to.match(/invalid port number/)
+              }
 
               done()
             })
