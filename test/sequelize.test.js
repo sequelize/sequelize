@@ -119,6 +119,12 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
     })
+
+    describe('validate', function() {
+      it('is an alias for .authenticate()', function() {
+        expect(this.sequelize.validate).to.equal(this.sequelize.authenticate)
+      })
+    })
   }
 
   describe('getDialect', function() {
