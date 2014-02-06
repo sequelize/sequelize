@@ -227,7 +227,7 @@ if (program.migrate || program.undo) {
       })
     }
   } else {
-    console.log('Cannot find "' + relativeConfigFile() + '". Have you run "sequelize --init"?')
+    console.log('Cannot find "' + configuration.configFile + '". Have you run "sequelize --init"?')
     process.exit(1)
   }
 } else if(program.init) {

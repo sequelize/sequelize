@@ -407,6 +407,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it("raises an error if saving an empty string into a column allowing null or URL", function(done) {
+      var StringIsNullOrUrl = this.sequelize.define('StringIsNullOrUrl', {
+        str: { type: Sequelize.STRING, allowNull: true, validate: { isUrl: true } }
+      })
+
+      this.sequelize.options.omitNull = false
+
+      StringIsNullOrUrl.sync({ force: true }).success(function() {
+        StringIsNullOrUrl.create({ str: null }).success(function(str1) {
+          expect(str1.str).to.be.null
+
+          StringIsNullOrUrl.create({ str: 'http://sequelizejs.org' }).success(function(str2) {
+            expect(str2.str).to.equal('http://sequelizejs.org')
+
+            StringIsNullOrUrl.create({ str: '' }).error(function(err) {
+              expect(err).to.exist
+              expect(err.str[0]).to.match(/Invalid URL: str/)
+
+              done()
+            })
+          })
+        })
+      })
+    })
+
     it('raises an error if you mess up the datatype', function(done) {
       var self = this
       expect(function() {
@@ -881,6 +906,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(users[0].data).to.equal(json)
           expect(users[1].username).to.equal("Paul")
           expect(users[1].data).to.equal(json)
+          done()
+        })
+      })
+    })
+
+    it('properly handles a model with a length column', function (done) {
+      var UserWithLength = this.sequelize.define('UserWithLength', {
+        length: Sequelize.INTEGER
+      })
+
+      UserWithLength.sync({force:true}).success(function() {
+        UserWithLength.bulkCreate([{ length: 42}, {length: 11}]).success(function () {
           done()
         })
       })
