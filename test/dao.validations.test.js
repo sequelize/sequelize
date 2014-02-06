@@ -8,7 +8,7 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("DaoValidator"), function() {
-  describe.only('validations', function() {
+  describe('validations', function() {
     var checks = {
       is: {
         spec: { args: ["[a-z]",'i'] },
@@ -476,7 +476,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
     })
 
-    it('correctly validates using custom validation methods', function(done) {
+    it.only('correctly validates using custom validation methods', function(done) {
       var User = this.sequelize.define('User' + config.rand(), {
         name: {
           type: Sequelize.STRING,
@@ -495,6 +495,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       var failingUser = User.build({ name : "3" })
 
       failingUser.validate().success(function(errors) {
+        console.log('ERR:\n', errors, '\n\n', errors.name, '\n\n');
         expect(errors).to.deep.equal({ name: ["name should equal '2'"] })
 
          var successfulUser = User.build({ name : "2" })
