@@ -240,7 +240,6 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
             })
             var successfulUser = UserSuccess.build({ name: succeedingValue })
             successfulUser.validate().success( function() {
-              console.log('ARGS:', arguments);
               expect(arguments).to.have.length(0)
               done()
             }).error(function(err) {
