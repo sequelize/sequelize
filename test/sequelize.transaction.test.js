@@ -4,6 +4,7 @@ var chai        = require('chai')
   , Transaction = require(__dirname + '/../lib/transaction')
 
 describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
+  this.timeout(4000);
   describe('success', function() {
     it("gets triggered once a transaction has been successfully committed", function(done) {
       this
@@ -48,7 +49,6 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
               }).done(function() {
                 var dao = User.build({ name: 'foo' })
 
-
                 // this.QueryGenerator.insertQuery(tableName, values, dao.daoFactory.rawAttributes)
                 query = sequelize
                   .getQueryInterface()
@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                   }).done(function(err, res) {
                     t.commit()
                   })
-                }, 2000)
+                }, 1000)
               })
             })
             .success(function() {
