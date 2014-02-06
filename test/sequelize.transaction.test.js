@@ -20,6 +20,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
     })
 
     it('works for long running transactions', function(done) {
+      this.timeout(4000);
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', {
           name: Support.Sequelize.STRING
@@ -48,7 +49,6 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
               }).done(function() {
                 var dao = User.build({ name: 'foo' })
 
-
                 // this.QueryGenerator.insertQuery(tableName, values, dao.daoFactory.rawAttributes)
                 query = sequelize
                   .getQueryInterface()
@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                   }).done(function(err, res) {
                     t.commit()
                   })
-                }, 2000)
+                }, 1000)
               })
             })
             .success(function() {
