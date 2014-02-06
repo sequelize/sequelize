@@ -423,7 +423,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
             StringIsNullOrUrl.create({ str: '' }).error(function(err) {
               expect(err).to.exist
-              expect(err.str[0]).to.match(/Invalid URL: str/)
+              expect(err.str[0]).to.match(/Invalid URL/)
 
               done()
             })
