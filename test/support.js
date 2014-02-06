@@ -89,11 +89,11 @@ var Support = {
           .dropAllEnums()
             .success(callback)
             .error(function (err) {
-              console.log(err)
+              console.log('Error in support.clearDatabase() dropAllEnums() :: ', err)
             })
       })
       .error(function(err) {
-        console.log(err)
+        console.log('Error in support.clearDatabase() dropAllTables() :: ', err)
       })
   },
 
