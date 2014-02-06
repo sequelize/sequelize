@@ -514,6 +514,112 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     })
   })
 
+  describe.only('where', function () {
+    it('should support Sequelize.and()', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
+
+      User.hasOne(Item);
+      Item.belongsTo(User);
+
+      this.sequelize.sync().done(function() {
+        async.auto({
+          users: function(callback) {
+            User.bulkCreate([{}, {}, {}]).done(function() {
+              User.findAll().done(callback)
+            })
+          },
+          items: function(callback) {
+            Item.bulkCreate([
+              {'test': 'abc'},
+              {'test': 'def'},
+              {'test': 'ghi'}
+            ]).done(function() {
+              Item.findAll().done(callback)
+            })
+          },
+          associate: ['users', 'items', function(callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            var users = results.users
+            var items = results.items
+
+            chainer.add(users[0].setItem(items[0]))
+            chainer.add(users[1].setItem(items[1]))
+            chainer.add(users[2].setItem(items[2]))
+
+            chainer.run().done(callback)
+          }]
+        }, function() {
+          User.findAll({include: [
+            {model: Item, where: Sequelize.and({
+              test: 'def'
+            })}
+          ]}).done(function(err, result) {
+            expect(err).not.to.be.ok
+
+            expect(result.length).to.eql(1)
+            expect(result[0].item.test).to.eql('def')
+            done()
+          })
+        })
+      }) 
+    })
+
+    it('should support Sequelize.or()', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
+
+      User.hasOne(Item);
+      Item.belongsTo(User);
+
+      this.sequelize.sync().done(function() {
+        async.auto({
+          users: function(callback) {
+            User.bulkCreate([{}, {}, {}]).done(function() {
+              User.findAll().done(callback)
+            })
+          },
+          items: function(callback) {
+            Item.bulkCreate([
+              {'test': 'abc'},
+              {'test': 'def'},
+              {'test': 'ghi'}
+            ]).done(function() {
+              Item.findAll().done(callback)
+            })
+          },
+          associate: ['users', 'items', function(callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            var users = results.users
+            var items = results.items
+
+            chainer.add(users[0].setItem(items[0]))
+            chainer.add(users[1].setItem(items[1]))
+            chainer.add(users[2].setItem(items[2]))
+
+            chainer.run().done(callback)
+          }]
+        }, function() {
+          User.findAll({include: [
+            {model: Item, where: Sequelize.or({
+              test: 'def'
+            }, {
+              test: 'abc'
+            })}
+          ]}).done(function(err, result) {
+            expect(err).not.to.be.ok
+            expect(result.length).to.eql(2)
+            done()
+          }).on('sql', function (sql) {
+            console.log(sql)
+          })
+        })
+      }) 
+    })
+  })
+
   describe('findAndCountAll', function () {
     it('should include associations to findAndCountAll', function(done) {
       var User = this.sequelize.define('User', {})
