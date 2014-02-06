@@ -476,7 +476,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
     })
 
-    it.only('correctly validates using custom validation methods', function(done) {
+    it('correctly validates using custom validation methods', function(done) {
       var User = this.sequelize.define('User' + config.rand(), {
         name: {
           type: Sequelize.STRING,
@@ -494,11 +494,11 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
       var failingUser = User.build({ name : "3" })
 
-      failingUser.validate().success(function(errors) {
-        console.log('ERR:\n', errors, '\n\n', errors.name, '\n\n');
-        expect(errors).to.deep.equal({ name: ["name should equal '2'"] })
+      failingUser.validate().success(function(error) {
+        expect(error).to.be.instanceOf(Error);
+        expect(error.name).to.deep.equal(["name should equal '2'"])
 
-         var successfulUser = User.build({ name : "2" })
+        var successfulUser = User.build({ name : "2" })
         successfulUser.validate().success(function() {
           expect(arguments).to.have.length(0)
           done()
