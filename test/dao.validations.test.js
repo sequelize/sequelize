@@ -8,7 +8,7 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("DaoValidator"), function() {
-  describe('validations', function() {
+  describe.only('validations', function() {
     var checks = {
       is: {
         spec: { args: ["[a-z]",'i'] },
@@ -217,7 +217,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
             failingUser.validate().done( function(err,_errors) {
               expect(_errors).to.not.be.null
-              expect(_errors).to.deep.eql({ name : [message] })
+              expect(_errors).to.be.an.instanceOf(Error);
+              expect(_errors.name).to.eql([message])
               done()
             })
           })
@@ -665,7 +666,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
 
       var failingBar = Bar.build({ field: 'value3' })
-      
+
       failingBar.validate({ skip: ['field'] }).success(function(errors) {
         expect(errors).not.to.exist
         done()
