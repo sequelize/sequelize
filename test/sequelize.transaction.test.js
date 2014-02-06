@@ -4,6 +4,7 @@ var chai        = require('chai')
   , Transaction = require(__dirname + '/../lib/transaction')
 
 describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
+  this.timeout(4000);
   describe('success', function() {
     it("gets triggered once a transaction has been successfully committed", function(done) {
       this
@@ -20,7 +21,6 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
     })
 
     it('works for long running transactions', function(done) {
-      this.timeout(4000);
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', {
           name: Support.Sequelize.STRING

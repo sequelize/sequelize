@@ -4,6 +4,7 @@ var chai        = require('chai')
   , Transaction = require(__dirname + '/../lib/transaction')
 
 describe(Support.getTestDialectTeaser("Transaction"), function () {
+  this.timeout(4000);
   describe('constructor', function() {
     it('stores options', function() {
       var transaction = new Transaction(this.sequelize)
