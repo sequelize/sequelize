@@ -5,6 +5,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
 - [FEATURE] makes it possible to specify exactly what timestamp attributes you want to utilize [#1334](https://github.com/sequelize/sequelize/pull/1334)
 - [FEATURE] Support coffee script files in migrations. [#1357](https://github.com/sequelize/sequelize/pull/1357)
+- [FEATURE] include.where now supports Sequelize.and()/.or(). [#1361](https://github.com/sequelize/sequelize/pull/1361)
 
 # v1.7.0-rc4
 - [BUG] fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)

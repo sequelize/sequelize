@@ -1073,7 +1073,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should be possible use limit and a where with a belongsTo include', function (done) {
+    it('should be possible to use limit and a where with a belongsTo include', function (done) {
       var User = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
@@ -1153,7 +1153,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should be possible use limit and a where on a hasMany with additional includes', function (done) {
+    it('should be possible to use limit and a where on a hasMany with additional includes', function (done) {
       var self = this
       this.fixtureA(function () {
         self.models.Product.findAll({
@@ -1184,7 +1184,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should be possible use limit and a where on a hasMany with a through model with additional includes', function (done) {
+    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', function (done) {
       var self = this
       this.fixtureA(function () {
         self.models.Product.findAll({
