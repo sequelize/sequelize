@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
-      it('doesn\'t throw an error when entering in a non integer value', function(done) {
+      xit('doesn\'t throw an error when entering in a non integer value', function(done) {
         this.User.find('a string value').success(function(user) {
           expect(user).to.be.null
           done()
