@@ -7,6 +7,7 @@ var path      = require("path")
   , moment    = require("moment")
   , _         = Sequelize.Utils._
   , url       = require("url")
+  , supportCS = undefined
 
 var configuration = {
   configFile:     process.cwd() + '/config/config.json',
@@ -170,14 +171,18 @@ if(typeof program.env === 'string') {
 }
 
 var supportCoffeeScript = function() {
-  try {
-    config = readConfig()
-  } catch(e) {
-    console.log(e.message)
-    process.exit(1)
+  if (supportCS === undefined) {
+    try {
+      config = readConfig()
+    } catch(e) {
+      console.log(e.message)
+      process.exit(1)
+    }
+
+    supportCS = program.coffee || config.coffee
   }
 
-  return program.coffee || config.coffee
+  return supportCS
 }
 
 if (program.migrate || program.undo) {
