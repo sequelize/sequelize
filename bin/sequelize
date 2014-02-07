@@ -9,9 +9,9 @@ var path      = require("path")
   , url       = require("url")
 
 var configuration = {
-  configFile: process.cwd() + '/config/config.json',
-  environment: process.env.NODE_ENV || 'development',
-  version: require(__dirname + '/../package.json').version,
+  configFile:     process.cwd() + '/config/config.json',
+  environment:    process.env.NODE_ENV || 'development',
+  version:        require(__dirname + '/../package.json').version,
   migrationsPath: process.cwd() + '/migrations'
 }
 
@@ -152,6 +152,7 @@ program
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
   .option('-U, --url <url>', 'Database url.  An alternative to a config file')
   .option('--config <config_file>', 'Specifies alternate config file.')
+  .option('--coffee', 'Consider coffee script files as migration source.')
   .parse(process.argv)
 
 if(typeof program.config === 'string') {
@@ -205,7 +206,12 @@ if (program.migrate || program.undo) {
 
     var sequelize       = new Sequelize(config.database, config.username, config.password, options)
       , migratorOptions = { path: configuration.migrationsPath }
-      , migrator        = sequelize.getMigrator(migratorOptions)
+
+    if (program.coffee) {
+      migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
+    }
+
+    var migrator = sequelize.getMigrator(migratorOptions)
 
     if (program.undo) {
       migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {

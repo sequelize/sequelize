@@ -147,7 +147,11 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
       var prepare = function(callback) {
         exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function(error, stdout) {
           exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function(error, stdout) {
-            exec("cp ../assets/migrations/*-createPerson.js ./migrations/", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+            var source = (flag.indexOf('coffee') === -1)
+              ? "../assets/migrations/*-createPerson.js"
+              : "../assets/migrations/*-createPerson.coffee"
+
+            exec("cp " + source + " ./migrations/", { cwd: __dirname + '/tmp' }, function(error, stdout) {
               exec("cat ../support.js|sed s,/../,/../../, > ./support.js", { cwd: __dirname + '/tmp' }, function(error, stdout) {
                 var dialect = Support.getTestDialect()
                   , config  = require(__dirname + '/config/config.js')
@@ -208,9 +212,11 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     })
   })([
     '--migrate',
+    '--migrate --coffee',
     '--migrate --config ../tmp/config/config.json',
     '--migrate --config ' + path.join(__dirname, 'tmp', 'config', 'config.json'),
     '-m',
+    '-m --coffee',
     '-m --config ../tmp/config/config.json',
     '-m --config ' + path.join(__dirname, 'tmp', 'config', 'config.json')
   ])
