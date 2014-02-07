@@ -1,69 +1,69 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # v1.7.0-rc5 (next)
-- sync() now correctly returns with an error when foreign key constraints reference unknown tables
-- sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
-- makes it possible to specify exactly what timestamp attributes you want to utilize [#1334](https://github.com/sequelize/sequelize/pull/1334)
+- [FEATURE] sync() now correctly returns with an error when foreign key constraints reference unknown tables
+- [BUG] sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
+- [FEATURE] makes it possible to specify exactly what timestamp attributes you want to utilize [#1334](https://github.com/sequelize/sequelize/pull/1334)
 - [FEATURE] Support coffee script files in migrations. [#1357](https://github.com/sequelize/sequelize/pull/1357)
 
 # v1.7.0-rc4
-- fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)
-- fixes various issues with limit and includes [#1322](https://github.com/sequelize/sequelize/pull/1322)
-- fixes issues with migrations/queryInterface createTable and enums
-- migration/queryInterface.addIndex() no longer fals on reserved keywords like 'from'
-- bulkCreate now supports a `ignoreDuplicates` option for MySQL, SQLite and MariaDB that will use `INSERT IGNORE`
-- fixes regression bug with 1:M self associations
-- significant performance improvements for 1:1 and single primary key includes for 500+ rows [#1333](https://github.com/sequelize/sequelize/pull/1333)
+- [BUG] fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)
+- [BUG] fixes various issues with limit and includes [#1322](https://github.com/sequelize/sequelize/pull/1322)
+- [BUG] fixes issues with migrations/queryInterface createTable and enums
+- [BUG] migration/queryInterface.addIndex() no longer fails on reserved keywords like 'from'
+- [FEATURE] bulkCreate now supports a `ignoreDuplicates` option for MySQL, SQLite and MariaDB that will use `INSERT IGNORE`
+- [BUG] fixes regression bug with 1:M self associations
+- [FEATURE] significant performance improvements for 1:1 and single primary key includes for 500+ rows [#1333](https://github.com/sequelize/sequelize/pull/1333)
 
 #### Backwards compatability changes
 - find/findAll will now always return primary keys regardless of `attributes` settings. (Motivation was to fix various issues with eager loading)
 
 # v1.7.0-rc3
-- dropAllTables now takes an option parameter with `skip` as an option [#1280](https://github.com/sequelize/sequelize/pull/1280)
-- implements .spread for eventemitters [#1277](https://github.com/sequelize/sequelize/pull/1277)
-- fixes some of the mysql connection error bugs [#1282](https://github.com/sequelize/sequelize/pull/1282)
+- [FEATURE] dropAllTables now takes an option parameter with `skip` as an option [#1280](https://github.com/sequelize/sequelize/pull/1280)
+- [FEATURE] implements .spread for eventemitters [#1277](https://github.com/sequelize/sequelize/pull/1277)
+- [BUG] fixes some of the mysql connection error bugs [#1282](https://github.com/sequelize/sequelize/pull/1282)
 - [Feature] Support for OR queries.
 - [Feature] Support for HAVING queries. [#1286](https://github.com/sequelize/sequelize/pull/1286)
-- bulkUpdate and bulkDestroy now returns affected rows. [#1293](https://github.com/sequelize/sequelize/pull/1293)
-- fixes transaction memory leak issue
-- fixes security issue where it was possible to overwrite the id attribute when defined by sequelize (screwup - and fix - by mickhansen)
+- [FEATURE] bulkUpdate and bulkDestroy now returns affected rows. [#1293](https://github.com/sequelize/sequelize/pull/1293)
+- [BUG] fixes transaction memory leak issue
+- [BUG] fixes security issue where it was possible to overwrite the id attribute when defined by sequelize (screwup - and fix - by mickhansen)
 
 # v1.7.0-rc2
-- fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)
-- fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)
-- improves handling of uncaught errors in eventemitter [#1245](https://github.com/sequelize/sequelize/pull/1245)
-- fixes bug with mysql replication and pool settings [#1251](https://github.com/sequelize/sequelize/pull/1251)
-- fixes bug where through models created by N:M associations would inherit hooks [#1263](https://github.com/sequelize/sequelize/issues/1263)
-- .col()/.literal()/etc now works with findAll [#1249](https://github.com/sequelize/sequelize/issues/1249)
-- now currectly handles connection timeouts as errors [#1207](https://github.com/sequelize/sequelize/issues/1207)
+- [BUG] fixes unixSocket connections for mariadb [#1248](https://github.com/sequelize/sequelize/pull/1248)
+- [BUG] fixes a hangup issue for mysql [#1244](https://github.com/sequelize/sequelize/pull/1244)
+- [BUG] improves handling of uncaught errors in eventemitter [#1245](https://github.com/sequelize/sequelize/pull/1245)
+- [BUG] fixes bug with mysql replication and pool settings [#1251](https://github.com/sequelize/sequelize/pull/1251)
+- [BUG] fixes bug where through models created by N:M associations would inherit hooks [#1263](https://github.com/sequelize/sequelize/issues/1263)
+- [FEATURE] .col()/.literal()/etc now works with findAll [#1249](https://github.com/sequelize/sequelize/issues/1249)
+- [BUG] now currectly handles connection timeouts as errors [#1207](https://github.com/sequelize/sequelize/issues/1207)
 
 # v1.7.0-rc1
-- instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
-- fixes a few bugs with transactions in regards to associations
-- add error handling for transaction creation
-- `sequelize --undo` will now actually undo migrations. Its basically an alias for `sequelize --migrate --undo`. [#1059](https://github.com/sequelize/sequelize/pull/1059)
-- fix bug where `{where: {ne: null}}` would result in `!= NULL` instead of `IS NOT NULL` [#1231](https://github.com/sequelize/sequelize/pull/1059)
-- fixes a bug with validation skipping using the `fields` options. [#1233](https://github.com/sequelize/sequelize/pull/1233)
-- fixes a bug with postgres and setters [#1234](https://github.com/sequelize/sequelize/issues/1234)
-- fixes it so `field: {type: Sequelize.ENUM(value1, value2)}` works
+- [FEATURE] instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
+- [BUG] fixes a few bugs with transactions in regards to associations
+- [FEATURE] add error handling for transaction creation
+- [FEATURE] `sequelize --undo` will now actually undo migrations. Its basically an alias for `sequelize --migrate --undo`. [#1059](https://github.com/sequelize/sequelize/pull/1059)
+- [BUG] fix bug where `{where: {ne: null}}` would result in `!= NULL` instead of `IS NOT NULL` [#1231](https://github.com/sequelize/sequelize/pull/1059)
+- [BUG] fixes a bug with validation skipping using the `fields` options. [#1233](https://github.com/sequelize/sequelize/pull/1233)
+- [BUG] fixes a bug with postgres and setters [#1234](https://github.com/sequelize/sequelize/issues/1234)
+- [BUG] fixes it so `field: {type: Sequelize.ENUM(value1, value2)}` works
 
 #### Backwards compatability changes
 - Hooks are no longer passing value hashes. Instead, they are now passing instances of the model.
 - Hook callbacks no longer take two arguments (previously: `err, newValues`). They only take the error argument since values can be changed directly on the model instance.
 
 # v1.7.0-beta8
-- max()/min() now supports dates [#1200](https://github.com/sequelize/sequelize/pull/1200)
-- findAndCountAll now supports the include option
+- [FEATURE] max()/min() now supports dates [#1200](https://github.com/sequelize/sequelize/pull/1200)
+- [FEATURE] findAndCountAll now supports the include option
 
 #### Backwards compatibility changes
 - You will now need to include the relevant subtables to query on them in finders (find/findAll)
 - Subquery logic no longer depends on where objects with keys containing '.', instead where options on the include options [#1199](https://github.com/sequelize/sequelize/pull/1199)
 
 # v1.7.0-beta7 #
-- Nested eager loading / prefetching is now supported. [Docs](http://sequelizejs.com/docs/latest/models#nested-eager-loading)
-- Eager loading / prefetching now supports inner joins and extending the ON statement [#1199](https://github.com/sequelize/sequelize/pull/1199)
-- Eager loading / prefetching now returns the attributes of through models aswell [#1198](https://github.com/sequelize/sequelize/pull/1198)
-- New set/get/changed/previous feature [#1182](https://github.com/sequelize/sequelize/pull/1182)
+- [FEATURE] Nested eager loading / prefetching is now supported. [Docs](http://sequelizejs.com/docs/latest/models#nested-eager-loading)
+- [FEATURE] Eager loading / prefetching now supports inner joins and extending the ON statement [#1199](https://github.com/sequelize/sequelize/pull/1199)
+- [FEATURE] Eager loading / prefetching now returns the attributes of through models aswell [#1198](https://github.com/sequelize/sequelize/pull/1198)
+- [FEATURE] New set/get/changed/previous feature [#1182](https://github.com/sequelize/sequelize/pull/1182)
 - Various bug fixes
 
 #### Backwards compatibility changes
