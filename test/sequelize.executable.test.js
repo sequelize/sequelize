@@ -142,12 +142,63 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     })
   })(['--create-migration', '-c'])
 
+    ;(function(flags) {
+    flags.forEach(function(flag) {
+      var prepare = function(callback) {
+        exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
+          exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function() {
+            exec("../../bin/sequelize " + flag + " 'foo'", { cwd: __dirname + '/tmp' }, callback)
+          })
+        })
+      }
+
+      describe(flag, function() {
+        it("creates a new file with the current timestamp", function(done) {
+          prepare(function() {
+            exec("ls -1 migrations", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+              var date   = new Date()
+                , format = function(i) { return (parseInt(i, 10) < 10 ? '0' + i : i)  }
+                , sDate  = [date.getFullYear(), format(date.getMonth() + 1), format(date.getDate()), format(date.getHours()), format(date.getMinutes())].join('')
+
+              expect(stdout).to.match(new RegExp(sDate + "..-foo.coffee"))
+              done()
+            })
+          })
+        })
+
+        it("adds a skeleton with an up and a down method", function(done) {
+          prepare(function() {
+            exec("cat migrations/*-foo.coffee", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+              expect(stdout).to.include('up: (migration, DataTypes, done) ->')
+              expect(stdout).to.include('down: (migration, DataTypes, done) ->')
+              done()
+            })
+          })
+        })
+
+        it("calls the done callback", function(done) {
+          prepare(function() {
+            exec("cat migrations/*-foo.coffee", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+              expect(stdout).to.include('done()')
+              expect(stdout.match(/(done\(\))/)).to.have.length(2)
+              done()
+            })
+          })
+        })
+      })
+    })
+  })(['--coffee --create-migration', '--coffee -c'])
+
   ;(function(flags) {
     flags.forEach(function(flag) {
       var prepare = function(callback) {
         exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function(error, stdout) {
           exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function(error, stdout) {
-            exec("cp ../assets/migrations/*-createPerson.js ./migrations/", { cwd: __dirname + '/tmp' }, function(error, stdout) {
+            var source = (flag.indexOf('coffee') === -1)
+              ? "../assets/migrations/*-createPerson.js"
+              : "../assets/migrations/*-createPerson.coffee"
+
+            exec("cp " + source + " ./migrations/", { cwd: __dirname + '/tmp' }, function(error, stdout) {
               exec("cat ../support.js|sed s,/../,/../../, > ./support.js", { cwd: __dirname + '/tmp' }, function(error, stdout) {
                 var dialect = Support.getTestDialect()
                   , config  = require(__dirname + '/config/config.js')
@@ -208,9 +259,11 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     })
   })([
     '--migrate',
+    '--migrate --coffee',
     '--migrate --config ../tmp/config/config.json',
     '--migrate --config ' + path.join(__dirname, 'tmp', 'config', 'config.json'),
     '-m',
+    '-m --coffee',
     '-m --config ../tmp/config/config.json',
     '-m --config ' + path.join(__dirname, 'tmp', 'config', 'config.json')
   ])

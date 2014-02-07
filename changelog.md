@@ -4,10 +4,11 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - sync() now correctly returns with an error when foreign key constraints reference unknown tables
 - sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
 - makes it possible to specify exactly what timestamp attributes you want to utilize [#1334](https://github.com/sequelize/sequelize/pull/1334)
+- [FEATURE] Support coffee script files in migrations. [#1357](https://github.com/sequelize/sequelize/pull/1357)
 
 # v1.7.0-rc4
 - fixes issue with postgres sync and enums [#1020](https://github.com/sequelize/sequelize/issues/1020)
-- fixes various issues with limit and includes [#1322](https://github.com/sequelize/sequelize/pull/1322) 
+- fixes various issues with limit and includes [#1322](https://github.com/sequelize/sequelize/pull/1322)
 - fixes issues with migrations/queryInterface createTable and enums
 - migration/queryInterface.addIndex() no longer fals on reserved keywords like 'from'
 - bulkCreate now supports a `ignoreDuplicates` option for MySQL, SQLite and MariaDB that will use `INSERT IGNORE`
