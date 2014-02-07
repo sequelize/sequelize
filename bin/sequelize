@@ -252,23 +252,46 @@ if (program.migrate || program.undo) {
 } else if(program.createMigration) {
   createMigrationsFolder()
 
-  var migrationName = [
-    moment().format('YYYYMMDDHHmmss'),
-    (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
-  ].join('-') + '.js'
+  try {
+    var config = readConfig()
+  } catch(e) {
+    console.log(e.message)
+    process.exit(1)
+  }
 
-  var migrationContent = [
-    "module.exports = {",
-    "  up: function(migration, DataTypes, done) {",
-    "    // add altering commands here, calling 'done' when finished",
-    "    done()",
-    "  },",
-    "  down: function(migration, DataTypes, done) {",
-    "    // add reverting commands here, calling 'done' when finished",
-    "    done()",
-    "  }",
-    "}"
-  ].join('\n') + "\n"
+  var mirationContent    = ""
+    , migrationExtension = (program.coffee || config.coffee) ? '.coffee' : '.js'
+    , migrationName      = [
+        moment().format('YYYYMMDDHHmmss'),
+        (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
+      ].join('-') + migrationExtension
+
+  if (program.coffee || config.coffee) {
+    migrationContent = [
+      "module.exports = ",
+      "  up: (migration, DataTypes, done) ->",
+      "    # add altering commands here, calling 'done' when finished",
+      "    done()",
+      "",
+      "  down: (migration, DataTypes, done) ->",
+      "    # add reverting commands here, calling 'done' when finished",
+      "    done()"
+    ].join('\n') + "\n"
+  } else {
+    migrationContent = [
+      "module.exports = {",
+      "  up: function(migration, DataTypes, done) {",
+      "    // add altering commands here, calling 'done' when finished",
+      "    done()",
+      "  },",
+      "  down: function(migration, DataTypes, done) {",
+      "    // add reverting commands here, calling 'done' when finished",
+      "    done()",
+      "  }",
+      "}"
+    ].join('\n') + "\n"
+  }
+
 
   fs.writeFileSync(configuration.migrationsPath + '/' + migrationName, migrationContent)
   console.log('New migration "' + migrationName + '" was added to "' +
