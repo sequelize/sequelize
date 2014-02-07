@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
   describe('getUndoneMigrations', function() {
     it("supports coffee files", function(done) {
       this.init({
-        filesFilter: /\.cs$/,
+        filesFilter: /\.coffee$/,
         to: 20111130161100
       }, function(migrator) {
         migrator.getUndoneMigrations(function(err, migrations) {
@@ -120,6 +120,24 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('executions', function() {
+      it("supports coffee files", function(done) {
+        var self = this
+
+        this.init({
+          filesFilter: /\.coffee$/,
+          to: 20111130161100
+        }, function(migrator) {
+          self.migrator = migrator
+          self.migrator.migrate().success(function() {
+            self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+              tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+              expect(tableNames).to.eql([ 'Person' ])
+              done()
+            })
+          })
+        })
+      })
+
       it("executes migration #20111117063700 and correctly creates the table", function(done) {
         this.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
