@@ -169,6 +169,17 @@ if(typeof program.env === 'string') {
   configuration.environment = program.env
 }
 
+var supportCoffeeScript = function() {
+  try {
+    config = readConfig()
+  } catch(e) {
+    console.log(e.message)
+    process.exit(1)
+  }
+
+  return program.coffee || config.coffee
+}
+
 if (program.migrate || program.undo) {
   if (configFileExists() || program.url) {
     var config
@@ -209,7 +220,7 @@ if (program.migrate || program.undo) {
     var sequelize       = new Sequelize(config.database, config.username, config.password, options)
       , migratorOptions = { path: configuration.migrationsPath }
 
-    if (program.coffee || config.coffee) {
+    if (supportCoffeeScript()) {
       migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
     }
 
@@ -252,21 +263,14 @@ if (program.migrate || program.undo) {
 } else if(program.createMigration) {
   createMigrationsFolder()
 
-  try {
-    var config = readConfig()
-  } catch(e) {
-    console.log(e.message)
-    process.exit(1)
-  }
-
   var mirationContent    = ""
-    , migrationExtension = (program.coffee || config.coffee) ? '.coffee' : '.js'
+    , migrationExtension = (supportCoffeeScript()) ? '.coffee' : '.js'
     , migrationName      = [
         moment().format('YYYYMMDDHHmmss'),
         (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
       ].join('-') + migrationExtension
 
-  if (program.coffee || config.coffee) {
+  if (supportCoffeeScript()) {
     migrationContent = [
       "module.exports = ",
       "  up: (migration, DataTypes, done) ->",
