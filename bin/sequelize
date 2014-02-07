@@ -115,6 +115,7 @@ var parseDbUrl = function(urlString) {
 
 var readConfig = function() {
   var config
+
   if (program.url) {
     config = parseDbUrl(program.url);
   } else {
@@ -125,7 +126,7 @@ var readConfig = function() {
     }
   }
 
-  if(typeof config != 'object') {
+  if (typeof config != 'object') {
     throw new Error('Config must be an object: ' + relativeConfigFile());
   }
 
@@ -139,6 +140,7 @@ var readConfig = function() {
     console.log('Using environment "' + configuration.environment + '".')
     config = config[configuration.environment]
   }
+
   return config
 }
 
@@ -207,7 +209,7 @@ if (program.migrate || program.undo) {
     var sequelize       = new Sequelize(config.database, config.username, config.password, options)
       , migratorOptions = { path: configuration.migrationsPath }
 
-    if (program.coffee) {
+    if (program.coffee || config.coffee) {
       migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
     }
 
