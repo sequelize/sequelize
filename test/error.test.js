@@ -7,7 +7,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-describe.only(Support.getTestDialectTeaser("Sequelize Errors"), function () {
+describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
   describe('API Surface', function() {
     it('Should have the Error constructors exposed', function() {
       expect(Sequelize).to.have.property('Error')
