@@ -514,7 +514,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     })
   })
 
-  describe.only('where', function () {
+  describe('where', function () {
     it('should support Sequelize.and()', function (done) {
       var User = this.sequelize.define('User', {})
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
@@ -612,8 +612,6 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(err).not.to.be.ok
             expect(result.length).to.eql(2)
             done()
-          }).on('sql', function (sql) {
-            console.log(sql)
           })
         })
       }) 
