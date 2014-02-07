@@ -232,7 +232,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       self.sequelize.query(this.insertQuery).success(function() {
         self.sequelize.query("SELECT * FROM " + qq(self.User.tableName) + ";", self.User).success(function(users) {
-          expect(users[0].__factory).to.equal(self.User)
+          expect(users[0].Model).to.equal(self.User)
           done()
         })
       })
