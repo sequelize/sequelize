@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         var product = Product.build({
           price: 10
         })
-        expect(product.toJSON()).to.deep.equal({withTaxes: 1250, price: 1000})
+        expect(product.toJSON()).to.deep.equal({withTaxes: 1250, price: 1000, id: null})
       })
 
       it('should work with save', function (done) {
