@@ -52,7 +52,8 @@
     "sql": "~0.31.0",
     "circular-json": "~0.1.5",
     "bluebird": "~0.11.5",
-    "node-uuid": "~1.4.1"
+    "node-uuid": "~1.4.1",
+    "markdox": "git+http://github.com/cbou/markdox.git"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
