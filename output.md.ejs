@@ -1,0 +1,63 @@
+<? docfiles.forEach(function(doc) { ?>
+
+  <!-- Start <?= doc.filename ?> -->
+
+  <? doc.javadoc.forEach(function(comment) { ?>
+      <? if (comment.name) { ?>
+      <? if (!comment.ignore) { ?>
+       <? if (comment.isConstructor) { ?>
+          ## new <?= comment.name ?>()
+       <? } else if (comment.isMethod || comment.isFunction) { ?>
+          ### <?= comment.name ?>(<?= comment.paramStr ?>)
+        <? } else { ?>
+          ### <?= comment.name ?>
+        <? } ?>
+      <? } ?>
+
+        <?= comment.description ?>
+
+        <? if (comment.deprecated) { ?>
+          **Deprecated**
+        <? } ?>
+
+        <? if (comment.author) { ?>
+          Author: <?- comment.author ?>
+        <? } ?>
+
+        <? if (comment.version) { ?>
+          Version: <?= comment.version ?>
+        <? } ?>
+
+        <? if (comment.see) { ?>
+          See: <?= comment.see ?>
+        <? } ?>
+
+      <? if (comment.paramTags.length > 0) { ?>
+        #### Params: 
+        <table>
+          <thead>
+            <th>Name</th><th>Type</th><th>Description</th>
+          </thead>
+          <? comment.paramTags.forEach(function(paramTag) { ?>
+            <tr>
+              <td><?= paramTag.name ?></td>
+              <td><?= paramTag.joinedTypes ?></td>
+              <td><?= paramTag.description ?></td>
+            </tr>
+          <? }) ?>
+        </table>
+      <? } ?>
+
+      <? if (comment.returnTags.length > 0) { ?>
+        #### Return:
+        <? comment.returnTags.forEach(function(returnTag) { ?>
+          * **<?= returnTag.joinedTypes ?>** <?= returnTag.description ?>
+        <? }) ?>
+      <? } ?>
+    <? } ?>
+    ------
+  <? }) ?>
+
+  <!-- End <?= doc.filename ?> -->
+
+<? }) ?>
