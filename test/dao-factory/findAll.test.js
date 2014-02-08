@@ -24,7 +24,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       data:         DataTypes.STRING,
       intVal:       DataTypes.INTEGER,
       theDate:      DataTypes.DATE,
-      aBool:        DataTypes.BOOLEAN
+      aBool:        DataTypes.BOOLEAN,
+      binary:       DataTypes.STRING(16, true)
     })
 
     this.User.sync({ force: true }).success(function() {
@@ -63,9 +64,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       beforeEach(function(done) {
         var self = this
 
+        this.buf = new Buffer(16);
+        this.buf.fill('\x01');
+
         this.User.bulkCreate([
           {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
-          {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00'}
+          {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00', binary: this.buf }
         ]).success(function(user2) {
           done()
         })
@@ -91,6 +95,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done();
         });
       })
+
+      it('should not break when using smart syntax on binary fields', function (done) {
+        this.User.findAll({
+          where: {
+            binary: [ this.buf, this.buf ]
+          }
+        }).success(function(users){
+          done();
+        });
+      });
 
       it('should be able to find a row using like', function(done) {
         this.User.findAll({
