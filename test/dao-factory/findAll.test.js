@@ -102,6 +102,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             binary: [ this.buf, this.buf ]
           }
         }).success(function(users){
+          expect(users).to.have.length(1)
+          expect(users[0].binary).to.be.an.instanceof.string
+          expect(users[0].username).to.equal('boo2')
           done();
         });
       });
@@ -219,6 +222,60 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                                 expect(theFalsePassport[0].isActive).to.be.false
                                 expect(theTruePassport).to.have.length(1)
                                 expect(theTruePassport[0].isActive).to.be.true
+                                done()
+                              })
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('should be able to handle binary values through associations as well...', function(done) {
+        var User = this.User;
+        var Binary = this.sequelize.define('Binary', {
+          id: {
+            type: DataTypes.STRING(16, true),
+            primaryKey: true
+          }
+        })
+
+        var buf1 = this.buf
+        var buf2 = new Buffer(16)
+        buf2.fill('\x02')
+
+        User.belongsTo(Binary, { foreignKey: 'binary' })
+
+        User.sync({ force: true }).success(function() {
+          Binary.sync({ force: true }).success(function() {
+            User.bulkCreate([
+              {username: 'boo5', aBool: false},
+              {username: 'boo6', aBool: true}
+            ]).success(function() {
+              Binary.bulkCreate([
+                {id: buf1},
+                {id: buf2}
+              ]).success(function() {
+                User.find(1).success(function(user) {
+                  Binary.find(buf1).success(function(binary) {
+                    user.setBinary(binary).success(function() {
+                      User.find(2).success(function(_user) {
+                        Binary.find(buf2).success(function(_binary) {
+                          _user.setBinary(_binary).success(function() {
+                            _user.getBinary().success(function(_binaryRetrieved) {
+                              user.getBinary().success(function(binaryRetrieved) {
+                                expect(binaryRetrieved.id).to.be.an.instanceof.string
+                                expect(_binaryRetrieved.id).to.be.an.instanceof.string
+                                expect(binaryRetrieved.id).to.have.length(16)
+                                expect(_binaryRetrieved.id).to.have.length(16)
+                                expect(binaryRetrieved.id).to.be.equal(buf1.toString())
+                                expect(_binaryRetrieved.id).to.be.equal(buf2.toString())
                                 done()
                               })
                             })
