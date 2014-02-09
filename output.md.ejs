@@ -1,20 +1,24 @@
 <? docfiles.forEach(function(doc) { ?>
-
-  <!-- Start <?= doc.filename ?> -->
-
   <? doc.javadoc.forEach(function(comment) { ?>
-      <? if (comment.name) { ?>
+    <? if (comment.name) { ?>
       <? if (!comment.ignore) { ?>
-       <? if (comment.isConstructor) { ?>
-          ## new <?= comment.name ?>()
-       <? } else if (comment.isMethod || comment.isFunction) { ?>
-          ### <?= comment.name ?>(<?= comment.paramStr ?>)
-        <? } else { ?>
-          ### <?= comment.name ?>
+        <a name="<?= comment.name ?>" />
+        <? if (comment.isConstructor) { ?>
+            ## new <?= comment.name ?>(<?= comment.paramStr ?>)
+         <? } else if (comment.isMethod || comment.isFunction) { ?>
+            ### <?= comment.name ?>(<?= comment.paramStr ?>)
+          <? } else { ?>
+            ### <?= comment.name ?>
+          <? } ?>
         <? } ?>
-      <? } ?>
 
         <?= comment.description ?>
+
+        <? if (comment.isClass) { ?>
+          ### Members:
+          <? doc.members.forEach(function (member) { ?>
+            * <a href="#<?= member ?>"><?= member ?></a><? }) ?>
+        <? } ?>
 
         <? if (comment.deprecated) { ?>
           **Deprecated**
@@ -29,7 +33,15 @@
         <? } ?>
 
         <? if (comment.see) { ?>
-          See: <?= comment.see ?>
+          <? if (comment.seeURL !== false) { ?>
+            <? if (comment.seeExternal) { ?>
+              See: <a href="<?= comment.seeURL ?>"><?= comment.seeText ?></a>
+            <? } else { ?>
+              See: <a href="https://github.com/sequelize/sequelize/wiki/API-Reference-<?= comment.seeURL ?>"><?= comment.seeText ?></a>
+            <? } ?>
+          <? } else { ?>
+            See: <?= comment.see ?>
+          <? } ?>
         <? } ?>
 
       <? if (comment.paramTags.length > 0) { ?>
@@ -58,6 +70,8 @@
     ------
   <? }) ?>
 
-  <!-- End <?= doc.filename ?> -->
+  _This document is automatically generated based on source code comments. Please do not edit it directly, as your changes will be ignored. Please write on [IRC](irc://irc.freenode.net/#sequelizejs), open an issue or a create a pull request if you feel something can be improved. For help on how to write source code documentation see [JSDoc](http://usejsdoc.org), [dox](https://github.com/visionmedia/dox) and [markdox](https://github.com/cbou/markdox)_
+
+  _This documentation was automagically created on <?= new Date().toString() ?>_
 
 <? }) ?>
