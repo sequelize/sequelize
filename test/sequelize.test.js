@@ -80,10 +80,12 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
-              if (dialect !== 'postgres') {
-                expect(err.message).to.match(/Failed to authenticate/)
-              } else {
+              if (dialect === 'mariadb') {
+                expect(err.message).to.match(/Access denied for user/)
+              } else if (dialect === 'postgres') {
                 expect(err.message).to.match(/invalid port number/)
+              } else {
+                expect(err.message).to.match(/Failed to authenticate/)
               }
 
               done()
