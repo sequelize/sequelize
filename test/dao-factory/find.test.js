@@ -85,6 +85,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      it('treats questionmarks in an array', function(done) {
+        this.UserPrimary.find({
+          where: ['specialkey = ?', 'awesome']
+        }).on('sql', function(sql) {
+          expect(sql).to.contain("WHERE specialkey = 'awesome'")
+          done()
+        })
+      })
+
       it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function(done) {
         this.UserPrimary.find('a string').success(function(user) {
           expect(user.specialkey).to.equal('a string')
@@ -228,8 +237,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.User.find({
             where: { username: 'JohnXOXOXO' },
             attributes: ['username']
-          }).success(function(user) {
-            expect(user.selectedValues).to.have.property('username', 'JohnXOXOXO')
+          }).done(function(err, user) {
+            expect(err).not.to.be.ok
+            expect(_.omit(user.selectedValues, ['id'])).to.have.property('username', 'JohnXOXOXO')
             done()
           })
         })
@@ -253,8 +263,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   where: { username: 'John DOE' },
                   attributes: ['username'],
                   include: [self.Mission]
-                }).success(function(user) {
-                  expect(user.selectedValues).to.deep.equal({ username: 'John DOE' })
+                }).done(function(err, user) {
+                  expect(err).not.to.be.ok
+                  expect(_.omit(user.selectedValues, ['id'])).to.deep.equal({ username: 'John DOE' })
                   done()
                 })
               })
@@ -282,7 +293,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   attributes: ['username'],
                   include: [{model: self.Mission, as: self.Mission.tableName, attributes: ['title']}]
                 }).success(function(user) {
-                  expect(user.selectedValues).to.deep.equal({ username: 'Brain Picker' })
+                  expect(_.omit(user.selectedValues, ['id'])).to.deep.equal({ username: 'Brain Picker' })
                   expect(user.missions[0].selectedValues).to.deep.equal({ id: 1, title: 'another mission!!'})
                   expect(user.missions[0].foo).not.to.exist
                   done()
@@ -500,7 +511,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                         'user_id',
                         'message'
                       ],
-                      include: [{ model: User, as: User.tableName, attributes: ['username'] }]
+                      include: [{ model: User, attributes: ['username'] }]
 
                     }).success(function(messages) {
 

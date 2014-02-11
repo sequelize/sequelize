@@ -236,6 +236,30 @@ if (Support.dialectIsMySQL()) {
           expectation: "SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;",
           context: QueryGenerator
         }, {
+          title: 'HAVING clause works with string replacements',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
+              group: ['creationYear', 'title'],
+              having: ['creationYear > ?', 2002]
+            }
+          }],
+          expectation: "SELECT *, YEAR(`createdAt`) as `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'HAVING clause works with where-like hash',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
+              group: ['creationYear', 'title'],
+              having: { creationYear: { gt: 2002 } }
+            }
+          }],
+          expectation: "SELECT *, YEAR(`createdAt`) as `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
           arguments: ['myTable', {limit: 10}],
           expectation: "SELECT * FROM `myTable` LIMIT 10;",
           context: QueryGenerator
@@ -365,6 +389,9 @@ if (Support.dialectIsMySQL()) {
         }, {
           arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',true),('bar',false);"
+        }, {
+          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {ignoreDuplicates: true}],
+          expectation: "INSERT IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
         }
       ],
 
@@ -445,7 +472,7 @@ if (Support.dialectIsMySQL()) {
       addIndexQuery: [
         {
           arguments: ['User', ['username', 'isAdmin']],
-          expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)'
+          expectation: 'CREATE INDEX user_username_is_admin ON User (`username`, `isAdmin`)'
         }, {
           arguments: [
             'User', [
@@ -453,12 +480,12 @@ if (Support.dialectIsMySQL()) {
               'isAdmin'
             ]
           ],
-          expectation: "CREATE INDEX user_username_is_admin ON User (username(10) ASC, isAdmin)"
+          expectation: "CREATE INDEX user_username_is_admin ON User (`username`(10) ASC, `isAdmin`)"
         }, {
           arguments: [
             'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}
           ],
-          expectation: "CREATE FULLTEXT INDEX bar ON User (username, isAdmin) WITH PARSER foo"
+          expectation: "CREATE FULLTEXT INDEX bar ON User (`username`, `isAdmin`) WITH PARSER foo"
         }
       ],
 

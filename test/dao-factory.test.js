@@ -205,6 +205,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should allow me to disable some of the timestamp fields', function(done) {
+      var UpdatingUser = this.sequelize.define('UpdatingUser', {}, {
+        timestamps: true,
+        updatedAt: false,
+        createdAt: false,
+        deletedAt: 'deletedAtThisTime',
+        paranoid: true
+      })
+
+      UpdatingUser.sync({force: true}).success(function() {
+        UpdatingUser.create().success(function (user) {
+          expect(user.createdAt).not.to.exist
+          expect(user.false).not.to.exist //  because, you know we might accidentally add a field named 'false'
+          user.save().success(function (user) {
+            expect(user.updatedAt).not.to.exist
+            user.destroy().success(function(user) {
+              expect(user.deletedAtThisTime).to.exist
+              done()
+            })
+          })
+        })
+      })
+    })
+
     it('should allow me to override updatedAt, createdAt, and deletedAt fields with underscored being true', function(done) {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: Sequelize.INTEGER
@@ -241,6 +265,39 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserTable.create({aNumber: 30}).success(function(user) {
           UserTable.count().success(function(c) {
             expect(c).to.equal(1)
+            done()
+          })
+        })
+      })
+    })
+
+    it('allows multiple column unique keys to be defined', function(done) {
+      var User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: 'user_and_email' },
+        email: { type: Sequelize.STRING, unique: 'user_and_email' },
+        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+      })
+
+      User.sync({ force: true }).on('sql', function(sql) {
+        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_username_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
+        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_aCol_bCol)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
+        done()
+      })
+    })
+
+    it('allows us to customize the error message for unique constraint', function(done) {
+      var User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
+        email: { type: Sequelize.STRING, unique: 'user_and_email' },
+        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+      })
+
+      User.sync({ force: true }).success(function() {
+        User.create({username: 'tobi', email: 'tobi@tobi.me'}).success(function() {
+          User.create({username: 'tobi', email: 'tobi@tobi.me'}).error(function(err) {
+            expect(err).to.equal('User and email must be unique')
             done()
           })
         })
@@ -690,7 +747,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       this.User.bulkCreate(data).success(function() {
         self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err) {
-          console.log(err)
           expect(err).not.to.be.ok
           self.User.findAll({order: 'id'}).success(function(users) {
             expect(users.length).to.equal(3)
@@ -704,6 +760,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
             done()
           })
+        })
+      })
+    })
+
+    it('returns the number of affected rows', function(_done) {
+     var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+        , done = _.after(2, _done)
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(2)
+          
+          done()
+        })
+
+        self.User.update({username: 'Bill'}, {secretValue: '44'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(0)
+          
+          done()
         })
       })
     })
@@ -864,6 +944,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               })
             })
           })
+        })
+      })
+    })
+
+   it('returns the number of affected rows', function(_done) {
+     var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+        , done = _.after(2, _done)
+
+
+      this.User.bulkCreate(data).success(function() {
+        self.User.destroy({secretValue: '42'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(2)
+          
+          done()
+        })
+
+        self.User.destroy({secretValue: '44'}).done(function(err, affectedRows) {
+          expect(err).not.to.be.ok
+          expect(affectedRows).to.equal(0)
+          
+          done()
         })
       })
     })
@@ -1724,6 +1829,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
+
+      it("should work when the database returns null", function (done) {
+        var self = this
+        this.BlobUser.create({
+          // create a null column
+        }).success(function (user) {
+          self.BlobUser.find(user.id).success(function (user) {
+            expect(user.data).to.be.null
+            done()
+          })
+        })
+      })
     })
 
     describe("strings", function () {
@@ -1849,6 +1966,44 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(done)
     })
 
+  })
+
+  describe('Unique', function() {
+    it("should set unique when unique is true", function(done) {
+      var self = this
+      var uniqueTrue = self.sequelize.define('uniqueTrue', {
+        str: { type: Sequelize.STRING, unique: true }
+      })
+
+      uniqueTrue.sync({force: true}).on('sql', function(s) {
+        expect(s).to.match(/UNIQUE/)
+        done()
+      })
+    })
+
+    it("should not set unique when unique is false", function(done) {
+      var self = this
+      var uniqueFalse = self.sequelize.define('uniqueFalse', {
+        str: { type: Sequelize.STRING, unique: false }
+      })
+
+      uniqueFalse.sync({force: true}).on('sql', function(s) {
+        expect(s).not.to.match(/UNIQUE/)
+        done()
+      })
+    })
+
+    it("should not set unique when unique is unset", function(done) {
+      var self = this
+      var uniqueUnset = self.sequelize.define('uniqueUnset', {
+        str: { type: Sequelize.STRING }
+      })
+
+      uniqueUnset.sync({force: true}).on('sql', function(s) {
+        expect(s).not.to.match(/UNIQUE/)
+        done()
+      })
+    })
   })
 
 })

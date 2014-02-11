@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "1.7.0-rc2",
+  "version": "1.7.0-rc5",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -66,12 +66,13 @@
     "mocha": "~1.13.0",
     "chai-datetime": "~1.1.1",
     "sinon": "~1.7.3",
-    "mariasql": "git://github.com/mscdex/node-mariasql.git",
+    "mariasql": "0.1.20",
     "chai-spies": "~0.5.1",
     "lcov-result-merger": "0.0.2",
     "istanbul": "~0.1.45",
     "coveralls": "~2.5.0",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "coffee-script": "~1.7.1"
   },
   "keywords": [
     "mysql",

@@ -318,6 +318,30 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {group: ["name","title"]}],
           expectation: "SELECT * FROM \"myTable\" GROUP BY \"name\", \"title\";"
         }, {
+          title: 'HAVING clause works with string replacements',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
+              group: ['creationYear', 'title'],
+              having: ['creationYear > ?', 2002]
+            }
+          }],
+          expectation: "SELECT *, YEAR(\"createdAt\") as \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING creationYear > 2002;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'HAVING clause works with where-like hash',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
+              group: ['creationYear', 'title'],
+              having: { creationYear: { gt: 2002 } }
+            }
+          }],
+          expectation: "SELECT *, YEAR(\"createdAt\") as \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING \"creationYear\" > 2002;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
           arguments: ['myTable', {limit: 10}],
           expectation: "SELECT * FROM \"myTable\" LIMIT 10;"
         }, {
@@ -882,6 +906,14 @@ if (dialect.match(/^postgres/)) {
           arguments: [{ id: [] }],
           expectation: "\"id\" IN (NULL)"
         },
+        {
+          arguments: [{id: {not: [1, 2, 3] }}],
+          expectation: "\"id\" NOT IN (1,2,3)"
+        },
+        {
+          arguments: [{id: {not: [] }}],
+          expectation: "\"id\" NOT IN (NULL)"
+        },
 
         // Variants when quoteIdentifiers is false
         {
@@ -894,6 +926,16 @@ if (dialect.match(/^postgres/)) {
           expectation: "id IN (NULL)",
           context: {options: {quoteIdentifiers: false}}
         },
+        {
+          arguments: [{ id: {not: [1,2,3] }}],
+          expectation: "id NOT IN (1,2,3)",
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{ id: {not: [] }}],
+          expectation: "id NOT IN (NULL)",
+          context: {options: {quoteIdentifiers: false}}
+        }
       ]
     }
 
