@@ -303,14 +303,17 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
               // `WHERE` clause
 
               var tableName = user.QueryInterface.QueryGenerator.addSchema(user.__factory)
-              user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-              .success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks).to.have.length(1)
-                  expect(tasks[0].UserId).to.equal(999)
-                  done()
+
+              user
+                .QueryInterface
+                .update(user, tableName, { id: 999 }, user.id, { allowUpdate: ['id'] })
+                .success(function() {
+                  Task.findAll().success(function(tasks) {
+                    expect(tasks).to.have.length(1)
+                    expect(tasks[0].UserId).to.equal(999)
+                    done()
+                  })
                 })
-              })
             })
           })
         })
