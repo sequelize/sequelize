@@ -9,16 +9,6 @@ var chai      = require('chai')
 chai.Assertion.includeStack = true
 
 describe(Support.getTestDialectTeaser("QueryGenerators"), function () {
-  describe('.addSchema', function() {
-    beforeEach(function() {
-      this.QueryGenerator = _.bindAll(QueryGenerator, 'addSchema')
-    })
-
-    it('should return table names without schemas', function() {
-      expect(this.QueryGenerator.addSchema({tableName: 'users'})).to.equal('users')
-    })
-  })
-
   describe("comments", function() {
     it("should create a comment for a column", function(done) {
       var self = this
