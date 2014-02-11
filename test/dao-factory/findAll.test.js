@@ -274,8 +274,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                                 expect(_binaryRetrieved.id).to.be.an.instanceof.string
                                 expect(binaryRetrieved.id).to.have.length(16)
                                 expect(_binaryRetrieved.id).to.have.length(16)
-                                expect(binaryRetrieved.id).to.be.equal(buf1.toString())
-                                expect(_binaryRetrieved.id).to.be.equal(buf2.toString())
+                                expect(binaryRetrieved.id.toString()).to.be.equal(buf1.toString())
+                                expect(_binaryRetrieved.id.toString()).to.be.equal(buf2.toString())
                                 done()
                               })
                             })
