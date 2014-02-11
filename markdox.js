@@ -5,9 +5,15 @@ var markdox = require('markdox')
 
 var getTag = function(tags, tagName) {
   return _.find(tags, function (tag) {
-    return tag.type === tagName
+    return tag.type === tagName;
   });
 };
+
+var getTags = function(tags, tagName) {
+  return _.where(tags, function (tag) {
+    return tag.type === tagName;
+  });
+}
 
 // TODO multiple @see tags
 var options = {
@@ -18,7 +24,9 @@ var options = {
     docfile.members = [];
     docfile.javadoc.forEach(function(javadoc, index){
       // Find constructor tags
-      docfile.javadoc[index].isConstructor = getTag(javadoc.raw.tags, 'constructor') !== undefined;
+      javadoc.isConstructor = getTag(javadoc.raw.tags, 'constructor') !== undefined;
+      javadoc.isMixin = getTag(javadoc.raw.tags, 'mixin') !== undefined;
+      javadoc.mixes = getTags(javadoc.raw.tags, 'mixes');
       
       // Only show params without a dot in them (dots means attributes of object, so no need to clutter the co)
       var params = [] 
@@ -30,26 +38,28 @@ var options = {
       javadoc.paramStr = params.join(', ');
 
       // Handle linking in comments
-      if (javadoc.see) {
-        if (javadoc.see.indexOf('{') === 0){
-          var see = javadoc.see.split('}')
-          see[0] = see[0].substring(1)
-          if (javadoc.see.indexOf('www') !== -1) {
-            javadoc.seeExternal = true
-          } else {
-            javadoc.seeExternal = false
-          }
-          javadoc.seeURL = see[0]
+      javadoc.see = getTags(javadoc.raw.tags, 'see');
+      javadoc.see.forEach(function (see, i, collection) {
+        collection[i] = {}
 
-          if (see[1] !== "") {
-            javadoc.seeText = see[1]
+        if (see.local) {
+          collection[i].external = false
+
+          if (see.local.indexOf('{') === 0){
+            var _see = see.local.split('}')
+            _see[0] = _see[0].substring(1)
+            collection[i].url = _see[0]
+
+            collection[i].text = see.local            
           } else {
-            javadoc.seeText = see[0]
+            collection[i].url = false
+            collection[i].text = see.local
           }
         } else {
-          javadoc.seeURL = false
+          collection[i].external = true
+
         }
-      }
+      })
 
       // Set a name for properties
       if (!javadoc.name) {
@@ -60,7 +70,7 @@ var options = {
       }
 
       if (!javadoc.isClass) {
-        docfile.members.push(javadoc.name)
+        docfile.members.push(javadoc.name + '(' + javadoc.paramStr + ')')
       }
     });
 
@@ -69,7 +79,7 @@ var options = {
   template: 'output.md.ejs'
 };
 
-markdox.process('./lib/sequelize.js', options, function(){
+markdox.process(process.argv[2] || './lib/hooks.js', options, function(){
   md = fs.readFileSync('output.md').toString();
 
   fs.writeFileSync('out.html', ghm.parse(md));

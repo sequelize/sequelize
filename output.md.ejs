@@ -14,10 +14,22 @@
 
         <?= comment.description ?>
 
+        <? if (comment.mixes.length) { ?>
+          ### Mixes:
+          <? comment.mixes.forEach(function (mix) { mix = mix.string ?>
+            <? if (mix.indexOf('www') !== -1 || mix.indexOf('http') !== -1) { -?>
+              * <a href="<?= mix ?>"><?= mix ?></a>
+            <? } else { -?>
+              * <a href="https://github.com/sequelize/sequelize/wiki/API-Reference-<?= mix ?>"><?= mix.substring(1, mix.length -1) ?></a>
+            <? } ?>
+          <? }) ?>
+        <? } ?>
+
         <? if (comment.isClass) { ?>
           ### Members:
-          <? doc.members.forEach(function (member) { ?>
-            * <a href="#<?= member ?>"><?= member ?></a><? }) ?>
+          <? doc.members.forEach(function (member) { -?>
+            * <a href="#<?= member ?>"><?= member ?></a>
+          <? }) -?>
         <? } ?>
 
         <? if (comment.deprecated) { ?>
@@ -32,17 +44,18 @@
           Version: <?= comment.version ?>
         <? } ?>
 
-        <? if (comment.see) { ?>
-          <? if (comment.seeURL !== false) { ?>
-            <? if (comment.seeExternal) { ?>
-              See: <a href="<?= comment.seeURL ?>"><?= comment.seeText ?></a>
-            <? } else { ?>
-              See: <a href="https://github.com/sequelize/sequelize/wiki/API-Reference-<?= comment.seeURL ?>"><?= comment.seeText ?></a>
-            <? } ?>
-          <? } else { ?>
-            See: <?= comment.see ?>
-          <? } ?>
-        <? } ?>
+        <? if (comment.see.length) { ?>See:<? } ?>
+        <? comment.see.forEach(function (see) { -?>
+          <? if (see.url !== false) { -?>
+            <? if (see.external) { -?>
+              * <a href="<?= see.url ?>"><?= see.text ?></a>
+            <? } else { -?>
+              * <a href="https://github.com/sequelize/sequelize/wiki/API-Reference-<?= see.url ?>"><?= see.text ?></a>
+            <? } -?>
+          <? } else { -?>
+            * <?= see.text ?>
+          <? } -?>
+        <? }) -?>
 
       <? if (comment.paramTags.length > 0) { ?>
         #### Params: 
@@ -70,7 +83,7 @@
     ------
   <? }) ?>
 
-  _This document is automatically generated based on source code comments. Please do not edit it directly, as your changes will be ignored. Please write on [IRC](irc://irc.freenode.net/#sequelizejs), open an issue or a create a pull request if you feel something can be improved. For help on how to write source code documentation see [JSDoc](http://usejsdoc.org), [dox](https://github.com/visionmedia/dox) and [markdox](https://github.com/cbou/markdox)_
+  _This document is automatically generated based on source code comments. Please do not edit it directly, as your changes will be ignored. Please write on [IRC](irc://irc.freenode.net/#sequelizejs), open an issue or a create a pull request if you feel something can be improved. For help on how to write source code documentation see [JSDoc](http://usejsdoc.org) and [markdox](https://github.com/cbou/markdox)_
 
   _This documentation was automagically created on <?= new Date().toString() ?>_
 
