@@ -1,5 +1,7 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+- [BUG] Encode binary strings as bytea in postgres, and fix a case where using a binary as key in an association would produce an error [1364](https://github.com/sequelize/sequelize/pull/1364). Thanks to @SohumB
+
 # v1.7.0-rc5
 - [FEATURE] sync() now correctly returns with an error when foreign key constraints reference unknown tables
 - [BUG] sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
