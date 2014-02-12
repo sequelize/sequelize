@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     flags.forEach(function(flag) {
       describe(flag, function() {
         it("prints the help", function(done) {
-          exec("node bin/sequelize " + flag, function(err, stdout, stderr) {
+          exec("bin/sequelize " + flag, function(err, stdout, stderr) {
             expect(version).to.not.be.empty
             expect(stdout).to.include(version)
             done()

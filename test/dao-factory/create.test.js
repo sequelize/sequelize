@@ -951,7 +951,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         code: {
           type: Sequelize.STRING,
           validate: {
-            isLength: [3, 10]
+            len: [3, 10]
           }
         }
       })
@@ -969,7 +969,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(errors[0].errors.name[0]).to.equal('name cannot be null')
           expect(errors[1].record.name).to.equal('bar')
           expect(errors[1].record.code).to.equal('1')
-          expect(errors[1].errors.code[0]).to.equal('Validation isLength failed: code')
+          expect(errors[1].errors.code[0]).to.equal('Validation len failed: code')
           done()
         })
       })
@@ -986,7 +986,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         code: {
           type: Sequelize.STRING,
           validate: {
-            isLength: [3, 10]
+            len: [3, 10]
           }
         }
       })

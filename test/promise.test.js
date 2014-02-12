@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {isLength: {msg: 'Length failed.', args: [1, 20]}}
+        validate: {len: {msg: 'Length failed.', args: [1, 20]}}
       },
 
       dateAllowNullTrue: {
