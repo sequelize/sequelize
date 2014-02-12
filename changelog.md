@@ -1,5 +1,6 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc6
 - [BUG] Encode binary strings as bytea in postgres, and fix a case where using a binary as key in an association would produce an error [1364](https://github.com/sequelize/sequelize/pull/1364). Thanks to @SohumB
 
 # v1.7.0-rc5
