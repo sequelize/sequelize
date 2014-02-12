@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         Model.sync({ force: true }).success(function() {
           Model.create({name: 'World'}).success(function(model) {
             model.updateAttributes({name: ''}).error(function(err) {
-              expect(err).to.deep.equal({ name: [ 'String is empty: name', 'String is empty: name' ] })
+              expect(err).to.deep.equal({ name: [ 'Validation notNull failed: name', 'Validation notEmpty failed: name' ] })
               done()
             })
           })
@@ -318,7 +318,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         Model.sync({ force: true }).success(function() {
           Model.create({name: 'World'}).success(function(model) {
             Model.update({name: ''}, {id: 1}).error(function(err) {
-              expect(err).to.deep.equal({ name: [ 'String is empty: name', 'String is empty: name' ] })
+              expect(err).to.deep.equal({ name: [ 'Validation notNull failed: name', 'Validation notEmpty failed: name' ] })
               done()
             })
           })
@@ -389,7 +389,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
           User.sync({ force: true }).success(function() {
             User.create({id: 'helloworld'}).error(function(err) {
-              expect(err).to.deep.equal({id: ['Invalid integer: id']})
+              expect(err).to.deep.equal({id: ['Validation isInt failed: id']})
               done()
             })
           })
@@ -560,7 +560,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
       expect(errors).not.to.be.null
       expect(errors.field).to.have.length(1)
-      expect(errors.field[0]).to.equal("Unexpected value or invalid argument: field")
+      expect(errors.field[0]).to.equal("Validation isIn failed: field")
     })
 
     it('skips validations for the given fields', function() {

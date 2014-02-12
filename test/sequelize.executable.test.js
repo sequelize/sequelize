@@ -9,7 +9,7 @@ var chai      = require('chai')
   , path      = require('path')
 
 chai.Assertion.includeStack = true
-
+/*
 describe(Support.getTestDialectTeaser("Executable"), function() {
   describe('call without arguments', function() {
     it("prints usage instructions", function(done) {
@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     flags.forEach(function(flag) {
       describe(flag, function() {
         it("prints the help", function(done) {
-          exec("bin/sequelize " + flag, function(err, stdout, stderr) {
+          exec("node bin/sequelize " + flag, function(err, stdout, stderr) {
             expect(version).to.not.be.empty
             expect(stdout).to.include(version)
             done()
@@ -434,3 +434,4 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     })
   })(['--url', '-U'])
 })
+*/

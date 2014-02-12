@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {len: {msg: 'Length failed.', args: [1, 20]}}
+        validate: {isLength: {msg: 'Length failed.', args: [1, 20]}}
       },
 
       dateAllowNullTrue: {
@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         expect(err).to.be.an("object")
         expect(err.validateTest).to.be.an("array")
         expect(err.validateTest[0]).to.be.ok
-        expect(err.validateTest[0].indexOf('Invalid integer')).to.be.greaterThan(-1)
+        expect(err.validateTest[0]).to.equal('Validation isInt failed: validateTest')
         done()
       });
     })
@@ -304,7 +304,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         expect(err.validateTest).to.be.ok
         expect(err.validateTest).to.be.an("array")
         expect(err.validateTest[0]).to.be.ok
-        expect(err.validateTest[0].indexOf('Invalid integer:')).to.be.greaterThan(-1)
+        expect(err.validateTest[0]).to.equal('Validation isInt failed: validateTest')
         done()
       })
     })
