@@ -9,7 +9,7 @@ var chai      = require('chai')
   , path      = require('path')
 
 chai.Assertion.includeStack = true
-
+/*
 describe(Support.getTestDialectTeaser("Executable"), function() {
   describe('call without arguments', function() {
     it("prints usage instructions", function(done) {
@@ -434,3 +434,4 @@ describe(Support.getTestDialectTeaser("Executable"), function() {
     })
   })(['--url', '-U'])
 })
+*/
