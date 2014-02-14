@@ -205,6 +205,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should allow me to disable some of the timestamp fields', function(done) {
+      var UpdatingUser = this.sequelize.define('UpdatingUser', {}, {
+        timestamps: true,
+        updatedAt: false,
+        createdAt: false,
+        deletedAt: 'deletedAtThisTime',
+        paranoid: true
+      })
+
+      UpdatingUser.sync({force: true}).success(function() {
+        UpdatingUser.create().success(function (user) {
+          expect(user.createdAt).not.to.exist
+          expect(user.false).not.to.exist //  because, you know we might accidentally add a field named 'false'
+          user.save().success(function (user) {
+            expect(user.updatedAt).not.to.exist
+            user.destroy().success(function(user) {
+              expect(user.deletedAtThisTime).to.exist
+              done()
+            })
+          })
+        })
+      })
+    })
+
     it('should allow me to override updatedAt, createdAt, and deletedAt fields with underscored being true', function(done) {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: Sequelize.INTEGER
@@ -1942,6 +1966,44 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(done)
     })
 
+  })
+
+  describe('Unique', function() {
+    it("should set unique when unique is true", function(done) {
+      var self = this
+      var uniqueTrue = self.sequelize.define('uniqueTrue', {
+        str: { type: Sequelize.STRING, unique: true }
+      })
+
+      uniqueTrue.sync({force: true}).on('sql', function(s) {
+        expect(s).to.match(/UNIQUE/)
+        done()
+      })
+    })
+
+    it("should not set unique when unique is false", function(done) {
+      var self = this
+      var uniqueFalse = self.sequelize.define('uniqueFalse', {
+        str: { type: Sequelize.STRING, unique: false }
+      })
+
+      uniqueFalse.sync({force: true}).on('sql', function(s) {
+        expect(s).not.to.match(/UNIQUE/)
+        done()
+      })
+    })
+
+    it("should not set unique when unique is unset", function(done) {
+      var self = this
+      var uniqueUnset = self.sequelize.define('uniqueUnset', {
+        str: { type: Sequelize.STRING }
+      })
+
+      uniqueUnset.sync({force: true}).on('sql', function(s) {
+        expect(s).not.to.match(/UNIQUE/)
+        done()
+      })
+    })
   })
 
 })

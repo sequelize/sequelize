@@ -511,7 +511,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                         'user_id',
                         'message'
                       ],
-                      include: [{ model: User, as: User.tableName, attributes: ['username'] }]
+                      include: [{ model: User, attributes: ['username'] }]
 
                     }).success(function(messages) {
 
