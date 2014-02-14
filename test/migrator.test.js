@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
     }.bind(this)
   })
 
-  describe('getUndoneMigrations', function() {
+  describe.skip('getUndoneMigrations', function() {
     it("supports coffee files", function(done) {
       this.init({
         filesFilter: /\.coffee$/,
@@ -109,7 +109,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
     })
   })
 
-  describe('migrations', function() {
+  describe.skip('migrations', function() {
     beforeEach(function(done) {
       var self = this
 
@@ -119,7 +119,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
       })
     })
 
-    describe('executions', function() {
+    describe.skip('executions', function() {
       it("supports coffee files", function(done) {
         var self = this
 
