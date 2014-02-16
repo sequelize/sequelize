@@ -483,15 +483,20 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
       it('uses one UPDATE statement', function (done) {
         var self = this
-          , spy = sinon.spy()
+          , spy  = sinon.spy()
 
         this.User.create({ username: 'foo' }).success(function(user) {
           self.Task.create({ title: 'task1' }).success(function(task1) {
             self.Task.create({ title: 'task2' }).success(function(task2) {
-              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
-                expect(sql).to.have.string("UPDATE")
-                expect(sql).to.have.string("IN (1,2)")
-              })).success(function () {
+              user
+                .setTasks([task1, task2])
+                .on('sql', spy)
+                .on('sql', _.after(2, function (sql) {
+                  // We don't care about SELECT, only UPDAET
+                  expect(sql).to.have.string("UPDATE")
+                  expect(sql).to.have.string("IN (1,2)")
+                })
+              ).success(function () {
                 expect(spy.calledTwice).to.be.ok // Once for SELECT, once for UPDATE
                 done()
               })
