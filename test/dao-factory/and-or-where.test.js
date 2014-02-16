@@ -40,7 +40,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         this.User.find({
           where: Sequelize[method]( "1=1", "2=2" )
         }).on('sql', function(sql) {
-          expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+          switch (Support.getTestDialect()) {
+            case 'mssql':
+              expect(sql).to.contain("TOP 1")
+              expect(sql).to.contain("WHERE (1=1 " + word + " 2=2)")
+              break
+            default:
+              expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+              break
+          }
+
           done()
         })
       })
@@ -49,7 +58,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         this.User.find({
           where: Sequelize[method]( ["1=?", 1], ["2=?", 2] )
         }).on('sql', function(sql) {
-          expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+          switch (Support.getTestDialect()) {
+            case 'mssql':
+              expect(sql).to.contain("TOP 1")
+              expect(sql).to.contain("WHERE (1=1 " + word + " 2=2)")
+              break
+            default:
+              expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+              break
+          }
+
           done()
         })
       })
@@ -62,7 +80,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             mysql: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')",
             sqlite: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')",
             postgres: 'WHERE ("Users"."username"=\'foo\' AND "Users"."intVal"=2 ' + word + ' "Users"."secretValue"=\'bar\')',
-            mariadb: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')"
+            mariadb: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')",
+            mssql: 'WHERE ("Users"."username"=\'foo\' AND "Users"."intVal"=2 ' + word + ' "Users"."secretValue"=\'bar\')'
           })[Support.getTestDialect()]
 
           if (!expectation) {
@@ -80,11 +99,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         this.User.find({
           where: Sequelize[method]( 1, 2 )
         }).on('sql', function(sql) {
+          console.log(sql)
           var expectation = ({
             mysql: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)",
             sqlite: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)",
             postgres: 'WHERE ("Users"."id"=1 ' + word + ' "Users"."id"=2)',
-            mariadb: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)"
+            mariadb: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)",
+            mssql: 'WHERE ("Users"."id"=1 AND "Users"."id"=2)'
           })[Support.getTestDialect()]
 
           if (!expectation) {
