@@ -126,7 +126,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.find({
         where: Sequelize.and( Sequelize.or("1=1", "2=2"), Sequelize.or("3=3", "4=4") )
       }).on('sql', function(sql) {
-        expect(sql).to.contain("WHERE ((1=1 OR 2=2) AND (3=3 OR 4=4)) LIMIT 1")
+        switch (Support.getTestDialect()) {
+          case 'mssql':
+            expect(sql).to.contain("TOP 1")
+            expect(sql).to.contain("WHERE ((1=1 OR 2=2) AND (3=3 OR 4=4))")
+            break
+          default:
+            expect(sql).to.contain("WHERE ((1=1 OR 2=2) AND (3=3 OR 4=4)) LIMIT 1")
+            break
+        }
         done()
       })
     })
@@ -135,7 +143,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.find({
         where: Sequelize.or( Sequelize.and("1=1", "2=2"), Sequelize.and("3=3", "4=4") )
       }).on('sql', function(sql) {
-        expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4)) LIMIT 1")
+        switch (Support.getTestDialect()) {
+          case 'mssql':
+            expect(sql).to.contain("TOP 1")
+            expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4))")
+            break
+          default:
+            expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4)) LIMIT 1")
+            break
+        }
+
         done()
       })
     })
@@ -157,40 +174,47 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             )
           ]
         }).on('sql', function(sql) {
-          if (Support.getTestDialect() === 'postgres') {
-            expect(sql).to.contain(
-              'WHERE (' + [
-                '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
-                  '(',
-                    '"Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\' OR ',
-                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\') OR ',
-                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\')',
-                  ') AND ',
-                  '(',
-                    '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
-                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\') AND ',
-                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\')',
-                  ')'
-                ].join("") +
-              ')'
-            )
-          } else {
-            expect(sql).to.contain(
-              "WHERE (" + [
-                "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
-                  "(",
-                    "`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo' OR ",
-                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo') OR ",
-                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo')",
-                  ") AND ",
-                  "(",
-                    "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
-                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo') AND ",
-                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo')",
-                  ")"
-                ].join("") +
-              ")"
-            )
+          switch (Support.getTestDialect()) {
+            case 'mssql':
+            case 'postgres':
+              expect(sql).to.contain(
+                'WHERE (' + [
+                  '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
+                    '(',
+                      '"Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\' OR ',
+                      '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\') OR ',
+                      '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\')',
+                    ') AND ',
+                    '(',
+                      '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
+                      '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\') AND ',
+                      '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\')',
+                    ')'
+                  ].join("") +
+                ')'
+              )
+              break
+            case 'sqlite':
+            case 'mysql':
+              expect(sql).to.contain(
+                "WHERE (" + [
+                  "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
+                    "(",
+                      "`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo' OR ",
+                      "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo') OR ",
+                      "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo')",
+                    ") AND ",
+                    "(",
+                      "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
+                      "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo') AND ",
+                      "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo')",
+                    ")"
+                  ].join("") +
+                ")"
+              )
+              break
+            default:
+              throw new Error('No expectation for ' + Support.getTestDialect())
           }
 
           done()
