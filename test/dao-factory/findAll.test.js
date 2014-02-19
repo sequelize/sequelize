@@ -1029,6 +1029,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }, function() {done()})
         })
 
+        it('sorts by 1st degree association while using limit', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'England', 'Energy' ], [ 'DESC', 'Korea', 'Tech' ] ], function(params, callback) {
+            self.Country.findAll({
+              include: [ self.Industry ],
+              order: [
+                [ self.Industry, 'name', params[0] ] 
+              ],
+              limit: 3
+            }).done(function(err, countries) {
+              expect(err).not.to.be.ok
+              expect(countries).to.exist
+              expect(countries[0]).to.exist
+              expect(countries[0].name).to.equal(params[1])
+              expect(countries[0].industries).to.exist
+              expect(countries[0].industries[0]).to.exist
+              expect(countries[0].industries[0].name).to.equal(params[2])
+              callback()
+            })
+          }, function() {done()})
+        })
+
         it('sorts by through table attribute', function(done) {
           var self = this
           async.forEach([ [ 'ASC', 'England', 'Energy' ], [ 'DESC', 'France', 'Media' ] ], function(params, callback) {
