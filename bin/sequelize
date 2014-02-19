@@ -117,6 +117,10 @@ var parseDbUrl = function(urlString) {
 var readConfig = function() {
   var config
 
+  if(process.env.DATABASE_URL) {
+    program.url = process.env.DATABASE_URL;
+  }
+
   if (program.url) {
     config = parseDbUrl(program.url);
   } else {
@@ -273,7 +277,6 @@ if (program.migrate || program.undo) {
 
 } else if(program.createMigration) {
   createMigrationsFolder()
-
   var mirationContent    = ""
     , migrationExtension = (supportCoffeeScript()) ? '.coffee' : '.js'
     , migrationName      = [
@@ -306,7 +309,6 @@ if (program.migrate || program.undo) {
       "}"
     ].join('\n') + "\n"
   }
-
 
   fs.writeFileSync(configuration.migrationsPath + '/' + migrationName, migrationContent)
   console.log('New migration "' + migrationName + '" was added to "' +
