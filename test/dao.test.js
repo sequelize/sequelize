@@ -853,7 +853,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(err).to.be.instanceof(Object)
         expect(err.validateTest).to.be.instanceof(Array)
         expect(err.validateTest[0]).to.exist
-        expect(err.validateTest[0].indexOf('Invalid integer')).to.be.above(-1)
+        expect(err.validateTest[0]).to.equal('Validation isInt failed: validateTest')
         done()
       })
     })
@@ -879,7 +879,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           expect(err.validateTest).to.exist
           expect(err.validateTest).to.be.instanceof(Array)
           expect(err.validateTest[0]).to.exist
-          expect(err.validateTest[0].indexOf('Invalid integer:')).to.be.above(-1)
+          expect(err.validateTest[0]).to.equal('Validation isInt failed: validateTest')
           done()
         })
       })
