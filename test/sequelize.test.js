@@ -48,6 +48,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       it('should work with connection strings (2)', function () {
         var sequelize = new Sequelize('sqlite://test.sqlite/')
       })
+      it('should work with connection strings (3)', function () {
+        var sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true')
+      })
     }
   })
 
