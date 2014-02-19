@@ -385,6 +385,9 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
           context: {options: {omitNull: true}} // Note: As above
+        }, {
+          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {ignoreDuplicates: true}],
+          expectation: "INSERT OR IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
         }
       ],
 
