@@ -115,6 +115,10 @@ var parseDbUrl = function(urlString) {
 
 var readConfig = function() {
   var config
+  if(process.env.DATABASE_URL) {
+    program.url = process.env.DATABASE_URL;
+  }
+
   if (program.url) {
     config = parseDbUrl(program.url);
   } else {
