@@ -176,50 +176,38 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       }
     }
 
-    for (var validator in checks) {
-      if (checks.hasOwnProperty(validator)) {
-        validator = validator.replace(/\$$/, '')
-        var validatorDetails = checks[validator]
+    var applyFailTest = function applyFailTest(validatorDetails, i, validator) {
+        var failingValue = validatorDetails.fail[i]
+        it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function(done) {
+          var validations = {}
+            , message     = validator + "(" + failingValue + ")"
 
-        if (!validatorDetails.hasOwnProperty("raw")) {
-          validatorDetails.fail = [ validatorDetails.fail ]
-          validatorDetails.pass = [ validatorDetails.pass ]
-        }
+          if (validatorDetails.hasOwnProperty('spec')) {
+            validations[validator] = validatorDetails.spec
+          } else {
+            validations[validator] = {}
+          }
 
-        function applyFailTest(validatorDetails, i, validator) {
-          var failingValue = validatorDetails.fail[i]
-          it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function(done) {
-            var validations = {}
-              , message     = validator + "(" + failingValue + ")"
+          validations[validator].msg = message
 
-            if (validatorDetails.hasOwnProperty('spec')) {
-              validations[validator] = validatorDetails.spec
-            } else {
-              validations[validator] = {}
+          var UserFail = this.sequelize.define('User' + config.rand(), {
+            name: {
+              type:     Sequelize.STRING,
+              validate: validations
             }
-
-            validations[validator].msg = message
-
-            var UserFail = this.sequelize.define('User' + config.rand(), {
-              name: {
-                type:     Sequelize.STRING,
-                validate: validations
-              }
-            })
-
-            var failingUser = UserFail.build({ name : failingValue })
-              , errors      = undefined
-
-            failingUser.validate().done( function(err, _errors) {
-              expect(_errors).to.not.be.null
-              expect(_errors).to.be.an.instanceOf(Error);
-              expect(_errors.name).to.deep.eql([message])
-              done()
-            })
           })
-        }
 
-        function applyPassTest(validatorDetails, j, validator) {
+          var failingUser = UserFail.build({ name : failingValue })
+
+          failingUser.validate().done( function(err, _errors) {
+            expect(_errors).to.not.be.null
+            expect(_errors).to.be.an.instanceOf(Error);
+            expect(_errors.name).to.deep.eql([message])
+            done()
+          })
+        })
+      }
+      , applyPassTest = function applyPassTest(validatorDetails, j, validator) {
           var succeedingValue = validatorDetails.pass[j]
           it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function(done) {
             var validations = {}
@@ -249,17 +237,20 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           })
         }
 
-        //////////////////////////
-        // test the error cases //
-        //////////////////////////
+    for (var validator in checks) {
+      if (checks.hasOwnProperty(validator)) {
+        validator = validator.replace(/\$$/, '')
+        var validatorDetails = checks[validator]
+
+        if (!validatorDetails.hasOwnProperty("raw")) {
+          validatorDetails.fail = [ validatorDetails.fail ]
+          validatorDetails.pass = [ validatorDetails.pass ]
+        }
+
         for (var i = 0; i < validatorDetails.fail.length; i++) {
           applyFailTest(validatorDetails, i, validator);
         }
-
-        ////////////////////////////
-        // test the success cases //
-        ////////////////////////////
-
+ 
         for (var j = 0; j < validatorDetails.pass.length; j++) {
           applyPassTest(validatorDetails, j, validator);
         }
@@ -311,7 +302,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           Model.create({name: 'World'}).success(function(model) {
             model.updateAttributes({name: ''}).error(function(err) {
               expect(err).to.be.instanceOf(Error)
-              expect(err.name).to.deep.equal(['String is empty']);
+              expect(err.name).to.deep.equal(['Validation notEmpty failed']);
               done()
             })
           })
@@ -333,7 +324,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           Model.create({name: 'World'}).success(function(model) {
             Model.update({name: ''}, {id: 1}).error(function(err) {
               expect(err).to.be.instanceOf(Error)
-              expect(err.name).to.deep.equal(['String is empty']);
+              expect(err.name).to.deep.equal(['Validation notEmpty failed']);
               done()
             })
           })
@@ -412,7 +403,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           User.sync({ force: true }).success(function() {
             User.create({id: 'helloworld'}).error(function(err) {
               expect(err).to.be.instanceOf(Error)
-              expect(err.id).to.deep.equal(['Invalid integer']);
+              expect(err.id).to.deep.equal(['Validation isInt failed']);
               done()
             })
           })
@@ -663,7 +654,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       failingBar.validate().success(function(errors) {
         expect(errors).not.to.be.null
         expect(errors.field).to.have.length(1)
-        expect(errors.field[0]).to.equal("Unexpected value or invalid argument")
+        expect(errors.field[0]).to.equal("Validation isIn failed")
       })
     })
 

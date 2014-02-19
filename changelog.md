@@ -1,5 +1,11 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+#### Backwards compatability changes
+- find/findAll will now always return primary keys regardless of `attributes` settings. (Motivation was to fix various issues with eager loading)
+
+# v2.0.0 (alpha1) #
+- [FEATURE] async validations. [#580](https://github.com/sequelize/sequelize/pull/580). thanks to Interlock
+
 # v1.7.0-rc6
 - [BUG] Encode binary strings as bytea in postgres, and fix a case where using a binary as key in an association would produce an error [1364](https://github.com/sequelize/sequelize/pull/1364). Thanks to @SohumB
 
@@ -19,9 +25,6 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] fixes regression bug with 1:M self associations
 - [FEATURE] significant performance improvements for 1:1 and single primary key includes for 500+ rows [#1333](https://github.com/sequelize/sequelize/pull/1333)
 
-#### Backwards compatability changes
-- find/findAll will now always return primary keys regardless of `attributes` settings. (Motivation was to fix various issues with eager loading)
-
 # v1.7.0-rc3
 - [FEATURE] dropAllTables now takes an option parameter with `skip` as an option [#1280](https://github.com/sequelize/sequelize/pull/1280)
 - [FEATURE] implements .spread for eventemitters [#1277](https://github.com/sequelize/sequelize/pull/1277)
@@ -40,9 +43,6 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] fixes bug where through models created by N:M associations would inherit hooks [#1263](https://github.com/sequelize/sequelize/issues/1263)
 - [FEATURE] .col()/.literal()/etc now works with findAll [#1249](https://github.com/sequelize/sequelize/issues/1249)
 - [BUG] now currectly handles connection timeouts as errors [#1207](https://github.com/sequelize/sequelize/issues/1207)
-
-# v2.0.0 (alpha1) #
-- [FEATURE] async validations. [#580](https://github.com/sequelize/sequelize/pull/580). thanks to Interlock
 
 # v1.7.0-rc1
 - [FEATURE] instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
