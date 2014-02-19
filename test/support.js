@@ -83,18 +83,9 @@ var Support = {
       .dropAllTables()
       .success(function() {
         sequelize.daoFactoryManager.daos = []
-
-        sequelize
-          .getQueryInterface()
-          .dropAllEnums()
-            .success(callback)
-            .error(function (err) {
-              console.log(err)
-            })
+        callback && callback()
       })
-      .error(function(err) {
-        console.log(err)
-      })
+      .error(function(err) { console.log(err) })
   },
 
   getSupportedDialects: function() {

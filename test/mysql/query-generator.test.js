@@ -389,9 +389,6 @@ if (Support.dialectIsMySQL()) {
         }, {
           arguments: ['myTable', [{name: "foo", value: true}, {name: 'bar', value: false}]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',true),('bar',false);"
-        }, {
-          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {ignoreDuplicates: true}],
-          expectation: "INSERT IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
         }
       ],
 
@@ -472,7 +469,7 @@ if (Support.dialectIsMySQL()) {
       addIndexQuery: [
         {
           arguments: ['User', ['username', 'isAdmin']],
-          expectation: 'CREATE INDEX user_username_is_admin ON User (`username`, `isAdmin`)'
+          expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)'
         }, {
           arguments: [
             'User', [
@@ -480,12 +477,12 @@ if (Support.dialectIsMySQL()) {
               'isAdmin'
             ]
           ],
-          expectation: "CREATE INDEX user_username_is_admin ON User (`username`(10) ASC, `isAdmin`)"
+          expectation: "CREATE INDEX user_username_is_admin ON User (username(10) ASC, isAdmin)"
         }, {
           arguments: [
             'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}
           ],
-          expectation: "CREATE FULLTEXT INDEX bar ON User (`username`, `isAdmin`) WITH PARSER foo"
+          expectation: "CREATE FULLTEXT INDEX bar ON User (username, isAdmin) WITH PARSER foo"
         }
       ],
 

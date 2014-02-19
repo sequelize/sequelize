@@ -7,12 +7,11 @@ var path      = require("path")
   , moment    = require("moment")
   , _         = Sequelize.Utils._
   , url       = require("url")
-  , supportCS = undefined
 
 var configuration = {
-  configFile:     process.cwd() + '/config/config.json',
-  environment:    process.env.NODE_ENV || 'development',
-  version:        require(__dirname + '/../package.json').version,
+  configFile: process.cwd() + '/config/config.json',
+  environment: process.env.NODE_ENV || 'development',
+  version: require(__dirname + '/../package.json').version,
   migrationsPath: process.cwd() + '/migrations'
 }
 
@@ -116,11 +115,6 @@ var parseDbUrl = function(urlString) {
 
 var readConfig = function() {
   var config
-
-  if(process.env.DATABASE_URL) {
-    program.url = process.env.DATABASE_URL;
-  }
-
   if (program.url) {
     config = parseDbUrl(program.url);
   } else {
@@ -131,7 +125,7 @@ var readConfig = function() {
     }
   }
 
-  if (typeof config != 'object') {
+  if(typeof config != 'object') {
     throw new Error('Config must be an object: ' + relativeConfigFile());
   }
 
@@ -145,7 +139,6 @@ var readConfig = function() {
     console.log('Using environment "' + configuration.environment + '".')
     config = config[configuration.environment]
   }
-
   return config
 }
 
@@ -159,7 +152,6 @@ program
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
   .option('-U, --url <url>', 'Database url.  An alternative to a config file (default: DATABASE_URL)')
   .option('--config <config_file>', 'Specifies alternate config file.')
-  .option('--coffee', 'Consider coffee script files as migration source.')
   .parse(process.argv)
 
 if(typeof program.config === 'string') {
@@ -172,21 +164,6 @@ if(typeof program.config === 'string') {
 
 if(typeof program.env === 'string') {
   configuration.environment = program.env
-}
-
-var supportCoffeeScript = function() {
-  if (supportCS === undefined) {
-    try {
-      config = readConfig()
-    } catch(e) {
-      console.log(e.message)
-      process.exit(1)
-    }
-
-    supportCS = program.coffee || config.coffee
-  }
-
-  return supportCS
 }
 
 if (program.migrate || program.undo) {
@@ -232,12 +209,7 @@ if (program.migrate || program.undo) {
 
     var sequelize       = new Sequelize(config.database, config.username, config.password, options)
       , migratorOptions = { path: configuration.migrationsPath }
-
-    if (supportCoffeeScript()) {
-      migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
-    }
-
-    var migrator = sequelize.getMigrator(migratorOptions)
+      , migrator        = sequelize.getMigrator(migratorOptions)
 
     if (program.undo) {
       migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
@@ -259,7 +231,7 @@ if (program.migrate || program.undo) {
       })
     }
   } else {
-    console.log('Cannot find "' + configuration.configFile + '". Have you run "sequelize --init"?')
+    console.log('Cannot find "' + relativeConfigFile() + '". Have you run "sequelize --init"?')
     process.exit(1)
   }
 } else if(program.init) {
@@ -277,38 +249,24 @@ if (program.migrate || program.undo) {
 
 } else if(program.createMigration) {
   createMigrationsFolder()
-  var mirationContent    = ""
-    , migrationExtension = (supportCoffeeScript()) ? '.coffee' : '.js'
-    , migrationName      = [
-        moment().format('YYYYMMDDHHmmss'),
-        (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
-      ].join('-') + migrationExtension
 
-  if (supportCoffeeScript()) {
-    migrationContent = [
-      "module.exports = ",
-      "  up: (migration, DataTypes, done) ->",
-      "    # add altering commands here, calling 'done' when finished",
-      "    done()",
-      "",
-      "  down: (migration, DataTypes, done) ->",
-      "    # add reverting commands here, calling 'done' when finished",
-      "    done()"
-    ].join('\n') + "\n"
-  } else {
-    migrationContent = [
-      "module.exports = {",
-      "  up: function(migration, DataTypes, done) {",
-      "    // add altering commands here, calling 'done' when finished",
-      "    done()",
-      "  },",
-      "  down: function(migration, DataTypes, done) {",
-      "    // add reverting commands here, calling 'done' when finished",
-      "    done()",
-      "  }",
-      "}"
-    ].join('\n') + "\n"
-  }
+  var migrationName = [
+    moment().format('YYYYMMDDHHmmss'),
+    (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
+  ].join('-') + '.js'
+
+  var migrationContent = [
+    "module.exports = {",
+    "  up: function(migration, DataTypes, done) {",
+    "    // add altering commands here, calling 'done' when finished",
+    "    done()",
+    "  },",
+    "  down: function(migration, DataTypes, done) {",
+    "    // add reverting commands here, calling 'done' when finished",
+    "    done()",
+    "  }",
+    "}"
+  ].join('\n') + "\n"
 
   fs.writeFileSync(configuration.migrationsPath + '/' + migrationName, migrationContent)
   console.log('New migration "' + migrationName + '" was added to "' +

@@ -107,11 +107,7 @@ if (dialect.match(/^postgres/)) {
           // now sync one more time:
           DummyModel.sync({force: true}).done(function(err) {
             expect(err).not.to.be.ok
-            // sync without dropping
-            DummyModel.sync().done(function(err) {
-              expect(err).not.to.be.ok
-              done();
-            })
+            done();
           })
         })
       })
