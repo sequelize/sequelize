@@ -1,5 +1,10 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc7 (next)
+- [BUG] ORDER BY statements when using includes should now be places in the appropriate sub/main query more intelligently.
+- [BUG] using include.attributes with primary key attributes specified should no longer result in multiple primary key attributes being selected [#1410](https://github.com/sequelize/sequelize/pull/1410)
+- [DEPENDENCIES] all dependencies, including Validator have been updated to the latest versions.
+
 # v1.7.0-rc6
 - [BUG] Encode binary strings as bytea in postgres, and fix a case where using a binary as key in an association would produce an error [1364](https://github.com/sequelize/sequelize/pull/1364). Thanks to @SohumB
 
