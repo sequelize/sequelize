@@ -5,6 +5,9 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] using include.attributes with primary key attributes specified should no longer result in multiple primary key attributes being selected [#1410](https://github.com/sequelize/sequelize/pull/1410)
 - [DEPENDENCIES] all dependencies, including Validator have been updated to the latest versions.
 
+#### Backwards compatability changes
+- .set() will no longer set values that are not a dynamic setter or defined in the model. This only breaks BC since .set() was introduced but restores original .updateAttributes functionality where it was possible to 'trust' user input.
+
 # v1.7.0-rc6
 - [BUG] Encode binary strings as bytea in postgres, and fix a case where using a binary as key in an association would produce an error [1364](https://github.com/sequelize/sequelize/pull/1364). Thanks to @SohumB
 
