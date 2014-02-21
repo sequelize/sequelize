@@ -780,13 +780,17 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it('should be possible to define a belongsTo include as required with limit', function (done) {
+    it('should be possible to define a belongsTo include as required with child hasMany with limit', function (done) {
       var User = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
           })
+        , Category = this.sequelize.define('Category', {
+            category: DataTypes.STRING
+          })
 
       User.belongsTo(Group)
+      Group.hasMany(Category)
 
       this.sequelize.sync({force: true}).done(function () {
         async.auto({
@@ -803,10 +807,24 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               User.findAll().done(callback)
             })
           },
+          categories: function (callback) {
+            Category.bulkCreate([{}, {}]).done(function () {
+              Category.findAll().done(callback)
+            })
+          },
           userGroups: ['users', 'groups', function (callback, results) {
             var chainer = new Sequelize.Utils.QueryChainer()
             chainer.add(results.users[0].setGroup(results.groups[1]))
             chainer.add(results.users[1].setGroup(results.groups[0]))
+            chainer.run().done(callback)
+          }],
+          groupCategories: ['groups', 'categories', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            results.groups.forEach(function (group) {
+              chainer.add(group.setCategories(results.categories))
+            })
+
             chainer.run().done(callback)
           }]
         }, function (err, results) {
@@ -814,7 +832,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
           User.findAll({
             include: [
-              {model: Group, required: true}
+              {model: Group, required: true, include: [
+                {model: Category}
+              ]}
             ],
             limit: 1
           }).done(function (err, users) {
@@ -822,6 +842,77 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(users.length).to.equal(1)
             users.forEach(function (user) {
               expect(user.group).to.be.ok
+              expect(user.group.categories).to.be.ok
+            })
+            done()
+          })
+        })
+      })
+    })
+
+    it('should be possible to define a belongsTo include as required with child hasMany which is not required with limit', function (done) {
+      var User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {
+            name: DataTypes.STRING
+          })
+        , Category = this.sequelize.define('Category', {
+            category: DataTypes.STRING
+          })
+
+      User.belongsTo(Group)
+      Group.hasMany(Category)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          groups: function (callback) {
+            Group.bulkCreate([
+              {name: 'A'},
+              {name: 'B'}
+            ]).done(function () {
+              Group.findAll().done(callback)
+            })
+          },
+          users: function (callback) {
+            User.bulkCreate([{}, {}]).done(function () {
+              User.findAll().done(callback)
+            })
+          },
+          categories: function (callback) {
+            Category.bulkCreate([{}, {}]).done(function () {
+              Category.findAll().done(callback)
+            })
+          },
+          userGroups: ['users', 'groups', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+            chainer.add(results.users[0].setGroup(results.groups[1]))
+            chainer.add(results.users[1].setGroup(results.groups[0]))
+            chainer.run().done(callback)
+          }],
+          groupCategories: ['groups', 'categories', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            results.groups.forEach(function (group) {
+              chainer.add(group.setCategories(results.categories))
+            })
+
+            chainer.run().done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          User.findAll({
+            include: [
+              {model: Group, required: true, include: [
+                {model: Category, required: false}
+              ]}
+            ],
+            limit: 1
+          }).done(function (err, users) {
+            expect(err).not.to.be.ok
+            expect(users.length).to.equal(1)
+            users.forEach(function (user) {
+              expect(user.group).to.be.ok
+              expect(user.group.categories).to.be.ok
             })
             done()
           })
