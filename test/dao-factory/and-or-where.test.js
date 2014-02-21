@@ -119,6 +119,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    if (dialect !== 'postgres') {
+      it('still allows simple arrays lookups', function (done) {
+        this.User.find({
+          where: ["id IN (?) OR id IN (?)", [1, 2], [3, 4]]
+        }).on('sql', function(sql) {
+          expect(sql).to.contain("id IN (1, 2) OR id IN (3, 4)")
+          done()
+        })
+      })
+    }
+
     ;(['find', 'findAll']).forEach(function(finderMethod) {
       it('correctly handles complex combinations', function(done) {
         this.User[finderMethod]({
