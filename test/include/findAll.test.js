@@ -1211,5 +1211,37 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should support including date fields, with the correct timeszone', function (done) {
+      var User = this.sequelize.define('user', {
+          dateField: Sequelize.DATE
+        }, {timestamps: false})
+        , Group = this.sequelize.define('group', {
+          dateField: Sequelize.DATE
+        }, {timestamps: false})
+
+      User.hasMany(Group)
+      Group.hasMany(User)
+
+      this.sequelize.sync().success(function () {
+        User.create({ dateField: Date.UTC(2014, 1, 20) }).success(function (user) {
+          Group.create({ dateField: Date.UTC(2014, 1, 20) }).success(function (group) {
+            user.addGroup(group).success(function () {
+              User.findAll({
+                where: {
+                  id: user.id
+                }, 
+                include: [Group]
+              }).success(function (users) {
+                expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20))
+                expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20))
+                
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
   })
 })

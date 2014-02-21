@@ -5,12 +5,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
-  , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + "/config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
-  , _         = require('lodash')
-  , moment    = require('moment')
   , async     = require('async')
 
 chai.use(datetime)
@@ -541,6 +536,38 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               }).done(function (err, group) {
                 expect(err).not.to.be.ok
                 expect(group.outsourcingCompanies.length).to.equal(3)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('should support including date fields, with the correct timeszone', function (done) {
+      var User = this.sequelize.define('user', {
+          dateField: Sequelize.DATE
+        }, {timestamps: false})
+        , Group = this.sequelize.define('group', {
+          dateField: Sequelize.DATE
+        }, {timestamps: false})
+
+      User.hasMany(Group)
+      Group.hasMany(User)
+
+      this.sequelize.sync().success(function () {
+        User.create({ dateField: Date.UTC(2014, 1, 20) }).success(function (user) {
+          Group.create({ dateField: Date.UTC(2014, 1, 20) }).success(function (group) {
+            user.addGroup(group).success(function () {
+              User.find({
+                where: {
+                  id: user.id
+                }, 
+                include: [Group]
+              }).success(function (user) {
+                expect(user.dateField.getTime()).to.equal(Date.UTC(2014, 1, 20))
+                expect(user.groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20))
+                
                 done()
               })
             })
