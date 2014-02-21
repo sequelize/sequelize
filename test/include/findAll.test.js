@@ -780,7 +780,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-    it.only('should be possible to extend the on clause with a where option on a belongsTo include', function (done) {
+    it('should be possible to extend the on clause with a where option on a belongsTo include', function (done) {
       var User = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
