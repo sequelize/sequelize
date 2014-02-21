@@ -22,6 +22,42 @@ var sortById = function(a, b) {
 
 describe(Support.getTestDialectTeaser("Include"), function () {
   describe('find', function () {
+    it('should support a empty belongsTo include', function (done) {
+      var Company = this.sequelize.define('Company', {})
+        , User = this.sequelize.define('User', {})
+
+      User.belongsTo(Company, {as: 'Employer'})
+      this.sequelize.sync({force: true}).done(function () {
+        User.create().then(function () {
+          User.find({
+            include: [{model: Company, as: 'Employer'}]
+          }).done(function (err, user) {
+            expect(err).not.to.be.ok
+            expect(user).to.be.ok
+            done()
+          })
+        }, done)
+      })
+    })
+
+    it('should support a empty hasOne include', function (done) {
+      var Company = this.sequelize.define('Company', {})
+        , Person = this.sequelize.define('Person', {})
+
+      Company.hasOne(Person, {as: 'CEO'})
+      this.sequelize.sync({force: true}).done(function () {
+        Company.create().then(function () {
+          Company.find({
+            include: [{model: Person, as: 'CEO'}]
+          }).done(function (err, company) {
+            expect(err).not.to.be.ok
+            expect(company).to.be.ok
+            done()
+          })
+        }, done)
+      })
+    })
+
     it('should support a simple nested belongsTo -> belongsTo include', function (done) {
       var Task = this.sequelize.define('Task', {})
         , User = this.sequelize.define('User', {})
