@@ -1,5 +1,9 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0-rc9
+- [PERFORMANCE] fixes performance regression introduced in rc7
+- [FEATURE] include all relations for a model [#1421](https://github.com/sequelize/sequelize/pull/1421)
+
 # v1.7.0-rc8
 - [BUG] fixes bug with required includes without wheres with subqueries
 
