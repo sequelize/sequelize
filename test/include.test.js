@@ -282,7 +282,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               {title: 'Dress'},
               {title: 'Bed'}
             ]).done(function () {
-              Product.findAll().done(callback)
+              Product.findAll({order: [ ['id'] ]}).done(callback)
             })
           },
           tags: function(callback) {
@@ -291,7 +291,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               {name: 'B'},
               {name: 'C'}
             ]).done(function () {
-              Tag.findAll().done(callback)
+              Tag.findAll({order: [ ['id'] ]}).done(callback)
             })
           },
           userProducts: ['user', 'products', function (callback, results) {
@@ -317,7 +317,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               {model: Product, include: [
                 {model: Tag}
               ]}
-            ]
+            ],
+            order: [ ['id'], [Product, 'id'] ]
           }).done(function (err, user) {
             expect(err).not.to.be.ok
 
