@@ -1,6 +1,14 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
-# v1.7.0-rc7 (next)
+# v1.7.0-rc9 (next)
+- [PERFORMANCE] fixes performance regression introduced in rc7
+- [FEATURE] include all relations for a model [#1421](https://github.com/sequelize/sequelize/pull/1421)
+- [FEATURE] covers more advanced include cases with limiting and filtering
+
+# v1.7.0-rc8
+- [BUG] fixes bug with required includes without wheres with subqueries
+
+# v1.7.0-rc7
 - [BUG] ORDER BY statements when using includes should now be places in the appropriate sub/main query more intelligently.
 - [BUG] using include.attributes with primary key attributes specified should no longer result in multiple primary key attributes being selected [#1410](https://github.com/sequelize/sequelize/pull/1410)
 - [DEPENDENCIES] all dependencies, including Validator have been updated to the latest versions.
