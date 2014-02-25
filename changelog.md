@@ -1,9 +1,12 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
-# v1.7.0-rc9 (next)
+# v1.7.0 (next)
+- [FEATURE] covers more advanced include cases with limiting and filtering
+
+# v1.7.0-rc9
 - [PERFORMANCE] fixes performance regression introduced in rc7
 - [FEATURE] include all relations for a model [#1421](https://github.com/sequelize/sequelize/pull/1421)
-- [FEATURE] covers more advanced include cases with limiting and filtering
+- [BUG] N:M adder/getter with through model and custom primary keys now work
 
 # v1.7.0-rc8
 - [BUG] fixes bug with required includes without wheres with subqueries
