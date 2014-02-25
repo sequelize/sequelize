@@ -1039,7 +1039,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               callback()
             })
           }, function() {done()})
-        }),
+        })
 
         it('sorts by 2nd degree association', function(done) {
           var self = this
@@ -1069,6 +1069,29 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             self.Continent.findAll({
               include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'Residents' } ] } ],
               order: [ [ self.Country, {model: self.Person, as: 'Residents' }, 'lastName', params[0] ] ]
+            }).done(function(err, continents) {
+              expect(err).not.to.be.ok
+              expect(continents).to.exist
+              expect(continents[0]).to.exist
+              expect(continents[0].name).to.equal(params[1])
+              expect(continents[0].countries).to.exist
+              expect(continents[0].countries[0]).to.exist
+              expect(continents[0].countries[0].name).to.equal(params[2])
+              expect(continents[0].countries[0].residents).to.exist
+              expect(continents[0].countries[0].residents[0]).to.exist
+              expect(continents[0].countries[0].residents[0].name).to.equal(params[3])
+              callback()
+            })
+          }, function() {done()})
+        })
+
+        it('sorts by 2nd degree association with alias while using limit', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'Europe', 'France', 'Fred' ], [ 'DESC', 'Europe', 'England', 'Kim' ] ], function(params, callback) {
+            self.Continent.findAll({
+              include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'Residents' } ] } ],
+              order: [ [ { model: self.Country }, {model: self.Person, as: 'Residents' }, 'lastName', params[0] ] ],
+              limit: 3
             }).done(function(err, continents) {
               expect(err).not.to.be.ok
               expect(continents).to.exist
