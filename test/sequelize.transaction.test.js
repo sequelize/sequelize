@@ -118,35 +118,33 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
   })
 
   describe('complex long running example', function() {
-    it("works", function(done) {
-      var sequelize   = this.sequelize
-
-      var Test = sequelize.define('Test', {
-        id:   { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-        name: { type: Support.Sequelize.STRING }
-      })
-
-      sequelize
-        .sync({ force: true })
-        .then(function() {
-          sequelize.transaction(function(transaction) {
-            Test
-              .create({ name: 'Peter' }, { transaction: transaction })
-              .then(function() {
-                setTimeout(function() {
-                  transaction
-                    .commit()
-                    .then(function() {
-                      return Test.count({ transaction: transaction })
-                    })
-                    .then(function(count) {
-                      expect(count).to.equal(1)
-                      done()
-                    })
-                }, 1000)
-              })
-          })
+    it("works with promise syntax", function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var Test = sequelize.define('Test', {
+          id:   { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+          name: { type: Support.Sequelize.STRING }
         })
+
+        sequelize
+          .sync({ force: true })
+          .then(function() {
+            sequelize.transaction(function(transaction) {
+              Test
+                .create({ name: 'Peter' }, { transaction: transaction })
+                .then(function() {
+                  setTimeout(function() {
+                    transaction
+                      .commit()
+                      .then(function() { return Test.count() })
+                      .then(function(count) {
+                        expect(count).to.equal(1)
+                        done()
+                      })
+                  }, 1000)
+                })
+            })
+          })
+      })
     })
   })
 })
