@@ -116,4 +116,35 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
       }).done(done)
     })
   })
+
+  describe('complex long running example', function() {
+    it("works with promise syntax", function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var Test = sequelize.define('Test', {
+          id:   { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+          name: { type: Support.Sequelize.STRING }
+        })
+
+        sequelize
+          .sync({ force: true })
+          .then(function() {
+            sequelize.transaction(function(transaction) {
+              Test
+                .create({ name: 'Peter' }, { transaction: transaction })
+                .then(function() {
+                  setTimeout(function() {
+                    transaction
+                      .commit()
+                      .then(function() { return Test.count() })
+                      .then(function(count) {
+                        expect(count).to.equal(1)
+                        done()
+                      })
+                  }, 1000)
+                })
+            })
+          })
+      })
+    })
+  })
 })

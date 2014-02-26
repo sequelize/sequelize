@@ -1,9 +1,13 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
-# v1.7.0-rc9 (next)
+# v1.7.0 (next)
+- [FEATURE] covers more advanced include cases with limiting and filtering (specifically cases where a include would be in the subquery but its child include wouldnt be, for cases where a 1:1 association had a 1:M association as a nested include)
+- [BUG] fixes issue where connection would timeout before calling COMMIT resulting in data never reaching the database [#1429](https://github.com/sequelize/sequelize/pull/1429)
+
+# v1.7.0-rc9
 - [PERFORMANCE] fixes performance regression introduced in rc7
 - [FEATURE] include all relations for a model [#1421](https://github.com/sequelize/sequelize/pull/1421)
-- [FEATURE] covers more advanced include cases with limiting and filtering
+- [BUG] N:M adder/getter with through model and custom primary keys now work
 
 # v1.7.0-rc8
 - [BUG] fixes bug with required includes without wheres with subqueries

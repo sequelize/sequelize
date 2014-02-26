@@ -60,12 +60,13 @@ describe(Support.getTestDialectTeaser("TransactionManager"), function () {
         }
 
         Object.keys(this.sequelize.config.pool || {}).forEach(function(key) {
-          if (key !== 'maxConnections') {
+          if (['minConnections', 'maxConnections'].indexOf(key) === -1) {
             expect(connectorManager.config.pool[key]).to.equal(self.sequelize.config.pool[key])
           }
         })
 
-        expect(connectorManager.config.pool.maxConnections).to.equal(0)
+        expect(connectorManager.config.pool.minConnections).to.equal(1)
+        expect(connectorManager.config.pool.maxConnections).to.equal(1)
       })
     })
   })
