@@ -462,7 +462,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.User.belongsTo(self.Group)
 
           self.sequelize.sync({ force: true }).success(function() {
-            self.User.create({ username: 'someone', GroupPKeagerbelongId: 'people' }).success(function() {
+            self.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' }).success(function() {
               self.Group.create({ name: 'people' }).success(function() {
                 self.User.find({
                    where: {
@@ -604,7 +604,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.Group.hasOne(self.User)
 
           self.sequelize.sync({ force: true }).success(function() {
-            self.User.create({ username: 'someone', GroupPKeageroneId: 'people' }).success(function() {
+            self.User.create({ username: 'someone', GroupPKeageroneName: 'people' }).success(function() {
               self.Group.create({ name: 'people' }).success(function() {
                 self.Group.find({
                    where: {

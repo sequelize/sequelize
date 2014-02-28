@@ -921,8 +921,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           overdue_days: DataTypes.INTEGER
         }, { timestamps: false })
 
-        this.UserEager.hasMany(this.ProjectEager,   { as: 'Projects'  })
-        this.ProjectEager.belongsTo(this.UserEager, { as: 'Poobah'    })
+        this.UserEager.hasMany(this.ProjectEager,   { as: 'Projects', foreignKey: 'PoobahId' })
+        this.ProjectEager.belongsTo(this.UserEager, { as: 'Poobah', foreignKey: 'PoobahId' })
 
         self.UserEager.sync({force: true}).success(function() {
           self.ProjectEager.sync({force: true}).success(function() {
@@ -1062,8 +1062,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
       this.Project = this.sequelize.define('NiceProject', { title: DataTypes.STRING }, { timestamps: false })
 
-      this.User.hasMany(this.Project, { as: 'Projects' })
-      this.Project.belongsTo(this.User, { as: 'LovelyUser' })
+      this.User.hasMany(this.Project, { as: 'Projects', foreignKey: 'lovelyUserId' })
+      this.Project.belongsTo(this.User, { as: 'LovelyUser', foreignKey: 'lovelyUserId' })
 
       this.User.sync({ force: true }).success(function() {
         self.Project.sync({ force: true }).success(function() {
