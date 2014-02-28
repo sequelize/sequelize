@@ -901,6 +901,19 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
     })
     
     describe('primary key handling for join table', function () {
+      beforeEach(function (done) {
+        var self = this
+        this.User = this.sequelize.define('User',
+          { username: DataTypes.STRING },
+          { tableName: 'users'}
+        )
+        this.Task = this.sequelize.define('Task',
+          { title: DataTypes.STRING },
+          { tableName: 'tasks' }
+        )
+
+        done()
+      })
       it('removes the primary key if it was added by sequelize', function () {
         var self = this
         this.UserTasks = this.sequelize.define('usertasks', {});
@@ -1238,7 +1251,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             .then(function() { return a1.setRelation1(b1) })
             .then(function() { return self.A.find({ where: { name: 'a1' } }) })
             .done(function(a) {
-              expect(a.bId).to.be.eq(b1.id)
+              expect(a.relation1Id).to.be.eq(b1.id)
               done()
             })
         })
@@ -1267,7 +1280,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             .then(function() { return b1.setRelation1(a1) })
             .then(function() { return self.B.find({ where: { name: 'b1' } }) })
             .done(function(b) {
-              expect(b.aId).to.be.eq(a1.id)
+              expect(b.relation1Id).to.be.eq(a1.id)
               done()
             })
         })

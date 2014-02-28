@@ -1,6 +1,11 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
-# v1.7.0 (next)
+# v2.0.0-dev10
+#### Backwards compatability changes
+- foreign keys will now correctly be based on the alias of the model
+- foreign keys for non-id primary keys will now be named for the foreign key, i.e. pub_name rather than pub_id - if you have non-id primary keys you should go through your associations and set the foreignKey option if relying on a incorrect _id foreign key
+
+# v1.7.0
 - [FEATURE] covers more advanced include cases with limiting and filtering (specifically cases where a include would be in the subquery but its child include wouldnt be, for cases where a 1:1 association had a 1:M association as a nested include)
 - [BUG] fixes issue where connection would timeout before calling COMMIT resulting in data never reaching the database [#1429](https://github.com/sequelize/sequelize/pull/1429)
 

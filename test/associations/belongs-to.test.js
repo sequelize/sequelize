@@ -344,7 +344,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe("Association column", function() {
-    it('has correct type for non-id primary keys with non-integer type', function(done) {
+    it('has correct type and name for non-id primary keys with non-integer type', function(done) {
       var User = this.sequelize.define('UserPKBT', {
         username: {
           type: DataTypes.STRING
@@ -362,7 +362,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       User.belongsTo(Group)
 
       self.sequelize.sync({ force: true }).success(function() {
-        expect(User.rawAttributes.GroupPKBTId.type.toString()).to.equal(DataTypes.STRING.toString())
+        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(DataTypes.STRING.toString())
         done()
       })
     })
