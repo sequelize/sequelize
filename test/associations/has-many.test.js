@@ -954,7 +954,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         _.each([self.UserTasks, self.UserTasks2], function (model) {
           fk = Object.keys(model.options.uniqueKeys)[0]
-          expect(model.options.uniqueKeys[fk].fields).to.deep.equal([ 'taskId', 'userId' ])
+          expect(model.options.uniqueKeys[fk].fields).to.deep.equal([ 'TaskId', 'UserId' ])
         })
       })
     })
