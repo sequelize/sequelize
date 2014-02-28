@@ -370,7 +370,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
       Group.hasOne(User)
 
       self.sequelize.sync({ force: true }).success(function() {
-        expect(User.rawAttributes.GroupPKBTId.type.toString()).to.equal(Sequelize.STRING.toString())
+        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(Sequelize.STRING.toString())
         done()
       })
     })

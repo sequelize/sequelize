@@ -3,6 +3,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
+  , Sequelize = require('../../index')
 
 chai.Assertion.includeStack = true
 
@@ -43,6 +44,29 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
                         })
                       })
                     })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('should be able to handle a where object that\'s a first class citizen.', function(done) {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING })
+
+      Task.belongsTo(User)
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo', gender: 'male' }).success(function(user) {
+            User.create({ username: 'bar', gender: 'female' }).success(function(falsePositiveCheck) {
+              Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
+                task.setUserXYZ(user).success(function() {
+                  task.getUserXYZ({where: ['gender = ?', 'female']}).success(function(user) {
+                    expect(user).to.be.null
+                    done()
                   })
                 })
               })
