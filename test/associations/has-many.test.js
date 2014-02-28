@@ -921,7 +921,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         this.User.hasMany(this.Task, { through: this.UserTasks })
         this.Task.hasMany(this.User, { through: this.UserTasks })
 
-        expect(Object.keys(self.UserTasks.primaryKeys)).to.deep.equal(['taskId', 'userId'])
+        expect(Object.keys(self.UserTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId'])
       })
 
       it('keeps the primary key if it was added by the user', function () {
