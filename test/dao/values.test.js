@@ -62,6 +62,34 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(user.get('updatedAt')).not.to.be.ok
       })
 
+      it('doesn\'t set value if not a dynamic setter or a model attribute', function() {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING},
+          email_hidden: {type: DataTypes.STRING}
+        }, {
+          setterMethods: {
+            email_secret: function (value) {
+              this.set('email_hidden', value)
+            }
+          }
+        })
+
+        var user = User.build()
+
+        user.set({
+          name: 'antonio banderaz',
+          email: 'antonio@banderaz.com',
+          email_secret: 'foo@bar.com'
+        })
+
+        user.set('email', 'antonio@banderaz.com')
+
+        expect(user.get('name')).to.equal('antonio banderaz')
+        expect(user.get('email_hidden')).to.equal('foo@bar.com')
+        expect(user.get('email')).not.to.be.ok
+        expect(user.dataValues.email).not.to.be.ok
+      })
+
       describe('includes', function () {
         it('should support basic includes', function () {
           var Product = this.sequelize.define('Product', {

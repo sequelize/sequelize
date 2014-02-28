@@ -48,6 +48,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       it('should work with connection strings (2)', function () {
         var sequelize = new Sequelize('sqlite://test.sqlite/')
       })
+      it('should work with connection strings (3)', function () {
+        var sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true')
+      })
     }
   })
 
@@ -272,7 +275,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       self.sequelize.query(this.insertQuery).success(function() {
         self.sequelize.query("SELECT * FROM " + qq(self.User.tableName) + ";", self.User).success(function(users) {
-          expect(users[0].__factory).to.equal(self.User)
+          expect(users[0].Model).to.equal(self.User)
           done()
         })
       })
@@ -673,7 +676,8 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
         it("doesn't save an instance if value is not in the range of enums", function(done) {
           this.Review.create({status: 'fnord'}).error(function(err) {
-            expect(err).to.deep.equal({ status: [ 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished' ] })
+            expect(err).to.be.instanceOf(Error);
+            expect(err.status).to.deep.equal([ 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished' ])
             done()
           })
         })

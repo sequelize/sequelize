@@ -24,7 +24,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       data:         DataTypes.STRING,
       intVal:       DataTypes.INTEGER,
       theDate:      DataTypes.DATE,
-      aBool:        DataTypes.BOOLEAN
+      aBool:        DataTypes.BOOLEAN,
+      binary:       DataTypes.STRING(16, true)
     })
 
     this.User.sync({ force: true }).success(function() {
@@ -63,9 +64,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       beforeEach(function(done) {
         var self = this
 
+        this.buf = new Buffer(16);
+        this.buf.fill('\x01');
+
         this.User.bulkCreate([
           {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
-          {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00'}
+          {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00', binary: this.buf }
         ]).success(function(user2) {
           done()
         })
@@ -91,6 +95,19 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done();
         });
       })
+
+      it('should not break when using smart syntax on binary fields', function (done) {
+        this.User.findAll({
+          where: {
+            binary: [ this.buf, this.buf ]
+          }
+        }).success(function(users){
+          expect(users).to.have.length(1)
+          expect(users[0].binary).to.be.an.instanceof.string
+          expect(users[0].username).to.equal('boo2')
+          done();
+        });
+      });
 
       it('should be able to find a row using like', function(done) {
         this.User.findAll({
@@ -205,6 +222,60 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                                 expect(theFalsePassport[0].isActive).to.be.false
                                 expect(theTruePassport).to.have.length(1)
                                 expect(theTruePassport[0].isActive).to.be.true
+                                done()
+                              })
+                            })
+                          })
+                        })
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('should be able to handle binary values through associations as well...', function(done) {
+        var User = this.User;
+        var Binary = this.sequelize.define('Binary', {
+          id: {
+            type: DataTypes.STRING(16, true),
+            primaryKey: true
+          }
+        })
+
+        var buf1 = this.buf
+        var buf2 = new Buffer(16)
+        buf2.fill('\x02')
+
+        User.belongsTo(Binary, { foreignKey: 'binary' })
+
+        User.sync({ force: true }).success(function() {
+          Binary.sync({ force: true }).success(function() {
+            User.bulkCreate([
+              {username: 'boo5', aBool: false},
+              {username: 'boo6', aBool: true}
+            ]).success(function() {
+              Binary.bulkCreate([
+                {id: buf1},
+                {id: buf2}
+              ]).success(function() {
+                User.find(1).success(function(user) {
+                  Binary.find(buf1).success(function(binary) {
+                    user.setBinary(binary).success(function() {
+                      User.find(2).success(function(_user) {
+                        Binary.find(buf2).success(function(_binary) {
+                          _user.setBinary(_binary).success(function() {
+                            _user.getBinary().success(function(_binaryRetrieved) {
+                              user.getBinary().success(function(binaryRetrieved) {
+                                expect(binaryRetrieved.id).to.be.an.instanceof.string
+                                expect(_binaryRetrieved.id).to.be.an.instanceof.string
+                                expect(binaryRetrieved.id).to.have.length(16)
+                                expect(_binaryRetrieved.id).to.have.length(16)
+                                expect(binaryRetrieved.id.toString()).to.be.equal(buf1.toString())
+                                expect(_binaryRetrieved.id.toString()).to.be.equal(buf2.toString())
                                 done()
                               })
                             })
@@ -759,6 +830,123 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
+
+      describe('include all', function() {
+        beforeEach(function(done) {
+          var self = this
+
+          self.Continent = this.sequelize.define('Continent', { name: Sequelize.STRING })
+          self.Country = this.sequelize.define('Country', { name: Sequelize.STRING })
+          self.Industry = this.sequelize.define('Industry', { name: Sequelize.STRING })
+          self.Person = this.sequelize.define('Person', { name: Sequelize.STRING, lastName: Sequelize.STRING })
+
+          self.Continent.hasMany(self.Country)
+          self.Country.belongsTo(self.Continent)
+          self.Country.hasMany(self.Industry)
+          self.Industry.hasMany(self.Country)
+          self.Country.hasMany(self.Person)
+          self.Person.belongsTo(self.Country)
+          self.Country.hasMany(self.Person, { as: 'Residents', foreignKey: 'CountryResidentId' })
+          self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' })
+
+          async.forEach([ self.Continent, self.Country, self.Industry, self.Person ], function(model, callback) {
+            model.sync({ force: true }).done(callback)
+          }, function () {
+            async.parallel({
+              europe: function(callback) {self.Continent.create({ name: 'Europe' }).done(callback)},
+              england: function(callback) {self.Country.create({ name: 'England' }).done(callback)},
+              coal: function(callback) {self.Industry.create({ name: 'Coal' }).done(callback)},
+              bob: function(callback) {self.Person.create({ name: 'Bob', lastName: 'Becket' }).done(callback)}
+            }, function(err, r) {
+              if (err) throw err
+
+              _.forEach(r, function(item, itemName) {
+                self[itemName] = item
+              })
+
+              async.parallel([
+                function(callback) {self.england.setContinent(self.europe).done(callback)},
+                function(callback) {self.england.addIndustry(self.coal).done(callback)},
+                function(callback) {self.bob.setCountry(self.england).done(callback)},
+                function(callback) {self.bob.setCountryResident(self.england).done(callback)}
+              ], function(err) {
+                if (err) throw err
+                done()
+              })
+            })
+          })
+        })
+
+        it('includes all associations', function(done) {
+          this.Country.findAll({ include: [ { all: true } ] }).done(function(err, countries) {
+            expect(err).not.to.be.ok
+            expect(countries).to.exist
+            expect(countries[0]).to.exist
+            expect(countries[0].continent).to.exist
+            expect(countries[0].industries).to.exist
+            expect(countries[0].persons).to.exist
+            expect(countries[0].residents).to.exist
+            done()
+          })
+        })
+
+        it('includes specific type of association', function(done) {
+          this.Country.findAll({ include: [ { all: 'BelongsTo' } ] }).done(function(err, countries) {
+            expect(err).not.to.be.ok
+            expect(countries).to.exist
+            expect(countries[0]).to.exist
+            expect(countries[0].continent).to.exist
+            expect(countries[0].industries).not.to.exist
+            expect(countries[0].persons).not.to.exist
+            expect(countries[0].residents).not.to.exist
+            done()
+          })
+        })
+
+        it('utilises specified attributes', function(done) {
+          this.Country.findAll({ include: [ { all: 'HasMany', attributes: [ 'name' ] } ] }).done(function(err, countries) {
+            expect(err).not.to.be.ok
+            expect(countries).to.exist
+            expect(countries[0]).to.exist
+            expect(countries[0].industries).to.exist
+            expect(countries[0].persons).to.exist
+            expect(countries[0].persons[0]).to.exist
+            expect(countries[0].persons[0].name).not.to.be.undefined
+            expect(countries[0].persons[0].lastName).to.be.undefined
+            expect(countries[0].residents).to.exist
+            expect(countries[0].residents[0]).to.exist
+            expect(countries[0].residents[0].name).not.to.be.undefined
+            expect(countries[0].residents[0].lastName).to.be.undefined
+            done()
+          })
+        })
+
+        it('is over-ruled by specified include', function(done) {
+          this.Country.findAll({ include: [ { all: true }, { model: this.Continent, attributes: [] } ] }).done(function(err, countries) {
+            expect(err).not.to.be.ok
+            expect(countries).to.exist
+            expect(countries[0]).to.exist
+            expect(countries[0].continent).to.exist
+            expect(countries[0].continent.name).to.be.undefined
+            done()
+          })
+        })
+
+        it('includes all nested associations', function(done) {
+          this.Continent.findAll({ include: [ { all: true, nested: true } ] }).done(function(err, continents) {
+            expect(err).not.to.be.ok
+            expect(continents).to.exist
+            expect(continents[0]).to.exist
+            expect(continents[0].countries).to.exist
+            expect(continents[0].countries[0]).to.exist
+            expect(continents[0].countries[0].industries).to.exist
+            expect(continents[0].countries[0].persons).to.exist
+            expect(continents[0].countries[0].residents).to.exist
+            expect(continents[0].countries[0].continent).not.to.exist
+            done()
+          })
+        })
+      })
     })
 
     describe('order by eager loaded tables', function() {
@@ -851,7 +1039,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               callback()
             })
           }, function() {done()})
-        }),
+        })
 
         it('sorts by 2nd degree association', function(done) {
           var self = this
@@ -881,6 +1069,29 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             self.Continent.findAll({
               include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'Residents' } ] } ],
               order: [ [ self.Country, {model: self.Person, as: 'Residents' }, 'lastName', params[0] ] ]
+            }).done(function(err, continents) {
+              expect(err).not.to.be.ok
+              expect(continents).to.exist
+              expect(continents[0]).to.exist
+              expect(continents[0].name).to.equal(params[1])
+              expect(continents[0].countries).to.exist
+              expect(continents[0].countries[0]).to.exist
+              expect(continents[0].countries[0].name).to.equal(params[2])
+              expect(continents[0].countries[0].residents).to.exist
+              expect(continents[0].countries[0].residents[0]).to.exist
+              expect(continents[0].countries[0].residents[0].name).to.equal(params[3])
+              callback()
+            })
+          }, function() {done()})
+        })
+
+        it('sorts by 2nd degree association with alias while using limit', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'Europe', 'France', 'Fred' ], [ 'DESC', 'Europe', 'England', 'Kim' ] ], function(params, callback) {
+            self.Continent.findAll({
+              include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'Residents' } ] } ],
+              order: [ [ { model: self.Country }, {model: self.Person, as: 'Residents' }, 'lastName', params[0] ] ],
+              limit: 3
             }).done(function(err, continents) {
               expect(err).not.to.be.ok
               expect(continents).to.exist
@@ -945,6 +1156,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             self.Country.findAll({
               include: [ self.Industry ],
               order: [ [ self.Industry, 'name', params[0] ] ]
+            }).done(function(err, countries) {
+              expect(err).not.to.be.ok
+              expect(countries).to.exist
+              expect(countries[0]).to.exist
+              expect(countries[0].name).to.equal(params[1])
+              expect(countries[0].industries).to.exist
+              expect(countries[0].industries[0]).to.exist
+              expect(countries[0].industries[0].name).to.equal(params[2])
+              callback()
+            })
+          }, function() {done()})
+        })
+
+        it('sorts by 1st degree association while using limit', function(done) {
+          var self = this
+          async.forEach([ [ 'ASC', 'England', 'Energy' ], [ 'DESC', 'Korea', 'Tech' ] ], function(params, callback) {
+            self.Country.findAll({
+              include: [ self.Industry ],
+              order: [
+                [ self.Industry, 'name', params[0] ] 
+              ],
+              limit: 3
             }).done(function(err, countries) {
               expect(err).not.to.be.ok
               expect(countries).to.exist

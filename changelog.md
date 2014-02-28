@@ -1,5 +1,28 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
+# v1.7.0 (next)
+- [FEATURE] covers more advanced include cases with limiting and filtering (specifically cases where a include would be in the subquery but its child include wouldnt be, for cases where a 1:1 association had a 1:M association as a nested include)
+- [BUG] fixes issue where connection would timeout before calling COMMIT resulting in data never reaching the database [#1429](https://github.com/sequelize/sequelize/pull/1429)
+
+# v1.7.0-rc9
+- [PERFORMANCE] fixes performance regression introduced in rc7
+- [FEATURE] include all relations for a model [#1421](https://github.com/sequelize/sequelize/pull/1421)
+- [BUG] N:M adder/getter with through model and custom primary keys now work
+
+# v1.7.0-rc8
+- [BUG] fixes bug with required includes without wheres with subqueries
+
+# v1.7.0-rc7
+- [BUG] ORDER BY statements when using includes should now be places in the appropriate sub/main query more intelligently.
+- [BUG] using include.attributes with primary key attributes specified should no longer result in multiple primary key attributes being selected [#1410](https://github.com/sequelize/sequelize/pull/1410)
+- [DEPENDENCIES] all dependencies, including Validator have been updated to the latest versions.
+
+#### Backwards compatability changes
+- .set() will no longer set values that are not a dynamic setter or defined in the model. This only breaks BC since .set() was introduced but restores original .updateAttributes functionality where it was possible to 'trust' user input.
+
+# v1.7.0-rc6
+- [BUG] Encode binary strings as bytea in postgres, and fix a case where using a binary as key in an association would produce an error [1364](https://github.com/sequelize/sequelize/pull/1364). Thanks to @SohumB
+
 # v1.7.0-rc5
 - [FEATURE] sync() now correctly returns with an error when foreign key constraints reference unknown tables
 - [BUG] sync() no longer fails with foreign key constraints references own table (toposort self-dependency error)
@@ -37,6 +60,9 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] fixes bug where through models created by N:M associations would inherit hooks [#1263](https://github.com/sequelize/sequelize/issues/1263)
 - [FEATURE] .col()/.literal()/etc now works with findAll [#1249](https://github.com/sequelize/sequelize/issues/1249)
 - [BUG] now currectly handles connection timeouts as errors [#1207](https://github.com/sequelize/sequelize/issues/1207)
+
+# v2.0.0 (alpha1) #
+- [FEATURE] async validations. [#580](https://github.com/sequelize/sequelize/pull/580). thanks to Interlock
 
 # v1.7.0-rc1
 - [FEATURE] instance.createAssociationInstance functionality added [#1213](https://github.com/sequelize/sequelize/pull/1213)
