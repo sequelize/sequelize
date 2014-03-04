@@ -1,6 +1,8 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # v2.0.0-dev10
+- [PERFORMANCE] increased build performance when using include, which speeds up findAll etc.
+
 #### Backwards compatability changes
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
 - foreign keys will now correctly be based on the alias of the model
