@@ -347,12 +347,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       done()
     })
 
-    it("stores the passed values in a special variable", function(done) {
-      var user = this.User.build({ username: 'John Wayne' })
-      expect(user.selectedValues).to.deep.equal({ username: 'John Wayne' })
-      done()
-    })
-
     it("attaches getter and setter methods from attribute definition", function(done) {
       var Product = this.sequelize.define('ProductWithSettersAndGetters1', {
         price: {
