@@ -1464,8 +1464,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(info.count).to.equal(2)
         expect(Array.isArray(info.rows)).to.be.ok
         expect(info.rows.length).to.equal(2)
-        expect(info.rows[0].selectedValues).to.not.have.property('username')
-        expect(info.rows[1].selectedValues).to.not.have.property('username')
+        expect(info.rows[0].dataValues).to.not.have.property('username')
+        expect(info.rows[1].dataValues).to.not.have.property('username')
         done()
       })
     })

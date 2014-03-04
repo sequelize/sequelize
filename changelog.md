@@ -2,6 +2,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # v2.0.0-dev10
 #### Backwards compatability changes
+- selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
 - foreign keys will now correctly be based on the alias of the model
 - foreign keys for non-id primary keys will now be named for the foreign key, i.e. pub_name rather than pub_id - if you have non-id primary keys you should go through your associations and set the foreignKey option if relying on a incorrect _id foreign key
 
