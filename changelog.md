@@ -6,7 +6,9 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 #### Backwards compatability changes
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
 - foreign keys will now correctly be based on the alias of the model
-- foreign keys for non-id primary keys will now be named for the foreign key, i.e. pub_name rather than pub_id - if you have non-id primary keys you should go through your associations and set the foreignKey option if relying on a incorrect _id foreign key
+  - if you have any 1:1 relations where both sides use an alias, you'll need to set the foreign key, or they'll each use a different foreign key based on their alias.
+- foreign keys for non-id primary keys will now be named for the foreign key, i.e. pub_name rather than pub_id
+  - if you have non-id primary keys you should go through your associations and set the foreignKey option if relying on a incorrect _id foreign key
 
 # v1.7.0
 - [FEATURE] covers more advanced include cases with limiting and filtering (specifically cases where a include would be in the subquery but its child include wouldnt be, for cases where a 1:1 association had a 1:M association as a nested include)
