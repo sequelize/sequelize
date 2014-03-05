@@ -14,6 +14,7 @@ if (dialect.match(/^postgres/)) {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
+        settings: DataTypes.HSTORE,
         document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
       })
       this.User.sync({ force: true }).success(function() {
@@ -48,10 +49,25 @@ if (dialect.match(/^postgres/)) {
       })
     })
 
-    it('describeTable should tell me that a column is hstore and not USER-DEFINED', function(done) {
-      this.sequelize.queryInterface.describeTable('Users').success(function(table) {
-        expect(table.document.type).to.equal('HSTORE')
-        done()
+    describe('hstore', function() {
+      it('should tell me that a column is hstore and not USER-DEFINED', function(done) {
+        this.sequelize.queryInterface.describeTable('Users').success(function(table) {
+          expect(table.settings.type).to.equal('HSTORE')
+          expect(table.document.type).to.equal('HSTORE')
+          done()
+        })
+      })
+
+      it('should stringify hstore with insert', function(done) {
+        this.User.create({
+          username: 'bob',
+          email: ['myemail@email.com'],
+          settings: {mailing: false, push: 'facebook', frequency: 3}
+        }).on('sql', function(sql) {
+          var expected = 'INSERT INTO "Users" ("id","username","email","settings","document","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',ARRAY[\'myemail@email.com\']::TEXT[],\'"mailing"=>false,"push"=>"facebook","frequency"=>3\',\'"default"=>"value"\''
+          expect(sql.indexOf(expected)).to.equal(0)
+          done()
+        })
       })
     })
 
@@ -242,19 +258,17 @@ if (dialect.match(/^postgres/)) {
         var self = this
 
         this.User
-          .create({ username: 'user', email: ['foo@bar.com'], document: { created: { test: '"value"' }}})
+          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
           .success(function(newUser) {
-            expect(newUser.document).to.deep.equal({ created: { test: '"value"' }})
+            // Check to see if the default value for an hstore field works
+            expect(newUser.document).to.deep.equal({default: 'value'})
+            expect(newUser.settings).to.deep.equal({ created: { test: '"value"' }})
 
             // Check to see if updating an hstore field works
-            newUser.updateAttributes({document: {should: 'update', to: 'this', first: 'place'}}).success(function(oldUser){
+            newUser.updateAttributes({settings: {should: 'update', to: 'this', first: 'place'}}).success(function(oldUser){
               // Postgres always returns keys in alphabetical order (ascending)
-              expect(oldUser.document).to.deep.equal({first: 'place', should: 'update', to: 'this'})
-              // Check to see if the default value for an hstore field works
-              self.User.create({ username: 'user2', email: ['bar@baz.com']}).success(function(defaultUser){
-                expect(defaultUser.document).to.deep.equal({default: 'value'})
-                done()
-              })
+              expect(oldUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
+              done()
             })
           })
           .error(console.log)
