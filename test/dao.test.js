@@ -9,7 +9,6 @@ var chai      = require('chai')
   , datetime  = require('chai-datetime')
   , uuid      = require('node-uuid')
   , _         = require('lodash')
-  , Promise   = require('bluebird')
 
 chai.use(datetime)
 chai.Assertion.includeStack = true
