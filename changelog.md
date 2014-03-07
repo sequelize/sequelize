@@ -2,6 +2,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # v2.0.0-dev11
 - [PERFORMANCE] increased build performance when using include, which speeds up findAll etc.
+- [BUG] Made it possible to use HSTORE both in attribute: HSTORE and attribute: { type: HSTORE } form. Thanks to @tomchentw [#1458](https://github.com/sequelize/sequelize/pull/1458)
 
 #### Backwards compatability changes
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
