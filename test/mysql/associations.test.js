@@ -57,8 +57,8 @@ if (Support.dialectIsMySQL()) {
         this.users = null
         this.tasks = null
 
-        this.User.hasMany(this.Task, {as:'Tasks'})
-        this.Task.hasMany(this.User, {as:'Users'})
+        this.User.hasMany(this.Task, {as:'Tasks', through: 'UserTasks'})
+        this.Task.hasMany(this.User, {as:'Users', through: 'UserTasks'})
 
         var self = this
           , users = []
@@ -72,12 +72,10 @@ if (Support.dialectIsMySQL()) {
           tasks[tasks.length] = {name: 'Task' + Math.random()}
         }
 
-        this.User.sync({ force: true }).success(function() {
-          self.Task.sync({ force: true }).success(function() {
-            self.User.bulkCreate(users).success(function() {
-              self.Task.bulkCreate(tasks).success(function() {
-                done()
-              })
+        this.sequelize.sync({ force: true }).success(function() {
+          self.User.bulkCreate(users).success(function() {
+            self.Task.bulkCreate(tasks).success(function() {
+              done()
             })
           })
         })

@@ -6334,10 +6334,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasOne(this.Tasks, {onDelete: 'cascade', hooks: true})
           this.Tasks.belongsTo(this.Projects)
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 
@@ -6733,10 +6731,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasMany(this.Tasks)
           this.Tasks.belongsTo(this.Projects)
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 
@@ -6842,10 +6838,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasMany(this.Tasks, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true})
           this.Tasks.hasMany(this.Projects, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true})
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 
@@ -6952,10 +6946,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasMany(this.Tasks, {hooks: true})
           this.Tasks.hasMany(this.Projects, {hooks: true})
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 

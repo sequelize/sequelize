@@ -239,19 +239,41 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe("Foreign key constraints", function() {
-    it("are not enabled by default", function(done) {
+    it("are enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
         , User = this.sequelize.define('User', { username: DataTypes.STRING })
 
-      Task.belongsTo(User)
+      Task.belongsTo(User) // defaults to SET NULL
 
       this.sequelize.sync({ force: true }).success(function() {
         User.create({ username: 'foo' }).success(function(user) {
           Task.create({ title: 'task' }).success(function(task) {
             task.setUser(user).success(function() {
               user.destroy().success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks).to.have.length(1)
+                task.reload().success(function() {
+                  expect(task.UserId).to.equal(null)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it("should be possible to disable them", function(done) {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+
+      Task.belongsTo(User, { useConstraints: false })
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'foo' }).success(function(user) {
+          Task.create({ title: 'task' }).success(function(task) {
+            task.setUser(user).success(function() {
+              user.destroy().success(function() {
+                task.reload().success(function() {
+                  expect(task.UserId).to.equal(user.id)
                   done()
                 })
               })
@@ -403,7 +425,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         var tableName = 'TaskXYZ_' + dataType.toString()
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING })
 
-        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType })
+        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, useConstraints: false })
       })
 
       self.sequelize.sync({ force: true })

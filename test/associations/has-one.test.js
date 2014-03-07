@@ -212,11 +212,11 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
   })
 
   describe("Foreign key constraints", function() {
-    it("are not enabled by default", function(done) {
+    it("are enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })
 
-      User.hasOne(Task)
+      User.hasOne(Task) // defaults to set NULL
 
       User.sync({ force: true }).success(function() {
         Task.sync({ force: true }).success(function() {
@@ -224,8 +224,32 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
             Task.create({ title: 'task' }).success(function(task) {
               user.setTask(task).success(function() {
                 user.destroy().success(function() {
-                  Task.findAll().success(function(tasks) {
-                    expect(tasks).to.have.length(1)
+                  task.reload().success(function() {
+                    expect(task.UserId).to.equal(null)
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it("should be possible to disable them", function(done) {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+
+      User.hasOne(Task, { useConstraints: false })
+
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function(user) {
+            Task.create({ title: 'task' }).success(function(task) {
+              user.setTask(task).success(function() {
+                user.destroy().success(function() {
+                  task.reload().success(function() {
+                    expect(task.UserId).to.equal(user.id)
                     done()
                   })
                 })
@@ -387,7 +411,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         var tableName = 'TaskXYZ_' + dataType.toString()
         Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING })
 
-        User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType })
+        User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, useConstraints: false })
 
         Tasks[dataType].sync({ force: true }).success(function() {
           expect(Tasks[dataType].rawAttributes.userId.type.toString())
