@@ -2,7 +2,12 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # v2.0.0-dev11
 - [PERFORMANCE] increased build performance when using include, which speeds up findAll etc.
+<<<<<<< HEAD
 - [BUG] Made it possible to use HSTORE both in attribute: HSTORE and attribute: { type: HSTORE } form. Thanks to @tomchentw [#1458](https://github.com/sequelize/sequelize/pull/1458)
+=======
+- [FEATURE] n:m now marks the columns of the through table as foreign keys and cascades them on delete and update by default.
+- [FEATURE] 1:1 and 1:m marks columns as foreign keys, and sets them to cascade on update and set null on delete. If you are working with an existing DB which does not allow null values, be sure to override those options, or disable them completely by passing useConstrations: false to your assocation call (`M1.belongsTo(M2, { useConstraints: false})`).
+>>>>>>> Removed synconassocation, added ondelete and onupdate to n:m and made cascade the default, made cascade / set null the default for hasone and belongsto
 
 #### Backwards compatability changes
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
@@ -10,6 +15,8 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
   - if you have any 1:1 relations where both sides use an alias, you'll need to set the foreign key, or they'll each use a different foreign key based on their alias.
 - foreign keys for non-id primary keys will now be named for the foreign key, i.e. pub_name rather than pub_id
   - if you have non-id primary keys you should go through your associations and set the foreignKey option if relying on a incorrect _id foreign key
+- syncOnAssocation has been removed. It only worked for n:m, and having a synchronous function (hasMany) that invokes an asynchronous function (sync) without returning an emitter does not make a lot of sense. If you (implicitly) depended on this feature, sequelize.sync is your friend. If you do not want to do a full sync, use custom through models for n:m (`M1.hasMany(M2, { through: M3})`) and sync the through model explicitly.
+- Join tables will be no longer be paranoid (have a deletedAt timestamp added), even though other models are.
 
 # v1.7.0
 - [FEATURE] covers more advanced include cases with limiting and filtering (specifically cases where a include would be in the subquery but its child include wouldnt be, for cases where a 1:1 association had a 1:M association as a nested include)

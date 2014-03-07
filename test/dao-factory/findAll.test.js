@@ -313,18 +313,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.hasMany(Session, { as: 'Sessions' })
         Session.belongsTo(User)
 
-        Session.sync({ force: true }).success(function() {
-          User.sync({ force: true }).success(function() {
-            User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
-              var sess = Session.build({
-                lastUpdate: new Date(),
-                token: '123'
-              })
+        this.sequelize.sync({ force: true }).success(function() {
+          User.create({name: 'Name1', password: '123', isAdmin: false}).success(function(user) {
+            var sess = Session.build({
+              lastUpdate: new Date(),
+              token: '123'
+            })
 
-              user.addSession(sess).success(function(u) {
-                expect(u.token).to.equal('123')
-                done()
-              })
+            user.addSession(sess).success(function(u) {
+              expect(u.token).to.equal('123')
+              done()
             })
           })
         })
@@ -849,9 +847,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.Country.hasMany(self.Person, { as: 'Residents', foreignKey: 'CountryResidentId' })
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' })
 
-          async.forEach([ self.Continent, self.Country, self.Industry, self.Person ], function(model, callback) {
-            model.sync({ force: true }).done(callback)
-          }, function () {
+          this.sequelize.sync({ force: true }).success(function () {
             async.parallel({
               europe: function(callback) {self.Continent.create({ name: 'Europe' }).done(callback)},
               england: function(callback) {self.Country.create({ name: 'England' }).done(callback)},
@@ -874,7 +870,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 done()
               })
             })
-          })
+          })  
         })
 
         it('includes all associations', function(done) {
@@ -965,9 +961,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.Country.hasMany(self.Person, { as: 'Residents', foreignKey: 'CountryResidentId' })
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' })
 
-          async.forEach([ self.Continent, self.Country, self.Person ], function(model, callback) {
-            model.sync({ force: true }).done(callback)
-          }, function () {
+          this.sequelize.sync({ force: true }).success(function () {
             async.parallel({
               europe: function(callback) {self.Continent.create({ name: 'Europe' }).done(callback)},
               asia: function(callback) {self.Continent.create({ name: 'Asia' }).done(callback)},
@@ -1120,9 +1114,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.Country.hasMany(self.Industry, {through: self.IndustryCountry})
           self.Industry.hasMany(self.Country, {through: self.IndustryCountry})
 
-          async.forEach([ self.Country, self.Industry ], function(model, callback) {
-            model.sync({ force: true }).done(callback)
-          }, function () {
+          this.sequelize.sync({ force: true }).success(function () {
             async.parallel({
               england: function(callback) {self.Country.create({ name: 'England' }).done(callback)},
               france: function(callback) {self.Country.create({ name: 'France' }).done(callback)},
