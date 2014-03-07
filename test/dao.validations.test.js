@@ -7,7 +7,7 @@ var chai      = require('chai')
 
 chai.Assertion.includeStack = true
 
-describe.only(Support.getTestDialectTeaser("DaoValidator"), function() {
+describe(Support.getTestDialectTeaser("DaoValidator"), function() {
   describe('validations', function() {
     var checks = {
       is: {
