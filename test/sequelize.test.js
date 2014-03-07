@@ -408,21 +408,57 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       done()
     })
 
-    it("inherits global classMethods and instanceMethods", function(done) {
-      var sequelize = Support.createSequelizeInstance({
-        define: {
-          classMethods : { globalClassMethod : function() {} },
-          instanceMethods : { globalInstanceMethod : function() {} }
-        }
-      })
+    it("inherits global classMethods and instanceMethods, and can override global methods with local ones", function(done) {
+      var globalClassMethod     = sinon.spy()
+        , globalInstanceMethod  = sinon.spy()
+        , localClassMethod      = sinon.spy()
+        , localInstanceMethod   = sinon.spy()
+        , sequelize             = Support.createSequelizeInstance({
+          define: {
+            classMethods : { 
+              globalClassMethod : function() {},
+              overrideMe: globalClassMethod
+            },
+            instanceMethods : { 
+              globalInstanceMethod : function() {},
+              overrideMe: globalInstanceMethod
+            }
+          }
+        })
+        , DAO
 
-      var DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
+      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
         classMethods : { localClassMethod : function() {} }
       })
 
       expect(typeof DAO.options.classMethods.globalClassMethod).to.equal('function')
       expect(typeof DAO.options.classMethods.localClassMethod).to.equal('function')
       expect(typeof DAO.options.instanceMethods.globalInstanceMethod).to.equal('function')
+
+      // This DAO inherits the global methods
+      DAO.overrideMe()
+      DAO.build().overrideMe()
+
+
+      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
+        classMethods : { 
+          overrideMe : localClassMethod
+        },
+        instanceMethods: {
+          overrideMe: localInstanceMethod
+        }
+      })
+
+      // This DAO has its own implementation
+      DAO.overrideMe()
+      DAO.build().overrideMe()
+
+      expect(globalClassMethod).to.have.been.calledOnce
+      expect(globalInstanceMethod).to.have.been.calledOnce
+
+      expect(localClassMethod).to.have.been.calledOnce
+      expect(localInstanceMethod).to.have.been.calledOnce
+
       done()
     })
 
