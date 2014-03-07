@@ -26,6 +26,7 @@ var options = {
       // Find constructor tags
       javadoc.isConstructor = getTag(javadoc.raw.tags, 'constructor') !== undefined;
       javadoc.isMixin = getTag(javadoc.raw.tags, 'mixin') !== undefined;
+      javadoc.isProperty = getTag(javadoc.raw.tags, 'property') !== undefined
       javadoc.mixes = getTags(javadoc.raw.tags, 'mixes');
       
       // Only show params without a dot in them (dots means attributes of object, so no need to clutter the co)
@@ -36,6 +37,12 @@ var options = {
         }
       });
       javadoc.paramStr = params.join(', ');
+
+      // Handle deprecation text
+      if (javadoc.deprecated) {
+        var deprecation = getTag(javadoc.raw.tags, 'deprecated')
+        javadoc.deprecated = deprecation.string
+      }
 
       // Handle linking in comments
       javadoc.see = getTags(javadoc.raw.tags, 'see');
@@ -50,7 +57,7 @@ var options = {
             _see[0] = _see[0].substring(1)
             collection[i].url = _see[0]
 
-            collection[i].text = see.local            
+            collection[i].text = see.local.replace(/{|}/g, '')            
           } else {
             collection[i].url = false
             collection[i].text = see.local
@@ -70,7 +77,11 @@ var options = {
       }
 
       if (!javadoc.isClass) {
-        docfile.members.push(javadoc.name + '(' + javadoc.paramStr + ')')
+        if (!javadoc.isProperty) {
+          docfile.members.push(javadoc.name + '(' + javadoc.paramStr + ')')
+        } else {
+          docfile.members.push(javadoc.name)
+        }
       }
     });
 

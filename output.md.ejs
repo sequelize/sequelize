@@ -28,12 +28,13 @@
         <? if (comment.isClass) { ?>
           ### Members:
           <? doc.members.forEach(function (member) { -?>
-            * <a href="#<?= member ?>"><?= member ?></a>
+            <? var link = member.replace(/\(.*?\)/, '') -?>
+            * <a href="#<?= link ?>"><?= member ?></a>
           <? }) -?>
         <? } ?>
 
         <? if (comment.deprecated) { ?>
-          **Deprecated**
+          **Deprecated** <? if (typeof comment.deprecated === "string") { ?><?- comment.deprecated ?><? } ?>
         <? } ?>
 
         <? if (comment.author) { ?>
