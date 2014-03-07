@@ -58,6 +58,10 @@ var Support = {
       sequelizeOptions.native = true
     }
 
+    if (!!config.storage) {
+      sequelizeOptions.storage = config.storage
+    }
+
     return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions)
   },
 
