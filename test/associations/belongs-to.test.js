@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
 
       self.sequelize.dropAllSchemas().done(function() {
         self.sequelize.createSchema('archive').done(function () {
-          self.sequelize.sync({force: true}).done(function () {
+          self.sequelize.sync({force: true }).done(function () {
             User.create({ username: 'foo', gender: 'male' }).success(function(user) {
               Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
                 task.setUserXYZ(user).success(function() {
