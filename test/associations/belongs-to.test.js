@@ -92,8 +92,6 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
                   task.getUserXYZ().success(function(user) {
                     expect(user).to.be.ok
                     done()
-                  }).on('sql', function (sql) {
-                    console.log(sql)
                   })
                 })
               })
