@@ -7,6 +7,7 @@ var chai      = require('chai')
   , DataTypes = require(__dirname + "/../lib/data-types")
   , datetime  = require('chai-datetime')
   , async     = require('async')
+  , _         = require('lodash')
 
 chai.use(datetime)
 chai.Assertion.includeStack = true
@@ -515,6 +516,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 expect(err).not.to.be.ok
                 expect(tasks[0].title).to.equal('FooBar')
                 expect(tasks[0].project.title).to.equal('BarFoo');
+
+                expect(_.omit(tasks[0].get(), 'project')).to.deep.equal({ title: 'FooBar' })
+                expect(tasks[0].project.get()).to.deep.equal({ title: 'BarFoo'})
 
                 done()
               })
