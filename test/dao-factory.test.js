@@ -1493,15 +1493,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(UserSpecial).to.exist
             expect(UserPublic).to.exist
             if (dialect === "postgres") {
-              expect(self.UserSpecialSync.getTableName()).to.equal('"special"."UserSpecials"');
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
               expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1)
             } else if (dialect === "sqlite") {
-              expect(self.UserSpecialSync.getTableName()).to.equal('`special`.`UserSpecials`');
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1)
             } else {
-              expect(self.UserSpecialSync.getTableName()).to.equal('`special.UserSpecials`');
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1)
             }
