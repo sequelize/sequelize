@@ -211,8 +211,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
     })
   })
 
-
-  describe("Foreign key constraints", function() {
+  describe('foreign key', function () {
     it('should lowercase foreign keys when using underscored', function () {
       var User  = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: true })
         , Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: true })
@@ -229,7 +228,9 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
 
       expect(User.rawAttributes.AccountId).to.exist
     })
+  })
 
+  describe("foreign key constraints", function() {
     it("are enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })
