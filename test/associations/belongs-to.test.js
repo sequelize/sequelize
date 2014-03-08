@@ -238,7 +238,26 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
     })
   })
 
-  describe("Foreign key constraints", function() {
+  describe("foreign key", function () {
+    it('should lowercase foreign keys when using underscored', function () {
+      var User  = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: true })
+        , Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: true })
+
+      User.belongsTo(Account)
+
+      expect(User.rawAttributes.account_id).to.exist;
+    });
+    it('should use model name when using camelcase', function () {
+      var User  = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: false })
+        , Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: false })
+
+      User.belongsTo(Account)
+
+      expect(User.rawAttributes.AccountId).to.exist;
+    });
+  });
+
+  describe("foreign key constraints", function() {
     it("are not enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
         , User = this.sequelize.define('User', { username: DataTypes.STRING })
