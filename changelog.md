@@ -4,7 +4,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [PERFORMANCE] increased build performance when using include, which speeds up findAll etc.
 - [BUG] Made it possible to use HSTORE both in attribute: HSTORE and attribute: { type: HSTORE } form. Thanks to @tomchentw [#1458](https://github.com/sequelize/sequelize/pull/1458)
 - [FEATURE] n:m now marks the columns of the through table as foreign keys and cascades them on delete and update by default.
-- [FEATURE] 1:1 and 1:m marks columns as foreign keys, and sets them to cascade on update and set null on delete. If you are working with an existing DB which does not allow null values, be sure to override those options, or disable them completely by passing useConstrations: false to your assocation call (`M1.belongsTo(M2, { useConstraints: false})`).
+- [FEATURE] 1:1 and 1:m marks columns as foreign keys, and sets them to cascade on update and set null on delete. If you are working with an existing DB which does not allow null values, be sure to override those options, or disable them completely by passing constraints: false to your assocation call (`M1.belongsTo(M2, { constraints: false})`).
 
 #### Backwards compatability changes
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
