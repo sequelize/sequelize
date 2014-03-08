@@ -1050,43 +1050,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
   })
-  describe('many to many relations', function() {
-    var udo;
-    beforeEach(function(done) {
-      var self = this
-      this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
-        username: DataTypes.STRING,
-        age:      DataTypes.INTEGER,
-        isAdmin:  DataTypes.BOOLEAN
-      }, {timestamps: false})
-
-      this.Project = this.sequelize.define('NiceProject',
-        { title: DataTypes.STRING }, {timestamps: false})
-
-      this.Project.hasMany(this.User)
-      this.User.hasMany(this.Project)
-
-      this.User.sync({ force: true }).success(function() {
-        self.Project.sync({ force: true }).success(function() {
-          self.User.create({ username: 'fnord', age: 1, isAdmin: true })
-            .success(function(user) {
-              udo = user
-              done()
-            })
-        })
-      })
-    })
-    it('Should assign a property to the instance', function(done) {
-      var self = this;
-      this.User.find({id: udo.id})
-        .success(function(user) {
-          user.NiceProjectId = 1;
-          expect(user.NiceProjectId).to.equal(1);
-          done();
-        })
-    })
-  })
-
 
   describe('toJSON', function() {
     beforeEach(function(done) {
