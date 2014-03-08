@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
 
-    it('supports schemas', function (done) {
+    it.only('supports schemas', function (done) {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive')
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING }).schema('archive')
         , self = this
@@ -92,6 +92,8 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
                   task.getUserXYZ().success(function(user) {
                     expect(user).to.be.ok
                     done()
+                  }).on('sql', function (sql) {
+                    console.log(sql)
                   })
                 })
               })
