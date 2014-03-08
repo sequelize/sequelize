@@ -44,7 +44,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           Article.hasMany(Label)
 
-          sequelize.sync({ force: true }).success(function() {
+          sequelize.sync({ force: true }).done(function(err) {
+            expect(err).not.to.be.ok
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
                 sequelize.transaction(function(t) {
