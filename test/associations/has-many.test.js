@@ -546,7 +546,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ])
 
           chainer.run().success(function (results, john, task1, task2) {
-            john.setTasks([task1, task2]).success(function() {
+            john.setTasks([task1, task2]).done(function(err) {
+              expect(err).not.to.be.ok
               done()
             })
           })
@@ -599,6 +600,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           john.getTasks({where: {active: true}}).success(function (tasks) {
             expect(tasks).to.have.length(1)
             done()
+          }).on('sql', function (sql) {
+            console.log(sql)
           })
         })
       })
