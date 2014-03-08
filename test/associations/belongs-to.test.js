@@ -75,6 +75,31 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         })
       })
     })
+
+    it('supports schemas', function (done) {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive')
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING }).schema('archive')
+        , self = this
+
+      Task.belongsTo(User)
+
+      self.sequelize.dropAllSchemas().done(function() {
+        self.sequelize.createSchema('archive').done(function () {
+          self.sequelize.sync({force: true}).done(function () {
+            User.create({ username: 'foo', gender: 'male' }).success(function(user) {
+              Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
+                task.setUserXYZ(user).success(function() {
+                  task.getUserXYZ().success(function(user) {
+                    expect(user).to.be.ok
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('setAssociation', function() {

@@ -542,7 +542,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
   })
 
   describe('(N:M)', function() {
-    describe("getting assocations with options", function() {
+    describe("getAssociations", function() {
       beforeEach(function(done) {
         var self = this
 
@@ -552,18 +552,16 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         self.User.hasMany(self.Task)
         self.Task.hasMany(self.User)
 
-        this.User.sync({ force: true }).success(function() {
-          self.Task.sync({ force: true }).success(function() {
-            var chainer = new Sequelize.Utils.QueryChainer([
-              self.User.create({ username: 'John'}),
-              self.Task.create({ title: 'Get rich', active: true}),
-              self.Task.create({ title: 'Die trying', active: false})
-            ])
+        this.sequelize.sync({force: true}).done(function(err) {
+          var chainer = new Sequelize.Utils.QueryChainer([
+            self.User.create({ username: 'John'}),
+            self.Task.create({ title: 'Get rich', active: true}),
+            self.Task.create({ title: 'Die trying', active: false})
+          ])
 
-            chainer.run().success(function (results, john, task1, task2) {
-              john.setTasks([task1, task2]).success(function() {
-                done()
-              })
+          chainer.run().success(function (results, john, task1, task2) {
+            john.setTasks([task1, task2]).success(function() {
+              done()
             })
           })
         })
@@ -632,6 +630,52 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         this.User.find({where: {username: 'John'}, include: [ this.Task ]}).success(function (john) {
           expect(john.tasks).to.have.length(2);
           done();
+        })
+      })
+
+      it('should support schemas', function (done) {
+        var self = this
+          , AcmeUser = self.sequelize.define('User', {
+            username: DataTypes.STRING
+          }).schema('acme', '_')
+          , AcmeProject = self.sequelize.define('Project', {
+            title: DataTypes.STRING, active: DataTypes.BOOLEAN
+          }).schema('acme', '_')
+          , AcmeProjectUsers = self.sequelize.define('ProjectUsers', {
+            status: DataTypes.STRING,
+            data: DataTypes.INTEGER
+          }).schema('acme', '_')
+
+        AcmeUser.hasMany(AcmeProject, {through: AcmeProjectUsers})
+        AcmeProject.hasMany(AcmeUser, {through: AcmeProjectUsers})
+
+        self.sequelize.dropAllSchemas().done(function(err) {
+          expect(err).not.to.be.ok
+          self.sequelize.createSchema('acme').done(function(err) {
+            expect(err).not.to.be.ok
+            self.sequelize.sync({force: true}).done(function(err) {
+              expect(err).not.to.be.ok
+              AcmeUser.create().done(function(err, u) {
+                expect(err).not.to.be.ok
+                AcmeProject.create().done(function(err, p) {
+                  expect(err).not.to.be.ok
+                  u.addProject(p, { status: 'active', data: 42 }).done(function(err) {
+                    expect(err).not.to.be.ok
+
+                    u.getProjects().done(function(err, projects) {
+                      expect(err).not.to.be.ok
+                      expect(projects).to.have.length(1);
+                      var project = projects[0]
+                      expect(project.ProjectUsers).to.be.defined
+                      expect(project.status).not.to.exist
+                      expect(project.ProjectUsers.status).to.equal('active')
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
         })
       })
     })
