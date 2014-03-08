@@ -52,6 +52,11 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     [Sequelize.STRING(1234).BINARY, 'STRING(1234).BINARY', 'VARCHAR(1234) BINARY'],
     [Sequelize.STRING.BINARY, 'STRING.BINARY', 'VARCHAR(255) BINARY'],
 
+    [Sequelize.CHAR, 'CHAR(255)', 'CHAR(255)'],
+    [Sequelize.CHAR(12), 'CHAR(12)', 'CHAR(12)'],
+    [Sequelize.CHAR(12).BINARY, 'CHAR(12).BINARY', 'CHAR(12) BINARY'],
+    [Sequelize.CHAR.BINARY, 'CHAR(255).BINARY', 'CHAR(255) BINARY'],
+
     [Sequelize.TEXT, 'TEXT', 'TEXT'],
     [Sequelize.DATE, 'DATE', 'DATETIME'],
     [Sequelize.NOW, 'NOW', 'NOW'],
