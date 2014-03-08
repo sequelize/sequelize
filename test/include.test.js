@@ -500,12 +500,25 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       Project.hasMany(Task)
       Task.belongsTo(Project)
 
-      this.sequelize.sync().done(function() {
-        Task.create({title: 'FooBar'}).done(function (err) {
-          Task.findAll({attributes: ['title'], include: [Project]}).done(function(err, tasks) {
-            expect(err).not.to.be.ok
-            expect(tasks[0].title).to.equal('FooBar')
-            done()
+      this.sequelize.sync({force: true}).done(function() {
+        Project.create({
+          title: 'BarFoo'
+        }).done(function (err, project) {
+          Task.create({title: 'FooBar'}).done(function (err, task) {
+            task.setProject(project).done(function () {
+              Task.findAll({
+                attributes: ['title'],
+                include: [
+                  {model: Project, attributes: ['title']}
+                ]
+              }).done(function(err, tasks) {
+                expect(err).not.to.be.ok
+                expect(tasks[0].title).to.equal('FooBar')
+                expect(tasks[0].project.title).to.equal('BarFoo');
+
+                done()
+              })
+            })
           })
         })
       })
@@ -518,7 +531,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
 
-      this.sequelize.sync().done(function (err) {
+      this.sequelize.sync({force: true}).done(function (err) {
         Group.bulkCreate([
           {name: 'SoccerMoms'},
           {name: 'Coca Cola'},
