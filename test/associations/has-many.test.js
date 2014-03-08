@@ -104,7 +104,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ])
 
           chainer.runSerially()
-          .success(function(_, label1, hasLabel1, hasLabel2) {
+          .done(function(err, _, label1, hasLabel1, hasLabel2) {
+            expect(err).not.to.be.ok
             expect(hasLabel1).to.be.true
             expect(hasLabel2).to.be.false
             done()
