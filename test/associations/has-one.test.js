@@ -240,7 +240,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })
 
-      User.hasOne(Task, { useConstraints: false })
+      User.hasOne(Task, { constraints: false })
 
       User.sync({ force: true }).success(function() {
         Task.sync({ force: true }).success(function() {
@@ -411,7 +411,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         var tableName = 'TaskXYZ_' + dataType.toString()
         Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING })
 
-        User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, useConstraints: false })
+        User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false })
 
         Tasks[dataType].sync({ force: true }).success(function() {
           expect(Tasks[dataType].rawAttributes.userId.type.toString())
