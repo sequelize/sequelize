@@ -309,7 +309,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })
 
-      Task.belongsTo(User, { useConstraints: false })
+      Task.belongsTo(User, { constraints: false })
 
       this.sequelize.sync({ force: true }).success(function() {
         User.create({ username: 'foo' }).success(function(user) {
@@ -469,7 +469,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         var tableName = 'TaskXYZ_' + dataType.toString()
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING })
 
-        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, useConstraints: false })
+        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false })
       })
 
       self.sequelize.sync({ force: true })

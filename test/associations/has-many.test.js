@@ -1423,7 +1423,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING })
 
-        User.hasMany(Task, { useConstraints: false })
+        User.hasMany(Task, { constraints: false })
 
         this.sequelize.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
@@ -1669,8 +1669,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         var _done = _.after(2, done)
           , self = this
 
-        self.User.hasMany(self.Task, { useConstraints: false })
-        self.Task.hasMany(self.User, { useConstraints: false })
+        self.User.hasMany(self.Task, { constraints: false })
+        self.Task.hasMany(self.User, { constraints: false })
 
         this.sequelize.sync({ force: true }).success(function() {
           self.User.create({ id: 67, username: 'foo' }).success(function(user) {
@@ -1716,7 +1716,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         var tableName = 'TaskXYZ_' + dataType.toString()
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING })
 
-        User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, useConstraints: false })
+        User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false })
 
         Tasks[dataType].sync({ force: true }).success(function() {
           expect(Tasks[dataType].rawAttributes.userId.type.toString())
