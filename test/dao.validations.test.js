@@ -353,14 +353,12 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           })
 
           Project.hasOne(Task)
-          Task.hasOne(Project)
+          Task.belongsTo(Project)
 
-          Project.sync({ force: true }).success(function() {
-            Task.sync({ force: true }).success(function() {
-              self.Project = Project
-              self.Task = Task
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            self.Project = Project
+            self.Task = Task
+            done()
           })
         })
 
