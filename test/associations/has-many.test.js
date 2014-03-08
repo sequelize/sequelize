@@ -44,20 +44,18 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           Article.hasMany(Label)
 
-          sequelize.drop().success(function () {
-            sequelize.sync({ force: true }).success(function() {
-              Article.create({ title: 'foo' }).success(function(article) {
-                Label.create({ text: 'bar' }).success(function(label) {
-                  sequelize.transaction(function(t) {
-                    article.setLabels([ label ], { transaction: t }).success(function() {
-                      Article.all({ transaction: t }).success(function(articles) {
-                        articles[0].hasLabel(label).success(function(hasLabel) {
-                          expect(hasLabel).to.be.false
-                          Article.all({ transaction: t }).success(function(articles) {
-                            articles[0].hasLabel(label, { transaction: t }).success(function(hasLabel) {
-                              expect(hasLabel).to.be.true
-                              t.rollback().success(function() { done() })
-                            })
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Article.all({ transaction: t }).success(function(articles) {
+                      articles[0].hasLabel(label).success(function(hasLabel) {
+                        expect(hasLabel).to.be.false
+                        Article.all({ transaction: t }).success(function(articles) {
+                          articles[0].hasLabel(label, { transaction: t }).success(function(hasLabel) {
+                            expect(hasLabel).to.be.true
+                            t.rollback().success(function() { done() })
                           })
                         })
                       })
@@ -139,20 +137,18 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           Article.hasMany(Label)
 
-          sequelize.drop().success(function () {
-            sequelize.sync({ force: true }).success(function() {
-              Article.create({ title: 'foo' }).success(function(article) {
-                Label.create({ text: 'bar' }).success(function(label) {
-                  sequelize.transaction(function(t) {
-                    article.setLabels([ label ], { transaction: t }).success(function() {
-                      Article.all({ transaction: t }).success(function(articles) {
-                        articles[0].hasLabels([ label ]).success(function(hasLabel) {
-                          expect(hasLabel).to.be.false
-                          Article.all({ transaction: t }).success(function(articles) {
-                            articles[0].hasLabels([ label ], { transaction: t }).success(function(hasLabel) {
-                              expect(hasLabel).to.be.true
-                              t.rollback().success(function() { done() })
-                            })
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Article.all({ transaction: t }).success(function(articles) {
+                      articles[0].hasLabels([ label ]).success(function(hasLabel) {
+                        expect(hasLabel).to.be.false
+                        Article.all({ transaction: t }).success(function(articles) {
+                          articles[0].hasLabels([ label ], { transaction: t }).success(function(hasLabel) {
+                            expect(hasLabel).to.be.true
+                            t.rollback().success(function() { done() })
                           })
                         })
                       })
@@ -411,22 +407,20 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         this.Article.hasMany(this.Label)
 
-        this.sequelize.drop().success(function () {
-          self.sequelize.sync({ force: true }).success(function() {
-            var chainer = new Sequelize.Utils.QueryChainer([
-              self.Article.create({ title: 'Article' }),
-              self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
-              self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
-            ])
+        self.sequelize.sync({ force: true }).success(function() {
+          var chainer = new Sequelize.Utils.QueryChainer([
+            self.Article.create({ title: 'Article' }),
+            self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
+            self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
+          ])
 
-            chainer.run().success(function(results, article, label1, label2) {
-              article.setLabels([label1, label2]).success(function() {
-                article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]}).success(function(labels) {
-                  expect(labels).to.be.instanceof(Array)
-                  expect(labels).to.have.length(1)
-                  expect(labels[0].text).to.equal('Epicness')
-                  done()
-                })
+          chainer.run().success(function(results, article, label1, label2) {
+            article.setLabels([label1, label2]).success(function() {
+              article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]}).success(function(labels) {
+                expect(labels).to.be.instanceof(Array)
+                expect(labels).to.have.length(1)
+                expect(labels[0].text).to.equal('Epicness')
+                done()
               })
             })
           })
@@ -566,20 +560,18 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Article.hasMany(Label)
           Label.hasMany(Article)
 
-          sequelize.drop().success(function () {
-            sequelize.sync({ force: true }).success(function() {
-              Article.create({ title: 'foo' }).success(function(article) {
-                Label.create({ text: 'bar' }).success(function(label) {
-                  sequelize.transaction(function(t) {
-                    article.setLabels([ label ], { transaction: t }).success(function() {
-                      Article.all({ transaction: t }).success(function(articles) {
-                        articles[0].getLabels().success(function(labels) {
-                          expect(labels).to.have.length(0)
-                          Article.all({ transaction: t }).success(function(articles) {
-                            articles[0].getLabels({ transaction: t }).success(function(labels) {
-                              expect(labels).to.have.length(1)
-                              t.rollback().success(function() { done() })
-                            })
+          sequelize.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              Label.create({ text: 'bar' }).success(function(label) {
+                sequelize.transaction(function(t) {
+                  article.setLabels([ label ], { transaction: t }).success(function() {
+                    Article.all({ transaction: t }).success(function(articles) {
+                      articles[0].getLabels().success(function(labels) {
+                        expect(labels).to.have.length(0)
+                        Article.all({ transaction: t }).success(function(articles) {
+                          articles[0].getLabels({ transaction: t }).success(function(labels) {
+                            expect(labels).to.have.length(1)
+                            t.rollback().success(function() { done() })
                           })
                         })
                       })
