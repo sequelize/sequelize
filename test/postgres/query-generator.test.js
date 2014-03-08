@@ -13,6 +13,19 @@ chai.Assertion.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
+    describe('.addSchema', function() {
+      beforeEach(function() {
+        this.QueryGenerator = _.bindAll(QueryGenerator, 'addSchema')
+      })
+
+      it('should quote table names properly', function() {
+        expect(this.QueryGenerator.addSchema({
+          tableName: 'users',
+          options: {schema: 'wp'}
+        })).to.equal('"wp"."users"')
+      })
+    })
+
     beforeEach(function(done) {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,

@@ -11,6 +11,28 @@ chai.Assertion.includeStack = true
 
 if (Support.dialectIsMySQL()) {
   describe("[MYSQL Specific] QueryGenerator", function () {
+    describe('.addSchema', function() {
+      beforeEach(function() {
+        this.QueryGenerator = _.bindAll(QueryGenerator, 'addSchema')
+      })
+
+      it('should quote table names properly', function() {
+        expect(this.QueryGenerator.addSchema({
+          tableName: 'users',
+          options: {schema: 'wp'}
+        })).to.equal('`wp_users`')
+      })
+
+      it('should not allow to use "." as a schema delimiter', function() {
+        expect(function() {
+          this.QueryGenerator.addSchema({
+            tableName: '',
+            options: {schema: 'test', schemaDelimiter: '.'}
+          })
+        }).to.throw(Error)
+      })
+    })
+
     var suites = {
       attributesToSQL: [
         {
