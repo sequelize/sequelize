@@ -637,7 +637,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         AcmeUser.hasMany(AcmeProject, {through: AcmeProjectUsers})
         AcmeProject.hasMany(AcmeUser, {through: AcmeProjectUsers})
-
         self.sequelize.dropAllSchemas().done(function(err) {
           expect(err).not.to.be.ok
           self.sequelize.createSchema('acme').done(function(err) {
