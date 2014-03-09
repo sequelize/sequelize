@@ -601,8 +601,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           john.getTasks({where: {active: true}}).success(function (tasks) {
             expect(tasks).to.have.length(1)
             done()
-          }).on('sql', function (sql) {
-            console.log(sql)
           })
         })
       })
@@ -629,7 +627,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             username: DataTypes.STRING
           }).schema('acme', '_')
           , AcmeProject = self.sequelize.define('Project', {
-            title: DataTypes.STRING, active: DataTypes.BOOLEAN
+            title: DataTypes.STRING, 
+            active: DataTypes.BOOLEAN
           }).schema('acme', '_')
           , AcmeProjectUsers = self.sequelize.define('ProjectUsers', {
             status: DataTypes.STRING,
@@ -639,7 +638,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         AcmeUser.hasMany(AcmeProject, {through: AcmeProjectUsers})
         AcmeProject.hasMany(AcmeUser, {through: AcmeProjectUsers})
 
-        self.sequelize.dropAllSchemas().on('sql', function (sql) { console.log(sql); }).done(function(err) 
+        self.sequelize.dropAllSchemas().done(function(err) {
           expect(err).not.to.be.ok
           self.sequelize.createSchema('acme').done(function(err) {
             expect(err).not.to.be.ok
