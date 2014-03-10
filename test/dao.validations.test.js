@@ -692,12 +692,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           expect(user.getDataValue('name')).to.equal('RedCat')
           user.setDataValue('name','YellowCat')
           user.save()
-            .error(function(err){
-              console.log(arguments)
-              done()
-            })
-            .success(function(err){
-              console.log(arguments)
+            .done(function(errors){
+              expect(errors).to.not.be.null
+              expect(errors).to.be.an.instanceOf(Error)
+              expect(errors.name).to.deep.eql(['Validation isImmutable failed'])
               done()
             })
         })
@@ -718,8 +716,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       expect(user.getDataValue('name')).to.equal('RedCat')
 
       user.setDataValue('name','YellowCat')
-      user.validate().success(function(errors) {
-        expect(errors).not.to.exist
+      user.validate().done(function(errors){
+        expect(errors).to.be.null
         done()
       })
     })
