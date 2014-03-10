@@ -18,7 +18,7 @@ var sortById = function(a, b) {
 
 describe(Support.getTestDialectTeaser("Include"), function () {
   describe('find', function () {
-    it('should support a empty belongsTo include', function (done) {
+    it('should support an empty belongsTo include', function (done) {
       var Company = this.sequelize.define('Company', {})
         , User = this.sequelize.define('User', {})
 
@@ -34,6 +34,35 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           })
         }, done)
       })
+    })
+
+    // We don't support naming associations the same as the foreign key, however the system should not crash because of it, the results hould just be wrong as is expected behaviour currently.
+    it.only('should not throw an error when an empty include is named the same as the foreign key', function (done) {
+      var section = this.sequelize.define('section', { name: DataTypes.STRING });
+      var layout = this.sequelize.define('layout', { name: DataTypes.STRING });
+       
+      section.belongsTo(layout, {
+        as: layout.name,
+        foreignKey: layout.name,
+        foreignKeyConstraint: true
+      });
+       
+      this.sequelize.sync({force: true}).done(function(err) {
+        expect(err).to.be.null
+
+        section.create({ name: 'test1' }).success(function() {
+          section.find({
+            where: { name: 'test1' },
+            include: [
+              { model: layout, as: 'layout'}
+            ]
+          }).done(function(err, user) {
+            expect(err).to.be.null
+            expect(user).to.be.ok
+            done()
+          });
+        });
+      });
     })
 
     it('should support a empty hasOne include', function (done) {
