@@ -940,7 +940,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('emits an error when validate is set to true', function(done) {
+    it.only('emits an error when validate is set to true', function(done) {
       var Tasks = this.sequelize.define('Task', {
         name: {
           type: Sequelize.STRING,
@@ -961,15 +961,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           {name: 'foo', code: '123'},
           {code: '1234'},
           {name: 'bar', code: '1'}
-        ], { validate: true }).error(function(errors) { 
+	], { validate: true }).error(function(errors) {
           expect(errors).to.not.be.null
           expect(errors).to.be.instanceof(Array)
           expect(errors).to.have.length(2)
           expect(errors[0].record.code).to.equal('1234')
-          expect(errors[0].errors.name[0]).to.equal('name cannot be null')
+	  expect(errors[0].errors.name[0].message).to.equal('name cannot be null')
           expect(errors[1].record.name).to.equal('bar')
           expect(errors[1].record.code).to.equal('1')
-          expect(errors[1].errors.code[0]).to.equal('Validation len failed')
+	  expect(errors[1].errors.code[0].message).to.equal('Validation len failed')
           done()
         })
       })
