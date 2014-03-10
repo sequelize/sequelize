@@ -4,6 +4,7 @@ var chai        = require('chai')
   , Transaction = require(__dirname + '/../lib/transaction')
 
 describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
+  this.timeout(4000);
   describe('success', function() {
     it("gets triggered once a transaction has been successfully committed", function(done) {
       this
@@ -48,7 +49,6 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
               }).done(function() {
                 var dao = User.build({ name: 'foo' })
 
-
                 // this.QueryGenerator.insertQuery(tableName, values, dao.daoFactory.rawAttributes)
                 query = sequelize
                   .getQueryInterface()
@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                   }).done(function(err, res) {
                     t.commit()
                   })
-                }, 2000)
+                }, 1000)
               })
             })
             .success(function() {
@@ -114,6 +114,37 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
         expect(t).to.be.instanceOf(Transaction)
         t.commit()
       }).done(done)
+    })
+  })
+
+  describe('complex long running example', function() {
+    it("works with promise syntax", function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var Test = sequelize.define('Test', {
+          id:   { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+          name: { type: Support.Sequelize.STRING }
+        })
+
+        sequelize
+          .sync({ force: true })
+          .then(function() {
+            sequelize.transaction(function(transaction) {
+              Test
+                .create({ name: 'Peter' }, { transaction: transaction })
+                .then(function() {
+                  setTimeout(function() {
+                    transaction
+                      .commit()
+                      .then(function() { return Test.count() })
+                      .then(function(count) {
+                        expect(count).to.equal(1)
+                        done()
+                      })
+                  }, 1000)
+                })
+            })
+          })
+      })
     })
   })
 })

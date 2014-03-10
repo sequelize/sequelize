@@ -229,27 +229,31 @@ if (program.migrate || program.undo) {
       migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
     }
 
-    var migrator = sequelize.getMigrator(migratorOptions)
+    sequelize.authenticate().success(function () {
+      var migrator = sequelize.getMigrator(migratorOptions)
 
-    if (program.undo) {
-      migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
-        Meta.find({ order: 'id DESC' }).success(function(meta) {
-          if (meta) {
-            migrator = sequelize.getMigrator(_.extend(migratorOptions, meta.values), true)
-            migrator.migrate({ method: 'down' }).success(function() {
+      if (program.undo) {
+        migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
+          Meta.find({ order: 'id DESC' }).success(function(meta) {
+            if (meta) {
+              migrator = sequelize.getMigrator(_.extend(migratorOptions, meta.values), true)
+              migrator.migrate({ method: 'down' }).success(function() {
+                process.exit(0)
+              })
+            } else {
+              console.log("There are no pending migrations.")
               process.exit(0)
-            })
-          } else {
-            console.log("There are no pending migrations.")
-            process.exit(0)
-          }
+            }
+          })
         })
-      })
-    } else {
-      sequelize.migrate().success(function() {
-        process.exit(0)
-      })
-    }
+      } else {
+        sequelize.migrate().success(function() {
+          process.exit(0)
+        })
+      }
+    }).error(function (err) {
+      console.error("Unable to connect to database: "+err)
+    })
   } else {
     console.log('Cannot find "' + configuration.configFile + '". Have you run "sequelize --init"?')
     process.exit(1)

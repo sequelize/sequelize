@@ -279,11 +279,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
       })
 
-      User.sync({ force: true }).on('sql', function(sql) {
+      User.sync({ force: true }).on('sql', _.after(2, function(sql) {
         expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_username_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
         expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_aCol_bCol)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
         done()
-      })
+      }))
     })
 
     it('allows us to customize the error message for unique constraint', function(done) {
@@ -344,12 +344,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       expect(Task.build().bar).to.not.be.ok
       expect(Task.build().foobar).to.equal('asd')
       expect(Task.build().flag).to.be.false
-      done()
-    })
-
-    it("stores the passed values in a special variable", function(done) {
-      var user = this.User.build({ username: 'John Wayne' })
-      expect(user.selectedValues).to.deep.equal({ username: 'John Wayne' })
       done()
     })
 
@@ -1453,7 +1447,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should be able to reference a table with a schema set', function(done) {
       var self = this
-      var sequelize = this.sequelize
 
       var UserPub = this.sequelize.define('UserPub', {
         username: Sequelize.STRING
@@ -1469,14 +1462,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       var run = function() {
         UserPub.sync({ force: true }).success(function() {
-          ItemPub.sync({ force: true }).on('sql', function(sql) {
+          ItemPub.sync({ force: true }).on('sql', _.after(2, function(sql) {
             if (dialect === "postgres") {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/)
             } else {
               expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/)
             }
             done()
-          })
+          }))
         })
       }
 
@@ -1500,15 +1493,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(UserSpecial).to.exist
             expect(UserPublic).to.exist
             if (dialect === "postgres") {
-              expect(self.UserSpecialSync.getTableName()).to.equal('"special"."UserSpecials"');
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
               expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1)
             } else if (dialect === "sqlite") {
-              expect(self.UserSpecialSync.getTableName()).to.equal('`special`.`UserSpecials`');
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1)
             } else {
-              expect(self.UserSpecialSync.getTableName()).to.equal('`special.UserSpecials`');
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1)
             }
@@ -1975,10 +1968,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         str: { type: Sequelize.STRING, unique: true }
       })
 
-      uniqueTrue.sync({force: true}).on('sql', function(s) {
+      uniqueTrue.sync({force: true}).on('sql', _.after(2, function(s) {
         expect(s).to.match(/UNIQUE/)
         done()
-      })
+      }))
     })
 
     it("should not set unique when unique is false", function(done) {
@@ -1987,10 +1980,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         str: { type: Sequelize.STRING, unique: false }
       })
 
-      uniqueFalse.sync({force: true}).on('sql', function(s) {
+      uniqueFalse.sync({force: true}).on('sql', _.after(2, function(s) {
         expect(s).not.to.match(/UNIQUE/)
         done()
-      })
+      }))
     })
 
     it("should not set unique when unique is unset", function(done) {
@@ -1999,10 +1992,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         str: { type: Sequelize.STRING }
       })
 
-      uniqueUnset.sync({force: true}).on('sql', function(s) {
+      uniqueUnset.sync({force: true}).on('sql', _.after(2, function(s) {
         expect(s).not.to.match(/UNIQUE/)
         done()
-      })
+      }))
     })
   })
 

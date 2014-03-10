@@ -409,7 +409,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it("raises an error if saving an empty string into a column allowing null or URL", function(done) {
       var StringIsNullOrUrl = this.sequelize.define('StringIsNullOrUrl', {
-        str: { type: Sequelize.STRING, allowNull: true, validate: { isUrl: true } }
+        str: { type: Sequelize.STRING, allowNull: true, validate: { isURL: true } }
       })
 
       this.sequelize.options.omitNull = false
@@ -423,7 +423,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
             StringIsNullOrUrl.create({ str: '' }).error(function(err) {
               expect(err).to.exist
-              expect(err.str[0]).to.match(/Invalid URL: str/)
+              expect(err.str[0]).to.match(/Validation isURL failed/)
 
               done()
             })
@@ -961,7 +961,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           {name: 'foo', code: '123'},
           {code: '1234'},
           {name: 'bar', code: '1'}
-        ], { validate: true }).error(function(errors) {
+        ], { validate: true }).error(function(errors) { 
           expect(errors).to.not.be.null
           expect(errors).to.be.instanceof(Array)
           expect(errors).to.have.length(2)
@@ -969,7 +969,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(errors[0].errors.name[0]).to.equal('name cannot be null')
           expect(errors[1].record.name).to.equal('bar')
           expect(errors[1].record.code).to.equal('1')
-          expect(errors[1].errors.code[0]).to.equal('String is not in range: code')
+          expect(errors[1].errors.code[0]).to.equal('Validation len failed')
           done()
         })
       })

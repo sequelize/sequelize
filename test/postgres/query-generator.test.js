@@ -135,7 +135,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" bytea);"
         },
         {
-          arguments: ['mySchema.myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));"
         },
         {
@@ -185,7 +185,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "DROP TABLE IF EXISTS \"myTable\";"
         },
         {
-          arguments: ['mySchema.myTable'],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}],
           expectation: "DROP TABLE IF EXISTS \"mySchema\".\"myTable\";"
         },
         {
@@ -193,7 +193,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "DROP TABLE IF EXISTS \"myTable\" CASCADE;"
         },
         {
-          arguments: ['mySchema.myTable', {cascade: true}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {cascade: true}],
           expectation: "DROP TABLE IF EXISTS \"mySchema\".\"myTable\" CASCADE;"
         },
 
@@ -204,7 +204,7 @@ if (dialect.match(/^postgres/)) {
           context: {options: {quoteIdentifiers: false}}
         },
         {
-          arguments: ['mySchema.myTable'],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}],
           expectation: "DROP TABLE IF EXISTS mySchema.myTable;",
           context: {options: {quoteIdentifiers: false}}
         },
@@ -214,7 +214,7 @@ if (dialect.match(/^postgres/)) {
           context: {options: {quoteIdentifiers: false}}
         },
         {
-          arguments: ['mySchema.myTable', {cascade: true}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {cascade: true}],
           expectation: "DROP TABLE IF EXISTS mySchema.myTable CASCADE;",
           context: {options: {quoteIdentifiers: false}}
         }
@@ -352,10 +352,10 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {offset: 2}],
           expectation: "SELECT * FROM \"myTable\" OFFSET 2;"
         }, {
-          arguments: ['mySchema.myTable'],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}],
           expectation: "SELECT * FROM \"mySchema\".\"myTable\";"
         }, {
-          arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
           expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"mySchema\".\"myTable\".\"name\"='foo'';DROP TABLE mySchema.myTable;';"
         }, {
           title: 'buffer as where argument',
@@ -427,11 +427,11 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM myTable OFFSET 2;",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable'],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}],
           expectation: "SELECT * FROM mySchema.myTable;",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {where: {name: "foo';DROP TABLE mySchema.myTable;"}}],
           expectation: "SELECT * FROM mySchema.myTable WHERE mySchema.myTable.name='foo'';DROP TABLE mySchema.myTable;';",
           context: {options: {quoteIdentifiers: false}}
         }, {
@@ -486,13 +486,13 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;",
           context: {options: {omitNull: true}}
         }, {
-          arguments: ['mySchema.myTable', {name: 'foo'}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: 'foo'}],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
         }, {
-          arguments: ['mySchema.myTable', {name: JSON.stringify({info: 'Look ma a " quote'})}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: JSON.stringify({info: 'Look ma a " quote'})}],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('{\"info\":\"Look ma a \\\" quote\"}') RETURNING *;"
         }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: "foo';DROP TABLE mySchema.myTable;"}],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;') RETURNING *;"
         }, {
           arguments: ['myTable', function (sequelize) {
@@ -542,15 +542,15 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO myTable (name) VALUES ('foo') RETURNING *;",
           context: {options: {omitNull: true, quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', {name: 'foo'}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: 'foo'}],
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo') RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', {name: JSON.stringify({info: 'Look ma a " quote'})}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: JSON.stringify({info: 'Look ma a " quote'})}],
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('{\"info\":\"Look ma a \\\" quote\"}') RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: "foo';DROP TABLE mySchema.myTable;"}],
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;') RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }
@@ -676,10 +676,10 @@ if (dialect.match(/^postgres/)) {
           expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\"='foo' RETURNING *",
           context: {options: {omitNull: true}}
         }, {
-          arguments: ['mySchema.myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {id: 2}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {id: 2}],
           expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\"=2 RETURNING *"
         }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
           expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\"='foo' RETURNING *"
         }, {
           arguments: ['myTable', function (sequelize) {

@@ -463,7 +463,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             describe('#create', function() {
               it('should return an error based on user', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal([ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ])
                   done()
                 })
               })
@@ -499,7 +500,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             describe('#create', function() {
               it('should return an error based on the hook', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal([ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ])
                   done()
                 })
               })
@@ -549,7 +551,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             describe('#create', function() {
               it('should return an error based on user', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal([ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ])
                   done()
                 })
               })
@@ -597,7 +600,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             describe('#create', function() {
               it('should return an error based on the hook', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal([ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ])
                   done()
                 })
               })
@@ -693,7 +697,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               describe('#create', function() {
                 it('should return the user from the callback', function(done) {
                   this.User.create({mood: 'happy'}).error(function(err) {
-                    expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                    expect(err).to.be.instanceOf(Error);
+                    expect(err.mood).to.deep.equal([ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ])
                     done()
                   })
                 })
@@ -714,7 +719,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               describe('#create', function() {
                 it('should return the error without the user within callback', function(done) {
                   this.User.create({mood: 'happy'}).error(function(err) {
-                    expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                    expect(err).to.be.instanceOf(Error);
+                    expect(err.mood).to.deep.equal([ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ])
                     done()
                   })
                 })
@@ -828,7 +834,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
               it('#create', function(done) {
                 this.User.create({mood: 'creative'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal( [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] )
                   done()
                 })
               })
@@ -851,7 +858,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
               it('#create', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal( [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] )
                   done()
                 })
               })
@@ -931,7 +939,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               })
 
               this.User.create({mood: 'happy'}).error(function(err) {
-                expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                expect(err).to.be.instanceOf(Error);
+                expect(err.mood).to.deep.equal( [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] )
                 done()
               })
             })
@@ -944,7 +953,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               })
 
               this.User.create({mood: 'happy'}).error(function(err) {
-                expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                expect(err).to.be.instanceOf(Error);
+                expect(err.mood).to.deep.equal( [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] )
                 done()
               })
             })
@@ -1050,7 +1060,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
               it('#create', function(done) {
                 this.User.create({mood: 'creative'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal( [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] )
                   done()
                 })
               })
@@ -1073,7 +1084,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
               it('#create', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
-                  expect(err).to.deep.equal({ mood: [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] })
+                  expect(err).to.be.instanceOf(Error);
+                  expect(err.mood).to.deep.equal( [ 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' ] )
                   done()
                 })
               })
@@ -1883,7 +1895,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         hookCalled++
         next()
       })
- 
+
       B.hasMany(A)
       A.hasMany(B)
 
@@ -6322,10 +6334,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasOne(this.Tasks, {onDelete: 'cascade', hooks: true})
           this.Tasks.belongsTo(this.Projects)
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 
@@ -6721,10 +6731,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasMany(this.Tasks)
           this.Tasks.belongsTo(this.Projects)
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 
@@ -6830,10 +6838,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasMany(this.Tasks, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true})
           this.Tasks.hasMany(this.Projects, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true})
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 
@@ -6940,10 +6946,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           this.Projects.hasMany(this.Tasks, {hooks: true})
           this.Tasks.hasMany(this.Projects, {hooks: true})
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done()
-            })
+          this.sequelize.sync({ force: true }).success(function() {
+            done()
           })
         })
 

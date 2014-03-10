@@ -48,6 +48,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       it('should work with connection strings (2)', function () {
         var sequelize = new Sequelize('sqlite://test.sqlite/')
       })
+      it('should work with connection strings (3)', function () {
+        var sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true')
+      })
     }
   })
 
@@ -59,9 +62,43 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
 
+      describe('with an invalid connection', function() {
+        beforeEach(function() {
+          var options = _.extend({}, this.sequelize.options, { port: "99999" })
+          this.sequelizeWithInvalidConnection = new Sequelize("wat", "trololo", "wow", options)
+        })
+
+        it('triggers the error event', function(done) {
+          this
+            .sequelizeWithInvalidConnection
+            .authenticate()
+            .complete(function(err, result) {
+              expect(err).to.not.be.null
+              done()
+            })
+        })
+
+        it('triggers the actual adapter error', function(done) {
+          this
+            .sequelizeWithInvalidConnection
+            .authenticate()
+            .complete(function(err, result) {
+              if (dialect === 'mariadb') {
+                expect(err.message).to.match(/Access denied for user/)
+              } else if (dialect === 'postgres') {
+                expect(err.message).to.match(/invalid port number/)
+              } else {
+                expect(err.message).to.match(/Failed to authenticate/)
+              }
+
+              done()
+            })
+        })
+      })
+
       describe('with invalid credentials', function() {
         beforeEach(function() {
-          this.sequelizeWithInvalidCredentials = new Sequelize("omg", "wtf", "lol", this.sequelize.options)
+          this.sequelizeWithInvalidCredentials = new Sequelize("localhost", "wtf", "lol", this.sequelize.options)
         })
 
         it('triggers the error event', function(done) {
@@ -89,6 +126,12 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               done()
             })
         })
+      })
+    })
+
+    describe('validate', function() {
+      it('is an alias for .authenticate()', function() {
+        expect(this.sequelize.validate).to.equal(this.sequelize.authenticate)
       })
     })
   }
@@ -232,7 +275,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       var self = this
       self.sequelize.query(this.insertQuery).success(function() {
         self.sequelize.query("SELECT * FROM " + qq(self.User.tableName) + ";", self.User).success(function(users) {
-          expect(users[0].__factory).to.equal(self.User)
+          expect(users[0].Model).to.equal(self.User)
           done()
         })
       })
@@ -365,21 +408,57 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       done()
     })
 
-    it("inherits global classMethods and instanceMethods", function(done) {
-      var sequelize = Support.createSequelizeInstance({
-        define: {
-          classMethods : { globalClassMethod : function() {} },
-          instanceMethods : { globalInstanceMethod : function() {} }
-        }
-      })
+    it("inherits global classMethods and instanceMethods, and can override global methods with local ones", function(done) {
+      var globalClassMethod     = sinon.spy()
+        , globalInstanceMethod  = sinon.spy()
+        , localClassMethod      = sinon.spy()
+        , localInstanceMethod   = sinon.spy()
+        , sequelize             = Support.createSequelizeInstance({
+          define: {
+            classMethods : { 
+              globalClassMethod : function() {},
+              overrideMe: globalClassMethod
+            },
+            instanceMethods : { 
+              globalInstanceMethod : function() {},
+              overrideMe: globalInstanceMethod
+            }
+          }
+        })
+        , DAO
 
-      var DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
+      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
         classMethods : { localClassMethod : function() {} }
       })
 
       expect(typeof DAO.options.classMethods.globalClassMethod).to.equal('function')
       expect(typeof DAO.options.classMethods.localClassMethod).to.equal('function')
       expect(typeof DAO.options.instanceMethods.globalInstanceMethod).to.equal('function')
+
+      // This DAO inherits the global methods
+      DAO.overrideMe()
+      DAO.build().overrideMe()
+
+
+      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
+        classMethods : { 
+          overrideMe : localClassMethod
+        },
+        instanceMethods: {
+          overrideMe: localInstanceMethod
+        }
+      })
+
+      // This DAO has its own implementation
+      DAO.overrideMe()
+      DAO.build().overrideMe()
+
+      expect(globalClassMethod).to.have.been.calledOnce
+      expect(globalInstanceMethod).to.have.been.calledOnce
+
+      expect(localClassMethod).to.have.been.calledOnce
+      expect(localInstanceMethod).to.have.been.calledOnce
+
       done()
     })
 
@@ -633,7 +712,8 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
         it("doesn't save an instance if value is not in the range of enums", function(done) {
           this.Review.create({status: 'fnord'}).error(function(err) {
-            expect(err).to.deep.equal({ status: [ 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished' ] })
+            expect(err).to.be.instanceOf(Error);
+            expect(err.status).to.deep.equal([ 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished' ])
             done()
           })
         })
