@@ -477,7 +477,6 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       describe('Pass all paths when validating', function() {
         beforeEach(function(done) {
           var self = this
-
           var Project = this.sequelize.define('Project', {
             name: {
               type: Sequelize.STRING,
@@ -502,7 +501,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           })
 
           Project.hasOne(Task)
-          Task.hasOne(Project)
+          Task.belongsTo(Project)
 
           Project.sync({ force: true }).success(function() {
             Task.sync({ force: true }).success(function() {
