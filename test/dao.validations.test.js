@@ -693,7 +693,11 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           user.setDataValue('name','YellowCat')
           user.save()
             .error(function(err){
-              expect(err.name[0]).to.equal('The value is unable to be changed: name')
+              console.log(arguments)
+              done()
+            })
+            .success(function(err){
+              console.log(arguments)
               done()
             })
         })
@@ -714,10 +718,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       expect(user.getDataValue('name')).to.equal('RedCat')
 
       user.setDataValue('name','YellowCat')
-      var errors = user.validate()
-
-      expect(errors).to.be.null
-      done()
+      user.validate().success(function(errors) {
+        expect(errors).not.to.exist
+        done()
+      })
     })
   })
 })
