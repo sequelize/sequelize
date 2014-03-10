@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     })
 
     // We don't support naming associations the same as the foreign key, however the system should not crash because of it, the results hould just be wrong as is expected behaviour currently.
-    it.only('should not throw an error when an empty include is named the same as the foreign key', function (done) {
+    it('should not throw an error when an empty include is named the same as the foreign key', function (done) {
       var section = this.sequelize.define('section', { name: DataTypes.STRING });
       var layout = this.sequelize.define('layout', { name: DataTypes.STRING });
        
