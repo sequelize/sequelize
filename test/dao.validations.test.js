@@ -202,10 +202,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 	  failingUser.validate().done( function(err, _errors) {
 	    expect(_errors).to.not.be.null
 	    expect(_errors).to.be.an.instanceOf(Error)
-	    expect(_errors.name).to.deep.eql([message])
+	    expect(_errors.name[0].message).to.equal(message)
 	    done()
 	  })
-        })
+	})
       }
       , applyPassTest = function applyPassTest(validatorDetails, j, validator) {
           var succeedingValue = validatorDetails.pass[j]
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
               expect(arguments).to.have.length(0)
               done()
             }).error(function(err) {
-              expect(err).to.be.deep.equal({})
+	      expect(err).to.deep.equal({})
               done()
             })
           })
@@ -302,10 +302,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 	  Model.create({name: 'World'}).success(function(model) {
 	    model.updateAttributes({name: ''}).error(function(err) {
 	      expect(err).to.be.an.instanceOf(Error)
-	      expect(err.name).to.deep.equal(['Validation notEmpty failed']);
+	      expect(err.name[0].message).to.equal('Validation notEmpty failed');
 	      done()
 	    })
-          })
+	  })
         })
       })
 
@@ -318,16 +318,16 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
               notEmpty: true // don't allow empty strings
             }
           }
-        })
+	})
 
 	Model.sync({ force: true }).success(function() {
-	  Model.create({name: 'World'}).success(function(model) {
+	  Model.create({name: 'World'}).success(function() {
 	    Model.update({name: ''}, {id: 1}).error(function(err) {
 	      expect(err).to.be.an.instanceOf(Error)
-	      expect(err.name).to.deep.equal(['Validation notEmpty failed'])
+	      expect(err.name[0].message).to.equal('Validation notEmpty failed')
 	      done()
 	    })
-          })
+	  })
         })
       })
     })
@@ -401,10 +401,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 	  User.sync({ force: true }).success(function() {
 	    User.create({id: 'helloworld'}).error(function(err) {
 	      expect(err).to.be.an.instanceOf(Error)
-	      expect(err.id).to.deep.equal(['Validation isInt failed'])
+	      expect(err.id[0].message).to.equal('Validation isInt failed')
 	      done()
 	    })
-          })
+	  })
         })
 
         it('should emit an error when we try to enter in a string for an auto increment key (not named id)', function(done) {
@@ -422,10 +422,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 	  User.sync({ force: true }).success(function() {
 	    User.create({username: 'helloworldhelloworld'}).error(function(err) {
 	      expect(err).to.be.an.instanceOf(Error)
-	      expect(err.username).to.deep.equal(['Username must be an integer!'])
+	      expect(err.username[0].message).to.equal('Username must be an integer!')
 	      done()
 	    })
-          })
+	  })
         })
 
         describe("primaryKey with the name as id with arguments for it's validation", function() {
@@ -449,26 +449,26 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 	  it('should emit an error when we try to enter in a string for the id key with validation arguments', function(done) {
 	    this.User.create({id: 'helloworld'}).error(function(err) {
 	      expect(err).to.be.an.instanceOf(Error)
-	      expect(err.id).to.deep.equal(['ID must be an integer!'])
+	      expect(err.id[0].message).to.equal('ID must be an integer!')
 	      done()
 	    })
-          })
+	  })
 
           it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', function(done) {
 	    var user = this.User.build({id: 'helloworld'})
 
 	    user.validate().success(function(err) {
 	      expect(err).to.be.an.instanceOf(Error)
-	      expect(err.id).to.deep.equal(['ID must be an integer!'])
+	      expect(err.id[0].message).to.equal('ID must be an integer!')
 	      done()
 	    })
-          })
+	  })
 
 	  it('should emit an error when we try to .save()', function(done) {
 	    var user = this.User.build({id: 'helloworld'})
 	    user.save().error(function(err) {
 	      expect(err).to.be.an.instanceOf(Error)
-	      expect(err.id).to.deep.equal(['ID must be an integer!'])
+	      expect(err.id[0].message).to.equal('ID must be an integer!')
 	      done()
 	    })
 	  })
@@ -574,10 +574,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 	.success(function(error) {
 	  expect(error).not.to.be.null
 	  expect(error).to.be.an.instanceOf(Error)
-	  expect(error.age).to.deep.equal(["must be positive"])
+	  expect(error.age[0].message).to.equal("must be positive")
 
 	  User.build({ age: null }).validate().success(function() {
-            User.build({ age: 1 }).validate().success(function() {
+	    User.build({ age: 1 }).validate().success(function() {
               done()
             })
           })
@@ -700,7 +700,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       failingBar.validate().success(function(errors) {
         expect(errors).not.to.be.null
         expect(errors.field).to.have.length(1)
-        expect(errors.field[0]).to.equal("Validation isIn failed")
+	expect(errors.field[0].message).to.equal("Validation isIn failed")
       })
     })
 
