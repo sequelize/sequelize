@@ -68,10 +68,6 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         fail: "a",
         pass: "9.2"
       }
-    , notNull : {
-        fail: null,
-        pass: 0
-      }
     , isNull : {
         fail: 0,
         pass: null
@@ -291,8 +287,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         var Model = this.sequelize.define('model', {
           name: {
             type: Sequelize.STRING,
+            allowNull: false,
             validate: {
-              notNull: true, // won't allow null
               notEmpty: true // don't allow empty strings
             }
           }
@@ -313,8 +309,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         var Model = this.sequelize.define('model', {
           name: {
             type: Sequelize.STRING,
+            allowNull: false,
             validate: {
-              notNull: true, // won't allow null
               notEmpty: true // don't allow empty strings
             }
           }

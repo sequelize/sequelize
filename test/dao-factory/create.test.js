@@ -376,42 +376,42 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
           expect(err).to.exist
 
-	  expect(err.smth[0].path).to.equal('smth');
+          expect(err.smth[0].path).to.equal('smth');
           if (Support.dialectIsMySQL()) {
             // We need to allow two different errors for MySQL, see:
             // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
-	    expect(err.smth[0].message).to.match(/notNull Violation/)
+            expect(err.smth[0].message).to.match(/notNull Violation/)
           }
           else if (dialect === "sqlite") {
-	    expect(err.smth[0].message).to.match(/notNull Violation/)
+            expect(err.smth[0].message).to.match(/notNull Violation/)
           } else {
-	    expect(err.smth[0].message).to.match(/notNull Violation/)
+            expect(err.smth[0].message).to.match(/notNull Violation/)
           }
-	  done()
-	})
+          done()
+        })
       })
     })
     it("raises an error if created object breaks definition contraints", function(done) {
       var UserNull = this.sequelize.define('UserWithNonNullSmth', {
-	username: { type: Sequelize.STRING, unique: true },
-	smth:     { type: Sequelize.STRING, allowNull: false }
+        username: { type: Sequelize.STRING, unique: true },
+        smth:     { type: Sequelize.STRING, allowNull: false }
       })
 
       this.sequelize.options.omitNull = false
 
       UserNull.sync({ force: true }).success(function() {
-	UserNull.create({ username: 'foo', smth: 'foo' }).success(function() {
-	  UserNull.create({ username: 'foo', smth: 'bar' }).error(function(err) {
-	    expect(err).to.exist
-	    if (dialect === "sqlite") {
-	      expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
-	    }
-	    else if (Support.dialectIsMySQL()) {
-	      expect(err.message).to.match(/Duplicate entry 'foo' for key 'username'/)
-	    } else {
-	      expect(err.message).to.match(/.*duplicate key value violates unique constraint.*/)
-	    }
-	    done()
+        UserNull.create({ username: 'foo', smth: 'foo' }).success(function() {
+          UserNull.create({ username: 'foo', smth: 'bar' }).error(function(err) {
+            expect(err).to.exist
+            if (dialect === "sqlite") {
+              expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
+            }
+            else if (Support.dialectIsMySQL()) {
+              expect(err.message).to.match(/Duplicate entry 'foo' for key 'username'/)
+            } else {
+              expect(err.message).to.match(/.*duplicate key value violates unique constraint.*/)
+            }
+            done()
           })
         })
       })
@@ -431,12 +431,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(str2.str).to.equal('http://sequelizejs.org')
             StringIsNullOrUrl.create({ str: '' }).error(function(err) {
               expect(err).to.exist
-	      expect(err.str[0].message).to.match(/Validation isURL failed/)
+        expect(err.str[0].message).to.match(/Validation isURL failed/)
 
               done()
             })
           })
-	}).error(done)
+  }).error(done)
       })
     })
 
@@ -952,9 +952,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var Tasks = this.sequelize.define('Task', {
         name: {
           type: Sequelize.STRING,
-          validate: {
-            notNull: { args: true, msg: 'name cannot be null' }
-          }
+          allowNull: false,
         },
         code: {
           type: Sequelize.STRING,
@@ -968,16 +966,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         Tasks.bulkCreate([
           {name: 'foo', code: '123'},
           {code: '1234'},
-	  {name: 'bar', code: '1'}
-	], { validate: true }).error(function(errors) {
-	  expect(errors).to.not.be.null
-	  expect(errors).to.be.an('Array')
-	  expect(errors).to.have.length(2)
-	  expect(errors[0].record.code).to.equal('1234')
-	  expect(errors[0].errors.name[0].message).to.equal('name cannot be null')
+          {name: 'bar', code: '1'}
+        ], { validate: true }).error(function(errors) {
+          expect(errors).to.not.be.null
+          expect(errors).to.be.an('Array')
+          expect(errors).to.have.length(2)
+          expect(errors[0].record.code).to.equal('1234')
+          expect(errors[0].errors.name[0].message).to.equal('notNull Violation')
           expect(errors[1].record.name).to.equal('bar')
           expect(errors[1].record.code).to.equal('1')
-	  expect(errors[1].errors.code[0].message).to.equal('Validation len failed')
+          expect(errors[1].errors.code[0].message).to.equal('Validation len failed')
           done()
         })
       })
@@ -988,8 +986,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         name: {
           type: Sequelize.STRING,
           validate: {
-            notNull: { args: true, msg: 'name cannot be null' }
-          }
+            notEmpty: true,
+          },
         },
         code: {
           type: Sequelize.STRING,
