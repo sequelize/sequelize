@@ -968,12 +968,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         Tasks.bulkCreate([
           {name: 'foo', code: '123'},
           {code: '1234'},
-          {name: 'bar', code: '1'}
+	  {name: 'bar', code: '1'}
 	], { validate: true }).error(function(errors) {
-          expect(errors).to.not.be.null
-          expect(errors).to.be.instanceof(Array)
-          expect(errors).to.have.length(2)
-          expect(errors[0].record.code).to.equal('1234')
+	  expect(errors).to.not.be.null
+	  expect(errors).to.be.an('Array')
+	  expect(errors).to.have.length(2)
+	  expect(errors[0].record.code).to.equal('1234')
 	  expect(errors[0].errors.name[0].message).to.equal('name cannot be null')
           expect(errors[1].record.name).to.equal('bar')
           expect(errors[1].record.code).to.equal('1')
