@@ -376,32 +376,42 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
           expect(err).to.exist
 
+	  expect(err.smth[0].path).to.equal('smth');
           if (Support.dialectIsMySQL()) {
             // We need to allow two different errors for MySQL, see:
             // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
-            expect(err.message).to.match(/(Column 'smth' cannot be null|Field 'smth' doesn't have a default value)/)
+	    expect(err.smth[0].message).to.match(/notNull Violation/)
           }
           else if (dialect === "sqlite") {
-            expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
+	    expect(err.smth[0].message).to.match(/notNull Violation/)
           } else {
-            expect(err.message).to.match(/.*column "smth" violates not-null.*/)
+	    expect(err.smth[0].message).to.match(/notNull Violation/)
           }
+	  done()
+	})
+      })
+    })
+    it("raises an error if created object breaks definition contraints", function(done) {
+      var UserNull = this.sequelize.define('UserWithNonNullSmth', {
+	username: { type: Sequelize.STRING, unique: true },
+	smth:     { type: Sequelize.STRING, allowNull: false }
+      })
 
-          UserNull.create({ username: 'foo', smth: 'foo' }).success(function() {
-            UserNull.create({ username: 'foo', smth: 'bar' }).error(function(err) {
-              expect(err).to.exist
+      this.sequelize.options.omitNull = false
 
-              if (dialect === "sqlite") {
-                expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
-              }
-              else if (Support.dialectIsMySQL()) {
-                expect(err.message).to.match(/Duplicate entry 'foo' for key 'username'/)
-              } else {
-                expect(err.message).to.match(/.*duplicate key value violates unique constraint.*/)
-              }
-
-              done()
-            })
+      UserNull.sync({ force: true }).success(function() {
+	UserNull.create({ username: 'foo', smth: 'foo' }).success(function() {
+	  UserNull.create({ username: 'foo', smth: 'bar' }).error(function(err) {
+	    expect(err).to.exist
+	    if (dialect === "sqlite") {
+	      expect(err.message).to.match(/.*SQLITE_CONSTRAINT.*/)
+	    }
+	    else if (Support.dialectIsMySQL()) {
+	      expect(err.message).to.match(/Duplicate entry 'foo' for key 'username'/)
+	    } else {
+	      expect(err.message).to.match(/.*duplicate key value violates unique constraint.*/)
+	    }
+	    done()
           })
         })
       })
@@ -940,7 +950,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it.only('emits an error when validate is set to true', function(done) {
+    it('emits an error when validate is set to true', function(done) {
       var Tasks = this.sequelize.define('Task', {
         name: {
           type: Sequelize.STRING,
