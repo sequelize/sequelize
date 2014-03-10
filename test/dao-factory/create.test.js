@@ -427,18 +427,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       StringIsNullOrUrl.sync({ force: true }).success(function() {
         StringIsNullOrUrl.create({ str: null }).success(function(str1) {
           expect(str1.str).to.be.null
-
           StringIsNullOrUrl.create({ str: 'http://sequelizejs.org' }).success(function(str2) {
             expect(str2.str).to.equal('http://sequelizejs.org')
-
             StringIsNullOrUrl.create({ str: '' }).error(function(err) {
               expect(err).to.exist
-              expect(err.str[0]).to.match(/Validation isURL failed/)
+	      expect(err.str[0].message).to.match(/Validation isURL failed/)
 
               done()
             })
           })
-        })
+	}).error(done)
       })
     })
 
