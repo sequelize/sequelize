@@ -57,7 +57,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           expect(u2.username).to.equal(bio)
           done()
         })
-      })
+      }).error(function(err) {
+	done(err);
+      });
     })
   })
 
