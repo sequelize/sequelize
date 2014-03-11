@@ -154,6 +154,32 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should return an error for a unique constraint error', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: DataTypes.STRING,
+          unique: { name: 'email', msg: 'Email is already registered.' },
+          validate: {
+            notEmpty: true,
+            isEmail: true
+          }
+        }
+      })
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok
+        User.create({email: 'hello@sequelize.com'}).done(function (err) {
+          expect(err).not.to.be.ok
+          User.create({email: 'hello@sequelize.com'}).done(function (err) {
+            expect(err).to.be.ok
+            console.log(err)
+            expect(err).to.be.an.instanceof(Error)
+            done()
+          })
+        })
+      })
+    })
+
     it('supports transactions', function(done) {
       var self = this
 
