@@ -73,6 +73,9 @@
   },
   "keywords": [
     "mysql",
+    "sqlite",
+    "postgresql",
+    "postgres",
     "orm",
     "nodejs",
     "object relational mapper"
