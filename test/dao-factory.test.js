@@ -322,7 +322,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       User.sync({ force: true }).success(function() {
         User.create({username: 'tobi', email: 'tobi@tobi.me'}).success(function() {
           User.create({username: 'tobi', email: 'tobi@tobi.me'}).error(function(err) {
-            expect(err).to.equal('User and email must be unique')
+            expect(err.message).to.equal('User and email must be unique')
             done()
           })
         })
