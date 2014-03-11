@@ -844,13 +844,13 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           , spy = sinon.spy()
 
         this.User.create({ username: 'foo' }).success(function(user) {
-          self.Task.create({ title: 'task1' }).success(function(task1) {
-            self.Task.create({ title: 'task2' }).success(function(task2) {
+          self.Task.create({ id: 12, title: 'task1' }).success(function(task1) {
+            self.Task.create({ id: 15, title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
-                expect(sql).to.have.string("INSERT INTO")
-                expect(sql).to.have.string("VALUES (1,1),(1,2)")
+                var tickChar = (Support.getTestDialect() === 'postgres') ? '"' : '`'
+                expect(sql).to.have.string("INSERT INTO %TasksUsers% (%UserId%,%TaskId%) VALUES (1,12),(1,15)".replace(/%/g, tickChar))
               })).success(function () {
-                expect(spy.calledTwice).to.be.ok
+                expect(spy.calledTwice).to.be.ok // Once for SELECT, once for INSERT
                 done()
               })
             })

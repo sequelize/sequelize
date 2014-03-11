@@ -253,6 +253,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it("returns proper defaultValues after save when setter is set", function(done) {
+      var titleSetter = sinon.spy()
+        , Task = this.sequelize.define('TaskBuild', {
+          title:  {
+            type: Sequelize.STRING(50), 
+            allowNull: false, 
+            defaultValue: ''
+          }
+        }, {
+          setterMethods: {
+            title: titleSetter
+          }
+        })
+
+      Task.sync({force: true}).success(function() {
+        Task.build().save().success(function(record) {
+          expect(record.title).to.be.a('string')
+          expect(record.title).to.equal('')
+          expect(titleSetter.notCalled).to.be.ok // The setter method should not be invoked for default values
+
+          done()
+        }).error(done)
+      }).error(done)
+    })
+
     it('should work with both paranoid and underscored being true', function(done) {
       var UserTable = this.sequelize.define('UserCol', {
         aNumber: Sequelize.INTEGER
