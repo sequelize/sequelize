@@ -7,6 +7,9 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] 1:1 and 1:m marks columns as foreign keys, and sets them to cascade on update and set null on delete. If you are working with an existing DB which does not allow null values, be sure to override those options, or disable them completely by passing constraints: false to your assocation call (`M1.belongsTo(M2, { constraints: false})`).
 
 #### Backwards compatability changes
+
+- The `notNull` validator has been removed, use the Schema's `allowNull` property.
+- All Validation errors now return a sequelize.ValidationError which inherits from Error.
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
 - foreign keys will now correctly be based on the alias of the model
   - if you have any 1:1 relations where both sides use an alias, you'll need to set the foreign key, or they'll each use a different foreign key based on their alias.

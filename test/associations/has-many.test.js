@@ -627,7 +627,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             username: DataTypes.STRING
           }).schema('acme', '_')
           , AcmeProject = self.sequelize.define('Project', {
-            title: DataTypes.STRING, 
+            title: DataTypes.STRING,
             active: DataTypes.BOOLEAN
           }).schema('acme', '_')
           , AcmeProjectUsers = self.sequelize.define('ProjectUsers', {
@@ -835,7 +835,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         this.Task.hasMany(this.User)
 
         this.sequelize.sync({force: true}).success(function() {
-          done()  
+          done()
         })
       })
 
@@ -938,7 +938,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
     })
-    
+
     describe('primary key handling for join table', function () {
       beforeEach(function (done) {
         var self = this
@@ -966,7 +966,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       it('keeps the primary key if it was added by the user', function () {
         var self = this
           , fk
-         
+
         this.UserTasks = this.sequelize.define('usertasks', {
           id: {
             type: Sequelize.INTEGER,
@@ -980,14 +980,14 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             autoincrement: true,
             primaryKey: true
           }
-        }); 
+        });
 
         this.User.hasMany(this.Task, { through: this.UserTasks })
         this.Task.hasMany(this.User, { through: this.UserTasks })
- 
+
         this.User.hasMany(this.Task, { through: this.UserTasks2 })
         this.Task.hasMany(this.User, { through: this.UserTasks2 })
- 
+
         expect(Object.keys(self.UserTasks.primaryKeys)).to.deep.equal(['id'])
         expect(Object.keys(self.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId'])
 
@@ -997,7 +997,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
     })
-    
+
     describe('through', function () {
       beforeEach(function (done) {
         this.User = this.sequelize.define('User', {})

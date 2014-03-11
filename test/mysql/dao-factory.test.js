@@ -124,11 +124,11 @@ if (Support.dialectIsMySQL()) {
           User.sync({ force: true }).success(function() {
             User.create({mood: 'happy'}).error(function(err) {
               expect(err).to.be.instanceOf(Error);
-              expect(err.mood).to.deep.equal([ 'Value "happy" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver' ])
+              expect(err.mood[0].message).to.equal('Value "happy" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver')
               var u = User.build({mood: 'SAD'})
               u.save().error(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                expect(err.mood).to.deep.equal([ 'Value "SAD" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver' ])
+                expect(err.mood[0].message).to.equal('Value "SAD" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver')
                 done()
               })
             })

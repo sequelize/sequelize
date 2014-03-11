@@ -68,10 +68,6 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         fail: "a",
         pass: "9.2"
       }
-    , notNull : {
-        fail: null,
-        pass: 0
-      }
     , isNull : {
         fail: 0,
         pass: null
@@ -201,8 +197,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
           failingUser.validate().done( function(err, _errors) {
             expect(_errors).to.not.be.null
-            expect(_errors).to.be.an.instanceOf(Error);
-            expect(_errors.name).to.deep.eql([message])
+            expect(_errors).to.be.an.instanceOf(Error)
+            expect(_errors.name[0].message).to.equal(message)
             done()
           })
         })
@@ -231,7 +227,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
               expect(arguments).to.have.length(0)
               done()
             }).error(function(err) {
-              expect(err).to.be.deep.equal({})
+              expect(err).to.deep.equal({})
               done()
             })
           })
@@ -250,7 +246,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         for (var i = 0; i < validatorDetails.fail.length; i++) {
           applyFailTest(validatorDetails, i, validator);
         }
- 
+
         for (var j = 0; j < validatorDetails.pass.length; j++) {
           applyPassTest(validatorDetails, j, validator);
         }
@@ -291,8 +287,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         var Model = this.sequelize.define('model', {
           name: {
             type: Sequelize.STRING,
+            allowNull: false,
             validate: {
-              notNull: true, // won't allow null
               notEmpty: true // don't allow empty strings
             }
           }
@@ -301,8 +297,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         Model.sync({ force: true }).success(function() {
           Model.create({name: 'World'}).success(function(model) {
             model.updateAttributes({name: ''}).error(function(err) {
-              expect(err).to.be.instanceOf(Error)
-              expect(err.name).to.deep.equal(['Validation notEmpty failed']);
+              expect(err).to.be.an.instanceOf(Error)
+              expect(err.name[0].message).to.equal('Validation notEmpty failed');
               done()
             })
           })
@@ -313,18 +309,18 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         var Model = this.sequelize.define('model', {
           name: {
             type: Sequelize.STRING,
+            allowNull: false,
             validate: {
-              notNull: true, // won't allow null
               notEmpty: true // don't allow empty strings
             }
           }
         })
 
         Model.sync({ force: true }).success(function() {
-          Model.create({name: 'World'}).success(function(model) {
+          Model.create({name: 'World'}).success(function() {
             Model.update({name: ''}, {id: 1}).error(function(err) {
-              expect(err).to.be.instanceOf(Error)
-              expect(err.name).to.deep.equal(['Validation notEmpty failed']);
+              expect(err).to.be.an.instanceOf(Error)
+              expect(err.name[0].message).to.equal('Validation notEmpty failed')
               done()
             })
           })
@@ -400,8 +396,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
           User.sync({ force: true }).success(function() {
             User.create({id: 'helloworld'}).error(function(err) {
-              expect(err).to.be.instanceOf(Error)
-              expect(err.id).to.deep.equal(['Validation isInt failed']);
+              expect(err).to.be.an.instanceOf(Error)
+              expect(err.id[0].message).to.equal('Validation isInt failed')
               done()
             })
           })
@@ -421,8 +417,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
           User.sync({ force: true }).success(function() {
             User.create({username: 'helloworldhelloworld'}).error(function(err) {
-              expect(err).to.be.instanceOf(Error)
-              expect(err.username).to.deep.equal(['Username must be an integer!']);
+              expect(err).to.be.an.instanceOf(Error)
+              expect(err.username[0].message).to.equal('Username must be an integer!')
               done()
             })
           })
@@ -448,8 +444,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
           it('should emit an error when we try to enter in a string for the id key with validation arguments', function(done) {
             this.User.create({id: 'helloworld'}).error(function(err) {
-              expect(err).to.be.instanceOf(Error)
-              expect(err.id).to.deep.equal(['ID must be an integer!']);
+              expect(err).to.be.an.instanceOf(Error)
+              expect(err.id[0].message).to.equal('ID must be an integer!')
               done()
             })
           })
@@ -458,8 +454,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
             var user = this.User.build({id: 'helloworld'})
 
             user.validate().success(function(err) {
-              expect(err).to.be.instanceOf(Error)
-              expect(err.id).to.deep.equal(['ID must be an integer!']);
+              expect(err).to.be.an.instanceOf(Error)
+              expect(err.id[0].message).to.equal('ID must be an integer!')
               done()
             })
           })
@@ -467,10 +463,56 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           it('should emit an error when we try to .save()', function(done) {
             var user = this.User.build({id: 'helloworld'})
             user.save().error(function(err) {
-              expect(err).to.be.instanceOf(Error)
-              expect(err.id).to.deep.equal(['ID must be an integer!']);
+              expect(err).to.be.an.instanceOf(Error)
+              expect(err.id[0].message).to.equal('ID must be an integer!')
               done()
             })
+          })
+        })
+      })
+      describe('Pass all paths when validating', function() {
+        beforeEach(function(done) {
+          var self = this
+          var Project = this.sequelize.define('Project', {
+            name: {
+              type: Sequelize.STRING,
+              allowNull: false,
+              validate: {
+                isIn: [['unknown', 'hello', 'test']]
+              }
+            },
+            creatorName: {
+              type: Sequelize.STRING,
+              allowNull: false,
+            },
+            cost: {
+              type: Sequelize.INTEGER,
+              allowNull: false,
+            },
+
+          })
+
+          var Task = this.sequelize.define('Task', {
+            something: Sequelize.INTEGER
+          })
+
+          Project.hasOne(Task)
+          Task.belongsTo(Project)
+
+          Project.sync({ force: true }).success(function() {
+            Task.sync({ force: true }).success(function() {
+              self.Project = Project
+              self.Task = Task
+              done()
+            })
+          })
+        })
+
+        it('produce 3 errors', function(done) {
+          this.Project.create({}).error(function(err) {
+            expect(err).to.be.an.instanceOf(Error)
+            expect(Object.keys(err)).to.have.length(3)
+            done()
           })
         })
       })
@@ -495,15 +537,16 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       var failingUser = User.build({ name : "3" })
 
       failingUser.validate().success(function(error) {
-        expect(error).to.be.instanceOf(Error);
-        expect(error.name).to.deep.equal(["name should equal '2'"])
+        expect(error).to.be.an.instanceOf(Error)
+
+        expect(error.name[0].message).to.equal("name should equal '2'")
 
         var successfulUser = User.build({ name : "2" })
         successfulUser.validate().success(function() {
           expect(arguments).to.have.length(0)
           done()
         }).error(function(err) {
-          expect(err).to.deep.equal({})
+          expect(err[0].message).to.equal()
           done()
         })
       })
@@ -525,8 +568,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         .validate()
         .success(function(error) {
           expect(error).not.to.be.null
-          expect(error).to.be.instanceOf(Error);
-          expect(error.age).to.deep.equal(["must be positive"])
+          expect(error).to.be.an.instanceOf(Error)
+          expect(error.age[0].message).to.equal("must be positive")
 
           User.build({ age: null }).validate().success(function() {
             User.build({ age: 1 }).validate().success(function() {
@@ -563,9 +606,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         .validate()
         .success(function(error) {
           expect(error).not.to.be.null
-          expect(error).to.be.instanceOf(Error)
-          expect(error.xnor).to.deep.equal(['xnor failed']);
-
+          expect(error).to.be.an.instanceOf(Error)
+          expect(error.xnor[0].message).to.equal('xnor failed');
           Foo
             .build({ field1: 33, field2: null })
             .validate()
@@ -601,8 +643,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         .validate()
         .success(function(error) {
           expect(error).not.to.be.null
-          expect(error).to.be.instanceOf(Error)
-          expect(error.xnor).to.deep.equal(['xnor failed']);
+          expect(error).to.be.an.instanceOf(Error)
+          expect(error.xnor[0].message).to.equal('xnor failed')
 
           Foo
             .build({ field1: 33, field2: null })
@@ -652,7 +694,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       failingBar.validate().success(function(errors) {
         expect(errors).not.to.be.null
         expect(errors.field).to.have.length(1)
-        expect(errors.field[0]).to.equal("Validation isIn failed")
+        expect(errors.field[0].message).to.equal("Validation isIn failed")
       })
     })
 
