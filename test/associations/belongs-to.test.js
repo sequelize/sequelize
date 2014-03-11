@@ -3,6 +3,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
+  , Sequelize = require('../../index')
 
 chai.Assertion.includeStack = true
 
@@ -43,6 +44,54 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
                         })
                       })
                     })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('should be able to handle a where object that\'s a first class citizen.', function(done) {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING })
+
+      Task.belongsTo(User)
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          User.create({ username: 'foo', gender: 'male' }).success(function(user) {
+            User.create({ username: 'bar', gender: 'female' }).success(function(falsePositiveCheck) {
+              Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
+                task.setUserXYZ(user).success(function() {
+                  task.getUserXYZ({where: ['gender = ?', 'female']}).success(function(user) {
+                    expect(user).to.be.null
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('supports schemas', function (done) {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive')
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING }).schema('archive')
+        , self = this
+
+      Task.belongsTo(User)
+
+      self.sequelize.dropAllSchemas().done(function() {
+        self.sequelize.createSchema('archive').done(function () {
+          self.sequelize.sync({force: true }).done(function () {
+            User.create({ username: 'foo', gender: 'male' }).success(function(user) {
+              Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
+                task.setUserXYZ(user).success(function() {
+                  task.getUserXYZ().success(function(user) {
+                    expect(user).to.be.ok
+                    done()
                   })
                 })
               })
@@ -214,20 +263,61 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
     })
   })
 
-  describe("Foreign key constraints", function() {
-    it("are not enabled by default", function(done) {
+  describe("foreign key", function () {
+    it('should lowercase foreign keys when using underscored', function () {
+      var User  = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: true })
+        , Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: true })
+
+      User.belongsTo(Account)
+
+      expect(User.rawAttributes.account_id).to.exist;
+    });
+    it('should use model name when using camelcase', function () {
+      var User  = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: false })
+        , Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: false })
+
+      User.belongsTo(Account)
+
+      expect(User.rawAttributes.AccountId).to.exist;
+    });
+  });
+
+  describe("foreign key constraints", function() {
+    it("are enabled by default", function(done) {
       var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
         , User = this.sequelize.define('User', { username: DataTypes.STRING })
 
-      Task.belongsTo(User)
+      Task.belongsTo(User) // defaults to SET NULL
 
       this.sequelize.sync({ force: true }).success(function() {
         User.create({ username: 'foo' }).success(function(user) {
           Task.create({ title: 'task' }).success(function(task) {
             task.setUser(user).success(function() {
               user.destroy().success(function() {
-                Task.findAll().success(function(tasks) {
-                  expect(tasks).to.have.length(1)
+                task.reload().success(function() {
+                  expect(task.UserId).to.equal(null)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it("should be possible to disable them", function(done) {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING })
+
+      Task.belongsTo(User, { constraints: false })
+
+      this.sequelize.sync({ force: true }).success(function() {
+        User.create({ username: 'foo' }).success(function(user) {
+          Task.create({ title: 'task' }).success(function(task) {
+            task.setUser(user).success(function() {
+              user.destroy().success(function() {
+                task.reload().success(function() {
+                  expect(task.UserId).to.equal(user.id)
                   done()
                 })
               })
@@ -344,7 +434,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe("Association column", function() {
-    it('has correct type for non-id primary keys with non-integer type', function(done) {
+    it('has correct type and name for non-id primary keys with non-integer type', function(done) {
       var User = this.sequelize.define('UserPKBT', {
         username: {
           type: DataTypes.STRING
@@ -362,7 +452,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       User.belongsTo(Group)
 
       self.sequelize.sync({ force: true }).success(function() {
-        expect(User.rawAttributes.GroupPKBTId.type.toString()).to.equal(DataTypes.STRING.toString())
+        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(DataTypes.STRING.toString())
         done()
       })
     })
@@ -379,7 +469,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         var tableName = 'TaskXYZ_' + dataType.toString()
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING })
 
-        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType })
+        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false })
       })
 
       self.sequelize.sync({ force: true })

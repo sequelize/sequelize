@@ -7,6 +7,7 @@ var chai      = require('chai')
   , DataTypes = require(__dirname + "/../lib/data-types")
   , datetime  = require('chai-datetime')
   , async     = require('async')
+  , _         = require('lodash')
 
 chai.use(datetime)
 chai.Assertion.includeStack = true
@@ -17,7 +18,7 @@ var sortById = function(a, b) {
 
 describe(Support.getTestDialectTeaser("Include"), function () {
   describe('find', function () {
-    it('should support a empty belongsTo include', function (done) {
+    it('should support an empty belongsTo include', function (done) {
       var Company = this.sequelize.define('Company', {})
         , User = this.sequelize.define('User', {})
 
@@ -33,6 +34,35 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           })
         }, done)
       })
+    })
+
+    // We don't support naming associations the same as the foreign key, however the system should not crash because of it, the results hould just be wrong as is expected behaviour currently.
+    it('should not throw an error when an empty include is named the same as the foreign key', function (done) {
+      var section = this.sequelize.define('section', { name: DataTypes.STRING });
+      var layout = this.sequelize.define('layout', { name: DataTypes.STRING });
+       
+      section.belongsTo(layout, {
+        as: layout.name,
+        foreignKey: layout.name,
+        foreignKeyConstraint: true
+      });
+       
+      this.sequelize.sync({force: true}).done(function(err) {
+        expect(err).to.be.null
+
+        section.create({ name: 'test1' }).success(function() {
+          section.find({
+            where: { name: 'test1' },
+            include: [
+              { model: layout, as: 'layout'}
+            ]
+          }).done(function(err, user) {
+            expect(err).to.be.null
+            expect(user).to.be.ok
+            done()
+          });
+        });
+      });
     })
 
     it('should support a empty hasOne include', function (done) {
@@ -500,12 +530,28 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       Project.hasMany(Task)
       Task.belongsTo(Project)
 
-      this.sequelize.sync().done(function() {
-        Task.create({title: 'FooBar'}).done(function (err) {
-          Task.findAll({attributes: ['title'], include: [Project]}).done(function(err, tasks) {
-            expect(err).not.to.be.ok
-            expect(tasks[0].title).to.equal('FooBar')
-            done()
+      this.sequelize.sync({force: true}).done(function() {
+        Project.create({
+          title: 'BarFoo'
+        }).done(function (err, project) {
+          Task.create({title: 'FooBar'}).done(function (err, task) {
+            task.setProject(project).done(function () {
+              Task.findAll({
+                attributes: ['title'],
+                include: [
+                  {model: Project, attributes: ['title']}
+                ]
+              }).done(function(err, tasks) {
+                expect(err).not.to.be.ok
+                expect(tasks[0].title).to.equal('FooBar')
+                expect(tasks[0].project.title).to.equal('BarFoo');
+
+                expect(_.omit(tasks[0].get(), 'project')).to.deep.equal({ title: 'FooBar' })
+                expect(tasks[0].project.get()).to.deep.equal({ title: 'BarFoo'})
+
+                done()
+              })
+            })
           })
         })
       })
@@ -518,7 +564,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
 
-      this.sequelize.sync().done(function (err) {
+      this.sequelize.sync({force: true}).done(function (err) {
         Group.bulkCreate([
           {name: 'SoccerMoms'},
           {name: 'Coca Cola'},

@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
           }]).success(function() {
             Task.findAll({
               where: {
-                'project.user.username': 'leia'
+                'Project.User.username': 'leia'
               },
               include: [
                 {model: Project, include: [
@@ -111,8 +111,8 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
           }]).success(function() {
             Task.findAll({
               where: {
-                'project.user.username': 'leia',
-                'project.user.id': 1
+                'Project.User.username': 'leia',
+                'Project.User.id': 1
               },
               include: [
                 {model: Project, include: [
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
           }]).success(function() {
             User.findAll({
               where: {
-                'projects.tasks.title': 'fight empire'
+                'Projects.Tasks.title': 'fight empire'
               },
               include: [
                 {model: Project, include: [
@@ -223,7 +223,7 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                     user.setProjects([project]).success(function(){
                       User.findAll({
                         where: {
-                          'projects.title': 'republic'
+                          'Projects.title': 'republic'
                         },
                         include: [
                           {model: Project}

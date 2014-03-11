@@ -63,8 +63,8 @@ if (dialect.match(/^postgres/)) {
           this.users = null
           this.tasks = null
 
-          this.User.hasMany(this.Task, {as:'Tasks'})
-          this.Task.hasMany(this.User, {as:'Users'})
+          this.User.hasMany(this.Task, {as:'Tasks', through: 'usertasks'})
+          this.Task.hasMany(this.User, {as:'Users', through: 'usertasks'})
 
           var self = this
             , users = []
@@ -78,16 +78,14 @@ if (dialect.match(/^postgres/)) {
             tasks[tasks.length] = {name: 'Task' + Math.random()}
           }
 
-          self.User.sync({ force: true }).success(function() {
-            self.Task.sync({ force: true }).success(function() {
-              self.User.bulkCreate(users).success(function() {
-                self.Task.bulkCreate(tasks).success(function() {
-                  self.User.all().success(function(_users) {
-                    self.Task.all().success(function(_tasks) {
-                      self.user = _users[0]
-                      self.task = _tasks[0]
-                      done()
-                    })
+          this.sequelize.sync({ force: true }).success(function() {
+            self.User.bulkCreate(users).success(function() {
+              self.Task.bulkCreate(tasks).success(function() {
+                self.User.all().success(function(_users) {
+                  self.Task.all().success(function(_tasks) {
+                    self.user = _users[0]
+                    self.task = _tasks[0]
+                    done()
                   })
                 })
               })
@@ -122,8 +120,8 @@ if (dialect.match(/^postgres/)) {
           this.users = null
           this.tasks = null
 
-          this.User.hasMany(this.Task, {as:'Tasks'})
-          this.Task.hasMany(this.User, {as:'Users'})
+          this.User.hasMany(this.Task, {as:'Tasks', through: 'usertasks'})
+          this.Task.hasMany(this.User, {as:'Users', through: 'usertasks'})
 
           for (var i = 0; i < 5; ++i) {
             users[users.length] = {id: i+1, name: 'User' + Math.random()}
@@ -133,29 +131,27 @@ if (dialect.match(/^postgres/)) {
             tasks[tasks.length] = {id: x+1, name: 'Task' + Math.random()}
           }
 
-          self.User.sync({ force: true }).success(function() {
-            self.Task.sync({ force: true }).success(function() {
-              self.User.bulkCreate(users).done(function(err) {
+          this.sequelize.sync({ force: true }).success(function() {
+            self.User.bulkCreate(users).done(function(err) {
+              expect(err).not.to.be.ok
+              self.Task.bulkCreate(tasks).done(function(err) {
                 expect(err).not.to.be.ok
-                self.Task.bulkCreate(tasks).done(function(err) {
-                  expect(err).not.to.be.ok
-                  self.User.all().success(function(_users) {
-                    self.Task.all().success(function(_tasks) {
-                      self.user = _users[0]
-                      self.task = _tasks[0]
-                      self.users = _users
-                      self.tasks = _tasks
+                self.User.all().success(function(_users) {
+                  self.Task.all().success(function(_tasks) {
+                    self.user = _users[0]
+                    self.task = _tasks[0]
+                    self.users = _users
+                    self.tasks = _tasks
 
-                      self.user.getTasks().on('success', function(__tasks) {
-                        expect(__tasks).to.have.length(0)
-                        self.user.setTasks(self.tasks).on('success', function() {
-                          self.user.getTasks().on('success', function(_tasks) {
-                            expect(_tasks).to.have.length(self.tasks.length)
-                            self.user.removeTask(self.tasks[0]).on('success', function() {
-                              self.user.getTasks().on('success', function(_tasks) {
-                                expect(_tasks).to.have.length(self.tasks.length - 1)
-                                done()
-                              })
+                    self.user.getTasks().on('success', function(__tasks) {
+                      expect(__tasks).to.have.length(0)
+                      self.user.setTasks(self.tasks).on('success', function() {
+                        self.user.getTasks().on('success', function(_tasks) {
+                          expect(_tasks).to.have.length(self.tasks.length)
+                          self.user.removeTask(self.tasks[0]).on('success', function() {
+                            self.user.getTasks().on('success', function(_tasks) {
+                              expect(_tasks).to.have.length(self.tasks.length - 1)
+                              done()
                             })
                           })
                         })

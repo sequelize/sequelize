@@ -1,5 +1,6 @@
 var fs        = require('fs')
   , path      = require('path')
+  , _         = require('lodash')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
   , Config    = require(__dirname + "/config/config")
@@ -44,28 +45,21 @@ var Support = {
 
     var config = Config[options.dialect]
 
-    options.logging = (options.hasOwnProperty('logging') ? options.logging : false)
-    options.pool    = options.pool !== undefined ? options.pool : config.pool
-
-    var sequelizeOptions = {
+    var sequelizeOptions = _.defaults(options, {
       host:           options.host || config.host,
-      logging:        options.logging,
+      logging:        false,
       dialect:        options.dialect,
       port:           options.port || process.env.SEQ_PORT || config.port,
-      pool:           options.pool,
+      pool:           config.pool,
       dialectOptions: options.dialectOptions || {}
-    }
+    })
 
-    if (!!options.define) {
-      sequelizeOptions.define = options.define
+    if (process.env.DIALECT === 'postgres-native') {
+      sequelizeOptions.native = true
     }
 
     if (!!config.storage) {
       sequelizeOptions.storage = config.storage
-    }
-
-    if (process.env.DIALECT === 'postgres-native') {
-      sequelizeOptions.native = true
     }
 
     return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions)

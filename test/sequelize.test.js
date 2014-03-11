@@ -86,6 +86,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               if (dialect === 'mariadb') {
                 expect(err.message).to.match(/Access denied for user/)
               } else if (dialect === 'postgres') {
+		// When the test is run with only it produces:
+		// Error: Error: Failed to authenticate for PostgresSQL. Please double check your settings.
+		// When its run with all the other tests it produces:
+		// Error: invalid port number: "99999"
                 expect(err.message).to.match(/invalid port number/)
               } else {
                 expect(err.message).to.match(/Failed to authenticate/)
@@ -408,21 +412,57 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       done()
     })
 
-    it("inherits global classMethods and instanceMethods", function(done) {
-      var sequelize = Support.createSequelizeInstance({
-        define: {
-          classMethods : { globalClassMethod : function() {} },
-          instanceMethods : { globalInstanceMethod : function() {} }
-        }
-      })
+    it("inherits global classMethods and instanceMethods, and can override global methods with local ones", function(done) {
+      var globalClassMethod     = sinon.spy()
+        , globalInstanceMethod  = sinon.spy()
+        , localClassMethod      = sinon.spy()
+        , localInstanceMethod   = sinon.spy()
+        , sequelize             = Support.createSequelizeInstance({
+          define: {
+            classMethods : { 
+              globalClassMethod : function() {},
+              overrideMe: globalClassMethod
+            },
+            instanceMethods : { 
+              globalInstanceMethod : function() {},
+              overrideMe: globalInstanceMethod
+            }
+          }
+        })
+        , DAO
 
-      var DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
+      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
         classMethods : { localClassMethod : function() {} }
       })
 
       expect(typeof DAO.options.classMethods.globalClassMethod).to.equal('function')
       expect(typeof DAO.options.classMethods.localClassMethod).to.equal('function')
       expect(typeof DAO.options.instanceMethods.globalInstanceMethod).to.equal('function')
+
+      // This DAO inherits the global methods
+      DAO.overrideMe()
+      DAO.build().overrideMe()
+
+
+      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
+        classMethods : { 
+          overrideMe : localClassMethod
+        },
+        instanceMethods: {
+          overrideMe: localInstanceMethod
+        }
+      })
+
+      // This DAO has its own implementation
+      DAO.overrideMe()
+      DAO.build().overrideMe()
+
+      expect(globalClassMethod).to.have.been.calledOnce
+      expect(globalInstanceMethod).to.have.been.calledOnce
+
+      expect(localClassMethod).to.have.been.calledOnce
+      expect(localInstanceMethod).to.have.been.calledOnce
+
       done()
     })
 
@@ -677,7 +717,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         it("doesn't save an instance if value is not in the range of enums", function(done) {
           this.Review.create({status: 'fnord'}).error(function(err) {
             expect(err).to.be.instanceOf(Error);
-            expect(err.status).to.deep.equal([ 'Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished' ])
+	    expect(err.status[0].message).to.equal('Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
             done()
           })
         })
