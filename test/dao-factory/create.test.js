@@ -172,7 +172,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(err).not.to.be.ok
           User.create({email: 'hello@sequelize.com'}).done(function (err) {
             expect(err).to.be.ok
-            console.log(err)
             expect(err).to.be.an.instanceof(Error)
             done()
           })
