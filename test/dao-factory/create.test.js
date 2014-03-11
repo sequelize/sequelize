@@ -130,6 +130,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
+    it('works with non-integer primary keys', function (done) {
+      var User = this.sequelize.define('User', {
+        'id': {
+          primaryKey: true,
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4
+        },
+        'email': {
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4
+        }
+      })
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok
+        User.create({}).done(function (err, user) {
+          expect(err).not.to.be.ok
+          expect(user).to.be.ok
+          expect(user.id).to.be.ok
+          done()
+        })
+      })
+    })
+
     it('supports transactions', function(done) {
       var self = this
 
@@ -436,7 +460,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               done()
             })
           })
-  }).error(done)
+        }).error(done)
       })
     })
 

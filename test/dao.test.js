@@ -661,6 +661,20 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(uuid.parse(user.uuidv4)).to.have.length(16)
         done()
       })
+
+      it('should store a valid uuid if the field is a primary key named id', function () {
+        var Person = this.sequelize.define('Person', {
+          id: {
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV1,
+            primaryKey: true
+          }
+        })
+
+        var person = Person.build({})
+        expect(person.id).to.be.ok
+        expect(person.id).to.have.length(36)
+      })
     })
     describe('current date', function() {
       it('should store a date in touchedAt', function(done) {
