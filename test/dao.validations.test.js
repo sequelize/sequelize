@@ -718,5 +718,50 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         done()
       })
     })
+
+    it("raises an error if saving a different value into an immutable field", function(done) {
+      var User = this.sequelize.define('User', {
+        name: {
+          type: Sequelize.STRING,
+          validate: {
+            isImmutable: true
+          }
+        }
+      })
+  
+      User.sync({force: true}).success(function() {
+        User.create({ name: "RedCat" }).success(function(user){
+          expect(user.getDataValue('name')).to.equal('RedCat')
+          user.setDataValue('name','YellowCat')
+          user.save()
+            .done(function(errors){
+              expect(errors).to.not.be.null
+              expect(errors).to.be.an.instanceOf(Error)
+              expect(errors.name[0].message).to.eql('Validation isImmutable failed')
+              done()
+            })
+        })
+      })
+    })
+ 
+    it("allows setting an immutable field if the record is unsaved", function(done) {
+      var User = this.sequelize.define('User', {
+        name: {
+          type: Sequelize.STRING,
+          validate: {
+            isImmutable: true
+          }
+        }
+      })
+ 
+      var user = User.build({ name: "RedCat" })
+      expect(user.getDataValue('name')).to.equal('RedCat')
+ 
+      user.setDataValue('name','YellowCat')
+      user.validate().done(function(errors){
+        expect(errors).to.be.null
+        done()
+      })
+    })
   })
 })
