@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
-    it('works with non-integer primary keys', function (done) {
+    it('works with non-integer primary keys with a default value', function (done) {
       var User = this.sequelize.define('User', {
         'id': {
           primaryKey: true,
@@ -297,9 +297,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         })
 
-        userWithDefaults.sync({force: true}).success(function () {
-          userWithDefaults.create({}).success(function (user) {
-            userWithDefaults.find(user.id).success(function (user) {
+        userWithDefaults.sync({force: true}).done(function (err) {
+          expect(err).not.to.be.ok
+          userWithDefaults.create({}).done(function (err, user) {
+            expect(err).not.to.be.ok
+            userWithDefaults.find(user.id).done(function (err, user) {
+              expect(err).not.to.be.ok
               var now = new Date()
                 , pad = function (number) {
                   if (number > 9) {
