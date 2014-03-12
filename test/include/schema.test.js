@@ -20,239 +20,230 @@ var sortById = function(a, b) {
   return a.id < b.id ? -1 : 1
 }
 
-if (dialect.match(/^postgres/)) {
-  describe(Support.getTestDialectTeaser("Schema Based PG Include"), function () {
-
+describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
   describe('findAll', function () {
     beforeEach(function () {
-    var self = this
-      this.sequelize.options.logging = console.log
-          this.fixtureA = function(done) {
-            self.sequelize.dropAllSchemas().success(function(){
-              self.sequelize.createSchema("account").success(function(){
-                var AccUser = self.sequelize.define("AccUser", {}, {schema: "account"})
-                  , Company = self.sequelize.define("Company", {
-                      name: DataTypes.STRING
-                    }, {schema: "account"})
-                  , Product = self.sequelize.define("Product", {
-                      title: DataTypes.STRING
-                    }, {schema: "account"})
-                  , Tag = self.sequelize.define("Tag", {
-                      name: DataTypes.STRING
-                    }, {schema: "account"})
-                  , Price = self.sequelize.define("Price", {
-                      value: DataTypes.FLOAT
-                    }, {schema: "account"})
-                  , Customer = self.sequelize.define("Customer", {
-                      name: DataTypes.STRING
-                  }, {schema: "account"})
-                  , Group = self.sequelize.define("Group", {
-                      name: DataTypes.STRING
-                    }, {schema: "account"})
-                  , GroupMember = self.sequelize.define("GroupMember", {
+      var self = this
+      this.fixtureA = function(done) {
+        self.sequelize.dropAllSchemas().success(function(){
+          self.sequelize.createSchema("account").success(function(){
+            var AccUser = self.sequelize.define("AccUser", {}, {schema: "account"})
+              , Company = self.sequelize.define("Company", {
+                  name: DataTypes.STRING
+                }, {schema: "account"})
+              , Product = self.sequelize.define("Product", {
+                  title: DataTypes.STRING
+                }, {schema: "account"})
+              , Tag = self.sequelize.define("Tag", {
+                  name: DataTypes.STRING
+                }, {schema: "account"})
+              , Price = self.sequelize.define("Price", {
+                  value: DataTypes.FLOAT
+                }, {schema: "account"})
+              , Customer = self.sequelize.define("Customer", {
+                  name: DataTypes.STRING
+              }, {schema: "account"})
+              , Group = self.sequelize.define("Group", {
+                  name: DataTypes.STRING
+                }, {schema: "account"})
+              , GroupMember = self.sequelize.define("GroupMember", {
 
-                    }, {schema: "account"})
-                  , Rank = self.sequelize.define("Rank", {
-                      name: DataTypes.STRING,
-                      canInvite: {
-                        type: DataTypes.INTEGER,
-                        defaultValue: 0
-                      },
-                      canRemove: {
-                        type: DataTypes.INTEGER,
-                        defaultValue: 0
-                      },
-                      canPost: {
-                        type: DataTypes.INTEGER,
-                        defaultValue: 0
-                      }
-                    }, {schema: "account"})
+                }, {schema: "account"})
+              , Rank = self.sequelize.define("Rank", {
+                  name: DataTypes.STRING,
+                  canInvite: {
+                    type: DataTypes.INTEGER,
+                    defaultValue: 0
+                  },
+                  canRemove: {
+                    type: DataTypes.INTEGER,
+                    defaultValue: 0
+                  },
+                  canPost: {
+                    type: DataTypes.INTEGER,
+                    defaultValue: 0
+                  }
+                }, {schema: "account"})
 
-                self.models = {
-                  AccUser: AccUser,
-                  Company: Company,
-                  Product: Product,
-                  Tag: Tag,
-                  Price: Price,
-                  Customer: Customer,
-                  Group: Group,
-                  GroupMember: GroupMember,
-                  Rank: Rank
-                }
+            self.models = {
+              AccUser: AccUser,
+              Company: Company,
+              Product: Product,
+              Tag: Tag,
+              Price: Price,
+              Customer: Customer,
+              Group: Group,
+              GroupMember: GroupMember,
+              Rank: Rank
+            }
 
-                AccUser.hasMany(Product)
-                Product.belongsTo(AccUser)
+            AccUser.hasMany(Product)
+            Product.belongsTo(AccUser)
 
-                Product.hasMany(Tag)
-                Tag.hasMany(Product)
-                Product.belongsTo(Tag, {as: 'Category'})
-                Product.belongsTo(Company)
+            Product.hasMany(Tag)
+            Tag.hasMany(Product)
+            Product.belongsTo(Tag, {as: 'Category'})
+            Product.belongsTo(Company)
 
-                Product.hasMany(Price)
-                Price.belongsTo(Product)
+            Product.hasMany(Price)
+            Price.belongsTo(Product)
 
-                AccUser.hasMany(GroupMember, {as: 'Memberships'})
-                GroupMember.belongsTo(AccUser)
-                GroupMember.belongsTo(Rank)
-                GroupMember.belongsTo(Group)
-                Group.hasMany(GroupMember, {as: 'Memberships'})
+            AccUser.hasMany(GroupMember, {as: 'Memberships'})
+            GroupMember.belongsTo(AccUser)
+            GroupMember.belongsTo(Rank)
+            GroupMember.belongsTo(Group)
+            Group.hasMany(GroupMember, {as: 'Memberships'})
 
-                self.sequelize.sync({force: true}).done(function () {
-                  console.log("DONE WITH SYNC")
-                  var count = 4
-                    , i = -1
+            self.sequelize.sync({force: true}).done(function () {
+              console.log("DONE WITH SYNC")
+              var count = 4
+                , i = -1
 
-                  async.auto({
-                    groups: function(callback) {
-                      Group.bulkCreate([
-                        {name: 'Developers'},
-                        {name: 'Designers'},
-                        {name: 'Managers'}
-                      ]).done(function () {
-                        Group.findAll().done(callback)
-                      })
-                    },
-                    companies: function(callback) {
-                      Company.bulkCreate([
-                        {name: 'Sequelize'},
-                        {name: 'Coca Cola'},
-                        {name: 'Bonanza'},
-                        {name: 'NYSE'},
-                        {name: 'Coshopr'}
-                      ]).done(function (err) {
-                        if (err) return callback(err);
-                        Company.findAll().done(callback)
-                      })
-                    },
-                    ranks: function(callback) {
-                      Rank.bulkCreate([
-                        {name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1},
-                        {name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1},
-                        {name: 'Member', canInvite: 1, canRemove: 0, canPost: 0}
-                      ]).done(function (err) {
-                        Rank.findAll().done(callback)
-                      })
-                    },
-                    tags: function(callback) {
-                      Tag.bulkCreate([
-                        {name: 'A'},
-                        {name: 'B'},
-                        {name: 'C'},
-                        {name: 'D'},
-                        {name: 'E'}
-                      ]).done(function () {
-                        Tag.findAll().done(callback)
-                      })
-                    },
-                    loop: ['groups', 'ranks', 'tags', 'companies', function (done, results) {
-                      var groups = results.groups
-                        , ranks = results.ranks
-                        , tags = results.tags
-                        , companies = results.companies
+              async.auto({
+                groups: function(callback) {
+                  Group.bulkCreate([
+                    {name: 'Developers'},
+                    {name: 'Designers'},
+                    {name: 'Managers'}
+                  ]).done(function () {
+                    Group.findAll().done(callback)
+                  })
+                },
+                companies: function(callback) {
+                  Company.bulkCreate([
+                    {name: 'Sequelize'},
+                    {name: 'Coca Cola'},
+                    {name: 'Bonanza'},
+                    {name: 'NYSE'},
+                    {name: 'Coshopr'}
+                  ]).done(function (err) {
+                    if (err) return callback(err);
+                    Company.findAll().done(callback)
+                  })
+                },
+                ranks: function(callback) {
+                  Rank.bulkCreate([
+                    {name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1},
+                    {name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1},
+                    {name: 'Member', canInvite: 1, canRemove: 0, canPost: 0}
+                  ]).done(function (err) {
+                    Rank.findAll().done(callback)
+                  })
+                },
+                tags: function(callback) {
+                  Tag.bulkCreate([
+                    {name: 'A'},
+                    {name: 'B'},
+                    {name: 'C'},
+                    {name: 'D'},
+                    {name: 'E'}
+                  ]).done(function () {
+                    Tag.findAll().done(callback)
+                  })
+                },
+                loop: ['groups', 'ranks', 'tags', 'companies', function (done, results) {
+                  var groups = results.groups
+                    , ranks = results.ranks
+                    , tags = results.tags
+                    , companies = results.companies
 
-                      async.whilst(
-                        function () { return i < count; },
-                        function (callback) {
-                          i++
-                          async.auto({
-                            user: function (callback) {
-                              AccUser.create().done(callback)
-                            },
-                            memberships: ['user', function (callback, results) {
-                              var groupMembers = [
-                                {AccUserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                                {AccUserId: results.user.id, GroupId: groups[1].id, RankId: ranks[2].id}
-                              ]
-
-                              if (i < 3) {
-                                groupMembers.push({AccUserId: results.user.id, GroupId: groups[2].id, RankId: ranks[1].id})
-                              }
-
-                              GroupMember.bulkCreate(groupMembers).done(callback)
-                            }],
-                            products: function (callback) {
-                              Product.bulkCreate([
-                                {title: 'Chair'},
-                                {title: 'Desk'},
-                                {title: 'Bed'},
-                                {title: 'Pen'},
-                                {title: 'Monitor'}
-                              ]).done(function (err) {
-                                if (err) return callback(err);
-                                Product.findAll().done(callback)
-                              })
-                            },
-                            userProducts: ['user', 'products', function (callback, results) {
-                              results.user.setProducts([
-                                results.products[(i * 5)+0],
-                                results.products[(i * 5)+1],
-                                results.products[(i * 5)+3]
-                              ]).done(callback)
-                            }],
-                            productTags: ['products', function (callback, results) {
-                              var chainer = new Sequelize.Utils.QueryChainer()
-
-                              chainer.add(results.products[(i * 5) + 0].setTags([
-                                tags[0],
-                                tags[2]
-                              ]))
-                              chainer.add(results.products[(i * 5) + 1].setTags([
-                                tags[1]
-                              ]))
-                              chainer.add(results.products[(i * 5) + 0].setCategory(tags[1]))
-
-                              chainer.add(results.products[(i * 5) + 2].setTags([
-                                tags[0]
-                              ]))
-
-                              chainer.add(results.products[(i * 5) + 3].setTags([
-                                tags[0]
-                              ]))
-
-                              chainer.run().done(callback)
-                            }],
-                            companies: ['products', function (callback, results) {
-                              var chainer = new Sequelize.Utils.QueryChainer()
-
-                              results.products[(i * 5)+0].setCompany(companies[4])
-                              results.products[(i * 5)+1].setCompany(companies[3])
-                              results.products[(i * 5)+2].setCompany(companies[2])
-                              results.products[(i * 5)+3].setCompany(companies[1])
-                              results.products[(i * 5)+4].setCompany(companies[0])
-
-                              chainer.run().done(callback)
-                            }],
-                            prices: ['products', function (callback, results) {
-                              Price.bulkCreate([
-                                {ProductId: results.products[(i * 5) + 0].id, value: 5},
-                                {ProductId: results.products[(i * 5) + 0].id, value: 10},
-                                {ProductId: results.products[(i * 5) + 1].id, value: 5},
-                                {ProductId: results.products[(i * 5) + 1].id, value: 10},
-                                {ProductId: results.products[(i * 5) + 1].id, value: 15},
-                                {ProductId: results.products[(i * 5) + 1].id, value: 20},
-                                {ProductId: results.products[(i * 5) + 2].id, value: 20},
-                                {ProductId: results.products[(i * 5) + 3].id, value: 20}
-                              ]).done(callback)
-                            }]
-                          }, callback)
+                  async.whilst(
+                    function () { return i < count; },
+                    function (callback) {
+                      i++
+                      async.auto({
+                        user: function (callback) {
+                          AccUser.create().done(callback)
                         },
-                        function (err) {
-                          expect(err).not.to.be.ok
-                          done()
-                        }
-                      )
-                    }]
-                  }, done.bind(this))
-                }).error(function(err) {
-                  console.log("e: ", err)
-                }).success(function(s) {
-                  console.log("s: ", s)
-                }).sql(function(sql) {
-                  console.log("sql: ", sql)
-                })
-              })
-            })
-          }
+                        memberships: ['user', function (callback, results) {
+                          var groupMembers = [
+                            {AccUserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                            {AccUserId: results.user.id, GroupId: groups[1].id, RankId: ranks[2].id}
+                          ]
+
+                          if (i < 3) {
+                            groupMembers.push({AccUserId: results.user.id, GroupId: groups[2].id, RankId: ranks[1].id})
+                          }
+
+                          GroupMember.bulkCreate(groupMembers).done(callback)
+                        }],
+                        products: function (callback) {
+                          Product.bulkCreate([
+                            {title: 'Chair'},
+                            {title: 'Desk'},
+                            {title: 'Bed'},
+                            {title: 'Pen'},
+                            {title: 'Monitor'}
+                          ]).done(function (err) {
+                            if (err) return callback(err);
+                            Product.findAll().done(callback)
+                          })
+                        },
+                        userProducts: ['user', 'products', function (callback, results) {
+                          results.user.setProducts([
+                            results.products[(i * 5)+0],
+                            results.products[(i * 5)+1],
+                            results.products[(i * 5)+3]
+                          ]).done(callback)
+                        }],
+                        productTags: ['products', function (callback, results) {
+                          var chainer = new Sequelize.Utils.QueryChainer()
+
+                          chainer.add(results.products[(i * 5) + 0].setTags([
+                            tags[0],
+                            tags[2]
+                          ]))
+                          chainer.add(results.products[(i * 5) + 1].setTags([
+                            tags[1]
+                          ]))
+                          chainer.add(results.products[(i * 5) + 0].setCategory(tags[1]))
+
+                          chainer.add(results.products[(i * 5) + 2].setTags([
+                            tags[0]
+                          ]))
+
+                          chainer.add(results.products[(i * 5) + 3].setTags([
+                            tags[0]
+                          ]))
+
+                          chainer.run().done(callback)
+                        }],
+                        companies: ['products', function (callback, results) {
+                          var chainer = new Sequelize.Utils.QueryChainer()
+
+                          results.products[(i * 5)+0].setCompany(companies[4])
+                          results.products[(i * 5)+1].setCompany(companies[3])
+                          results.products[(i * 5)+2].setCompany(companies[2])
+                          results.products[(i * 5)+3].setCompany(companies[1])
+                          results.products[(i * 5)+4].setCompany(companies[0])
+
+                          chainer.run().done(callback)
+                        }],
+                        prices: ['products', function (callback, results) {
+                          Price.bulkCreate([
+                            {ProductId: results.products[(i * 5) + 0].id, value: 5},
+                            {ProductId: results.products[(i * 5) + 0].id, value: 10},
+                            {ProductId: results.products[(i * 5) + 1].id, value: 5},
+                            {ProductId: results.products[(i * 5) + 1].id, value: 10},
+                            {ProductId: results.products[(i * 5) + 1].id, value: 15},
+                            {ProductId: results.products[(i * 5) + 1].id, value: 20},
+                            {ProductId: results.products[(i * 5) + 2].id, value: 20},
+                            {ProductId: results.products[(i * 5) + 3].id, value: 20}
+                          ]).done(callback)
+                        }]
+                      }, callback)
+                    },
+                    function (err) {
+                      expect(err).not.to.be.ok
+                      done()
+                    }
+                  )
+                }]
+              }, done.bind(this))
+            }).error(done)
+          })
+        })
+      }
     })
   
     it('should support an include with multiple different association types', function (done) {
@@ -1405,7 +1396,6 @@ it('should be possible to extend the on clause with a where option on a hasOne i
       })
     })
 
-    /
     it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', function (done) {
       var self = this
       this.fixtureA(function () {
@@ -1526,5 +1516,4 @@ it('should be possible to extend the on clause with a where option on a hasOne i
     })
 
   }) 
-  })
-}
+})
