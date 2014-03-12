@@ -403,7 +403,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                         ]}
                       ],
                       order: [
-                        ['AccUsers.id', 'ASC']
+                        ['account.AccUsers.id', 'ASC']
                       ]
                     }).done(function (err, users) {
                       expect(err).not.to.be.ok
@@ -1404,7 +1404,7 @@ it('should be possible to extend the on clause with a where option on a hasOne i
           ],
           limit: 3,
           order: [
-            [self.sequelize.col(self.models.Product.tableName+'.id'), 'ASC']
+            [self.sequelize.col(self.models.Product.getTableName()+'.id'), 'ASC']
           ]
         }).done(function (err, products) {
           expect(err).not.to.be.ok
