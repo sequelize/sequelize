@@ -95,7 +95,6 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
             Group.hasMany(GroupMember, {as: 'Memberships'})
 
             self.sequelize.sync({force: true}).done(function () {
-              console.log("DONE WITH SYNC")
               var count = 4
                 , i = -1
 
@@ -248,7 +247,6 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
   
     it('should support an include with multiple different association types', function (done) {
       var self = this
-      this.sequelize.options.logging = console.log
 
       self.sequelize.dropAllSchemas().success(function(){
         self.sequelize.createSchema("account").success(function(){
@@ -435,9 +433,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                 )
               }]
             }, done)
-          }).error(function(err) {
-            console.log(err)
-          })
+          }).error(done)
         })
       })
     })
