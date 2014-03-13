@@ -245,7 +245,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
       }
     })
   
-    it('should support an include with multiple different association types', function (done) {
+    it.only('should support an include with multiple different association types', function (done) {
       var self = this
 
       self.sequelize.dropAllSchemas().success(function(){
@@ -388,6 +388,8 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                     }, callback)
                   },
                   function (err) {
+                    console.log(err.sql);
+                    console.log(err);
                     expect(err).not.to.be.ok
 
                     AccUser.findAll({
@@ -403,11 +405,12 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                         ]}
                       ],
                       order: [
-                        ['account.AccUsers.id', 'ASC']
+                        [AccUser.rawAttributes.id, 'ASC']
                       ]
                     }).done(function (err, users) {
                       expect(err).not.to.be.ok
                       users.forEach(function (user, i) {
+                        expect(user.memberships).to.be.ok
                         user.memberships.sort(sortById)
 
                         expect(user.memberships.length).to.equal(2)
@@ -433,7 +436,9 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                 )
               }]
             }, done)
-          }).error(done)
+          }).error(done).on('sql', function (sql) {
+            console.log(sql)
+          })
         })
       })
     })
@@ -1404,7 +1409,7 @@ it('should be possible to extend the on clause with a where option on a hasOne i
           ],
           limit: 3,
           order: [
-            [self.sequelize.col(self.models.Product.getTableName()+'.id'), 'ASC']
+            [self.sequelize.literal(self.models.Product.getTableName()+'.id'), 'ASC']
           ]
         }).done(function (err, products) {
           expect(err).not.to.be.ok
