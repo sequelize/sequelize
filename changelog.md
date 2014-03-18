@@ -5,6 +5,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Made it possible to use HSTORE both in attribute: HSTORE and attribute: { type: HSTORE } form. Thanks to @tomchentw [#1458](https://github.com/sequelize/sequelize/pull/1458)
 - [FEATURE] n:m now marks the columns of the through table as foreign keys and cascades them on delete and update by default.
 - [FEATURE] 1:1 and 1:m marks columns as foreign keys, and sets them to cascade on update and set null on delete. If you are working with an existing DB which does not allow null values, be sure to override those options, or disable them completely by passing constraints: false to your assocation call (`M1.belongsTo(M2, { constraints: false})`).
+- [BUG] Removed the hard dependency on pg, allowing users to use pg.js
 
 #### Backwards compatability changes
 
