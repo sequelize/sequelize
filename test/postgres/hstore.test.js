@@ -90,6 +90,11 @@ if (dialect.match(/^postgres/)) {
     })
 
     describe('parse', function() {
+      it('should handle null objects correctly', function(done) {
+        expect(hstore.parse(null)).to.deep.equal({ })
+        done()
+      })
+
       it('should handle empty objects correctly', function(done) {
         expect(hstore.parse('')).to.deep.equal({ })
         done()
