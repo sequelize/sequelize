@@ -1,0 +1,92 @@
+{
+  "name": "sequelize",
+  "description": "Multi dialect ORM for Node.JS",
+  "version": "1.7.0",
+  "author": "Sascha Depold <sascha@depold.com>",
+  "contributors": [
+    {
+      "name": "Sascha Depold",
+      "email": "sascha@depold.com"
+    },
+    {
+      "name": "Meg Sharkey",
+      "email": "meg@metamarkets.com"
+    },
+    {
+      "name": "Chase Geigle",
+      "email": "sky@skytrife.com"
+    },
+    {
+      "name": "Jan Aagaard Meier",
+      "email": [
+        "janzeh@gmail.com",
+        "jmei@itu.dk"
+      ]
+    },
+    {
+      "name": "Daniel Durante",
+      "email": "me@danieldurante.com"
+    },
+    {
+      "name": "Mick Hansen",
+      "email": "mick.kasper.hansen@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sequelize/sequelize.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sequelize/sequelize/issues"
+  },
+  "dependencies": {
+    "commander": "~2.1.0",
+    "lodash": "~2.4.0",
+    "underscore.string": "~2.3.0",
+    "lingo": "~0.0.5",
+    "validator": "~3.2.0",
+    "moment": "~2.5.0",
+    "dottie": "0.1.0",
+    "toposort-class": "~0.3.0",
+    "generic-pool": "2.0.4",
+    "sql": "~0.35.0",
+    "circular-json": "~0.1.5",
+    "bluebird": "~1.0.0",
+    "node-uuid": "~1.4.1"
+  },
+  "devDependencies": {
+    "sqlite3": "~2.1.12",
+    "mysql": "2.0.1",
+    "pg": "~2.8.1",
+    "watchr": "~2.4.11",
+    "chai": "~1.9.0",
+    "mocha": "~1.17.0",
+    "chai-datetime": "~1.1.1",
+    "sinon": "~1.8.1",
+    "mariasql": "0.1.20",
+    "chai-spies": "~0.5.1",
+    "lcov-result-merger": "0.0.2",
+    "istanbul": "~0.1.45",
+    "coveralls": "~2.7.1",
+    "async": "~0.2.10",
+    "coffee-script": "~1.7.1"
+  },
+  "keywords": [
+    "mysql",
+    "orm",
+    "nodejs",
+    "object relational mapper"
+  ],
+  "main": "index",
+  "scripts": {
+    "test": "make all",
+    "docs": "node_modules/.bin/yuidoc . -o docs"
+  },
+  "bin": {
+    "sequelize": "bin/sequelize"
+  },
+  "engines": {
+    "node": ">=0.6.21"
+  },
+  "license": "MIT"
+}

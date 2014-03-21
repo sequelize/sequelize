@@ -1,0 +1,314 @@
+#!/usr/bin/env node
+
+var path      = require("path")
+  , fs        = require("fs")
+  , program   = require("commander")
+  , Sequelize = require(__dirname + '/../index')
+  , moment    = require("moment")
+  , _         = Sequelize.Utils._
+  , url       = require("url")
+  , supportCS = undefined
+
+var configuration = {
+  configFile:     process.cwd() + '/config/config.json',
+  environment:    process.env.NODE_ENV || 'development',
+  version:        require(__dirname + '/../package.json').version,
+  migrationsPath: process.cwd() + '/migrations'
+}
+
+var configFileExists = function() {
+  return fs.existsSync(configuration.configFile)
+}
+
+var relativeConfigFile = function() {
+  return path.relative(process.cwd(), configuration.configFile)
+}
+
+// Taken from
+// http://stackoverflow.com/questions/15375544/how-can-i-robustly-detect-a-relative-path-in-node-js/17521358#17521358
+var isRelativePath = function(p) {
+  var normal = path.normalize(p)
+    , absolute = path.resolve(p);
+
+  return normal != absolute;
+}
+
+var writeDefaultConfig = function(config) {
+  var configPath = path.dirname(configuration.configFile)
+
+  if (!fs.existsSync(configPath)) {
+    fs.mkdirSync(configPath)
+  }
+
+  config = JSON.stringify({
+      development: {
+        username: "root",
+        password: null,
+        database: 'database_development',
+        host: '127.0.0.1',
+        dialect: 'mysql'
+      },
+      test: {
+        username: "root",
+        password: null,
+        database: 'database_test',
+        host: '127.0.0.1',
+        dialect: 'mysql'
+      },
+      production: {
+        username: "root",
+        password: null,
+        database: 'database_production',
+        host: '127.0.0.1',
+        dialect: 'mysql'
+      }
+    }, undefined, 2) + "\n"
+
+  fs.writeFileSync(configuration.configFile, config)
+}
+
+var createMigrationsFolder = function(force) {
+  if(force) {
+    console.log('Deleting the migrations folder. (--force)')
+    try {
+      fs.readdirSync(configuration.migrationsPath).forEach(function(filename) {
+        fs.unlinkSync(configuration.migrationsPath + '/' + filename)
+      })
+    } catch(e) {}
+    try {
+      fs.rmdirSync(configuration.migrationsPath)
+      console.log('Successfully deleted the migrations folder.')
+    } catch(e) {}
+  }
+
+  try {
+    fs.mkdirSync(configuration.migrationsPath)
+    console.log('Successfully created migrations folder at "' + configuration.migrationsPath + '".')
+  } catch(e) {
+  }
+}
+
+var parseDbUrl = function(urlString) {
+  var urlParts,
+      config = {};
+  try {
+    urlParts = url.parse(urlString)
+    config.database = urlParts.path.replace(/^\//,  '');
+    config.dialect = urlParts.protocol;
+    config.dialect = config.dialect.replace(/:$/, '');
+    config.host = urlParts.hostname;
+    config.port = urlParts.port;
+
+    if (config.dialect === 'sqlite') {
+      config.storage = '/' + config.database;
+    }
+
+    if (urlParts.auth) {
+      config.username = urlParts.auth.split(':')[0]
+      config.password = urlParts.auth.split(':')[1]
+    }
+  } catch (e) {
+    throw new Error('Error parsing url: ' + url);
+  }
+
+  return config
+};
+
+var readConfig = function() {
+  var config
+
+  if (program.url) {
+    config = parseDbUrl(program.url);
+  } else {
+    try {
+      config = require(configuration.configFile);
+    } catch(e) {
+      throw new Error('Error reading "' + relativeConfigFile() + '".')
+    }
+  }
+
+  if (typeof config != 'object') {
+    throw new Error('Config must be an object: ' + relativeConfigFile());
+  }
+
+  if (program.url) {
+    console.log('Parsed url ' + program.url);
+  } else {
+    console.log('Loaded configuration file "' + relativeConfigFile() + '".');
+  }
+
+  if (config[configuration.environment]) {
+    console.log('Using environment "' + configuration.environment + '".')
+    config = config[configuration.environment]
+  }
+
+  return config
+}
+
+program
+  .version(configuration.version)
+  .option('-i, --init', 'Initializes the project.')
+  .option('-e, --env <environment>', 'Specify the environment.')
+  .option('-m, --migrate', 'Run pending migrations.')
+  .option('-u, --undo', 'Undo the last migration.')
+  .option('-f, --force', 'Forces the action to be done.')
+  .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
+  .option('-U, --url <url>', 'Database url.  An alternative to a config file')
+  .option('--config <config_file>', 'Specifies alternate config file.')
+  .option('--coffee', 'Consider coffee script files as migration source.')
+  .parse(process.argv)
+
+if(typeof program.config === 'string') {
+  if (isRelativePath(program.config)) {
+    configuration.configFile = path.join(process.cwd(), program.config);
+  } else {
+    configuration.configFile = program.config
+  }
+}
+
+if(typeof program.env === 'string') {
+  configuration.environment = program.env
+}
+
+var supportCoffeeScript = function() {
+  if (supportCS === undefined) {
+    try {
+      config = readConfig()
+    } catch(e) {
+      console.log(e.message)
+      process.exit(1)
+    }
+
+    supportCS = program.coffee || config.coffee
+  }
+
+  return supportCS
+}
+
+if (program.migrate || program.undo) {
+  if (configFileExists() || program.url) {
+    var config
+      , options  = {}
+
+    try {
+      config = readConfig()
+    } catch(e) {
+      console.log(e.message)
+      process.exit(1)
+    }
+
+    _.each(config, function(value, key) {
+      if(['database', 'username', 'password'].indexOf(key) == -1) {
+        options[key] = value
+      }
+
+      if (key === "use_env_variable") {
+        if (process.env[value]) {
+          var db_info = process.env[value].match(/([^:]+):\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+
+          config.database = db_info[6];
+          config.username = db_info[2];
+          config.password = db_info[3];
+
+          options = _.extend(options, {
+            host: db_info[4],
+            port: db_info[5],
+            dialect: db_info[1],
+            protocol: db_info[1]
+          });
+        }
+      }
+    })
+
+    options = _.extend(options, { logging: false })
+
+    var sequelize       = new Sequelize(config.database, config.username, config.password, options)
+      , migratorOptions = { path: configuration.migrationsPath }
+
+    if (supportCoffeeScript()) {
+      migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
+    }
+
+    sequelize.authenticate().success(function () {
+      var migrator = sequelize.getMigrator(migratorOptions)
+
+      if (program.undo) {
+        migrator.findOrCreateSequelizeMetaDAO().success(function(Meta) {
+          Meta.find({ order: 'id DESC' }).success(function(meta) {
+            if (meta) {
+              migrator = sequelize.getMigrator(_.extend(migratorOptions, meta.values), true)
+              migrator.migrate({ method: 'down' }).success(function() {
+                process.exit(0)
+              })
+            } else {
+              console.log("There are no pending migrations.")
+              process.exit(0)
+            }
+          })
+        })
+      } else {
+        sequelize.migrate().success(function() {
+          process.exit(0)
+        })
+      }
+    }).error(function (err) {
+      console.error("Unable to connect to database: "+err)
+    })
+  } else {
+    console.log('Cannot find "' + configuration.configFile + '". Have you run "sequelize --init"?')
+    process.exit(1)
+  }
+} else if(program.init) {
+  if(!configFileExists() || !!program.force) {
+    writeDefaultConfig()
+
+    console.log('Created "' + relativeConfigFile() + '"')
+  } else {
+    console.log('The file "' + relativeConfigFile() + '" already exists. Run "sequelize --init --force" to overwrite it.')
+    process.exit(1)
+  }
+
+  createMigrationsFolder(program.force)
+} else if(program.createMigration) {
+  createMigrationsFolder()
+
+  var mirationContent    = ""
+    , migrationExtension = (supportCoffeeScript()) ? '.coffee' : '.js'
+    , migrationName      = [
+        moment().format('YYYYMMDDHHmmss'),
+        (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
+      ].join('-') + migrationExtension
+
+  if (supportCoffeeScript()) {
+    migrationContent = [
+      "module.exports = ",
+      "  up: (migration, DataTypes, done) ->",
+      "    # add altering commands here, calling 'done' when finished",
+      "    done()",
+      "",
+      "  down: (migration, DataTypes, done) ->",
+      "    # add reverting commands here, calling 'done' when finished",
+      "    done()"
+    ].join('\n') + "\n"
+  } else {
+    migrationContent = [
+      "module.exports = {",
+      "  up: function(migration, DataTypes, done) {",
+      "    // add altering commands here, calling 'done' when finished",
+      "    done()",
+      "  },",
+      "  down: function(migration, DataTypes, done) {",
+      "    // add reverting commands here, calling 'done' when finished",
+      "    done()",
+      "  }",
+      "}"
+    ].join('\n') + "\n"
+  }
+
+
+  fs.writeFileSync(configuration.migrationsPath + '/' + migrationName, migrationContent)
+  console.log('New migration "' + migrationName + '" was added to "' +
+              path.relative(process.cwd(), configuration.migrationsPath) + '/".')
+} else {
+  console.log('No action specified. Try "sequelize --help" for usage information.')
+}

@@ -1,0 +1,560 @@
+{
+    "project": {},
+    "files": {
+        "lib/dialects/abstract/query.js": {
+            "name": "lib/dialects/abstract/query.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "lib/dialects/sqlite/query-interface.js": {
+            "name": "lib/dialects/sqlite/query-interface.js",
+            "modules": {},
+            "classes": {
+                "QueryInterface": 1
+            },
+            "fors": {
+                "QueryInterface": 1
+            },
+            "namespaces": {}
+        },
+        "lib/dao-factory.js": {
+            "name": "lib/dao-factory.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "lib/sequelize.js": {
+            "name": "lib/sequelize.js",
+            "modules": {},
+            "classes": {
+                "Sequelize": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "index.js": {
+            "name": "index.js",
+            "modules": {
+                "Sequelize": 1
+            },
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Sequelize": {
+            "name": "Sequelize",
+            "submodules": {},
+            "classes": {
+                "QueryInterface": 1,
+                "Sequelize": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "lib/sequelize.js",
+            "line": 12,
+            "description": "The entry point."
+        }
+    },
+    "classes": {
+        "QueryInterface": {
+            "name": "QueryInterface",
+            "shortname": "QueryInterface",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Sequelize",
+            "file": "lib/dialects/sqlite/query-interface.js",
+            "line": 3,
+            "description": "Returns an object that treats SQLite's inabilities to do certain queries.",
+            "static": 1
+        },
+        "Sequelize": {
+            "name": "Sequelize",
+            "shortname": "Sequelize",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Sequelize",
+            "file": "lib/sequelize.js",
+            "line": 12,
+            "description": "Main class of the project.",
+            "params": [
+                {
+                    "name": "database",
+                    "description": "The name of the database.",
+                    "type": "String"
+                },
+                {
+                    "name": "username",
+                    "description": "The username which is used to authenticate against the database.",
+                    "type": "String"
+                },
+                {
+                    "name": "password",
+                    "description": "The password which is used to authenticate against the database.",
+                    "type": "String",
+                    "optional": true,
+                    "optdefault": "null"
+                },
+                {
+                    "name": "options",
+                    "description": "An object with options.",
+                    "type": "Object",
+                    "optional": true,
+                    "optdefault": "{}",
+                    "props": [
+                        {
+                            "name": "dialect",
+                            "description": "The dialect of the relational database.",
+                            "type": "String",
+                            "optional": true,
+                            "optdefault": "'mysql'"
+                        },
+                        {
+                            "name": "host",
+                            "description": "The host of the relational database.",
+                            "type": "String",
+                            "optional": true,
+                            "optdefault": "'localhost'"
+                        },
+                        {
+                            "name": "port",
+                            "description": "The port of the relational database.",
+                            "type": "Integer",
+                            "optional": true,
+                            "optdefault": "3306"
+                        },
+                        {
+                            "name": "protocol",
+                            "description": "The protocol of the relational database.",
+                            "type": "String",
+                            "optional": true,
+                            "optdefault": "'tcp'"
+                        },
+                        {
+                            "name": "define",
+                            "description": "Options, which shall be default for every model definition.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        },
+                        {
+                            "name": "query",
+                            "description": "I have absolutely no idea.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        },
+                        {
+                            "name": "sync",
+                            "description": "Options, which shall be default for every `sync` call.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        },
+                        {
+                            "name": "logging",
+                            "description": "A function that gets executed everytime Sequelize would log something.",
+                            "type": "Function",
+                            "optional": true,
+                            "optdefault": "console.log"
+                        },
+                        {
+                            "name": "omitNull",
+                            "description": "A flag that defines if null values should be passed to SQL queries or not.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "false"
+                        },
+                        {
+                            "name": "queue",
+                            "description": "I have absolutely no idea.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "true"
+                        },
+                        {
+                            "name": "native",
+                            "description": "A flag that defines if native library shall be used or not.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "false"
+                        },
+                        {
+                            "name": "replication",
+                            "description": "I have absolutely no idea.",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "false"
+                        },
+                        {
+                            "name": "pool",
+                            "description": "Something.",
+                            "type": "Object",
+                            "optional": true,
+                            "optdefault": "{}"
+                        }
+                    ]
+                }
+            ],
+            "example": [
+                "\n    // without password and options\n    var sequelize = new Sequelize('database', 'username')\n\n    // without options\n    var sequelize = new Sequelize('database', 'username', 'password')\n\n    // without password / with blank password\n    var sequelize = new Sequelize('database', 'username', null, {})\n\n    // with password and options\n    var sequelize = new Sequelize('my_database', 'john', 'doe', {})"
+            ],
+            "is_constructor": 1
+        }
+    },
+    "classitems": [
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 8,
+            "description": "Inherit from CustomEventEmitter",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 13,
+            "description": "Execute the passed sql query.\n\nExamples:\n\n    query.run('SELECT 1')",
+            "params": [
+                {
+                    "name": "sql",
+                    "description": "- The SQL query which should be executed.",
+                    "type": "String"
+                }
+            ],
+            "api": "public",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 27,
+            "description": "Check the logging option of the instance and print deprecation warnings.",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 44,
+            "description": "High level function that handles the results of a query execution.\n\n\nExample:\n query.formatResults([\n   {\n     id: 1,              // this is from the main table\n     attr2: 'snafu',     // this is from the main table\n     Tasks.id: 1,        // this is from the associated table\n     Tasks.title: 'task' // this is from the associated table\n   }\n ])",
+            "params": [
+                {
+                    "name": "data",
+                    "description": "- The result of the query execution.",
+                    "type": "Array"
+                }
+            ],
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 102,
+            "description": "Shortcut methods (success, ok) for listening for success events.\n\nParams:\n  - fct: A function that gets executed once the *success* event was triggered.\n\nResult:\n  The function returns the instance of the query.",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 118,
+            "description": "Shortcut methods (failure, fail, error) for listening for error events.\n\nParams:\n  - fct: A function that gets executed once the *error* event was triggered.\n\nResult:\n  The function returns the instance of the query.",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 135,
+            "description": "This function is a wrapper for private methods.",
+            "params": [
+                {
+                    "name": "fctName",
+                    "description": "The name of the private method.",
+                    "type": "String"
+                }
+            ],
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 146,
+            "description": "Get the attributes of an insert query, which contains the just inserted id.",
+            "return": {
+                "description": "The field name.",
+                "type": "String"
+            },
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 159,
+            "description": "Iterate over all known tables and search their names inside the sql query.\nThis method will also check association aliases ('as' option).",
+            "params": [
+                {
+                    "name": "attribute",
+                    "description": "An attribute of a SQL query. (?)",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "The found tableName / alias.",
+                "type": "String"
+            },
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 350,
+            "description": "The function takes the result of the query execution and groups\nthe associated data by the callee.\n\nExample:\n  groupDataByCalleeFactory([\n    {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 1 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 2 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 3 }\n    }\n  ])\n\nResult:\n  Something like this:\n\n  [\n    {\n      callee:  { some: 'data', id: 1 },\n      association: [\n        { foo: 'bar', id: 1 },\n        { foo: 'bar', id: 2 },\n        { foo: 'bar', id: 3 }\n      ]\n    }\n  ]",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/abstract/query.js",
+            "line": 410,
+            "description": "This function will prepare the result of select queries with joins.",
+            "params": [
+                {
+                    "name": "data",
+                    "description": "This array contains objects.",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "The array will have the needed format for groupDataByCalleeFactory.",
+                "type": "Array"
+            },
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/sqlite/query-interface.js",
+            "line": 10,
+            "description": "A wrapper that fixes SQLite's inability to remove columns from existing tables.\nIt will create a backup of the table, drop the table afterwards and create a\nnew table with the same name but without the obsolete column.",
+            "itemtype": "method",
+            "name": "removeColumn",
+            "params": [
+                {
+                    "name": "tableName",
+                    "description": "The name of the table.",
+                    "type": "String"
+                },
+                {
+                    "name": "attributeName",
+                    "description": "The name of the attribute that we want to remove.",
+                    "type": "String"
+                },
+                {
+                    "name": "emitter",
+                    "description": "The EventEmitter from outside.",
+                    "type": "CustomEventEmitter"
+                },
+                {
+                    "name": "queryAndEmit",
+                    "description": "The function from outside that triggers some events to get triggered.",
+                    "type": "Function"
+                }
+            ],
+            "since": "1.6.0",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/sqlite/query-interface.js",
+            "line": 40,
+            "description": "A wrapper that fixes SQLite's inability to change columns from existing tables.\nIt will create a backup of the table, drop the table afterwards and create a\nnew table with the same name but with a modified version of the respective column.",
+            "itemtype": "method",
+            "name": "changeColumn",
+            "params": [
+                {
+                    "name": "tableName",
+                    "description": "The name of the table.",
+                    "type": "String"
+                },
+                {
+                    "name": "attributes",
+                    "description": "An object with the attribute's name as key and it's options as value object.",
+                    "type": "Object"
+                },
+                {
+                    "name": "emitter",
+                    "description": "The EventEmitter from outside.",
+                    "type": "CustomEventEmitter"
+                },
+                {
+                    "name": "queryAndEmit",
+                    "description": "The function from outside that triggers some events to get triggered.",
+                    "type": "Function"
+                }
+            ],
+            "since": "1.6.0",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dialects/sqlite/query-interface.js",
+            "line": 72,
+            "description": "A wrapper that fixes SQLite's inability to rename columns from existing tables.\nIt will create a backup of the table, drop the table afterwards and create a\nnew table with the same name but with a renamed version of the respective column.",
+            "itemtype": "method",
+            "name": "renameColumn",
+            "params": [
+                {
+                    "name": "tableName",
+                    "description": "The name of the table.",
+                    "type": "String"
+                },
+                {
+                    "name": "attrNameBefore",
+                    "description": "The name of the attribute before it was renamed.",
+                    "type": "String"
+                },
+                {
+                    "name": "attrNameAfter",
+                    "description": "The name of the attribute after it was renamed.",
+                    "type": "String"
+                },
+                {
+                    "name": "emitter",
+                    "description": "The EventEmitter from outside.",
+                    "type": "CustomEventEmitter"
+                },
+                {
+                    "name": "queryAndEmit",
+                    "description": "The function from outside that triggers some events to get triggered.",
+                    "type": "Function"
+                }
+            ],
+            "since": "1.6.0",
+            "class": "QueryInterface"
+        },
+        {
+            "file": "lib/dao-factory.js",
+            "line": 178,
+            "description": "Search for an instance.",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "Options to describe the scope of the search.",
+                    "type": "Object"
+                },
+                {
+                    "name": "include",
+                    "description": "A list of associations which shall get eagerly loaded. Supported is either { include: [ DaoFactory1, DaoFactory2, ...] } or { include: [ { daoFactory: DaoFactory1, as: 'Alias' } ] }.",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "A promise which fires `success`, `error`, `complete` and `sql`.",
+                "type": "Object"
+            },
+            "class": "Sequelize"
+        },
+        {
+            "file": "lib/sequelize.js",
+            "line": 93,
+            "description": "Reference to Utils",
+            "class": "Sequelize"
+        },
+        {
+            "file": "lib/sequelize.js",
+            "line": 102,
+            "description": "Returns an instance of QueryInterface.",
+            "itemtype": "method",
+            "name": "getQueryInterface",
+            "return": {
+                "description": "An instance (singleton) of QueryInterface.",
+                "type": "QueryInterface"
+            },
+            "class": "Sequelize"
+        },
+        {
+            "file": "lib/sequelize.js",
+            "line": 113,
+            "description": "Returns an instance (singleton) of Migrator.",
+            "itemtype": "method",
+            "name": "getMigrator",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "Some options",
+                    "type": "Object",
+                    "optional": true,
+                    "optdefault": "{}"
+                },
+                {
+                    "name": "force",
+                    "description": "A flag that defines if the migrator should get instantiated or not.",
+                    "type": "Boolean",
+                    "optional": true,
+                    "optdefault": "false"
+                }
+            ],
+            "return": {
+                "description": "An instance of Migrator.",
+                "type": "Migrator"
+            },
+            "class": "Sequelize"
+        }
+    ],
+    "warnings": [
+        {
+            "message": "unknown tag: api",
+            "line": " lib/dialects/abstract/query.js:13"
+        },
+        {
+            "message": "Missing item type\nInherit from CustomEventEmitter",
+            "line": " lib/dialects/abstract/query.js:8"
+        },
+        {
+            "message": "Missing item type\nExecute the passed sql query.\n\nExamples:\n\n    query.run('SELECT 1')",
+            "line": " lib/dialects/abstract/query.js:13"
+        },
+        {
+            "message": "Missing item type\nCheck the logging option of the instance and print deprecation warnings.",
+            "line": " lib/dialects/abstract/query.js:27"
+        },
+        {
+            "message": "Missing item type\nHigh level function that handles the results of a query execution.\n\n\nExample:\n query.formatResults([\n   {\n     id: 1,              // this is from the main table\n     attr2: 'snafu',     // this is from the main table\n     Tasks.id: 1,        // this is from the associated table\n     Tasks.title: 'task' // this is from the associated table\n   }\n ])",
+            "line": " lib/dialects/abstract/query.js:44"
+        },
+        {
+            "message": "Missing item type\nShortcut methods (success, ok) for listening for success events.\n\nParams:\n  - fct: A function that gets executed once the *success* event was triggered.\n\nResult:\n  The function returns the instance of the query.",
+            "line": " lib/dialects/abstract/query.js:102"
+        },
+        {
+            "message": "Missing item type\nShortcut methods (failure, fail, error) for listening for error events.\n\nParams:\n  - fct: A function that gets executed once the *error* event was triggered.\n\nResult:\n  The function returns the instance of the query.",
+            "line": " lib/dialects/abstract/query.js:118"
+        },
+        {
+            "message": "Missing item type\nThis function is a wrapper for private methods.",
+            "line": " lib/dialects/abstract/query.js:135"
+        },
+        {
+            "message": "Missing item type\nGet the attributes of an insert query, which contains the just inserted id.",
+            "line": " lib/dialects/abstract/query.js:146"
+        },
+        {
+            "message": "Missing item type\nIterate over all known tables and search their names inside the sql query.\nThis method will also check association aliases ('as' option).",
+            "line": " lib/dialects/abstract/query.js:159"
+        },
+        {
+            "message": "Missing item type\nThe function takes the result of the query execution and groups\nthe associated data by the callee.\n\nExample:\n  groupDataByCalleeFactory([\n    {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 1 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 2 }\n    }, {\n      callee: { some: 'data', id: 1 },\n      association: { foo: 'bar', id: 3 }\n    }\n  ])\n\nResult:\n  Something like this:\n\n  [\n    {\n      callee:  { some: 'data', id: 1 },\n      association: [\n        { foo: 'bar', id: 1 },\n        { foo: 'bar', id: 2 },\n        { foo: 'bar', id: 3 }\n      ]\n    }\n  ]",
+            "line": " lib/dialects/abstract/query.js:350"
+        },
+        {
+            "message": "Missing item type\nThis function will prepare the result of select queries with joins.",
+            "line": " lib/dialects/abstract/query.js:410"
+        },
+        {
+            "message": "Missing item type\nSearch for an instance.",
+            "line": " lib/dao-factory.js:178"
+        },
+        {
+            "message": "Missing item type\nReference to Utils",
+            "line": " lib/sequelize.js:93"
+        }
+    ]
+}
