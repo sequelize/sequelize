@@ -532,7 +532,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
       it('returns an error correctly if unable to sync a foreign key referenced model', function (done) {
         var Application = this.sequelize.define('Application', {
-          authorID: { type: Sequelize.BIGINT, allowNull: false, references: 'User', referencesKey: 'id' },
+          authorID: { type: Sequelize.BIGINT, allowNull: false, references: 'User', referencesKey: 'id' }
         })
 
         this.sequelize.sync().error(function (error) {
