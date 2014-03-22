@@ -181,13 +181,13 @@ program
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
   .option('-p, --migrations-path', 'migration directory path.')
   .option('-U, --url <url>', 'Database url.  An alternative to a config file')
+  .option('-o,--cli-options <options_file>', 'Specifies lib options from file.')
   .option('--config <config_file>', 'Specifies alternate config file.')
-  .option('--options <options_file>', 'Specifies lib options from file.')
   .option('--coffee', 'Consider coffee script files as migration source.')
   .parse(process.argv)
 
-if(typeof program.options === 'string') {
-  loadDefaultOptions(program.options);
+if(typeof program.cliOptions === 'string') {
+  loadDefaultOptions(program.cliOptions);
 }
 
 if(typeof program.config === 'string') {
@@ -348,3 +348,4 @@ if (program.migrate || program.undo) {
 } else {
   console.log('No action specified. Try "sequelize --help" for usage information.')
 }
+
