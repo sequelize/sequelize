@@ -16,7 +16,7 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 
 - Schema definition
 - Schema synchronization/dropping
-- 1:1, 1:M & N:M Associations
+- 1:1, 1:M & M:M Associations
 - Through models
 - Promises
 - Hooks/callbacks/lifecycle events
