@@ -18,7 +18,7 @@ var configuration = {
 
 var loadDefaultOptions = function(path){
   try{
-    options = require(path);
+    options = require(process.cwd()+'/'+path);
     for (var key in options){
       program[key] = options[key];
     }
@@ -179,7 +179,7 @@ program
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
-  .option('-p, --migrations-path', 'migration directory path.')
+  .option('-p, --migrations-path <migration-path>', 'migration directory path.')
   .option('-U, --url <url>', 'Database url.  An alternative to a config file')
   .option('-o,--cli-options <options_file>', 'Specifies lib options from file.')
   .option('--config <config_file>', 'Specifies alternate config file.')
@@ -199,7 +199,7 @@ if(typeof program.config === 'string') {
 }
 
 if(typeof program.migrationsPath=== 'string') {
-  configuration.migrationsPath = program.migrationsPath
+  configuration.migrationsPath =  program.migrationsPath;
 }
 
 if(typeof program.env === 'string') {

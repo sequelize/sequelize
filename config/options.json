@@ -1,0 +1,6 @@
+{
+  "configFile":     "./config/database.json",
+  "migrationsPath": "./db/migrate"
+}
+
+
