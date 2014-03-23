@@ -863,6 +863,38 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    describe('with custom timestamp options', function() {
+      var now = Date.now()
+
+      it("updates the createdAt column if updatedAt is disabled", function(done) {
+        var User2 = this.sequelize.define('User2', {
+          username: DataTypes.STRING
+        }, { updatedAt: false })
+
+        User2.sync().success(function() {
+          User2.create({ username: 'john doe' }).success(function(johnDoe) {
+            expect(johnDoe.updatedAt).to.be.undefined;
+            expect(now).to.be.below(johnDoe.createdAt.getTime())
+            done()
+          })
+        })
+      })
+
+      it("updates the updatedAt column if createdAt is disabled", function(done) {
+        var User2 = this.sequelize.define('User2', {
+          username: DataTypes.STRING
+        }, { createdAt: false })
+
+        User2.sync().success(function() {
+          User2.create({ username: 'john doe' }).success(function(johnDoe) {
+            expect(johnDoe.createdAt).to.be.undefined;
+            expect(now).to.be.below(johnDoe.updatedAt.getTime())
+            done()
+          })
+        })
+      })
+    })
+
     it('should fail a validation upon creating', function(done){
       this.User.create({aNumber: 0, validateTest: 'hello'}).error(function(err){
         expect(err).to.exist
