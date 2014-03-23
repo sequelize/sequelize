@@ -7,6 +7,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] 1:1 and 1:m marks columns as foreign keys, and sets them to cascade on update and set null on delete. If you are working with an existing DB which does not allow null values, be sure to override those options, or disable them completely by passing constraints: false to your assocation call (`M1.belongsTo(M2, { constraints: false})`).
 - [BUG] Removed the hard dependency on pg, allowing users to use pg.js
 - [BUG] Fixed a bug with foreign keys pointing to attributes that were not integers. Now your primaryKey can be a string, and associations will still work. Thanks to @fixe [#1544](https://github.com/sequelize/sequelize/pull/1544)
+- [BUG] Fix a case where createdAt timestamp would not be set when updatedAt was disabled  Thanks to @fixe [#1543](https://github.com/sequelize/sequelize/pull/1543)
 
 #### Backwards compatability changes
 
