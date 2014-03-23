@@ -8,6 +8,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Removed the hard dependency on pg, allowing users to use pg.js
 - [BUG] Fixed a bug with foreign keys pointing to attributes that were not integers. Now your primaryKey can be a string, and associations will still work. Thanks to @fixe [#1544](https://github.com/sequelize/sequelize/pull/1544)
 - [BUG] Fix a case where createdAt timestamp would not be set when updatedAt was disabled  Thanks to @fixe [#1543](https://github.com/sequelize/sequelize/pull/1543)
+- [BUG] Fix a case where timestamps were not being write protected in `set` when underscored=true. janmeier [#1523](https://github.com/sequelize/sequelize/pull/1523)
 
 #### Backwards compatability changes
 

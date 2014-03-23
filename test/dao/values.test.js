@@ -62,6 +62,24 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(user.get('updatedAt')).not.to.be.ok
       })
 
+      it('doesn\'t set underscored timestamps', function () {
+        var User = this.sequelize.define('User', {
+          identifier: {type: DataTypes.STRING, primaryKey: true}
+        }, {
+          underscored: true
+        })
+
+        var user = User.build()
+
+        user.set({
+          created_at: new Date(2000, 1, 1),
+          updated_at: new Date(2000, 1, 1)
+        })
+
+        expect(user.get('created_at')).not.to.be.ok
+        expect(user.get('updated_at')).not.to.be.ok
+      })
+
       it('doesn\'t set value if not a dynamic setter or a model attribute', function() {
         var User = this.sequelize.define('User', {
           name: {type: DataTypes.STRING},
