@@ -8,7 +8,7 @@ var chai      = require('chai')
   , moment    = require('moment')
   , sinon     = require('sinon')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("HasMany"), function() {
   describe("Model.associations", function () {

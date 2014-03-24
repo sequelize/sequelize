@@ -3,7 +3,7 @@ var chai      = require('chai')
   , Sequelize = require(__dirname + '/../index')
   , Support   = require(__dirname + '/support')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Language Util"), function() {
   beforeEach(function(done) {

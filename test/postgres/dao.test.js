@@ -5,7 +5,7 @@ var chai      = require('chai')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , _         = require('lodash')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] DAO', function() {
