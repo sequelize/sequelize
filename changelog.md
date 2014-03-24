@@ -1,6 +1,7 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # v2.0.0-dev11
+## This release contains many changes and is highly experimental
 - [PERFORMANCE] increased build performance when using include, which speeds up findAll etc.
 - [BUG] Made it possible to use HSTORE both in attribute: HSTORE and attribute: { type: HSTORE } form. Thanks to @tomchentw [#1458](https://github.com/sequelize/sequelize/pull/1458)
 - [FEATURE] n:m now marks the columns of the through table as foreign keys and cascades them on delete and update by default.
