@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                     ]}
                   ],
                   order: [
-                    ['Users.id', 'ASC']
+                    ['User.id', 'ASC']
                   ]
                 }).done(function (err, users) {
                   expect(err).not.to.be.ok
@@ -1394,7 +1394,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           ],
           limit: 3,
           order: [
-            [self.sequelize.col(self.models.Product.tableName+'.id'), 'ASC']
+            [self.sequelize.col(self.models.Product.name+'.id'), 'ASC']
           ]
         }).done(function (err, products) {
           expect(err).not.to.be.ok

@@ -1937,8 +1937,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var tableName = ''
         , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
         , escape = this.sequelize.queryInterface.QueryGenerator.escape
-      if(this.Project.tableName) {
-        tableName = ident(this.Project.tableName) + '.'
+      if(this.Project.name) {
+        tableName = ident(this.Project.name) + '.'
       }
       this.User.findAll({
         where: [
@@ -1962,8 +1962,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it('should not overwrite a specified deletedAt', function(done) {
       var tableName = ''
         , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
-      if(this.User.tableName) {
-        tableName = ident(this.User.tableName) + '.'
+
+      if(this.User.name) {
+        tableName = ident(this.User.name) + '.'
       }
       this.User.findAll({
         where: [

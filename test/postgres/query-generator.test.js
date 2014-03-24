@@ -158,7 +158,7 @@ if (dialect.match(/^postgres/)) {
           context: {options: {quoteIdentifiers: false}}
         },
         {
-          arguments: ['mySchema.myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS mySchema.myTable (title VARCHAR(255), name VARCHAR(255));",
           context: {options: {quoteIdentifiers: false}}
         },
@@ -586,13 +586,13 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO \"myTable\" (\"name\",\"nullValue\") VALUES ('foo',NULL),('bar',NULL) RETURNING *;",
           context: {options: {omitNull: true}} // Note: As above
         }, {
-          arguments: ['mySchema.myTable', [{name: 'foo'}, {name: 'bar'}]],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, [{name: 'foo'}, {name: 'bar'}]],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'),('bar') RETURNING *;"
         }, {
-          arguments: ['mySchema.myTable', [{name: JSON.stringify({info: 'Look ma a " quote'})}, {name: JSON.stringify({info: 'Look ma another " quote'})}]],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, [{name: JSON.stringify({info: 'Look ma a " quote'})}, {name: JSON.stringify({info: 'Look ma another " quote'})}]],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('{\"info\":\"Look ma a \\\" quote\"}'),('{\"info\":\"Look ma another \\\" quote\"}') RETURNING *;"
         }, {
-          arguments: ['mySchema.myTable', [{name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'bar'}]],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, [{name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'bar'}]],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;'),('bar') RETURNING *;"
         },
 
@@ -630,15 +630,15 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL) RETURNING *;",
           context: {options: {omitNull: true, quoteIdentifiers: false}} // Note: As above
         }, {
-          arguments: ['mySchema.myTable', [{name: 'foo'}, {name: 'bar'}]],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, [{name: 'foo'}, {name: 'bar'}]],
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'),('bar') RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', [{name: JSON.stringify({info: 'Look ma a " quote'})}, {name: JSON.stringify({info: 'Look ma another " quote'})}]],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, [{name: JSON.stringify({info: 'Look ma a " quote'})}, {name: JSON.stringify({info: 'Look ma another " quote'})}]],
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('{\"info\":\"Look ma a \\\" quote\"}'),('{\"info\":\"Look ma another \\\" quote\"}') RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', [{name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'bar'}]],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, [{name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'bar'}]],
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;'),('bar') RETURNING *;",
           context: {options: {quoteIdentifiers: false}}
         }
@@ -737,11 +737,11 @@ if (dialect.match(/^postgres/)) {
           expectation: "UPDATE myTable SET bar=2 WHERE name='foo' RETURNING *",
           context: {options: {omitNull: true, quoteIdentifiers: false}},
         }, {
-          arguments: ['mySchema.myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {id: 2}],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {id: 2}],
           expectation: "UPDATE mySchema.myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id=2 RETURNING *",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
           expectation: "UPDATE mySchema.myTable SET name='foo'';DROP TABLE mySchema.myTable;' WHERE name='foo' RETURNING *",
           context: {options: {quoteIdentifiers: false}}
         }
@@ -767,10 +767,10 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
           expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo'';DROP TABLE myTable;' LIMIT 10)"
         }, {
-          arguments: ['mySchema.myTable', {name: 'foo'}],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: 'foo'}],
           expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo' LIMIT 1)"
         }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
           expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
@@ -795,11 +795,11 @@ if (dialect.match(/^postgres/)) {
           expectation: "DELETE FROM myTable WHERE id IN (SELECT id FROM myTable WHERE name='foo'';DROP TABLE myTable;' LIMIT 10)",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', {name: 'foo'}],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: 'foo'}],
           expectation: "DELETE FROM mySchema.myTable WHERE id IN (SELECT id FROM mySchema.myTable WHERE name='foo' LIMIT 1)",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
+          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
           expectation: "DELETE FROM mySchema.myTable WHERE id IN (SELECT id FROM mySchema.myTable WHERE name='foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
           context: {options: {quoteIdentifiers: false}}
         }, {
