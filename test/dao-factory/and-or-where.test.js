@@ -59,10 +59,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           where: Sequelize[method]( { username: "foo", intVal: 2 }, { secretValue: 'bar' } )
         }).on('sql', function(sql) {
           var expectation = ({
-            mysql: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')",
-            sqlite: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')",
-            postgres: 'WHERE ("Users"."username"=\'foo\' AND "Users"."intVal"=2 ' + word + ' "Users"."secretValue"=\'bar\')',
-            mariadb: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')"
+            mysql: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
+            sqlite: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
+            postgres: 'WHERE ("User"."username"=\'foo\' AND "User"."intVal"=2 ' + word + ' "User"."secretValue"=\'bar\')',
+            mariadb: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')"
           })[Support.getTestDialect()]
 
           if (!expectation) {
@@ -81,10 +81,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           where: Sequelize[method]( 1, 2 )
         }).on('sql', function(sql) {
           var expectation = ({
-            mysql: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)",
-            sqlite: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)",
-            postgres: 'WHERE ("Users"."id"=1 ' + word + ' "Users"."id"=2)',
-            mariadb: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)"
+            mysql: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
+            sqlite: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
+            postgres: 'WHERE ("User"."id"=1 ' + word + ' "User"."id"=2)',
+            mariadb: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)"
           })[Support.getTestDialect()]
 
           if (!expectation) {
@@ -150,16 +150,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           if (Support.getTestDialect() === 'postgres') {
             expect(sql).to.contain(
               'WHERE (' + [
-                '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
+                '"User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\' AND ',
                   '(',
-                    '"Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\' OR ',
-                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\') OR ',
-                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\')',
+                    '"User"."id"=42 OR 2=2 OR 1=1 OR "User"."username"=\'foo\' OR ',
+                    '("User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\') OR ',
+                    '("User"."id"=42 OR 2=2 OR 1=1 OR "User"."username"=\'foo\')',
                   ') AND ',
                   '(',
-                    '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
-                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\') AND ',
-                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\')',
+                    '"User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\' AND ',
+                    '("User"."id"=42 OR 2=2 OR 1=1 OR "User"."username"=\'foo\') AND ',
+                    '("User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\')',
                   ')'
                 ].join("") +
               ')'
@@ -167,16 +167,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           } else {
             expect(sql).to.contain(
               "WHERE (" + [
-                "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
+                "`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo' AND ",
                   "(",
-                    "`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo' OR ",
-                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo') OR ",
-                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo')",
+                    "`User`.`id`=42 OR 2=2 OR 1=1 OR `User`.`username`='foo' OR ",
+                    "(`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo') OR ",
+                    "(`User`.`id`=42 OR 2=2 OR 1=1 OR `User`.`username`='foo')",
                   ") AND ",
                   "(",
-                    "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
-                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo') AND ",
-                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo')",
+                    "`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo' AND ",
+                    "(`User`.`id`=42 OR 2=2 OR 1=1 OR `User`.`username`='foo') AND ",
+                    "(`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo')",
                   ")"
                 ].join("") +
               ")"

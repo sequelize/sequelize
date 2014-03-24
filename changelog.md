@@ -9,6 +9,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Fixed a bug with foreign keys pointing to attributes that were not integers. Now your primaryKey can be a string, and associations will still work. Thanks to @fixe [#1544](https://github.com/sequelize/sequelize/pull/1544)
 - [BUG] Fix a case where createdAt timestamp would not be set when updatedAt was disabled  Thanks to @fixe [#1543](https://github.com/sequelize/sequelize/pull/1543)
 - [BUG] Fix a case where timestamps were not being write protected in `set` when underscored=true. janmeier [#1523](https://github.com/sequelize/sequelize/pull/1523)
+- [FEATURE/BUG] Prefetching/includes now fully support schemas
 
 #### Backwards compatability changes
 
@@ -21,6 +22,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
   - if you have non-id primary keys you should go through your associations and set the foreignKey option if relying on a incorrect _id foreign key
 - syncOnAssocation has been removed. It only worked for n:m, and having a synchronous function (hasMany) that invokes an asynchronous function (sync) without returning an emitter does not make a lot of sense. If you (implicitly) depended on this feature, sequelize.sync is your friend. If you do not want to do a full sync, use custom through models for n:m (`M1.hasMany(M2, { through: M3})`) and sync the through model explicitly.
 - Join tables will be no longer be paranoid (have a deletedAt timestamp added), even though other models are.
+- All tables in select queries will now be aliased with the model names to be support schemas. This will affect people stuff like `where: {'table.attribute': value}
 
 # v1.7.0
 - [FEATURE] covers more advanced include cases with limiting and filtering (specifically cases where a include would be in the subquery but its child include wouldnt be, for cases where a 1:1 association had a 1:M association as a nested include)
