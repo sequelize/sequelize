@@ -10,7 +10,7 @@ var chai      = require('chai')
   , _         = require('lodash')
 
 chai.use(datetime)
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 var sortById = function(a, b) {
   return a.id < b.id ? -1 : 1

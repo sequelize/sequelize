@@ -7,7 +7,7 @@ var chai      = require('chai')
   , dbFile    = __dirname + '/test.sqlite'
   , storages  = [dbFile]
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAOFactory', function() {

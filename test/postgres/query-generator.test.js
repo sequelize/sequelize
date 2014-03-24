@@ -9,7 +9,7 @@ var chai            = require('chai')
   , util            = require("util")
   , _               = require('lodash')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {

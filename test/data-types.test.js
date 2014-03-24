@@ -3,7 +3,7 @@ var chai      = require('chai')
   , Sequelize = require(__dirname + '/../index')
   , Support   = require(__dirname + '/support')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('should return false when comparing DECIMAL and DECIMAL(10,2)', function(done) {

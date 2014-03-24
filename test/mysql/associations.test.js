@@ -5,7 +5,7 @@ var chai      = require('chai')
   , sinon     = require('sinon')
   , DataTypes = require(__dirname + "/../../lib/data-types")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Associations', function() {

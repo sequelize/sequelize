@@ -5,7 +5,7 @@ var chai      = require('chai')
   , Sequelize = Support.Sequelize
   // , sinon     = require('sinon')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
   describe('API Surface', function() {

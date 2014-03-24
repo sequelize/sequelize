@@ -5,7 +5,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , Sequelize = require(__dirname + '/../index')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Configuration"), function() {
   describe('Connections problems should fail with a nice message', function() {

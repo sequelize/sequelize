@@ -11,7 +11,7 @@ var chai      = require('chai')
   , _         = require('lodash')
 
 chai.use(datetime)
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("DAO"), function () {
   beforeEach(function(done) {

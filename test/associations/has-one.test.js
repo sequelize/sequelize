@@ -4,7 +4,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , Sequelize = require('../../index')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("HasOne"), function() {
   describe("Model.associations", function () {

@@ -9,7 +9,7 @@ var chai      = require('chai')
   , path      = require('path')
   , os        = require('os')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (os.type().toLowerCase().indexOf('windows') === -1) {
   describe(Support.getTestDialectTeaser("Executable"), function() {

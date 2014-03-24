@@ -14,7 +14,7 @@ var chai      = require('chai')
   , async     = require('async')
 
 chai.use(datetime)
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 var sortById = function(a, b) {
   return a.id < b.id ? -1 : 1

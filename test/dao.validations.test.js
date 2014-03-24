@@ -5,7 +5,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/support')
   , config    = require(__dirname + '/config/config')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("DaoValidator"), function() {
   describe('validations', function() {
