@@ -29,7 +29,7 @@ if (dialect.match(/^postgres/)) {
 
     it('should be able to search within an array', function(done) {
       this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
-        expect(sql).to.equal('SELECT * FROM "Users" WHERE "Users"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
+        expect(sql).to.equal('SELECT * FROM "Users" AS "User" WHERE "User"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
         done()
       })
     })

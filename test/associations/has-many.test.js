@@ -127,7 +127,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         this.Article.hasMany(this.Label)
 
-        this.sequelize.sync({ force: true }).success(function() {
+        this.sequelize.sync({ force: true }).done(function(err) {
+          expect(err).not.to.be.ok
           done()
         })
       })
@@ -139,7 +140,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           Article.hasMany(Label)
 
-          sequelize.sync({ force: true }).success(function() {
+          sequelize.sync({ force: true }).done(function(err) {
+            expect(err).not.to.be.ok
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
                 sequelize.transaction(function(t) {
@@ -615,7 +617,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       it("get associated objects with an eager load", function(done) {
-        this.User.find({where: {username: 'John'}, include: [ this.Task ]}).success(function (john) {
+        this.User.find({where: {username: 'John'}, include: [ this.Task ]}).done(function (err, john) {
+          expect(err).not.to.be.ok
           expect(john.tasks).to.have.length(2);
           done();
         })

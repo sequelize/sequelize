@@ -617,7 +617,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             Page.create({ content: 'om nom nom' }).success(function(page) {
               book.setPages([ page ]).success(function() {
                 Book.find({
-                  where: (dialect === 'postgres' ? '"Books"."id"=' : '`Books`.`id`=') + book.id,
+                  where: (dialect === 'postgres' ? '"Book"."id"=' : '`Book`.`id`=') + book.id,
                   include: [Page]
                 }).success(function(leBook) {
                   page.updateAttributes({ content: 'something totally different' }).success(function(page) {

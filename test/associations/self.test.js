@@ -17,12 +17,13 @@ describe(Support.getTestDialectTeaser("Self"), function() {
       freezeTableName: true
     });
 
-    Group.belongsTo(Group, { foreignKey: 'parent' });
+    Group.belongsTo(Group, { as: 'Parent', foreignKey: 'parent_id' });
     Group.sync({force: true}).done(function (err) {
       expect(err).not.to.be.ok
       Group.findAll({
         include: [{
-          model: Group
+          model: Group,
+          as: 'Parent'
         }]
       }).done(function (err) {
         expect(err).not.to.be.ok
