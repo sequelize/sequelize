@@ -245,7 +245,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
       }
     })
   
-    it.only('should support an include with multiple different association types', function (done) {
+    it('should support an include with multiple different association types', function (done) {
       var self = this
 
       self.sequelize.dropAllSchemas().success(function(){
@@ -388,8 +388,6 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                     }, callback)
                   },
                   function (err) {
-                    console.log(err.sql);
-                    console.log(err);
                     expect(err).not.to.be.ok
 
                     AccUser.findAll({
@@ -436,8 +434,6 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                 )
               }]
             }, done)
-          }).error(done).on('sql', function (sql) {
-            console.log(sql)
           })
         })
       })
@@ -1052,7 +1048,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
       })
     }) 
 
-it('should be possible to extend the on clause with a where option on a hasOne include', function (done) {
+    it('should be possible to extend the on clause with a where option on a hasOne include', function (done) {
       var User = this.sequelize.define('User', {}, {schema: "account"})
         , Project = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -1409,7 +1405,7 @@ it('should be possible to extend the on clause with a where option on a hasOne i
           ],
           limit: 3,
           order: [
-            [self.sequelize.literal(self.models.Product.getTableName()+'.id'), 'ASC']
+            [self.models.Product.name+'.id', 'ASC']
           ]
         }).done(function (err, products) {
           expect(err).not.to.be.ok
@@ -1484,7 +1480,7 @@ it('should be possible to extend the on clause with a where option on a hasOne i
       })
     })
 
-    it('should support including date fields, with the correct timeszone', function (done) {
+    xit('should support including date fields, with the correct timeszone', function (done) {
       var User = this.sequelize.define('user', {
           dateField: Sequelize.DATE
         }, {timestamps: false, schema: "account"})
