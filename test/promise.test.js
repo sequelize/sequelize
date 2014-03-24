@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
                     .then(function() {
                       return Book
                         .find({
-                          where: (dialect === 'postgres' ? '"Books"."id"=' : '`Books`.`id`=') + book.id,
+                          where: (dialect === 'postgres' ? '"Book"."id"=' : '`Book`.`id`=') + book.id,
                           include: [Page]
                         })
                         .then(function (leBook) {

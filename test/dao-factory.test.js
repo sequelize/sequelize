@@ -1937,17 +1937,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var tableName = ''
         , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
         , escape = this.sequelize.queryInterface.QueryGenerator.escape
-      if(this.Project.name) {
-        tableName = ident(this.Project.name) + '.'
-      }
+
       this.User.findAll({
         where: [
-          tableName + ident('title') + ' = ' + escape('republic')
+          this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + escape('republic')
         ],
         include: [
           {model: this.Project}
         ]
-      }).success(function(users){
+      }).done(function(err, users){
+        expect(err).not.to.be.ok
 
         try{
           expect(users.length).to.be.equal(1)
@@ -1956,7 +1955,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }catch(e){
           done(e)
         }
-      }).error(done)
+      })
     })
 
     it('should not overwrite a specified deletedAt', function(done) {

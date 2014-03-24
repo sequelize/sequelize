@@ -767,10 +767,10 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
           expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo'';DROP TABLE myTable;' LIMIT 10)"
         }, {
-          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: 'foo'}],
+          arguments: ['mySchema.myTable', {name: 'foo'}],
           expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo' LIMIT 1)"
         }, {
-          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
+          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
           expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
@@ -795,11 +795,11 @@ if (dialect.match(/^postgres/)) {
           expectation: "DELETE FROM myTable WHERE id IN (SELECT id FROM myTable WHERE name='foo'';DROP TABLE myTable;' LIMIT 10)",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: 'foo'}],
+          arguments: ['mySchema.myTable', {name: 'foo'}],
           expectation: "DELETE FROM mySchema.myTable WHERE id IN (SELECT id FROM mySchema.myTable WHERE name='foo' LIMIT 1)",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
+          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
           expectation: "DELETE FROM mySchema.myTable WHERE id IN (SELECT id FROM mySchema.myTable WHERE name='foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
           context: {options: {quoteIdentifiers: false}}
         }, {
