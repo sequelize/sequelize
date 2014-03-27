@@ -255,8 +255,6 @@ if (dialect.match(/^postgres/)) {
       })
 
       it("should save hstore correctly", function(done) {
-        var self = this
-
         this.User
           .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
           .success(function(newUser) {
