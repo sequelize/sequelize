@@ -6,7 +6,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , config    = require(__dirname + "/../config/config")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (Support.dialectIsMySQL()) {
   describe("[MYSQL Specific] DAOFactory", function () {

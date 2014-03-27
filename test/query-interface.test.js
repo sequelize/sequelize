@@ -5,7 +5,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , _         = require('lodash')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("QueryInterface"), function () {
   beforeEach(function(done) {

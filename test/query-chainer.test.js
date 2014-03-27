@@ -4,7 +4,7 @@ var chai      = require('chai')
   , QueryChainer       = require("../lib/query-chainer")
   , CustomEventEmitter = require("../lib/emitters/custom-event-emitter")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("QueryChainer"), function () {
   beforeEach(function(done) {

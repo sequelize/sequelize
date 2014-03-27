@@ -5,7 +5,7 @@ var chai      = require('chai')
   , config    = require(__dirname + '/../config/config')
   , DataTypes = require(__dirname + "/../../lib/data-types")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {

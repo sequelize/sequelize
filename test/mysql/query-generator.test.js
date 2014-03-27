@@ -7,7 +7,7 @@ var chai      = require('chai')
   , _         = require('lodash')
   , QueryGenerator = require("../../lib/dialects/mysql/query-generator")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (Support.dialectIsMySQL()) {
   describe("[MYSQL Specific] QueryGenerator", function () {

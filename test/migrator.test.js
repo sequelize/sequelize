@@ -5,7 +5,7 @@ var chai         = require('chai')
   , DataTypes     = require("../lib/data-types")
   , dialect      = Support.getTestDialect()
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Migrator"), function() {
   beforeEach(function() {

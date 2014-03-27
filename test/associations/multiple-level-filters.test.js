@@ -4,7 +4,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
   it('can filter through belongsTo', function(done) {

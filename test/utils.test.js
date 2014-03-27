@@ -5,7 +5,7 @@ var chai    = require('chai')
   , Support = require(__dirname + '/support')
 
 chai.use(spies)
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Utils"), function() {
   describe('removeCommentsFromFunctionString', function() {
