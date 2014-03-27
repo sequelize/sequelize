@@ -254,7 +254,7 @@ if (dialect.match(/^postgres/)) {
           })
       })
 
-      it("should handle hstore correctly", function(done) {
+      it("should save hstore correctly", function(done) {
         var self = this
 
         this.User
@@ -270,6 +270,24 @@ if (dialect.match(/^postgres/)) {
               expect(oldUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
               done()
             })
+          })
+          .error(console.log)
+      })
+
+      it("should read hstore correctly", function(done) {
+        var self = this
+        var data = { username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}}
+
+        this.User
+          .create(data)
+          .success(function() {
+            // Check that the hstore fields are the same when retrieving the user
+            self.User.find({ where: { username: 'user' }})
+              .success(function(user) {
+                expect(user.settings).to.deep.equal(data.settings)
+
+                done()
+              })
           })
           .error(console.log)
       })
