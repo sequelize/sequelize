@@ -1,6 +1,9 @@
 var chai      = require('chai')
   , sinonChai = require("sinon-chai")
   , sinon     = require('sinon')
+  , winston   = require('winston')
+  , fs        = require('fs')
+  , path      = require('path')
   , expect    = chai.expect
   , assert    = chai.assert
   , Support   = require(__dirname + '/../support')
@@ -79,6 +82,43 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       it("calls the custom logger method", function() {
         this.sequelize.log('om nom')
         expect(this.spy.calledOnce).to.be.true
+      })
+    })
+
+    describe("with custom winston options", function() {
+      beforeEach(function() {
+        this.logFile   = path.normalize(__dirname + '/../tmp/sequelize.log')
+
+        if (fs.existsSync(this.logFile)) {
+          fs.unlinkSync(this.logFile)
+        }
+
+        this.spy       = sinon.spy()
+        this.sequelize = new Support.Sequelize('db', 'user', 'pw', {
+          logging: {
+            transports: [
+              new winston.transports.File({ filename: this.logFile })
+            ]
+          }
+        })
+      })
+
+      afterEach(function() {
+       if (fs.existsSync(this.logFile)) {
+          fs.unlinkSync(this.logFile)
+        }
+      })
+
+      it("calls the custom logger method", function(done) {
+        var self = this
+
+        expect(fs.existsSync(this.logFile)).to.be.false
+        this.sequelize.log('om nom')
+
+        setTimeout(function() {
+          expect(fs.existsSync(self.logFile)).to.be.true
+          done()
+        }, 100)
       })
     })
   })
