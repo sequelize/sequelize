@@ -69,5 +69,17 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
     })
+
+    describe("with a custom function for logging", function() {
+      beforeEach(function() {
+        this.spy       = sinon.spy()
+        this.sequelize = new Support.Sequelize('db', 'user', 'pw', { logging: this.spy })
+      })
+
+      it("calls the custom logger method", function() {
+        this.sequelize.log('om nom')
+        expect(this.spy.calledOnce).to.be.true
+      })
+    })
   })
 })
