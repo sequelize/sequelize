@@ -182,8 +182,10 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                   .Model
                   .create({ name: 'omnom' }, { transaction: t2 })
                   .error(function(err) {
-                    expect(err).to.be.defined
-                    done()
+                    t2.rollback().success(function() {
+                      expect(err).to.be.defined
+                      done()
+                    })
                   })
 
                 setTimeout(function() { t1.commit() }, 100)
