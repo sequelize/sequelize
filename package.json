@@ -52,7 +52,8 @@
     "sql": "~0.35.0",
     "circular-json": "~0.1.5",
     "bluebird": "~1.0.0",
-    "node-uuid": "~1.4.1"
+    "node-uuid": "~1.4.1",
+    "winston": "~0.7.3"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
@@ -69,7 +70,8 @@
     "istanbul": "~0.1.45",
     "coveralls": "~2.7.1",
     "async": "~0.2.10",
-    "coffee-script": "~1.7.1"
+    "coffee-script": "~1.7.1",
+    "sinon-chai": "~2.5.0"
   },
   "keywords": [
     "mysql",
