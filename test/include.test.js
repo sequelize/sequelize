@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     it('should not throw an error when an empty include is named the same as the foreign key', function (done) {
       var section = this.sequelize.define('section', { name: DataTypes.STRING });
       var layout = this.sequelize.define('layout', { name: DataTypes.STRING });
-       
+
       section.belongsTo(layout, {
         as: layout.name,
         foreignKey: layout.name,
