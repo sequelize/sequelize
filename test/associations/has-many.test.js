@@ -671,20 +671,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
-    it("removes the reference id, which was added in the first place", function(done) {
-      var User = this.sequelize.define('User', { username: DataTypes.STRING })
-        , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
-
-      User.hasMany(Task)
-      expect(Task.attributes.UserId).to.exist
-
-      Task.hasMany(User)
-      expect(Task.attributes.UserId).not.to.exist
-      setTimeout(function () {
-        done()
-      }, 50)
-    })
-
     describe('setAssociations', function() {
       it("clears associations when passing null to the set-method", function(done) {
         var User = this.sequelize.define('User', { username: DataTypes.STRING })
@@ -851,7 +837,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ id: 15, title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
                 var tickChar = (Support.getTestDialect() === 'postgres') ? '"' : '`'
-                expect(sql).to.have.string("INSERT INTO %TasksUsers% (%UserId%,%TaskId%) VALUES (1,12),(1,15)".replace(/%/g, tickChar))
+                var defaultString = (Support.getTestDialect() === 'postgres') ? 'DEFAULT' : 'NULL'
+                expect(sql).to.have.string("INSERT INTO %TasksUsers% (%id%,%UserId%,%TaskId%) VALUES (DEFAULT,1,12),(DEFAULT,1,15)".replace(/%/g, tickChar).replace(/DEFAULT/g, defaultString))
               })).success(function () {
                 expect(spy.calledTwice).to.be.ok // Once for SELECT, once for INSERT
                 done()
@@ -955,15 +942,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         )
 
         done()
-      })
-      it('removes the primary key if it was added by sequelize', function () {
-        var self = this
-        this.UserTasks = this.sequelize.define('usertasks', {});
-
-        this.User.hasMany(this.Task, { through: this.UserTasks })
-        this.Task.hasMany(this.User, { through: this.UserTasks })
-
-        expect(Object.keys(self.UserTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId'])
       })
 
       it('keeps the primary key if it was added by the user', function () {

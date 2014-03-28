@@ -1,6 +1,6 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
-# v2.0.0-dev11
+# v2.0.0-dev11 (next)
 ### Caution: This release contains many changes and is highly experimental
 - [PERFORMANCE] increased build performance when using include, which speeds up findAll etc.
 - [BUG] Made it possible to use HSTORE both in attribute: HSTORE and attribute: { type: HSTORE } form. Thanks to @tomchentw [#1458](https://github.com/sequelize/sequelize/pull/1458)
@@ -23,6 +23,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
   - if you have non-id primary keys you should go through your associations and set the foreignKey option if relying on a incorrect _id foreign key
 - syncOnAssocation has been removed. It only worked for n:m, and having a synchronous function (hasMany) that invokes an asynchronous function (sync) without returning an emitter does not make a lot of sense. If you (implicitly) depended on this feature, sequelize.sync is your friend. If you do not want to do a full sync, use custom through models for n:m (`M1.hasMany(M2, { through: M3})`) and sync the through model explicitly.
 - Join tables will be no longer be paranoid (have a deletedAt timestamp added), even though other models are.
+- Join tables and models will now have a 'id' primary key instead of a combined primary key, change improves performance but if you have existing join tables you will have to create models for them and identify the old primary keys as attributes.
 - All tables in select queries will now be aliased with the model names to be support schemas. This will affect people stuff like `where: {'table.attribute': value}
 
 # v1.7.0
