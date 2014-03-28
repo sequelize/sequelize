@@ -11,7 +11,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Fix a case where createdAt timestamp would not be set when updatedAt was disabled  Thanks to @fixe [#1543](https://github.com/sequelize/sequelize/pull/1543)
 - [BUG] Fix a case where timestamps were not being write protected in `set` when underscored=true. janmeier [#1523](https://github.com/sequelize/sequelize/pull/1523)
 - [FEATURE/BUG] Prefetching/includes now fully support schemas
-- [FEATURE] Logging is now using winston and can therefore be configured to use files and other things. sdepold. [#1566](https://github.com/sequelize/sequelize/pull/1566)
+- [FEATURE] Centralize logging. [#1566](https://github.com/sequelize/sequelize/pull/1566)
 
 #### Backwards compatability changes
 

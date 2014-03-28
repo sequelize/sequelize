@@ -52,8 +52,7 @@
     "sql": "~0.35.0",
     "circular-json": "~0.1.5",
     "bluebird": "~1.0.0",
-    "node-uuid": "~1.4.1",
-    "winston": "~0.7.3"
+    "node-uuid": "~1.4.1"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",

@@ -1,7 +1,6 @@
 var chai      = require('chai')
   , sinonChai = require("sinon-chai")
   , sinon     = require('sinon')
-  , winston   = require('winston')
   , fs        = require('fs')
   , path      = require('path')
   , expect    = chai.expect
