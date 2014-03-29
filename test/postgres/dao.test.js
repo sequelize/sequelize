@@ -289,6 +289,27 @@ if (dialect.match(/^postgres/)) {
           })
           .error(console.log)
       })
+
+      it("should read hstore correctly from multiple rows", function(done) {
+        var self = this
+
+        self.User
+          .create({ username: 'user1', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
+          .then(function() {
+            return self.User.create({ username: 'user2', email: ['foo2@bar.com'], settings: { updated: { another: '"example"' }}})
+          })
+          .then(function() {
+            // Check that the hstore fields are the same when retrieving the user
+            return self.User.findAll({ order: 'username' })
+          })
+          .then(function(users) {
+            expect(users[0].settings).to.deep.equal({ created: { test: '"value"' }})
+            expect(users[1].settings).to.deep.equal({ updated: { another: '"example"' }})
+
+            done()
+          })
+          .error(console.log)
+      })
     })
 
     describe('[POSTGRES] Unquoted identifiers', function() {
