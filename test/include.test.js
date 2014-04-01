@@ -565,6 +565,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
 
       this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok;
         Group.bulkCreate([
           {name: 'SoccerMoms'},
           {name: 'Coca Cola'},
