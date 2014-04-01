@@ -1410,6 +1410,87 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+    // Test case by @eshell
+    it('should be possible not to include the main id in the attributes', function (done) {
+      var Member = this.sequelize.define('Member', {
+        id: {
+          type: Sequelize.BIGINT,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        email:{
+          type: Sequelize.STRING,
+          unique: true,
+          allowNull: false,
+          validate:{
+            isEmail: true,
+            notNull: true,
+            notEmpty: true
+          }
+        },
+        password: Sequelize.STRING
+      });
+      var Album = this.sequelize.define('Album', {
+        id: {
+          type: Sequelize.BIGINT,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        title: {
+          type: Sequelize.STRING(25),
+          allowNull: false
+        }
+      });
+
+      Album.belongsTo(Member);
+      Member.hasMany(Album);
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok;
+
+        var members = []
+          , albums = []
+          , memberCount = 20
+ 
+        for(var i = 1;i <= memberCount;i++) {
+          members.push({
+            id: i,
+            email: 'email'+i+'@lmu.com',
+            password: 'testing'+i,
+          });
+          albums.push({
+            title: 'Album'+i,
+            MemberId: i
+          });
+        }
+ 
+        Member.bulkCreate(members).done(function (err) {
+          expect(err).not.to.be.ok;
+          Album.bulkCreate(albums).done(function (err) {
+            expect(err).not.to.be.ok;
+
+            Member.findAll({
+              attributes: ['email'],
+              include:[
+                {
+                  model:Album
+                }
+              ]
+            }).done(function (err, members) {
+              expect(err).not.to.be.ok;
+              expect(members.length).to.equal(20);
+              members.forEach(function (member) {
+                expect(member.get('id')).not.to.be.ok;
+                expect(member.albums.length).to.equal(1);
+              });
+
+              done();
+            });
+          });
+        });
+      });
+    });
+
     it('should be possible to use limit and a where on a hasMany with additional includes', function (done) {
       var self = this
       this.fixtureA(function () {
