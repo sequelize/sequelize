@@ -110,11 +110,55 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('allows nesting of Sequelize.or using object notation', function(done) {
+      this.User.find({
+        where: Sequelize.and( Sequelize.or({username: {eq: "foo"}}, {username: {eq:"bar"}}), 
+                              Sequelize.or({id: {eq: 1}}, {id: {eq:4}}) )
+      }).on('sql', function(sql) {
+        var expectation = ({
+          mysql: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
+          sqlite: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
+          postgres: 'WHERE (("User"."username" = \'foo\' OR "User"."username" = \'bar\') AND ("User"."id" = 1 OR "User"."id" = 4)) LIMIT 1',
+          mariadb: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1"
+        })[Support.getTestDialect()]
+
+        if (!expectation) {
+          console.log(sql)
+          throw new Error('Undefined expectation for ' + Support.getTestDialect())
+        }
+
+        expect(sql).to.contain(expectation)
+        done()
+      })
+    })
+
     it('allows nesting of Sequelize.and', function(done) {
       this.User.find({
         where: Sequelize.or( Sequelize.and("1=1", "2=2"), Sequelize.and("3=3", "4=4") )
       }).on('sql', function(sql) {
         expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4)) LIMIT 1")
+        done()
+      })
+    })
+
+    it('allows nesting of Sequelize.and using object notation', function(done) {
+      this.User.find({
+        where: Sequelize.or( Sequelize.and({username: {eq: "foo"}}, {username: {eq:"bar"}}), 
+                              Sequelize.and({id: {eq: 1}}, {id: {eq:4}}) )
+      }).on('sql', function(sql) {
+        var expectation = ({
+          mysql: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
+          sqlite: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
+          postgres: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4)) LIMIT 1',
+          mariadb: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1"
+        })[Support.getTestDialect()]
+
+        if (!expectation) {
+          console.log(sql)
+          throw new Error('Undefined expectation for ' + Support.getTestDialect())
+        }
+
+        expect(sql).to.contain(expectation)
         done()
       })
     })
