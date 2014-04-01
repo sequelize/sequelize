@@ -717,6 +717,39 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should only set passed fields', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: DataTypes.STRING
+        },
+        'name': {
+          type: DataTypes.STRING
+        }
+      })
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok;
+
+        User.create({
+          name: 'Yolo Bear',
+          email: 'yolo@bear.com'
+        }, {
+          fields: ['name']
+        }).done(function (err, user) {
+          expect(err).not.to.be.ok;
+          expect(user.name).to.be.ok;
+          expect(user.email).not.to.be.ok;
+
+          User.find(user.id).done(function (err, user) {
+            expect(err).not.to.be.ok;
+            expect(user.name).to.be.ok;
+            expect(user.email).not.to.be.ok;
+            done();
+          });
+        });
+      });
+    });
+
     describe('enums', function() {
       it('correctly restores enum values', function(done) {
         var self = this
