@@ -549,6 +549,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ])
 
           chainer.run().success(function (results, john, task1, task2) {
+            self.tasks = [task1, task2];
             john.setTasks([task1, task2]).done(function(err) {
               expect(err).not.to.be.ok
               done()
@@ -606,6 +607,46 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
+
+      it('supports a where not in', function (done) {
+        this.User.find({
+          where: {
+            username: 'John'
+          }
+        }).success(function (john) {
+          john.getTasks({
+            where: {
+              title: {
+                not: ['Get rich']
+              }
+            }
+          }).success(function (tasks) {
+            expect(tasks).to.have.length(1)
+            done()
+          })
+        })
+      });
+
+      it('supports a where not in on the primary key', function (done) {
+        var self = this;
+
+        this.User.find({
+          where: {
+            username: 'John'
+          }
+        }).success(function (john) {
+          john.getTasks({
+            where: {
+              id: {
+                not: [self.tasks[0].get('id')]
+              }
+            }
+          }).success(function (tasks) {
+            expect(tasks).to.have.length(1)
+            done()
+          })
+        })
+      });
 
       it("only gets objects that fulfill options with a formatted value", function(done) {
         this.User.find({where: {username: 'John'}}).success(function (john) {
