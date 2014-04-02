@@ -267,7 +267,7 @@ if (program.migrate || program.undo) {
     process.exit(1)
   }
 
-  var mirationContent    = ""
+  var migrationContent    = ""
     , migrationExtension = supportsCoffee ? '.coffee' : '.js'
     , migrationName      = [
         moment().format('YYYYMMDDHHmmss'),
