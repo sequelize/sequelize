@@ -7,7 +7,7 @@ var path      = require("path")
   , moment    = require("moment")
   , _         = Sequelize.Utils._
   , url       = require("url")
-  , supportCS = undefined
+  , supportsCoffee
 
 var configuration = {
   configFile:     process.cwd() + '/config/config.json',
@@ -142,7 +142,7 @@ var readConfig = function() {
     config = config[configuration.environment]
   }
 
-  supportCS = program.coffee || config.coffee
+  supportsCoffee = program.coffee || config.coffee
 
   return config
 }
@@ -212,7 +212,7 @@ if (program.migrate || program.undo) {
     var sequelize       = new Sequelize(config.database, config.username, config.password, options)
       , migratorOptions = { path: configuration.migrationsPath }
 
-    if (supportCS) {
+    if (supportsCoffee) {
       migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
     }
 
@@ -268,13 +268,13 @@ if (program.migrate || program.undo) {
   }
 
   var mirationContent    = ""
-    , migrationExtension = supportCS ? '.coffee' : '.js'
+    , migrationExtension = supportsCoffee ? '.coffee' : '.js'
     , migrationName      = [
         moment().format('YYYYMMDDHHmmss'),
         (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
       ].join('-') + migrationExtension
 
-  if (supportCS) {
+  if (supportsCoffee) {
     migrationContent = [
       "module.exports = ",
       "  up: (migration, DataTypes, done) ->",
