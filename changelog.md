@@ -1,6 +1,6 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
-# v2.0.0-dev11
+# v2.0.0-dev11 (next)
 ### Caution: This release contains many changes and is highly experimental
 - [PERFORMANCE] increased build performance when using include, which speeds up findAll etc.
 - [BUG] Made it possible to use HSTORE both in attribute: HSTORE and attribute: { type: HSTORE } form. Thanks to @tomchentw [#1458](https://github.com/sequelize/sequelize/pull/1458)
@@ -11,6 +11,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Fix a case where createdAt timestamp would not be set when updatedAt was disabled  Thanks to @fixe [#1543](https://github.com/sequelize/sequelize/pull/1543)
 - [BUG] Fix a case where timestamps were not being write protected in `set` when underscored=true. janmeier [#1523](https://github.com/sequelize/sequelize/pull/1523)
 - [FEATURE/BUG] Prefetching/includes now fully support schemas
+- [FEATURE/BUG] hstore values are now parsed on find/findAll. Thanks to @nunofgs [#1560](https://github.com/sequelize/sequelize/pull/1560)
 
 #### Backwards compatability changes
 
