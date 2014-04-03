@@ -349,12 +349,16 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       it('creates the object with the association directly', function(done) {
         var spy = sinon.spy()
 
-        var Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
-          , Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING,
-                                                       'ArticleId': {
-                                                         type: DataTypes.INTEGER,
-                                                         allowNull: false
-                                                       }})
+        var Article = this.sequelize.define('Article', {
+          'title': DataTypes.STRING
+
+        }), Label   = this.sequelize.define('Label', {
+          'text': DataTypes.STRING,
+          'ArticleId': {
+            type: DataTypes.INTEGER,
+            allowNull: false
+          }
+        })
 
         Article.hasMany(Label)
 
@@ -362,7 +366,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Label.sync({ force: true }).success(function() {
             Article.create({ title: 'foo' }).success(function(article) {
               article.createLabel({ text: 'bar' }).on('sql', spy).complete(function(err, label) {
-                expect(err).to.not.be.ok
+                expect(err).not.to.be.ok
                 expect(spy.calledOnce).to.be.true
                 expect(label.ArticleId).to.equal(article.id)
                 done()
@@ -384,12 +388,15 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Label.sync({ force: true }).success(function() {
               Article.create({ title: 'foo' }).success(function(article) {
                 sequelize.transaction(function (t) {
-                  article.createLabel({ text: 'bar' }, { transaction: t }).success(function(label) {
-                    Label.findAll({ where: { ArticleId: article.id }}).success(function(labels) {
-                      expect(labels.length).to.equal(0)
-                      Label.findAll({ where: { ArticleId: article.id }}, { transaction: t }).success(function(labels) {
-                        expect(labels.length).to.equal(1)
-                        t.rollback().success(function() { done() })
+                  article.createLabel({ text: 'bar' }, { transaction: t }).success(function() {
+                    Label.findAll().success(function (labels) {
+                      expect(labels.length).to.equal(0);
+                      Label.findAll({ where: { ArticleId: article.id }}).success(function(labels) {
+                        expect(labels.length).to.equal(0)
+                        Label.findAll({ where: { ArticleId: article.id }}, { transaction: t }).success(function(labels) {
+                          expect(labels.length).to.equal(1)
+                          t.rollback().success(function() { done() })
+                        })
                       })
                     })
                   })
