@@ -346,6 +346,32 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('creates the object with the association directly', function(done) {
+        var spy = sinon.spy()
+
+        var Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
+          , Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING,
+                                                       'ArticleId': {
+                                                         type: DataTypes.INTEGER,
+                                                         allowNull: false
+                                                       }})
+
+        Article.hasMany(Label)
+
+        Article.sync({ force: true }).success(function() {
+          Label.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              article.createLabel({ text: 'bar' }).on('sql', spy).complete(function(err, label) {
+                expect(err).to.not.be.ok
+                expect(spy.calledOnce).to.be.true
+                expect(label.ArticleId).to.equal(article.id)
+                done()
+              })
+            })
+          })
+        })
+      })
+
       it('supports transactions', function(done) {
         var self = this
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
