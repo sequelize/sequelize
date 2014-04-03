@@ -361,9 +361,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         Article.sync({ force: true }).success(function() {
           Label.sync({ force: true }).success(function() {
             Article.create({ title: 'foo' }).success(function(article) {
-              article.createLabel({ text: 'bar' }).on('sql', spy).complete(function(err, label) {
+              article.createLabel({ text: 'bar' }).complete(function(err, label) {
                 expect(err).to.not.be.ok
-                expect(spy.calledOnce).to.be.true
                 expect(label.ArticleId).to.equal(article.id)
                 done()
               })
