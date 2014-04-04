@@ -27,6 +27,7 @@ if (dialect.match(/^postgres/)) {
       done()
     })
 
+
     it('should be able to search within an array', function(done) {
       this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
         expect(sql).to.equal('SELECT * FROM "Users" WHERE "Users"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
@@ -274,7 +275,7 @@ if (dialect.match(/^postgres/)) {
           .error(console.log)
       })
     })
-
+ 
     describe('[POSTGRES] Unquoted identifiers', function() {
       it("can insert and select", function(done) {
         var self = this

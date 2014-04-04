@@ -4,11 +4,15 @@
       <? if (!comment.ignore) { ?>
         <a name="<?= comment.name ?>" />
         <? if (comment.isConstructor) { ?>
-            ## new <?= comment.name ?>(<?= comment.paramStr ?>)
+            ### `new <?= comment.name ?>(<?= comment.paramStr ?>)`
+         <? } else if (comment.isMixin) { ?>
+            ### Mixin <?= comment.name ?>
+          <? } else if (comment.isClass) { ?>
+            ### Class <?= comment.name ?>
          <? } else if (comment.isMethod || comment.isFunction) { ?>
-            ### <?= comment.name ?>(<?= comment.paramStr ?>)
+            #### `<?= comment.name ?>(<?= comment.paramStr ?>)`
           <? } else { ?>
-            ### <?= comment.name ?>
+            #### `<?= comment.name ?>`
           <? } ?>
         <? } ?>
 
@@ -37,10 +41,6 @@
           **Deprecated** <? if (typeof comment.deprecated === "string") { ?><?- comment.deprecated ?><? } ?>
         <? } ?>
 
-        <? if (comment.author) { ?>
-          Author: <?- comment.author ?>
-        <? } ?>
-
         <? if (comment.version) { ?>
           Version: <?= comment.version ?>
         <? } ?>
@@ -49,7 +49,7 @@
         <? comment.see.forEach(function (see) { -?>
           <? if (see.url !== false) { -?>
             <? if (see.external) { -?>
-              * <a href="<?= see.url ?>"><?= see.text ?></a>
+              * <a href="<?= see.url ?>"><?= see.url ?></a>
             <? } else { -?>
               * <a href="https://github.com/sequelize/sequelize/wiki/API-Reference-<?= see.url ?>"><?= see.text ?></a>
             <? } -?>
@@ -59,32 +59,26 @@
         <? }) -?>
 
       <? if (comment.paramTags.length > 0) { ?>
-        #### Params: 
-        <table>
-          <thead>
-            <th>Name</th><th>Type</th><th>Description</th>
-          </thead>
-          <? comment.paramTags.forEach(function(paramTag) { ?>
-            <tr>
-              <td><?= paramTag.name ?></td>
-              <td><?= paramTag.joinedTypes ?></td>
-              <td><?= paramTag.description ?></td>
-            </tr>
-          <? }) ?>
-        </table>
+        ##### Params: 
+        | Name | Type | Description |
+        | ---- | ---- | ----------- |
+        <? comment.paramTags.forEach(function(paramTag) { -?>
+          | <?= paramTag.name ?> | <?= paramTag.joinedTypes ?> | <?= paramTag.description ?> |
+        <? }) ?>
       <? } ?>
 
       <? if (comment.returnTags.length > 0) { ?>
-        #### Return:
-        <? comment.returnTags.forEach(function(returnTag) { ?>
-          * **<?= returnTag.joinedTypes ?>** <?= returnTag.description ?>
-        <? }) ?>
+        __Returns:__ *<?= comment.returnTags[0].joinedTypes ?>* <?= comment.returnTags[0].description ?>
+      <? } ?>
+
+      <? if (comment.aliases) { ?>
+        __Aliases:__ *<?= comment.aliases ?>*
       <? } ?>
     <? } ?>
-    ------
+    ======
   <? }) ?>
 
-  _This document is automatically generated based on source code comments. Please do not edit it directly, as your changes will be ignored. Please write on [IRC](irc://irc.freenode.net/#sequelizejs), open an issue or a create a pull request if you feel something can be improved. For help on how to write source code documentation see [JSDoc](http://usejsdoc.org) and [markdox](https://github.com/cbou/markdox)_
+  _This document is automatically generated based on source code comments. Please do not edit it directly, as your changes will be ignored. Please write on <a href="irc://irc.freenode.net/#sequelizejs">IRC</a>, open an issue or a create a pull request if you feel something can be improved. For help on how to write source code documentation see [JSDoc](http://usejsdoc.org) and [markdox](https://github.com/cbou/markdox)_
 
   _This documentation was automagically created on <?= new Date().toString() ?>_
 

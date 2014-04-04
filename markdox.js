@@ -15,28 +15,40 @@ var getTags = function(tags, tagName) {
   });
 }
 
-// TODO multiple @see tags
 var options = {
   output: 'output.md',
   formatter: function (docfile) {
     docfile = markdox.defaultFormatter(docfile);
 
     docfile.members = [];
-    docfile.javadoc.forEach(function(javadoc, index){
+    docfile.javadoc.forEach(function(javadoc){
       // Find constructor tags
       javadoc.isConstructor = getTag(javadoc.raw.tags, 'constructor') !== undefined;
       javadoc.isMixin = getTag(javadoc.raw.tags, 'mixin') !== undefined;
       javadoc.isProperty = getTag(javadoc.raw.tags, 'property') !== undefined
       javadoc.mixes = getTags(javadoc.raw.tags, 'mixes');
       
-      // Only show params without a dot in them (dots means attributes of object, so no need to clutter the co)
+      // Only show params without a dot in them (dots means attributes of object, so no need to clutter the signature too much)
       var params = [] 
       javadoc.paramTags.forEach(function (paramTag) {
         if (paramTag.name.indexOf('.') === -1) {
           params.push(paramTag.name);
         }
+
       });
       javadoc.paramStr = params.join(', ');
+
+      // Convert | to &#124; to be able to use github flavored md tables
+      if (javadoc.paramTags) {
+        javadoc.paramTags.forEach(function (paramTag) {
+          paramTag.joinedTypes = paramTag.joinedTypes.replace(/\|/g, '&#124;')
+        });
+      }
+
+      // Handle aliases
+      javadoc.aliases = getTags(javadoc.raw.tags, 'alias').map(function (a) {
+        return a.string
+      }).join(', ')
 
       // Handle deprecation text
       if (javadoc.deprecated) {
@@ -57,14 +69,14 @@ var options = {
             _see[0] = _see[0].substring(1)
             collection[i].url = _see[0]
 
-            collection[i].text = see.local.replace(/{|}/g, '')            
+            collection[i].text = see.local.replace(/{|}/g, '')          
           } else {
             collection[i].url = false
             collection[i].text = see.local
           }
         } else {
-          collection[i].external = true
-
+          see.external = true
+          collection[i] = see
         }
       })
 
@@ -74,6 +86,9 @@ var options = {
         if (property) {
           javadoc.name = property.string
         }
+      }
+      if (javadoc.isMixin) {
+        javadoc.name = getTag(javadoc.raw.tags, 'mixin').string;
       }
 
       if (!javadoc.isClass) {
@@ -91,8 +106,7 @@ var options = {
 };
 
 markdox.process(process.argv[2] || './lib/hooks.js', options, function(){
-  md = fs.readFileSync('output.md').toString();
-
-  fs.writeFileSync('out.html', ghm.parse(md));
+  // var md = fs.readFileSync('output.md').toString();
+  // fs.writeFileSync('out.html', ghm.parse(md));
 });
 
