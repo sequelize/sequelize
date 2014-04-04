@@ -117,7 +117,7 @@ var options = {
       javadoc.mixes = getTags(javadoc.raw.tags, 'mixes').map(function (mix) {
         return {
           text: mix.string,
-          link: (mix.string.indexOf('www') !== -1 || mix.string.indexOf('http') !== -1) ? mix.string: '#API-Reference-' + mix.string
+          link: (mix.string.indexOf('www') !== -1 || mix.string.indexOf('http') !== -1) ? mix.string: 'API-Reference-' + mix.string
         }
       })
 
