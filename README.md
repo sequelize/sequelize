@@ -21,6 +21,7 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 - Promises
 - Hooks/callbacks/lifecycle events
 - Prefetching/association including
+- Transactions
 
 ### Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)

@@ -1,7 +1,30 @@
 var markdox = require('markdox')
-  , ghm = require("github-flavored-markdown")
+  , program = require('commander')
   , fs = require('fs')
   , _ = require('lodash');
+
+program
+  .version('0.0.1')
+  .option('-f, --file [file]', 'Process a single file', '')
+  .option('-a, --all', 'Process all files, generate index etc. (default if no options are specified')
+  .option('-c, --clean', 'Remove all generated markdown and HTML files')
+  .option('--html', 'Generate html files from the markdown ones (requires manual installation of the github-flavored-markdown package')
+  .parse(process.argv)
+
+
+if (program.clean) {
+  fs.readdirSync('docs/').forEach(function (file) {
+    if (file.indexOf('.ejs') === -1 && file.indexOf('.js') === -1) {
+      fs.unlinkSync ('docs/' + file);
+    }
+  })
+
+  return 
+}
+
+if (program.html) {
+  var ghm = require('github-flavored-markdown')
+}
 
 var getTag = function(tags, tagName) {
   return _.find(tags, function (tag) {
@@ -16,7 +39,6 @@ var getTags = function(tags, tagName) {
 }
 
 var options = {
-  output: 'output.md',
   formatter: function (docfile) {
     docfile = markdox.defaultFormatter(docfile);
 
@@ -26,7 +48,7 @@ var options = {
       javadoc.isConstructor = getTag(javadoc.raw.tags, 'constructor') !== undefined;
       javadoc.isMixin = getTag(javadoc.raw.tags, 'mixin') !== undefined;
       javadoc.isProperty = getTag(javadoc.raw.tags, 'property') !== undefined
-      javadoc.mixes = getTags(javadoc.raw.tags, 'mixes');
+      javadoc.private = getTag(javadoc.raw.tags, 'private') !== undefined
       
       // Only show params without a dot in them (dots means attributes of object, so no need to clutter the signature too much)
       var params = [] 
@@ -36,7 +58,7 @@ var options = {
         }
 
       });
-      javadoc.paramStr = params.join(', ');
+      javadoc.paramStr = (javadoc.isMethod || javadoc.isFunction) ? '(' + params.join(', ') + ')' : '';
 
       // Convert | to &#124; to be able to use github flavored md tables
       if (javadoc.paramTags) {
@@ -67,7 +89,7 @@ var options = {
           if (see.local.indexOf('{') === 0){
             var _see = see.local.split('}')
             _see[0] = _see[0].substring(1)
-            collection[i].url = _see[0]
+            collection[i].url = 'API-Reference-'  + _see[0]
 
             collection[i].text = see.local.replace(/{|}/g, '')          
           } else {
@@ -76,6 +98,7 @@ var options = {
           }
         } else {
           see.external = true
+          see.text = see.url
           collection[i] = see
         }
       })
@@ -91,22 +114,57 @@ var options = {
         javadoc.name = getTag(javadoc.raw.tags, 'mixin').string;
       }
 
+      javadoc.mixes = getTags(javadoc.raw.tags, 'mixes').map(function (mix) {
+        return {
+          text: mix.string,
+          link: (mix.string.indexOf('www') !== -1 || mix.string.indexOf('http') !== -1) ? mix.string: '#API-Reference-' + mix.string
+        }
+      })
+
       if (!javadoc.isClass) {
         if (!javadoc.isProperty) {
-          docfile.members.push(javadoc.name + '(' + javadoc.paramStr + ')')
+          docfile.members.push({
+            text: javadoc.name + javadoc.paramStr,
+            link: '#' + javadoc.name
+          })
         } else {
-          docfile.members.push(javadoc.name)
+          docfile.members.push({
+            text: javadoc.name,
+            link: '#' + javadoc.name
+          })
         }
       }
     });
 
     return docfile;
   },
-  template: 'output.md.ejs'
+  template: 'docs/output.md.ejs'
 };
 
-markdox.process(process.argv[2] || './lib/hooks.js', options, function(){
-  // var md = fs.readFileSync('output.md').toString();
-  // fs.writeFileSync('out.html', ghm.parse(md));
-});
+var files;
+if (program.file) {
+  files = [{file: program.file, output: 'tmp'}]
+} else {
+  files = [
+    {file:'lib/sequelize.js', output: 'API-Reference-Sequelize'},
+    {file:'lib/dao.js', output: 'API-Reference-DAO'},
+    {file:'lib/dao-factory.js', output: 'API-Reference-DAOFactory'},
+    {file:'lib/query-chainer.js', output: 'API-Reference-QueryChainer'},
+    {file:'lib/emitters/custom-event-emitter.js', output: 'API-Reference-EventEmitter'},
+    {file:'lib/hooks.js', output: 'API-Reference-Hooks'},
+    {file:'lib/associations/mixin.js', output: 'API-Reference-Associations'}
+  ];
+}
 
+files.forEach(function (file) {
+  var opts = _.clone(options)
+    , output = 'docs/' + file.output + '.md'
+
+  opts.output = output
+  markdox.process(file.file, opts, function(){
+    if (program.html) {
+      var md = fs.readFileSync(output).toString();
+      fs.writeFileSync(output.replace('md', 'html'), ghm.parse(md))
+    }
+  });
+})

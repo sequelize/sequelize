@@ -14,7 +14,7 @@ var chai      = require('chai')
   , async     = require('async')
 
 chai.use(datetime)
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function(done) {

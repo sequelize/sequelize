@@ -5,7 +5,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , hstore    = require(__dirname + '/../../lib/dialects/postgres/hstore')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] hstore', function() {
@@ -90,6 +90,11 @@ if (dialect.match(/^postgres/)) {
     })
 
     describe('parse', function() {
+      it('should handle null objects correctly', function(done) {
+        expect(hstore.parse(null)).to.deep.equal({ })
+        done()
+      })
+
       it('should handle empty objects correctly', function(done) {
         expect(hstore.parse('')).to.deep.equal({ })
         done()

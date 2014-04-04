@@ -7,7 +7,7 @@ var path      = require("path")
   , moment    = require("moment")
   , _         = Sequelize.Utils._
   , url       = require("url")
-  , supportCS = undefined
+  , supportsCoffee
 
 var configuration = {
   configFile:     process.cwd() + '/config/config.json',
@@ -142,6 +142,8 @@ var readConfig = function() {
     config = config[configuration.environment]
   }
 
+  supportsCoffee = program.coffee || config.coffee
+
   return config
 }
 
@@ -168,21 +170,6 @@ if(typeof program.config === 'string') {
 
 if(typeof program.env === 'string') {
   configuration.environment = program.env
-}
-
-var supportCoffeeScript = function() {
-  if (supportCS === undefined) {
-    try {
-      config = readConfig()
-    } catch(e) {
-      console.log(e.message)
-      process.exit(1)
-    }
-
-    supportCS = program.coffee || config.coffee
-  }
-
-  return supportCS
 }
 
 if (program.migrate || program.undo) {
@@ -225,7 +212,7 @@ if (program.migrate || program.undo) {
     var sequelize       = new Sequelize(config.database, config.username, config.password, options)
       , migratorOptions = { path: configuration.migrationsPath }
 
-    if (supportCoffeeScript()) {
+    if (supportsCoffee) {
       migratorOptions = _.merge(migratorOptions, { filesFilter: /\.js$|\.coffee$/ })
     }
 
@@ -272,14 +259,22 @@ if (program.migrate || program.undo) {
 } else if(program.createMigration) {
   createMigrationsFolder()
 
-  var mirationContent    = ""
-    , migrationExtension = (supportCoffeeScript()) ? '.coffee' : '.js'
+  var config;
+  try {
+    config = readConfig()
+  } catch(e) {
+    console.log(e.message)
+    process.exit(1)
+  }
+
+  var migrationContent    = ""
+    , migrationExtension = supportsCoffee ? '.coffee' : '.js'
     , migrationName      = [
         moment().format('YYYYMMDDHHmmss'),
         (typeof program.createMigration === 'string') ? program.createMigration : 'unnamed-migration'
       ].join('-') + migrationExtension
 
-  if (supportCoffeeScript()) {
+  if (supportsCoffee) {
     migrationContent = [
       "module.exports = ",
       "  up: (migration, DataTypes, done) ->",

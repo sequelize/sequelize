@@ -4,7 +4,8 @@ var chai        = require('chai')
   , Transaction = require(__dirname + '/../lib/transaction')
 
 describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
-  this.timeout(4000);
+  this.timeout(4000)
+
   describe('success', function() {
     it("gets triggered once a transaction has been successfully committed", function(done) {
       this
@@ -144,6 +145,53 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                 })
             })
           })
+      })
+    })
+  })
+
+  describe('concurrency', function() {
+    describe('having tables with uniqueness constraints', function() {
+      beforeEach(function(done) {
+        var self = this
+
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          self.sequelize = sequelize
+
+          self.Model = sequelize.define('Model', {
+            name: { type: Support.Sequelize.STRING, unique: true }
+          }, {
+            timestamps: false
+          })
+
+          self.Model
+            .sync({ force: true })
+            .success(function() { done() })
+        })
+      })
+
+      it("triggers the error event for the second transactions", function(done) {
+        var self = this
+
+        this.sequelize.transaction(function(t1) {
+          self.sequelize.transaction(function(t2) {
+            self
+              .Model
+              .create({ name: 'omnom' }, { transaction: t1 })
+              .success(function(m1) {
+                self
+                  .Model
+                  .create({ name: 'omnom' }, { transaction: t2 })
+                  .error(function(err) {
+                    t2.rollback().success(function() {
+                      expect(err).to.be.defined
+                      done()
+                    })
+                  })
+
+                setTimeout(function() { t1.commit() }, 100)
+              })
+          })
+        })
       })
     })
   })

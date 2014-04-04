@@ -8,7 +8,7 @@ var chai      = require('chai')
   , moment    = require('moment')
   , QueryGenerator = require("../../lib/dialects/sqlite/query-generator")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', function() {
@@ -473,7 +473,7 @@ if (dialect === 'sqlite') {
     _.each(suites, function(tests, suiteTitle) {
       describe(suiteTitle, function() {
         tests.forEach(function(test) {
-          var title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
+          var title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments)
           it(title, function(done) {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};

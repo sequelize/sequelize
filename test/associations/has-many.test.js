@@ -8,7 +8,7 @@ var chai      = require('chai')
   , moment    = require('moment')
   , sinon     = require('sinon')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("HasMany"), function() {
   describe("Model.associations", function () {
@@ -127,7 +127,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         this.Article.hasMany(this.Label)
 
-        this.sequelize.sync({ force: true }).success(function() {
+        this.sequelize.sync({ force: true }).done(function(err) {
+          expect(err).not.to.be.ok
           done()
         })
       })
@@ -139,7 +140,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           Article.hasMany(Label)
 
-          sequelize.sync({ force: true }).success(function() {
+          sequelize.sync({ force: true }).done(function(err) {
+            expect(err).not.to.be.ok
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
                 sequelize.transaction(function(t) {
@@ -344,6 +346,36 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('creates the object with the association directly', function(done) {
+        var spy = sinon.spy()
+
+        var Article = this.sequelize.define('Article', {
+          'title': DataTypes.STRING
+
+        }), Label   = this.sequelize.define('Label', {
+          'text': DataTypes.STRING,
+          'ArticleId': {
+            type: DataTypes.INTEGER,
+            allowNull: false
+          }
+        })
+
+        Article.hasMany(Label)
+
+        Article.sync({ force: true }).success(function() {
+          Label.sync({ force: true }).success(function() {
+            Article.create({ title: 'foo' }).success(function(article) {
+              article.createLabel({ text: 'bar' }).on('sql', spy).complete(function(err, label) {
+                expect(err).not.to.be.ok
+                expect(spy.calledOnce).to.be.true
+                expect(label.ArticleId).to.equal(article.id)
+                done()
+              })
+            })
+          })
+        })
+      })
+
       it('supports transactions', function(done) {
         var self = this
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
@@ -356,12 +388,15 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             Label.sync({ force: true }).success(function() {
               Article.create({ title: 'foo' }).success(function(article) {
                 sequelize.transaction(function (t) {
-                  article.createLabel({ text: 'bar' }, { transaction: t }).success(function(label) {
-                    Label.findAll({ where: { ArticleId: article.id }}).success(function(labels) {
-                      expect(labels.length).to.equal(0)
-                      Label.findAll({ where: { ArticleId: article.id }}, { transaction: t }).success(function(labels) {
-                        expect(labels.length).to.equal(1)
-                        t.rollback().success(function() { done() })
+                  article.createLabel({ text: 'bar' }, { transaction: t }).success(function() {
+                    Label.findAll().success(function (labels) {
+                      expect(labels.length).to.equal(0);
+                      Label.findAll({ where: { ArticleId: article.id }}).success(function(labels) {
+                        expect(labels.length).to.equal(0)
+                        Label.findAll({ where: { ArticleId: article.id }}, { transaction: t }).success(function(labels) {
+                          expect(labels.length).to.equal(1)
+                          t.rollback().success(function() { done() })
+                        })
                       })
                     })
                   })
@@ -547,6 +582,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ])
 
           chainer.run().success(function (results, john, task1, task2) {
+            self.tasks = [task1, task2];
             john.setTasks([task1, task2]).done(function(err) {
               expect(err).not.to.be.ok
               done()
@@ -605,6 +641,46 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('supports a where not in', function (done) {
+        this.User.find({
+          where: {
+            username: 'John'
+          }
+        }).success(function (john) {
+          john.getTasks({
+            where: {
+              title: {
+                not: ['Get rich']
+              }
+            }
+          }).success(function (tasks) {
+            expect(tasks).to.have.length(1)
+            done()
+          })
+        })
+      });
+
+      it('supports a where not in on the primary key', function (done) {
+        var self = this;
+
+        this.User.find({
+          where: {
+            username: 'John'
+          }
+        }).success(function (john) {
+          john.getTasks({
+            where: {
+              id: {
+                not: [self.tasks[0].get('id')]
+              }
+            }
+          }).success(function (tasks) {
+            expect(tasks).to.have.length(1)
+            done()
+          })
+        })
+      });
+
       it("only gets objects that fulfill options with a formatted value", function(done) {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks({where: ['active = ?', true]}).success(function (tasks) {
@@ -615,7 +691,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       it("get associated objects with an eager load", function(done) {
-        this.User.find({where: {username: 'John'}, include: [ this.Task ]}).success(function (john) {
+        this.User.find({where: {username: 'John'}, include: [ this.Task ]}).done(function (err, john) {
+          expect(err).not.to.be.ok
           expect(john.tasks).to.have.length(2);
           done();
         })
@@ -1730,6 +1807,25 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             done()
           }
         })
+      })
+    })
+
+    it('infers the keyType if none provided', function(done) {
+      var User = this.sequelize.define('User', {
+        id: { type: DataTypes.STRING, primaryKey: true },
+        username: DataTypes.STRING
+      })
+      , Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING
+      })
+
+      User.hasMany(Task)
+
+      this.sequelize.sync({ force: true }).success(function() {
+        expect(Task.rawAttributes.UserId.type)
+          .to.equal(DataTypes.STRING)
+
+        done()
       })
     })
   })
