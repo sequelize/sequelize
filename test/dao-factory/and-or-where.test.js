@@ -14,7 +14,7 @@ var chai      = require('chai')
   , async     = require('async')
 
 chai.use(datetime)
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function(done) {
@@ -59,10 +59,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           where: Sequelize[method]( { username: "foo", intVal: 2 }, { secretValue: 'bar' } )
         }).on('sql', function(sql) {
           var expectation = ({
-            mysql: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')",
-            sqlite: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')",
-            postgres: 'WHERE ("Users"."username"=\'foo\' AND "Users"."intVal"=2 ' + word + ' "Users"."secretValue"=\'bar\')',
-            mariadb: "WHERE (`Users`.`username`='foo' AND `Users`.`intVal`=2 " + word + " `Users`.`secretValue`='bar')"
+            mysql: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
+            sqlite: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
+            postgres: 'WHERE ("User"."username"=\'foo\' AND "User"."intVal"=2 ' + word + ' "User"."secretValue"=\'bar\')',
+            mariadb: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')"
           })[Support.getTestDialect()]
 
           if (!expectation) {
@@ -81,10 +81,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           where: Sequelize[method]( 1, 2 )
         }).on('sql', function(sql) {
           var expectation = ({
-            mysql: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)",
-            sqlite: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)",
-            postgres: 'WHERE ("Users"."id"=1 ' + word + ' "Users"."id"=2)',
-            mariadb: "WHERE (`Users`.`id`=1 " + word + " `Users`.`id`=2)"
+            mysql: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
+            sqlite: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
+            postgres: 'WHERE ("User"."id"=1 ' + word + ' "User"."id"=2)',
+            mariadb: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)"
           })[Support.getTestDialect()]
 
           if (!expectation) {
@@ -110,11 +110,55 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('allows nesting of Sequelize.or using object notation', function(done) {
+      this.User.find({
+        where: Sequelize.and( Sequelize.or({username: {eq: "foo"}}, {username: {eq:"bar"}}), 
+                              Sequelize.or({id: {eq: 1}}, {id: {eq:4}}) )
+      }).on('sql', function(sql) {
+        var expectation = ({
+          mysql: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
+          sqlite: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
+          postgres: 'WHERE (("User"."username" = \'foo\' OR "User"."username" = \'bar\') AND ("User"."id" = 1 OR "User"."id" = 4)) LIMIT 1',
+          mariadb: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1"
+        })[Support.getTestDialect()]
+
+        if (!expectation) {
+          console.log(sql)
+          throw new Error('Undefined expectation for ' + Support.getTestDialect())
+        }
+
+        expect(sql).to.contain(expectation)
+        done()
+      })
+    })
+
     it('allows nesting of Sequelize.and', function(done) {
       this.User.find({
         where: Sequelize.or( Sequelize.and("1=1", "2=2"), Sequelize.and("3=3", "4=4") )
       }).on('sql', function(sql) {
         expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4)) LIMIT 1")
+        done()
+      })
+    })
+
+    it('allows nesting of Sequelize.and using object notation', function(done) {
+      this.User.find({
+        where: Sequelize.or( Sequelize.and({username: {eq: "foo"}}, {username: {eq:"bar"}}), 
+                              Sequelize.and({id: {eq: 1}}, {id: {eq:4}}) )
+      }).on('sql', function(sql) {
+        var expectation = ({
+          mysql: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
+          sqlite: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
+          postgres: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4)) LIMIT 1',
+          mariadb: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1"
+        })[Support.getTestDialect()]
+
+        if (!expectation) {
+          console.log(sql)
+          throw new Error('Undefined expectation for ' + Support.getTestDialect())
+        }
+
+        expect(sql).to.contain(expectation)
         done()
       })
     })
@@ -150,16 +194,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           if (Support.getTestDialect() === 'postgres') {
             expect(sql).to.contain(
               'WHERE (' + [
-                '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
+                '"User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\' AND ',
                   '(',
-                    '"Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\' OR ',
-                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\') OR ',
-                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\')',
+                    '"User"."id"=42 OR 2=2 OR 1=1 OR "User"."username"=\'foo\' OR ',
+                    '("User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\') OR ',
+                    '("User"."id"=42 OR 2=2 OR 1=1 OR "User"."username"=\'foo\')',
                   ') AND ',
                   '(',
-                    '"Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\' AND ',
-                    '("Users"."id"=42 OR 2=2 OR 1=1 OR "Users"."username"=\'foo\') AND ',
-                    '("Users"."id"=42 AND 2=2 AND 1=1 AND "Users"."username"=\'foo\')',
+                    '"User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\' AND ',
+                    '("User"."id"=42 OR 2=2 OR 1=1 OR "User"."username"=\'foo\') AND ',
+                    '("User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\')',
                   ')'
                 ].join("") +
               ')'
@@ -167,16 +211,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           } else {
             expect(sql).to.contain(
               "WHERE (" + [
-                "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
+                "`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo' AND ",
                   "(",
-                    "`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo' OR ",
-                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo') OR ",
-                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo')",
+                    "`User`.`id`=42 OR 2=2 OR 1=1 OR `User`.`username`='foo' OR ",
+                    "(`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo') OR ",
+                    "(`User`.`id`=42 OR 2=2 OR 1=1 OR `User`.`username`='foo')",
                   ") AND ",
                   "(",
-                    "`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo' AND ",
-                    "(`Users`.`id`=42 OR 2=2 OR 1=1 OR `Users`.`username`='foo') AND ",
-                    "(`Users`.`id`=42 AND 2=2 AND 1=1 AND `Users`.`username`='foo')",
+                    "`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo' AND ",
+                    "(`User`.`id`=42 OR 2=2 OR 1=1 OR `User`.`username`='foo') AND ",
+                    "(`User`.`id`=42 AND 2=2 AND 1=1 AND `User`.`username`='foo')",
                   ")"
                 ].join("") +
               ")"

@@ -7,7 +7,7 @@ var chai      = require('chai')
   , Sequelize = Support.Sequelize
   , sinon     = require('sinon')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Hooks"), function () {
   describe('#validate', function() {

@@ -5,7 +5,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , _         = require('lodash')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Promise"), function () {
   beforeEach(function(done) {
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
                     .then(function() {
                       return Book
                         .find({
-                          where: (dialect === 'postgres' ? '"Books"."id"=' : '`Books`.`id`=') + book.id,
+                          where: (dialect === 'postgres' ? '"Book"."id"=' : '`Book`.`id`=') + book.id,
                           include: [Page]
                         })
                         .then(function (leBook) {

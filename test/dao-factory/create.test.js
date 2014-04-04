@@ -14,7 +14,7 @@ var chai      = require('chai')
   , async     = require('async')
 
 chai.use(datetime)
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function(done) {
@@ -130,6 +130,55 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('create', function() {
+    it('works with non-integer primary keys with a default value', function (done) {
+      var User = this.sequelize.define('User', {
+        'id': {
+          primaryKey: true,
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4
+        },
+        'email': {
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4
+        }
+      })
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok
+        User.create({}).done(function (err, user) {
+          expect(err).not.to.be.ok
+          expect(user).to.be.ok
+          expect(user.id).to.be.ok
+          done()
+        })
+      })
+    })
+
+    it('should return an error for a unique constraint error', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: DataTypes.STRING,
+          unique: { name: 'email', msg: 'Email is already registered.' },
+          validate: {
+            notEmpty: true,
+            isEmail: true
+          }
+        }
+      })
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok
+        User.create({email: 'hello@sequelize.com'}).done(function (err) {
+          expect(err).not.to.be.ok
+          User.create({email: 'hello@sequelize.com'}).done(function (err) {
+            expect(err).to.be.ok
+            expect(err).to.be.an.instanceof(Error)
+            done()
+          })
+        })
+      })
+    })
+
     it('supports transactions', function(done) {
       var self = this
 
@@ -273,9 +322,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         })
 
-        userWithDefaults.sync({force: true}).success(function () {
-          userWithDefaults.create({}).success(function (user) {
-            userWithDefaults.find(user.id).success(function (user) {
+        userWithDefaults.sync({force: true}).done(function (err) {
+          expect(err).not.to.be.ok
+          userWithDefaults.create({}).done(function (err, user) {
+            expect(err).not.to.be.ok
+            userWithDefaults.find(user.id).done(function (err, user) {
+              expect(err).not.to.be.ok
               var now = new Date()
                 , pad = function (number) {
                   if (number > 9) {
@@ -436,7 +488,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               done()
             })
           })
-  }).error(done)
+        }).error(done)
       })
     })
 
@@ -664,6 +716,39 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it('should only set passed fields', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: DataTypes.STRING
+        },
+        'name': {
+          type: DataTypes.STRING
+        }
+      })
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok;
+
+        User.create({
+          name: 'Yolo Bear',
+          email: 'yolo@bear.com'
+        }, {
+          fields: ['name']
+        }).done(function (err, user) {
+          expect(err).not.to.be.ok;
+          expect(user.name).to.be.ok;
+          expect(user.email).not.to.be.ok;
+
+          User.find(user.id).done(function (err, user) {
+            expect(err).not.to.be.ok;
+            expect(user.name).to.be.ok;
+            expect(user.email).not.to.be.ok;
+            done();
+          });
+        });
+      });
+    });
 
     describe('enums', function() {
       it('correctly restores enum values', function(done) {

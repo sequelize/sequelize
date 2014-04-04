@@ -5,7 +5,7 @@ var chai      = require('chai')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , Sequelize = require('../../index')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   describe("Model.associations", function () {

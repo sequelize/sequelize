@@ -5,7 +5,7 @@ var chai      = require('chai')
   , sinon     = require('sinon')
   , CustomEventEmitter = require("../../lib/emitters/custom-event-emitter")
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("CustomEventEmitter"), function () {
   describe("proxy", function () {

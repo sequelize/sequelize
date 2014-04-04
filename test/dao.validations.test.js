@@ -5,7 +5,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/support')
   , config    = require(__dirname + '/config/config')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("DaoValidator"), function() {
   describe('validations', function() {
@@ -162,10 +162,6 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         fail: "22",
         pass: "23"
       }
-    // , isArray: {
-    //     fail: 22,
-    //     pass: [22]
-    //   }
     , isCreditCard: {
         fail: "401288888888188f",
         pass: "4012888888881881"
@@ -196,7 +192,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           var failingUser = UserFail.build({ name : failingValue })
 
           failingUser.validate().done( function(err, _errors) {
-            expect(_errors).to.not.be.null
+            expect(_errors).not.to.be.null
             expect(_errors).to.be.an.instanceOf(Error)
             expect(_errors.name[0].message).to.equal(message)
             done()
@@ -239,8 +235,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         var validatorDetails = checks[validator]
 
         if (!validatorDetails.hasOwnProperty("raw")) {
-          validatorDetails.fail = [ validatorDetails.fail ]
-          validatorDetails.pass = [ validatorDetails.pass ]
+          validatorDetails.fail = Array.isArray(validatorDetails.fail) ? validatorDetails.fail : [ validatorDetails.fail ]
+          validatorDetails.pass = Array.isArray(validatorDetails.pass) ? validatorDetails.pass : [ validatorDetails.pass ]
         }
 
         for (var i = 0; i < validatorDetails.fail.length; i++) {
@@ -758,8 +754,53 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       expect(user.getDataValue('name')).to.equal('RedCat')
  
       user.setDataValue('name','YellowCat')
-      user.validate().done(function(errors){
-        expect(errors).to.be.null
+      user.validate().success(function(errors) {
+        expect(errors).not.to.be.ok
+        done()
+      })
+    })
+
+    it('raises an error for array on a STRING', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: Sequelize.STRING
+        }
+      })
+
+      User.build({
+        email: ['iama', 'dummy.com']
+      }).validate().success(function (errors) {
+        expect(errors.email[0]).to.be.an.instanceof(Sequelize.ValidationError)
+        done()
+      })
+    })
+
+    it('raises an error for {} on a STRING', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: Sequelize.STRING
+        }
+      })
+
+      User.build({
+        email: {lol: true}
+      }).validate().success(function (errors) {
+        expect(errors.email[0]).to.be.an.instanceof(Sequelize.ValidationError)
+        done()
+      })
+    })
+
+    it('does not raise an error for null on a STRING (where null is allowed)', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: Sequelize.STRING
+        }
+      })
+
+      User.build({
+        email: null
+      }).validate().success(function (errors) {
+        expect(errors).not.to.be.ok
         done()
       })
     })

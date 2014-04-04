@@ -46,14 +46,14 @@
     "lingo": "~0.0.5",
     "validator": "~3.2.0",
     "moment": "~2.5.0",
-    "dottie": "0.2.0",
+    "dottie": "0.2.1",
     "toposort-class": "~0.3.0",
     "generic-pool": "2.0.4",
     "sql": "~0.35.0",
     "circular-json": "~0.1.5",
     "bluebird": "~0.11.5",
     "node-uuid": "~1.4.1",
-    "markdox": "git+http://github.com/cbou/markdox.git"
+    "markdox": "0.1.4"
   },
   "devDependencies": {
     "sqlite3": "~2.1.12",
@@ -74,6 +74,9 @@
   },
   "keywords": [
     "mysql",
+    "sqlite",
+    "postgresql",
+    "postgres",
     "orm",
     "nodejs",
     "object relational mapper"

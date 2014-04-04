@@ -12,7 +12,7 @@ var chai        = require('chai')
   , path        = require('path')
   , sinon       = require('sinon')
 
-chai.Assertion.includeStack = true
+chai.config.includeStack = true
 
 var qq = function(str) {
   if (dialect == 'postgres' || dialect == 'sqlite') {

@@ -9,3 +9,5 @@ test/binary/tmp/*
 test/tmp/*
 test/sqlite/test.sqlite
 coverage-*
+docs/*.md
+docs/*.html
