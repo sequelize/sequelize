@@ -454,7 +454,9 @@ if (os.type().toLowerCase().indexOf('windows') === -1) {
         describe(flag, function() {
           it("using options file instead of cli switches", function(done) {
             exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
-              exec( "../../bin/sequelize --init "+flag+" ../../config/options.json" , { cwd: __dirname + '/tmp' }, function() {
+              var _path = path.resolve(__dirname, 'config', 'options.js')
+
+              exec("../../bin/sequelize --init " + flag + " " + _path, { cwd: __dirname + '/tmp' }, function(err, stdout) {
                 exec("ls -ila", { cwd: __dirname + '/tmp' }, function(err, stdout) {
                   expect(stdout).to.include('db')
                   done()
@@ -465,8 +467,6 @@ if (os.type().toLowerCase().indexOf('windows') === -1) {
         });
 
       })
-    })(['--cli-options', '-o'])
-
+    })(['--options-path', '-o'])
   })
-
 }

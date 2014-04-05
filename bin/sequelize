@@ -16,15 +16,16 @@ var configuration = {
   migrationsPath: process.cwd() + '/migrations'
 }
 
-var loadDefaultOptions = function(path){
-  try{
-    options = require(process.cwd()+'/'+path);
-    for (var key in options){
-      program[key] = options[key];
-    }
-  }catch(e){
+var loadDefaultOptions = function(pathToOptionsFile) {
+  try {
+    var options = require(path.resolve(process.cwd(), '/', pathToOptionsFile))
+
+    Object.keys(options).forEach(function(key) {
+      program[key] = options[key]
+    })
+  } catch(e) {
     console.log(e);
-    throw new Error('Error reading "' + path + '".')
+    throw new Error('Error reading "' + pathToOptionsFile + '".')
   }
 }
 
@@ -94,23 +95,27 @@ var createMigrationsFolder = function(force) {
   }
 
   try {
-    mkdirp(configuration.migrationsPath);
+    mkdirp(configuration.migrationsPath)
     console.log('Successfully created migrations folder at "' + configuration.migrationsPath + '".')
   } catch(e) {
   }
 }
 
 var mkdirp = function (path, root) {
+  var dirs = path.split('/')
+    , dir  = dirs.shift()
+    , root = (root || '') + dir + '/'
 
-  var dirs = path.split('/'), dir = dirs.shift(), root = (root||'')+dir+'/';
-
-  try { fs.mkdirSync(root); }
-  catch (e) {
-    //dir wasn't made, something went wrong
-    if(!fs.statSync(root).isDirectory()) throw new Error(e);
+  try {
+    fs.mkdirSync(root)
+  } catch (e) {
+    // dir wasn't made, something went wrong
+    if (!fs.statSync(root).isDirectory()) {
+      throw new Error(e)
+    }
   }
 
-  return !dirs.length||mkdirp(dirs.join('/'), root);
+  return !dirs.length || mkdirp(dirs.join('/'), root)
 }
 
 
@@ -183,13 +188,13 @@ program
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
   .option('-p, --migrations-path <migration-path>', 'migration directory path.')
   .option('-U, --url <url>', 'Database url.  An alternative to a config file')
-  .option('-o,--cli-options <options_file>', 'Specifies lib options from file.')
+  .option('-o,--options-path <options_file>', 'Specifies lib options from file.')
   .option('--config <config_file>', 'Specifies alternate config file.')
   .option('--coffee', 'Consider coffee script files as migration source.')
   .parse(process.argv)
 
-if(typeof program.cliOptions === 'string') {
-  loadDefaultOptions(program.cliOptions);
+if(typeof program.optionsPath === 'string') {
+  loadDefaultOptions(program.optionsPath);
 }
 
 if(typeof program.config === 'string') {
@@ -343,4 +348,3 @@ if (program.migrate || program.undo) {
 } else {
   console.log('No action specified. Try "sequelize --help" for usage information.')
 }
-
