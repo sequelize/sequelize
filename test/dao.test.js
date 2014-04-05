@@ -780,6 +780,15 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('only validates fields in passed array', function (done) {
+      this.User.build({
+        validateTest: 'cake', // invalid, but not saved
+        validateCustom: '1'
+      }).save(['validateCustom']).success(function () {
+        done()
+      })
+    })
+
     it("stores an entry in the database", function(done) {
       var username = 'user'
         , User     = this.User
