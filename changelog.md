@@ -12,6 +12,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Fix a case where timestamps were not being write protected in `set` when underscored=true. janmeier [#1523](https://github.com/sequelize/sequelize/pull/1523)
 - [FEATURE/BUG] Prefetching/includes now fully support schemas
 - [FEATURE/BUG] hstore values are now parsed on find/findAll. Thanks to @nunofgs [#1560](https://github.com/sequelize/sequelize/pull/1560)
+- [FEATURE] Read cli options from a file. Thanks to @codeinvain  [#1540](https://github.com/sequelize/sequelize/pull/1540)
 
 #### Backwards compatability changes
 
@@ -465,4 +466,3 @@ None
 - first stable version
 - implemented all basic functions
 - associations are working
-
