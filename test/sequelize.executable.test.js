@@ -67,6 +67,17 @@ if (os.type().toLowerCase().indexOf('windows') === -1) {
             })
           })(['config', 'migrations'])
 
+          it("creates a custom migrations folder", function(done) {
+            exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
+              exec("../../bin/sequelize --init -p ./db/migrate", { cwd: __dirname + '/tmp' }, function() {
+                exec("ls -ila", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+                  expect(stdout).to.include('db')
+                  done()
+                })
+              })
+            })
+          })
+
           it("creates a config.json file", function(done) {
             exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
               exec("../../bin/sequelize --init", { cwd: __dirname + '/tmp' }, function() {
@@ -93,6 +104,8 @@ if (os.type().toLowerCase().indexOf('windows') === -1) {
               })
             })
           })
+
+
         })
       })
     })(['--init', '-i'])
@@ -435,6 +448,25 @@ if (os.type().toLowerCase().indexOf('windows') === -1) {
         })
       })
     })(['--url', '-U'])
+
+    ;(function(flags) {
+      flags.forEach(function(flag) {
+        describe(flag, function() {
+          it("using options file instead of cli switches", function(done) {
+            exec("rm -rf ./*", { cwd: __dirname + '/tmp' }, function() {
+              exec( "../../bin/sequelize --init "+flag+" ../../config/options.json" , { cwd: __dirname + '/tmp' }, function() {
+                exec("ls -ila", { cwd: __dirname + '/tmp' }, function(err, stdout) {
+                  expect(stdout).to.include('db')
+                  done()
+                })
+              })
+            })
+          })
+        });
+
+      })
+    })(['--cli-options', '-o'])
+
   })
 
 }
