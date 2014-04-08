@@ -557,7 +557,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
               return User.findAll()
                 .then(function () {
                   if (val === "error") {
-                    throw new Error("test error")
+                    throw new Error("Invalid username")
                   }
                 })
             }
@@ -570,7 +570,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       failingUser.validate().success(function(error) {
         expect(error).to.be.an.instanceOf(Error)
 
-        expect(error.name[0].message).to.equal("test error")
+        expect(error.name[0].message).to.equal("Invalid username")
 
         var successfulUser = User.build({ name : "no error" })
         successfulUser.validate().success(function() {
