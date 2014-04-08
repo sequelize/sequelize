@@ -554,7 +554,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           type: Sequelize.STRING,
           validate: {
             customFn: function(val) {
-              User.findAll()
+              return User.findAll()
                 .then(function () {
                   if (val === "error") {
                     throw new Error("test error")
