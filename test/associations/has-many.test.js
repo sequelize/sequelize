@@ -701,16 +701,16 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       it("get associated objects with an eager load with conditions but not required", function(done) {
         var Label = this.sequelize.define('Label', { 'title': DataTypes.STRING, 'isActive': DataTypes.BOOLEAN })
           , Task = this.Task
+          , User = this.User
 
         Task.hasMany(Label)
-        Label.hasMany(Task)
 
         Label.sync({ force: true }).success(function() {
-          this.User.find({
+          User.find({
             where: { username: 'John'},
             include: [
-              { model: this.Task, required: false, include: [
-                { model: this.Label, required: false, where: { active: 1 } }
+              { model: Task, required: false, include: [
+                { model: Label, required: false, where: { isActive: 1 } }
               ]}
             ]
           }).done(function (err, john) {
