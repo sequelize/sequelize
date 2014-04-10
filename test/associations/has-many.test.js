@@ -710,7 +710,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             where: { username: 'John'},
             include: [
               { model: Task, required: false, include: [
-                { model: Label, required: false, where: { isActive: 1 } }
+                { model: Label, required: false, where: { isActive: true } }
               ]}
             ]
           }).done(function (err, john) {
