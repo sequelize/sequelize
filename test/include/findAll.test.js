@@ -5,12 +5,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
-  , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + "/../config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
-  , _         = require('lodash')
-  , moment    = require('moment')
   , async     = require('async')
 
 chai.use(datetime)
@@ -398,7 +393,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                   ]
                 }).done(function (err, users) {
                   expect(err).not.to.be.ok
-                  users.forEach(function (user, i) {
+                  users.forEach(function (user) {
                     user.memberships.sort(sortById)
 
                     expect(user.memberships.length).to.equal(2)
@@ -473,9 +468,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           },
           singleChain: function (callback) {
             var previousInstance
-              , previousModel
 
-            async.eachSeries(singles, function (model, callback, i) {
+            async.eachSeries(singles, function (model, callback) {
               model.create({}).done(function (err, instance) {
                 if (previousInstance) {
                   previousInstance["set"+model.name](instance).done(function () {
@@ -666,7 +660,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           Product.findAll({
@@ -716,7 +710,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           userGroups: ['users', 'groups', function (callback, results) {
             results.users[2].setGroup(results.groups[1]).done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -762,7 +756,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[1].setGroup(results.groups[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -809,7 +803,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[1].setGroup(results.groups[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -874,7 +868,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -944,7 +938,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1014,7 +1008,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1066,7 +1060,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[0].setLeaderOf(results.projects[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1132,7 +1126,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           Product.findAll({
@@ -1361,7 +1355,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[3].setGroup(results.groups[1]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({

@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     // In my opinion this is bad logic, null is different from an empty string
-    xit("returns false for two empty attributes", function(done) {
+    it.skip("returns false for two empty attributes", function(done) {
       this.User.create({ username: null }).success(function(user) {
         user.username = ''
         expect(user.isDirty).to.be.false

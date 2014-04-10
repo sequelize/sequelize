@@ -5,12 +5,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
-  , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + "/../config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
-  , _         = require('lodash')
-  , moment    = require('moment')
   , async     = require('async')
 
 chai.use(datetime)
@@ -125,7 +120,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                     {name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1},
                     {name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1},
                     {name: 'Member', canInvite: 1, canRemove: 0, canPost: 0}
-                  ]).done(function (err) {
+                  ]).done(function () {
                     Rank.findAll().done(callback)
                   })
                 },
@@ -407,7 +402,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
                       ]
                     }).done(function (err, users) {
                       expect(err).not.to.be.ok
-                      users.forEach(function (user, i) {
+                      users.forEach(function (user) {
                         expect(user.memberships).to.be.ok
                         user.memberships.sort(sortById)
 
@@ -485,9 +480,8 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
           },
           singleChain: function (callback) {
             var previousInstance
-              , previousModel
 
-            async.eachSeries(singles, function (model, callback, i) {
+            async.eachSeries(singles, function (model, callback) {
               model.create({}).done(function (err, instance) {
                 if (previousInstance) {
                   previousInstance["set"+model.name](instance).done(function () {
@@ -678,7 +672,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           Product.findAll({
@@ -728,7 +722,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
           userGroups: ['users', 'groups', function (callback, results) {
             results.users[2].setGroup(results.groups[1]).done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -774,7 +768,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
             chainer.add(results.users[1].setGroup(results.groups[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -821,7 +815,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
             chainer.add(results.users[1].setGroup(results.groups[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -885,7 +879,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -955,7 +949,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1025,7 +1019,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1077,7 +1071,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
             chainer.add(results.users[0].setLeaderOf(results.projects[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1143,7 +1137,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           Product.findAll({
@@ -1372,7 +1366,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
             chainer.add(results.users[3].setGroup(results.groups[1]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1480,7 +1474,7 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
       })
     })
 
-    xit('should support including date fields, with the correct timeszone', function (done) {
+    it.skip('should support including date fields, with the correct timeszone', function (done) {
       var User = this.sequelize.define('user', {
           dateField: Sequelize.DATE
         }, {timestamps: false, schema: "account"})

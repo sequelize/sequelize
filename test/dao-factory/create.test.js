@@ -6,12 +6,8 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + "/../config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
   , _         = require('lodash')
-  , moment    = require('moment')
-  , async     = require('async')
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -35,7 +31,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
   describe('findOrCreate', function () {
     it("supports transactions", function(done) {
-      var self = this
 
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING, data: Sequelize.STRING })
@@ -180,7 +175,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it('supports transactions', function(done) {
-      var self = this
 
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING })
@@ -697,7 +691,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow blank creates (with timestamps: false)', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) {
+      Worker.sync().done(function() {
         Worker.create({}, {fields: []}).done(function (err, worker) {
           expect(err).not.to.be.ok
           expect(worker).to.be.ok
@@ -708,7 +702,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow truly blank creates', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) {
+      Worker.sync().done(function() {
         Worker.create({}, {fields: []}).done(function (err, worker) {
           expect(err).not.to.be.ok
           expect(worker).to.be.ok
@@ -791,7 +785,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
 
           Enum.sync({ force: true }).success(function() {
-            Enum.create({ state: 'happy' }).success(function(_item) {
+            Enum.create({ state: 'happy' }).success(function() {
               done()
             });
           });
@@ -803,7 +797,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
 
           Enum.sync({ force: true }).success(function() {
-            Enum.create({ state: 'happy' }).success(function(_item) {
+            Enum.create({ state: 'happy' }).success(function() {
               done()
             });
           });
@@ -819,7 +813,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
 
           Enum.sync({ force: true }).success(function() {
-            Enum.create({ state: 'happy' }).success(function(_item) {
+            Enum.create({ state: 'happy' }).success(function() {
               done()
             });
           });
@@ -833,14 +827,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
 
           Enum.sync({ force: true }).success(function() {
-            Enum.create({ state: 'happy' }).success(function(_item) {
+            Enum.create({ state: 'happy' }).success(function() {
               done()
             });
           });
         })
       })
 
-      describe('can safely sync multiple times', function(done) {
+      describe('can safely sync multiple times', function() {
         it('through the factory', function(done) {
           var Enum = this.sequelize.define('Enum', {
             state: {
@@ -1095,7 +1089,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow blank arrays (return immediatly)', function (done) {
       var Worker = this.sequelize.define('Worker', {})
-      Worker.sync().done(function(err) {
+      Worker.sync().done(function() {
         Worker.bulkCreate([]).done(function (err, workers) {
           expect(err).not.to.be.ok
           expect(workers).to.be.ok
@@ -1107,7 +1101,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow blank creates (with timestamps: false)', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) {
+      Worker.sync().done(function() {
         Worker.bulkCreate([{}, {}]).done(function (err, workers) {
           expect(err).not.to.be.ok
           expect(workers).to.be.ok
@@ -1118,7 +1112,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should allow autoincremented attributes to be set', function (done) {
       var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
-      Worker.sync().done(function(err) {
+      Worker.sync().done(function() {
         Worker.bulkCreate([
           {id: 5},
           {id: 10}
