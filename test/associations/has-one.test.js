@@ -104,7 +104,6 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
     it('can set an association with predefined primary keys', function(done) {
       var User = this.sequelize.define('UserXYZZ', { userCoolIdTag: { type: Sequelize.INTEGER, primaryKey: true }, username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZZ', { taskOrSomething: { type: Sequelize.INTEGER, primaryKey: true }, title: Sequelize.STRING })
-        , self = this
 
       User.hasOne(Task, {foreignKey: 'userCoolIdTag'})
 
@@ -191,7 +190,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         sequelize.sync({ force: true }).success(function() {
           User.create({ username: 'bob' }).success(function(user) {
             sequelize.transaction(function(t) {
-              user.createGroup({ name: 'testgroup' }, { transaction: t }).success(function(group) {
+              user.createGroup({ name: 'testgroup' }, { transaction: t }).success(function() {
                 User.all().success(function (users) {
                   users[0].getGroup().success(function (group) {
                     expect(group).to.be.null;

@@ -4,12 +4,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
-  , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + "/../config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
-  , uuid      = require('node-uuid')
-  , _         = require('lodash')
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -205,7 +200,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           price: {
             type: Sequelize.FLOAT,
             get: function() {
-              return this.dataValues['price'] * 100
+              return this.dataValues.price * 100
             }
           }
         })
@@ -224,7 +219,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         }, {
           getterMethods: {
             price: function() {
-              return this.dataValues['priceInCents'] / 100
+              return this.dataValues.priceInCents / 100
             }
           }
         })
@@ -240,7 +235,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           price: {
             type: Sequelize.STRING,
             get: function() {
-              return this.dataValues['price'] * 100
+              return this.dataValues.price * 100
             }
           }
         }, {
@@ -283,8 +278,6 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
           contact.save().done(function(err, me) {
             expect(err).not.to.be.ok
-            var idToTest = me.id;
-
             expect(me.get('tags')).to.deep.equal(['yes', 'no'])
             done();
           });
@@ -298,7 +291,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           name: {type: DataTypes.STRING}
         })
 
-        User.sync().done(function (err) {
+        User.sync().done(function () {
           User.create({name: 'Jan Meier'}).done(function (err, user) {
             expect(err).not.to.be.ok
             expect(user.changed('name')).to.be.false
@@ -328,7 +321,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           name: {type: DataTypes.STRING}
         })
 
-        User.sync().done(function (err) {
+        User.sync().done(function () {
           var user = User.build({
             name: 'Jan Meier'
           })

@@ -117,7 +117,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
     describe('hasAll', function() {
       beforeEach(function(done) {
-        var self = this
         this.Article = this.sequelize.define('Article', {
           'title': DataTypes.STRING
         })
@@ -332,7 +331,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         Article.sync({ force: true }).success(function() {
           Label.sync({ force: true }).success(function() {
             Article.create({ title: 'foo' }).success(function(article) {
-              article.createLabel({ text: 'bar' }).success(function(label) {
+              article.createLabel({ text: 'bar' }).success(function() {
 
                 Label
                   .findAll({ where: { ArticleId: article.id }})
@@ -377,7 +376,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       it('supports transactions', function(done) {
-        var self = this
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
           var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
             , Label   = sequelize.define('Label', { 'text': DataTypes.STRING })
@@ -868,7 +866,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       it('supports transactions', function(done) {
-        var self = this
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
           var User = sequelize.define('User', { username: DataTypes.STRING })
             , Task = sequelize.define('Task', { title: DataTypes.STRING })
@@ -928,7 +925,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
     describe('optimizations using bulk create, destroy and update', function () {
       beforeEach(function (done) {
-        var self = this
         this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false})
         this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, {timestamps: false})
 
@@ -1042,7 +1038,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
     describe('primary key handling for join table', function () {
       beforeEach(function (done) {
-        var self = this
         this.User = this.sequelize.define('User',
           { username: DataTypes.STRING },
           { tableName: 'users'}
@@ -1313,7 +1308,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                   expect(err).not.to.be.ok
                   Task.findAll().done(function (err, tasks) {
                     expect(err).not.to.be.ok
-                    worker.setTasks(tasks).done(function (err) {
+                    worker.setTasks(tasks).done(function () {
                       worker.setTasks(tasks).done(function (err) {
                         expect(err).not.to.be.ok
                         done()
@@ -1344,7 +1339,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                 expect(err).not.to.be.ok
                 Task.findAll().done(function (err, tasks) {
                   expect(err).not.to.be.ok
-                  worker.setTasks(tasks).done(function (err) {
+                  worker.setTasks(tasks).done(function () {
                     worker.removeTask(tasks[0]).done(function (err) {
                       expect(err).not.to.be.ok
 
@@ -1462,8 +1457,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       it("correctly identifies its counterpart when through is a string", function (done) {
-        var self = this
-          , User = this.sequelize.define('User', {})
+        var User = this.sequelize.define('User', {})
           , Group = this.sequelize.define('Group', {})
 
         User.hasMany(Group, { as: 'MyGroups', through: 'group_user'})
@@ -1479,8 +1473,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       it("correctly identifies its counterpart when through is a model", function (done) {
-        var self = this
-          , User = this.sequelize.define('User', {})
+        var User = this.sequelize.define('User', {})
           , Group = this.sequelize.define('Group', {})
           , UserGroup = this.sequelize.define('GroupUser', {}, {tableName: 'user_groups'})
 

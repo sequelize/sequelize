@@ -7,7 +7,6 @@ var chai      = require('chai')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , dialect   = Support.getTestDialect()
   , config    = require(__dirname + "/../config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
   , _         = require('lodash')
   , moment    = require('moment')
@@ -62,7 +61,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     describe('special where conditions/smartWhere object', function() {
       beforeEach(function(done) {
-        var self = this
 
         this.buf = new Buffer(16);
         this.buf.fill('\x01');
@@ -70,7 +68,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         this.User.bulkCreate([
           {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
           {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00', binary: this.buf }
-        ]).success(function(user2) {
+        ]).success(function() {
           done()
         })
       })
@@ -91,7 +89,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           where: {
             id: [1, 2, 3]
           }
-        }).success(function(users){
+        }).success(function(){
           done();
         });
       })
@@ -1225,7 +1223,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       it('does not modify the passed arguments', function (done) {
         var options = { where: ['username = ?', 'awesome']}
 
-        this.User.findAll(options).success(function(user) {
+        this.User.findAll(options).success(function() {
           expect(options).to.deep.equal({ where: ['username = ?', 'awesome']})
           done()
         })

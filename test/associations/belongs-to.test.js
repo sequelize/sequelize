@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       User.sync({ force: true }).success(function() {
         Task.sync({ force: true }).success(function() {
           User.create({ username: 'foo', gender: 'male' }).success(function(user) {
-            User.create({ username: 'bar', gender: 'female' }).success(function(falsePositiveCheck) {
+            User.create({ username: 'bar', gender: 'female' }).success(function() {
               Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
                 task.setUserXYZ(user).success(function() {
                   task.getUserXYZ({where: ['gender = ?', 'female']}).success(function(user) {
@@ -195,14 +195,14 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       Post.hasOne(Comment);
       Comment.belongsTo(Post);
 
-      this.sequelize.sync().done(function (err) {
+      this.sequelize.sync().done(function () {
         Post.create({
           title: 'Post title',
         }).done(function(err, post) {
           Comment.create({
             text: 'OLD VALUE',
           }).done(function(err, comment) {
-            comment.setPost(post).done(function(err) {
+            comment.setPost(post).done(function() {
               expect(comment.text).to.equal('UPDATED VALUE');
               done()
             });
