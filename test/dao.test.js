@@ -294,6 +294,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it('supports where conditions', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } }).complete(function() {
+          self.User.find(1).complete(function(err, user3) {
+            expect(user3.aNumber).to.be.equal(0)
+            done()
+          })
+        })
+      })
+    })
+
     it('with array', function(done) {
       var self = this
       this.User.find(1).complete(function(err, user1) {
