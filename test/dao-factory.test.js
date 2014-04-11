@@ -1679,6 +1679,25 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         done()
       })
     })
+
+    it("works with comments", function (done) {
+      // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
+      var Member = this.sequelize.define('Member', {})
+        , Profile = this.sequelize.define('Profile', {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey:true,
+          references: Member,
+          referencesKey: 'id',
+          autoIncrement: false,
+          comment: 'asdf'
+        }
+      })
+
+      this.sequelize.sync({ force: true }).success(function () {
+        done()
+      })
+    })
   })
 
   describe("syntax sugar", function() {

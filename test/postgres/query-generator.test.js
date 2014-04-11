@@ -115,6 +115,10 @@ if (dialect.match(/^postgres/)) {
 
       createTableQuery: [
         {
+          arguments: ['myTable', {int: 'INTEGER(1)', bigint: 'BIGINT(12)'}],
+          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"int\" INTEGER, \"bigint\" BIGINT);",
+        },
+        {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));",
         },
@@ -948,7 +952,7 @@ if (dialect.match(/^postgres/)) {
         })
 
         tests.forEach(function(test) {
-          var title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + util.inspect(test.arguments)
+          var title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments)
           it(title, function(done) {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};

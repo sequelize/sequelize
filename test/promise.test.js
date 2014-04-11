@@ -272,39 +272,40 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
 
   describe('save', function () {
     it('should fail a validation upon creating', function(done) {
-      this.User.create({aNumber: 0, validateTest: 'hello'}).then(null, function(err) {
-        expect(err).to.be.ok
-        expect(err).to.be.an("object")
-        expect(err.validateTest).to.be.an("array")
-        expect(err.validateTest[0]).to.be.ok
-	expect(err.validateTest[0].message).to.equal('Validation isInt failed')
-        done()
-      });
+      this.User.create({aNumber: 0, validateTest: 'hello'})
+        .catch(function(err) {
+          expect(err).to.be.ok
+          expect(err).to.be.an("object")
+          expect(err.validateTest).to.be.an("array")
+          expect(err.validateTest[0]).to.be.ok
+          expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+          done()
+        });
     })
 
     it('should fail a validation upon building', function(done) {
       this.User.build({aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'}).save()
-      .then(null, function(err) {
-        expect(err).to.be.ok
-        expect(err).to.be.an("object")
-        expect(err.validateCustom).to.be.ok
-        expect(err.validateCustom).to.be.an("array")
-        expect(err.validateCustom[0]).to.be.ok
-	expect(err.validateCustom[0].message).to.equal('Length failed.')
-        done()
-      })
+        .catch(function(err) {
+          expect(err).to.be.ok
+          expect(err).to.be.an("object")
+          expect(err.validateCustom).to.be.ok
+          expect(err.validateCustom).to.be.an("array")
+          expect(err.validateCustom[0]).to.be.ok
+          expect(err.validateCustom[0].message).to.equal('Length failed.')
+          done()
+        })
     })
 
     it('should fail a validation when updating', function(done) {
       this.User.create({aNumber: 0}).then(function (user) {
         return user.updateAttributes({validateTest: 'hello'})
-      }).then(null, function(err) {
+      }).catch(function(err) {
         expect(err).to.be.ok
         expect(err).to.be.an("object")
         expect(err.validateTest).to.be.ok
         expect(err.validateTest).to.be.an("array")
         expect(err.validateTest[0]).to.be.ok
-	expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+        expect(err.validateTest[0].message).to.equal('Validation isInt failed')
         done()
       })
     })
@@ -322,7 +323,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
           expect(user.id).to.equal(1)
           expect(arguments.length).to.equal(1)
           done()
-	})
+        })
     })
 
     describe('with spread', function () {
@@ -334,7 +335,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
             expect(created).to.equal(false)
             expect(arguments.length).to.equal(2)
             done()
-	  })
+          })
       })
       it('user created', function (done) {
         this.User
@@ -344,7 +345,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
             expect(created).to.equal(true)
             expect(arguments.length).to.equal(2)
             done()
-	  })
+          })
       })
       it('works for functions with only one return value', function (done) {
         this.User
@@ -353,7 +354,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
             expect(user.id).to.equal(1)
             expect(arguments.length).to.equal(1)
             done()
-	  })
+          })
       })
     })
   })

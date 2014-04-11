@@ -174,4 +174,44 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       })
     })
   })
+
+  describe('renameColumn', function() {
+    it('rename a simple column', function(done) {
+      var self = this
+      var Users = self.sequelize.define('_Users', {
+        username: DataTypes.STRING
+      }, { freezeTableName: true })
+
+      Users.sync({ force: true }).success(function() {
+        self.queryInterface.renameColumn('_Users', 'username', 'pseudo').complete(done)
+      })
+    })
+    it('rename a column non-null without default value', function(done) {
+      var self = this
+      var Users = self.sequelize.define('_Users', {
+        username: {
+          type: DataTypes.STRING,
+          allowNull: false
+        }
+      }, { freezeTableName: true })
+
+      Users.sync({ force: true }).success(function() {
+        self.queryInterface.renameColumn('_Users', 'username', 'pseudo').complete(done)
+      })
+    })
+    it('rename a boolean column non-null without default value', function(done) {
+      var self = this
+      var Users = self.sequelize.define('_Users', {
+        active: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false
+        }
+      }, { freezeTableName: true })
+
+      Users.sync({ force: true }).success(function() {
+        self.queryInterface.renameColumn('_Users', 'active', 'enabled').complete(done)
+      })
+    })
+  })
 })

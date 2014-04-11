@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     // In my opinion this is bad logic, null is different from an empty string
-    xit("returns false for two empty attributes", function(done) {
+    it.skip("returns false for two empty attributes", function(done) {
       this.User.create({ username: null }).success(function(user) {
         user.username = ''
         expect(user.isDirty).to.be.false
@@ -289,6 +289,18 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                 })
               })
             })
+          })
+        })
+      })
+    })
+
+    it('supports where conditions', function(done) {
+      var self = this
+      this.User.find(1).complete(function(err, user1) {
+        user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } }).complete(function() {
+          self.User.find(1).complete(function(err, user3) {
+            expect(user3.aNumber).to.be.equal(0)
+            done()
           })
         })
       })
@@ -777,6 +789,15 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             done()
           })
         })
+      })
+    })
+
+    it('only validates fields in passed array', function (done) {
+      this.User.build({
+        validateTest: 'cake', // invalid, but not saved
+        validateCustom: '1'
+      }).save(['validateCustom']).success(function () {
+        done()
       })
     })
 

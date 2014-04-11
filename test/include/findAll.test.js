@@ -5,12 +5,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
-  , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + "/../config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
-  , _         = require('lodash')
-  , moment    = require('moment')
   , async     = require('async')
 
 chai.use(datetime)
@@ -398,7 +393,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                   ]
                 }).done(function (err, users) {
                   expect(err).not.to.be.ok
-                  users.forEach(function (user, i) {
+                  users.forEach(function (user) {
                     user.memberships.sort(sortById)
 
                     expect(user.memberships.length).to.equal(2)
@@ -473,9 +468,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           },
           singleChain: function (callback) {
             var previousInstance
-              , previousModel
 
-            async.eachSeries(singles, function (model, callback, i) {
+            async.eachSeries(singles, function (model, callback) {
               model.create({}).done(function (err, instance) {
                 if (previousInstance) {
                   previousInstance["set"+model.name](instance).done(function () {
@@ -666,7 +660,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           Product.findAll({
@@ -716,7 +710,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           userGroups: ['users', 'groups', function (callback, results) {
             results.users[2].setGroup(results.groups[1]).done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -762,7 +756,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[1].setGroup(results.groups[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -809,7 +803,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[1].setGroup(results.groups[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -874,7 +868,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -944,7 +938,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1014,7 +1008,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1066,7 +1060,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[0].setLeaderOf(results.projects[0]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1132,7 +1126,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           Product.findAll({
@@ -1361,7 +1355,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             chainer.add(results.users[3].setGroup(results.groups[1]))
             chainer.run().done(callback)
           }]
-        }, function (err, results) {
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
@@ -1409,6 +1403,87 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    // Test case by @eshell
+    it('should be possible not to include the main id in the attributes', function (done) {
+      var Member = this.sequelize.define('Member', {
+        id: {
+          type: Sequelize.BIGINT,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        email:{
+          type: Sequelize.STRING,
+          unique: true,
+          allowNull: false,
+          validate:{
+            isEmail: true,
+            notNull: true,
+            notEmpty: true
+          }
+        },
+        password: Sequelize.STRING
+      });
+      var Album = this.sequelize.define('Album', {
+        id: {
+          type: Sequelize.BIGINT,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        title: {
+          type: Sequelize.STRING(25),
+          allowNull: false
+        }
+      });
+
+      Album.belongsTo(Member);
+      Member.hasMany(Album);
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok;
+
+        var members = []
+          , albums = []
+          , memberCount = 20
+ 
+        for(var i = 1;i <= memberCount;i++) {
+          members.push({
+            id: i,
+            email: 'email'+i+'@lmu.com',
+            password: 'testing'+i,
+          });
+          albums.push({
+            title: 'Album'+i,
+            MemberId: i
+          });
+        }
+ 
+        Member.bulkCreate(members).done(function (err) {
+          expect(err).not.to.be.ok;
+          Album.bulkCreate(albums).done(function (err) {
+            expect(err).not.to.be.ok;
+
+            Member.findAll({
+              attributes: ['email'],
+              include:[
+                {
+                  model:Album
+                }
+              ]
+            }).done(function (err, members) {
+              expect(err).not.to.be.ok;
+              expect(members.length).to.equal(20);
+              members.forEach(function (member) {
+                expect(member.get('id')).not.to.be.ok;
+                expect(member.albums.length).to.equal(1);
+              });
+
+              done();
+            });
+          });
+        });
+      });
+    });
 
     it('should be possible to use limit and a where on a hasMany with additional includes', function (done) {
       var self = this

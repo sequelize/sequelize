@@ -5,12 +5,9 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
-  , dialect   = Support.getTestDialect()
   , config    = require(__dirname + "/../config/config")
-  , sinon     = require('sinon')
   , datetime  = require('chai-datetime')
   , _         = require('lodash')
-  , moment    = require('moment')
   , async     = require('async')
 
 chai.use(datetime)
@@ -79,7 +76,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       it('does not modify the passed arguments', function (done) {
         var options = { where: ['specialkey = ?', 'awesome']}
 
-        this.UserPrimary.find(options).success(function(user) {
+        this.UserPrimary.find(options).success(function() {
           expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']})
           done()
         })
@@ -101,7 +98,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
-      xit('doesn\'t throw an error when entering in a non integer value', function(done) {
+      it.skip('doesn\'t throw an error when entering in a non integer value', function(done) {
         this.User.find('a string value').success(function(user) {
           expect(user).to.be.null
           done()
@@ -218,7 +215,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           UserPrimary.create({
             id: 'a string based id',
             name: 'Johnno'
-          }).success(function(u) {
+          }).success(function() {
             UserPrimary.find('a string based id').success(function(u2) {
               expect(u2.id).to.equal('a string based id')
               expect(u2.name).to.equal('Johnno')
@@ -420,8 +417,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
           this.sequelize.sync({ force: true }).success(function() {
             User.create({username: 'test_testerson'}).success(function(user) {
-              Message.create({user_id: user.id, message: 'hi there!'}).success(function(message) {
-                Message.create({user_id: user.id, message: 'a second message'}).success(function(message) {
+              Message.create({user_id: user.id, message: 'hi there!'}).success(function() {
+                Message.create({user_id: user.id, message: 'a second message'}).success(function() {
                   Message.findAll({
 
                     where: {user_id: user.id},
@@ -546,7 +543,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done()
         })
 
-        describe('alias', function(done) {
+        describe('alias', function() {
           beforeEach(function(done) {
             var self = this
             this.Worker.hasOne(this.Task, { as: 'ToDo' })
@@ -654,9 +651,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               self.Photo.create({ img: 'img.jpg' }).success(function(somePhoto) {
                 self.PhoneNumber.create({ phone: '000000' }).success(function(somePhone1) {
                   self.PhoneNumber.create({ phone: '111111' }).success(function(somePhone2) {
-                    someContact.setPhotos([somePhoto]).complete(function (err, data) {
+                    someContact.setPhotos([somePhoto]).complete(function (err) {
                       expect(err).to.be.null
-                      someContact.setPhoneNumbers([somePhone1, somePhone2]).complete(function (err, data) {
+                      someContact.setPhoneNumbers([somePhone1, somePhone2]).complete(function () {
                         self.Contact.find({
                           where: {
                             name: 'Boris'
@@ -698,7 +695,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.sequelize.sync({ force: true }).success(function() {
             self.User.create({ username: 'someone' }).success(function(someUser) {
               self.Group.create({ name: 'people' }).success(function(someGroup) {
-                someUser.setGroupPKeagerones([someGroup]).complete(function (err, data) {
+                someUser.setGroupPKeagerones([someGroup]).complete(function (err) {
                   expect(err).to.be.null
                   self.User.find({
                     where: {
@@ -803,7 +800,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           this.Product.hasMany(this.Tag, {as: 'Tags', through: 'product_tag'})
           this.Tag.hasMany(this.Product, {as: 'Products', through: 'product_tag'})
 
-          this.sequelize.sync().done(function (err) {
+          this.sequelize.sync().done(function () {
             async.auto({
               createProducts: function (callback) {
                 self.Product.bulkCreate([
