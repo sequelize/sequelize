@@ -69,7 +69,8 @@
     "istanbul": "~0.1.45",
     "coveralls": "~2.7.1",
     "async": "~0.2.10",
-    "coffee-script": "~1.7.1"
+    "coffee-script": "~1.7.1",
+    "sinon-chai": "~2.5.0"
   },
   "keywords": [
     "mysql",

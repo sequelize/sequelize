@@ -419,11 +419,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         , localInstanceMethod   = sinon.spy()
         , sequelize             = Support.createSequelizeInstance({
           define: {
-            classMethods : { 
+            classMethods : {
               globalClassMethod : function() {},
               overrideMe: globalClassMethod
             },
-            instanceMethods : { 
+            instanceMethods : {
               globalInstanceMethod : function() {},
               overrideMe: globalInstanceMethod
             }
@@ -445,7 +445,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
 
       DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
-        classMethods : { 
+        classMethods : {
           overrideMe : localClassMethod
         },
         instanceMethods: {
