@@ -146,6 +146,32 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
   })
 
+  describe('createFromConfigFile', function() {
+    it('should create an instance from config', function(done) {
+      var sequelize = Sequelize.createFromConfigFile({
+        env: 'development',
+        path: __dirname + '/config/config.json'
+      })
+      expect(sequelize).to.be.ok
+      expect(sequelize.config.host).to.equal('127.0.0.1')
+      expect(sequelize.config.database).to.equal('dev_db')
+      expect(sequelize.config.password).to.equal('password')
+      expect(sequelize.config.username).to.equal('dev')
+      done()
+    })
+
+    it('should throw error if environment does not exist in file', function(done) {
+      var path = __dirname + '/config/config.json'
+      expect(function() {
+        Sequelize.createFromConfigFile({
+          env: 'wrong',
+          path: path
+        })
+      }).to.throw('"wrong" does not exist in config ' + path + '.')
+      done()
+    })
+  })
+
   describe('isDefined', function() {
     it("returns false if the dao wasn't defined before", function() {
       expect(this.sequelize.isDefined('Project')).to.be.false
