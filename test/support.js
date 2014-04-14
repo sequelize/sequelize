@@ -144,15 +144,21 @@ var Support = {
 
   getTestUrl: function(config) {
     var url,
-        dbConfig = config[config.dialect];
+        dbConfig = config[config.dialect]
 
     if (config.dialect === 'sqlite') {
-      url = 'sqlite://' + dbConfig.storage;
+      url = 'sqlite://' + dbConfig.storage
     } else {
-      url = config.dialect + "://" + dbConfig.username
-      + "@" + dbConfig.host + ":" + dbConfig.port + "/" + dbConfig.database;
+
+      var credentials = dbConfig.username
+      if(dbConfig.password) {
+        credentials += ":" + dbConfig.password
+      }
+
+      url = config.dialect + "://" + credentials
+      + "@" + dbConfig.host + ":" + dbConfig.port + "/" + dbConfig.database
     }
-    return url;
+    return url
   }
 }
 
