@@ -13,9 +13,9 @@ if (dialect.match(/^postgres/)) {
       this.sequelize.options.quoteIdentifiers = true
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
-        email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
+        email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
         settings: DataTypes.HSTORE,
-        document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
+        document: { type: DataTypes.HSTORE, defaultValue: { default: 'value' } }
       })
       this.User.sync({ force: true }).success(function() {
         done()
@@ -268,6 +268,28 @@ if (dialect.match(/^postgres/)) {
               // Postgres always returns keys in alphabetical order (ascending)
               expect(oldUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
               done()
+            })
+          })
+          .error(console.log)
+      })
+
+      it("should update hstore correctly", function(done) {
+        var self = this
+
+        this.User
+          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
+          .success(function(newUser) {
+            // Check to see if the default value for an hstore field works
+            expect(newUser.document).to.deep.equal({default: 'value'})
+            expect(newUser.settings).to.deep.equal({ created: { test: '"value"' }})
+
+            // Check to see if updating an hstore field works
+            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, newUser.identifiers).success(function() {
+              newUser.reload().success(function() {
+                // Postgres always returns keys in alphabetical order (ascending)
+                expect(newUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
+                done()
+              });
             })
           })
           .error(console.log)

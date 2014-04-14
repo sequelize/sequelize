@@ -70,7 +70,8 @@
     "coveralls": "~2.7.1",
     "async": "~0.2.10",
     "coffee-script": "~1.7.1",
-    "markdox": "0.1.4"
+    "markdox": "0.1.4",
+    "sinon-chai": "~2.5.0"
   },
   "keywords": [
     "mysql",

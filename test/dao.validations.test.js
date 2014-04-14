@@ -548,6 +548,37 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
     })
 
+    it('supports promises with custom validation methods', function(done) {
+      var self = this
+        , User = this.sequelize.define('User' + config.rand(), {
+          name: {
+            type: Sequelize.STRING,
+            validate: {
+              customFn: function(val) {
+                return User.findAll()
+                  .then(function () {
+                    if (val === "error") {
+                      throw new Error("Invalid username")
+                    }
+                  })
+              }
+            }
+          }
+        })
+
+      User.sync().success(function () {
+        User.build({ name : "error" }).validate().success(function(error)  {
+          expect(error).to.be.an.instanceOf(self.sequelize.ValidationError)
+          expect(error.name[0].message).to.equal("Invalid username")
+          
+          User.build({ name : "no error" }).validate().success(function() {
+            expect(arguments).to.have.length(0)
+            done()
+          })
+        })
+      })
+    })
+ 
     it('skips other validations if allowNull is true and the value is null', function(done) {
       var User = this.sequelize.define('User' + config.rand(), {
         age: {

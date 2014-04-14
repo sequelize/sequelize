@@ -2,8 +2,6 @@
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
-  , dialect   = Support.getTestDialect()
-  , util      = require("util")
   , _         = require('lodash')
   , QueryGenerator = require("../../lib/dialects/mysql/query-generator")
 

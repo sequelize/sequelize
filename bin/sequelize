@@ -16,6 +16,19 @@ var configuration = {
   migrationsPath: process.cwd() + '/migrations'
 }
 
+var loadDefaultOptions = function(pathToOptionsFile) {
+  try {
+    var options = require(path.resolve(process.cwd(), '/', pathToOptionsFile))
+
+    Object.keys(options).forEach(function(key) {
+      program[key] = options[key]
+    })
+  } catch(e) {
+    console.log(e);
+    throw new Error('Error reading "' + pathToOptionsFile + '".')
+  }
+}
+
 var configFileExists = function() {
   return fs.existsSync(configuration.configFile)
 }
@@ -82,11 +95,29 @@ var createMigrationsFolder = function(force) {
   }
 
   try {
-    fs.mkdirSync(configuration.migrationsPath)
+    mkdirp(configuration.migrationsPath)
     console.log('Successfully created migrations folder at "' + configuration.migrationsPath + '".')
   } catch(e) {
   }
 }
+
+var mkdirp = function (path, root) {
+  var dirs = path.split('/')
+    , dir  = dirs.shift()
+    , root = (root || '') + dir + '/'
+
+  try {
+    fs.mkdirSync(root)
+  } catch (e) {
+    // dir wasn't made, something went wrong
+    if (!fs.statSync(root).isDirectory()) {
+      throw new Error(e)
+    }
+  }
+
+  return !dirs.length || mkdirp(dirs.join('/'), root)
+}
+
 
 var parseDbUrl = function(urlString) {
   var urlParts,
@@ -155,10 +186,16 @@ program
   .option('-u, --undo', 'Undo the last migration.')
   .option('-f, --force', 'Forces the action to be done.')
   .option('-c, --create-migration [migration-name]', 'Creates a new migration.')
+  .option('-p, --migrations-path <migration-path>', 'migration directory path.')
   .option('-U, --url <url>', 'Database url.  An alternative to a config file')
+  .option('-o,--options-path <options_file>', 'Specifies lib options from file.')
   .option('--config <config_file>', 'Specifies alternate config file.')
   .option('--coffee', 'Consider coffee script files as migration source.')
   .parse(process.argv)
+
+if(typeof program.optionsPath === 'string') {
+  loadDefaultOptions(program.optionsPath);
+}
 
 if(typeof program.config === 'string') {
   if (isRelativePath(program.config)) {
@@ -166,6 +203,10 @@ if(typeof program.config === 'string') {
   } else {
     configuration.configFile = program.config
   }
+}
+
+if(typeof program.migrationsPath=== 'string') {
+  configuration.migrationsPath =  program.migrationsPath;
 }
 
 if(typeof program.env === 'string') {
