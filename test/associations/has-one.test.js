@@ -29,17 +29,21 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         Group.hasOne(User)
 
         sequelize.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Group.create({ name: 'bar' }).success(function(group) {
-              sequelize.transaction(function(t) {
-                group.setUser(user, { transaction: t }).success(function() {
-                  Group.all().success(function(groups) {
-                    groups[0].getUser().success(function(associatedUser) {
-                      expect(associatedUser).to.be.null
-                      Group.all({ transaction: t }).success(function(groups) {
-                        groups[0].getUser({ transaction: t }).success(function(associatedUser) {
-                          expect(associatedUser).to.be.not.null
-                          t.rollback().success(function() { done() })
+          User.create({ username: 'foo' }).success(function(fakeUser) {
+            User.create({ username: 'foo' }).success(function(user) {
+              Group.create({ name: 'bar' }).success(function(group) {
+                sequelize.transaction(function(t) {
+                  group.setUser(user, { transaction: t }).success(function() {
+                    Group.all().success(function(groups) {
+                      groups[0].getUser().success(function(associatedUser) {
+                        expect(associatedUser).to.be.null
+                        Group.all({ transaction: t }).success(function(groups) {
+                          groups[0].getUser({ transaction: t }).success(function(associatedUser) {
+                            expect(associatedUser).not.to.be.null
+                            expect(associatedUser.id).to.equal(user.id)
+                            expect(associatedUser.id).not.to.equal(fakeUser.id)
+                            t.rollback().success(function() { done() })
+                          })
                         })
                       })
                     })
