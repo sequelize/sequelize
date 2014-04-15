@@ -52,6 +52,15 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         var sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true')
       })
     }
+
+    if (dialect === 'postgres') {
+      it('should work with connection strings (1)', function () {
+        var sequelize = new Sequelize('postgres://localhost/sequelize_test')
+      })
+      it('should work with connection strings (2)', function () {
+        var sequelize = new Sequelize('postgresql://localhost/sequelize_test')
+      })
+    }
   })
 
   if (dialect !== 'sqlite') {
