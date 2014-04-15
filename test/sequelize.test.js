@@ -52,6 +52,18 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         var sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true')
       })
     }
+
+    if (dialect === 'postgres') {
+      var getConnectionUri = _.template('<%= protocol %>://<%= username %>:<%= password %>@<%= host %><% if(port) { %>:<%= port %><% } %>/<%= database %>')
+      it('should work with connection strings (postgres protocol)', function () {
+        var connectionUri = getConnectionUri(_.extend(config[dialect], {protocol: 'postgres'}))
+        var sequelize = new Sequelize(connectionUri) // postgres://...
+      })
+      it('should work with connection strings (postgresql protocol)', function () {
+        var connectionUri = getConnectionUri(_.extend(config[dialect], {protocol: 'postgresql'}))
+        var sequelize = new Sequelize(connectionUri) // postgresql://...
+      })
+    }
   })
 
   if (dialect !== 'sqlite') {
