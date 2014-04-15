@@ -28,6 +28,9 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - Join tables will be no longer be paranoid (have a deletedAt timestamp added), even though other models are.
 - All tables in select queries will now be aliased with the model names to be support schemas. This will affect people stuff like `where: {'table.attribute': value}
 
+# v1.7.1
+- [BUG] fixes issue where relations would not use transactions probably in adders/setters.
+
 # v1.7.0
 - [FEATURE] covers more advanced include cases with limiting and filtering (specifically cases where a include would be in the subquery but its child include wouldnt be, for cases where a 1:1 association had a 1:M association as a nested include)
 - [BUG] fixes issue where connection would timeout before calling COMMIT resulting in data never reaching the database [#1429](https://github.com/sequelize/sequelize/pull/1429)
