@@ -90,14 +90,19 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
           User.create({ username: 'foo' }).success(function(user) {
             Group.create({ name: 'bar' }).success(function(group) {
               sequelize.transaction(function(t) {
-                group.setUser(user, { transaction: t }).success(function() {
-                  Group.all().success(function(groups) {
-                    groups[0].getUser().success(function(associatedUser) {
-                      expect(associatedUser).to.be.null
-                      t.rollback().success(function() { done() })
+                group
+                  .setUser(user, { transaction: t })
+                  .success(function() {
+                    Group.all().success(function(groups) {
+                      groups[0].getUser().success(function(associatedUser) {
+                        expect(associatedUser).to.be.null
+                        t.rollback().success(function() { done() })
+                      })
                     })
                   })
-                })
+                  .on('sql', function(sql, uuid) {
+                    expect(uuid).to.not.equal('default')
+                  })
               })
             })
           })
