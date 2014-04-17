@@ -854,7 +854,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               ]
             }).done(function (err, john) {
               expect(err).not.to.be.ok
-              expect(john.addresses).to.have.length(1)
+              expect(john.address).to.be.ok
+              expect(john.address.street).to.be.ok
               done();
             })
 
