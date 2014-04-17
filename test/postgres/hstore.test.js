@@ -116,7 +116,7 @@ if (dialect.match(/^postgres/)) {
       })
 
       it('should handle multiple keys with different types of values', function(done) {
-        expect(hstore.parse('"true"=>true,"false"=>false,"null"=>NULL,"undefined"=>NULL,"integer"=>1,"array"=>"[1,\\"2\\"]","object"=>"{\\"object\\":\\"value\\"}"')).to.deep.equal({ true: true, false: false, null: null, undefined: null, integer: 1, array: [1,'2'], object: { object: 'value' }})
+        expect(hstore.parse('"true"=>true,"false"=>false,"null"=>NULL,"undefined"=>NULL,"integer"=>1,"array"=>"[1,\\"2\\"]","object"=>"{\\"object\\":\\"value\\"}"')).to.deep.equal({ true: true, false: false, null: null, undefined: null, integer: "1", array: [1,'2'], object: { object: 'value' }})
         done()
       })
     })
