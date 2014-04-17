@@ -55,7 +55,7 @@
     "node-uuid": "~1.4.1"
   },
   "devDependencies": {
-    "sqlite3": "~2.2.3",
+    "sqlite3": "~2.1.12",
     "mysql": "2.0.1",
     "pg": "~2.8.1",
     "watchr": "~2.4.11",
