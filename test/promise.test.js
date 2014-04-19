@@ -2,8 +2,11 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
+  , SequelizePromise   = require(__dirname + "/../lib/promise")
+  , Promise = require('bluebird')
   , dialect   = Support.getTestDialect()
   , _         = require('lodash')
+  , sinon     = require('sinon')
 
 chai.config.includeStack = true
 
@@ -358,4 +361,232 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       })
     })
   })
-})
+
+  describe('backwards compat', function () {
+    it('should still work with .complete() when resolving', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          resolve('abc');
+        });
+
+      promise.complete(spy);
+      promise.then(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args).to.deep.equal([null, 'abc']);
+        done()
+      });
+    });
+
+    it('should still work with .success() when resolving', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          resolve('yay');
+        });
+
+      promise.success(spy);
+      promise.then(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args).to.deep.equal(['yay']);
+        done()
+      });
+    });
+
+    it('should still work with .on(\'success\') when resolving', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          resolve('yoohoo');
+        });
+
+      promise.on('success', spy);
+      promise.then(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args).to.deep.equal(['yoohoo']);
+        done()
+      });
+    });
+
+    it('should still work with .done() when resolving multiple results', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          resolve(Promise.all(['MyModel', true]));
+        });
+
+      promise.spread(spy);
+      promise.done(function (err, model, created) {
+        expect(model).to.equal('MyModel')
+        expect(created).to.be.true
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args).to.deep.equal(['MyModel', true]);
+        done()
+      });
+    });
+
+    it('should still work with .success() when emitting', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          // no-op
+        });
+
+      promise.success(spy);
+      promise.then(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args).to.deep.equal(['yay']);
+        done()
+      });
+
+      promise.emit('success', 'yay');
+    });
+
+    it.only('should still work with .done() when rejecting', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          reject(new Error('no'));
+        });
+
+      promise.done(spy);
+      promise.catch(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args[0]).to.be.an.instanceof(Error)
+        done()
+      });
+    });
+
+    it('should still work with .error() when throwing', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          throw new Error('no');
+        });
+
+      promise.error(spy);
+      promise.catch(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args[0]).to.be.an.instanceof(Error)
+        done()
+      });
+    });
+
+    it('should still work with .on(\'error\') when throwing', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          throw new Error('noway');
+        });
+
+      promise.on('error', spy);
+      promise.catch(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args[0]).to.be.an.instanceof(Error)
+        done()
+      });
+    });
+
+    it('should still work with .error() when emitting', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          // no-op
+        });
+
+      promise.on('error', spy);
+      promise.catch(function () {
+        expect(spy.calledOnce).to.be.true
+        expect(spy.firstCall.args[0]).to.be.an.instanceof(Error)
+        done()
+      });
+
+      promise.emit('error', new Error('noway'));
+    });
+
+    it('should still support sql events', function (done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          resolve('yay');
+        });
+
+      promise.on('sql', spy);
+
+      promise.emit('sql', 'SQL STATEMENT 1');
+      promise.emit('sql', 'SQL STATEMENT 2');
+
+      promise.then(function () {
+        expect(spy.calledTwice).to.be.true;
+        done();
+      });
+    });
+
+    describe("proxy", function () {
+      it("should correctly work with success listeners", function(done) {
+        var emitter = new SequelizePromise()
+          , proxy = new SequelizePromise()
+          , success = sinon.spy()
+
+        emitter.success(success)
+        proxy.success(function () {
+          process.nextTick(function () {
+            expect(success.called).to.be.true
+            done()
+          })
+        })
+
+        proxy.proxy(emitter)
+        proxy.emit('success')
+      })
+
+      it("should correctly work with error listeners", function(done) {
+        var emitter = new SequelizePromise()
+          , proxy = new SequelizePromise()
+          , error = sinon.spy()
+
+        emitter.error(error)
+        proxy.error(function() {
+          process.nextTick(function() {
+            expect(error.called).to.be.true
+            expect(error.firstCall.args[0]).to.be.an.instanceof(Error)
+            done()
+          })
+        })
+
+        proxy.proxy(emitter)
+        proxy.emit('error', new Error('reason'))
+      })
+
+      it("should correctly work with complete/done listeners", function(done) {
+        var promise = new SequelizePromise()
+          , proxy = new SequelizePromise()
+          , complete = sinon.spy()
+
+        promise.complete(complete)
+        proxy.complete(function() {
+          process.nextTick(function() {
+            expect(complete.called).to.be.true
+            done()
+          })
+        })
+
+        proxy.proxy(promise)
+        proxy.emit('success')
+      })
+    })
+
+    describe("when emitting an error event with an array of errors", function() {
+      describe("if an error handler is given", function() {
+        it("should return the whole array", function(done) {
+          var emitter = new SequelizePromise()
+          var errors = [
+            [
+              new Error("First error"),
+              new Error("Second error")
+            ], [
+              new Error("Third error")
+            ]
+          ]
+
+          emitter.error(function (err) {
+            expect(err).to.equal(errors)
+
+            done()
+          })
+          emitter.emit("error", errors)
+        })
+      })
+    })
+  });
+});
