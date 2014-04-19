@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       promise.emit('success', 'yay');
     });
 
-    it.only('should still work with .done() when rejecting', function(done) {
+    it('should still work with .done() when rejecting', function(done) {
       var spy = sinon.spy()
         , promise = new SequelizePromise(function (resolve, reject) {
           reject(new Error('no'));
