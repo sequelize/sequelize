@@ -601,7 +601,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('should return an error based on the hook', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-		  expect(err.mood[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
+                  expect(err.mood[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
                   done()
                 })
               })
