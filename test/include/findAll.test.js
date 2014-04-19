@@ -821,6 +821,51 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+
+
+    it("should be possible to define a belongsTo include as required with child hasMany not required", function(done) {
+      var S = this.sequelize
+        , Address = S.define('Address', { 'active': DataTypes.BOOLEAN })
+        , Street = S.define('Street', { 'active': DataTypes.BOOLEAN })
+        , User = S.define('User', { 'username': DataTypes.STRING })
+
+      // Associate
+      User.belongsTo( Address, { foreignKey: 'addressId' })
+      Address.hasMany( User, { foreignKey: 'addressId' })
+      
+      Address.belongsTo( Street, { foreignKey: 'streetId' })
+      Street.hasMany( Address, { foreignKey: 'streetId' })
+
+      // Sync
+      S.sync({ force: true }).success(function() {
+
+        // Create instances
+        Street.create({ active: true }).done(function ( err, street ){ expect(err).not.to.be.ok; expect(street).to.be.ok
+        Address.create({ active: true, streetId: street.id }).done(function ( err, address ){ expect(err).not.to.be.ok; expect(address).to.be.ok
+        User.create({ username: 'John', addressId: address.id }).done(function ( err, john ){ expect(err).not.to.be.ok; expect(john).to.be.ok
+
+            // Test
+            User.find({
+              where: { username: 'John'},
+              include: [
+                { model: Address, include: [
+                  { model: Street }
+                ], required: true, where: { active: true } }
+              ]
+            }).done(function (err, john) {
+              expect(err).not.to.be.ok
+              expect(john.address).to.be.ok
+              expect(john.address.street).to.be.ok
+              done();
+            })
+
+        })
+        })
+        })
+
+      })
+    })
+
     it('should be possible to define a belongsTo include as required with child hasMany with limit', function (done) {
       var User = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {
