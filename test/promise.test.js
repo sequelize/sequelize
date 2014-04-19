@@ -421,6 +421,21 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       });
     });
 
+    it('should still work with .complete() after chaining', function(done) {
+      var spy = sinon.spy()
+        , promise = new SequelizePromise(function (resolve, reject) {
+          resolve('Heyo');
+        });
+
+      promise.then(function (result) {
+        return result+'123';
+      }).complete(function (err, result) {
+        expect(err).not.to.be.ok;
+        expect(result).to.equal('Heyo123');
+        done();
+      });
+    });
+
     it('should still work with .success() when emitting', function(done) {
       var spy = sinon.spy()
         , promise = new SequelizePromise(function (resolve, reject) {
@@ -514,8 +529,8 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
 
     describe("proxy", function () {
       it("should correctly work with success listeners", function(done) {
-        var emitter = new SequelizePromise()
-          , proxy = new SequelizePromise()
+        var emitter = new SequelizePromise(function () {})
+          , proxy = new SequelizePromise(function () {})
           , success = sinon.spy()
 
         emitter.success(success)
@@ -531,8 +546,8 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       })
 
       it("should correctly work with error listeners", function(done) {
-        var emitter = new SequelizePromise()
-          , proxy = new SequelizePromise()
+        var emitter = new SequelizePromise(function () {})
+          , proxy = new SequelizePromise(function () {})
           , error = sinon.spy()
 
         emitter.error(error)
@@ -549,8 +564,8 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       })
 
       it("should correctly work with complete/done listeners", function(done) {
-        var promise = new SequelizePromise()
-          , proxy = new SequelizePromise()
+        var promise = new SequelizePromise(function () {})
+          , proxy = new SequelizePromise(function () {})
           , complete = sinon.spy()
 
         promise.complete(complete)
@@ -569,7 +584,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
     describe("when emitting an error event with an array of errors", function() {
       describe("if an error handler is given", function() {
         it("should return the whole array", function(done) {
-          var emitter = new SequelizePromise()
+          var emitter = new SequelizePromise(function () {})
           var errors = [
             [
               new Error("First error"),
