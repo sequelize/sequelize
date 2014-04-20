@@ -1509,5 +1509,24 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
     })
+
+    it('infers the keyType if none provided', function(done) {
+      var User = this.sequelize.define('User', {
+        id: { type: DataTypes.STRING, primaryKey: true },
+        username: DataTypes.STRING
+      })
+      , Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING
+      })
+
+      User.hasMany(Task)
+
+      this.sequelize.sync({ force: true }).success(function() {
+        expect(Task.rawAttributes.UserId.type.toString())
+          .to.equal(DataTypes.STRING.toString())
+
+        done()
+      })
+    })
   })
 })
