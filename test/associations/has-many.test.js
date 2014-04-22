@@ -1331,28 +1331,24 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Worker.hasMany(Task, { through: WorkerTasks })
           Task.hasMany(Worker, { through: WorkerTasks })
 
-          this.sequelize.sync().done(function(err) {
-            expect(err).not.to.be.ok
-            Worker.create({}).done(function (err, worker) {
-              expect(err).not.to.be.ok
-              Task.bulkCreate([{}, {}]).done(function (err) {
-                expect(err).not.to.be.ok
-                Task.findAll().done(function (err, tasks) {
-                  expect(err).not.to.be.ok
-                  worker.setTasks(tasks).done(function () {
-                    worker.removeTask(tasks[0]).done(function (err) {
-                      expect(err).not.to.be.ok
-
-                      worker.getTasks().done(function (err, tasks) {
-                        expect(tasks.length).to.equal(1)
-                        done()
-                      })
-                    })
-                  })
-                })
+          // Test setup
+          this.sequelize.sync().then(function() {
+            return Sequelize.Promise.all([
+              Worker.create({}),
+              Task.bulkCreate([{}, {}]).then(function () {
+                return Task.findAll()
               })
-            })
-          })
+            ]);
+          }).spread(function (worker, tasks) {
+            // Set all tasks, then remove one tasks, then return all tasks
+            return worker.setTasks(tasks).then(function () {
+              return worker.removeTask(tasks[0]);
+            }).then(function () {
+              return worker.getTasks();
+            });
+          }).then(function (tasks) {
+            expect(tasks.length).to.equal(1);
+          }).then(done.bind(null, null), done);
         })
       })
     })
