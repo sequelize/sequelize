@@ -1323,7 +1323,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       describe('removing from the join table', function () {
-        it('should remove a single entry without any attributes (and timestamps off) on the through model', function (done) {
+        it('should remove a single entry without any attributes (and timestamps off) on the through model', function () {
           var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
             , Task = this.sequelize.define('Task', {}, {timestamps: false})
             , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false})
@@ -1332,7 +1332,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Task.hasMany(Worker, { through: WorkerTasks })
 
           // Test setup
-          this.sequelize.sync().then(function() {
+          return this.sequelize.sync().then(function() {
             return Sequelize.Promise.all([
               Worker.create({}),
               Task.bulkCreate([{}, {}]).then(function () {
@@ -1348,7 +1348,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             });
           }).then(function (tasks) {
             expect(tasks.length).to.equal(1);
-          }).then(done.bind(null, null), done);
+          });
         })
       })
     })
