@@ -350,15 +350,6 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
             done()
           })
       })
-      it('works for functions with only one return value', function (done) {
-        this.User
-          .find({ id: 1})
-          .spread(function(user) {
-            expect(user.id).to.equal(1)
-            expect(arguments.length).to.equal(1)
-            done()
-          })
-      })
     })
   })
 
