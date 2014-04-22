@@ -1437,7 +1437,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   }
                   Election.findAndCountAll(criteria).done(function (err, elections) {
                     expect(err).not.be.ok
-                    expect(elections.count).to.equal(2)
+                    expect(elections.count).to.equal(1)
                     expect(elections.rows.length).to.equal(0)
                     done()
                   })
