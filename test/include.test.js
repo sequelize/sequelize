@@ -623,6 +623,52 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should support include when retrieving associated objects', function (done) {
+      var User = this.sequelize.define('user', {
+          name: DataTypes.STRING
+        })
+        , Group = this.sequelize.define('group', {
+          name: DataTypes.STRING
+        })
+        , UserGroup = this.sequelize.define('user_group', {
+          vip: DataTypes.INTEGER
+        })
+      User.hasMany(Group)
+      Group.belongsTo(User)
+      User.hasMany(Group, {
+        through: UserGroup,
+        as: 'Clubs'
+      })
+      Group.hasMany(User, {
+        through: UserGroup,
+        as: 'Members'
+      })
+
+      this.sequelize.sync().success(function () {
+        User.create({ name: 'Owner' }).success(function (owner) {
+          User.create({ name: 'Member' }).success(function (member) {
+            Group.create({ name: 'Group' }).success(function (group) {
+              owner.addGroup(group).success(function () {
+                group.addMember(member).success(function () {
+                  owner.getGroups({
+                    include: [{
+                      model: User,
+                      as: 'Members'
+                    }]
+                  }).success(function (groups) {
+                    expect(groups.length).to.equal(1)
+                    expect(groups[0].members[0].name).to.equal('Member')
+                    
+                    done()
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('where', function () {
