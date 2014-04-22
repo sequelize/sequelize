@@ -806,6 +806,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    if(Support.dialectIsMySQL()) {
+      it('supports limit clause', function (done) {
+        var self = this
+          , data = [{ username: 'Peter', secretValue: '42' },
+                    { username: 'Peter', secretValue: '42' },
+                    { username: 'Peter', secretValue: '42' }]
+
+        this.User.bulkCreate(data).success(function () {
+          self.User.update({secretValue: '43'}, {username: 'Peter'}, {limit: 1}).done(function (err, affectedRows) {
+            expect(err).not.to.be.ok
+            expect(affectedRows).to.equal(1)
+            done()
+          })
+        })
+      })
+    }
+
   })
 
   describe('destroy', function() {
