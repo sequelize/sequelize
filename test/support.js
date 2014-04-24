@@ -6,9 +6,10 @@ var fs        = require('fs')
   , Config    = require(__dirname + "/config/config")
 
 // Make sure errors get thrown when testing
-Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise){
+Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {
   throw e;
 });
+Sequelize.Promise.longStackTraces();
 
 var Support = {
   Sequelize: Sequelize,
