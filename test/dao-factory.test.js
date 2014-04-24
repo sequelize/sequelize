@@ -1554,28 +1554,25 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('references', function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       var self = this
 
-      this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
-        self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
-          self.Author = self.sequelize.define('author', { firstName: Sequelize.STRING })
-          self.Author.sync().success(function() {
-            done()
-          })
-        })
+      this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING })
+
+      return this.sequelize.getQueryInterface().dropTable('posts', { force: true }).then(function() {
+        return self.sequelize.getQueryInterface().dropTable('authors', { force: true })
+      }).then(function() {
+        return self.Author.sync()
       })
     })
 
-    afterEach(function(done) {
+    /*afterEach(function() {
       var self = this
 
-      this.sequelize.getQueryInterface().dropTable('posts', { force: true }).success(function() {
-        self.sequelize.getQueryInterface().dropTable('authors', { force: true }).success(function() {
-          done()
-        })
+      return this.sequelize.getQueryInterface().dropTable('posts', { force: true }).then(function() {
+        return self.sequelize.getQueryInterface().dropTable('authors', { force: true })
       })
-    })
+    })*/
 
     it('uses an existing dao factory and references the author table', function(done) {
       var self    = this
@@ -1662,7 +1659,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(2).to.equal(1)
           done()
         }
-      }).error(function(err) {
+
+        return;
+      }).catch(function(err) {
         if (Support.dialectIsMySQL(true)) {
           expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/)
         } else if (dialect === 'mariadb') {

@@ -8,6 +8,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , datetime  = require('chai-datetime')
   , _         = require('lodash')
+  , assert    = require('assert')
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -165,7 +166,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         expect(err).not.to.be.ok
         User.create({email: 'hello@sequelize.com'}).done(function (err) {
           expect(err).not.to.be.ok
-          User.create({email: 'hello@sequelize.com'}).done(function (err) {
+          User.create({email: 'hello@sequelize.com'}).then(function () {
+            assert(false)
+          }, function (err) {
             expect(err).to.be.ok
             expect(err).to.be.an.instanceof(Error)
             done()
