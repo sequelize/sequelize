@@ -1381,7 +1381,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             .then(function() { return b1.save() })
             .then(function() { return a1.setRelation1(b1) })
             .then(function() { return self.A.find({ where: { name: 'a1' } }) })
-            .done(function(a) {
+            .then(function(a) {
               expect(a.relation1Id).to.be.eq(b1.id)
               done()
             })
@@ -1410,7 +1410,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             .then(function() { return b1.save() })
             .then(function() { return b1.setRelation1(a1) })
             .then(function() { return self.B.find({ where: { name: 'b1' } }) })
-            .done(function(b) {
+            .then(function(b) {
               expect(b.relation1Id).to.be.eq(a1.id)
               done()
             })
