@@ -536,24 +536,6 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         proxy.emit('success')
       })
 
-      it("should correctly work with error listeners", function(done) {
-        var emitter = new SequelizePromise(function () {})
-          , proxy = new SequelizePromise(function () {})
-          , error = sinon.spy()
-
-        emitter.error(error)
-        proxy.error(function() {
-          process.nextTick(function() {
-            expect(error.called).to.be.true
-            expect(error.firstCall.args[0]).to.be.an.instanceof(Error)
-            done()
-          })
-        })
-
-        proxy.proxy(emitter)
-        proxy.emit('error', new Error('reason'))
-      })
-
       it("should correctly work with complete/done listeners", function(done) {
         var promise = new SequelizePromise(function () {})
           , proxy = new SequelizePromise(function () {})

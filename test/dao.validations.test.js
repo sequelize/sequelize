@@ -507,6 +507,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         it('produce 3 errors', function(done) {
           this.Project.create({}).error(function(err) {
             expect(err).to.be.an.instanceOf(Error)
+            delete err.stack // longStackTraces
             expect(Object.keys(err)).to.have.length(3)
             done()
           })
