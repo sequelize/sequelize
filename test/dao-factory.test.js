@@ -1009,6 +1009,34 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+   it('supports table schema/prefix', function(done) {
+     var self = this
+       , data = [{ username: 'Peter', secretValue: '42' },
+                 { username: 'Paul',  secretValue: '42' },
+                 { username: 'Bob',   secretValue: '43' }]
+       , prefixUser = self.User.schema('prefix')
+
+     var run = function() {
+       prefixUser.sync({ force: true }).success(function() {
+         prefixUser.bulkCreate(data).success(function() {
+           prefixUser.destroy({secretValue: '42'})
+             .success(function() {
+               prefixUser.findAll({order: 'id'}).success(function(users) {
+                 expect(users.length).to.equal(1)
+                 expect(users[0].username).to.equal("Bob")
+                 done()
+               })
+             })
+         })
+       })
+     }
+
+     this.sequelize.queryInterface.createSchema('prefix').success(function() {
+       run.call(self)
+     })
+
+    })
   })
 
   describe('equals', function() {
