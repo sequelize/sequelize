@@ -1032,13 +1032,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
        })
      }
 
-     if (dialect === "postgres") {
-       this.sequelize.queryInterface.createSchema('prefix').success(function() {
-         run.call(self)
-       })
-     } else {
+     this.sequelize.queryInterface.createSchema('prefix').success(function() {
        run.call(self)
-     }
+     })
 
     })
   })
