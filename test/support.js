@@ -5,6 +5,12 @@ var fs        = require('fs')
   , DataTypes = require(__dirname + "/../lib/data-types")
   , Config    = require(__dirname + "/config/config")
 
+// Make sure errors get thrown when testing
+Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {
+  throw e;
+});
+Sequelize.Promise.longStackTraces();
+
 var Support = {
   Sequelize: Sequelize,
 

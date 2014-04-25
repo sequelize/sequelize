@@ -4,6 +4,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , Sequelize = require('../../index')
+  , assert    = require('assert')
 
 chai.config.includeStack = true
 
@@ -359,14 +360,17 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         User.create({ username: 'foo' }).success(function(user) {
           Task.create({ title: 'task' }).success(function(task) {
             task.setUser(user).success(function() {
-              user.destroy().error(function() {
-                // Should fail due to FK restriction
+              // Should fail due to FK restriction
+              user.destroy().then(function () {
+                assert(false);
+              }, function(err) {
+                expect(err).to.be.ok;
                 Task.findAll().success(function(tasks) {
                   expect(tasks).to.have.length(1)
                   done()
                 })
               })
-            })
+            });
           })
         })
       })

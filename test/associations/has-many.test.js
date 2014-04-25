@@ -1323,7 +1323,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
 
       describe('removing from the join table', function () {
-        it('should remove a single entry without any attributes (and timestamps off) on the through model', function (done) {
+        it('should remove a single entry without any attributes (and timestamps off) on the through model', function () {
           var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
             , Task = this.sequelize.define('Task', {}, {timestamps: false})
             , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false})
@@ -1331,28 +1331,24 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Worker.hasMany(Task, { through: WorkerTasks })
           Task.hasMany(Worker, { through: WorkerTasks })
 
-          this.sequelize.sync().done(function(err) {
-            expect(err).not.to.be.ok
-            Worker.create({}).done(function (err, worker) {
-              expect(err).not.to.be.ok
-              Task.bulkCreate([{}, {}]).done(function (err) {
-                expect(err).not.to.be.ok
-                Task.findAll().done(function (err, tasks) {
-                  expect(err).not.to.be.ok
-                  worker.setTasks(tasks).done(function () {
-                    worker.removeTask(tasks[0]).done(function (err) {
-                      expect(err).not.to.be.ok
-
-                      worker.getTasks().done(function (err, tasks) {
-                        expect(tasks.length).to.equal(1)
-                        done()
-                      })
-                    })
-                  })
-                })
+          // Test setup
+          return this.sequelize.sync().then(function() {
+            return Sequelize.Promise.all([
+              Worker.create({}),
+              Task.bulkCreate([{}, {}]).then(function () {
+                return Task.findAll()
               })
-            })
-          })
+            ]);
+          }).spread(function (worker, tasks) {
+            // Set all tasks, then remove one tasks, then return all tasks
+            return worker.setTasks(tasks).then(function () {
+              return worker.removeTask(tasks[0]);
+            }).then(function () {
+              return worker.getTasks();
+            });
+          }).then(function (tasks) {
+            expect(tasks.length).to.equal(1);
+          });
         })
       })
     })
@@ -1385,7 +1381,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             .then(function() { return b1.save() })
             .then(function() { return a1.setRelation1(b1) })
             .then(function() { return self.A.find({ where: { name: 'a1' } }) })
-            .done(function(a) {
+            .then(function(a) {
               expect(a.relation1Id).to.be.eq(b1.id)
               done()
             })
@@ -1414,7 +1410,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             .then(function() { return b1.save() })
             .then(function() { return b1.setRelation1(a1) })
             .then(function() { return self.B.find({ where: { name: 'b1' } }) })
-            .done(function(b) {
+            .then(function(b) {
               expect(b.relation1Id).to.be.eq(a1.id)
               done()
             })
