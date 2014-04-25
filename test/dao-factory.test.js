@@ -1015,20 +1015,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
        , data = [{ username: 'Peter', secretValue: '42' },
                  { username: 'Paul',  secretValue: '42' },
                  { username: 'Bob',   secretValue: '43' }]
-       , prefixUser = self.User.schema('prefix', '_')
+       , prefixUser = self.User.schema('prefix')
 
-     prefixUser.sync({ force: true }).success(function() {
-       prefixUser.bulkCreate(data).success(function() {
-         prefixUser.destroy({secretValue: '42'})
-           .success(function() {
-             prefixUser.findAll({order: 'id'}).success(function(users) {
-               expect(users.length).to.equal(1)
-               expect(users[0].username).to.equal("Bob")
-               done()
+     var run = function() {
+       prefixUser.sync({ force: true }).success(function() {
+         prefixUser.bulkCreate(data).success(function() {
+           prefixUser.destroy({secretValue: '42'})
+             .success(function() {
+               prefixUser.findAll({order: 'id'}).success(function(users) {
+                 expect(users.length).to.equal(1)
+                 expect(users[0].username).to.equal("Bob")
+                 done()
+               })
              })
-           })
+         })
        })
-     })
+     }
+
+     if (dialect === "postgres") {
+       this.sequelize.queryInterface.createSchema('prefix').success(function() {
+         run.call(self)
+       })
+     } else {
+       run.call(self)
+     }
+
     })
   })
 
