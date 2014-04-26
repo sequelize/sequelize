@@ -153,40 +153,34 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
   })
 
   describe('createTable', function () {
-    it('should work with enums (1)', function (done) {
-      this.queryInterface.createTable('SomeTable', {
+    it('should work with enums (1)', function () {
+      return this.queryInterface.createTable('SomeTable', {
         someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
-      }).done(function (err) {
-        expect(err).not.to.be.ok
-        done()
       })
     })
 
-    it('should work with enums (2)', function (done) {
-      this.queryInterface.createTable('SomeTable', {
+    it('should work with enums (2)', function () {
+      return this.queryInterface.createTable('SomeTable', {
         someEnum: {
           type: DataTypes.ENUM,
           values: ['value1', 'value2', 'value3']
         }
-      }).done(function (err) {
-        expect(err).not.to.be.ok
-        done()
       })
     })
   })
 
   describe('renameColumn', function() {
-    it('rename a simple column', function(done) {
+    it('rename a simple column', function() {
       var self = this
       var Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING
       }, { freezeTableName: true })
 
-      Users.sync({ force: true }).success(function() {
-        self.queryInterface.renameColumn('_Users', 'username', 'pseudo').complete(done)
+      return Users.sync({ force: true }).then(function() {
+        return self.queryInterface.renameColumn('_Users', 'username', 'pseudo')
       })
     })
-    it('rename a column non-null without default value', function(done) {
+    it('rename a column non-null without default value', function() {
       var self = this
       var Users = self.sequelize.define('_Users', {
         username: {
@@ -195,11 +189,11 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         }
       }, { freezeTableName: true })
 
-      Users.sync({ force: true }).success(function() {
-        self.queryInterface.renameColumn('_Users', 'username', 'pseudo').complete(done)
+      return Users.sync({ force: true }).then(function() {
+        return self.queryInterface.renameColumn('_Users', 'username', 'pseudo')
       })
     })
-    it('rename a boolean column non-null without default value', function(done) {
+    it('rename a boolean column non-null without default value', function() {
       var self = this
       var Users = self.sequelize.define('_Users', {
         active: {
@@ -209,8 +203,8 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         }
       }, { freezeTableName: true })
 
-      Users.sync({ force: true }).success(function() {
-        self.queryInterface.renameColumn('_Users', 'active', 'enabled').complete(done)
+      return Users.sync({ force: true }).then(function() {
+        return self.queryInterface.renameColumn('_Users', 'active', 'enabled')
       })
     })
   })
