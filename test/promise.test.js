@@ -319,16 +319,6 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done)
     })
 
-    it('with then', function (done) {
-      this.User
-        .findOrCreate({ id: 1})
-        .then(function(user) {
-          expect(user.id).to.equal(1)
-          expect(arguments.length).to.equal(1)
-          done()
-        })
-    })
-
     describe('with spread', function () {
       it('user not created', function (done) {
         this.User

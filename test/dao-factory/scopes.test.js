@@ -245,7 +245,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it("should have no problem performing findOrCreate", function(done) {
-      this.ScopeMe.findOrCreate({username: 'fake'}).success(function(user) {
+      this.ScopeMe.findOrCreate({username: 'fake'}).spread(function(user) {
         expect(user.username).to.equal('fake')
         done()
       })

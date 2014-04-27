@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.create(data).success(function (user) {
         self.User.findOrCreate({
           username: user.username
-        }).success(function (_user, created) {
+        }).spread(function (_user, created) {
           expect(_user.id).to.equal(user.id)
           expect(_user.username).to.equal('Username')
           expect(created).to.be.false
