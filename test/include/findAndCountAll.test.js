@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       C.hasMany( SomeConnection, { foreignKey: 'fk', })
 
       // Sync them
-      S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok;
+      S.sync({ force: true }).done( function () {
 
         // Create an enviroment
         User.bulkCreate([
