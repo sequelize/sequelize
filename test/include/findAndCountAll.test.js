@@ -15,15 +15,15 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     it( 'Try to include a required model. Result rows should match count', function ( done ) {
       var DT = DataTypes,
           S = this.sequelize,
-          User = S.define('User', { name: DT.STRING(40) }),
+          User = S.define('User', { name: DT.STRING(40) }, { paranoid: true }),
           SomeConnection = S.define('SomeConnection', {
             m: DT.STRING(40),
             fk: DT.INTEGER.UNSIGNED,
             u: DT.INTEGER.UNSIGNED,
-          }),
-          A = S.define('A', { name: DT.STRING(40) }),
-          B = S.define('B', { name: DT.STRING(40) }),
-          C = S.define('C', { name: DT.STRING(40) })
+          }, { paranoid: true }),
+          A = S.define('A', { name: DT.STRING(40) }, { paranoid: true }),
+          B = S.define('B', { name: DT.STRING(40) }, { paranoid: true }),
+          C = S.define('C', { name: DT.STRING(40) }, { paranoid: true })
 
       // Associate them
       User.hasMany( SomeConnection )
@@ -34,13 +34,13 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         .belongsTo( B, { foreignKey: 'fk', })
         .belongsTo( C, { foreignKey: 'fk', })
 
-      A.hasMany( SomeConnection )
-      B.hasMany( SomeConnection )
-      C.hasMany( SomeConnection )
+      A.hasMany( SomeConnection, { foreignKey: 'fk', })
+      B.hasMany( SomeConnection, { foreignKey: 'fk', })
+      C.hasMany( SomeConnection, { foreignKey: 'fk', })
 
       // Sync them
       S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok;
-        
+
         // Create an enviroment
         User.bulkCreate([
           { name: 'Youtube' },
@@ -51,12 +51,22 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         ]).done( function ( err, users ) { expect( err ).not.to.be.ok; expect( users ).to.be.length( 5 )
 
         SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
-          { u: 1, m: 'A', fk: 1 }, // 1
+          { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
           { u: 2, m: 'A', fk: 1 },
           { u: 3, m: 'A', fk: 1 },
+          { u: 4, m: 'A', fk: 1 },
+          { u: 5, m: 'A', fk: 1 },
           { u: 1, m: 'B', fk: 1 },
+          { u: 2, m: 'B', fk: 1 },
+          { u: 3, m: 'B', fk: 1 },
+          { u: 4, m: 'B', fk: 1 },
+          { u: 5, m: 'B', fk: 1 },
           { u: 1, m: 'C', fk: 1 },
-          { u: 1, m: 'A', fk: 2 }, // 2
+          { u: 2, m: 'C', fk: 1 },
+          { u: 3, m: 'C', fk: 1 },
+          { u: 4, m: 'C', fk: 1 },
+          { u: 5, m: 'C', fk: 1 },
+          { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
           { u: 4, m: 'A', fk: 2 },
           { u: 2, m: 'A', fk: 2 },
           { u: 1, m: 'A', fk: 3 }, // 3
@@ -65,7 +75,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           { u: 2, m: 'B', fk: 2 },
           { u: 1, m: 'A', fk: 4 }, // 4
           { u: 4, m: 'A', fk: 2 },
-        ]).done( function ( err, conns ) { expect( err ).not.to.be.ok; expect( conns ).to.be.length( 14 )
+        ]).done( function ( err, conns ) { expect( err ).not.to.be.ok; expect( conns ).to.be.length( 24 )
 
         A.bulkCreate([
           { name: 'Just' },
@@ -84,15 +94,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           { name: 'because we only want A' }
         ]).done( function ( err, cs ) { expect( err ).not.to.be.ok; expect( cs ).to.be.length( 1 )
 
-          // Now let's query an initial test
-          A.findAndCountAll().done( function ( err, result ) {
-            
-            // Test variables
-            expect( err ).not.to.be.ok
-            expect( result.count ).to.be.equal( 5 )
-            expect( result.rows.length ).to.be.equal( 5 )
+          // Delete some of conns to prove the concept
+          SomeConnection.destroy({
+            m: 'A',
+            u: 1,
+            fk: [ 1, 2 ],
+          }).done( function ( err ) { expect( err ).not.to.be.ok
 
-            // Last and most important queries
+            // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
             A.findAndCountAll({
 
               include: [{
@@ -105,19 +114,20 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
               limit: 5,
 
-            }).done( function ( err, result ) {
-              
+            })
+            .done( function ( err, result ) {
+
               // Test variables
               expect( err ).not.to.be.ok
-              expect( result.count ).to.be.equal( 4 )
-              expect( result.rows.length ).to.be.equal( 4 )
+              expect( result.count ).to.be.equal( 2 )
+              expect( result.rows.length ).to.be.equal( 2 )
 
               done()
 
             // Last and most important queries - END
             })
 
-          // Now let's query an initial test - END
+          // Delete some of conns to prove the concept - END
           })
 
         // Create an enviroment - END
