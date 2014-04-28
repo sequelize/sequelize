@@ -26,17 +26,17 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           C = S.define('C', { name: DT.STRING(40) }, { paranoid: true })
 
       // Associate them
-      User.hasMany( SomeConnection )
+      User.hasMany( SomeConnection, { foreignKey: 'u' })
 
       SomeConnection
-        .belongsTo( User, { foreignKey: 'u' } )
-        .belongsTo( A, { foreignKey: 'fk', })
-        .belongsTo( B, { foreignKey: 'fk', })
-        .belongsTo( C, { foreignKey: 'fk', })
+        .belongsTo( User, { foreignKey: 'u' })
+        .belongsTo( A, { foreignKey: 'fk' })
+        .belongsTo( B, { foreignKey: 'fk' })
+        .belongsTo( C, { foreignKey: 'fk' })
 
-      A.hasMany( SomeConnection, { foreignKey: 'fk', })
-      B.hasMany( SomeConnection, { foreignKey: 'fk', })
-      C.hasMany( SomeConnection, { foreignKey: 'fk', })
+      A.hasMany( SomeConnection, { foreignKey: 'fk' })
+      B.hasMany( SomeConnection, { foreignKey: 'fk' })
+      C.hasMany( SomeConnection, { foreignKey: 'fk' })
 
       // Sync them
       S.sync({ force: true }).done( function () {
