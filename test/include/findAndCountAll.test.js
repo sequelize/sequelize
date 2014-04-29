@@ -18,8 +18,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           User = S.define('User', { name: DT.STRING(40) }, { paranoid: true }),
           SomeConnection = S.define('SomeConnection', {
             m: DT.STRING(40),
-            fk: DT.INTEGER.UNSIGNED,
-            u: DT.INTEGER.UNSIGNED,
+            fk: DT.INTEGER,
+            u: DT.INTEGER,
           }, { paranoid: true }),
           A = S.define('A', { name: DT.STRING(40) }, { paranoid: true }),
           B = S.define('B', { name: DT.STRING(40) }, { paranoid: true }),
@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       C.hasMany( SomeConnection, { foreignKey: 'fk' })
 
       // Sync them
-      S.sync({ force: true }).done( function () {
+      S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok;
 
         // Create an enviroment
         User.bulkCreate([
@@ -75,9 +75,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           { u: 2, m: 'B', fk: 2 },
           { u: 1, m: 'A', fk: 4 }, // 4
           { u: 4, m: 'A', fk: 2 },
-        ], null, {
-          validate: false
-        }).done( function ( err, conns ) { expect( err ).not.to.be.ok; expect( conns ).to.be.length( 24 )
+        ]).done( function ( err, conns ) { expect( err ).not.to.be.ok; expect( conns ).to.be.length( 24 )
 
         A.bulkCreate([
           { name: 'Just' },
