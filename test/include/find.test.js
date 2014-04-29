@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
 
       D
-        .hasMany( B );
+        .hasMany( B )
 
       S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok
 
@@ -49,8 +49,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]}
           ]
         }).done( function ( err ) {
-          expect( err ).not.to.be.ok;
-          done();
+          expect( err ).not.to.be.ok
+          done()
         })
 
       })
