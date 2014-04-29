@@ -28,12 +28,12 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         .belongsTo( B )
         .belongsTo( D )
         .hasMany( C, {
-          throught: 'BC',
+          through: 'BC',
         })
 
       C
         .hasMany( B, {
-          throught: 'BC',
+          through: 'BC',
         })
 
       D
