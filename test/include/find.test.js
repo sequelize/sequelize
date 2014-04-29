@@ -49,7 +49,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]}
           ]
         }).done( function ( err ) {
-          expect( err ).not.to.be.ok
+          expect( err ).not.to.be.ok;
+          done();
         })
 
       })
