@@ -63,6 +63,9 @@
       <? if (comment.aliases) { ?>
         __Aliases:__ *<?= comment.aliases ?>*
       <? } ?>
+      <? if (comment.since) { ?>
+        __Since:__ *<?= comment.since.string ?>*
+      <? } ?>
      ======
     <? } ?>
   <? }) ?>

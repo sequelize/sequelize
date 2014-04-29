@@ -49,7 +49,8 @@ var options = {
       javadoc.isMixin = getTag(javadoc.raw.tags, 'mixin') !== undefined;
       javadoc.isProperty = getTag(javadoc.raw.tags, 'property') !== undefined
       javadoc.private = getTag(javadoc.raw.tags, 'private') !== undefined
-      
+      javadoc.since = getTag(javadoc.raw.tags, 'since');
+
       // Only show params without a dot in them (dots means attributes of object, so no need to clutter the signature too much)
       var params = [] 
       javadoc.paramTags.forEach(function (paramTag) {
