@@ -75,7 +75,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           { u: 2, m: 'B', fk: 2 },
           { u: 1, m: 'A', fk: 4 }, // 4
           { u: 4, m: 'A', fk: 2 },
-        ]).done( function ( err, conns ) { expect( err ).not.to.be.ok; expect( conns ).to.be.length( 24 )
+        ], null, {
+          validate: false
+        }).done( function ( err, conns ) { expect( err ).not.to.be.ok; expect( conns ).to.be.length( 24 )
 
         A.bulkCreate([
           { name: 'Just' },
