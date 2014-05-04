@@ -1612,14 +1612,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    afterEach(function() {
-      var self = this
-
-      return this.sequelize.getQueryInterface().dropTable('posts', { force: true }).then(function() {
-        return self.sequelize.getQueryInterface().dropTable('authors', { force: true })
-      })
-    })
-
     it('uses an existing dao factory and references the author table', function(done) {
       var self    = this
         , Post    = this.sequelize.define('post', {
