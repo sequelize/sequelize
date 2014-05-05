@@ -850,22 +850,22 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
 
     it('does not update timestamps when passing silent=true', function() {
-      this.clock = sinon.useFakeTimers(new Date().getTime());
-
       var self = this
       return this.User.create({ username: 'user' }).then(function (user) {
         var updatedAt = user.updatedAt
         
-        self.clock.tick(30000);
+        return new self.sequelize.Promise(function (resolve) {
+          setTimeout(function () {
+            user.updateAttributes({
+              username: 'userman'
+            }, {
+              // silent: true
+            }).then(function () {
+              expect(user.updatedAt).to.equalDate(updatedAt)
 
-        return user.updateAttributes({
-          username: 'userman'
-        }, {
-          silent: true
-        }).then(function () {
-          expect(user.updatedAt).to.equalDate(updatedAt)
-
-          self.clock.restore();
+              resolve()
+            })
+          }, 2000)  
         })
       })
     })
