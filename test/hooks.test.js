@@ -104,7 +104,6 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                     {username: 'Bob', mood: 'cold'},
                     {username: 'Tobi', mood: 'hot'}
                   ], { fields: [], hooks: true }).success(function(bulkUsers) {
-                    console.log(bulkUsers)
                     expect(beforeBulkCreate).to.be.true
                     expect(afterBulkCreate).to.be.true
                     expect(bulkUsers).to.be.instanceof(Array)
