@@ -453,4 +453,23 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
     })
   })
 
+  describe("Counter part", function () {
+    describe("BelongsTo", function () {
+      it('should only generate one foreign key', function () {
+        var Orders = this.sequelize.define('Orders', {}, {timestamps: false})
+          , InternetOrders = this.sequelize.define('InternetOrders', {}, {timestamps: false})
+        
+        InternetOrders.belongsTo(Orders, {
+          foreignKeyConstraint: true
+        });
+        Orders.hasOne(InternetOrders, {
+          foreignKeyConstraint: true
+        });
+
+        expect(Object.keys(InternetOrders.rawAttributes).length).to.equal(2);
+        expect(InternetOrders.rawAttributes.OrderId).to.be.ok;
+        expect(InternetOrders.rawAttributes.OrdersId).not.to.be.ok;
+      })
+    })
+  })
 })
