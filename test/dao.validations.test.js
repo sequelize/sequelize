@@ -219,8 +219,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
               }
             })
             var successfulUser = UserSuccess.build({ name: succeedingValue })
-            successfulUser.validate().success( function() {
-              expect(arguments).to.have.length(0)
+            successfulUser.validate().success(function(errors) {
+              expect(errors).to.be.undefined
               done()
             }).error(function(err) {
               expect(err).to.deep.equal({})
@@ -539,11 +539,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         expect(error.name[0].message).to.equal("name should equal '2'")
 
         var successfulUser = User.build({ name : "2" })
-        successfulUser.validate().success(function() {
-          expect(arguments).to.have.length(0)
-          done()
-        }).error(function(err) {
-          expect(err[0].message).to.equal()
+        successfulUser.validate().success(function(err) {
+          expect(err).not.to.be.defined
           done()
         })
       })
@@ -572,8 +569,8 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           expect(error).to.be.an.instanceOf(self.sequelize.ValidationError)
           expect(error.name[0].message).to.equal("Invalid username")
           
-          User.build({ name : "no error" }).validate().success(function() {
-            expect(arguments).to.have.length(0)
+          User.build({ name : "no error" }).validate().success(function(errors) {
+            expect(errors).not.to.be.defined
             done()
           })
         })

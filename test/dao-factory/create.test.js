@@ -480,7 +480,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(str2.str).to.equal('http://sequelizejs.org')
             StringIsNullOrUrl.create({ str: '' }).error(function(err) {
               expect(err).to.exist
-        expect(err.str[0].message).to.match(/Validation isURL failed/)
+              expect(err.str[0].message).to.match(/Validation isURL failed/)
 
               done()
             })
