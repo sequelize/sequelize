@@ -863,7 +863,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         }, {
           silent: true
         }).then(function () {
-          expect(user.updatedAt).to.equal(updatedAt)
+          expect(user.updatedAt).to.equalDate(updatedAt)
 
           self.clock.restore();
         })
