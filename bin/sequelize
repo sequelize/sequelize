@@ -18,7 +18,7 @@ var configuration = {
 
 var loadDefaultOptions = function(pathToOptionsFile) {
   try {
-    var options = require(path.resolve(process.cwd(), '/', pathToOptionsFile))
+    var options = require(pathToOptionsFile);
 
     Object.keys(options).forEach(function(key) {
       program[key] = options[key]
@@ -194,7 +194,15 @@ program
   .parse(process.argv)
 
 if(typeof program.optionsPath === 'string') {
-  loadDefaultOptions(program.optionsPath);
+  var optionsFilesPath = null;
+
+  if (isRelativePath(program.optionsPath)) {
+    optionsFilePath = path.join(process.cwd(), program.optionsPath);
+  } else {
+    optionsFilePath = program.optionsPath;
+  }
+
+  loadDefaultOptions(optionsFilePath);
 }
 
 if(typeof program.config === 'string') {
