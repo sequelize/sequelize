@@ -849,6 +849,27 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       }, 1000)
     })
 
+    it('does not update timestamps when passing silent=true', function() {
+      this.clock = sinon.useFakeTimers(new Date().getTime());
+
+      var self = this
+      return this.User.create({ username: 'user' }).then(function (user) {
+        var updatedAt = user.updatedAt
+        
+        self.clock.tick(30000);
+
+        return user.updateAttributes({
+          username: 'userman'
+        }, {
+          silent: true
+        }).then(function () {
+          expect(user.updatedAt).to.equal(updatedAt)
+
+          self.clock.restore();
+        })
+      })
+    })
+
     it('updates with function and column value', function (done) {
       var self = this
 

@@ -153,7 +153,9 @@ if (program.file) {
     {file:'lib/query-chainer.js', output: 'API-Reference-QueryChainer'},
     {file:'lib/emitters/custom-event-emitter.js', output: 'API-Reference-EventEmitter'},
     {file:'lib/hooks.js', output: 'API-Reference-Hooks'},
-    {file:'lib/associations/mixin.js', output: 'API-Reference-Associations'}
+    {file:'lib/associations/mixin.js', output: 'API-Reference-Associations'},
+    {file:'lib/promise.js', output: 'API-Reference-Promise'},
+    {file:'lib/transaction.js', output: 'API-Reference-Transaction'}
   ];
 }
 
