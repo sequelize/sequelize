@@ -1036,6 +1036,34 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe('foreign keys', function () {
+      it('should correctly generate underscored keys', function () {
+        var User = this.sequelize.define('User', { 
+
+        }, { 
+          tableName: 'users',
+          underscored: true,
+          timestamps: false
+        })
+
+        var Place = this.sequelize.define('Place', {
+          //fields
+        },{
+          tableName: 'places',
+          underscored: true,
+          timestamps: false
+        });
+
+        User.hasMany(Place, { joinTableName: 'user_places' });
+        Place.hasMany(User, { joinTableName: 'user_places' });
+
+        var attributes = this.sequelize.model('user_places').rawAttributes;
+
+        expect(attributes.place_id).to.be.ok
+        expect(attributes.user_id).to.be.ok
+      })
+    })
+
     describe('primary key handling for join table', function () {
       beforeEach(function (done) {
         this.User = this.sequelize.define('User',
