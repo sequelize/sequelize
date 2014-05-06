@@ -20,21 +20,17 @@ describe(Support.getTestDialectTeaser("Paranoid"), function () {
         C = this.C = S.define( 'C', { name: DT.STRING }, { paranoid: true }),
         D = this.D = S.define( 'D', { name: DT.STRING }, { paranoid: true })
 
-    A
-      .belongsTo( B )
-      .hasMany( D )
-      .hasMany( C )
+    A.belongsTo( B )
+    A.hasMany( D )
+    A.hasMany( C )
 
-    B
-      .hasMany( A )
-      .hasMany( C )
+    B.hasMany( A )
+    B.hasMany( C )
 
-    C
-      .belongsTo( A )
-      .belongsTo( B )
+    C.belongsTo( A )
+    C.belongsTo( B )
 
-    D
-      .hasMany( A )
+    D.hasMany( A )
 
     S.sync({ force: true }).done(function ( err ) {
       expect( err ).not.to.be.ok

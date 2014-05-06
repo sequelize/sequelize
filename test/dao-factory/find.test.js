@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             var self = this
             expect(function() {
               self.Worker.find({ include: [ 1 ] })
-            }).to.throw(Error, 'Include unexpected. Element has to be either an instance of DAOFactory or an object.')
+            }).to.throw(Error, 'Include unexpected. Element has to be either an instance of Model or an object.')
             done()
           })
 
@@ -329,9 +329,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           var self = Object.create(this)
           self.Domain      = self.sequelize.define('Domain', { ip: Sequelize.STRING })
           self.Environment = self.sequelize.define('Environment', { name: Sequelize.STRING })
-          self.Environment
-            .belongsTo(self.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' })
-            .belongsTo(self.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' })
+          self.Environment.belongsTo(self.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' })
+          self.Environment.belongsTo(self.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' })
 
           self.Domain.sync({ force: true }).success(function() {
             self.Environment.sync({ force: true }).success(function() {

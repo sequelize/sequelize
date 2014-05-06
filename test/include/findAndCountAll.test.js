@@ -28,11 +28,10 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       // Associate them
       User.hasMany( SomeConnection, { foreignKey: 'u' })
 
-      SomeConnection
-        .belongsTo( User, { foreignKey: 'u' })
-        .belongsTo( A, { foreignKey: 'fk' })
-        .belongsTo( B, { foreignKey: 'fk' })
-        .belongsTo( C, { foreignKey: 'fk' })
+      SomeConnection.belongsTo( User, { foreignKey: 'u' })
+      SomeConnection.belongsTo( A, { foreignKey: 'fk' })
+      SomeConnection.belongsTo( B, { foreignKey: 'fk' })
+      SomeConnection.belongsTo( C, { foreignKey: 'fk' })
 
       A.hasMany( SomeConnection, { foreignKey: 'fk' })
       B.hasMany( SomeConnection, { foreignKey: 'fk' })

@@ -21,13 +21,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           D = S.define('D', { name: DT.STRING(40) }, { paranoid: true })
 
       // Associations
-      A
-        .hasMany( B )
+      A.hasMany( B )
 
-      B
-        .belongsTo( B )
-        .belongsTo( D )
-        .hasMany( C, {
+      B.belongsTo( B )
+      B.belongsTo( D )
+      B.hasMany( C, {
           through: 'BC',
         })
 
