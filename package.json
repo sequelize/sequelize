@@ -51,7 +51,7 @@
     "generic-pool": "2.0.4",
     "sql": "~0.35.0",
     "circular-json": "~0.1.5",
-    "bluebird": "~1.0.0",
+    "bluebird": "git://github.com/sequelize/bluebird.git",
     "node-uuid": "~1.4.1"
   },
   "devDependencies": {

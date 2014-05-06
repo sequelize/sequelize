@@ -32,3 +32,14 @@ branches:
 cache:
   directories:
     - node_modules
+
+matrix:
+  fast_finish: true
+
+  include:
+    - node_js: "0.12"
+      env: DB=mysql DIALECT=mysql
+
+  allow_failures:
+    - node_js: "0.12"
+      env: DB=mysql DIALECT=mysql

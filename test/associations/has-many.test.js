@@ -945,7 +945,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ id: 15, title: 'task2' }).success(function(task2) {
               user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
                 var tickChar = (Support.getTestDialect() === 'postgres') ? '"' : '`'
-                expect(sql).to.have.string("INSERT INTO %TasksUsers% (%UserId%,%TaskId%) VALUES (1,12),(1,15)".replace(/%/g, tickChar))
+                expect(sql).to.have.string("INSERT INTO %TasksUsers% (%TaskId%,%UserId%) VALUES (12,1),(15,1)".replace(/%/g, tickChar))
               })).success(function () {
                 expect(spy.calledTwice).to.be.ok // Once for SELECT, once for INSERT
                 done()
