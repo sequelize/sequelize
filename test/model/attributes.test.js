@@ -63,6 +63,22 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         })
       });
 
+      it('should work with a simple where', function () {
+        var self = this;
+
+        return this.User.create({
+          name: 'Foobar'
+        }).then(function () {
+          return self.User.find({
+            where: {
+              name: 'Foobar'
+            }
+          });
+        }).then(function (user) {
+          expect(user).to.be.ok
+        })
+      });
+
       it('should work with bulkCreate and findAll', function () {
         var self = this;
         return this.User.bulkCreate([{
