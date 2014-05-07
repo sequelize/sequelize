@@ -361,9 +361,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
           Task.create({ title: 'task' }).success(function(task) {
             task.setUser(user).success(function() {
               // Should fail due to FK restriction
-              user.destroy().then(function () {
-                assert(false);
-              }, function(err) {
+              user.destroy().catch(function(err) {
                 expect(err).to.be.ok;
                 Task.findAll().success(function(tasks) {
                   expect(tasks).to.have.length(1)
