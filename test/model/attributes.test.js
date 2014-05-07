@@ -14,17 +14,18 @@ chai.config.includeStack = true
 describe(Support.getTestDialectTeaser("Model"), function () {
   describe('attributes', function () {
     describe('field', function () {
-      it('should create and fetch with alternative field names from a simple model', function () {
-        var queryInterface = this.sequelize.getQueryInterface()
-          , User = this.sequelize.define('user', {
-            name: {
-              type: DataTypes.STRING,
-              field: 'full_name'
-            }
-          }, {
-            tableName: 'users',
-            timestamps: false
-          })
+      beforeEach(function () {
+        var queryInterface = this.sequelize.getQueryInterface();
+
+        this.User = this.sequelize.define('user', {
+          name: {
+            type: DataTypes.STRING,
+            field: 'full_name'
+          }
+        }, {
+          tableName: 'users',
+          timestamps: false
+        })
 
         return queryInterface.createTable('users', {
           id: {
@@ -36,18 +37,48 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           full_name: {
             type: DataTypes.STRING
           }
+        });
+      });
+
+      it('should create, fetch and update with alternative field names from a simple model', function () {
+        var self = this;
+
+        return this.User.create({
+          name: 'Foobar'
         }).then(function () {
-          return User.create({
-            name: 'Foobar'
-          });
-        }).then(function () {
-          return User.find({
+          return self.User.find({
             limit: 1
           });
         }).then(function (user) {
           expect(user.get('name')).to.equal('Foobar');
+          return user.updateAttributes({
+            name: 'Barfoo'
+          });
+        }).then(function () {
+          return self.User.find({
+            limit: 1
+          });
+        }).then(function (user) {
+          expect(user.get('name')).to.equal('Barfoo');
+        })
+      });
+
+      it('should work with bulkCreate and findAll', function () {
+        var self = this;
+        return this.User.bulkCreate([{
+          name: 'Abc',
+        }, {
+          name: 'Bcd'
+        }, {
+          name: 'Cde'
+        }]).then(function () {
+          return self.User.findAll();
+        }).then(function (users) {
+          users.forEach(function (user) {
+            expect(['Abc', 'Bcd', 'Cde'].indexOf(user.get('name')) !== -1).to.be.true
+          });
         });
-      })
+      });
     })
   })
 })
