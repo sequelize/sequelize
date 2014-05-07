@@ -1695,7 +1695,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ id: 52, title: 'task' }).success(function(task) {
               user.setTasks([task]).success(function() {
                 user.destroy().success(function() {
-                  self.UserTasks.findAll({ where: { userId: user.id }}).success(function(usertasks) {
+                  self.sequelize.model('tasksusers').findAll({ where: { userId: user.id }}).success(function(usertasks) {
                     expect(usertasks).to.have.length(0)
                     _done()
                   })
@@ -1708,7 +1708,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ id: 42, title: 'kast' }).success(function(task) {
               task.setUsers([user]).success(function() {
                 task.destroy().success(function() {
-                  self.UserTasks.findAll({ where: { taskId: task.id }}).success(function(usertasks) {
+                  self.sequelize.model('tasksusers').findAll({ where: { taskId: task.id }}).success(function(usertasks) {
                     expect(usertasks).to.have.length(0)
                     _done()
                   })
@@ -1774,7 +1774,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ id: 42, title: 'kast' }).success(function(task) {
               task.setUsers([user]).success(function() {
                 task.destroy().success(function () {
-                  self.UserTasks.findAll({ where: { taskId: task.id }}).success(function(usertasks) {
+                  self.sequelize.model('tasksusers').findAll({ where: { taskId: task.id }}).success(function(usertasks) {
                     // This should not exist because deletes cascade
                     expect(usertasks).to.have.length(0)
                     _done()
@@ -1798,7 +1798,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ id: 52, title: 'task' }).success(function(task) {
               user.setTasks([task]).success(function() {
                 user.destroy().success(function () {
-                  self.UserTasks.findAll({ where: { userId: user.id }}).success(function(usertasks) {
+                  self.sequelize.model('tasksusers').findAll({ where: { userId: user.id }}).success(function(usertasks) {
                     // When we're not using foreign keys, join table rows will be orphaned
                     expect(usertasks).to.have.length(1)
                     _done()
@@ -1812,7 +1812,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             self.Task.create({ id: 42, title: 'kast' }).success(function(task) {
               task.setUsers([user]).success(function() {
                 task.destroy().success(function () {
-                  self.UserTasks.findAll({ where: { taskId: task.id }}).success(function(usertasks) {
+                  self.sequelize.model('tasksusers').findAll({ where: { taskId: task.id }}).success(function(usertasks) {
                     // When we're not using foreign keys, join table rows will be orphaned
                     expect(usertasks).to.have.length(1)
                     _done()

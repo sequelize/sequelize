@@ -668,7 +668,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               {model: Tag}
             ],
             order: [
-              ['id', 'ASC'],
+              ['Product.id', 'ASC'],
               ['Tags.id', 'ASC']
             ]
           }).done(function (err, products) {
@@ -1349,7 +1349,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                       }}
                     ]}
                   ],
-                  order: 'id ASC'
+                  order: [
+                    ['User.id', 'ASC']
+                  ]
                 }).done(function (err, users) {
                   expect(err).not.to.be.ok
                   
@@ -1543,7 +1545,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             }}
           ],
           limit: 6,
-          order: 'id ASC'
+          order: [
+            ['Product.id', 'ASC']
+          ]
         }).done(function (err, products) {
           expect(err).not.to.be.ok
           expect(products.length).to.equal(6)
@@ -1571,7 +1575,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             {model: self.models.Price}
           ],
           limit: 10,
-          order: 'id ASC'
+          order: [
+            ['Product.id', 'ASC']
+          ]
         }).done(function (err, products) {
           expect(err).not.to.be.ok
           expect(products.length).to.equal(10)
