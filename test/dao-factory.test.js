@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           userid:    { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           userscore: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true }
         })
-      }).to.throw(Error, 'Invalid DAO definition. Only one autoincrement field allowed.')
+      }).to.throw(Error, 'Invalid Instance definition. Only one autoincrement field allowed.')
       done()
     })
 
@@ -1842,7 +1842,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
 
       it("returns an instanceof DAO", function(done) {
-        var DAO = require(__dirname + "/../lib/dao")
+        var DAO = require(__dirname + "/../lib/instance")
 
         this.User.where({ username: "foo" }).exec().success(function(users) {
           expect(users[0]).to.be.instanceOf(DAO)
