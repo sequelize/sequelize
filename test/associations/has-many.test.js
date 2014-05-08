@@ -1120,6 +1120,47 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           expect(model.options.uniqueKeys[fk].fields).to.deep.equal([ 'TaskId', 'UserId' ])
         })
       })
+
+      describe('no run sync', function() {
+        beforeEach(function(done) {
+          var self = this
+          
+          self.sequelize.queryInterface.createTable('users',{ id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true } , username: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).success(function() {
+            self.sequelize.queryInterface.createTable('tasks',{ id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).success(function() {
+              self.sequelize.queryInterface.createTable('users_tasks',{ TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).success(function() {
+                done();
+              })
+
+            })
+          })
+        })
+
+        it('removes all associations', function(done) {
+          var self = this;
+          this.UsersTasks = this.sequelize.define('UsersTasks', {}, { tableName: 'users_tasks' });
+
+          self.User.hasMany(self.Task, { joinTableName: this.UsersTasks })
+          self.Task.hasMany(self.User, { joinTableName: this.UsersTasks })
+
+          expect(Object.keys(self.UsersTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId'])
+
+          self.User.create({username: 'foo'}).success(function(user) {
+            self.Task.create({title: 'foo'}).success(function(task) {
+              user.addTask(task).success(function(){
+                user.setTasks(null).success(function(result) {
+                  expect(result).to.be.ok
+
+                  done()
+                }).error(function(error) {
+                  console.log(error);
+                  expect(false).to.be.ok
+                  done()
+                })
+              })
+            })
+          }) 
+        })
+      })
     })
 
     describe('through', function () {
