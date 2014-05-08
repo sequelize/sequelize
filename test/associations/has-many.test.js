@@ -1092,6 +1092,47 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           expect(model.options.uniqueKeys[fk].fields).to.deep.equal([ 'TaskId', 'UserId' ])
         })
       })
+
+      describe('no run sync', function() {
+        beforeEach(function(done) {
+          var self = this
+
+          self.sequelize.query('CREATE TABLE "users" ( id serial NOT NULL, username character varying(255), "createdAt" timestamp with time zone NOT NULL, "updatedAt" timestamp with time zone NOT NULL, CONSTRAINT "Users_pkey" PRIMARY KEY (id))')
+                       .success(function() {
+                          self.sequelize.query('CREATE TABLE "tasks" (id serial NOT NULL, title character varying(255), "createdAt" timestamp with time zone NOT NULL, "updatedAt" timestamp with time zone NOT NULL, CONSTRAINT "Tasks_pkey" PRIMARY KEY (id))').success(function() {
+                            self.sequelize.query('CREATE TABLE "users_tasks" ( "createdAt" timestamp with time zone NOT NULL, "updatedAt" timestamp with time zone NOT NULL, "TaskId" integer NOT NULL, "UserId" integer NOT NULL, CONSTRAINT persons_tasks_pkey PRIMARY KEY ("TaskId", "UserId"), CONSTRAINT "persons_tasks_User_id_fkey" FOREIGN KEY ("UserId") REFERENCES "users" (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE, CONSTRAINT "persons_tasks_Task_id_fkey" FOREIGN KEY ("TaskId") REFERENCES "tasks" (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE )').success(function() {
+                              done()
+                            })
+                          })
+                        })
+        })
+
+        it('removes all associations', function(done) {
+          var self = this;
+          this.UsersTasks = this.sequelize.define('UsersTasks', {}, { tableName: 'users_tasks' });
+
+          self.User.hasMany(self.Task, { joinTableName: this.UsersTasks })
+          self.Task.hasMany(self.User, { joinTableName: this.UsersTasks })
+
+          expect(Object.keys(self.UsersTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId'])
+
+          self.User.create({username: 'foo'}).success(function(user) {
+            self.Task.create({title: 'foo'}).success(function(task) {
+              user.addTask(task).success(function(){
+                user.setTasks(null).success(function(result) {
+                  expect(result).to.be.ok
+
+                  done()
+                }).error(function(error) {
+                  console.log(error);
+                  expect(false).to.be.ok
+                  done()
+                })
+              })
+            })
+          }) 
+        })
+      })
     })
 
     describe('through', function () {
