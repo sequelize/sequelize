@@ -417,6 +417,13 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       done()
     })
 
+    it("adds a new dao to sequelize.models", function(done) {
+      expect(this.sequelize.models.bar).to.equal(undefined)
+      var Bar = this.sequelize.define('bar', { title: DataTypes.STRING })
+      expect(this.sequelize.models.bar).to.equal(Bar)
+      done()
+    })
+
     it("overwrites global options", function(done) {
       var sequelize = Support.createSequelizeInstance({ define: { collate: 'utf8_general_ci' } })
       var DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {collate: 'utf8_bin'})
