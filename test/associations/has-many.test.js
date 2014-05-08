@@ -1121,7 +1121,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
-      describe('no run sync', function() {
+      describe('without sync', function() {
         beforeEach(function(done) {
           var self = this
           
@@ -1139,8 +1139,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           var self = this;
           this.UsersTasks = this.sequelize.define('UsersTasks', {}, { tableName: 'users_tasks' });
 
-          self.User.hasMany(self.Task, { joinTableName: this.UsersTasks })
-          self.Task.hasMany(self.User, { joinTableName: this.UsersTasks })
+          self.User.hasMany(self.Task, { through: this.UsersTasks })
+          self.Task.hasMany(self.User, { through: this.UsersTasks })
 
           expect(Object.keys(self.UsersTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId'])
 
