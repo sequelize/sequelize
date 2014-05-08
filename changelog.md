@@ -6,6 +6,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - `.success()`/`.done()` and any other non promise methods are now deprecated (we will keep the codebase around for a few versions though). on('sql') persists for debugging purposes.
 - Model association calls (belongsTo/hasOne/hasMany) are no longer chainable. (this is to support being able to pass association references to include rather than model/as combinations)
 - `QueryInterface` no longer emits global events. This means you can no longer do things like `QueryInterface.on('showAllSchemas', function ... `
+- `define()` stores models in `sequelize.models` Object e.g. `sequelize.models.MyModel`
 
 # v2.0.0-dev11
 ### Caution: This release contains many changes and is highly experimental
