@@ -7219,4 +7219,48 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       })
     })
   })
+
+  describe('promises', function () {
+    beforeEach(function() {
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        mood: {
+          type: DataTypes.ENUM,
+          values: ['happy', 'sad', 'neutral']
+        }
+      })
+
+      return this.User.sync({ force: true })
+    })
+
+    it('can return a promise and modify fields', function () {
+      var self = this
+
+      this.User.beforeBulkCreate(function (daos, fields) {
+        return self.sequelize.Promise.resolve([daos, ['username']])
+      })
+
+      return this.User.bulkCreate([
+        {username: 'Bob', mood: 'cold'},
+        {username: 'Tobi', mood: 'hot'}
+      ], { fields: [], hooks: false }).success(function(bulkUsers) {
+        return self.User.all().success(function(users) {
+          expect(users[0].mood).to.equal(null)
+          expect(users[1].mood).to.equal(null)
+        })
+      })
+    })
+
+    it('can return an error by rejecting', function () {
+      var self = this
+
+      this.User.beforeCreate(function () {
+        return self.sequelize.Utils.Promise.reject("I'm afraid I can't let you do that");
+      })
+
+      return this.User.create({}).catch(function (err) {
+        expect(err).to.equal("I'm afraid I can't let you do that")
+      })
+    })
+  })
 })
