@@ -1096,15 +1096,15 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       describe('no run sync', function() {
         beforeEach(function(done) {
           var self = this
+          
+          self.sequelize.queryInterface.createTable('users',{ id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true } , username: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).success(function() {
+            self.sequelize.queryInterface.createTable('tasks',{ id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).success(function() {
+              self.sequelize.queryInterface.createTable('users_tasks',{ TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).success(function() {
+                done();
+              })
 
-          self.sequelize.query('CREATE TABLE "users" ( id serial NOT NULL, username character varying(255), "createdAt" timestamp with time zone NOT NULL, "updatedAt" timestamp with time zone NOT NULL, CONSTRAINT "Users_pkey" PRIMARY KEY (id))')
-                       .success(function() {
-                          self.sequelize.query('CREATE TABLE "tasks" (id serial NOT NULL, title character varying(255), "createdAt" timestamp with time zone NOT NULL, "updatedAt" timestamp with time zone NOT NULL, CONSTRAINT "Tasks_pkey" PRIMARY KEY (id))').success(function() {
-                            self.sequelize.query('CREATE TABLE "users_tasks" ( "createdAt" timestamp with time zone NOT NULL, "updatedAt" timestamp with time zone NOT NULL, "TaskId" integer NOT NULL, "UserId" integer NOT NULL, CONSTRAINT persons_tasks_pkey PRIMARY KEY ("TaskId", "UserId"), CONSTRAINT "persons_tasks_User_id_fkey" FOREIGN KEY ("UserId") REFERENCES "users" (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE, CONSTRAINT "persons_tasks_Task_id_fkey" FOREIGN KEY ("TaskId") REFERENCES "tasks" (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE )').success(function() {
-                              done()
-                            })
-                          })
-                        })
+            })
+          })
         })
 
         it('removes all associations', function(done) {
