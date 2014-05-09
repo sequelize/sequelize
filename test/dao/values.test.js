@@ -3,6 +3,7 @@ var chai      = require('chai')
   , Sequelize = require('../../index')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
+  , dialect   = Support.getTestDialect()
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , datetime  = require('chai-datetime')
 
@@ -101,6 +102,41 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(user.get('email_hidden')).to.equal('foo@bar.com')
         expect(user.get('email')).not.to.be.ok
         expect(user.dataValues.email).not.to.be.ok
+      })
+
+      it('allows use of sequelize.fn and sequelize.col in date and bool fields', function () {
+        var self = this
+          , User = this.sequelize.define('User', {
+              d: DataTypes.DATE,
+              b: DataTypes.BOOLEAN,
+              always_false: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false
+              }
+            }, {timestamps: false})
+
+        return User.sync({ force: true }).then(function () {
+          return User.create({}).then(function (user) {
+            // Create the user first to set the proper default values. PG does not support column references in insert,
+            // so we must create a record with the right value for always_false, then reference it in an update
+            var now = dialect === 'sqlite' ? self.sequelize.fn('', self.sequelize.fn('date', 'now')) : self.sequelize.fn('NOW')
+
+            user.set({
+              d: now,
+              b: self.sequelize.col('always_false')
+            })
+
+            expect(user.get('d')).to.be.instanceof(self.sequelize.Utils.fn)
+            expect(user.get('b')).to.be.instanceof(self.sequelize.Utils.col)
+
+            return user.save().then(function () {
+              return user.reload().then(function () {
+                expect(user.d).to.equalDate(new Date())
+                expect(user.b).to.equal(false)
+              })
+            })
+          })
+        })
       })
 
       describe('includes', function () {
