@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           done()
         })
       }).error(function(err) {
-	done(err);
+        done(err)
       });
     })
   })
@@ -943,7 +943,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(err).to.be.instanceof(Object)
         expect(err.validateTest).to.be.instanceof(Array)
         expect(err.validateTest[0]).to.exist
-	expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+        expect(err.validateTest[0].message).to.equal('Validation isInt failed')
         done()
       })
     })
@@ -956,7 +956,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         expect(err.validateCustom).to.exist
         expect(err.validateCustom).to.be.instanceof(Array)
         expect(err.validateCustom[0]).to.exist
-	expect(err.validateCustom[0].message).to.equal('Length failed.')
+        expect(err.validateCustom[0].message).to.equal('Length failed.')
         done()
       })
     })
@@ -969,7 +969,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           expect(err.validateTest).to.exist
           expect(err.validateTest).to.be.instanceof(Array)
           expect(err.validateTest[0]).to.exist
-	  expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+          expect(err.validateTest[0].message).to.equal('Validation isInt failed')
           done()
         })
       })

@@ -98,10 +98,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               if (dialect === 'mariadb') {
                 expect(err.message).to.match(/Access denied for user/)
               } else if (dialect === 'postgres') {
-            		// When the test is run with only it produces:
-            		// Error: Error: Failed to authenticate for PostgresSQL. Please double check your settings.
-            		// When its run with all the other tests it produces:
-            		// Error: invalid port number: "99999"
+                // When the test is run with only it produces:
+                // Error: Error: Failed to authenticate for PostgresSQL. Please double check your settings.
+                // When its run with all the other tests it produces:
+                // Error: invalid port number: "99999"
                 expect(err.message).to.match(/invalid port number/)
               } else {
                 expect(err.message).to.match(/Failed to authenticate/)
@@ -743,7 +743,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         it("doesn't save an instance if value is not in the range of enums", function(done) {
           this.Review.create({status: 'fnord'}).error(function(err) {
             expect(err).to.be.instanceOf(Error);
-	    expect(err.status[0].message).to.equal('Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
+            expect(err.status[0].message).to.equal('Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
             done()
           })
         })
