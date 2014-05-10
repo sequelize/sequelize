@@ -1451,6 +1451,28 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+    it('should be possible to turn off the attributes for the through table', function (done) {
+      var self = this
+      this.fixtureA(function () {
+        self.models.Product.findAll({
+          attributes: ['title'],
+          include: [
+            {model: self.models.Tag, through: {attributes: []}, required: true}
+          ],
+        }).done(function (err, products) {
+          expect(err).not.to.be.ok
+
+          products.forEach(function (product) {
+            expect(product.tags.length).to.be.ok
+            product.tags.forEach(function (tag) {
+              expect(tag.get().productTags).not.to.be.ok
+            })
+          })
+          done()
+        })
+      })
+    });
+
     // Test case by @eshell
     it('should be possible not to include the main id in the attributes', function (done) {
       var Member = this.sequelize.define('Member', {
