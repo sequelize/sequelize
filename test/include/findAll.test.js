@@ -1427,7 +1427,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       var self = this
       this.fixtureA(function () {
         self.models.Product.findAll({
-          attributes: ['title'],
+          attributes: ['id', 'title'],
           include: [
             {model: self.models.Company, where: {name: 'NYSE'}},
             {model: self.models.Tag},
@@ -1450,6 +1450,37 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       })
     })
+
+    it('should be possible to have the primary key in attributes', function () {
+      var Parent = this.sequelize.define('Parent', {});
+      var Child1 = this.sequelize.define('Child1', {});
+
+      Parent.hasMany(Child1);
+      Child1.belongsTo(Parent);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Sequelize.Promise.all([
+          Parent.create(),
+          Child1.create()
+        ]);
+      }).spread(function (parent, child) {
+        return parent.addChild1(child).then(function () {
+          return parent;
+        });
+      }).then(function (parent) {
+        return Child1.find({
+          include: [
+            {
+              model: Parent,
+              attributes: ['id'], // This causes a duplicated entry in the query
+              where: {
+                id: parent.id
+              }
+            }
+          ]
+        });
+      });
+    });
 
     it('should be possible to turn off the attributes for the through table', function (done) {
       var self = this
