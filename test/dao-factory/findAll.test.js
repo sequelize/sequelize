@@ -916,7 +916,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
 
         it('is over-ruled by specified include', function(done) {
-          this.Country.findAll({ include: [ { all: true }, { model: this.Continent, attributes: [] } ] }).done(function(err, countries) {
+          this.Country.findAll({ include: [ { all: true }, { model: this.Continent, attributes: ['id'] } ] }).done(function(err, countries) {
             expect(err).not.to.be.ok
             expect(countries).to.exist
             expect(countries[0]).to.exist
