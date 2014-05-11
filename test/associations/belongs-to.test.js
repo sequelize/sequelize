@@ -184,6 +184,25 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
 
+    it('supports passing the primary key instead of an object', function () {
+      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING })
+
+      Task.belongsTo(User)
+
+      return this.sequelize.sync({ force :true }).then(function () {
+        return User.create({ id: 15, username: 'jansemand' }).then(function (user) {
+          return Task.create({}).then(function (task) {
+            return task.setUserXYZ(user.id).then(function () {
+              return  task.getUserXYZ().then(function (user) {
+                expect(user.username).to.equal('jansemand')
+              })
+            })
+          })
+        })
+      })
+    })
+
     it('should not clobber atributes', function (done) {
       var Comment = this.sequelize.define('comment', {
         text: DataTypes.STRING

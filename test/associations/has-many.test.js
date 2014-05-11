@@ -113,6 +113,25 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
+
+      it('answers true if the label has been assigned when passing a primary key instead of an object', function() {
+        var self = this
+        return this.sequelize.Promise.all([
+          this.Article.create({ title: 'Article' }),
+          this.Label.create({ text: 'Awesomeness' }),
+          this.Label.create({ text: 'Epicness' })
+        ]).spread(function (article, label1, label2) {
+          return article.addLabel(label1).then(function () {
+            return self.sequelize.Promise.all([
+              article.hasLabel(label1.id),
+              article.hasLabel(label2.id),
+            ]).spread(function (hasLabel1, hasLabel2) {
+              expect(hasLabel1).to.be.true
+              expect(hasLabel2).to.be.false
+            })
+          })
+        })
+      })
     })
 
     describe('hasAll', function() {
@@ -181,6 +200,20 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('answers false if only some labels have been assigned when passing a primary key instead of an object', function() {
+        return this.sequelize.Promise.all([
+          this.Article.create({ title: 'Article' }),
+          this.Label.create({ text: 'Awesomeness' }),
+          this.Label.create({ text: 'Epicness' })
+        ]).spread(function (article, label1, label2) {
+          return article.addLabel(label1).then(function() {
+            return article.hasLabels([label1.id, label2.id]).then(function(result) {
+              expect(result).to.be.false
+            })
+          })
+        })
+      })
+
       it('answers true if all label have been assigned', function(done) {
         var chainer = new Sequelize.Utils.QueryChainer([
           this.Article.create({ title: 'Article' }),
@@ -193,6 +226,20 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             article.hasLabels([label1, label2]).success(function(result) {
               expect(result).to.be.true
               done()
+            })
+          })
+        })
+      })
+
+       it('answers true if all label have been assigned when passing a primary key instead of an object', function() {
+        return this.sequelize.Promise.all([
+          this.Article.create({ title: 'Article' }),
+          this.Label.create({ text: 'Awesomeness' }),
+          this.Label.create({ text: 'Epicness' })
+        ]).spread(function (article, label1, label2) {
+          return article.setLabels([label1, label2]).then(function() {
+            return article.hasLabels([label1.id, label2.id]).then(function(result) {
+              expect(result).to.be.true
             })
           })
         })
@@ -257,6 +304,30 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
+
+      it('supports passing the primary key instead of an object', function () {
+        var Article = this.sequelize.define('Article', { title: DataTypes.STRING })
+            , Label   = this.sequelize.define('Label', { text: DataTypes.STRING })
+
+        Article.hasMany(Label)
+
+        return this.sequelize.sync({ force :true }).then(function () {
+          return Article.create({}).then(function (article) {
+            return Label.create({ text: 'label one' }).then(function (label1) {
+              return Label.create({ text: 'label two' }).then(function (label2) {
+                return article.addLabel(label1.id).then(function () {
+                  return article.setLabels([label2.id]).then(function () {
+                    return article.getLabels().then(function (labels) {
+                      expect(labels).to.have.length(1)
+                      expect(labels[0].text).to.equal('label two')
+                    })  
+                  })                  
+                })
+              })
+            })
+          })
+        })
+      })
     })
 
     describe('addAssociations', function() {
@@ -285,6 +356,25 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                           })
                       })
                   })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('supports passing the primary key instead of an object', function () {
+        var Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
+            , Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING })
+
+        Article.hasMany(Label)
+
+        return this.sequelize.sync({ force :true }).then(function () {
+          return Article.create({}).then(function (article) {
+            return Label.create({ text: 'label one' }).then(function (label) {
+              return article.addLabel(label.id).then(function () {
+                return article.getLabels().then(function (labels) {
+                  expect(labels[0].text).to.equal('label one') // Make sure that we didn't modify one of the other attributes while building / saving a new instance
                 })
               })
             })
@@ -871,6 +961,31 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
+
+      it('supports passing the primary key instead of an object', function () {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+        User.hasMany(Task)
+        Task.hasMany(User)
+
+        return this.sequelize.sync({ force :true }).then(function () {
+          return User.create({ id: 12 }).then(function (user) {
+            return Task.create({ id: 50, title: 'get started' }).then(function (task1) {
+              return Task.create({ id: 5, title: 'wat' }).then(function (task2) {
+                return user.addTask(task1.id).then(function () {
+                  return user.setTasks([task2.id]).then(function () {
+                    return user.getTasks().then(function (tasks) {
+                      expect(tasks).to.have.length(1)
+                      expect(tasks[0].title).to.equal('wat')
+                    })
+                  })
+                })  
+              })
+            })
+          })
+        })
+      })
     })
 
     describe('createAssociations', function() {
@@ -944,6 +1059,26 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
                       })
                     })
                   })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('supports passing the primary key instead of an object', function () {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+        User.hasMany(Task)
+        Task.hasMany(User)
+
+        return this.sequelize.sync({ force :true }).then(function () {
+          return User.create({ id: 12 }).then(function (user) {
+            return Task.create({ id: 50, title: 'get started' }).then(function (task) {
+              return user.addTask(task.id).then(function () {
+                return user.getTasks().then(function (tasks) {
+                  expect(tasks[0].title).to.equal('get started')
                 })
               })
             })

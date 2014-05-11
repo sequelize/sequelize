@@ -166,6 +166,25 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         })
       })
     })
+
+    it('supports passing the primary key instead of an object', function () {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING })
+
+      User.hasOne(Task)
+
+      return this.sequelize.sync({ force :true }).then(function () {
+        return User.create({}).then(function (user) {
+          return Task.create({ id: 19, title: 'task it!' }).then(function (task) {
+            return user.setTaskXYZ(task.id).then(function () {
+              return user.getTaskXYZ().then(function (task) {
+                expect(task.title).to.equal('task it!')
+              })
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('createAssociation', function() {
