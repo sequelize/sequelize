@@ -38,7 +38,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - All tables in select queries will now be aliased with the model names to be support schemas. This will affect people stuff like `where: {'table.attribute': value}
 
 
-# v1.7.4
+# v1.7.5
 - [BUG] fixes bug with some methods relying on table information throwing strange errors [#1686](https://github.com/sequelize/sequelize/pull/1686)
 
 # v1.7.3
