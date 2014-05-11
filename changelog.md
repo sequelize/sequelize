@@ -4,13 +4,14 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] Hooks can now return promises
 - [FEATURE] There is now basic support for assigning a field name to an attribute `name: {type: DataTypes.STRING, field: 'full_name'}`
 - [FEATURE] It's now possible to add multiple relations to a hasMany association, modelInstance.addRelations([otherInstanceA, otherInstanceB])
+- [FEATURE] `define()` stores models in `sequelize.models` Object e.g. `sequelize.models.MyModel`
+- [BUG] An error is now thrown if an association would create a naming conflict between the association and the foreign key when doing eager loading. Closes [#1272](https://github.com/sequelize/sequelize/issues/1272)
 
 #### Breaking changes
 - Sequelize now returns promises instead of its custom event emitter from most calls. This affects methods that return multiple values (like `findOrCreate` or `findOrInitialize`). If your current callbacks do not accept the 2nd success parameter you might be seeing an array as the first param. Either use `.spread()` for these methods or add another argument to your callback: `.success(instance)` -> `.success(instance, created)`.
 - `.success()`/`.done()` and any other non promise methods are now deprecated (we will keep the codebase around for a few versions though). on('sql') persists for debugging purposes.
 - Model association calls (belongsTo/hasOne/hasMany) are no longer chainable. (this is to support being able to pass association references to include rather than model/as combinations)
 - `QueryInterface` no longer emits global events. This means you can no longer do things like `QueryInterface.on('showAllSchemas', function ... `
-- `define()` stores models in `sequelize.models` Object e.g. `sequelize.models.MyModel`
 
 # v2.0.0-dev11
 ### Caution: This release contains many changes and is highly experimental

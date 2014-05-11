@@ -1969,5 +1969,14 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         done()
       })
     })
+
+    it('should throw an error if foreignKey and as result in a name clash', function () {
+      var User = this.sequelize.define('user', {
+            user: Sequelize.INTEGER
+          })
+
+      expect(User.hasMany.bind(User, User, { as: 'user' })).to
+        .throw("Naming collision between attribute 'user' and association 'user' on model user. To remedy this, change either foreignKey or as in your association definition")
+    })
   })
 })

@@ -486,5 +486,23 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         })
       })
     })
+
+    it('should throw an error if foreignKey and as result in a name clash', function () {
+      var Person = this.sequelize.define('person', {})
+        , Car = this.sequelize.define('car', {})
+
+      expect(Car.belongsTo.bind(Car, Person, {foreignKey: 'person'})).to
+        .throw("Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change either foreignKey or as in your association definition")
+    })
+
+    it('should throw an error if an association clashes with the name of an already define attribute', function () {
+       var Person = this.sequelize.define('person', {})
+        , Car = this.sequelize.define('car', {
+            person: Sequelize.INTEGER
+          })
+
+        expect(Car.belongsTo.bind(Car, Person, {as: 'person'})).to
+        .throw("Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change either foreignKey or as in your association definition")
+    })
   })
 })

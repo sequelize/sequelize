@@ -451,6 +451,16 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         })
       })
     })
+
+    it('should throw an error if an association clashes with the name of an already define attribute', function () {
+       var User = this.sequelize.define('user', {
+            attribute: Sequelize.STRING
+           })
+        , Attribute = this.sequelize.define('attribute', {})
+
+        expect(User.hasOne.bind(User, Attribute)).to
+        .throw("Naming collision between attribute 'attribute' and association 'attribute' on model user. To remedy this, change either foreignKey or as in your association definition")
+    })
   })
 
   describe("Counter part", function () {
