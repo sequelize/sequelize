@@ -293,6 +293,35 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
 
+    describe('addMultipleAssociations', function () {
+      it('adds associations without removing the current ones', function () {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+        Task.hasMany(User)
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return User.bulkCreate([
+            { username: 'foo '},
+            { username: 'bar '},
+            { username: 'baz '}
+          ]).then(function () {
+            return Task.create({ title: 'task' }).then(function (task) {
+              return User.findAll().then(function(users) {
+                return task.setUsers([users[0]]).then(function () {
+                  return task.addUsers([users[1], users[2]]).then(function () {
+                    return task.getUsers().then(function (users) {
+                      expect(users).to.have.length(3)
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
     it("clears associations when passing null to the set-method with omitNull set to true", function(done) {
       this.sequelize.options.omitNull = true
 
@@ -922,6 +951,36 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
     })
+
+    describe('addMultipleAssociations', function () {
+      it('adds associations without removing the current ones', function () {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+
+        User.hasMany(Task)
+        Task.hasMany(User)
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return User.bulkCreate([
+            { username: 'foo '},
+            { username: 'bar '},
+            { username: 'baz '}
+          ]).then(function () {
+            return Task.create({ title: 'task' }).then(function (task) {
+              return User.findAll().then(function(users) {
+                return task.setUsers([users[0]]).then(function () {
+                  return task.addUsers([users[1], users[2]]).then(function () {
+                    return task.getUsers().then(function (users) {
+                      expect(users).to.have.length(3)
+                    })
+                  })
+                })
+              })  
+            })            
+          })
+        })
+      })
+    })    
 
     describe('optimizations using bulk create, destroy and update', function () {
       beforeEach(function (done) {

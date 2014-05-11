@@ -3,7 +3,6 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
   , SequelizePromise   = require(__dirname + "/../lib/promise")
-  , Promise = require('bluebird')
   , dialect   = Support.getTestDialect()
   , _         = require('lodash')
   , sinon     = require('sinon')
@@ -389,7 +388,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
     it('should still work with .done() when resolving multiple results', function(done) {
       var spy = sinon.spy()
         , promise = new SequelizePromise(function (resolve, reject) {
-          resolve(Promise.all(['MyModel', true]));
+          resolve(SequelizePromise.all(['MyModel', true]));
         });
 
       promise.spread(spy);
