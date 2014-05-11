@@ -2,7 +2,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # next
 - [FEATURE] Hooks can now return promises
-- [FEATURE] It's now possible to define a field name for an attribute `name: {type: DataTypes.STRING, field: 'full_name'}`
+- [FEATURE] There is now basic support for assigning a field name to an attribute `name: {type: DataTypes.STRING, field: 'full_name'}`
 - [FEATURE] It's now possible to add multiple relations to a hasMany association, modelInstance.addRelations([otherInstanceA, otherInstanceB])
 
 #### Breaking changes
