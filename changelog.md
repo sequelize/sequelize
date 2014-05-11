@@ -6,6 +6,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] It's now possible to add multiple relations to a hasMany association, modelInstance.addRelations([otherInstanceA, otherInstanceB])
 - [FEATURE] `define()` stores models in `sequelize.models` Object e.g. `sequelize.models.MyModel`
 - [BUG] An error is now thrown if an association would create a naming conflict between the association and the foreign key when doing eager loading. Closes [#1272](https://github.com/sequelize/sequelize/issues/1272)
+- [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
 
 #### Breaking changes
 - Sequelize now returns promises instead of its custom event emitter from most calls. This affects methods that return multiple values (like `findOrCreate` or `findOrInitialize`). If your current callbacks do not accept the 2nd success parameter you might be seeing an array as the first param. Either use `.spread()` for these methods or add another argument to your callback: `.success(instance)` -> `.success(instance, created)`.
