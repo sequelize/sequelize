@@ -12,7 +12,9 @@ teaser:
 	echo ''
 
 test:
-	@if [ "$$GREP" ]; then \
+	@if [ -n "$$COVERAGE" ]; then \
+	    make cover && make coveralls-send; \
+	@elif [ "$$GREP" ]; \ then \
 		make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
 		make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
@@ -20,8 +22,7 @@ test:
 
 cover:
 	rm -rf coverage \
-	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -- -u exports --report lcovonly -- -R spec --  $(TESTS); \
-	mv coverage coverage-$(DIALECT) \
+	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec $(TESTS); \
 
 mariadb:
 	@DIALECT=mariadb make test
