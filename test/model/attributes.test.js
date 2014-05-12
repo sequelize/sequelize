@@ -160,5 +160,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
     })
+
+    describe('types', function () {
+      describe('VIRTUAL', function () {
+        it('should be ignored in create, updateAttributes and find');
+        it('should be ignored in bulkCreate and findAll');
+      })
+    })
   })
 })

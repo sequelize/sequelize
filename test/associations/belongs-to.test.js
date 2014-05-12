@@ -4,6 +4,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , Sequelize = require('../../index')
+  , Promise   = Sequelize.Promise
   , assert    = require('assert')
 
 chai.config.includeStack = true
@@ -54,52 +55,53 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
 
-    it('should be able to handle a where object that\'s a first class citizen.', function(done) {
+    it('should be able to handle a where object that\'s a first class citizen.', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING })
 
       Task.belongsTo(User)
-      User.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          User.create({ username: 'foo', gender: 'male' }).success(function(user) {
-            User.create({ username: 'bar', gender: 'female' }).success(function() {
-              Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
-                task.setUserXYZ(user).success(function() {
-                  task.getUserXYZ({where: ['gender = ?', 'female']}).success(function(user) {
-                    expect(user).to.be.null
-                    done()
-                  })
-                })
-              })
-            })
-          })
-        })
-      })
+
+      return User.sync({ force: true }).then(function () {
+        // Can't use Promise.all cause of foreign key references
+        return Task.sync({ force: true });
+      }).then(function () {
+        return Promise.all([
+          User.create({ username: 'foo', gender: 'male' }),
+          User.create({ username: 'bar', gender: 'female' }),
+          Task.create({ title: 'task', status: 'inactive' })
+        ]);
+      }).spread(function (userA, userB, task) {
+        return task.setUserXYZ(userA).then(function () {
+          return task.getUserXYZ({where: ['gender = ?', 'female']});
+        });
+      }).then(function (user) {
+        expect(user).to.be.null;
+      });
     })
 
-    it('supports schemas', function (done) {
+    it('supports schemas', function () {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive')
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING }).schema('archive')
         , self = this
 
       Task.belongsTo(User)
 
-      self.sequelize.dropAllSchemas().done(function() {
-        self.sequelize.createSchema('archive').done(function () {
-          self.sequelize.sync({force: true }).done(function () {
-            User.create({ username: 'foo', gender: 'male' }).success(function(user) {
-              Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
-                task.setUserXYZ(user).success(function() {
-                  task.getUserXYZ().success(function(user) {
-                    expect(user).to.be.ok
-                    done()
-                  })
-                })
-              })
-            })
-          })
-        })
-      })
+      return self.sequelize.dropAllSchemas().then(function() {
+        return self.sequelize.createSchema('archive');
+      }).then(function () {
+        return self.sequelize.sync({force: true });
+      }).then(function () {
+        return Promise.all([
+          User.create({ username: 'foo', gender: 'male' }),
+          Task.create({ title: 'task', status: 'inactive' })
+        ]);
+      }).spread(function (user, task) {
+        return task.setUserXYZ(user).then(function () {
+          return task.getUserXYZ();
+        });
+      }).then(function (user) {
+        expect(user).to.be.ok;
+      });
     })
   })
 
