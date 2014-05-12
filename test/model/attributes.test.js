@@ -2,6 +2,7 @@
 /* jshint expr: true */
 var chai      = require('chai')
   , Sequelize = require('../../index')
+  , Promise   = Sequelize.Promise
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
@@ -25,19 +26,59 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         }, {
           tableName: 'users',
           timestamps: false
-        })
+        });
 
-        return queryInterface.createTable('users', {
+        this.Task = this.sequelize.define('task', {
           id: {
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
-            autoIncrement: true
+            autoIncrement: true,
+            field: 'taskId'
           },
-          full_name: {
-            type: DataTypes.STRING
+          title: {
+            type: DataTypes.STRING,
+            field: 'name'
           }
+        }, {
+          tableName: 'tasks',
+          timestamps: false
         });
+
+        this.User.hasMany(this.Task, {
+          foreignKey: 'user_id'
+        });
+        this.Task.belongsTo(this.User, {
+          foreignKey: 'user_id'
+        });
+
+        return Promise.all([
+          queryInterface.createTable('users', {
+            id: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              primaryKey: true,
+              autoIncrement: true
+            },
+            full_name: {
+              type: DataTypes.STRING
+            }
+          }),
+          queryInterface.createTable('tasks', {
+            taskId: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              primaryKey: true,
+              autoIncrement: true
+            },
+            user_id: {
+              type: DataTypes.INTEGER
+            },
+            name: {
+              type: DataTypes.STRING
+            }
+          })
+        ])
       });
 
       it('should create, fetch and update with alternative field names from a simple model', function () {
@@ -61,6 +102,29 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         }).then(function (user) {
           expect(user.get('name')).to.equal('Barfoo');
         })
+      });
+
+      it('should work with attributes and where on includes', function () {
+        var self = this;
+
+        return this.User.create({
+          name: 'Foobar'
+        }).then(function (user) {
+          return user.createTask({
+            title: 'DoDat'
+          });
+        }).then(function () {
+          return self.User.findAll({
+            include: [
+              {model: self.Task, where: {title: 'DoDat'}}
+            ]
+          });
+        }).then(function (users) {
+          users.forEach(function (user) {
+            expect(user.get('name')).to.be.ok;
+            expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
+          });
+        });
       });
 
       it('should work with a simple where', function () {
