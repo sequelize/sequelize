@@ -22,7 +22,7 @@ test:
 
 cover:
 	rm -rf coverage \
-	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec $(TESTS); \
+	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 10000 -R spec $(TESTS); \
 
 mariadb:
 	@DIALECT=mariadb make test
