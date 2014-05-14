@@ -57,11 +57,13 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     });
   });
 
-  it('can handle n:m associations', function(done) {
-    var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
+  it('can handle n:m associations', function() {
+    var self = this
 
-    Person.hasMany(Person, { as: 'Parents', through: 'Family' });
-    Person.hasMany(Person, { as: 'Childs', through: 'Family' });
+    var Person = this.sequelize.define('Person', { name: DataTypes.STRING })
+
+    Person.hasMany(Person, { as: 'Parents', through: 'Family' })
+    Person.hasMany(Person, { as: 'Childs', through: 'Family' })
 
     var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier')
     var rawAttributes = _.keys(this.sequelize.models.Family.rawAttributes)
@@ -72,64 +74,18 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     expect(foreignIdentifiers).to.have.members([ 'PersonId', 'ChildId' ])
     expect(rawAttributes).to.have.members([ 'createdAt', 'updatedAt', 'PersonId', 'ChildId' ])
 
-    this.sequelize.sync({ force: true }).complete(function() {
-      Person.create({ name: 'Mary' }).complete(function(err, mary) {
-        expect(err).to.not.be.ok
-        Person.create({ name: 'John' }).complete(function(err, john) {
-          expect(err).to.not.be.ok
-          Person.create({ name: 'Chris' }).complete(function(err, chris) {
-            expect(err).to.not.be.ok
-            mary.setParents([john]).done(function (err) {
-              expect(err).to.not.be.ok
-              chris.addParent(john).complete(function(err) {
-                expect(err).to.not.be.ok
-                john.getChilds().complete(function(err, children) {
-                  expect(err).to.not.be.ok
-                  expect(_.map(children, 'id')).to.have.members([mary.id, chris.id])
-                  done()
-                })
-              })
-            })
-          })
-        })
-      })
-    })
-  })
-
-  it('can handle n:m associations with no through table specified', function(done) {
-    var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
-
-    Person.hasMany(Person);
-    Person.hasMany(Person);
-
-    var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier')
-    var rawAttributes = _.keys(this.sequelize.models.PersonsPersons.rawAttributes)
-
-    expect(foreignIdentifiers.length).to.equal(2)
-    expect(rawAttributes.length).to.equal(4)
-
-    expect(foreignIdentifiers).to.have.members([ 'PersonId', 'PersonReverseId' ])
-    expect(rawAttributes).to.have.members([ 'createdAt', 'updatedAt', 'PersonId', 'PersonReverseId' ])
-
-    this.sequelize.sync({ force: true }).complete(function() {
-      Person.create({ name: 'Mary' }).complete(function(err, mary) {
-        expect(err).to.not.be.ok
-        Person.create({ name: 'John' }).complete(function(err, john) {
-          expect(err).to.not.be.ok
-          Person.create({ name: 'Chris' }).complete(function(err, chris) {
-            expect(err).to.not.be.ok
-            mary.setPersons([john]).done(function (err) {
-              expect(err).to.not.be.ok
-              chris.addPerson(john).complete(function(err) {
-                expect(err).to.not.be.ok
-                john.getPersonReverses().complete(function(err, children) {
-                  expect(err).to.not.be.ok
-                  expect(_.map(children, 'id')).to.have.members([mary.id, chris.id])
-                  done()
-                })
-              })
-            })
-          })
+    return this.sequelize.sync({ force: true }).then(function() {
+      return self.sequelize.Promise.all([
+        Person.create({ name: 'Mary' }),
+        Person.create({ name: 'John' }),
+        Person.create({ name: 'Chris' })
+      ]).spread(function (mary, john, chris) {
+        return mary.setParents([john]).then(function() {
+          return chris.addParent(john)
+        }).then(function() {
+          return john.getChilds()
+        }).then(function(children) {
+          expect(_.map(children, 'id')).to.have.members([mary.id, chris.id])
         })
       })
     })
