@@ -94,9 +94,11 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
             return User.find({
               where: {
                 username: 'jan'
-              },
-              forUpdate: true
-            }, { transaction: t1 }).then(function (t1Jan) {
+              }
+            }, { 
+              lock: t1.LOCK.UPDATE,
+              transaction: t1
+            }).then(function (t1Jan) {
               self.sequelize.transaction({
                 isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
               }, function (t2) {
@@ -104,8 +106,10 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
                   where: {
                     username: 'jan'
                   },
-                  forUpdate: true
-                }, { transaction: t2}).then(function () {
+                }, { 
+                  lock: t2.LOCK.UPDATE, 
+                  transaction: t2
+                }).then(function () {
                   t2Spy()
                   t2.commit().then(function () {
                     expect(t2Spy).to.have.been.calledAfter(t1Spy) // Find should not succeed before t1 has comitted
@@ -142,9 +146,11 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
             return User.find({
               where: {
                 username: 'jan'
-              },
-              forShare: true
-            }, { transaction: t1 }).then(function (t1Jan) {
+              }
+            }, { 
+              lock: t1.LOCK.SHARE,
+              transaction: t1
+            }).then(function (t1Jan) {
               self.sequelize.transaction({
                 isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
               }, function (t2) {
@@ -157,7 +163,9 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
 
                   t2Jan.updateAttributes({
                     awesome: false
-                  }, { transaction: t2 }).then(function () {
+                  }, { 
+                    transaction: t2
+                  }).then(function () {
                     t2UpdateSpy()
                     t2.commit().then(function () {
                       expect(t2FindSpy).to.have.been.calledBefore(t1Spy) // The find call should have returned
@@ -169,7 +177,9 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
 
                 t1Jan.updateAttributes({
                   awesome: true
-                }, { transaction: t1}).then(function () {
+                }, {
+                  transaction: t1
+                }).then(function () {
                   t1Spy()
                   setTimeout(t1.commit.bind(t1), 2000)
                 })
