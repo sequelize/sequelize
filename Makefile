@@ -11,14 +11,16 @@ teaser:
 	node -pe "Array(20 + '$(DIALECT)'.length + 3).join('#')" && \
 	echo ''
 
+ifeq (true,$(COVERAGE))
+test: coveralls
+else
 test:
-	@if [ -n "$$COVERAGE" ]; then \
-	    make cover && make coveralls-send; \
-	@elif [ "$$GREP" ]; \ then \
+	@if [ "$$GREP" ]; then \
 		make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
 		make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
 	fi
+endif
 
 cover:
 	rm -rf coverage \
@@ -40,18 +42,23 @@ binary:
 mariadb-cover:
 	rm -rf coverage
 	@DIALECT=mariadb make cover
+	mv coverage coverage-mariadb
 sqlite-cover:
 	rm -rf coverage
 	@DIALECT=sqlite make cover
+	mv coverage coverage-sqlite
 mysql-cover:
 	rm -rf coverage
 	@DIALECT=mysql make cover
+	mv coverage coverage-mysql
 postgres-cover:
 	rm -rf coverage
 	@DIALECT=postgres make cover
+	mv coverage coverage-postgres
 postgres-native-cover:
 	rm -rf coverage
 	@DIALECT=postgres-native make cover
+	mv coverage coverage-postgresnative
 binary-cover:
 	rm -rf coverage
 	@./test/binary/sequelize.test.bats
@@ -62,7 +69,7 @@ merge-coverage:
 	./node_modules/.bin/lcov-result-merger 'coverage-*/lcov.info' 'coverage/lcov.info'
 
 coveralls-send:
-	cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage
+	cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage*
 
 # test aliases
 
