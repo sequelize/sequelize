@@ -180,8 +180,10 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
                 }, {
                   transaction: t1
                 }).then(function () {
-                  t1Spy()
-                  setTimeout(t1.commit.bind(t1), 2000)
+                  setTimeout(function () {
+                    t1Spy()
+                    t1.commit()
+                  }, 2000)
                 })
               })
             })
