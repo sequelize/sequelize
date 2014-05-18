@@ -37,17 +37,9 @@ matrix:
   fast_finish: true
 
   include:
-    - node_js: "0.8"
-      env: COVERAGE=true DB=mysql DIALECT=mysql
-    - node_js: "0.8"
-      env: COVERAGE=true DB=mysql DIALECT=postgres
-    - node_js: "0.8"
-      env: COVERAGE=true DB=mysql DIALECT=sqlite
+    - node_js: "0.10"
+      env: COVERAGE=true
 
   allow_failures:
-    - node_js: "0.8"
-      env: COVERAGE=true DB=mysql DIALECT=mysql
-    - node_js: "0.8"
-      env: COVERAGE=true DB=mysql DIALECT=postgres
-    - node_js: "0.8"
-      env: COVERAGE=true DB=mysql DIALECT=sqlite
+    - node_js: "0.10"
+      env: COVERAGE=true

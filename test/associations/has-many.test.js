@@ -998,7 +998,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         this.sequelize.sync({ force: true }).success(function() {
           Task.create({ title: 'task' }).success(function(task) {
-            task.createUser({ username: 'foo' }).success(function() {
+            task.createUser({ username: 'foo' }).success(function(createdUser) {
+              expect(createdUser.Model).to.equal(User)
+              expect(createdUser.username).to.equal('foo')
               task.getUsers().success(function(_users) {
                 expect(_users).to.have.length(1)
 

@@ -57,7 +57,41 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     });
   });
 
-  it('can handle n:m associations', function(done) {
+  it('can handle n:m associations', function() {
+    var self = this
+
+    var Person = this.sequelize.define('Person', { name: DataTypes.STRING })
+
+    Person.hasMany(Person, { as: 'Parents', through: 'Family' })
+    Person.hasMany(Person, { as: 'Childs', through: 'Family' })
+
+    var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier')
+    var rawAttributes = _.keys(this.sequelize.models.Family.rawAttributes)
+
+    expect(foreignIdentifiers.length).to.equal(2)
+    expect(rawAttributes.length).to.equal(4)
+
+    expect(foreignIdentifiers).to.have.members([ 'PersonId', 'ChildId' ])
+    expect(rawAttributes).to.have.members([ 'createdAt', 'updatedAt', 'PersonId', 'ChildId' ])
+
+    return this.sequelize.sync({ force: true }).then(function() {
+      return self.sequelize.Promise.all([
+        Person.create({ name: 'Mary' }),
+        Person.create({ name: 'John' }),
+        Person.create({ name: 'Chris' })
+      ]).spread(function (mary, john, chris) {
+        return mary.setParents([john]).then(function() {
+          return chris.addParent(john)
+        }).then(function() {
+          return john.getChilds()
+        }).then(function(children) {
+          expect(_.map(children, 'id')).to.have.members([mary.id, chris.id])
+        })
+      })
+    })
+  })
+
+  it('can handle n:m associations with pre-defined through table', function(done) {
     var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
     var Family = this.sequelize.define('Family', {
       preexisting_child: {
