@@ -101,6 +101,52 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+    it('should support a simple sibling set of  belongsTo include', function (done) {
+      var Task = this.sequelize.define('Task', {})
+        , User = this.sequelize.define('User', {})
+        , Group = this.sequelize.define('Group', {})
+
+      Task.belongsTo(User)
+      Task.belongsTo(Group)
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          task: function (callback) {
+            Task.create().done(callback)
+          },
+          user: function (callback) {
+            User.create().done(callback)
+          },
+          group: function (callback) {
+            Group.create().done(callback)
+          },
+          taskUser: ['task', 'user', function (callback, results) {
+            results.task.setUser(results.user).done(callback)
+          }],
+          taskGroup: ['task', 'group', function (callback, results) {
+            results.task.setGroup(results.group).done(callback)
+          }]
+        }, function (err, results) {
+          expect(err).not.to.be.ok
+
+          Task.find({
+            where: {
+              id: results.task.id
+            },
+            include: [
+              {model: User},
+              {model: Group}
+            ]
+          }).done(function (err, task) {
+            expect(err).not.to.be.ok
+            expect(task.user).to.be.ok
+            expect(task.group).to.be.ok
+            done()
+          })
+        })
+      })
+    })
+
     it('should support a simple nested hasOne -> hasOne include', function (done) {
       var Task = this.sequelize.define('Task', {})
         , User = this.sequelize.define('User', {})
