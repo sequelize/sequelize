@@ -6,6 +6,7 @@
         "describe": false,
         "expect": false,
         "beforeEach": false,
+        "afterEach": false,
         "waits": false,
         "waitsFor": false,
         "runs": false

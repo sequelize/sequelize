@@ -9,6 +9,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] Support for FOR UPDATE and FOR SHARE statements [#1777](https://github.com/sequelize/sequelize/pull/1777)
 - [FEATURE] n:m createAssocation now returns the target model instance instead of the join model instance
 - [BUG] An error is now thrown if an association would create a naming conflict between the association and the foreign key when doing eager loading. Closes [#1272](https://github.com/sequelize/sequelize/issues/1272)
+- [BUG] Fix logging options for sequelize.sync
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
 
 #### Breaking changes
@@ -16,6 +17,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - `.success()`/`.done()` and any other non promise methods are now deprecated (we will keep the codebase around for a few versions though). on('sql') persists for debugging purposes.
 - Model association calls (belongsTo/hasOne/hasMany) are no longer chainable. (this is to support being able to pass association references to include rather than model/as combinations)
 - `QueryInterface` no longer emits global events. This means you can no longer do things like `QueryInterface.on('showAllSchemas', function ... `
+- `sequelize.showAllSchemas` now returns an array of schemas, instead of an array containinig an array of schemas
 
 # v2.0.0-dev11
 ### Caution: This release contains many changes and is highly experimental

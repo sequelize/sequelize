@@ -1443,12 +1443,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it("should be able to list schemas", function(done){
-      this.sequelize.showAllSchemas().success(function(schemas) {
-        expect(schemas).to.exist
-        expect(schemas[0]).to.be.instanceof(Array)
+      this.sequelize.showAllSchemas().then(function(schemas) {
+        expect(schemas).to.be.instanceof(Array)
         // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
         // Postgres supports schemas natively
-        expect(schemas[0]).to.have.length((dialect === "postgres" ? 2 : 1))
+        expect(schemas).to.have.length((dialect === "postgres" ? 2 : 1))
         done()
       })
     })
