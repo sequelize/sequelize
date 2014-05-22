@@ -1989,13 +1989,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it('should not fail with an include', function(done) {
-      var tableName = ''
-        , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
-        , escape = this.sequelize.queryInterface.QueryGenerator.escape
-
       this.User.findAll({
         where: [
-          this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + escape('republic')
+          this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')
         ],
         include: [
           {model: this.Project}
