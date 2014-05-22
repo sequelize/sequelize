@@ -869,8 +869,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
       var self = this
-        , ident = self.sequelize.queryInterface.QueryGenerator.quoteIdentifier
-        , escape = self.sequelize.queryInterface.QueryGenerator.quote
         , ParanoidUser = self.sequelize.define('ParanoidUser', {
           username:     Sequelize.STRING,
           secretValue:  Sequelize.STRING,
@@ -892,7 +890,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               expect(users.length).to.equal(1)
               expect(users[0].username).to.equal("Bob")
 
-              self.sequelize.query('SELECT * FROM ' + ident('ParanoidUsers') + ' WHERE ' + ident('deletedAt') + ' IS NOT NULL ORDER BY ' + ident('id'), null, {raw: true}).success(function(users) {
+              self.sequelize.query('SELECT * FROM ' + self.sequelize.queryInterface.QueryGenerator.quoteIdentifier('ParanoidUsers') + ' WHERE ' + self.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL ORDER BY ' + self.sequelize.queryInterface.QueryGenerator.quoteIdentifier('id'), null, {raw: true}).success(function(users) {
                 expect(users[0].username).to.equal("Peter")
                 expect(users[1].username).to.equal("Paul")
 
@@ -1989,13 +1987,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it('should not fail with an include', function(done) {
-      var tableName = ''
-        , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
-        , escape = this.sequelize.queryInterface.QueryGenerator.escape
-
       this.User.findAll({
         where: [
-          this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + escape('republic')
+          this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')
         ],
         include: [
           {model: this.Project}
@@ -2015,14 +2009,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should not overwrite a specified deletedAt', function(done) {
       var tableName = ''
-        , ident = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
-
       if(this.User.name) {
-        tableName = ident(this.User.name) + '.'
+        tableName = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier(this.User.name) + '.'
       }
       this.User.findAll({
         where: [
-          tableName + ident('deletedAt') + ' IS NOT NULL '
+          tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL '
         ],
         include: [
           {model: this.Project}
