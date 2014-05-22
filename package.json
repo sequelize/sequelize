@@ -71,7 +71,8 @@
     "async": "~0.2.10",
     "coffee-script": "~1.7.1",
     "markdox": "0.1.4",
-    "sinon-chai": "~2.5.0"
+    "sinon-chai": "~2.5.0",
+    "jshint": ">=2.4.2"
   },
   "keywords": [
     "mysql",
