@@ -12,7 +12,7 @@ teaser:
 	echo ''
 
 ifeq (true,$(COVERAGE))
-test: coveralls
+test: codeclimate
 else
 test:
 	@if [ "$$GREP" ]; then \
@@ -71,6 +71,10 @@ merge-coverage:
 coveralls-send:
 	cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage*
 
+codeclimate-send:
+	npm install -g codeclimate-test-reporter
+	CODECLIMATE_REPO_TOKEN=ce835a510bbf423a5ab5400a9bdcc2ec2d189d840b31657c6ee7cb9916b161d6 codeclimate < coverage/lcov.info
+
 # test aliases
 
 pgsql: postgres
@@ -82,5 +86,6 @@ all: sqlite mysql postgres postgres-native mariadb
 
 all-cover: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover merge-coverage
 coveralls: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover merge-coverage coveralls-send
+codeclimate: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover merge-coverage codeclimate-send
 
 .PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test
