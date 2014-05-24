@@ -19,6 +19,13 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         var queryInterface = this.sequelize.getQueryInterface();
 
         this.User = this.sequelize.define('user', {
+          id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            primaryKey: true,
+            autoIncrement: true,
+            field: 'userId'
+          },
           name: {
             type: DataTypes.STRING,
             field: 'full_name'
@@ -54,7 +61,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
         return Promise.all([
           queryInterface.createTable('users', {
-            id: {
+            userId: {
               type: DataTypes.INTEGER,
               allowNull: false,
               primaryKey: true,
