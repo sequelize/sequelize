@@ -108,8 +108,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           });
         }).then(function (user) {
           expect(user.get('name')).to.equal('Barfoo');
-        }).on('sql', function (sql) {
-          console.log(sql);
         });
       });
 
@@ -133,8 +131,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             expect(user.get('name')).to.be.ok;
             expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
           });
-        }).on('sql', function (sql) {
-          console.log(sql);
         });
       });
 
@@ -150,7 +146,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             }
           });
         }).then(function (user) {
-          expect(user).to.be.ok
+          expect(user).to.be.ok;
         });
       });
 
@@ -166,17 +162,17 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           return self.User.findAll();
         }).then(function (users) {
           users.forEach(function (user) {
-            expect(['Abc', 'Bcd', 'Cde'].indexOf(user.get('name')) !== -1).to.be.true
+            expect(['Abc', 'Bcd', 'Cde'].indexOf(user.get('name')) !== -1).to.be.true;
           });
         });
       });
-    })
+    });
 
     describe('types', function () {
       describe('VIRTUAL', function () {
         it('should be ignored in create, updateAttributes and find');
         it('should be ignored in bulkCreate and findAll');
-      })
-    })
-  })
-})
+      });
+    });
+  });
+});
