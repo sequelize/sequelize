@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
               type: DataTypes.STRING
             }
           })
-        ])
+        ]);
       });
 
       it('should create, fetch and update with alternative field names from a simple model', function () {
@@ -108,7 +108,9 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           });
         }).then(function (user) {
           expect(user.get('name')).to.equal('Barfoo');
-        })
+        }).on('sql', function (sql) {
+          console.log(sql);
+        });
       });
 
       it('should work with attributes and where on includes', function () {
@@ -131,6 +133,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             expect(user.get('name')).to.be.ok;
             expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
           });
+        }).on('sql', function (sql) {
+          console.log(sql);
         });
       });
 
@@ -147,7 +151,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           });
         }).then(function (user) {
           expect(user).to.be.ok
-        })
+        });
       });
 
       it('should work with bulkCreate and findAll', function () {
