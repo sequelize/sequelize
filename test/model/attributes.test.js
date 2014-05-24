@@ -7,10 +7,10 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , dialect   = Support.getTestDialect()
-  , datetime  = require('chai-datetime')
+  , datetime  = require('chai-datetime');
 
-chai.use(datetime)
-chai.config.includeStack = true
+chai.use(datetime);
+chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("Model"), function () {
   describe('attributes', function () {
