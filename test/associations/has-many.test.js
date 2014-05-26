@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           })
         })
       })
-    })
+    });
 
     describe('hasAll', function() {
       beforeEach(function(done) {
@@ -2105,6 +2105,44 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         done()
       })
+    })
+
+    it('allows the user to provide an attribute definition as foreignKey', function () {
+      var Task = this.sequelize.define('task', {})
+        , User = this.sequelize.define('user', {
+            uid: {
+              type: Sequelize.INTEGER,
+              primaryKey: true
+            }
+          });
+
+      User.hasMany(Task, { 
+        foreignKey: {
+          fieldName: 'user_id',
+          allowNull: false
+        }
+      });
+
+      expect(Task.rawAttributes.user_id.allowNull).to.be.false
+
+      Task.hasMany(User, {
+        foreignKey: {
+          allowNull: false
+        }
+      })
+
+      expect(Task.associations.tasksusers.through.rawAttributes.taskId.allowNull).to.be.false
+
+      var Project = this.sequelize.define('project', {
+        user_id: {
+          type: Sequelize.INTEGER
+        }
+      })
+      
+      User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id})
+
+      expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName())
+      expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid')
     })
 
     it('should throw an error if foreignKey and as result in a name clash', function () {

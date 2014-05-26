@@ -8,6 +8,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] The `set` / `add` / `has` methods for associations now allow you to pass the value of a primary key, instead of a full Instance object, like so: `user.addTask(15);`.
 - [FEATURE] Support for FOR UPDATE and FOR SHARE statements [#1777](https://github.com/sequelize/sequelize/pull/1777)
 - [FEATURE] n:m createAssocation now returns the target model instance instead of the join model instance
+- [FEATURE] Extend the `foreignKey` option for associations to support a full data type definition, and not just a string
 - [BUG] An error is now thrown if an association would create a naming conflict between the association and the foreign key when doing eager loading. Closes [#1272](https://github.com/sequelize/sequelize/issues/1272)
 - [BUG] Fix logging options for sequelize.sync
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.

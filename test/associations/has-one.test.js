@@ -471,6 +471,28 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
       })
     })
 
+    it('allows the user to provide an attribute definition as foreignKey', function () {
+      var User = this.sequelize.define('user', {
+            uid: {
+              type: Sequelize.INTEGER,
+              primaryKey: true
+            }
+          })
+        , Profile = this.sequelize.define('project', {
+            user_id: {
+              type: Sequelize.INTEGER,
+              allowNull: false
+            }
+          })
+          
+      User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id})
+
+      expect(Profile.rawAttributes.user_id).to.be.defined
+      expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName())
+      expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid')
+      expect(Profile.rawAttributes.user_id.allowNull).to.be.false
+    })
+
     it('should throw an error if an association clashes with the name of an already define attribute', function () {
        var User = this.sequelize.define('user', {
             attribute: Sequelize.STRING
