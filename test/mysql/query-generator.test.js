@@ -115,6 +115,10 @@ if (Support.dialectIsMySQL()) {
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;"
+        },
+        {
+          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY REFERENCES `otherTable` (`id`)'}],
+          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER , PRIMARY KEY (`id`), FOREIGN KEY (`id`) REFERENCES `otherTable` (`id`)) ENGINE=InnoDB;"
         }
       ],
 
