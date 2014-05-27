@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           users.forEach(function (user) {
             expect(user.get('name')).to.be.ok;
             expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
-            expect(user.get('tasks')[0].get('comments')).to.be;
+            expect(user.get('tasks')[0].get('comments')).to.be.ok;
           });
         });
       });
