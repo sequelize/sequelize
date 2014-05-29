@@ -871,6 +871,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                               t1.commit().success(function() {
                                 count(null, function(cnt) {
                                   expect(cnt).to.equal(1)
+                                  done();
                                 })
                               })
                             })
@@ -881,8 +882,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                   })
                 })
               })
-            }).done(function() {
-              done()
             })
           })
         })

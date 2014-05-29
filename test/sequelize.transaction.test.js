@@ -67,8 +67,6 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
             });
           }).then(function () {
             return t.commit();
-          }).catch(function (err) {
-            return t.rollback();
           });
         }).then(function() {
           return User.all().success(function(users) {
