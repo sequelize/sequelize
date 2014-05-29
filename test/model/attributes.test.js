@@ -148,6 +148,15 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
+      it('should make the aliased auto incremented primary key available after create', function () {
+        var self = this;
+        return this.User.create({
+          name: 'Barfoo'
+        }).then(function (user) {
+          expect(user.get('id')).to.be.ok;
+        });
+      });
+
       it('should work with where on includes for find', function () {
         var self = this;
 
