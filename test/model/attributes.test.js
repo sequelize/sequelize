@@ -148,7 +148,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
-      it('should work with attributes and where on includes for find', function () {
+      it('should work with where on includes for find', function () {
         var self = this;
 
         return this.User.create({
@@ -167,16 +167,16 @@ describe(Support.getTestDialectTeaser("Model"), function () {
               {model: self.Comment},
               {model: self.User}
             ],
-            where: {title: 'DoDat'}
+            where: {title: 'DatDo'}
           });
         }).then(function (task) {
-          expect(task.get('title')).to.equal('DoDat');
-          expect(task.get('comments'))[0].to.equal('Comment');
+          expect(task.get('title')).to.equal('DatDo');
+          expect(task.get('comments')[0].get('text')).to.equal('Comment');
           expect(task.get('user')).to.be.ok;
         });
       });
 
-      it('should work with attributes and where on includes for findAll', function () {
+      it('should work with where on includes for findAll', function () {
         var self = this;
 
         return this.User.create({
