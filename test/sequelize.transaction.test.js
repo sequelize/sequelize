@@ -1,84 +1,85 @@
 var chai        = require('chai')
   , expect      = chai.expect
   , Support     = require(__dirname + '/support')
+  , Promise     = require(__dirname + '/../lib/promise')
   , Transaction = require(__dirname + '/../lib/transaction')
 
 describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
-  this.timeout(4000)
+  this.timeout(4000);
 
   describe('success', function() {
     it("gets triggered once a transaction has been successfully committed", function(done) {
       this
         .sequelize
-        .transaction(function(t) { t.commit() })
-        .success(function() { done() })
-    })
+        .transaction(function(t) { t.commit(); })
+        .success(function() { done(); });
+    });
 
     it("gets triggered once a transaction has been successfully rollbacked", function(done) {
       this
         .sequelize
-        .transaction(function(t) { t.rollback() })
-        .success(function() { done() })
-    })
+        .transaction(function(t) { t.rollback(); })
+        .success(function() { done(); });
+    });
 
     it('works for long running transactions', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', {
           name: Support.Sequelize.STRING
-        }, { timestamps: false })
+        }, { timestamps: false });
 
-        sequelize.sync({ force: true }).success(function() {
-          sequelize
-            .transaction(function(t) {
-              var query = 'select sleep(2);'
+        return sequelize.sync({ force: true }).success(function() {
+          return sequelize.transaction();
+        }).then(function (t) {
+          expect(t).to.be.ok;
+          var query = 'select sleep(2);';
 
-              switch(Support.getTestDialect()) {
-                case 'postgres':
-                  query = 'select pg_sleep(2);'
-                  break
-                case 'sqlite':
-                  query = 'select sqlite3_sleep(2);'
-                  break
-                default:
-                  break
-              }
+          switch(Support.getTestDialect()) {
+          case 'postgres':
+            query = 'select pg_sleep(2);';
+            break;
+          case 'sqlite':
+            query = 'select sqlite3_sleep(2);';
+            break;
+          default:
+            break;
+          }
 
-              sequelize.query(query, null, {
-                raw: true,
-                plain: true,
-                transaction: t
-              }).done(function() {
-                var dao = User.build({ name: 'foo' })
+          return sequelize.query(query, null, {
+            raw: true,
+            plain: true,
+            transaction: t
+          }).then(function() {
+            var dao = User.build({ name: 'foo' });
 
-                // this.QueryGenerator.insertQuery(tableName, values, dao.daoFactory.rawAttributes)
-                query = sequelize
-                  .getQueryInterface()
-                  .QueryGenerator
-                  .insertQuery(User.tableName, dao.values, User.rawAttributes)
-
-                setTimeout(function() {
-                  sequelize.query(query, null, {
-                    raw: true,
-                    plain: true,
-                    transaction: t
-                  }).done(function(err, res) {
-                    t.commit()
-                  })
-                }, 1000)
-              })
-            })
-            .success(function() {
-              User.all().success(function(users) {
-                expect(users.length).to.equal(1)
-                expect(users[0].name).to.equal('foo')
-
-                done()
-              })
-            })
-          })
-        })
-      })
-  })
+            // this.QueryGenerator.insertQuery(tableName, values, dao.daoFactory.rawAttributes)
+            return query = sequelize
+              .getQueryInterface()
+              .QueryGenerator
+              .insertQuery(User.tableName, dao.values, User.rawAttributes);
+          }).then(function () {
+            return Promise.delay(1000);
+          }).then(function () {
+            return sequelize.query(query, null, {
+              raw: true,
+              plain: true,
+              transaction: t
+            });
+          }).then(function () {
+            return t.commit();
+          }).catch(function (err) {
+            return t.rollback();
+          });
+        }).then(function() {
+          return User.all().success(function(users) {
+            expect(users.length).to.equal(1);
+            expect(users[0].name).to.equal('foo');
+            done();
+          });
+        }).catch(done);
+      });
+    });
+  });
 
   describe('error', function() {
     if (Support.getTestDialect() === 'sqlite') {
@@ -86,37 +87,37 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
       // how could we enforce an authentication error in sqlite?
     } else {
       it("gets triggered once an error occurs", function(done) {
-        var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() })
+        var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() });
 
         // lets overwrite the host to get an error
-        sequelize.config.username = 'foobarbaz'
+        sequelize.config.username = 'foobarbaz';
 
         sequelize
           .transaction(function() {})
-          .error(function(err) {
-            expect(err).to.not.be.undefined
-            done()
-          })
-      })
+          .catch(function(err) {
+            expect(err).to.not.be.undefined;
+            done();
+          });
+      });
     }
-  })
+  });
 
   describe('callback', function() {
     it("receives the transaction if only one argument is passed", function(done) {
       this.sequelize.transaction(function(t) {
-        expect(t).to.be.instanceOf(Transaction)
-        t.commit()
-      }).done(done)
-    })
+        expect(t).to.be.instanceOf(Transaction);
+        t.commit();
+      }).done(done);
+    });
 
     it("receives an error and the transaction if two arguments are passed", function(done) {
       this.sequelize.transaction(function(err, t) {
-        expect(err).to.not.be.instanceOf(Transaction)
-        expect(t).to.be.instanceOf(Transaction)
-        t.commit()
-      }).done(done)
-    })
-  })
+        expect(err).to.not.be.instanceOf(Transaction);
+        expect(t).to.be.instanceOf(Transaction);
+        t.commit();
+      }).done(done);
+    });
+  });
 
   describe('complex long running example', function() {
     it("works with promise syntax", function(done) {
