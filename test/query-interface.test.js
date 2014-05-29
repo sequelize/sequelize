@@ -207,5 +207,20 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         return self.queryInterface.renameColumn('_Users', 'active', 'enabled')
       })
     })
+    it('renames a column primary key autoincrement column', function() {
+      var self = this
+      var Fruits = self.sequelize.define('Fruit', {
+        fruitId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      }, { freezeTableName: true })
+
+      return Fruits.sync({ force: true }).then(function() {
+        return self.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id')
+      })
+    })
   })
 })
