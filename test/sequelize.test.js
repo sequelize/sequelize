@@ -794,22 +794,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
 
-      it('returns a transaction object', function() {
-        expect(this.sequelizeWithTransaction.transaction(function(){})).to.be.instanceOf(Transaction)
-      })
-
       it('allows me to define a callback on the result', function(done) {
         this
           .sequelizeWithTransaction
           .transaction(function(t) { t.commit() })
           .done(done)
-      })
-
-      it('allows me to define a callback on the transaction object', function(done) {
-        this.sequelizeWithTransaction.transaction(function(t) {
-          t.done(done)
-          t.commit()
-        })
       })
 
       if (dialect === 'sqlite') {
