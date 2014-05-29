@@ -365,7 +365,10 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 {model: Tag}
               ]}
             ],
-            order: [ ['id'], [Product, 'id'] ]
+            order: [
+              User.rawAttributes.id,
+              [Product, 'id']
+            ]
           }).done(function (err, user) {
             expect(err).not.to.be.ok
 
