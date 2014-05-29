@@ -5301,7 +5301,6 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-
         this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).success(function() {
