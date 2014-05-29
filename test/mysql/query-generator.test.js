@@ -488,6 +488,11 @@ if (Support.dialectIsMySQL()) {
             'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}
           ],
           expectation: "CREATE FULLTEXT INDEX bar ON User (`username`, `isAdmin`) WITH PARSER foo"
+        }, {
+          arguments: [
+            'User', ['username', 'isAdmin'], { indicesType: 'UNIQUE'}
+          ],
+          expectation: "CREATE UNIQUE INDEX user_username_is_admin ON User (`username`, `isAdmin`)"
         }
       ],
 
