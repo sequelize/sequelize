@@ -37,6 +37,16 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('should only generate one set of foreignKeys', function () {
+        this.Article = this.sequelize.define('Article', { 'title': DataTypes.STRING }, {timestamps: false})
+        this.Label   = this.sequelize.define('Label', { 'text': DataTypes.STRING }, {timestamps: false})
+
+        this.Label.belongsTo(this.Article);
+        this.Article.hasMany(this.Label);
+
+        expect(Object.keys(this.Label.rawAttributes).length).to.equal(3);
+      });
+
       it('supports transactions', function(done) {
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
           var Article = sequelize.define('Article', { 'title': DataTypes.STRING })
