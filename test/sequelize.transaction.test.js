@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
           }).catch(done);
         });
       });
-    });
+    }
   });
 
   describe('error', function() {
