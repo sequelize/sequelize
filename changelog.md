@@ -21,6 +21,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - Model association calls (belongsTo/hasOne/hasMany) are no longer chainable. (this is to support being able to pass association references to include rather than model/as combinations)
 - `QueryInterface` no longer emits global events. This means you can no longer do things like `QueryInterface.on('showAllSchemas', function ... `
 - `sequelize.showAllSchemas` now returns an array of schemas, instead of an array containinig an array of schemas
+- `sequelize.transaction()` now returns a promise rather than a instance of Sequelize.Transaction
 
 # v2.0.0-dev11
 ### Caution: This release contains many changes and is highly experimental

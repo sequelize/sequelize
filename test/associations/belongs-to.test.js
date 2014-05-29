@@ -42,7 +42,9 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
                       Group.all({ transaction: t }).success(function(groups) {
                         groups[0].getUser({ transaction: t }).success(function(associatedUser) {
                           expect(associatedUser).to.be.not.null
-                          t.rollback().success(function() { done() })
+                          t.rollback().success(function() {
+                            done()
+                          })
                         })
                       })
                     })
