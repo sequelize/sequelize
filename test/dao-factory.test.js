@@ -894,13 +894,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 expect(users[0].username).to.equal("Peter")
                 expect(users[1].username).to.equal("Paul")
 
-                if (dialect === "sqlite") {
-                  expect(moment(users[0].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
-                  expect(moment(users[1].deletedAt).format('YYYY-MM-DD h:mm')).to.equal(date)
-                } else {
-                  expect(moment(users[0].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
-                  expect(moment(users[1].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
-                }
+                expect(moment(users[0].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                expect(moment(users[1].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
                 done()
               })
             })

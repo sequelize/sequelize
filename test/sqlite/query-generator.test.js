@@ -182,7 +182,7 @@ if (dialect === 'sqlite') {
               ]
             }
           }],
-          expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
+          expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55.000 +00:00') ASC;",
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -315,7 +315,7 @@ if (dialect === 'sqlite') {
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}],
-          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55');"
+          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55.000 +00:00');"
         }, {
           arguments: ['myTable', { name: "foo", value: true }],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1);"
@@ -357,7 +357,7 @@ if (dialect === 'sqlite') {
           expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar'''),('foo');"
         }, {
           arguments: ['myTable', [{name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {name: 'bar', birthday: moment("2012-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}]],
-          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55'),('bar','2012-03-27 10:01:55');"
+          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');"
         }, {
           arguments: ['myTable', [{name: "bar", value: null}, {name: 'foo', value: 1}]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('foo',1);"
@@ -394,10 +394,10 @@ if (dialect === 'sqlite') {
       updateQuery: [
         {
           arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, {id: 2}],
-          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
+          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id`=2"
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment("2011-03-27 10:01:55 +0000", "YYYY-MM-DD HH:mm:ss Z").toDate()}, 2],
-          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id`=2"
+          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id`=2"
         }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],
           expectation: "UPDATE `myTable` SET `name`='foo' WHERE `id`=2"
