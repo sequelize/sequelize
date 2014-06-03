@@ -24,6 +24,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - `QueryInterface` no longer emits global events. This means you can no longer do things like `QueryInterface.on('showAllSchemas', function ... `
 - `sequelize.showAllSchemas` now returns an array of schemas, instead of an array containinig an array of schemas
 - `sequelize.transaction()` now returns a promise rather than a instance of Sequelize.Transaction
+- `bulkCreate`, `bulkUpdate` and `bulkDestroy` (and aliases) now take both a `hooks` and an `individualHooks` option, `hooks` defines whether or not to run the main hooks, and `individualHooks` defines whether to run hooks for each instance affected.
 
 # v2.0.0-dev11
 ### Caution: This release contains many changes and is highly experimental
