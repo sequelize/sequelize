@@ -750,6 +750,17 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it('gets all associated objects with all fields', function(done) {
+        this.User.find({where: {username: 'John'}}).success(function (john) {
+          john.getTasks().success(function (tasks) {
+            tasks[0].attributes.forEach(function(attr) {
+              expect(tasks[0]).to.have.property(attr)
+            })
+            done()
+          })
+        })
+      })
+
       it("gets all associated objects when no options are passed", function(done) {
         this.User.find({where: {username: 'John'}}).success(function (john) {
           john.getTasks().success(function (tasks) {
