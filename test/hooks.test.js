@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   this.User.bulkCreate([
                     {username: 'Bob', mood: 'cold'},
                     {username: 'Tobi', mood: 'hot'}
-                  ], { fields: [], hooks: true }).success(function(bulkUsers) {
+                  ], { fields: [], individualHooks: true }).success(function(bulkUsers) {
                     expect(beforeBulkCreate).to.be.true
                     expect(afterBulkCreate).to.be.true
                     expect(bulkUsers).to.be.instanceof(Array)
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 return this.User.bulkCreate([
                   {username: 'Bob', mood: 'cold'},
                   {username: 'Tobi', mood: 'hot'}
-                ], { fields: [], hooks: false }).success(function(bulkUsers) {
+                ], { fields: [], individualHooks: false }).success(function(bulkUsers) {
                   return self.User.all().success(function(users) {
                     expect(users[0].mood).to.equal(null)
                     expect(users[1].mood).to.equal(null)
@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   this.User.bulkCreate([
                     {username: 'Bob', mood: 'cold'},
                     {username: 'Tobi', mood: 'hot'}
-                  ], { hooks: true }).success(function(bulkUsers) {
+                  ], { individualHooks: true }).success(function(bulkUsers) {
                     expect(beforeBulkCreate).to.be.true
                     expect(afterBulkCreate).to.be.true
                     expect(bulkUsers).to.be.instanceof(Array)
@@ -4343,7 +4343,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       })
     })
 
-    describe('with the {hooks: true} option', function() {
+    describe('with the {individualHooks: true} option', function() {
       beforeEach(function(done) {
         this.User = this.sequelize.define('User', {
           username: {
@@ -4389,7 +4389,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], hooks: true }).success(function(records) {
+        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).success(function(records) {
           records.forEach(function(record) {
             expect(record.username).to.equal('User' + record.id)
             expect(record.beforeHookTest).to.be.true
@@ -4423,7 +4423,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], hooks: true }).error(function(err) {
+        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).error(function(err) {
           expect(err).to.equal('You shall not pass!')
           expect(beforeBulkCreate).to.be.true
           expect(afterBulkCreate).to.be.false
@@ -5254,7 +5254,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       })
     })
 
-    describe('with the {hooks: true} option', function() {
+    describe('with the {individualHooks: true} option', function() {
       beforeEach(function(done) {
         this.User = this.sequelize.define('User', {
           username: {
@@ -5301,11 +5301,10 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           fn()
         })
 
-
         this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).success(function() {
-          self.User.update({aNumber: 10}, {aNumber: 1}, {hooks: true}).success(function(records) {
+          self.User.update({aNumber: 10}, {aNumber: 1}, {individualHooks: true}).spread(function(affectedRows, records) {
             records.forEach(function(record) {
               expect(record.username).to.equal('User' + record.id)
               expect(record.beforeHookTest).to.be.true
@@ -5342,7 +5341,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
-          self.User.update({aNumber: 10}, {aNumber: 1}, {hooks: true}).error(function(err) {
+          self.User.update({aNumber: 10}, {aNumber: 1}, {individualHooks: true}).error(function(err) {
             expect(err).to.equal('You shall not pass!')
             expect(beforeBulk).to.be.true
             expect(afterBulk).to.be.false
@@ -6038,7 +6037,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       })
     })
 
-    describe('with the {hooks: true} option', function() {
+    describe('with the {individualHooks: true} option', function() {
       beforeEach(function(done) {
         this.User = this.sequelize.define('User', {
           username: {
@@ -6091,7 +6090,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).success(function() {
-          self.User.destroy({aNumber: 1}, {hooks: true}).success(function() {
+          self.User.destroy({aNumber: 1}, {individualHooks: true}).success(function() {
             expect(beforeBulk).to.be.true
             expect(afterBulk).to.be.true
             expect(beforeHook).to.be.true
@@ -6129,7 +6128,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
-          self.User.destroy({aNumber: 1}, {hooks: true}).error(function(err) {
+          self.User.destroy({aNumber: 1}, {individualHooks: true}).error(function(err) {
             expect(err).to.equal('You shall not pass!')
             expect(beforeBulk).to.be.true
             expect(beforeHook).to.be.true
@@ -7243,7 +7242,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       return this.User.bulkCreate([
         {username: 'Bob', mood: 'cold'},
         {username: 'Tobi', mood: 'hot'}
-      ], { fields: [], hooks: false }).success(function(bulkUsers) {
+      ], { fields: [], individualHooks: false }).success(function(bulkUsers) {
         return self.User.all().success(function(users) {
           expect(users[0].mood).to.equal(null)
           expect(users[1].mood).to.equal(null)

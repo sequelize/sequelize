@@ -791,15 +791,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         , done = _.after(2, _done)
 
       this.User.bulkCreate(data).success(function() {
-        self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err, affectedRows) {
-          expect(err).not.to.be.ok
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(2)
           
           done()
         })
 
-        self.User.update({username: 'Bill'}, {secretValue: '44'}).done(function(err, affectedRows) {
-          expect(err).not.to.be.ok
+        self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(0)
           
           done()
@@ -815,8 +813,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     { username: 'Peter', secretValue: '42' }]
 
         this.User.bulkCreate(data).success(function () {
-          self.User.update({secretValue: '43'}, {username: 'Peter'}, {limit: 1}).done(function (err, affectedRows) {
-            expect(err).not.to.be.ok
+          self.User.update({secretValue: '43'}, {username: 'Peter'}, {limit: 1}).spread(function(affectedRows) {
             expect(affectedRows).to.equal(1)
             done()
           })
