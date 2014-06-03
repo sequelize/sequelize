@@ -53,6 +53,9 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - Join tables will be no longer be paranoid (have a deletedAt timestamp added), even though other models are.
 - All tables in select queries will now be aliased with the model names to be support schemas. This will affect people stuff like `where: {'table.attribute': value}
 
+# v1.7.7
+- [BUG] fixes issue where count/findAndCountAll would throw on empty rows [#1849](https://github.com/sequelize/sequelize/pull/1849)
+
 # v1.7.6
 - [BUG] fixes issue where primary key is also foreign key [#1818](https://github.com/sequelize/sequelize/pull/1818)
 
