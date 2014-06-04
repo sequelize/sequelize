@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         filesFilter: /\.coffee$/,
         to: 20111130161100
       }, function(migrator) {
-        migrator.getUndoneMigrations(function(err, migrations) {
+        migrator.getUndoneMigrations("up", function(err, migrations) {
           expect(err).to.be.null
           expect(migrations).to.have.length(1)
           done()
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
     it("returns no files if timestamps are after the files timestamp", function(done) {
       this.init({ from: 20140101010101 }, function(migrator) {
-        migrator.getUndoneMigrations(function(err, migrations) {
+        migrator.getUndoneMigrations("up", function(err, migrations) {
           expect(err).to.be.null
           expect(migrations.length).to.equal(0)
           done()
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
     it("returns only files between from and to", function(done) {
       this.init({ from: 19700101000000, to: 20111117063700 }, function(migrator) {
-        migrator.getUndoneMigrations(function(err, migrations) {
+        migrator.getUndoneMigrations("up", function(err, migrations) {
           expect(err).to.be.null
           expect(migrations.length).to.equal(1)
           expect(migrations[migrations.length - 1].filename).to.equal('20111117063700-createPerson.js')
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
     it("returns exactly the migration which is defined in from and to", function(done) {
       this.init({ from: 20111117063700, to: 20111117063700 }, function(migrator) {
-        migrator.getUndoneMigrations(function(err, migrations) {
+        migrator.getUndoneMigrations("up", function(err, migrations) {
           expect(err).to.be.null
           expect(migrations.length).to.equal(1)
           expect(migrations[migrations.length - 1].filename).to.equal('20111117063700-createPerson.js')
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
     it("returns also the file which is exactly options.from or options.to", function(done) {
       this.init({ from: 20111117063700, to: 20111130161100 }, function(migrator) {
-        migrator.getUndoneMigrations(function(err, migrations) {
+        migrator.getUndoneMigrations("up", function(err, migrations) {
           expect(err).to.be.null
           expect(migrations).to.have.length(2)
           expect(migrations[0].filename).to.equal('20111117063700-createPerson.js')
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
     it("returns all files to options.to if no options.from is defined", function(done) {
       this.init({ to: 20111130161100 }, function(migrator) {
-        migrator.getUndoneMigrations(function(err, migrations) {
+        migrator.getUndoneMigrations("up", function(err, migrations) {
           expect(err).to.be.null
           expect(migrations).to.have.length(2)
           done()
@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
     it("returns all files from last migration id stored in database", function(done) {
       this.init(undefined, function(migrator, SequelizeMeta) {
         SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
-          migrator.getUndoneMigrations(function(err, migrations) {
+          migrator.getUndoneMigrations("up", function(err, migrations) {
             expect(err).to.be.null
             expect(migrations).to.have.length(14)
             expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
