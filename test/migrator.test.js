@@ -156,16 +156,20 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
       it("executes migration #20111117063700 correctly up (createTable) and downwards (dropTable)", function(done) {
         var self = this
-
-        this.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-          tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-          expect(tableNames).to.eql([ 'Person' ])
-
-          self.migrator.migrate({ method: 'down' }).success(function() {
-            self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-              tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-              expect(tableNames).to.eql([])
-              done()
+        this.init({
+        }, function(migrator) {
+          self.migrator = migrator
+          self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+            tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+            expect(tableNames).to.eql([ 'Person' ])
+            self.migrator.migrate({ method: 'up' }).success(function() {
+              self.migrator.migrate({ method: 'down' }).success(function() {
+                self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+                  tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+                  expect(tableNames).to.eql([])
+                  done()
+                })
+              })
             })
           })
         })
