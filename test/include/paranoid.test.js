@@ -39,6 +39,25 @@ describe(Support.getTestDialectTeaser("Paranoid"), function () {
 
   })
 
+  it('paranoid with timestamps: false should be ignored / not crash', function (done) {
+
+    var S = this.sequelize,
+        Test = S.define('Test',{
+          name: DataTypes.STRING
+        },{
+          timestamps: false,
+          paranoid: true
+        });
+
+    S.sync({ force: true }).done(function () {
+      Test.find(1).done(function ( err ) {
+        expect( err ).to.be.not.ok
+        done()
+      })
+    })
+
+  })
+
   it( 'test if default required behavior is marked as false', function ( done ) {
 
     var A = this.A,
