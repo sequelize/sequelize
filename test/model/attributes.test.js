@@ -63,7 +63,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           text: {
             type: DataTypes.STRING,
             field: 'comment_text'
-          }
+          },
+		  notes: {
+			type: DataTypes.STRING,
+			field: 'notes'
+		  }
         }, {
           tableName: 'comments',
           timestamps: false
@@ -120,7 +124,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             },
             comment_text: {
               type: DataTypes.STRING
-            }
+            },
+			notes: {
+			  type: DataTypes.STRING
+			}
           })
         ]);
       });
@@ -247,6 +254,30 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           });
         });
       });
+	  
+	  it('field names that are the same as property names should create, update, and read correctly', function () {
+        var self = this;
+
+        return this.Comment.create({
+          notes: 'Foobar'
+        }).then(function () {
+          return self.Comment.find({
+            limit: 1
+          });
+        }).then(function (comment) {
+          expect(comment.get('notes')).to.equal('Foobar');
+          return comment.updateAttributes({
+            notes: 'Barfoo'
+          });
+        }).then(function () {
+          return self.Comment.find({
+            limit: 1
+          });
+        }).then(function (comment) {
+          expect(comment.get('notes')).to.equal('Barfoo');
+        });
+      });
+	  
     });
 
     describe('types', function () {
