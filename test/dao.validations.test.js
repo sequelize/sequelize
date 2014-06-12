@@ -1,11 +1,13 @@
+"use strict";
+
 /* jshint expr:true */
 var chai      = require('chai')
   , expect    = chai.expect
   , Sequelize = require(__dirname + '/../index')
   , Support   = require(__dirname + '/support')
-  , config    = require(__dirname + '/config/config')
+  , config    = require(__dirname + '/config/config');
 
-chai.config.includeStack = true
+chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("DaoValidator"), function() {
   describe('validations', function() {
@@ -166,77 +168,77 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         fail: "401288888888188f",
         pass: "4012888888881881"
       }
-    }
+    };
 
     var applyFailTest = function applyFailTest(validatorDetails, i, validator) {
-        var failingValue = validatorDetails.fail[i]
+        var failingValue = validatorDetails.fail[i];
         it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function(done) {
           var validations = {}
-            , message     = validator + "(" + failingValue + ")"
+            , message     = validator + "(" + failingValue + ")";
 
           if (validatorDetails.hasOwnProperty('spec')) {
-            validations[validator] = validatorDetails.spec
+            validations[validator] = validatorDetails.spec;
           } else {
-            validations[validator] = {}
+            validations[validator] = {};
           }
 
-          validations[validator].msg = message
+          validations[validator].msg = message;
 
           var UserFail = this.sequelize.define('User' + config.rand(), {
             name: {
               type:     Sequelize.STRING,
               validate: validations
             }
-          })
+          });
 
-          var failingUser = UserFail.build({ name : failingValue })
+          var failingUser = UserFail.build({ name : failingValue });
 
           failingUser.validate().done( function(err, _errors) {
-            expect(_errors).not.to.be.null
-            expect(_errors).to.be.an.instanceOf(Error)
-            expect(_errors.name[0].message).to.equal(message)
-            done()
-          })
-        })
+            expect(_errors).not.to.be.null;
+            expect(_errors).to.be.an.instanceOf(Error);
+            expect(_errors.name[0].message).to.equal(message);
+            done();
+          });
+        });
       }
       , applyPassTest = function applyPassTest(validatorDetails, j, validator) {
-          var succeedingValue = validatorDetails.pass[j]
+          var succeedingValue = validatorDetails.pass[j];
           it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function(done) {
-            var validations = {}
+            var validations = {};
 
             if (validatorDetails.hasOwnProperty('spec')) {
-              validations[validator] = validatorDetails.spec
+              validations[validator] = validatorDetails.spec;
             } else {
-              validations[validator] = {}
+              validations[validator] = {};
             }
 
-            validations[validator].msg = validator + "(" + succeedingValue + ")"
+            validations[validator].msg = validator + "(" + succeedingValue + ")";
 
             var UserSuccess = this.sequelize.define('User' + config.rand(), {
               name: {
                 type:     Sequelize.STRING,
                 validate: validations
               }
-            })
-            var successfulUser = UserSuccess.build({ name: succeedingValue })
+            });
+            var successfulUser = UserSuccess.build({ name: succeedingValue });
             successfulUser.validate().success(function(errors) {
-              expect(errors).to.be.undefined
-              done()
+              expect(errors).to.be.undefined;
+              done();
             }).error(function(err) {
-              expect(err).to.deep.equal({})
-              done()
-            })
-          })
-        }
+              expect(err).to.deep.equal({});
+              done();
+            });
+          });
+        };
 
     for (var validator in checks) {
       if (checks.hasOwnProperty(validator)) {
-        validator = validator.replace(/\$$/, '')
-        var validatorDetails = checks[validator]
+        validator = validator.replace(/\$$/, '');
+        var validatorDetails = checks[validator];
 
         if (!validatorDetails.hasOwnProperty("raw")) {
-          validatorDetails.fail = Array.isArray(validatorDetails.fail) ? validatorDetails.fail : [ validatorDetails.fail ]
-          validatorDetails.pass = Array.isArray(validatorDetails.pass) ? validatorDetails.pass : [ validatorDetails.pass ]
+          validatorDetails.fail = Array.isArray(validatorDetails.fail) ? validatorDetails.fail : [ validatorDetails.fail ];
+          validatorDetails.pass = Array.isArray(validatorDetails.pass) ? validatorDetails.pass : [ validatorDetails.pass ];
         }
 
         for (var i = 0; i < validatorDetails.fail.length; i++) {
@@ -322,7 +324,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           })
         })
       })
-    })
+    });
 
     describe('#create', function() {
       describe('generic', function() {
@@ -832,6 +834,43 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         expect(errors).not.to.be.ok
         done()
       })
+    })
+
+    it('validates VIRTUAL fields', function () {
+      var User = this.sequelize.define('user', {
+        password_hash: Sequelize.STRING,
+        salt: Sequelize.STRING,
+        password: {
+          type: Sequelize.VIRTUAL,
+          set: function (val) {
+            this.setDataValue('password', val);
+            this.setDataValue('password_hash', this.salt + val); 
+          },
+          validate: {
+            isLongEnough: function (val) {
+              if (val.length < 7) {
+                throw new Error("Please choose a longer password")
+              }
+            }
+          }
+        }
+      })
+
+      return Sequelize.Promise.all([
+        User.build({
+          password: 'short',
+          salt: '42'
+        }).validate().then(function (errors) {
+          expect(errors).not.to.be.undefined
+          expect(errors.password[0].message).to.equal('Please choose a longer password')
+        }),
+        User.build({
+          password: 'loooooooong',
+          salt: '42'
+        }).validate().then(function (errors) {
+          expect(errors).to.be.undefined
+        })
+      ]);
     })
 
     it('allows me to add custom validation functions to validator.js', function () {
