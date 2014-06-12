@@ -2024,6 +2024,52 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
   })
+  
+  if (dialect !== 'sqlite') {
+    it('supports multiple async transactions', function(done) {
+      this.timeout(25000);
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING })
+        var testAsync = function(i, done) {
+          sequelize.transaction().then(function(t) {
+            return User.create({
+              username: 'foo'
+            }, {
+              transaction: t
+            }).then(function () {
+              return User.findAll({ 
+                where: {
+                  username: "foo"
+                }
+              }).then(function (users) {
+                expect(users).to.have.length(0);
+              });
+            }).then(function () {
+              return User.findAll({ 
+                where: {
+                  username: "foo"
+                },
+                transaction: t
+              }).then(function (users) {
+                expect(users).to.have.length(1);
+              });
+            }).then(function () {
+              return t;
+            });
+          }).then(function (t) {
+            return t.rollback();
+          }).nodeify(done);
+        }
+        User.sync({ force: true }).success(function() {
+          var tasks = []
+          for (var i = 0; i < 1000; i++) {
+            tasks.push(testAsync.bind(this, i))
+          };
+          async.parallelLimit(tasks, (sequelize.config.pool && sequelize.config.pool.max || 5) - 1, done); // Needs to be one less than 1 else the non transaction query won't ever get a connection
+        });
+      });
+    });
+  }
 
   describe('Unique', function() {
     it("should set unique when unique is true", function(done) {
