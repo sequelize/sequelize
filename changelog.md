@@ -11,6 +11,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] Extend the `foreignKey` option for associations to support a full data type definition, and not just a string
 - [FEATURE] Extract CLI into [separate projects](https://github.com/sequelize/cli).
 - [FEATURE] Sqlite now inserts dates with millisecond precision
+- [FEATURE] Sequelize.VIRTUAL datatype which provides regular attribute functionality (set, get, etc) but never persists to database.
 - [BUG] An error is now thrown if an association would create a naming conflict between the association and the foreign key when doing eager loading. Closes [#1272](https://github.com/sequelize/sequelize/issues/1272)
 - [BUG] Fix logging options for sequelize.sync
 - [BUG] find no longer applies limit: 1 if querying on a primary key, should fix a lot of subquery issues.
