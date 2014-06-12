@@ -91,6 +91,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
 
         it('triggers the actual adapter error', function(done) {
+
           this
             .sequelizeWithInvalidConnection
             .authenticate()
@@ -100,14 +101,16 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               } else if (dialect === 'postgres') {
                 // When the test is run with only it produces:
                 // Error: Error: Failed to authenticate for PostgresSQL. Please double check your settings.
+                expect(err.message).to.match(/Failed to authenticate for PostgresSQL/)
                 // When its run with all the other tests it produces:
                 // Error: invalid port number: "99999"
-                expect(err.message).to.match(/invalid port number/)
+                //expect(err.message).to.match(/invalid port number/)
               } else {
                 expect(err.message).to.match(/Failed to authenticate/)
               }
 
               done()
+              
             })
         })
       })
