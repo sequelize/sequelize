@@ -632,7 +632,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         this.User.create({ username: 'foo' }).success(function(user) {
           self.Task.create({ title: 'task1' }).success(function(task1) {
             self.Task.create({ title: 'task2' }).success(function(task2) {
-              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECt, only UPDAET
+              user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) { // We don't care about SELECT, only UPDATE
                 expect(sql).to.have.string("UPDATE")
                 expect(sql).to.have.string("IN (1,2)")
               })).success(function () {
