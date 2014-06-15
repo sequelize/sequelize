@@ -369,7 +369,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           }).then(function () {
             return Post.find({ attributes: ['id','text',Sequelize.literal('EXISTS(SELECT 1) AS "someBoolean"')] });
           }).then(function (post) {
-            expect(post.get()).to.deep.equal({ id: 1, text: "text1", someBoolean: 1});
+            expect(post.get('someBoolean')).to.be.ok;
+            expect(post.get().someBoolean).to.be.ok;
           });
         });
 
