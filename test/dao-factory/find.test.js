@@ -73,6 +73,40 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      if (Support.dialectIsMySQL()) {
+        // Bit fields interpreted as boolean need conversion from buffer / bool.
+        // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
+
+        it('allows bit fields as booleans', function () {
+          var self = this,
+            bitUser = this.sequelize.define('bituser', {
+              bool: 'BIT(1)'
+            }, {
+              timestamps: false
+            });
+
+          // First use a custom data type def to create the bit field
+          return bitUser.sync({ force: true }).then(function () {
+            // Then change the definition to BOOLEAN
+            bitUser = self.sequelize.define('bituser', {
+              bool: DataTypes.BOOLEAN
+            }, {
+              timestamps: false
+            });
+
+            return bitUser.bulkCreate([
+              { bool: 0 },
+              { bool: 1 }
+            ]);
+          }).then(function () {
+            return bitUser.findAll();
+          }).then(function (bitUsers) {
+            expect(bitUsers[0].bool).not.to.be.ok;
+            expect(bitUsers[1].bool).to.be.ok;
+          });
+        });
+      }
+
       it('does not modify the passed arguments', function (done) {
         var options = { where: ['specialkey = ?', 'awesome']}
 
