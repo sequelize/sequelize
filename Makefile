@@ -22,6 +22,9 @@ test:
 	fi
 endif
 
+test-only:
+	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
+
 jshint:
 	./node_modules/.bin/jshint lib
 

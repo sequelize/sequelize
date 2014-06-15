@@ -324,7 +324,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           return this.sequelize.sync({ force: true });
         });
 
-        it('should be ignored in dataValues get', function () {
+        it('should not be ignored in dataValues get', function () {
           var user = this.User.build({
             field1: 'field1_value',
             field2: 'field2_value'
@@ -354,6 +354,23 @@ describe(Support.getTestDialectTeaser("Model"), function () {
               ]
             }).on('sql', this.sqlAssert)
           ]);
+        });
+
+        it("should allow me to store selected values", function () {
+          var Post = this.sequelize.define('Post', {
+              text: Sequelize.TEXT,
+              someBoolean: {
+                type: Sequelize.VIRTUAL
+              }
+            });
+
+          return this.sequelize.sync({ force: true}).then(function () {
+            return Post.bulkCreate([{ text: 'text1' },{ text: 'text2' }]);
+          }).then(function () {
+            return Post.find({ attributes: ['id','text',Sequelize.literal('EXISTS(SELECT 1) AS "someBoolean"')] });
+          }).then(function (post) {
+            expect(post.get()).to.deep.equal({ id: 1, text: "text1", someBoolean: 1});
+          });
         });
 
         it('should be ignored in create and updateAttributes', function () {
