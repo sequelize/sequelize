@@ -795,6 +795,35 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     })
   })
 
+  describe('attributes', function () {
+    it('should support Sequelize.literal in included model attributes', function (done) {
+      var Post = this.sequelize.define('Post',{})
+		  var PostComment = this.sequelize.define('PostComment',{})
+
+		  Post.hasMany(PostComment)
+
+		  try {
+			  Post.findAll({
+				  include: [
+					  { model: PostComment }
+				  ],
+				  attributes: [Sequelize.literal('EXISTS(SELECT 1) AS "PostComment.someProperty"')]
+			  }).done(function(err,posts){
+			    expect(err).to.be.null
+			    expect(posts).to.be.an(Array)
+			    expect(posts.length).to.be.equal(0)
+			    done()
+			  })
+		  } catch(err) {
+			  // if any errors occured it should not be related to literal attribute
+			  if(err){
+				  expect(err.message).not.to.be.equal("Object EXISTS(SELECT 1) AS \"PostComment.someProperty\" has no method 'replace'")
+			  }
+			  done()
+		  }
+    })
+  })
+
   describe('findAndCountAll', function () {
     it('should include associations to findAndCountAll', function(done) {
       var User = this.sequelize.define('User', {})
