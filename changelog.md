@@ -15,6 +15,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] An error is now thrown if an association would create a naming conflict between the association and the foreign key when doing eager loading. Closes [#1272](https://github.com/sequelize/sequelize/issues/1272)
 - [BUG] Fix logging options for sequelize.sync
 - [BUG] find no longer applies limit: 1 if querying on a primary key, should fix a lot of subquery issues.
+- [BUG] Transactions now use the pool so you will never go over your pool defined connection limit
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
 
 
@@ -26,6 +27,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - `sequelize.showAllSchemas` now returns an array of schemas, instead of an array containinig an array of schemas
 - `sequelize.transaction()` now returns a promise rather than a instance of Sequelize.Transaction
 - `bulkCreate`, `bulkUpdate` and `bulkDestroy` (and aliases) now take both a `hooks` and an `individualHooks` option, `hooks` defines whether or not to run the main hooks, and `individualHooks` defines whether to run hooks for each instance affected.
+- It is no longer possible to disable pooling, disable pooling will just result in a 1/1 pool.
 
 # v2.0.0-dev11
 ### Caution: This release contains many changes and is highly experimental

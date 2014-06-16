@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       var sequelize = new Sequelize('dbname', 'root', 'pass', {
           dialect: dialect
         })
-        , config = sequelize.connectorManager.config
+        , config = sequelize.config
         , port
 
       if (Support.dialectIsMySQL()) {
