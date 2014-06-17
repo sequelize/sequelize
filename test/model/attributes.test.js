@@ -256,6 +256,26 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           });
         });
       });
+
+    it('should support renaming of sequelize method fields', function () {
+      var User = this.sequelize.define('user', {
+        someProperty: Sequelize.VIRTUAL // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+      });
+
+      return this.sequelize.sync({ force: true }).then(function () {
+        return User.create({});
+      }).then(function () {
+        return User.findAll({
+          attributes: [
+            Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
+            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
+          ]
+        });
+      }).then(function (users) {
+        expect(users[0].get('someProperty')).to.be.ok;
+        expect(users[0].get('someProperty2')).to.be.ok;
+      });
+    });
 	  
 	  it('field names that are the same as property names should create, update, and read correctly', function () {
         var self = this;

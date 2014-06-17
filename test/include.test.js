@@ -577,6 +577,41 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+    it('should support Sequelize.literal and renaming of attributes in included model attributes', function () {
+      var Post = this.sequelize.define('Post',{});
+      var PostComment = this.sequelize.define('PostComment', {
+        someProperty: Sequelize.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+        comment_title: Sequelize.STRING
+      });
+       
+      Post.hasMany(PostComment);
+
+      return this.sequelize.sync({ force: true }).then(function () {
+        return Post.create({});
+      }).then(function (post) {
+        return post.createPostComment({
+          comment_title: 'WAT'
+        });
+      }).then(function () {
+        return Post.findAll({
+          include: [
+            {
+              model: PostComment,
+              attributes: [
+                Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
+                [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
+                ['comment_title', 'commentTitle']
+              ]
+            }
+          ]
+        })
+      }).then(function (posts) {
+        expect(posts[0].postComments[0].get('someProperty')).to.be.ok;
+        expect(posts[0].postComments[0].get('someProperty2')).to.be.ok;
+        expect(posts[0].postComments[0].get('commentTitle')).to.equal('WAT');
+      });
+    });
+
     it('should support self associated hasMany (with through) include', function (done) {
       var Group = this.sequelize.define('Group', {
         name: DataTypes.STRING

@@ -245,7 +245,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"id\"=2;"
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) as \"count\" FROM \"foo\";'
+          expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";'
         }, {
           arguments: ['myTable', {where: "foo='bar'"}],
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
@@ -330,7 +330,7 @@ if (dialect.match(/^postgres/)) {
               having: ['creationYear > ?', 2002]
             }
           }],
-          expectation: "SELECT *, YEAR(\"createdAt\") as \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING creationYear > 2002;",
+          expectation: "SELECT *, YEAR(\"createdAt\") AS \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING creationYear > 2002;",
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -342,7 +342,7 @@ if (dialect.match(/^postgres/)) {
               having: { creationYear: { gt: 2002 } }
             }
           }],
-          expectation: "SELECT *, YEAR(\"createdAt\") as \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING \"creationYear\" > 2002;",
+          expectation: "SELECT *, YEAR(\"createdAt\") AS \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING \"creationYear\" > 2002;",
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -395,7 +395,7 @@ if (dialect.match(/^postgres/)) {
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) as count FROM foo;',
+          expectation: 'SELECT count(*) AS count FROM foo;',
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {where: "foo='bar'"}],

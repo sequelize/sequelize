@@ -110,43 +110,6 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
     })
   })
 
-  describe('isHash', function() {
-    it('doesn\'t match arrays', function(done) {
-      expect(Utils.isHash([])).to.be.false
-      done()
-    })
-
-    it('doesn\'t match null', function(done) {
-      expect(Utils.isHash(null)).to.be.false
-      done()
-    })
-
-    it('matches plain objects', function(done) {
-      var values = {
-        'name': {
-          'first': 'Foo',
-          'last': 'Bar'
-        }
-      }
-
-      expect(Utils.isHash(values)).to.be.true
-      done()
-    })
-
-    it('matches plain objects with length property/key', function(done) {
-      var values = {
-        'name': {
-          'first': 'Foo',
-          'last': 'Bar'
-        },
-        'length': 1
-      }
-
-      expect(Utils.isHash(values)).to.be.true
-      done()
-    })
-  })
-
   describe('format', function() {
     it('should format where clause correctly when the value is truthy', function(done) {
       var where = ['foo = ?', 1]

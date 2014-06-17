@@ -135,7 +135,7 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) as `count` FROM `foo`;',
+          expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {where: "foo='bar'"}],
@@ -231,7 +231,7 @@ if (dialect === 'sqlite') {
               having: ['creationYear > ?', 2002]
             }
           }],
-          expectation: "SELECT *, YEAR(`createdAt`) as `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;",
+          expectation: "SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;",
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -243,7 +243,7 @@ if (dialect === 'sqlite') {
               having: { creationYear: { gt: 2002 } }
             }
           }],
-          expectation: "SELECT *, YEAR(`createdAt`) as `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;",
+          expectation: "SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;",
           context: QueryGenerator,
           needsSequelize: true
         }, {
