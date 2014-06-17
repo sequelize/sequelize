@@ -801,25 +801,19 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       var PostComment = this.sequelize.define('PostComment',{})
       Post.hasMany(PostComment)
       this.sequelize.sync({ force: true }).done(function(){
-        try {
-	  Post.findAll({
-            include: [
-              { model: PostComment } 
-            ],
-            attributes: [Sequelize.literal('EXISTS(SELECT 1) AS "PostComment.someProperty"')]
-          }).done(function(err,posts){
-            expect(err).to.be.null
-            expect(posts).to.be.an(Array)
-            expect(posts.length).to.be.equal(0)
-            done()
-          })
-        } catch(err) {
-          // if any errors occured it should not be related to literal attribute
-          if(err){
-            expect(err.message).not.to.be.equal("Object EXISTS(SELECT 1) AS \"PostComment.someProperty\" has no method 'replace'")
-          }
+        
+	Post.findAll({
+          include: [
+            { model: PostComment } 
+          ],
+          attributes: [Sequelize.literal('EXISTS(SELECT 1) AS "PostComment.someProperty"')]
+        }).done(function(err,posts){
+          expect(err).to.be.null
+          expect(posts).to.be.an(Array)
+          expect(posts.length).to.be.equal(0)
           done()
-        }
+        })
+        
       })
     })
   })
