@@ -194,6 +194,24 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
+      it('should work with where on includes for find when require is set to false and included relation has no results', function () {
+        var self = this;
+
+        return this.User.create({
+          name: 'Barfoo'
+        }).then(function (user) {
+          return self.User.find({
+            where: {name: 'Barfoo'},
+            include: [
+              {model: self.Task, where: {title: 'idontexist'}, require: false}
+            ]
+          });
+        }).then(function (user) {
+          expect(user).to.not.equal(null);
+          expect(user.get('tasks')).to.deep.equal([]);
+        });
+      });
+
       it('should work with where on includes for findAll', function () {
         var self = this;
 
@@ -221,6 +239,24 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
             expect(user.get('tasks')[0].get('comments')).to.be.ok;
           });
+        });
+      });
+
+      it('should work with where on includes for findAll when require is set to false and included relation has no results', function () {
+        var self = this;
+
+        return this.User.create({
+          name: 'Barfoo'
+        }).then(function (user) {
+          return self.User.findAll({
+            where: {name: 'Barfoo'},
+            include: [
+              {model: self.Task, where: {title: 'idontexist'}, require: false}
+            ]
+          });
+        }).then(function (users) {
+          expect(users.length).to.equal(1);
+          expect(users[0].get('tasks')).deep.equal([]);
         });
       });
 
