@@ -570,7 +570,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         User.build({ name : "error" }).validate().success(function(error)  {
           expect(error).to.be.an.instanceOf(self.sequelize.ValidationError)
           expect(error.name[0].message).to.equal("Invalid username")
-          
+
           User.build({ name : "no error" }).validate().success(function(errors) {
             expect(errors).not.to.be.defined
             done()
@@ -578,7 +578,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         })
       })
     })
- 
+
     it('skips other validations if allowNull is true and the value is null', function(done) {
       var User = this.sequelize.define('User' + config.rand(), {
         age: {
@@ -755,7 +755,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           }
         }
       })
-  
+
       User.sync({force: true}).success(function() {
         User.create({ name: "RedCat" }).success(function(user){
           expect(user.getDataValue('name')).to.equal('RedCat')
@@ -770,7 +770,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         })
       })
     })
- 
+
     it("allows setting an immutable field if the record is unsaved", function(done) {
       var User = this.sequelize.define('User', {
         name: {
@@ -780,10 +780,10 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           }
         }
       })
- 
+
       var user = User.build({ name: "RedCat" })
       expect(user.getDataValue('name')).to.equal('RedCat')
- 
+
       user.setDataValue('name','YellowCat')
       user.validate().success(function(errors) {
         expect(errors).not.to.be.ok
@@ -844,7 +844,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
           type: Sequelize.VIRTUAL,
           set: function (val) {
             this.setDataValue('password', val);
-            this.setDataValue('password_hash', this.salt + val); 
+            this.setDataValue('password_hash', this.salt + val);
           },
           validate: {
             isLongEnough: function (val) {
