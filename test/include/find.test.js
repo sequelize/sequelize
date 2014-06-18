@@ -53,7 +53,38 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       })
 
-    })
+    });
 
-  })
+    it("should still pull the main record when an included model is not required and has where restrictions without matches", function () {
+      var DT = DataTypes,
+          S  = this.sequelize,
+          A  = S.define( 'A', {name: DT.STRING(40)} ),
+          B  = S.define( 'B', {name: DT.STRING(40)} );
+
+      A.hasMany(B);
+      B.hasMany(A);
+
+      return S
+        .sync({force: true})
+        .then(function () {
+          return A.create({
+            name: 'Foobar'
+          });
+        })
+        .then(function () {
+          return A.find({
+            where: {name: 'Foobar'},
+            include: [
+              {model: B, where: {name: 'idontexist'}, require: false}
+            ]
+          });
+        })
+        .then(function (a) {
+          expect(a).to.not.equal(null);
+          expect(a.get('bs')).to.deep.equal([]);
+        });
+    });
+
+  });
+
 })
