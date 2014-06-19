@@ -20,7 +20,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
 
 
-#### Breaking changes
+#### Backwards compatability changes
 - Sequelize now returns promises instead of its custom event emitter from most calls. This affects methods that return multiple values (like `findOrCreate` or `findOrInitialize`). If your current callbacks do not accept the 2nd success parameter you might be seeing an array as the first param. Either use `.spread()` for these methods or add another argument to your callback: `.success(instance)` -> `.success(instance, created)`.
 - `.success()`/`.done()` and any other non promise methods are now deprecated (we will keep the codebase around for a few versions though). on('sql') persists for debugging purposes.
 - Model association calls (belongsTo/hasOne/hasMany) are no longer chainable. (this is to support being able to pass association references to include rather than model/as combinations)
@@ -45,8 +45,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE/BUG] hstore values are now parsed on find/findAll. Thanks to @nunofgs [#1560](https://github.com/sequelize/sequelize/pull/1560)
 - [FEATURE] Read cli options from a file. Thanks to @codeinvain  [#1540](https://github.com/sequelize/sequelize/pull/1540)
 
-#### Breaking changes
-
+#### Backwards compatability changes
 - The `notNull` validator has been removed, use the Schema's `allowNull` property.
 - All Validation errors now return a sequelize.ValidationError which inherits from Error.
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.
