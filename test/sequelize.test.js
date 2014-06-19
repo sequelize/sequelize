@@ -888,6 +888,77 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       }
 
+      it('supports nested transactions using savepoints', function(done) {
+        var self = this
+        var User = this.sequelize.define('Users', { username: DataTypes.STRING })
+
+        User.sync({ force: true }).success(function() {
+          self.sequelizeWithTransaction.transaction(function(t1) {
+            User.create({ username: 'foo' }, { transaction: t1 }).success(function(user) {
+              self.sequelizeWithTransaction.transaction({ transaction: t1 }, function(t2) {
+                user.updateAttributes({ username: 'bar' }, { transaction: t2 }).success(function() {
+                  t2.commit().then(function() {
+                    user.reload({ transaction: t1 }).success(function(newUser) {
+                      expect(newUser.username).to.equal('bar')
+
+                      t1.commit().then(function() {
+                        done()
+                      });
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('supports rolling back a nested transaction', function(done) {
+        var self = this
+        var User = this.sequelize.define('Users', { username: DataTypes.STRING })
+
+        User.sync({ force: true }).success(function() {
+          self.sequelizeWithTransaction.transaction(function(t1) {
+            User.create({ username: 'foo' }, { transaction: t1 }).success(function(user) {
+              self.sequelizeWithTransaction.transaction({ transaction: t1 }, function(t2) {
+                user.updateAttributes({ username: 'bar' }, { transaction: t2 }).success(function() {
+                  t2.rollback().then(function() {
+                    user.reload({ transaction: t2 }).success(function(newUser) {
+                      expect(newUser.username).to.equal('foo')
+
+                      t1.commit().then(function() {
+                        done()
+                      });
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it('supports rolling back outermost transaction', function(done) {
+        var self = this
+        var User = this.sequelize.define('Users', { username: DataTypes.STRING })
+
+        User.sync({ force: true }).success(function() {
+          self.sequelizeWithTransaction.transaction(function(t1) {
+            User.create({ username: 'foo' }, { transaction: t1 }).success(function(user) {
+              self.sequelizeWithTransaction.transaction({ transaction: t1 }, function(t2) {
+                user.updateAttributes({ username: 'bar' }, { transaction: t2 }).success(function() {
+                  t1.rollback().then(function() {
+                    User.findAll().success(function(users) {
+                      expect(users.length).to.equal(0);
+                      done()
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
     })
   })
 })
