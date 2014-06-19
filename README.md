@@ -13,6 +13,7 @@ To install 1.x.x (currently 1.7.x) - which has a stable API and is mostly backwa
 To install 2.x.x branch - which has a unstable API and will break backwards compatability:
 
 `npm install sequelize@unstable`
+[Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0)
 
 ### Features
 
