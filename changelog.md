@@ -1,6 +1,6 @@
 Notice: All 1.7.x changes are present in 2.0.x aswell
 
-# next
+# v2.0.0-dev12
 - [FEATURE] You can now return a promise to a hook rather than use a callback
 - [FEATURE] There is now basic support for assigning a field name to an attribute `name: {type: DataTypes.STRING, field: 'full_name'}`
 - [FEATURE] It's now possible to add multiple relations to a hasMany association, modelInstance.addRelations([otherInstanceA, otherInstanceB])
@@ -57,6 +57,9 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - syncOnAssocation has been removed. It only worked for n:m, and having a synchronous function (hasMany) that invokes an asynchronous function (sync) without returning an emitter does not make a lot of sense. If you (implicitly) depended on this feature, sequelize.sync is your friend. If you do not want to do a full sync, use custom through models for n:m (`M1.hasMany(M2, { through: M3})`) and sync the through model explicitly.
 - Join tables will be no longer be paranoid (have a deletedAt timestamp added), even though other models are.
 - All tables in select queries will now be aliased with the model names to be support schemas. This will affect people stuff like `where: {'table.attribute': value}
+
+# v.17.9
+- [BUG] fixes issue with custom primary keys and N:M join tables [#1929](https://github.com/sequelize/sequelize/pull/1923)
 
 # v1.7.8
 - [FEATURE] adds rlike support for mysql
