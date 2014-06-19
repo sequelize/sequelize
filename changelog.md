@@ -45,7 +45,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE/BUG] hstore values are now parsed on find/findAll. Thanks to @nunofgs [#1560](https://github.com/sequelize/sequelize/pull/1560)
 - [FEATURE] Read cli options from a file. Thanks to @codeinvain  [#1540](https://github.com/sequelize/sequelize/pull/1540)
 
-#### Backwards compatability changes
+#### Breaking changes
 
 - The `notNull` validator has been removed, use the Schema's `allowNull` property.
 - All Validation errors now return a sequelize.ValidationError which inherits from Error.
