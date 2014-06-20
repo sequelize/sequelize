@@ -260,7 +260,7 @@ if (dialect.match(/^postgres/)) {
           .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
           .success(function(newUser) {
             // Check to see if the default value for an hstore field works
-            expect(newUser.document).to.deep.equal({default: 'value'})
+            expect(newUser.document).to.deep.equal({ default: 'value' })
             expect(newUser.settings).to.deep.equal({ created: { test: '"value"' }})
 
             // Check to see if updating an hstore field works
@@ -290,6 +290,22 @@ if (dialect.match(/^postgres/)) {
                 expect(newUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
                 done()
               });
+            })
+          })
+          .error(console.log)
+      })
+
+      it("should update hstore correctly and return affected rows", function(done) {
+        var self = this
+
+        this.User
+          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
+          .success(function(oldUser) {
+            // Update the user and check that the returned object's fields have been parsed by the hstore library
+            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, oldUser.identifiers).spread(function(newUsers) {
+              expect(newUsers).to.have.length(1);
+              expect(newUsers[0].settings).to.deep.equal({should: 'update', to: 'this', first: 'place'})
+              done()
             })
           })
           .error(console.log)

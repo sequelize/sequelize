@@ -783,27 +783,53 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('returns the number of affected rows', function(_done) {
-     var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul',  secretValue: '42' },
-                  { username: 'Bob',   secretValue: '43' }]
-        , done = _.after(2, _done)
+    if (dialect === "postgres") {
+      it('returns the affected rows', function(_done) {
+       var self = this
+          , data = [{ username: 'Peter', secretValue: '42' },
+                    { username: 'Paul',  secretValue: '42' },
+                    { username: 'Bob',   secretValue: '43' }]
+          , done = _.after(2, _done)
 
-      this.User.bulkCreate(data).success(function() {
-        self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
-          expect(affectedRows).to.equal(2)
-          
-          done()
-        })
+        this.User.bulkCreate(data).success(function() {
+          self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
+            expect(affectedRows).to.have.length(2)
 
-        self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
-          expect(affectedRows).to.equal(0)
-          
-          done()
+            done()
+          })
+
+          self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
+            expect(affectedRows).to.have.length(0)
+
+            done()
+          })
         })
       })
-    })
+    }
+
+    if (dialect !== "postgres") {
+      it('returns the number of affected rows', function(_done) {
+       var self = this
+          , data = [{ username: 'Peter', secretValue: '42' },
+                    { username: 'Paul',  secretValue: '42' },
+                    { username: 'Bob',   secretValue: '43' }]
+          , done = _.after(2, _done)
+
+        this.User.bulkCreate(data).success(function() {
+          self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
+            expect(affectedRows).to.equal(2)
+
+            done()
+          })
+
+          self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
+            expect(affectedRows).to.equal(0)
+
+            done()
+          })
+        })
+      })
+    }
 
     if(Support.dialectIsMySQL()) {
       it('supports limit clause', function (done) {
