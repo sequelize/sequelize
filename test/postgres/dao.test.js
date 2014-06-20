@@ -295,16 +295,16 @@ if (dialect.match(/^postgres/)) {
           .error(console.log)
       })
 
-      it("should update hstore correctly and return affected rows", function(done) {
+      it("should update hstore correctly and return the affected rows", function(done) {
         var self = this
 
         this.User
           .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
           .success(function(oldUser) {
             // Update the user and check that the returned object's fields have been parsed by the hstore library
-            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, oldUser.identifiers).spread(function(newUsers) {
-              expect(newUsers).to.have.length(1);
-              expect(newUsers[0].settings).to.deep.equal({should: 'update', to: 'this', first: 'place'})
+            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, oldUser.identifiers, { returning: true }).spread(function(count, users) {
+              expect(count).to.equal(1);
+              expect(users[0].settings).to.deep.equal({should: 'update', to: 'this', first: 'place'})
               done()
             })
           })

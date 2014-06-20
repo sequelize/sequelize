@@ -257,8 +257,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var titleSetter = sinon.spy()
         , Task = this.sequelize.define('TaskBuild', {
           title:  {
-            type: Sequelize.STRING(50), 
-            allowNull: false, 
+            type: Sequelize.STRING(50),
+            allowNull: false,
             defaultValue: ''
           }
         }, {
@@ -783,32 +783,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    if (dialect === "postgres") {
-      it('returns the affected rows', function(_done) {
-       var self = this
-          , data = [{ username: 'Peter', secretValue: '42' },
-                    { username: 'Paul',  secretValue: '42' },
-                    { username: 'Bob',   secretValue: '43' }]
-          , done = _.after(2, _done)
+    it('returns the number of affected rows', function(_done) {
+     var self = this
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '42' },
+                  { username: 'Bob',   secretValue: '43' }]
+        , done = _.after(2, _done)
 
-        this.User.bulkCreate(data).success(function() {
-          self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
-            expect(affectedRows).to.have.length(2)
+      this.User.bulkCreate(data).success(function() {
+        self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
+          expect(affectedRows).to.equal(2)
 
-            done()
-          })
+          done()
+        })
 
-          self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
-            expect(affectedRows).to.have.length(0)
+        self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
+          expect(affectedRows).to.equal(0)
 
-            done()
-          })
+          done()
         })
       })
-    }
+    })
 
-    if (dialect !== "postgres") {
-      it('returns the number of affected rows', function(_done) {
+    if (dialect === "postgres") {
+      it('returns the affected rows if `options.returning` is true', function(_done) {
        var self = this
           , data = [{ username: 'Peter', secretValue: '42' },
                     { username: 'Paul',  secretValue: '42' },
@@ -816,14 +814,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           , done = _.after(2, _done)
 
         this.User.bulkCreate(data).success(function() {
-          self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
-            expect(affectedRows).to.equal(2)
+          self.User.update({ username: 'Bill' }, { secretValue: '42' }, { returning: true }).spread(function(count, rows) {
+            expect(count).to.equal(2)
+            expect(rows).to.have.length(2)
 
             done()
           })
 
-          self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
-            expect(affectedRows).to.equal(0)
+          self.User.update({ username: 'Bill'}, { secretValue: '44' }, { returning: true }).spread(function(count, rows) {
+            expect(count).to.equal(0)
+            expect(rows).to.have.length(0)
 
             done()
           })
