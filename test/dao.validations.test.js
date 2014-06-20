@@ -899,5 +899,28 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         expect(errors.name[0].message).to.equal('Validation isExactly7Characters failed')
       })
     })
+
+    describe('blank URL', function() {
+      it('gets no errors', function(done) {
+        var User = this.sequelize.define('user', {
+            thumbnail: { 
+                type: Sequelize.STRING, 
+                allowNull: true,
+                validate: { isUrl: { msg: 'Invalid URL' } }
+            }
+        })
+
+        this.sequelize.sync({ force: true }).then(function () {
+          var user = User.build({ thumbnail: ''})
+          user.validate().success(function(errors) {
+            expect(errors).to.be.undefined
+            done()
+          }).error(function(err) {
+            expect(err).to.deep.equal({})
+            done()
+          })
+        })
+      })
+    })
   })
 })
