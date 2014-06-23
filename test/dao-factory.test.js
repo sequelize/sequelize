@@ -257,8 +257,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var titleSetter = sinon.spy()
         , Task = this.sequelize.define('TaskBuild', {
           title:  {
-            type: Sequelize.STRING(50), 
-            allowNull: false, 
+            type: Sequelize.STRING(50),
+            allowNull: false,
             defaultValue: ''
           }
         }, {
@@ -305,8 +305,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
 
       User.sync({ force: true }).on('sql', _.after(2, function(sql) {
-        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_username_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
-        expect(sql).to.match(/UNIQUE\s*(uniq_UserWithUniqueUsernames_aCol_bCol)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
+        expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
+        expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
         done()
       }))
     })
@@ -793,13 +793,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.bulkCreate(data).success(function() {
         self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(2)
-          
+
           done()
         })
 
         self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(0)
-          
+
           done()
         })
       })
@@ -987,14 +987,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         self.User.destroy({secretValue: '42'}).done(function(err, affectedRows) {
           expect(err).not.to.be.ok
           expect(affectedRows).to.equal(2)
-          
+
           done()
         })
 
         self.User.destroy({secretValue: '44'}).done(function(err, affectedRows) {
           expect(err).not.to.be.ok
           expect(affectedRows).to.equal(0)
-          
+
           done()
         })
       })
@@ -2024,7 +2024,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
   })
-  
+
   if (dialect !== 'sqlite') {
     it('supports multiple async transactions', function(done) {
       this.timeout(25000);
@@ -2037,7 +2037,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }, {
               transaction: t
             }).then(function () {
-              return User.findAll({ 
+              return User.findAll({
                 where: {
                   username: "foo"
                 }
@@ -2045,7 +2045,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 expect(users).to.have.length(0);
               });
             }).then(function () {
-              return User.findAll({ 
+              return User.findAll({
                 where: {
                   username: "foo"
                 },

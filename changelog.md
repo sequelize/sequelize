@@ -17,6 +17,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] find no longer applies limit: 1 if querying on a primary key, should fix a lot of subquery issues.
 - [BUG] Transactions now use the pool so you will never go over your pool defined connection limit
 - [BUG] Fix use of Sequelize.literal in eager loading and when renaming attributes [#1916](https://github.com/sequelize/sequelize/pull/1916)
+- [BUG] Use the provided name for a unique index if one is given, instead of concating the column names together [#1944](https://github.com/sequelize/sequelize/issues/1944)
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
 
 
