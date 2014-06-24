@@ -523,6 +523,118 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
+    it('should support many levels of belongsTo (with a lower level having a where)', function (done) {
+      var A = this.sequelize.define('A', {})
+        , B = this.sequelize.define('B', {})
+        , C = this.sequelize.define('C', {})
+        , D = this.sequelize.define('D', {})
+        , E = this.sequelize.define('E', {})
+        , F = this.sequelize.define('F', {})
+        , G = this.sequelize.define('G', {
+          name: DataTypes.STRING
+        })
+        , H = this.sequelize.define('H', {
+          name: DataTypes.STRING
+        })
+
+      A.belongsTo(B)
+      B.belongsTo(C)
+      C.belongsTo(D)
+      D.belongsTo(E)
+      E.belongsTo(F)
+      F.belongsTo(G)
+      G.belongsTo(H)
+
+      var b, singles = [
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H
+      ]
+
+      this.sequelize.sync().done(function () {
+        async.auto({
+          as: function (callback) {
+            A.bulkCreate([
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ]).done(function () {
+              A.findAll().done(callback)
+            })
+          },
+          singleChain: function (callback) {
+            var previousInstance
+
+            async.eachSeries(singles, function (model, callback) {
+              var values = {};
+
+              if (model.name === 'G') {
+                values.name = 'yolo';
+              }
+              model.create(values).done(function (err, instance) {
+                if (previousInstance) {
+                  previousInstance["set"+model.name](instance).done(function () {
+                    previousInstance = instance
+                    callback()
+                  })
+                } else {
+                  previousInstance = b = instance
+                  callback()
+                }
+              })
+            }, callback)
+          },
+          abs: ['as', 'singleChain', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+
+            results.as.forEach(function (a) {
+              chainer.add(a.setB(b))
+            })
+
+            chainer.run().done(callback)
+          }]
+        }, function () {
+
+          A.findAll({
+            include: [
+              {model: B, include: [
+                {model: C, include: [
+                  {model: D, include: [
+                    {model: E, include: [
+                      {model: F, include: [
+                        {model: G, where: {
+                          name: 'yolo'
+                        }, include: [
+                          {model: H}
+                        ]}
+                      ]}
+                    ]}
+                  ]}
+                ]}
+              ]}
+            ]
+          }).done(function (err, as) {
+            expect(err).not.to.be.ok
+            expect(as.length).to.be.ok
+
+            as.forEach(function (a) {
+              expect(a.b.c.d.e.f.g.h).to.be.ok
+            })
+            done()
+          })
+        })
+      })
+    })
+
     it('should support ordering with only belongsTo includes', function(done) {
       var User = this.sequelize.define('User', {})
         , Item = this.sequelize.define('Item', {'test': DataTypes.STRING})
