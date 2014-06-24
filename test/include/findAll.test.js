@@ -1681,15 +1681,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     })
 
     it("should still pull the main record(s) when an included model is not required and has where restrictions without matches", function () {
-      var DT = DataTypes,
-          S  = this.sequelize,
-          A  = S.define( 'A', {name: DT.STRING(40)} ),
-          B  = S.define( 'B', {name: DT.STRING(40)} );
+      var self = this
+        , A = this.sequelize.define( 'A', {name: DataTypes.STRING(40)} )
+        , B = this.sequelize.define( 'B', {name: DataTypes.STRING(40)} );
 
       A.hasMany(B);
       B.hasMany(A);
 
-      return S
+      return this.sequelize
         .sync({force: true})
         .then(function () {
           return A.create({
@@ -1700,7 +1699,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           return A.findAll({
             where: {name: 'Foobar'},
             include: [
-              {model: B, where: {name: 'idontexist'}, require: false}
+              {model: B, where: {name: 'idontexist'}, required: false}
             ]
           });
         })
