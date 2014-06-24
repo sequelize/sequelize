@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         });
     });
 
-    it.only('should support many levels of belongsTo (with a lower level having a where)', function (done) {
+    it('should support many levels of belongsTo (with a lower level having a where)', function (done) {
       var A = this.sequelize.define('A', {})
         , B = this.sequelize.define('B', {})
         , C = this.sequelize.define('C', {})
@@ -169,8 +169,6 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(err).not.to.be.ok;
             expect(a.b.c.d.e.f.g.h).to.be.ok;
             done();
-          }).on('sql', function (sql) {
-            console.log(sql);
           });
         });
       });
