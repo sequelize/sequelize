@@ -68,8 +68,8 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
   describe('indexes', function() {
     beforeEach(function(done) {
       var self = this
-      this.queryInterface.dropTable('Users').success(function() {
-        self.queryInterface.createTable('Users', {
+      this.queryInterface.dropTable('Group').success(function() {
+        self.queryInterface.createTable('Group', {
           username: DataTypes.STRING,
           isAdmin: DataTypes.BOOLEAN,
           from: DataTypes.STRING
@@ -82,19 +82,19 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
     it('adds, reads and removes an index to the table', function(done) {
       var self = this
 
-      this.queryInterface.addIndex('Users', ['username', 'isAdmin']).complete(function(err) {
+      this.queryInterface.addIndex('Group', ['username', 'isAdmin']).complete(function(err) {
         expect(err).to.be.null
 
-        self.queryInterface.showIndex('Users').complete(function(err, indexes) {
+        self.queryInterface.showIndex('Group').complete(function(err, indexes) {
           expect(err).to.be.null
 
           var indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
-          expect(indexColumns).to.include('users_username_is_admin')
+          expect(indexColumns).to.include('group_username_is_admin')
 
-          self.queryInterface.removeIndex('Users', ['username', 'isAdmin']).complete(function(err) {
+          self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).complete(function(err) {
             expect(err).to.be.null
 
-            self.queryInterface.showIndex('Users').complete(function(err, indexes) {
+            self.queryInterface.showIndex('Group').complete(function(err, indexes) {
               expect(err).to.be.null
 
               indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
@@ -107,14 +107,10 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       })
     })
 
-    it('does not fail on reserved keywords', function (done) {
-      this.queryInterface.addIndex('Users', ['from']).done(function(err) {
-        expect(err).to.be.null
-
-        done()
-      })
-    })
-  })
+    it('does not fail on reserved keywords', function () {
+      return this.queryInterface.addIndex('Group', ['from']);
+    });;
+  });
 
   describe('describeTable', function() {
     it('reads the metadata of the table', function(done) {

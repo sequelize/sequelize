@@ -805,6 +805,32 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    if (dialect === "postgres") {
+      it('returns the affected rows if `options.returning` is true', function(_done) {
+       var self = this
+          , data = [{ username: 'Peter', secretValue: '42' },
+                    { username: 'Paul',  secretValue: '42' },
+                    { username: 'Bob',   secretValue: '43' }]
+          , done = _.after(2, _done)
+
+        this.User.bulkCreate(data).success(function() {
+          self.User.update({ username: 'Bill' }, { secretValue: '42' }, { returning: true }).spread(function(count, rows) {
+            expect(count).to.equal(2)
+            expect(rows).to.have.length(2)
+
+            done()
+          })
+
+          self.User.update({ username: 'Bill'}, { secretValue: '44' }, { returning: true }).spread(function(count, rows) {
+            expect(count).to.equal(0)
+            expect(rows).to.have.length(0)
+
+            done()
+          })
+        })
+      })
+    }
+
     if(Support.dialectIsMySQL()) {
       it('supports limit clause', function (done) {
         var self = this

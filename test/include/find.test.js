@@ -5,39 +5,36 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , datetime  = require('chai-datetime')
+  , async     = require('async');
 
 chai.use(datetime)
 chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Include"), function () {
   describe('find', function () {
-
-    it( 'Try to include a non required model, with conditions and two includes N:M 1:M', function ( done ) {
-      var DT = DataTypes,
-          S = this.sequelize,
-          A = S.define('A', { name: DT.STRING(40) }, { paranoid: true }),
-          B = S.define('B', { name: DT.STRING(40) }, { paranoid: true }),
-          C = S.define('C', { name: DT.STRING(40) }, { paranoid: true }),
-          D = S.define('D', { name: DT.STRING(40) }, { paranoid: true })
+    it('should include a non required model, with conditions and two includes N:M 1:M', function ( done ) {
+      var A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true })
+        , B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true })
+        , C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true })
+        , D = this.sequelize.define('D', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associations
-      A.hasMany( B )
+      A.hasMany(B);
 
-      B.belongsTo( B )
-      B.belongsTo( D )
-      B.hasMany( C, {
-          through: 'BC',
-        })
+      B.belongsTo(B);
+      B.belongsTo(D);
+      B.hasMany(C, {
+        through: 'BC',
+      });
 
-      C
-        .hasMany( B, {
-          through: 'BC',
-        })
+      C.hasMany(B, {
+        through: 'BC',
+      });
 
-      D
-        .hasMany( B )
+      D.hasMany(B);
 
-      S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok
+      this.sequelize.sync({ force: true }).done(function ( err ) {
+        expect( err ).not.to.be.ok;
 
         A.find({
           include: [
@@ -47,13 +44,134 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]}
           ]
         }).done( function ( err ) {
-          expect( err ).not.to.be.ok
-          done()
+          expect( err ).not.to.be.ok;
+          done();
+        });
+      });
+
+    });
+
+    it("should still pull the main record when an included model is not required and has where restrictions without matches", function () {
+      var A = this.sequelize.define('A', {
+          name: DataTypes.STRING(40)
         })
+        , B = this.sequelize.define('B', {
+          name: DataTypes.STRING(40)
+        });
 
-      })
+      A.hasMany(B);
+      B.hasMany(A);
 
-    })
+      return this.sequelize
+        .sync({force: true})
+        .then(function () {
+          return A.create({
+            name: 'Foobar'
+          });
+        })
+        .then(function () {
+          return A.find({
+            where: {name: 'Foobar'},
+            include: [
+              {model: B, where: {name: 'idontexist'}, required: false}
+            ]
+          });
+        })
+        .then(function (a) {
+          expect(a).to.not.equal(null);
+          expect(a.get('bs')).to.deep.equal([]);
+        });
+    });
 
-  })
-})
+    it('should support many levels of belongsTo (with a lower level having a where)', function (done) {
+      var A = this.sequelize.define('A', {})
+        , B = this.sequelize.define('B', {})
+        , C = this.sequelize.define('C', {})
+        , D = this.sequelize.define('D', {})
+        , E = this.sequelize.define('E', {})
+        , F = this.sequelize.define('F', {})
+        , G = this.sequelize.define('G', {
+          name: DataTypes.STRING
+        })
+        , H = this.sequelize.define('H', {
+          name: DataTypes.STRING
+        });
+
+      A.belongsTo(B);
+      B.belongsTo(C);
+      C.belongsTo(D);
+      D.belongsTo(E);
+      E.belongsTo(F);
+      F.belongsTo(G);
+      G.belongsTo(H);
+
+      var b, singles = [
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H
+      ];
+
+      this.sequelize.sync().done(function () {
+        async.auto({
+          a: function (callback) {
+            A.create({}).done(callback);
+          },
+          singleChain: function (callback) {
+            var previousInstance;
+
+            async.eachSeries(singles, function (model, callback) {
+              var values = {};
+
+              if (model.name === 'G') {
+                values.name = 'yolo';
+              }
+              model.create(values).done(function (err, instance) {
+                if (previousInstance) {
+                  previousInstance["set"+model.name](instance).done(function () {
+                    previousInstance = instance;
+                    callback();
+                  });
+                } else {
+                  previousInstance = b = instance;
+                  callback();
+                }
+              });
+            }, callback);
+          },
+          ab: ['a', 'singleChain', function (callback, results) {
+            results.a.setB(b).done(callback);
+          }]
+        }, function () {
+
+          A.find({
+            include: [
+              {model: B, include: [
+                {model: C, include: [
+                  {model: D, include: [
+                    {model: E, include: [
+                      {model: F, include: [
+                        {model: G, where: {
+                          name: 'yolo'
+                        }, include: [
+                          {model: H}
+                        ]}
+                      ]}
+                    ]}
+                  ]}
+                ]}
+              ]}
+            ]
+          }).done(function (err, a) {
+            expect(err).not.to.be.ok;
+            expect(a.b.c.d.e.f.g.h).to.be.ok;
+            done();
+          });
+        });
+      });
+    });
+  });
+});
