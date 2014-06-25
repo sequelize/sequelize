@@ -52,6 +52,7 @@
 - [FEATURE] Added `find()` hooks
 
 #### Backwards compatability changes
+- [BC] `.updateAttributes()` now saves only attributes provided by default instead of `.save()` defaults. Discussion on [#1449](https://github.com/sequelize/sequelize/issue/1449)
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
 - The naming of the join table entry for N:M association getters is now singular (like includes)
 - Signature of hooks has changed to pass options to all hooks. Any hooks previously defined like `Model.beforeCreate(values)` now need to be `Model.beforeCreate(values, options)` etc.
