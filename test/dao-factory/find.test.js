@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var User = sequelize.define('User', { username: Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
+          sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
               User.find({ username: 'foo' }).success(function(user1) {
                 User.find({ username: 'foo' }, { transaction: t }).success(function(user2) {

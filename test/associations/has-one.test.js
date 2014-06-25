@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
           User.create({ username: 'foo' }).success(function(fakeUser) {
             User.create({ username: 'foo' }).success(function(user) {
               Group.create({ name: 'bar' }).success(function(group) {
-                sequelize.transaction(function(t) {
+                sequelize.transaction().then(function(t) {
                   group.setUser(user, { transaction: t }).success(function() {
                     Group.all().success(function(groups) {
                       groups[0].getUser().success(function(associatedUser) {
@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         sequelize.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             Group.create({ name: 'bar' }).success(function(group) {
-              sequelize.transaction(function(t) {
+              sequelize.transaction().then(function(t) {
                 group
                   .setUser(user, { transaction: t })
                   .success(function() {
@@ -217,7 +217,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
 
         sequelize.sync({ force: true }).success(function() {
           User.create({ username: 'bob' }).success(function(user) {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               user.createGroup({ name: 'testgroup' }, { transaction: t }).success(function() {
                 User.all().success(function (users) {
                   users[0].getGroup().success(function (group) {
