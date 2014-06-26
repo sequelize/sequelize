@@ -30,5 +30,14 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       expect(instError).to.be.instanceOf(Error)
       expect(instValidationError).to.be.instanceOf(Error)
     })
+    it('Sequelize Error instances should keep the message and ', function() {
+      var error = new Sequelize.Error('this is the passed message');
+      var validationError = new Sequelize.ValidationError('this is the passed validation message');
+
+      expect(error.message).to.equal('this is the passed message');
+      expect(error.stack).to.exist;
+      expect(validationError.message).to.equal('this is the passed validation message');
+      expect(validationError.stack).to.exist;
+    });
   })
 })
