@@ -978,6 +978,34 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         })
       })
 
+      it("should be able to set twice with custom primary keys", function (done) {
+        var User = this.sequelize.define('User', { uid: { type:DataTypes.INTEGER, primaryKey:true, autoIncrement: true }, username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { tid: { type:DataTypes.INTEGER, primaryKey:true, autoIncrement: true }, title: DataTypes.STRING })
+          
+        User.hasMany(Task)
+        Task.hasMany(User)
+
+        User.sync({ force: true }).success(function () {
+          Task.sync({ force: true }).success(function () {
+            User.create({ username: 'foo' }).success(function (user) {
+              Task.create({ title: 'task' }).success(function (task) {
+                task.setUsers([ user ]).success(function () {
+                  User.create({ username: 'bar' }).success(function (user2) {
+                    user2.user_has_task = {usertitle: "Something"};
+                    task.setUsers([ user, user2 ]).success(function () {
+                      task.getUsers().success(function (_users) {
+                        expect(_users).to.have.length(2)
+                        done()
+                      })
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+
       it("joins an association with custom primary keys", function(done) {
         var Group = this.sequelize.define('group', {
             group_id: {type: DataTypes.INTEGER, primaryKey: true},
