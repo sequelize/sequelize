@@ -985,18 +985,16 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         User.hasMany(Task)
         Task.hasMany(User)
 
-        User.sync({ force: true }).success(function () {
-          Task.sync({ force: true }).success(function () {
-            User.create({ username: 'foo' }).success(function (user) {
-              Task.create({ title: 'task' }).success(function (task) {
-                task.setUsers([ user ]).success(function () {
-                  User.create({ username: 'bar' }).success(function (user2) {
-                    user2.user_has_task = {usertitle: "Something"};
-                    task.setUsers([ user, user2 ]).success(function () {
-                      task.getUsers().success(function (_users) {
-                        expect(_users).to.have.length(2)
-                        done()
-                      })
+        this.sequelize.sync({ force: true }).success(function () {
+          User.create({ username: 'foo' }).success(function (user) {
+            Task.create({ title: 'task' }).success(function (task) {
+              task.setUsers([ user ]).success(function () {
+                User.create({ username: 'bar' }).success(function (user2) {
+                  user2.user_has_task = {usertitle: "Something"};
+                  task.setUsers([ user, user2 ]).success(function () {
+                    task.getUsers().success(function (_users) {
+                      expect(_users).to.have.length(2)
+                      done()
                     })
                   })
                 })
