@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
         this.sequelize.sync({ force: true }).then(function () {
           return User.create({ username: 'jan'})
         }).then(function () {
-          self.sequelize.transaction(function (t1) {
+          self.sequelize.transaction().then(function (t1) {
             return User.find({
               where: {
                 username: 'jan'
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
             }).then(function (t1Jan) {
               self.sequelize.transaction({
                 isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
-              }, function (t2) {
+              }).then(function (t2) {
                 User.find({
                   where: {
                     username: 'jan'
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
         this.sequelize.sync({ force: true }).then(function () {
           return User.create({ username: 'jan'})
         }).then(function () {
-          self.sequelize.transaction(function (t1) {
+          self.sequelize.transaction().then(function (t1) {
             return User.find({
               where: {
                 username: 'jan'
@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
             }).then(function (t1Jan) {
               self.sequelize.transaction({
                 isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
-              }, function (t2) {
+              }).then(function (t2) {
                 User.find({
                   where: {
                     username: 'jan'

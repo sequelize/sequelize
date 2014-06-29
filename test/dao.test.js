@@ -278,7 +278,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
         User.sync({ force: true }).success(function() {
           User.create({ number: 1 }).success(function(user) {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               user.increment('number', { by: 2, transaction: t }).success(function() {
                 User.all().success(function(users1) {
                   User.all({ transaction: t }).success(function(users2) {
@@ -422,7 +422,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
         User.sync({ force: true }).success(function() {
           User.create({ number: 3 }).success(function(user) {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               user.decrement('number', { by: 2, transaction: t }).success(function() {
                 User.all().success(function(users1) {
                   User.all({ transaction: t }).success(function(users2) {
@@ -550,7 +550,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
                 user.reload().success(function(user) {
                   expect(user.username).to.equal('foo')
@@ -753,7 +753,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
+          sequelize.transaction().then(function(t) {
             User.build({ username: 'foo' }).save({ transaction: t }).success(function() {
               User.count().success(function(count1) {
                 User.count({ transaction: t }).success(function(count2) {
@@ -1473,7 +1473,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               user.updateAttributes({ username: 'bar' }, { transaction: t }).success(function() {
                 User.all().success(function(users1) {
                   User.all({ transaction: t }).success(function(users2) {
@@ -1607,7 +1607,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               user.destroy({ transaction: t }).success(function() {
                 User.count().success(function(count1) {
                   User.count({ transaction: t }).success(function(count2) {

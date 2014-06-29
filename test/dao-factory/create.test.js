@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User
           .sync({ force: true })
           .success(function() {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               User.findOrCreate({ username: 'Username' }, { data: 'some data' }, { transaction: t }).complete(function(err) {
                 expect(err).to.be.null
 
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var User = sequelize.define('user_with_transaction', { username: Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
+          sequelize.transaction().then(function(t) {
             User.create({ username: 'user' }, { transaction: t }).success(function() {
               User.count().success(function(count) {
                 expect(count).to.equal(0)
@@ -880,7 +880,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var User = sequelize.define('User', { username: Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
+          sequelize.transaction().then(function(t) {
             User
               .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
               .success(function() {

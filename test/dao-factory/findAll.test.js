@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var User = sequelize.define('User', { username: Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
+          sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
               User.findAll({ username: 'foo' }).success(function(users1) {
                 User.findAll({ transaction: t }).success(function(users2) {
@@ -1337,7 +1337,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var User = sequelize.define('User', { username: Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
+          sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
 
               User.findAndCountAll().success(function(info1) {
@@ -1476,7 +1476,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var User = sequelize.define('User', { username: Sequelize.STRING })
 
         User.sync({ force: true }).success(function() {
-          sequelize.transaction(function(t) {
+          sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
               User.all().success(function(users1) {
                 User.all({ transaction: t }).success(function(users2) {

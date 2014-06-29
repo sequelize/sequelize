@@ -789,16 +789,32 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
 
       it('passes a transaction object to the callback', function(done) {
-        this.sequelizeWithTransaction.transaction(function(t) {
+        this.sequelizeWithTransaction.transaction().then(function(t) {
           expect(t).to.be.instanceOf(Transaction)
           done()
         })
       })
 
+      it('throws an error if a function was passed as the first argument', function() {
+        var self = this
+
+        expect(function() {
+          self.sequelizeWithTransaction.transaction(function() {})
+        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
+      });
+
+      it('throws an error if a function was passed as the second argument', function() {
+        var self = this
+
+        expect(function() {
+          self.sequelizeWithTransaction.transaction(null, function() {})
+        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
+      });
+
       it('allows me to define a callback on the result', function(done) {
         this
           .sequelizeWithTransaction
-          .transaction(function(t) { t.commit() })
+          .transaction().then(function(t) { t.commit() })
           .done(done)
       })
 
@@ -817,7 +833,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           }
 
           TransactionTest.sync({ force: true }).success(function() {
-            self.sequelizeWithTransaction.transaction(function(t1) {
+            self.sequelizeWithTransaction.transaction().then(function(t1) {
               self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
                 count(null, function(cnt) {
                   expect(cnt).to.equal(0)
@@ -852,9 +868,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           }
 
           TransactionTest.sync({ force: true }).success(function() {
-            self.sequelizeWithTransaction.transaction(function(t1) {
+            self.sequelizeWithTransaction.transaction().then(function(t1) {
               self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
-                self.sequelizeWithTransaction.transaction(function(t2) {
+                self.sequelizeWithTransaction.transaction().then(function(t2) {
                   self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'bar\');', null, { plain: true, raw: true, transaction: t2 }).success(function() {
                     count(null, function(cnt) {
                       expect(cnt).to.equal(0)
@@ -893,9 +909,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         var User = this.sequelize.define('Users', { username: DataTypes.STRING })
 
         User.sync({ force: true }).success(function() {
-          self.sequelizeWithTransaction.transaction(function(t1) {
+          self.sequelizeWithTransaction.transaction().then(function(t1) {
             User.create({ username: 'foo' }, { transaction: t1 }).success(function(user) {
-              self.sequelizeWithTransaction.transaction({ transaction: t1 }, function(t2) {
+              self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(function(t2) {
                 user.updateAttributes({ username: 'bar' }, { transaction: t2 }).success(function() {
                   t2.commit().then(function() {
                     user.reload({ transaction: t1 }).success(function(newUser) {
@@ -918,9 +934,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         var User = this.sequelize.define('Users', { username: DataTypes.STRING })
 
         User.sync({ force: true }).success(function() {
-          self.sequelizeWithTransaction.transaction(function(t1) {
+          self.sequelizeWithTransaction.transaction().then(function(t1) {
             User.create({ username: 'foo' }, { transaction: t1 }).success(function(user) {
-              self.sequelizeWithTransaction.transaction({ transaction: t1 }, function(t2) {
+              self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(function(t2) {
                 user.updateAttributes({ username: 'bar' }, { transaction: t2 }).success(function() {
                   t2.rollback().then(function() {
                     user.reload({ transaction: t2 }).success(function(newUser) {
@@ -943,9 +959,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         var User = this.sequelize.define('Users', { username: DataTypes.STRING })
 
         User.sync({ force: true }).success(function() {
-          self.sequelizeWithTransaction.transaction(function(t1) {
+          self.sequelizeWithTransaction.transaction().then(function(t1) {
             User.create({ username: 'foo' }, { transaction: t1 }).success(function(user) {
-              self.sequelizeWithTransaction.transaction({ transaction: t1 }, function(t2) {
+              self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(function(t2) {
                 user.updateAttributes({ username: 'bar' }, { transaction: t2 }).success(function() {
                   t1.rollback().then(function() {
                     User.findAll().success(function(users) {

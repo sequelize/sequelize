@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         sequelize.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             Group.create({ name: 'bar' }).success(function(group) {
-              sequelize.transaction(function(t) {
+              sequelize.transaction().then(function(t) {
                 group.setUser(user, { transaction: t }).success(function() {
                   Group.all().success(function(groups) {
                     groups[0].getUser().success(function(associatedUser) {
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         sequelize.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             Group.create({ name: 'bar' }).success(function(group) {
-              sequelize.transaction(function(t) {
+              sequelize.transaction().then(function(t) {
                 group.setUser(user, { transaction: t }).success(function() {
                   Group.all().success(function(groups) {
                     groups[0].getUser().success(function(associatedUser) {
@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
 
         sequelize.sync({ force: true }).success(function() {
           Group.create({ name: 'bar' }).success(function(group) {
-            sequelize.transaction(function(t) {
+            sequelize.transaction().then(function(t) {
               group.createUser({ username: 'foo' }, { transaction: t }).success(function() {
                 group.getUser().success(function(user) {
                   expect(user).to.be.null

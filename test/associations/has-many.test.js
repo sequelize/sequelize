@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             expect(err).not.to.be.ok
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
-                sequelize.transaction(function(t) {
+                sequelize.transaction().then(function(t) {
                   article.setLabels([ label ], { transaction: t }).success(function() {
                     Article.all({ transaction: t }).success(function(articles) {
                       articles[0].hasLabel(label).success(function(hasLabel) {
@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             expect(err).not.to.be.ok
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
-                sequelize.transaction(function(t) {
+                sequelize.transaction().then(function(t) {
                   article.setLabels([ label ], { transaction: t }).success(function() {
                     Article.all({ transaction: t }).success(function(articles) {
                       articles[0].hasLabels([ label ]).success(function(hasLabel) {
@@ -267,7 +267,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           sequelize.sync({ force: true }).success(function() {
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
-                sequelize.transaction(function(t) {
+                sequelize.transaction().then(function(t) {
                   article.setLabels([ label ], { transaction: t }).success(function() {
                     Label
                       .findAll({ where: { ArticleId: article.id }, transaction: undefined })
@@ -380,7 +380,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           sequelize.sync({ force: true }).success(function() {
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
-                sequelize.transaction(function(t) {
+                sequelize.transaction().then(function(t) {
                   article.addLabel(label, { transaction: t }).success(function() {
                     Label
                       .findAll({ where: { ArticleId: article.id }, transaction: undefined })
@@ -543,7 +543,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           Article.sync({ force: true }).success(function() {
             Label.sync({ force: true }).success(function() {
               Article.create({ title: 'foo' }).success(function(article) {
-                sequelize.transaction(function (t) {
+                sequelize.transaction().then(function (t) {
                   article.createLabel({ text: 'bar' }, { transaction: t }).success(function() {
                     Label.findAll().success(function (labels) {
                       expect(labels.length).to.equal(0);
@@ -758,7 +758,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           sequelize.sync({ force: true }).success(function() {
             Article.create({ title: 'foo' }).success(function(article) {
               Label.create({ text: 'bar' }).success(function(label) {
-                sequelize.transaction(function(t) {
+                sequelize.transaction().then(function(t) {
                   article.setLabels([ label ], { transaction: t }).success(function() {
                     Article.all({ transaction: t }).success(function(articles) {
                       articles[0].getLabels().success(function(labels) {
@@ -1097,7 +1097,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           sequelize.sync({ force: true }).success(function() {
             Task.create({ title: 'task' }).success(function(task) {
-              sequelize.transaction(function (t) {
+              sequelize.transaction().then(function (t) {
                 task.createUser({ username: 'foo' }, { transaction: t }).success(function() {
                   task.getUsers().success(function(users) {
                     expect(users).to.have.length(0)
@@ -1127,7 +1127,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           sequelize.sync({ force: true }).success(function() {
             User.create({ username: 'foo' }).success(function(user) {
               Task.create({ title: 'task' }).success(function(task) {
-                sequelize.transaction(function(t){
+                sequelize.transaction().then(function(t){
                   task.addUser(user, { transaction: t }).success(function() {
                     task.hasUser(user).success(function(hasUser) {
                       expect(hasUser).to.be.false
