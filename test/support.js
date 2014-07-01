@@ -41,9 +41,17 @@ var Support = {
       var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: path.join(__dirname, 'tmp', 'db.sqlite') })
         , _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
-      _sequelize.sync({ force: true }).success(function() { callback(_sequelize); });
+      if (callback) {
+        _sequelize.sync({ force: true }).success(function() { callback(_sequelize); });
+      } else {
+        return _sequelize.sync({ force: true }).return(_sequelize);
+      }
     } else {
-      callback(sequelize);
+      if (callback) {
+        callback(sequelize);
+      } else {
+        return Sequelize.Promise.resolve(sequelize);
+      }
     }
   },
 
