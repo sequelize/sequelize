@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
           migrator.getUndoneMigrations(function(err, migrations) {
             expect(err).to.be.null
-            expect(migrations).to.have.length(14)
+            expect(migrations).to.have.length(15)
             expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
             done()
           })
@@ -311,6 +311,28 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
               }
               expect(signature.allowNull).to.equal(false)
               expect(signature.defaultValue).to.equal('Signature')
+
+              done()
+            })
+          })
+        })
+      })
+
+      it('changes the level column from user and casts the data to the target enum type', function(done) {
+        var self = this
+
+        this.init({ to: 20111205163000 }, function(migrator) {
+          migrator.migrate().success(function() {
+            self.sequelize.getQueryInterface().describeTable('User').complete(function(err, data) {
+              var level = data.level;
+
+              if (dialect === 'postgres') {
+                expect(level.type).to.equal('USER-DEFINED');
+              } else if (dialect === 'sqlite') {
+                expect(level.type).to.equal('TEXT');
+              } else {
+                expect(level.type).to.equal('ENUM(\'BASIC\',\'ADVANCED\')');
+              }
 
               done()
             })
