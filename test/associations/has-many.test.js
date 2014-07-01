@@ -353,8 +353,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             return article.setLabels([label1, label2]).then(function () {
               return article.getLabels().then(function (labels) {
                 expect(labels).to.have.length(2);
-                expect(labels[0].ArticleHasLabel.color).to.equal("red");
-                expect(labels[1].ArticleHasLabel.color).to.equal("green");
+
+                expect(_.find(labels, function (label) { return label.lid === label1.lid; }).ArticleHasLabel.color).to.equal("red");
+                expect(_.find(labels, function (label) { return label.lid === label2.lid; }).ArticleHasLabel.color).to.equal("green");
               });
             });
           });
@@ -638,32 +639,34 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         return this.User.create({ username: 'foo' }).bind({}).then(function(user) {
           this.user = user;
-          return Promise.all([
-            self.Task.create({ title: 'task1' }),
-            self.Task.create({ title: 'task2' })
-          ]);
-        }).spread(function(task1, task2) {
-          return this.user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
+          return self.Task.create({ title: 'task1' });
+        }).then(function (task1) {
+          this.task1 = task1;
+          return self.Task.create({ title: 'task2' });
+        }).then(function(task2) {
+          this.task2 = task2;
+          return this.user.setTasks([this.task1, this.task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
             // We don't care about SELECT, only UPDATE
             expect(sql).to.have.string("UPDATE");
             expect(sql).to.have.string("IN (1,2)");
           }));
         }).then(function () {
-          expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for UPDATE
+          expect(spy).to.have.been.calledTwice; // Once for SELECT, once for UPDATE
         });
       });
 
       it('uses one UPDATE statement', function () {
-        var spy = sinon.spy();
+        var self = this
+          , spy = sinon.spy();
 
         return this.User.create({ username: 'foo' }).bind(this).then(function (user) {
           this.user = user;
-          return Promise.all([
-            this.Task.create({ title: 'task1' }),
-            this.Task.create({ title: 'task2' })
-          ]);
-        }).spread(function (task1, task2) {
-          return this.user.setTasks([task1, task2]);
+          return self.Task.create({ title: 'task1' });
+        }).then(function (task1) {
+          this.task1 = task1;
+          return self.Task.create({ title: 'task2' });
+        }).then(function(task2) {
+          return this.user.setTasks([this.task1, task2]);
         }).then(function () {
           return this.user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) {
             // We don't care about SELECT, only UPDATE
@@ -671,7 +674,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             expect(sql).to.have.string("IN (1,2)");
           }));
         }).then(function () {
-          expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for UPDATE
+          expect(spy).to.have.been.calledTwice; // Once for SELECT, once for UPDATE
         });
       });
     }); // end optimization using bulk create, destroy and update
