@@ -146,10 +146,6 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
     })
 
     describe('expectation', function() {
-      it('uses the typeof method if the expectation is a string', function() {
-        expect(Utils.validateParameter(1, 'number')).to.be.true
-      })
-
       it('uses the instanceof method if the expectation is a class', function() {
         expect(Utils.validateParameter(new Number(1), Number)).to.be.true
       })
@@ -160,21 +156,6 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
         expect(function() {
           Utils.validateParameter(1, String)
         }).to.throw(/The parameter.*is no.*/)
-      })
-
-      it('does not throw an error if throwError is false', function() {
-        expect(Utils.validateParameter(1, String, { throwError: false })).to.be.false
-      })
-    })
-
-    describe('deprecation warning', function() {
-      it('uses the passed function', function() {
-        var spy = chai.spy(function(s){})
-        Utils.validateParameter([], Object, {
-          deprecated: Array,
-          onDeprecated: spy
-        })
-        expect(spy).to.have.been.called()
       })
     })
   })
