@@ -73,6 +73,11 @@ if (dialect.match(/^postgres/)) {
         done()
       })
 
+      it('should handle arrays correctly', function(done) {
+        expect(hstore.stringify([{ test: 'value' }, { another: 'val' }])).to.deep.equal(['\"test\"=>\"value\"','\"another\"=>\"val\"'])
+        done()
+      });
+
       it('should handle nested objects correctly', function(done) {
         expect(hstore.stringify({ test: { nested: 'value' } })).to.equal('"test"=>"{\\"nested\\":\\"value\\"}"')
         done()
@@ -91,7 +96,7 @@ if (dialect.match(/^postgres/)) {
 
     describe('parse', function() {
       it('should handle null objects correctly', function(done) {
-        expect(hstore.parse(null)).to.deep.equal({ })
+        expect(hstore.parse(null)).to.equal(null)
         done()
       })
 
@@ -102,6 +107,11 @@ if (dialect.match(/^postgres/)) {
 
       it('should handle simple objects correctly', function(done) {
         expect(hstore.parse('"test"=>"value"')).to.deep.equal({ test: 'value' })
+        done()
+      })
+
+      it('should handle arrays correctly', function(done) {
+        expect(hstore.parse('{"\\"test\\"=>\\"value\\"","\\"another\\"=>\\"val\\""}')).to.deep.equal([{ test: 'value' }, { another: 'val' }])
         done()
       })
 
