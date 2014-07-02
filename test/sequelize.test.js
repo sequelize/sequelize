@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               }
 
               done()
-              
+
             })
         })
       })
@@ -928,6 +928,69 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           })
         })
       })
+
+      describe('supports rolling back to savepoints', function () {
+        beforeEach(function () {
+          this.User = this.sequelizeWithTransaction.define('user', {});
+          return this.sequelizeWithTransaction.sync({ force: true });
+        })
+
+        it('rolls back to the first savepoint, undoing everything', function () {
+          return this.sequelizeWithTransaction.transaction().bind(this).then(function(transaction) {
+            this.transaction = transaction;
+
+            return this.sequelizeWithTransaction.transaction({ transaction: transaction });
+          }).then(function (sp1) {
+            this.sp1 = sp1;
+            return this.User.create({}, { transaction: this.transaction });
+          }).then(function () {
+            return this.sequelizeWithTransaction.transaction({ transaction: this.transaction });
+          }).then(function (sp2) {
+            this.sp2 = sp2;
+            return this.User.create({}, { transaction: this.transaction });
+          }).then(function () {
+            return this.User.findAll({}, { transaction: this.transaction });
+          }).then(function (users) {
+            expect(users).to.have.length(2);
+
+            return this.sp1.rollback();
+          }).then(function () {
+            return this.User.findAll({}, { transaction: this.transaction });
+          }).then(function (users) {
+            expect(users).to.have.length(0);
+
+            return this.transaction.rollback();
+          });
+        });
+
+        it('rolls back to the most recent savepoint, only undoing recent changes', function () {
+          return this.sequelizeWithTransaction.transaction().bind(this).then(function(transaction) {
+            this.transaction = transaction;
+
+            return this.sequelizeWithTransaction.transaction({ transaction: transaction });
+          }).then(function (sp1) {
+            this.sp1 = sp1;
+            return this.User.create({}, { transaction: this.transaction });
+          }).then(function () {
+            return this.sequelizeWithTransaction.transaction({ transaction: this.transaction });
+          }).then(function (sp2) {
+            this.sp2 = sp2;
+            return this.User.create({}, { transaction: this.transaction });
+          }).then(function () {
+            return this.User.findAll({}, { transaction: this.transaction });
+          }).then(function (users) {
+            expect(users).to.have.length(2);
+
+            return this.sp2.rollback();
+          }).then(function () {
+            return this.User.findAll({}, { transaction: this.transaction });
+          }).then(function (users) {
+            expect(users).to.have.length(1);
+
+            return this.transaction.rollback();
+          });
+        });
+      });
 
       it('supports rolling back a nested transaction', function(done) {
         var self = this
