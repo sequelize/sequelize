@@ -284,6 +284,17 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
           done()
         });
     })
+    
+    it('should also return a promise, when calling build', function(done) {
+      var spy = sinon.spy();
+
+      this.User.build({aNumber: 0})
+        .then(function(user) {
+          expect(spy.calledOnce).to.be.true
+          expect(user.aNumber).to.equal(0)
+          done()
+        });
+    })
 
     it('should fail a validation upon building', function(done) {
       this.User.build({aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'}).save()
