@@ -125,6 +125,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      if (dialect === 'mysql') {
+        it('should be able to find a row using rlike', function(done) {
+          this.User.findAll({
+            where: {
+              username: {
+                rlike: 'o2$'
+              }
+            }
+          }).success(function(users) {
+            expect(users).to.be.an.instanceof(Array)
+            expect(users).to.have.length(1)
+            expect(users[0].username).to.equal('boo2')
+            expect(users[0].intVal).to.equal(10)
+            done()
+          })
+        })
+      }
+
       it('should be able to find a row using not like', function(done) {
         this.User.findAll({
           where: {
