@@ -139,6 +139,40 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
+      if (dialect === 'postgres') {
+        it('should be able to find a row using ilike', function(done) {
+          this.User.findAll({
+            where: {
+              username: {
+                ilike: '%2'
+              }
+            }
+          }).success(function(users) {
+            expect(users).to.be.an.instanceof(Array)
+            expect(users).to.have.length(1)
+            expect(users[0].username).to.equal('boo2')
+            expect(users[0].intVal).to.equal(10)
+            done()
+          })
+        })
+
+        it('should be able to find a row using not ilike', function(done) {
+          this.User.findAll({
+            where: {
+              username: {
+                notilike: '%2'
+              }
+            }
+          }).success(function(users) {
+            expect(users).to.be.an.instanceof(Array)
+            expect(users).to.have.length(1)
+            expect(users[0].username).to.equal('boo')
+            expect(users[0].intVal).to.equal(5)
+            done()
+          })
+        })
+      }
+
       it('should be able to find a row between a certain date using the between shortcut', function(done) {
         this.User.findAll({
           where: {
