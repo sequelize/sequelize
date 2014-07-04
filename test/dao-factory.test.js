@@ -1174,6 +1174,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+    
+    it('supports distinct option', function(done) {
+      var Post = this.sequelize.define('Post',{})
+      var PostComment = this.sequelize.define('PostComment',{})
+      Post.hasMany(PostComment) 
+      Post.sync({ force: true }).success(function() {
+        PostComment.sync({ force: true }).success(function() {
+          Post.create({}).success(function(post){
+            PostComment.bulkCreate([{ PostId: post.id },{ PostId: post.id }]).success(function(){
+              Post.count({ include: [{ model: PostComment, required: false }] }).success(function(count1){
+                Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }).success(function(count2){
+                  expect(count1).to.equal(2)
+                  expect(count2).to.equal(1)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+    
   })
 
   describe('min', function() {
