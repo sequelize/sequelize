@@ -49,7 +49,6 @@
     "toposort-class": "~0.3.0",
     "generic-pool": "2.0.4",
     "sql": "~0.35.0",
-    "circular-json": "~0.1.5",
     "sequelize-bluebird": "git://github.com/sequelize/bluebird.git#9df139af53c5d346ffd38df30fc9dc60c62a9c98",
     "node-uuid": "~1.4.1"
   },
