@@ -119,7 +119,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           return User.create({}).then(function (user) {
             // Create the user first to set the proper default values. PG does not support column references in insert,
             // so we must create a record with the right value for always_false, then reference it in an update
-            var now = dialect === 'sqlite' ? self.sequelize.fn('', self.sequelize.fn('date', 'now')) : self.sequelize.fn('NOW')
+            var now = dialect === 'sqlite' ? self.sequelize.fn('', self.sequelize.fn('datetime', 'now')) : self.sequelize.fn('NOW')
 
             user.set({
               d: now,
@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         var Contact = this.sequelize.define('Contact', {
           first: { type: Sequelize.STRING },
           last: { type: Sequelize.STRING },
-          tags: { 
+          tags: {
             type: Sequelize.STRING,
             get: function(field) {
               var val = this.getDataValue(field);
@@ -402,7 +402,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           name: 'Jan Meier'
         })
         user.set('name', 'Mick Hansen')
-        
+
         expect(user.previous('name')).to.equal('Jan Meier')
         expect(user.get('name')).to.equal('Mick Hansen')
       })

@@ -12,7 +12,7 @@ var chai        = require('chai')
 if (dialect !== 'sqlite') {
   // Sqlite does not support setting timezone
 
-  describe.only(Support.getTestDialectTeaser('Timezone'), function () {
+  describe(Support.getTestDialectTeaser('Timezone'), function () {
     beforeEach(function () {
       this.sequelizeWithTimezone = Support.createSequelizeInstance({
         timezone: '+07:00',
@@ -36,15 +36,15 @@ if (dialect !== 'sqlite') {
           , TimezonedUser = this.sequelizeWithTimezone.define('user', {});
 
         return this.sequelize.sync({ force: true }).bind(this).then(function () {
-          return NormalUser.create({});
-        }).then(function (normalUser) {
-          this.normalUser = normalUser;
-          return TimezonedUser.find(normalUser.id);
+          return TimezonedUser.create({});
         }).then(function (timezonedUser) {
+          this.timezonedUser = timezonedUser;
+          return NormalUser.find(timezonedUser.id);
+        }).then(function (normalUser) {
           // Expect 7 hours difference, in milliseconds.
           // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
           // this test does not apply to PG, since it stores the timezone along with the timestamp.
-          expect(this.normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime() ).to.be.closeTo(60 * 60 * 7 * 1000, 50);
+          expect(normalUser.createdAt.getTime() - this.timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 7 * 1000, 50);
         });
       });
     }
