@@ -24,8 +24,9 @@
   "shadow":true,
   "loopfunc":true,
   "evil":true,
-  
+
   "predef": [
+    "alert",
     "describe",
     "it",
     "before",

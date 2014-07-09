@@ -484,7 +484,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
               allowNull: false
             }
           })
-          
+
       User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id})
 
       expect(Profile.rawAttributes.user_id).to.be.defined
@@ -509,7 +509,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
       it('should only generate one foreign key', function () {
         var Orders = this.sequelize.define('Orders', {}, {timestamps: false})
           , InternetOrders = this.sequelize.define('InternetOrders', {}, {timestamps: false})
-        
+
         InternetOrders.belongsTo(Orders, {
           foreignKeyConstraint: true
         });

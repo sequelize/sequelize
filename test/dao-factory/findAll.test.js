@@ -902,7 +902,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 done()
               })
             })
-          })  
+          })
         })
 
         it('includes all associations', function(done) {
@@ -912,7 +912,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(countries[0]).to.exist
             expect(countries[0].continent).to.exist
             expect(countries[0].industries).to.exist
-            expect(countries[0].persons).to.exist
+            expect(countries[0].people).to.exist
             expect(countries[0].residents).to.exist
             done()
           })
@@ -925,7 +925,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(countries[0]).to.exist
             expect(countries[0].continent).to.exist
             expect(countries[0].industries).not.to.exist
-            expect(countries[0].persons).not.to.exist
+            expect(countries[0].people).not.to.exist
             expect(countries[0].residents).not.to.exist
             done()
           })
@@ -937,10 +937,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(countries).to.exist
             expect(countries[0]).to.exist
             expect(countries[0].industries).to.exist
-            expect(countries[0].persons).to.exist
-            expect(countries[0].persons[0]).to.exist
-            expect(countries[0].persons[0].name).not.to.be.undefined
-            expect(countries[0].persons[0].lastName).to.be.undefined
+            expect(countries[0].people).to.exist
+            expect(countries[0].people[0]).to.exist
+            expect(countries[0].people[0].name).not.to.be.undefined
+            expect(countries[0].people[0].lastName).to.be.undefined
             expect(countries[0].residents).to.exist
             expect(countries[0].residents[0]).to.exist
             expect(countries[0].residents[0].name).not.to.be.undefined
@@ -968,7 +968,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(continents[0].countries).to.exist
             expect(continents[0].countries[0]).to.exist
             expect(continents[0].countries[0].industries).to.exist
-            expect(continents[0].countries[0].persons).to.exist
+            expect(continents[0].countries[0].people).to.exist
             expect(continents[0].countries[0].residents).to.exist
             expect(continents[0].countries[0].continent).not.to.exist
             done()
@@ -1081,9 +1081,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               expect(continents[0].countries).to.exist
               expect(continents[0].countries[0]).to.exist
               expect(continents[0].countries[0].name).to.equal(params[2])
-              expect(continents[0].countries[0].persons).to.exist
-              expect(continents[0].countries[0].persons[0]).to.exist
-              expect(continents[0].countries[0].persons[0].name).to.equal(params[3])
+              expect(continents[0].countries[0].people).to.exist
+              expect(continents[0].countries[0].people[0]).to.exist
+              expect(continents[0].countries[0].people[0].name).to.equal(params[3])
               callback()
             })
           }, function() {done()})
@@ -1199,7 +1199,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             self.Country.findAll({
               include: [ self.Industry ],
               order: [
-                [ self.Industry, 'name', params[0] ] 
+                [ self.Industry, 'name', params[0] ]
               ],
               limit: 3
             }).done(function(err, countries) {
@@ -1448,7 +1448,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       this.sequelize.sync().done(function (err) {
         expect(err).not.be.ok
-          
+
         // Add some data
         Citizen.create({ name: 'Alice' }).done(function (err, alice) {
           expect(err).not.be.ok
@@ -1460,7 +1460,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 expect(err).not.be.ok
                 election.setVoters([alice, bob]).done(function (err) {
                   expect(err).not.be.ok
-                  
+
                   var criteria = {
                     offset: 5,
                     limit: 1,

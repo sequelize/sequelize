@@ -1,17 +1,19 @@
+"use strict";
+
 /* jshint camelcase: false, expr: true */
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
-  , _ = require('lodash')
+  , Sequelize = require(__dirname + "/../../index")
+  , Promise   = Sequelize.Promise
+  , _ = require('lodash');
 
-chai.config.includeStack = true
+chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("Self"), function() {
-  it('supports freezeTableName', function (done) {
-    var Group = this.sequelize.define('Group', {
-
-    }, {
+  it('supports freezeTableName', function () {
+    var Group = this.sequelize.define('Group', {}, {
       tableName: 'user_group',
       timestamps: false,
       underscored: true,
@@ -19,60 +21,50 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     });
 
     Group.belongsTo(Group, { as: 'Parent', foreignKey: 'parent_id' });
-    Group.sync({force: true}).done(function (err) {
-      expect(err).not.to.be.ok
-      Group.findAll({
+    return Group.sync({force: true}).then(function () {
+      return Group.findAll({
         include: [{
           model: Group,
           as: 'Parent'
         }]
-      }).done(function (err) {
-        expect(err).not.to.be.ok
-        done()
-      })
-    })
-  })
-
-  it('can handle 1:m associations', function (done) {
-    var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
-
-    Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id'});
-
-    expect(Person.rawAttributes.parent_id).to.be.ok
-
-    this.sequelize.sync({force: true}).done(function () {
-      Person.create({ name: 'Mary' }).complete(function(err, mary) {
-        expect(err).to.not.be.ok
-        Person.create({ name: 'John' }).complete(function(err, john) {
-          expect(err).to.not.be.ok
-          Person.create({ name: 'Chris' }).complete(function(err, chris) {
-            expect(err).to.not.be.ok
-            mary.setChildren([john, chris]).done(function (err) {
-              expect(err).not.to.be.ok
-              done();
-            });
-          });
-        });
       });
     });
   });
 
+  it('can handle 1:m associations', function () {
+    var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
+
+    Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id'});
+
+    expect(Person.rawAttributes.parent_id).to.be.ok;
+
+    return this.sequelize.sync({force: true}).then(function () {
+      return Promise.all([
+        Person.create({ name: 'Mary' }),
+        Person.create({ name: 'John' }),
+        Person.create({ name: 'Chris' })
+      ]);
+    }).spread(function (mary, john, chris) {
+      return mary.setChildren([john, chris]);
+    });
+  });
+
   it('can handle n:m associations', function() {
-    var self = this
+    var self = this;
 
-    var Person = this.sequelize.define('Person', { name: DataTypes.STRING })
+    var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
-    Person.hasMany(Person, { as: 'Parents', through: 'Family' })
-    Person.hasMany(Person, { as: 'Childs', through: 'Family' })
+    Person.hasMany(Person, { as: 'Parents', through: 'Family' });
+    Person.hasMany(Person, { as: 'Childs', through: 'Family' });
 
-    var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier')
-    var rawAttributes = _.keys(this.sequelize.models.Family.rawAttributes)
+    var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier');
+    var rawAttributes = _.keys(this.sequelize.models.Family.rawAttributes);
 
-    expect(foreignIdentifiers.length).to.equal(2)
-    expect(rawAttributes.length).to.equal(4)
+    expect(foreignIdentifiers.length).to.equal(2);
+    expect(rawAttributes.length).to.equal(4);
 
-    expect(foreignIdentifiers).to.have.members([ 'PersonId', 'ChildId' ])
-    expect(rawAttributes).to.have.members([ 'createdAt', 'updatedAt', 'PersonId', 'ChildId' ])
+    expect(foreignIdentifiers).to.have.members([ 'PersonId', 'ChildId' ]);
+    expect(rawAttributes).to.have.members([ 'createdAt', 'updatedAt', 'PersonId', 'ChildId' ]);
 
     return this.sequelize.sync({ force: true }).then(function() {
       return self.sequelize.Promise.all([
@@ -81,17 +73,17 @@ describe(Support.getTestDialectTeaser("Self"), function() {
         Person.create({ name: 'Chris' })
       ]).spread(function (mary, john, chris) {
         return mary.setParents([john]).then(function() {
-          return chris.addParent(john)
+          return chris.addParent(john);
         }).then(function() {
-          return john.getChilds()
+          return john.getChilds();
         }).then(function(children) {
-          expect(_.map(children, 'id')).to.have.members([mary.id, chris.id])
-        })
-      })
-    })
-  })
+          expect(_.map(children, 'id')).to.have.members([mary.id, chris.id]);
+        });
+      });
+    });
+  });
 
-  it('can handle n:m associations with pre-defined through table', function(done) {
+  it('can handle n:m associations with pre-defined through table', function() {
     var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
     var Family = this.sequelize.define('Family', {
       preexisting_child: {
@@ -107,49 +99,46 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     Person.hasMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child' });
     Person.hasMany(Person, { as: 'Children', through: Family, foreignKey: 'preexisting_parent' });
 
-    var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier')
-    var rawAttributes = _.keys(Family.rawAttributes)
+    var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier');
+    var rawAttributes = _.keys(Family.rawAttributes);
 
-    expect(foreignIdentifiers.length).to.equal(2)
-    expect(rawAttributes.length).to.equal(2)
+    expect(foreignIdentifiers.length).to.equal(2);
+    expect(rawAttributes.length).to.equal(2);
 
     expect(foreignIdentifiers).to.have.members([ 'preexisting_parent', 'preexisting_child' ]);
     expect(rawAttributes).to.have.members([ 'preexisting_parent', 'preexisting_child' ]);
 
-    this.sequelize.sync({ force: true }).complete(function() {
-      Person.create({ name: 'Mary' }).complete(function(err, mary) {
-        expect(err).to.not.be.ok
-        Person.create({ name: 'John' }).complete(function(err, john) {
-          expect(err).to.not.be.ok
-          Person.create({ name: 'Chris' }).complete(function(err, chris) {
-            expect(err).to.not.be.ok
-            mary.setParents([john]).done(function (err) {
-              expect(err).to.not.be.ok
-              mary.addParent(chris).on('sql', function(sql) {
-                if (sql.match(/INSERT/)) {
-                  expect(sql).to.have.string('preexisting_child');
-                  expect(sql).to.have.string('preexisting_parent');
-                }
-              }).complete(function(err) {
-                expect(err).to.not.be.ok
-                john.getChildren().on('sql', function(sql) {
-                  var whereClause = sql.split('WHERE')[1]; // look only in the whereClause
-                  expect(whereClause).to.have.string('preexisting_child');
-                  expect(whereClause).to.have.string('preexisting_parent');
-                }).complete(function(err, children) {
-                  expect(_.map(children, 'id')).to.have.members([mary.id]);
-                  done()
-                })
-              })
-            }).on('sql', function(sql) {
-              if (sql.match(/INSERT/)) {
-                expect(sql).to.have.string('preexisting_child');
-                expect(sql).to.have.string('preexisting_parent');
-              }
-            });
-          })
-        })
-      })
-    })
-  })
-})
+    return this.sequelize.sync({ force: true }).bind(this).then(function() {
+      return Promise.all([
+        Person.create({ name: 'Mary' }),
+        Person.create({ name: 'John' }),
+        Person.create({ name: 'Chris' })
+      ]);
+    }).spread(function (mary, john, chris) {
+      this.mary = mary;
+      this.chris = chris;
+      this.john = john;
+      return mary.setParents([john]).on('sql', function(sql) {
+        if (sql.match(/INSERT/)) {
+          expect(sql).to.have.string('preexisting_child');
+          expect(sql).to.have.string('preexisting_parent');
+        }
+      });
+    }).then(function () {
+      return this.mary.addParent(this.chris).on('sql', function(sql) {
+        if (sql.match(/INSERT/)) {
+            expect(sql).to.have.string('preexisting_child');
+            expect(sql).to.have.string('preexisting_parent');
+        }
+      });
+    }).then(function () {
+      return this.john.getChildren().on('sql', function(sql) {
+        var whereClause = sql.split('WHERE')[1]; // look only in the whereClause
+        expect(whereClause).to.have.string('preexisting_child');
+        expect(whereClause).to.have.string('preexisting_parent');
+      });
+    }).then(function(children) {
+      expect(_.map(children, 'id')).to.have.members([this.mary.id]);
+    });
+  });
+});

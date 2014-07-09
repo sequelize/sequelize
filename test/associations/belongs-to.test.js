@@ -523,7 +523,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
               allowNull: false
             }
           })
-          
+
       Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id})
 
       expect(Profile.rawAttributes.user_id).to.be.defined
