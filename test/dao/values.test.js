@@ -141,13 +141,13 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
 
       describe('includes', function () {
         it('should support basic includes', function () {
-          var Product = this.sequelize.define('Product', {
+          var Product = this.sequelize.define('product', {
             title: Sequelize.STRING
           })
-          var Tag = this.sequelize.define('Tag', {
+          var Tag = this.sequelize.define('tag', {
             name: Sequelize.STRING
           })
-          var User = this.sequelize.define('User', {
+          var User = this.sequelize.define('user', {
             first_name: Sequelize.STRING,
             last_name: Sequelize.STRING
           })
@@ -188,10 +188,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           var Product = this.sequelize.define('Product', {
             title: Sequelize.STRING
           })
-          var Tag = this.sequelize.define('Tag', {
+          var Tag = this.sequelize.define('tag', {
             name: Sequelize.STRING
           })
-          var User = this.sequelize.define('User', {
+          var User = this.sequelize.define('user', {
             first_name: Sequelize.STRING,
             last_name: Sequelize.STRING
           })

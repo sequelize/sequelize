@@ -25,6 +25,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Create a composite primary key for doubled linked self reference [#1891](https://github.com/sequelize/sequelize/issues/1891)
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
 - [INTERNALS] Replaced lingo with inflection
+- [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
 
 
 #### Backwards compatability changes

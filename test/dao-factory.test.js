@@ -481,11 +481,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           ]
         })
 
-        expect(product.tags).to.be.ok
-        expect(product.tags.length).to.equal(2)
-        expect(product.tags[0].Model).to.equal(Tag)
-        expect(product.user).to.be.ok
-        expect(product.user.Model).to.equal(User)
+        expect(product.Tags).to.be.ok
+        expect(product.Tags.length).to.equal(2)
+        expect(product.Tags[0].Model).to.equal(Tag)
+        expect(product.User).to.be.ok
+        expect(product.User.Model).to.equal(User)
       })
 
       it('should support includes with aliases', function () {
@@ -500,9 +500,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           last_name: Sequelize.STRING
         })
 
-        Product.hasMany(Tag, {as: 'Categories'})
-        Product.hasMany(User, {as: 'Followers', through: 'product_followers'})
-        User.hasMany(Product, {as: 'Following', through: 'product_followers'})
+        Product.hasMany(Tag, {as: 'categories'})
+        Product.hasMany(User, {as: 'followers', through: 'product_followers'})
+        User.hasMany(Product, {as: 'following', through: 'product_followers'})
 
         var product = Product.build({
           id: 1,
@@ -1174,11 +1174,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
-    
+
     it('supports distinct option', function(done) {
       var Post = this.sequelize.define('Post',{})
       var PostComment = this.sequelize.define('PostComment',{})
-      Post.hasMany(PostComment) 
+      Post.hasMany(PostComment)
       Post.sync({ force: true }).success(function() {
         PostComment.sync({ force: true }).success(function() {
           Post.create({}).success(function(post){
@@ -1195,7 +1195,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
-    
+
   })
 
   describe('min', function() {

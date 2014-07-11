@@ -45,6 +45,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         this.Label.belongsTo(this.Article);
         this.Article.hasMany(this.Label);
 
+        expect(Object.keys(this.Label.rawAttributes)).to.deep.equal([ 'id', 'text', 'ArticleId' ]);
         expect(Object.keys(this.Label.rawAttributes).length).to.equal(3);
       });
 
@@ -839,7 +840,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
       it("get associated objects with an eager load", function() {
         return this.User.find({where: {username: 'John'}, include: [ this.Task ]}).then(function (john) {
-          expect(john.tasks).to.have.length(2);
+          expect(john.Tasks).to.have.length(2);
         });
       });
 
@@ -860,7 +861,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             ]
           });
         }).then(function (john) {
-          expect(john.tasks).to.have.length(2);
+          expect(john.Tasks).to.have.length(2);
         });
       });
 
