@@ -2,7 +2,16 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 
 # Next
 - [FEATURE] Added to option of setting a timezone offset in the sequelize constructor (`timezone` option). This timezone is used when initializing a connection (using `SET TIME ZONE` or equivalent), and when converting a timestamp string from the DB to a JS date with mysql (postgres stores the timezone, so for postgres we rely on what's in the DB).
+- [FEATURE] Allow setting plural and singular name on the model (`options.name` in `sequelize.define`) and in associations (`options.as`) to circumvent issues with weird pluralization.
+- [INTERNALS] Replaced lingo with inflection
+- [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
 
+#### Backwards compatability changes
+- We are using a new inflection library, which should make pluralization and singularization in general more robust. However, a couple of pluralizations have changed as a result:
+    + Person is now pluralized as people instead of persons
+- Accesors for models with underscored names are no longer camel cased automatically. For example, if you have a model with name `my_model`, and `my_other_model.hasMany(my_model)`, the getter will now be `instance_of_my_model.getMy_model` instead of `.getMyModel`. 
+- Removed support for setting sequelize.language. If your model names are not in english, use the name option provided by `sequelize.name` to defined singular and plural forms for your model.
+- Model names are now used more verbatim in associations. This means that if you have a model named `Task` (plural T), or an association specifying `{ as: 'Task' }`, the tasks will be returned as `relatedModel.Tasks` instead of `relatedModel.tasks`. For more information and how to mitigate this, see https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0#inflection-replaces-lingo-and-changes-to-naming-conventions
 
 # v2.0.0-dev12
 - [FEATURE] You can now return a promise to a hook rather than use a callback
@@ -24,9 +33,6 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Use the provided name for a unique index if one is given, instead of concating the column names together [#1944](https://github.com/sequelize/sequelize/issues/1944)
 - [BUG] Create a composite primary key for doubled linked self reference [#1891](https://github.com/sequelize/sequelize/issues/1891)
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
-- [INTERNALS] Replaced lingo with inflection
-- [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
-
 
 #### Backwards compatability changes
 - Sequelize now returns promises instead of its custom event emitter from most calls. This affects methods that return multiple values (like `findOrCreate` or `findOrInitialize`). If your current callbacks do not accept the 2nd success parameter you might be seeing an array as the first param. Either use `.spread()` for these methods or add another argument to your callback: `.success(instance)` -> `.success(instance, created)`.
@@ -37,10 +43,6 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - `sequelize.transaction()` now returns a promise rather than a instance of Sequelize.Transaction
 - `bulkCreate`, `bulkUpdate` and `bulkDestroy` (and aliases) now take both a `hooks` and an `individualHooks` option, `hooks` defines whether or not to run the main hooks, and `individualHooks` defines whether to run hooks for each instance affected.
 - It is no longer possible to disable pooling, disable pooling will just result in a 1/1 pool.
-- We are using a new inflection library, which should make pluralization and singularization in general more robust. However, a couple of pluralizations have changed as a result:
-    + Person is now pluralized as people instead of persons
-- Accesors for models with underscored names are no longer camel cased automatically. For example, if you have a model with name `my_model`, and `my_other_model` hasMany `my_model`, the getter will now be `getMy_model` instead of `getMyModel`. 
-- Removed support for setting sequelize.language. If your model names are not in english, use the name option provided by `sequelize.name` to defined singular and plural forms for your model.
 
 # v2.0.0-dev11
 ### Caution: This release contains many changes and is highly experimental

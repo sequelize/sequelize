@@ -139,8 +139,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]
           }).done(function (err, task) {
             expect(err).not.to.be.ok
-            expect(task.user).to.be.ok
-            expect(task.group).to.be.ok
+            expect(task.User).to.be.ok
+            expect(task.Group).to.be.ok
             done()
           })
         })
@@ -187,7 +187,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           }).done(function (err, group) {
             expect(err).not.to.be.ok
             expect(group.User).to.be.ok
-            expect(group.User.task).to.be.ok
+            expect(group.User.Task).to.be.ok
             done()
           })
         })
@@ -240,7 +240,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(user.Tasks).to.be.ok
             expect(user.Tasks.length).to.equal(4)
 
-            user.tasks.forEach(function (task) {
+            user.Tasks.forEach(function (task) {
               expect(task.Project).to.be.ok
             })
 
@@ -295,8 +295,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           }).done(function (err, worker) {
             expect(err).not.to.be.ok
             expect(worker.Project).to.be.ok
-            expect(worker.Project.tasks).to.be.ok
-            expect(worker.Project.tasks.length).to.equal(4)
+            expect(worker.Project.Tasks).to.be.ok
+            expect(worker.Project.Tasks.length).to.equal(4)
 
             done()
           })
@@ -373,10 +373,10 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(err).not.to.be.ok
 
             expect(user.Products.length).to.equal(4)
-            expect(user.Products[0].tags.length).to.equal(2)
-            expect(user.Products[1].tags.length).to.equal(1)
-            expect(user.Products[2].tags.length).to.equal(3)
-            expect(user.Products[3].tags.length).to.equal(0)
+            expect(user.Products[0].Tags.length).to.equal(2)
+            expect(user.Products[1].Tags.length).to.equal(1)
+            expect(user.Products[2].Tags.length).to.equal(3)
+            expect(user.Products[3].Tags.length).to.equal(0)
             done()
           })
         })
@@ -516,20 +516,20 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           }).done(function (err, user) {
             user.Memberships.sort(sortById)
             expect(user.Memberships.length).to.equal(2)
-            expect(user.Memberships[0].group.name).to.equal('Developers')
-            expect(user.Memberships[0].rank.canRemove).to.equal(1)
-            expect(user.Memberships[1].group.name).to.equal('Designers')
-            expect(user.Memberships[1].rank.canRemove).to.equal(0)
+            expect(user.Memberships[0].Group.name).to.equal('Developers')
+            expect(user.Memberships[0].Rank.canRemove).to.equal(1)
+            expect(user.Memberships[1].Group.name).to.equal('Designers')
+            expect(user.Memberships[1].Rank.canRemove).to.equal(0)
 
             user.Products.sort(sortById)
             expect(user.Products.length).to.equal(2)
-            expect(user.Products[0].tags.length).to.equal(2)
-            expect(user.Products[1].tags.length).to.equal(1)
-            expect(user.Products[0].category).to.be.ok
-            expect(user.Products[1].category).not.to.be.ok
+            expect(user.Products[0].Tags.length).to.equal(2)
+            expect(user.Products[1].Tags.length).to.equal(1)
+            expect(user.Products[0].Category).to.be.ok
+            expect(user.Products[1].Category).not.to.be.ok
 
-            expect(user.Products[0].prices.length).to.equal(2)
-            expect(user.Products[1].prices.length).to.equal(4)
+            expect(user.Products[0].Prices.length).to.equal(2)
+            expect(user.Products[1].Prices.length).to.equal(4)
 
             done()
           })
@@ -566,7 +566,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 expect(tasks[0].title).to.equal('FooBar')
                 expect(tasks[0].Project.title).to.equal('BarFoo');
 
-                expect(_.omit(tasks[0].get(), 'project')).to.deep.equal({ title: 'FooBar' })
+                expect(_.omit(tasks[0].get(), 'Project')).to.deep.equal({ title: 'FooBar' })
                 expect(tasks[0].Project.get()).to.deep.equal({ title: 'BarFoo'})
 
                 done()

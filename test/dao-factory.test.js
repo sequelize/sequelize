@@ -465,11 +465,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var product = Product.build({
           id: 1,
           title: 'Chair',
-          tags: [
+          Tags: [
             {id: 1, name: 'Alpha'},
             {id: 2, name: 'Beta'}
           ],
-          user: {
+          User: {
             id: 1,
             first_name: 'Mick',
             last_name: 'Hansen'
@@ -527,8 +527,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           ]
         }, {
           include: [
-            {model: User, as: 'Followers'},
-            {model: Tag, as: 'Categories'}
+            {model: User, as: 'followers'},
+            {model: Tag, as: 'categories'}
           ]
         })
 

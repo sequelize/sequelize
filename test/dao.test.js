@@ -1226,14 +1226,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             self.User.findAll({include: [ { model: self.Project, as: 'Projects' } ]}).success(function(users) {
               var _user = users[0]
 
-              expect(_user.projects).to.exist
-              expect(JSON.parse(JSON.stringify(_user)).projects).to.exist
+              expect(_user.Projects).to.exist
+              expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist
 
               self.Project.findAll({include: [ { model: self.User, as: 'LovelyUser' } ]}).success(function(projects) {
                 var _project = projects[0]
 
-                expect(_project.lovelyUser).to.exist
-                expect(JSON.parse(JSON.stringify(_project)).lovelyUser).to.exist
+                expect(_project.LovelyUser).to.exist
+                expect(JSON.parse(JSON.stringify(_project)).LovelyUser).to.exist
 
                 done()
               })

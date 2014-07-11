@@ -3,6 +3,7 @@
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
+  , Sequelize = require(__dirname + '/../../index')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , datetime  = require('chai-datetime')
   , async     = require('async');
@@ -52,10 +53,10 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     });
 
     it("should still pull the main record when an included model is not required and has where restrictions without matches", function () {
-      var A = this.sequelize.define('A', {
+      var A = this.sequelize.define('a', {
           name: DataTypes.STRING(40)
         })
-        , B = this.sequelize.define('B', {
+        , B = this.sequelize.define('b', {
           name: DataTypes.STRING(40)
         });
 
@@ -84,16 +85,16 @@ describe(Support.getTestDialectTeaser("Include"), function () {
     });
 
     it('should support many levels of belongsTo (with a lower level having a where)', function (done) {
-      var A = this.sequelize.define('A', {})
-        , B = this.sequelize.define('B', {})
-        , C = this.sequelize.define('C', {})
-        , D = this.sequelize.define('D', {})
-        , E = this.sequelize.define('E', {})
-        , F = this.sequelize.define('F', {})
-        , G = this.sequelize.define('G', {
+      var A = this.sequelize.define('a', {})
+        , B = this.sequelize.define('b', {})
+        , C = this.sequelize.define('c', {})
+        , D = this.sequelize.define('d', {})
+        , E = this.sequelize.define('e', {})
+        , F = this.sequelize.define('f', {})
+        , G = this.sequelize.define('g', {
           name: DataTypes.STRING
         })
-        , H = this.sequelize.define('H', {
+        , H = this.sequelize.define('h', {
           name: DataTypes.STRING
         });
 
@@ -126,12 +127,12 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             async.eachSeries(singles, function (model, callback) {
               var values = {};
 
-              if (model.name === 'G') {
+              if (model.name === 'g') {
                 values.name = 'yolo';
               }
               model.create(values).done(function (err, instance) {
                 if (previousInstance) {
-                  previousInstance["set"+model.name](instance).done(function () {
+                  previousInstance["set"+Sequelize.Utils.uppercaseFirst(model.name)](instance).done(function () {
                     previousInstance = instance;
                     callback();
                   });
