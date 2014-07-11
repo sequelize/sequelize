@@ -12,6 +12,8 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - Accesors for models with underscored names are no longer camel cased automatically. For example, if you have a model with name `my_model`, and `my_other_model.hasMany(my_model)`, the getter will now be `instance_of_my_model.getMy_model` instead of `.getMyModel`. 
 - Removed support for setting sequelize.language. If your model names are not in english, use the name option provided by `sequelize.name` to defined singular and plural forms for your model.
 - Model names are now used more verbatim in associations. This means that if you have a model named `Task` (plural T), or an association specifying `{ as: 'Task' }`, the tasks will be returned as `relatedModel.Tasks` instead of `relatedModel.tasks`. For more information and how to mitigate this, see https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0#inflection-replaces-lingo-and-changes-to-naming-conventions
+- Removed the freezeAssociations option - use model and assocation names instead to provide the plural form yourself
+- Removed sequelize.language option (not supported by inflection)
 
 # v2.0.0-dev12
 - [FEATURE] You can now return a promise to a hook rather than use a callback
