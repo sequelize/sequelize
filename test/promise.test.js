@@ -236,13 +236,13 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
                           return page
                             .updateAttributes({ content: 'something totally different' })
                             .then(function (page) {
-                              expect(leBook.pages[0].content).to.equal('om nom nom')
+                              expect(leBook.Pages[0].content).to.equal('om nom nom')
                               expect(page.content).to.equal('something totally different')
 
                               return leBook
                                 .reload()
                                 .then(function (leBook) {
-                                  expect(leBook.pages[0].content).to.equal('something totally different')
+                                  expect(leBook.Pages[0].content).to.equal('something totally different')
                                   expect(page.content).to.equal('something totally different')
                                   done()
                                 })

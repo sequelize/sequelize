@@ -598,8 +598,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }).complete(function(err, tasks) {
             expect(err).to.be.null
             expect(tasks).to.exist
-            expect(tasks[0].worker).to.exist
-            expect(tasks[0].worker.name).to.equal('worker')
+            expect(tasks[0].Worker).to.exist
+            expect(tasks[0].Worker.name).to.equal('worker')
             done()
           })
         })
@@ -642,8 +642,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }).complete(function(err, workers) {
             expect(err).to.be.null
             expect(workers).to.exist
-            expect(workers[0].taskHasOne).to.exist
-            expect(workers[0].taskHasOne.title).to.equal('homework')
+            expect(workers[0].TaskHasOne).to.exist
+            expect(workers[0].TaskHasOne.title).to.equal('homework')
             done()
           })
         })
@@ -695,8 +695,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }).complete(function(err, workers) {
             expect(err).to.be.null
             expect(workers).to.exist
-            expect(workers[0].toDo).to.exist
-            expect(workers[0].toDo.title).to.equal('homework')
+            expect(workers[0].ToDo).to.exist
+            expect(workers[0].ToDo.title).to.equal('homework')
             done()
           })
         })
@@ -706,7 +706,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             where:   { name: 'worker' },
             include: [ { model: this.Task, as: 'ToDo' } ]
           }).complete(function(err, workers) {
-            expect(workers[0].toDo.title).to.equal('homework')
+            expect(workers[0].ToDo.title).to.equal('homework')
             done()
           })
         })
@@ -715,8 +715,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       describe('hasMany', function() {
         beforeEach(function(done) {
           var self = this
-          self.Task     = self.sequelize.define('Task', { title: Sequelize.STRING })
-          self.Worker   = self.sequelize.define('Worker', { name: Sequelize.STRING })
+          self.Task     = self.sequelize.define('task', { title: Sequelize.STRING })
+          self.Worker   = self.sequelize.define('worker', { name: Sequelize.STRING })
           self.Worker.hasMany(self.Task)
 
           self.Worker.sync({ force: true }).success(function() {
@@ -739,7 +739,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           var self = this
           expect(function() {
             self.Task.findAll({ include: [ self.Worker ] })
-          }).to.throw(Error, 'Worker is not associated to Task!')
+          }).to.throw(Error, 'worker is not associated to task!')
           done()
         })
 
@@ -803,8 +803,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }).complete(function(err, workers) {
             expect(err).to.be.null
             expect(workers).to.exist
-            expect(workers[0].toDos).to.exist
-            expect(workers[0].toDos[0].title).to.equal('homework')
+            expect(workers[0].ToDos).to.exist
+            expect(workers[0].ToDos[0].title).to.equal('homework')
             done()
           })
         })
@@ -814,7 +814,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             where:   { name: 'worker' },
             include: [ { daoFactory: this.Task, as: 'ToDos' } ]
           }).complete(function(err, workers) {
-            expect(workers[0].toDos[0].title).to.equal('homework')
+            expect(workers[0].ToDos[0].title).to.equal('homework')
             done()
           })
         })
@@ -865,10 +865,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         beforeEach(function(done) {
           var self = this
 
-          self.Continent = this.sequelize.define('Continent', { name: Sequelize.STRING })
-          self.Country = this.sequelize.define('Country', { name: Sequelize.STRING })
-          self.Industry = this.sequelize.define('Industry', { name: Sequelize.STRING })
-          self.Person = this.sequelize.define('Person', { name: Sequelize.STRING, lastName: Sequelize.STRING })
+          self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING })
+          self.Country = this.sequelize.define('country', { name: Sequelize.STRING })
+          self.Industry = this.sequelize.define('industry', { name: Sequelize.STRING })
+          self.Person = this.sequelize.define('person', { name: Sequelize.STRING, lastName: Sequelize.STRING })
 
           self.Continent.hasMany(self.Country)
           self.Country.belongsTo(self.Continent)
@@ -876,7 +876,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           self.Industry.hasMany(self.Country)
           self.Country.hasMany(self.Person)
           self.Person.belongsTo(self.Country)
-          self.Country.hasMany(self.Person, { as: 'Residents', foreignKey: 'CountryResidentId' })
+          self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' })
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' })
 
           this.sequelize.sync({ force: true }).success(function () {
@@ -902,7 +902,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 done()
               })
             })
-          })  
+          })
         })
 
         it('includes all associations', function(done) {
@@ -912,7 +912,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(countries[0]).to.exist
             expect(countries[0].continent).to.exist
             expect(countries[0].industries).to.exist
-            expect(countries[0].persons).to.exist
+            expect(countries[0].people).to.exist
             expect(countries[0].residents).to.exist
             done()
           })
@@ -925,7 +925,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(countries[0]).to.exist
             expect(countries[0].continent).to.exist
             expect(countries[0].industries).not.to.exist
-            expect(countries[0].persons).not.to.exist
+            expect(countries[0].people).not.to.exist
             expect(countries[0].residents).not.to.exist
             done()
           })
@@ -937,10 +937,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(countries).to.exist
             expect(countries[0]).to.exist
             expect(countries[0].industries).to.exist
-            expect(countries[0].persons).to.exist
-            expect(countries[0].persons[0]).to.exist
-            expect(countries[0].persons[0].name).not.to.be.undefined
-            expect(countries[0].persons[0].lastName).to.be.undefined
+            expect(countries[0].people).to.exist
+            expect(countries[0].people[0]).to.exist
+            expect(countries[0].people[0].name).not.to.be.undefined
+            expect(countries[0].people[0].lastName).to.be.undefined
             expect(countries[0].residents).to.exist
             expect(countries[0].residents[0]).to.exist
             expect(countries[0].residents[0].name).not.to.be.undefined
@@ -968,7 +968,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(continents[0].countries).to.exist
             expect(continents[0].countries[0]).to.exist
             expect(continents[0].countries[0].industries).to.exist
-            expect(continents[0].countries[0].persons).to.exist
+            expect(continents[0].countries[0].people).to.exist
             expect(continents[0].countries[0].residents).to.exist
             expect(continents[0].countries[0].continent).not.to.exist
             done()
@@ -982,15 +982,15 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         beforeEach(function(done) {
           var self = this
 
-          self.Continent = this.sequelize.define('Continent', { name: Sequelize.STRING })
-          self.Country = this.sequelize.define('Country', { name: Sequelize.STRING })
-          self.Person = this.sequelize.define('Person', { name: Sequelize.STRING, lastName: Sequelize.STRING })
+          self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING })
+          self.Country = this.sequelize.define('country', { name: Sequelize.STRING })
+          self.Person = this.sequelize.define('person', { name: Sequelize.STRING, lastName: Sequelize.STRING })
 
           self.Continent.hasMany(self.Country)
           self.Country.belongsTo(self.Continent)
           self.Country.hasMany(self.Person)
           self.Person.belongsTo(self.Country)
-          self.Country.hasMany(self.Person, { as: 'Residents', foreignKey: 'CountryResidentId' })
+          self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' })
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' })
 
           this.sequelize.sync({ force: true }).success(function () {
@@ -1081,9 +1081,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               expect(continents[0].countries).to.exist
               expect(continents[0].countries[0]).to.exist
               expect(continents[0].countries[0].name).to.equal(params[2])
-              expect(continents[0].countries[0].persons).to.exist
-              expect(continents[0].countries[0].persons[0]).to.exist
-              expect(continents[0].countries[0].persons[0].name).to.equal(params[3])
+              expect(continents[0].countries[0].people).to.exist
+              expect(continents[0].countries[0].people[0]).to.exist
+              expect(continents[0].countries[0].people[0].name).to.equal(params[3])
               callback()
             })
           }, function() {done()})
@@ -1093,8 +1093,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           var self = this
           async.forEach([ [ 'ASC', 'Europe', 'France', 'Fred' ], [ 'DESC', 'Europe', 'England', 'Kim' ] ], function(params, callback) {
             self.Continent.findAll({
-              include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'Residents' } ] } ],
-              order: [ [ self.Country, {model: self.Person, as: 'Residents' }, 'lastName', params[0] ] ]
+              include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'residents' } ] } ],
+              order: [ [ self.Country, {model: self.Person, as: 'residents' }, 'lastName', params[0] ] ]
             }).done(function(err, continents) {
               expect(err).not.to.be.ok
               expect(continents).to.exist
@@ -1115,8 +1115,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           var self = this
           async.forEach([ [ 'ASC', 'Europe', 'France', 'Fred' ], [ 'DESC', 'Europe', 'England', 'Kim' ] ], function(params, callback) {
             self.Continent.findAll({
-              include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'Residents' } ] } ],
-              order: [ [ { model: self.Country }, {model: self.Person, as: 'Residents' }, 'lastName', params[0] ] ],
+              include: [ { model: self.Country, include: [ self.Person, {model: self.Person, as: 'residents' } ] } ],
+              order: [ [ { model: self.Country }, {model: self.Person, as: 'residents' }, 'lastName', params[0] ] ],
               limit: 3
             }).done(function(err, continents) {
               expect(err).not.to.be.ok
@@ -1139,8 +1139,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         beforeEach(function(done) {
           var self = this
 
-          self.Country = this.sequelize.define('Country', { name: Sequelize.STRING })
-          self.Industry = this.sequelize.define('Industry', { name: Sequelize.STRING })
+          self.Country = this.sequelize.define('country', { name: Sequelize.STRING })
+          self.Industry = this.sequelize.define('industry', { name: Sequelize.STRING })
           self.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: Sequelize.INTEGER })
 
           self.Country.hasMany(self.Industry, {through: self.IndustryCountry})
@@ -1199,7 +1199,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             self.Country.findAll({
               include: [ self.Industry ],
               order: [
-                [ self.Industry, 'name', params[0] ] 
+                [ self.Industry, 'name', params[0] ]
               ],
               limit: 3
             }).done(function(err, countries) {
@@ -1448,7 +1448,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       this.sequelize.sync().done(function (err) {
         expect(err).not.be.ok
-          
+
         // Add some data
         Citizen.create({ name: 'Alice' }).done(function (err, alice) {
           expect(err).not.be.ok
@@ -1460,7 +1460,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 expect(err).not.be.ok
                 election.setVoters([alice, bob]).done(function (err) {
                   expect(err).not.be.ok
-                  
+
                   var criteria = {
                     offset: 5,
                     limit: 1,

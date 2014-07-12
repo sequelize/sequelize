@@ -93,8 +93,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]
           }).done(function (err, task) {
             expect(err).not.to.be.ok
-            expect(task.user).to.be.ok
-            expect(task.user.group).to.be.ok
+            expect(task.User).to.be.ok
+            expect(task.User.Group).to.be.ok
             done()
           })
         })
@@ -139,8 +139,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]
           }).done(function (err, task) {
             expect(err).not.to.be.ok
-            expect(task.user).to.be.ok
-            expect(task.group).to.be.ok
+            expect(task.User).to.be.ok
+            expect(task.Group).to.be.ok
             done()
           })
         })
@@ -186,8 +186,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]
           }).done(function (err, group) {
             expect(err).not.to.be.ok
-            expect(group.user).to.be.ok
-            expect(group.user.task).to.be.ok
+            expect(group.User).to.be.ok
+            expect(group.User.Task).to.be.ok
             done()
           })
         })
@@ -237,11 +237,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]
           }).done(function (err, user) {
             expect(err).not.to.be.ok
-            expect(user.tasks).to.be.ok
-            expect(user.tasks.length).to.equal(4)
+            expect(user.Tasks).to.be.ok
+            expect(user.Tasks.length).to.equal(4)
 
-            user.tasks.forEach(function (task) {
-              expect(task.project).to.be.ok
+            user.Tasks.forEach(function (task) {
+              expect(task.Project).to.be.ok
             })
 
             done()
@@ -294,9 +294,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]
           }).done(function (err, worker) {
             expect(err).not.to.be.ok
-            expect(worker.project).to.be.ok
-            expect(worker.project.tasks).to.be.ok
-            expect(worker.project.tasks.length).to.equal(4)
+            expect(worker.Project).to.be.ok
+            expect(worker.Project.Tasks).to.be.ok
+            expect(worker.Project.Tasks.length).to.equal(4)
 
             done()
           })
@@ -372,11 +372,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           }).done(function (err, user) {
             expect(err).not.to.be.ok
 
-            expect(user.products.length).to.equal(4)
-            expect(user.products[0].tags.length).to.equal(2)
-            expect(user.products[1].tags.length).to.equal(1)
-            expect(user.products[2].tags.length).to.equal(3)
-            expect(user.products[3].tags.length).to.equal(0)
+            expect(user.Products.length).to.equal(4)
+            expect(user.Products[0].Tags.length).to.equal(2)
+            expect(user.Products[1].Tags.length).to.equal(1)
+            expect(user.Products[2].Tags.length).to.equal(3)
+            expect(user.Products[3].Tags.length).to.equal(0)
             done()
           })
         })
@@ -514,22 +514,22 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               ]}
             ]
           }).done(function (err, user) {
-            user.memberships.sort(sortById)
-            expect(user.memberships.length).to.equal(2)
-            expect(user.memberships[0].group.name).to.equal('Developers')
-            expect(user.memberships[0].rank.canRemove).to.equal(1)
-            expect(user.memberships[1].group.name).to.equal('Designers')
-            expect(user.memberships[1].rank.canRemove).to.equal(0)
+            user.Memberships.sort(sortById)
+            expect(user.Memberships.length).to.equal(2)
+            expect(user.Memberships[0].Group.name).to.equal('Developers')
+            expect(user.Memberships[0].Rank.canRemove).to.equal(1)
+            expect(user.Memberships[1].Group.name).to.equal('Designers')
+            expect(user.Memberships[1].Rank.canRemove).to.equal(0)
 
-            user.products.sort(sortById)
-            expect(user.products.length).to.equal(2)
-            expect(user.products[0].tags.length).to.equal(2)
-            expect(user.products[1].tags.length).to.equal(1)
-            expect(user.products[0].category).to.be.ok
-            expect(user.products[1].category).not.to.be.ok
+            user.Products.sort(sortById)
+            expect(user.Products.length).to.equal(2)
+            expect(user.Products[0].Tags.length).to.equal(2)
+            expect(user.Products[1].Tags.length).to.equal(1)
+            expect(user.Products[0].Category).to.be.ok
+            expect(user.Products[1].Category).not.to.be.ok
 
-            expect(user.products[0].prices.length).to.equal(2)
-            expect(user.products[1].prices.length).to.equal(4)
+            expect(user.Products[0].Prices.length).to.equal(2)
+            expect(user.Products[1].Prices.length).to.equal(4)
 
             done()
           })
@@ -564,10 +564,10 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               }).done(function(err, tasks) {
                 expect(err).not.to.be.ok
                 expect(tasks[0].title).to.equal('FooBar')
-                expect(tasks[0].project.title).to.equal('BarFoo');
+                expect(tasks[0].Project.title).to.equal('BarFoo');
 
-                expect(_.omit(tasks[0].get(), 'project')).to.deep.equal({ title: 'FooBar' })
-                expect(tasks[0].project.get()).to.deep.equal({ title: 'BarFoo'})
+                expect(_.omit(tasks[0].get(), 'Project')).to.deep.equal({ title: 'FooBar' })
+                expect(tasks[0].Project.get()).to.deep.equal({ title: 'BarFoo'})
 
                 done()
               })
@@ -583,7 +583,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         someProperty: Sequelize.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
         comment_title: Sequelize.STRING
       });
-       
+
       Post.hasMany(PostComment);
 
       return this.sequelize.sync({ force: true }).then(function () {
@@ -606,9 +606,9 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           ]
         })
       }).then(function (posts) {
-        expect(posts[0].postComments[0].get('someProperty')).to.be.ok;
-        expect(posts[0].postComments[0].get('someProperty2')).to.be.ok;
-        expect(posts[0].postComments[0].get('commentTitle')).to.equal('WAT');
+        expect(posts[0].PostComments[0].get('someProperty')).to.be.ok;
+        expect(posts[0].PostComments[0].get('someProperty2')).to.be.ok;
+        expect(posts[0].PostComments[0].get('commentTitle')).to.equal('WAT');
       });
     });
 
@@ -638,7 +638,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 include: [{model: Group, as: 'OutsourcingCompanies'}]
               }).done(function (err, group) {
                 expect(err).not.to.be.ok
-                expect(group.outsourcingCompanies.length).to.equal(3)
+                expect(group.OutsourcingCompanies.length).to.equal(3)
                 done()
               })
             })
@@ -665,12 +665,12 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               User.find({
                 where: {
                   id: user.id
-                }, 
+                },
                 include: [Group]
               }).success(function (user) {
                 expect(user.dateField.getTime()).to.equal(Date.UTC(2014, 1, 20))
                 expect(user.groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20))
-                
+
                 done()
               })
             })
@@ -713,8 +713,8 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                     }]
                   }).success(function (groups) {
                     expect(groups.length).to.equal(1)
-                    expect(groups[0].members[0].name).to.equal('Member')
-                    
+                    expect(groups[0].Members[0].name).to.equal('Member')
+
                     done()
                   })
                 })
@@ -771,11 +771,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(err).not.to.be.ok
 
             expect(result.length).to.eql(1)
-            expect(result[0].item.test).to.eql('def')
+            expect(result[0].Item.test).to.eql('def')
             done()
           })
         })
-      }) 
+      })
     })
 
     it('should support Sequelize.or()', function (done) {
@@ -826,7 +826,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             done()
           })
         })
-      }) 
+      })
     })
   })
 
@@ -876,11 +876,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             expect(result.count).to.eql(1)
 
             expect(result.rows.length).to.eql(1)
-            expect(result.rows[0].item.test).to.eql('def')
+            expect(result.rows[0].Item.test).to.eql('def')
             done()
           })
         })
-      }) 
+      })
     })
   })
 })

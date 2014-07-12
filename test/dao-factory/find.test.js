@@ -350,8 +350,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 }).complete(function(err, task) {
                   expect(err).to.be.null
                   expect(task).to.exist
-                  expect(task.worker).to.exist
-                  expect(task.worker.name).to.equal('worker')
+                  expect(task.Worker).to.exist
+                  expect(task.Worker.name).to.equal('worker')
                   done()
                 })
               })
@@ -382,10 +382,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                         }).complete(function(err, environment) {
                           expect(err).to.be.null
                           expect(environment).to.exist
-                          expect(environment.privateDomain).to.exist
-                          expect(environment.privateDomain.ip).to.equal('192.168.0.1')
-                          expect(environment.publicDomain).to.exist
-                          expect(environment.publicDomain.ip).to.equal('91.65.189.19')
+                          expect(environment.PrivateDomain).to.exist
+                          expect(environment.PrivateDomain.ip).to.equal('192.168.0.1')
+                          expect(environment.PublicDomain).to.exist
+                          expect(environment.PublicDomain.ip).to.equal('91.65.189.19')
                           done()
                         })
                       })
@@ -415,7 +415,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
           self.sequelize.sync({ force: true }).success(function() {
             self.Group.create({ name: 'people' }).success(function() {
-              self.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' }).success(function() {  
+              self.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' }).success(function() {
                 self.User.find({
                   where: {
                     username: 'someone'
@@ -425,7 +425,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   expect(err).to.be.null
                   expect(someUser).to.exist
                   expect(someUser.username).to.equal('someone')
-                  expect(someUser.groupPKeagerbelong.name).to.equal('people')
+                  expect(someUser.GroupPKeagerbelong.name).to.equal('people')
                   done()
                 })
               })
@@ -465,10 +465,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     expect(messages.length).to.equal(2);
 
                     expect(messages[0].message).to.equal('hi there!');
-                    expect(messages[0].user.username).to.equal('test_testerson');
+                    expect(messages[0].User.username).to.equal('test_testerson');
 
                     expect(messages[1].message).to.equal('a second message');
-                    expect(messages[1].user.username).to.equal('test_testerson');
+                    expect(messages[1].User.username).to.equal('test_testerson');
 
                     done()
 
@@ -524,8 +524,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }).complete(function(err, worker) {
             expect(err).to.be.null
             expect(worker).to.exist
-            expect(worker.task).to.exist
-            expect(worker.task.title).to.equal('homework')
+            expect(worker.Task).to.exist
+            expect(worker.Task.title).to.equal('homework')
             done()
           })
         })
@@ -558,7 +558,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   expect(err).to.be.null
                   expect(someGroup).to.exist
                   expect(someGroup.name).to.equal('people')
-                  expect(someGroup.userPKeagerone.username).to.equal('someone')
+                  expect(someGroup.UserPKeagerone.username).to.equal('someone')
                   done()
                 })
               })
@@ -602,8 +602,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }).complete(function(err, worker) {
               expect(err).to.be.null
               expect(worker).to.exist
-              expect(worker.toDo).to.exist
-              expect(worker.toDo.title).to.equal('homework')
+              expect(worker.ToDo).to.exist
+              expect(worker.ToDo.title).to.equal('homework')
               done()
             })
           })
@@ -613,7 +613,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               where:   { name: 'worker' },
               include: [ { model: this.Task, as: 'ToDo' } ]
             }).complete(function(err, worker) {
-              expect(worker.toDo.title).to.equal('homework')
+              expect(worker.ToDo.title).to.equal('homework')
               done()
             })
           })
@@ -663,8 +663,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }).complete(function(err, worker) {
             expect(err).to.be.null
             expect(worker).to.exist
-            expect(worker.tasks).to.exist
-            expect(worker.tasks[0].title).to.equal('homework')
+            expect(worker.Tasks).to.exist
+            expect(worker.Tasks[0].title).to.equal('homework')
             done()
           })
         })
@@ -695,8 +695,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                         }).complete(function (err, fetchedContact) {
                           expect(err).to.be.null
                           expect(fetchedContact).to.exist
-                          expect(fetchedContact.photos.length).to.equal(1)
-                          expect(fetchedContact.phoneNumbers.length).to.equal(2)
+                          expect(fetchedContact.Photos.length).to.equal(1)
+                          expect(fetchedContact.PhoneNumbers.length).to.equal(2)
                           done()
                         })
                       })
@@ -739,7 +739,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     expect(err).to.be.null
                     expect(someUser).to.exist
                     expect(someUser.username).to.equal('someone')
-                    expect(someUser.groupPKeagerones[0].name).to.equal('people')
+                    expect(someUser.GroupPKeagerones[0].name).to.equal('people')
                     done()
                   })
                 })
@@ -784,8 +784,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }).complete(function(err, worker) {
               expect(err).to.be.null
               expect(worker).to.exist
-              expect(worker.toDos).to.exist
-              expect(worker.toDos[0].title).to.equal('homework')
+              expect(worker.ToDos).to.exist
+              expect(worker.ToDos[0].title).to.equal('homework')
               done()
             })
           })
@@ -795,7 +795,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               where:   { name: 'worker' },
               include: [ { model: this.Task, as: 'ToDos' } ]
             }).complete(function(err, worker) {
-              expect(worker.toDos[0].title).to.equal('homework')
+              expect(worker.ToDos[0].title).to.equal('homework')
               done()
             })
           })
@@ -830,8 +830,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         it('returns the associated models when using through as string and alias', function (done) {
           var self = this
 
-          this.Product.hasMany(this.Tag, {as: 'Tags', through: 'product_tag'})
-          this.Tag.hasMany(this.Product, {as: 'Products', through: 'product_tag'})
+          this.Product.hasMany(this.Tag, {as: 'tags', through: 'product_tag'})
+          this.Tag.hasMany(this.Product, {as: 'products', through: 'product_tag'})
 
           this.sequelize.sync().done(function () {
             async.auto({
@@ -890,7 +890,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                         id: tags[0].id
                       },
                       include: [
-                        {model: self.Product, as: 'Products'}
+                        {model: self.Product, as: 'products'}
                       ]
                     }).done(function (err, tag) {
                       expect(tag).to.exist
@@ -910,7 +910,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                         id: products[0].id
                       },
                       include: [
-                        {model: self.Tag, as: 'Tags'}
+                        {model: self.Tag, as: 'tags'}
                       ]
                     }).done(function (err, product) {
                       expect(product).to.exist
