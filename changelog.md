@@ -3,6 +3,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 # Next
 - [FEATURE] Added to option of setting a timezone offset in the sequelize constructor (`timezone` option). This timezone is used when initializing a connection (using `SET TIME ZONE` or equivalent), and when converting a timestamp string from the DB to a JS date with mysql (postgres stores the timezone, so for postgres we rely on what's in the DB).
 - [FEATURE] Allow setting plural and singular name on the model (`options.name` in `sequelize.define`) and in associations (`options.as`) to circumvent issues with weird pluralization.
+- [BUG] Fixed problems with transcation parameter being removed / not passed on in associations [#1789](https://github.com/sequelize/sequelize/issues/1789) and [#1968](https://github.com/sequelize/sequelize/issues/1968)
 - [INTERNALS] Replaced lingo with inflection
 - [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
 
