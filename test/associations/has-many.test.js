@@ -1118,6 +1118,47 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         });
       });
 
+      it('supports transactions when updating a through model', function() {
+        return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+          this.User = sequelize.define('User', { username: DataTypes.STRING });
+          this.Task = sequelize.define('Task', { title: DataTypes.STRING });
+
+          this.UserTask = sequelize.define('UserTask', {
+            status: Sequelize.STRING
+          });
+
+          this.User.hasMany(this.Task, { through: this.UserTask });
+          this.Task.hasMany(this.User, { through: this.UserTask });
+
+          this.sequelize = sequelize;
+          return sequelize.sync({ force: true });
+        }).then(function() {
+          return Promise.all([
+            this.User.create({ username: 'foo' }),
+            this.Task.create({ title: 'task' }),
+            this.sequelize.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED })
+          ]);
+        }).spread(function(user, task, t){
+          this.task = task;
+          this.user = user;
+          this.t = t;
+          return task.addUser(user, { status: 'pending' }); // Create without transaction, so the old value is accesible from outside the transaction
+        }).then(function() {
+          return this.task.addUser(this.user, { transaction: this.t, status: 'completed' }); // Add an already exisiting user in a transaction, updating a value in the join table
+        }).then(function(hasUser) {
+          return Promise.all([
+            this.user.getTasks(),
+            this.user.getTasks({ transaction: this.t })
+          ]);
+        }).spread(function(tasks, transactionTasks) {
+          expect(tasks[0].UserTask.status).to.equal('pending');
+          expect(transactionTasks[0].UserTask.status).to.equal('completed');
+
+          return this.t.rollback();
+        });
+      });
+
+
       it('supports passing the primary key instead of an object', function () {
         var User = this.sequelize.define('User', { username: DataTypes.STRING })
           , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
