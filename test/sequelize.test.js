@@ -906,7 +906,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
       it('supports nested transactions using savepoints', function(done) {
         var self = this
-        var User = this.sequelize.define('Users', { username: DataTypes.STRING })
+        var User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING })
 
         User.sync({ force: true }).success(function() {
           self.sequelizeWithTransaction.transaction().then(function(t1) {
@@ -994,7 +994,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
       it('supports rolling back a nested transaction', function(done) {
         var self = this
-        var User = this.sequelize.define('Users', { username: DataTypes.STRING })
+        var User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING })
 
         User.sync({ force: true }).success(function() {
           self.sequelizeWithTransaction.transaction().then(function(t1) {
@@ -1019,7 +1019,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
       it('supports rolling back outermost transaction', function(done) {
         var self = this
-        var User = this.sequelize.define('Users', { username: DataTypes.STRING })
+        var User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING })
 
         User.sync({ force: true }).success(function() {
           self.sequelizeWithTransaction.transaction().then(function(t1) {

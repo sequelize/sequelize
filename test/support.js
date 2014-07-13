@@ -38,14 +38,25 @@ var Support = {
     var dialect = Support.getTestDialect();
 
     if (dialect === 'sqlite') {
-      var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: path.join(__dirname, 'tmp', 'db.sqlite') })
-        , _sequelize = new Sequelize(sequelize.config.database, null, null, options);
+      var p = path.join(__dirname, 'tmp', 'db.sqlite');
 
-      if (callback) {
-        _sequelize.sync({ force: true }).success(function() { callback(_sequelize); });
-      } else {
-        return _sequelize.sync({ force: true }).return(_sequelize);
-      }
+      return new Sequelize.Promise(function (resolve, reject) {
+        // We cannot promisify exists, since exists does not follow node callback convention - first argument is a boolean, not an error / null
+        if (fs.existsSync(p)) {
+          resolve(Sequelize.Promise.promisify(fs.unlink)(p));
+        } else {
+          resolve();
+        }
+      }).then(function () {
+        var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: p })
+          , _sequelize = new Sequelize(sequelize.config.database, null, null, options);
+
+        if (callback) {
+          _sequelize.sync({ force: true }).success(function() { callback(_sequelize); });
+        } else {
+          return _sequelize.sync({ force: true }).return(_sequelize);
+        }
+      });
     } else {
       if (callback) {
         callback(sequelize);

@@ -1129,7 +1129,6 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
           this.User.hasMany(this.Task, { through: this.UserTask });
           this.Task.hasMany(this.User, { through: this.UserTask });
-
           this.sequelize = sequelize;
           return sequelize.sync({ force: true });
         }).then(function() {
