@@ -21,9 +21,7 @@
   "sub":true,
 
   /* questionable */
-  "shadow":true,
   "loopfunc":true,
-  "evil":true,
 
   "predef": [
     "alert",
