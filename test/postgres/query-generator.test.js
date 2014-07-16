@@ -771,6 +771,9 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', undefined, {truncate: true}],
           expectation: "TRUNCATE \"myTable\""
         }, {
+          arguments: ['myTable', undefined, {truncate: true, cascade: true}],
+          expectation: "TRUNCATE \"myTable\" CASCADE"
+        }, {
           arguments: ['myTable', 1, {limit: 10, truncate: true}],
           expectation: "TRUNCATE \"myTable\""
         }, {
