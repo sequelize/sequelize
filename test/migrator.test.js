@@ -107,6 +107,21 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         })
       })
     })
+
+    it("returns pending migrations", function(done) {
+      this.init(undefined, function(migrator, SequelizeMeta) {
+        SequelizeMeta.create({ from: 20111117063700, to: 20111117063700 }).success(function() {
+          SequelizeMeta.create({ from: 20111117063700, to: 20130909185621 }).success(function() {
+            migrator.getUndoneMigrations(function(err, migrations) {
+              expect(err).to.be.null
+              expect(migrations).to.have.length(14)
+              expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
+              done()
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('migrations', function() {
