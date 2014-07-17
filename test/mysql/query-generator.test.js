@@ -1,3 +1,5 @@
+"use strict";
+
 /* jshint camelcase: false */
 var chai      = require('chai')
   , expect    = chai.expect
@@ -186,7 +188,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', function (sequelize) {
             return {
               order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']]
-            }
+            };
           }],
           expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;",
           context: QueryGenerator,
@@ -199,7 +201,7 @@ if (Support.dialectIsMySQL()) {
                 [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'],
                 [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
               ]
-            }
+            };
           }],
           expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
           context: QueryGenerator,
@@ -218,7 +220,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', function (sequelize) {
             return {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
-            }
+            };
           }],
           expectation: "SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);",
           context: QueryGenerator,
@@ -228,7 +230,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', function (sequelize) {
             return {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
-            }
+            };
           }],
           expectation: "SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;",
           context: QueryGenerator,
@@ -244,7 +246,7 @@ if (Support.dialectIsMySQL()) {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
               having: ['creationYear > ?', 2002]
-            }
+            };
           }],
           expectation: "SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;",
           context: QueryGenerator,
@@ -256,7 +258,7 @@ if (Support.dialectIsMySQL()) {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
               having: { creationYear: { gt: 2002 } }
-            }
+            };
           }],
           expectation: "SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;",
           context: QueryGenerator,
@@ -353,7 +355,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', function (sequelize) {
             return {
               foo: sequelize.fn('NOW')
-            }
+            };
           }],
           expectation: "INSERT INTO `myTable` (`foo`) VALUES (NOW());",
           needsSequelize: true
@@ -431,7 +433,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', function (sequelize) {
             return {
               bar: sequelize.fn('NOW')
-            }
+            };
           }, {name: 'foo'}],
           expectation: "UPDATE `myTable` SET `bar`=NOW() WHERE `name`='foo'",
           needsSequelize: true
@@ -439,7 +441,7 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', function (sequelize) {
             return {
               bar: sequelize.col('foo')
-            }
+            };
           }, {name: 'foo'}],
           expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name`='foo'",
           needsSequelize: true
@@ -473,27 +475,42 @@ if (Support.dialectIsMySQL()) {
 
       addIndexQuery: [
         {
-          arguments: ['User', ['username', 'isAdmin']],
-          expectation: 'CREATE INDEX user_username_is_admin ON `User` (`username`, `isAdmin`)'
+          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
+          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)'
         }, {
           arguments: [
             'User', [
               { attribute: 'username', length: 10, order: 'ASC'},
               'isAdmin'
-            ]
+            ],
+            {},
+            'User'
           ],
-          expectation: "CREATE INDEX user_username_is_admin ON `User` (`username`(10) ASC, `isAdmin`)"
+          expectation: "CREATE INDEX `user_username_is_admin` ON `User` (`username`(10) ASC, `isAdmin`)"
         }, {
           arguments: [
-            'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}
+            'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}, 'User'
           ],
-          expectation: "CREATE FULLTEXT INDEX bar ON `User` (`username`, `isAdmin`) WITH PARSER foo"
+          expectation: "CREATE FULLTEXT INDEX `bar` ON `User` (`username`, `isAdmin`) WITH PARSER foo"
         }, {
           arguments: [
-            'User', ['username', 'isAdmin'], { indicesType: 'UNIQUE'}
+            'User', ['username', 'isAdmin'], { indicesType: 'UNIQUE'}, 'User'
           ],
-          expectation: "CREATE UNIQUE INDEX user_username_is_admin ON `User` (`username`, `isAdmin`)"
-        }
+          expectation: "CREATE UNIQUE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)"
+        }, {
+          arguments: ['User', ['fieldB', {attribute:'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
+            name: 'a_b_uniq',
+            unique: true,
+            method: 'BTREE'
+          }, 'User'],
+          expectation: 'CREATE UNIQUE INDEX `a_b_uniq` USING BTREE ON `User` (`fieldB`, `fieldA`(5) DESC)'
+        }, {
+          arguments: ['User', ['fieldC'], {
+            type: 'FULLTEXT',
+            concurrently: true
+          }, 'User'],
+          expectation: 'CREATE FULLTEXT INDEX `user_field_c` ON `User` (`fieldC`)'
+        },
       ],
 
       showIndexQuery: [
@@ -547,26 +564,25 @@ if (Support.dialectIsMySQL()) {
           expectation: "`birthday` IN ('2011-07-01 10:01:55','2013-07-02 10:01:22')"
         }
       ]
-    }
+    };
 
     _.each(suites, function(tests, suiteTitle) {
       describe(suiteTitle, function() {
         tests.forEach(function(test) {
-          var title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments)
-          it(title, function(done) {
+          var title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+          it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
             if (test.needsSequelize) {
-              test.arguments[1] = test.arguments[1](this.sequelize)
+              test.arguments[1] = test.arguments[1](this.sequelize);
             }
-            QueryGenerator.options = context.options
-            QueryGenerator._dialect = this.sequelize.dialect
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
-            expect(conditions).to.deep.equal(test.expectation)
-            done()
-          })
-        })
-      })
-    })
-  })
+            QueryGenerator.options = context.options;
+            QueryGenerator._dialect = this.sequelize.dialect;
+            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            expect(conditions).to.deep.equal(test.expectation);
+          });
+        });
+      });
+    });
+  });
 }
