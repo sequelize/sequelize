@@ -971,32 +971,25 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             ])
           }).then(function () {
             return Promise.all([
-              this.Tag.find({
+              expect(this.Tag.find({
                 where: {
                   id: this.tags[0].id
                 },
                 include: [
                   {model: this.Product, as: 'products'}
                 ]
-              }),
-              this.Product.find({
+              })).to.eventually.have.property('products').to.have.length(2),
+              expect(this.Product.find({
                 where: {
                   id: this.products[0].id
                 },
                 include: [
                   {model: this.Tag, as: 'tags'}
                 ]
-              }),
+              })).to.eventually.have.property('tags').to.have.length(2),
               expect(this.tags[1].getProducts()).to.eventually.have.length(3),
               expect(this.products[1].getTags()).to.eventually.have.length(1),
-            ])
-
-          }).spread(function (tag, product) {
-            expect(tag).to.exist;
-            expect(tag.products.length).to.equal(2);
-
-            expect(product).to.exist;
-            expect(product.tags.length).to.equal(2);
+            ]);
           });
         })
       })
