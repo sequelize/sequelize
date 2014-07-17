@@ -2,14 +2,17 @@
 /* jshint expr: true */
 var chai      = require('chai')
   , Sequelize = require('../../index')
+  , Promise   = Sequelize.Promise
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , config    = require(__dirname + "/../config/config")
   , datetime  = require('chai-datetime')
+  , promised  =  require("chai-as-promised")
   , _         = require('lodash')
   , async     = require('async')
 
+chai.use(promised);
 chai.use(datetime)
 chai.config.includeStack = true
 
@@ -820,11 +823,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
 
       describe('hasMany (N:M) with alias', function () {
-        beforeEach(function (done) {
+        beforeEach(function () {
           this.Product  = this.sequelize.define('Product', { title: Sequelize.STRING })
           this.Tag      = this.sequelize.define('Tag', { name: Sequelize.STRING })
-
-          done();
         })
 
         it('returns the associated models when using through as string and alias', function (done) {
@@ -930,7 +931,74 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
 
-        it('returns the associated models when using through as model and alias')
+        it('returns the associated models when using through as model and alias', function () {
+          // Exactly the same code as the previous test, just with a through model instance, and promisified
+          var ProductTag = this.sequelize.define('product_tag');
+
+          this.Product.hasMany(this.Tag, {as: 'tags', through: ProductTag})
+          this.Tag.hasMany(this.Product, {as: 'products', through: ProductTag})
+
+          return this.sequelize.sync().bind(this).then(function () {
+            return Promise.all([
+              this.Product.bulkCreate([
+                {title: 'Chair'},
+                {title: 'Desk'},
+                {title: 'Handbag'},
+                {title: 'Dress'},
+                {title: 'Jan'}
+              ]),
+              this.Tag.bulkCreate([
+                {name: 'Furniture'},
+                {name: 'Clothing'},
+                {name: 'People'}
+              ])
+            ]);
+          }).then(function () {
+            return Promise.all([
+              this.Product.findAll(),
+              this.Tag.findAll()
+            ])
+          }).spread(function (products, tags) {
+            this.products = products;
+            this.tags = tags;
+
+            return Promise.all([
+              products[0].setTags([tags[0], tags[1]]),
+              products[1].addTag(tags[0]),
+              products[2].addTag(tags[1]),
+              products[3].setTags([tags[1]]),
+              products[4].setTags([tags[2]])
+            ])
+          }).then(function () {
+            return Promise.all([
+              this.Tag.find({
+                where: {
+                  id: this.tags[0].id
+                },
+                include: [
+                  {model: this.Product, as: 'products'}
+                ]
+              }),
+              this.Product.find({
+                where: {
+                  id: this.products[0].id
+                },
+                include: [
+                  {model: this.Tag, as: 'tags'}
+                ]
+              }),
+              expect(this.tags[1].getProducts()).to.eventually.have.length(3),
+              expect(this.products[1].getTags()).to.eventually.have.length(1),
+            ])
+
+          }).spread(function (tag, product) {
+            expect(tag).to.exist;
+            expect(tag.products.length).to.equal(2);
+
+            expect(product).to.exist;
+            expect(product.tags.length).to.equal(2);
+          });
+        })
       })
     })
 

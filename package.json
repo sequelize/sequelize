@@ -52,6 +52,7 @@
     "validator": "~3.2.0"
   },
   "devDependencies": {
+    "chai-as-promised": "^4.1.1",
     "sqlite3": "~2.1.12",
     "mysql": "2.0.1",
     "pg": "~2.8.1",
