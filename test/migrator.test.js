@@ -199,6 +199,38 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
             .error(function(err) { console.log(err) })
         })
       })
+
+      it("executes pending migrations", function(done) {
+        var self = this;
+        var options = {
+          path:    __dirname + '/assets/migrations',
+          to: 20111117063700
+        };
+
+        var migrator = new Migrator(this.sequelize, options)
+
+        migrator
+          .migrate()
+          .success(function() {
+
+            self.init({ to: 20111205064000 }, function(migrator, SequelizeMeta) {
+              SequelizeMeta.create({ from: 20111205064000, to: 20111205064000 }).success(function() {
+                migrator
+                  .migrate()
+                  .success(function() {
+                    SequelizeMeta.findAll().success(function(meta) {
+                      expect(meta.length).to.equal(3);
+                      done();
+                    });
+                  })
+                  .error(function(err) { console.log(err) })
+              })
+            })
+
+          })
+          .error(function(err) { console.log(err) })
+
+      })
     })
 
     describe('renameTable', function() {
