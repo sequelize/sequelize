@@ -26,6 +26,21 @@ var qq = function(str) {
 
 describe(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
+    if (dialect !== 'sqlite') {
+      it('should work with minConnections', function () {
+        var ConnectionManager = require(__dirname + '/../lib/dialects/' + dialect + '/connection-manager.js')
+          , connectionSpy = ConnectionManager.prototype.connect = chai.spy(ConnectionManager.prototype.connect);
+
+        var sequelize = Support.createSequelizeInstance({
+          dialect: dialect,
+          pool: {
+            minConnections: 2
+          }
+        });
+        expect(connectionSpy).to.have.been.called.twice;
+      });
+    }
+
     it('should pass the global options correctly', function(done) {
       var sequelize = Support.createSequelizeInstance({ logging: false, define: { underscored:true } })
         , DAO = sequelize.define('dao', {name: DataTypes.STRING})
