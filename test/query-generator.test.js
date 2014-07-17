@@ -1,23 +1,25 @@
+"use strict";
+
 /* jshint multistr: true */
 var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
   , dialect   = Support.getTestDialect()
-  , _         = require('lodash')
+  , _         = require('lodash');
 
-chai.config.includeStack = true
+chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("QueryGenerators"), function () {
   describe("comments", function() {
-    it("should create a comment for a column", function(done) {
+    it("should create a comment for a column", function() {
       var self = this
         , User = this.sequelize.define('User', {
           username: {type: DataTypes.STRING, comment: 'Some lovely info for my DBA'}
-        })
+        });
 
-      User.sync({ force: true }).success(function() {
-        var sql = ''
+      return User.sync({ force: true }).then(function() {
+        var sql = '';
         if (Support.dialectIsMySQL()) {
           sql = 'SELECT COLUMN_COMMENT as cmt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = \'' + self.sequelize.config.database + '\' AND TABLE_NAME = \'Users\' AND COLUMN_NAME = \'username\'';
         }
@@ -30,19 +32,14 @@ describe(Support.getTestDialectTeaser("QueryGenerators"), function () {
         }
         else if (dialect === "sqlite") {
           // sqlite doesn't support comments except for explicit comments in the file
-          expect(true).to.be.true
-          return done()
-        } else {
-          console.log('FIXME: This dialect is not supported :(');
-          expect(true).to.be.true
-          return done()
+          expect(true).to.be.true;
+          return;
         }
 
-        self.sequelize.query(sql, null, {raw: true}).success(function(result) {
+        return self.sequelize.query(sql, null, {raw: true}).then(function(result) {
           expect(result[0].cmt).to.equal('Some lovely info for my DBA');
-          done()
-        })
-      })
-    })
-  })
-})
+        });
+      });
+    });
+  });
+});

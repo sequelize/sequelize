@@ -836,12 +836,12 @@ if (dialect.match(/^postgres/)) {
               'isAdmin'
             ]
           ],
-          expectation: "CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\"(10) ASC, \"isAdmin\")"
+          expectation: "CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\" ASC, \"isAdmin\")"
         }, {
           arguments: [
-            'User', ['username', 'isAdmin'], { indicesType: 'FULLTEXT', indexName: 'bar'}
+            'User', ['username', 'isAdmin'], { indexName: 'bar'}
           ],
-          expectation: "CREATE FULLTEXT INDEX \"bar\" ON \"User\" (\"username\", \"isAdmin\")"
+          expectation: "CREATE INDEX \"bar\" ON \"User\" (\"username\", \"isAdmin\")"
         }, {
           arguments: ['mySchema.User', ['username', 'isAdmin']],
           expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"mySchema\".\"User\" (\"username\", \"isAdmin\")'
@@ -859,13 +859,13 @@ if (dialect.match(/^postgres/)) {
               'isAdmin'
             ]
           ],
-          expectation: "CREATE INDEX user_username_is_admin ON User (username(10) ASC, isAdmin)",
+          expectation: "CREATE INDEX user_username_is_admin ON User (username ASC, isAdmin)",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: [
-            'User', ['username', 'isAdmin'], { indicesType: 'FULLTEXT', indexName: 'bar'}
+            'User', ['username', 'isAdmin'], { indexName: 'bar'}
           ],
-          expectation: "CREATE FULLTEXT INDEX bar ON User (username, isAdmin)",
+          expectation: "CREATE INDEX bar ON User (username, isAdmin)",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['mySchema.User', ['username', 'isAdmin']],

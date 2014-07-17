@@ -340,7 +340,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             name: 'a_b_uniq',
             unique: true,
             method: 'BTREE',
-            fields: ['fieldB', {attribute:'fieldA', collate: 'en_US', order: 'DESC', length: 5}]
+            fields: ['fieldB', {attribute:'fieldA', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
           },
           {
             type: 'FULLTEXT',
@@ -376,12 +376,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           idx2 = arguments[1];
 
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: undefined},
+            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
             { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US'},
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: null}
+            { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined}
           ]);
         } else {
           // And finally mysql returns the primary first, and then the rest in the order they were defined
@@ -400,7 +400,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: null}
+            { attribute: 'fieldC', length: undefined, order: undefined}
           ]);
         }
 
