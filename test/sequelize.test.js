@@ -268,12 +268,27 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
-    it('executes select query and parses dot notation results', function(done) {
+    it('executes select query with dot notation results', function(done) {
       var self = this
       self.sequelize.query('DELETE FROM ' + qq(self.User.tableName)).complete(function() {
         self.sequelize.query(self.insertQuery).success(function() {
           self.sequelize
             .query("select username as " + qq("user.username") + " from " + qq(self.User.tableName) + "")
+            .complete(function(err, users) {
+              expect(err).to.be.null
+              expect(users).to.deep.equal([{'user.username':'john'}])
+              done()
+            })
+        })
+      })
+    })
+
+    it('executes select query with dot notation results and nest it', function(done) {
+      var self = this
+      self.sequelize.query('DELETE FROM ' + qq(self.User.tableName)).complete(function() {
+        self.sequelize.query(self.insertQuery).success(function() {
+          self.sequelize
+            .query("select username as " + qq("user.username") + " from " + qq(self.User.tableName) + "", null, { raw: true, nest: true })
             .complete(function(err, users) {
               expect(err).to.be.null
               expect(users.map(function(u){ return u.user })).to.deep.equal([{'username':'john'}])
@@ -313,11 +328,21 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     })
 
-    it('destructs dot separated attributes when doing a raw query', function(done) {
+    it('dot separated attributes when doing a raw query without nest', function(done) {
       var tickChar = (dialect === 'postgres') ? '"' : '`'
         , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
-      this.sequelize.query(sql, null, { raw: true }).success(function(result) {
+      this.sequelize.query(sql, null, { raw: true, nest: false }).success(function(result) {
+        expect(result).to.deep.equal([ { 'foo.bar.baz': 1 } ])
+        done()
+      })
+    })
+
+    it('destructs dot separated attributes when doing a raw query using nest', function(done) {
+      var tickChar = (dialect === 'postgres') ? '"' : '`'
+        , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
+
+      this.sequelize.query(sql, null, { raw: true, nest: true }).success(function(result) {
         expect(result).to.deep.equal([ { foo: { bar: { baz: 1 } } } ])
         done()
       })
