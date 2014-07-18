@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
       // how could we enforce an authentication error in sqlite?
     } else {
       it("gets triggered once an error occurs", function(done) {
-        var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() });
+        var sequelize = Support.createSequelizeInstance();
 
         // lets overwrite the host to get an error
         sequelize.config.username = 'foobarbaz';

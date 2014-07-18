@@ -16,7 +16,6 @@ if (dialect !== 'sqlite') {
     beforeEach(function () {
       this.sequelizeWithTimezone = Support.createSequelizeInstance({
         timezone: '+07:00',
-        dialect: dialect
       });
     });
 
