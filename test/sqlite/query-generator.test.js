@@ -61,7 +61,7 @@ if (dialect === 'sqlite') {
         },
         {
           arguments: [{id: {type: 'VARCHAR(255)', defaultValue: "string"}}],
-          expectation: {id: 'VARCHAR(255) DEFAULT `string`'}
+          expectation: {id: 'VARCHAR(255) DEFAULT \'string\''}
         },
         {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
