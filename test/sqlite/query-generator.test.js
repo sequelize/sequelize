@@ -52,6 +52,18 @@ if (dialect === 'sqlite') {
           expectation: {id: 'INTEGER DEFAULT 0'}
         },
         {
+          arguments: [{id: {type: 'VARCHAR(255)', defaultValue: null}}],
+          expectation: {id: 'VARCHAR(255)'}
+        },
+        {
+          arguments: [{id: {type: 'VARCHAR(255)', defaultValue: undefined}}],
+          expectation: {id: 'VARCHAR(255)'}
+        },
+        {
+          arguments: [{id: {type: 'VARCHAR(255)', defaultValue: "string"}}],
+          expectation: {id: 'VARCHAR(255) DEFAULT `string`'}
+        },
+        {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },
