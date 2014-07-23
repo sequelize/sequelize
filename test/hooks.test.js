@@ -1883,7 +1883,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         hookCalled++
         next()
       })
- 
+
       B.hasMany(A)
       A.hasMany(B)
 
