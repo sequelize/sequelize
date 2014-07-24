@@ -30,6 +30,20 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
       expect(instError).to.be.instanceOf(Sequelize.Error);
       expect(instValidationError).to.be.instanceOf(Sequelize.ValidationError);
-    })
+    });
+    it('SequelizeValidationError should find errors by path', function() {
+      var errorItems = [
+        new Sequelize.ValidationErrorItem('invalid', 'type', 'first_name', null),
+        new Sequelize.ValidationErrorItem('invalid', 'type', 'last_name', null)
+      ];
+      var validationError = new Sequelize.ValidationError('Validation error', errorItems);
+      expect(validationError).to.have.property('errorsForPath');
+      expect(validationError.errorsForPath).to.be.a('function');
+
+      var matches = validationError.errorsForPath('first_name');
+      expect(matches).to.be.instanceOf(Array);
+      expect(matches).to.have.lengthOf(1);
+      expect(matches[0]).to.have.property('message', 'invalid')
+    });
   })
 });
