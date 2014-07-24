@@ -278,9 +278,9 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         .catch(function(err) {
           expect(err).to.be.ok
           expect(err).to.be.an("object")
-          expect(err.validateTest).to.be.an("array")
-          expect(err.validateTest[0]).to.be.ok
-          expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+          expect(err.errorsForPath('validateTest')).to.be.an("array")
+          expect(err.errorsForPath('validateTest')[0]).to.be.ok
+          expect(err.errorsForPath('validateTest')[0].message).to.equal('Validation isInt failed')
           done()
         });
     })
@@ -290,10 +290,10 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         .catch(function(err) {
           expect(err).to.be.ok
           expect(err).to.be.an("object")
-          expect(err.validateCustom).to.be.ok
-          expect(err.validateCustom).to.be.an("array")
-          expect(err.validateCustom[0]).to.be.ok
-          expect(err.validateCustom[0].message).to.equal('Length failed.')
+          expect(err.errorsForPath('validateCustom')).to.be.ok
+          expect(err.errorsForPath('validateCustom')).to.be.an("array")
+          expect(err.errorsForPath('validateCustom')[0]).to.be.ok
+          expect(err.errorsForPath('validateCustom')[0].message).to.equal('Length failed.')
           done()
         })
     })
@@ -304,10 +304,10 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       }).catch(function(err) {
         expect(err).to.be.ok
         expect(err).to.be.an("object")
-        expect(err.validateTest).to.be.ok
-        expect(err.validateTest).to.be.an("array")
-        expect(err.validateTest[0]).to.be.ok
-        expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+        expect(err.errorsForPath('validateTest')).to.be.ok
+        expect(err.errorsForPath('validateTest')).to.be.an("array")
+        expect(err.errorsForPath('validateTest')[0]).to.be.ok
+        expect(err.errorsForPath('validateTest')[0].message).to.equal('Validation isInt failed')
         done()
       })
     })

@@ -482,7 +482,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('should return an error based on user', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
+                  expect(err.errorsForPath('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
                   done()
                 })
               })
@@ -519,7 +519,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('should return an error based on the hook', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
+                  expect(err.errorsForPath('mood')[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
                   done()
                 })
               })
@@ -570,7 +570,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('should return an error based on user', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
+                  expect(err.errorsForPath('mood')[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
                   done()
                 })
               })
@@ -619,7 +619,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('should return an error based on the hook', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
+                  expect(err.errorsForPath('mood')[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
                   done()
                 })
               })
@@ -716,7 +716,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 it('should return the user from the callback', function(done) {
                   this.User.create({mood: 'happy'}).error(function(err) {
                     expect(err).to.be.instanceOf(Error);
-                    expect(err.mood[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
+                    expect(err.errorsForPath('mood')[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
                     done()
                   })
                 })
@@ -738,7 +738,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 it('should return the error without the user within callback', function(done) {
                   this.User.create({mood: 'happy'}).error(function(err) {
                     expect(err).to.be.instanceOf(Error);
-                    expect(err.mood[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
+                    expect(err.errorsForPath('mood')[0].message).to.equal( 'Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral' )
                     done()
                   })
                 })
@@ -853,7 +853,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('#create', function(done) {
                 this.User.create({mood: 'creative'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
+                  expect(err.errorsForPath('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
                   done()
                 })
               })
@@ -877,7 +877,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('#create', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
+                  expect(err.errorsForPath('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
                   done()
                 })
               })
@@ -958,7 +958,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
               this.User.create({mood: 'happy'}).error(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                expect(err.mood[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
+                expect(err.errorsForPath('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
                 done()
               })
             })
@@ -972,7 +972,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
               this.User.create({mood: 'happy'}).error(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                expect(err.mood[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
+                expect(err.errorsForPath('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
                 done()
               })
             })
@@ -1079,7 +1079,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('#create', function(done) {
                 this.User.create({mood: 'creative'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
+                  expect(err.errorsForPath('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
                   done()
                 })
               })
@@ -1103,7 +1103,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
               it('#create', function(done) {
                 this.User.create({mood: 'happy'}).error(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  expect(err.mood[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
+                  expect(err.errorsForPath('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral')
                   done()
                 })
               })
