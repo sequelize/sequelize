@@ -25,11 +25,17 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var instValidationError = new sequelize.ValidationError();
 
       expect(error).to.be.instanceOf(Sequelize.Error);
+      expect(error).to.be.instanceOf(Error);
       expect(error).to.have.property('name', 'SequelizeBaseError');
+
       expect(validationError).to.be.instanceOf(Sequelize.ValidationError);
+      expect(validationError).to.be.instanceOf(Error);
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
+      
       expect(instError).to.be.instanceOf(Sequelize.Error);
+      expect(instError).to.be.instanceOf(Error);
       expect(instValidationError).to.be.instanceOf(Sequelize.ValidationError);
+      expect(instValidationError).to.be.instanceOf(Error);
     });
     it('SequelizeValidationError should find errors by path', function() {
       var errorItems = [
