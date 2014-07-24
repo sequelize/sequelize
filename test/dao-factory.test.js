@@ -958,6 +958,38 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    describe('can find paranoid records if paranoid is marked as false in query', function() {
+      it('with the DAOFactory', function() {
+        var User = this.sequelize.define('UserCol', {
+          username: Sequelize.STRING
+        }, { paranoid: true })
+
+        return User.sync({ force: true })
+          .success(function() {
+            return User.bulkCreate([
+              {username: 'Toni'},
+              {username: 'Tobi'},
+              {username: 'Max'}
+            ]);
+          })
+          .success(function() { return User.find(1) })
+          .success(function(user) { return user.destroy() })
+          .success(function() { return User.find({ where: 1, paranoid: false }) })
+          .success(function(user) {
+            expect(user).to.exist
+            return User.find(1)
+          })
+          .success(function(user) {
+            expect(user).to.be.null
+            return [User.count(), User.count({ paranoid: false })]
+          })
+          .spread(function(cnt, cntWithDeleted) {
+            expect(cnt).to.equal(2)
+            expect(cntWithDeleted).to.equal(3)
+          })
+      })
+    })
+
     it('should delete a paranoid record if I set force to true', function(done) {
       var self = this
       var User = this.sequelize.define('paranoiduser', {
