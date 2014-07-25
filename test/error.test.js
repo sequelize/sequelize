@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       expect(validationError).to.be.instanceOf(Sequelize.ValidationError);
       expect(validationError).to.be.instanceOf(Error);
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
-      
+
       expect(instError).to.be.instanceOf(Sequelize.Error);
       expect(instError).to.be.instanceOf(Error);
       expect(instValidationError).to.be.instanceOf(Sequelize.ValidationError);
