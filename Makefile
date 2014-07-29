@@ -42,8 +42,6 @@ postgres:
 	@DIALECT=postgres make test
 postgres-native:
 	@DIALECT=postgres-native make test
-binary:
-	@./test/binary/sequelize.test.bats
 
 mariadb-cover:
 	rm -rf coverage
@@ -65,9 +63,6 @@ postgres-native-cover:
 	rm -rf coverage
 	@DIALECT=postgres-native make cover
 	mv coverage coverage-postgresnative
-binary-cover:
-	rm -rf coverage
-	@./test/binary/sequelize.test.bats
 
 merge-coverage:
 	rm -rf coverage
