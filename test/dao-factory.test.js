@@ -2100,6 +2100,20 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should not fail when array contains Sequelize.or / and', function (done) {
+      this.User.findAll({
+        where: [
+          this.sequelize.or({ username: 'vader' }, { username: 'luke' }),
+          this.sequelize.and({ id: [1, 2, 3] })
+        ]
+      })
+        .then(function(res) {
+          expect(res).to.have.length(2)
+          done()
+        })
+        .catch(function(e) { done(e) })
+    })
+
     it('should not fail with an include', function(done) {
       this.User.findAll({
         where: [
@@ -2143,6 +2157,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done(e)
         }
       }).error(done)
+    })
+
+    it('should not overwrite a specified deletedAt (complex query)', function (done) {
+      this.User.findAll({
+        where: [
+          this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
+          this.sequelize.and(
+            { id: [1, 2, 3] },
+            this.sequelize.or({ deletedAt: null }, { deletedAt: { gt: new Date(0) } })
+          )
+        ]
+      })
+        .then(function(res) {
+          expect(res).to.have.length(2)
+          done()
+        })
+        .catch(function(e) { done(e) })
     })
 
   })
