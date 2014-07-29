@@ -135,24 +135,6 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
     })
 
     describe('executions', function() {
-      it("supports coffee files", function(done) {
-        var self = this
-
-        this.init({
-          filesFilter: /\.coffee$/,
-          to: 20111130161100
-        }, function(migrator) {
-          self.migrator = migrator
-          self.migrator.migrate().success(function() {
-            self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
-              tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
-              expect(tableNames).to.eql([ 'Person' ])
-              done()
-            })
-          })
-        })
-      })
-
       it("executes migration #20111117063700 and correctly creates the table", function(done) {
         this.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
           tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
@@ -186,6 +168,23 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         })
       })
 
+      it("supports coffee files", function(done) {
+        var self = this
+
+        this.init({
+          filesFilter: /\.coffee$/,
+          to: 20111130161100
+        }, function(migrator) {
+          self.migrator = migrator
+          self.migrator.migrate().success(function() {
+            self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+              tableNames = tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+              expect(tableNames).to.eql([ 'Person' ])
+              done()
+            })
+          })
+        })
+      })
       it("executes the empty migration #20111130161100", function(done) {
         this.init({ from: 20111130161100, to: 20111130161100 }, function(migrator) {
           // this migration isn't actually testing anything but

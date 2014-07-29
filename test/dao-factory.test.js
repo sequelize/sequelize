@@ -1000,8 +1000,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 expect(users[0].username).to.equal("Peter")
                 expect(users[1].username).to.equal("Paul")
 
-                expect(moment(users[0].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
-                expect(moment(users[1].deletedAt).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
+                expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(date)
                 done()
               })
             })

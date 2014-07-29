@@ -11,6 +11,11 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Fix problem with minConnections. [#2048](https://github.com/sequelize/sequelize/issues/2048)
 - [INTERNALS] Replaced lingo with inflection
 - [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
+- [INTERNALS] Update dependencies
+    + validator 3.2.0 -> 3.16.1
+    + moment 2.5.0 -> 2.7.0
+    + generic-pool 2.0.4 -> 2.1.1
+    + sql 0.35.0 -> 0.39.0
 
 #### Backwards compatability changes
 - We are using a new inflection library, which should make pluralization and singularization in general more robust. However, a couple of pluralizations have changed as a result:
