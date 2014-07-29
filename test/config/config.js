@@ -12,6 +12,18 @@ module.exports = {
     return parseInt(Math.random() * 999, 10)
   },
 
+  mssql: {
+    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || ('sequelize_test_' + ~~(Math.random() * 100)),
+    username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || "sequelize",
+    password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || "53qu3l1z3",
+    host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || "server2.barfooz.net",
+    port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
+    pool:     {
+      maxConnections: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+      maxIdleTime:    process.env.SEQ_MSSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+    }
+  },
+
   //make maxIdleTime small so that tests exit promptly
   mysql: {
     database: process.env.SEQ_MYSQL_DB   || process.env.SEQ_DB   || 'sequelize_test',
