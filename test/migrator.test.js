@@ -107,6 +107,21 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         })
       })
     })
+
+    it("returns pending migrations", function(done) {
+      this.init(undefined, function(migrator, SequelizeMeta) {
+        SequelizeMeta.create({ from: 20111117063700, to: 20111117063700 }).success(function() {
+          SequelizeMeta.create({ from: 20111117063700, to: 20130909185621 }).success(function() {
+            migrator.getUndoneMigrations(function(err, migrations) {
+              expect(err).to.be.null
+              expect(migrations).to.have.length(14)
+              expect(migrations[0].filename).to.equal('20111130161100-emptyMigration.js')
+              done()
+            })
+          })
+        })
+      })
+    })
   })
 
   describe('migrations', function() {
@@ -183,6 +198,38 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
             .success(done)
             .error(function(err) { console.log(err) })
         })
+      })
+
+      it("executes pending migrations", function(done) {
+        var self = this;
+        var options = {
+          path:    __dirname + '/assets/migrations',
+          to: 20111117063700
+        };
+
+        var migrator = new Migrator(this.sequelize, options)
+
+        migrator
+          .migrate()
+          .success(function() {
+
+            self.init({ to: 20111205064000 }, function(migrator, SequelizeMeta) {
+              SequelizeMeta.create({ from: 20111205064000, to: 20111205064000 }).success(function() {
+                migrator
+                  .migrate()
+                  .success(function() {
+                    SequelizeMeta.findAll().success(function(meta) {
+                      expect(meta.length).to.equal(3);
+                      done();
+                    });
+                  })
+                  .error(function(err) { console.log(err) })
+              })
+            })
+
+          })
+          .error(function(err) { console.log(err) })
+
       })
     })
 

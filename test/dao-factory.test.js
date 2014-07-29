@@ -1041,6 +1041,80 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    describe('can find paranoid records if paranoid is marked as false in query', function() {
+      it('with the DAOFactory', function() {
+        var User = this.sequelize.define('UserCol', {
+          username: Sequelize.STRING
+        }, { paranoid: true })
+
+        return User.sync({ force: true })
+          .then(function() {
+            return User.bulkCreate([
+              {username: 'Toni'},
+              {username: 'Tobi'},
+              {username: 'Max'}
+            ]);
+          })
+          .then(function() { return User.find(1) })
+          .then(function(user) { return user.destroy() })
+          .then(function() { return User.find({ where: 1, paranoid: false }) })
+          .then(function(user) {
+            expect(user).to.exist
+            return User.find(1)
+          })
+          .then(function(user) {
+            expect(user).to.be.null
+            return [User.count(), User.count({ paranoid: false })]
+          })
+          .spread(function(cnt, cntWithDeleted) {
+            expect(cnt).to.equal(2)
+            expect(cntWithDeleted).to.equal(3)
+          })
+      })
+    })
+
+    it('should include deleted associated records if include has paranoid marked as false', function() {
+        var User = this.sequelize.define('User', {
+          username: Sequelize.STRING
+        }, { paranoid: true })
+        var Pet = this.sequelize.define('Pet', {
+          name: Sequelize.STRING,
+          UserId: Sequelize.INTEGER
+        }, { paranoid: true })
+
+        User.hasMany(Pet)
+        Pet.belongsTo(User)
+
+        var user;
+        return User.sync({ force: true })
+          .then(function() { return Pet.sync({ force: true }) })
+          .then(function() { return User.create({ username: 'Joe' }) })
+          .then(function(_user) {
+            user = _user;
+            return Pet.bulkCreate([
+              { name: 'Fido', UserId: user.id },
+              { name: 'Fifi', UserId: user.id }
+            ]);
+          })
+          .then(function () { return Pet.find(1) })
+          .then(function (pet) { return pet.destroy() })
+          .then(function () {
+            return [
+              User.find({ where: user.id, include: Pet }),
+              User.find({
+                where: user.id,
+                include: [{ model: Pet, paranoid: false }]
+              })
+            ]
+          })
+          .spread(function (user, userWithDeletedPets) {
+            expect(user).to.exist
+            expect(user.Pets).to.have.length(1)
+            expect(userWithDeletedPets).to.exist
+            expect(userWithDeletedPets.Pets).to.have.length(2)
+          })
+    })
+
     it('should delete a paranoid record if I set force to true', function(done) {
       var self = this
       var User = this.sequelize.define('paranoiduser', {
@@ -2109,6 +2183,20 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should not fail when array contains Sequelize.or / and', function (done) {
+      this.User.findAll({
+        where: [
+          this.sequelize.or({ username: 'vader' }, { username: 'luke' }),
+          this.sequelize.and({ id: [1, 2, 3] })
+        ]
+      })
+        .then(function(res) {
+          expect(res).to.have.length(2)
+          done()
+        })
+        .catch(function(e) { done(e) })
+    })
+
     it('should not fail with an include', function(done) {
       this.User.findAll({
         where: [
@@ -2152,6 +2240,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           done(e)
         }
       }).error(done)
+    })
+
+    it('should not overwrite a specified deletedAt (complex query)', function (done) {
+      this.User.findAll({
+        where: [
+          this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
+          this.sequelize.and(
+            { id: [1, 2, 3] },
+            this.sequelize.or({ deletedAt: null }, { deletedAt: { gt: new Date(0) } })
+          )
+        ]
+      })
+        .then(function(res) {
+          expect(res).to.have.length(2)
+          done()
+        })
+        .catch(function(e) { done(e) })
     })
 
   })
