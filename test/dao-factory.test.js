@@ -2159,7 +2159,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(done)
     })
 
-    it.only('should not overwrite a specified deletedAt (complex query)', function (done) {
+    it('should not overwrite a specified deletedAt (complex query)', function (done) {
       this.User.findAll({
         where: [
           this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
