@@ -2159,6 +2159,23 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(done)
     })
 
+    it.only('should not overwrite a specified deletedAt (complex query)', function (done) {
+      this.User.findAll({
+        where: [
+          this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
+          this.sequelize.and(
+            { id: [1, 2, 3] },
+            this.sequelize.or({ deletedAt: null }, { deletedAt: { gt: new Date(0) } })
+          )
+        ]
+      })
+        .then(function(res) {
+          expect(res).to.have.length(2)
+          done()
+        })
+        .catch(function(e) { done(e) })
+    })
+
   })
 
   if (dialect !== 'sqlite') {
