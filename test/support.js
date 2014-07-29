@@ -68,7 +68,7 @@ var Support = {
 
   createSequelizeInstance: function(options) {
     options = options || {};
-    options.dialect = options.dialect || 'mysql';
+    options.dialect = this.getTestDialect();
 
     var config = Config[options.dialect];
 
@@ -187,7 +187,7 @@ var Support = {
   }
 };
 
-var sequelize = Support.createSequelizeInstance({ dialect: Support.getTestDialect() });
+var sequelize = Support.createSequelizeInstance();
 
 // For Postgres' HSTORE functionality and to properly execute it's commands we'll need this...
 before(function() {

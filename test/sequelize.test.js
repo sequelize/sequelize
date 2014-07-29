@@ -32,7 +32,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           , connectionSpy = ConnectionManager.prototype.connect = chai.spy(ConnectionManager.prototype.connect);
 
         var sequelize = Support.createSequelizeInstance({
-          dialect: dialect,
           pool: {
             minConnections: 2
           }

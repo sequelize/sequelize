@@ -1,3 +1,5 @@
+"use strict";
+
 /* jshint camelcase: false */
 var chai            = require('chai')
   , expect          = chai.expect
@@ -7,23 +9,21 @@ var chai            = require('chai')
   , DataTypes       = require(__dirname + "/../../lib/data-types")
   , moment          = require('moment')
   , util            = require("util")
-  , _               = require('lodash')
+  , _               = require('lodash');
 
-chai.config.includeStack = true
+chai.config.includeStack = true;
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
         numbers: {type: DataTypes.ARRAY(DataTypes.FLOAT)},
         document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
-      })
-      this.User.sync({ force: true }).success(function() {
-        done()
-      })
-    })
+      });
+      return this.User.sync({ force: true });
+    });
 
     var suites = {
       attributesToSQL: [
@@ -274,7 +274,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', function (sequelize) {
             return {
               order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']]
-            }
+            };
           }],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2("id")) DESC;',
           context: QueryGenerator,
@@ -287,7 +287,7 @@ if (dialect.match(/^postgres/)) {
                 [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'],
                 [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
               ]
-            }
+            };
           }],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1("myTable"."id") DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55.000 +00:00\') ASC;',
           context: QueryGenerator,
@@ -304,7 +304,7 @@ if (dialect.match(/^postgres/)) {
          arguments: ['myTable', function (sequelize) {
             return {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
-            }
+            };
           }],
           expectation: "SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\");",
           needsSequelize: true
@@ -313,7 +313,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', function (sequelize) {
             return {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
-            }
+            };
           }],
           expectation: "SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\"), \"title\";",
           context: QueryGenerator,
@@ -328,7 +328,7 @@ if (dialect.match(/^postgres/)) {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
               having: ['creationYear > ?', 2002]
-            }
+            };
           }],
           expectation: "SELECT *, YEAR(\"createdAt\") AS \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING creationYear > 2002;",
           context: QueryGenerator,
@@ -340,7 +340,7 @@ if (dialect.match(/^postgres/)) {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
               having: { creationYear: { gt: 2002 } }
-            }
+            };
           }],
           expectation: "SELECT *, YEAR(\"createdAt\") AS \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING \"creationYear\" > 2002;",
           context: QueryGenerator,
@@ -505,7 +505,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', function (sequelize) {
             return {
               foo: sequelize.fn('NOW')
-            }
+            };
           }],
           expectation: "INSERT INTO \"myTable\" (\"foo\") VALUES (NOW());",
           needsSequelize: true
@@ -698,7 +698,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', function (sequelize) {
             return {
               bar: sequelize.fn('NOW')
-            }
+            };
           }, {name: 'foo'}],
           expectation: "UPDATE \"myTable\" SET \"bar\"=NOW() WHERE \"name\"='foo'",
           needsSequelize: true
@@ -706,7 +706,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', function (sequelize) {
             return {
               bar: sequelize.col('foo')
-            }
+            };
           }, {name: 'foo'}],
           expectation: "UPDATE \"myTable\" SET \"bar\"=\"foo\" WHERE \"name\"='foo'",
           needsSequelize: true
@@ -827,29 +827,42 @@ if (dialect.match(/^postgres/)) {
 
       addIndexQuery: [
         {
-          arguments: ['User', ['username', 'isAdmin']],
+          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
           expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\", \"isAdmin\")'
         }, {
           arguments: [
             'User', [
               { attribute: 'username', length: 10, order: 'ASC'},
               'isAdmin'
-            ]
+            ],
+            {},
+            'User'
           ],
-          expectation: "CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\"(10) ASC, \"isAdmin\")"
+          expectation: "CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\" ASC, \"isAdmin\")"
         }, {
-          arguments: [
-            'User', ['username', 'isAdmin'], { indicesType: 'FULLTEXT', indexName: 'bar'}
-          ],
-          expectation: "CREATE FULLTEXT INDEX \"bar\" ON \"User\" (\"username\", \"isAdmin\")"
+          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, {}, 'User'],
+          expectation: "CREATE INDEX \"bar\" ON \"User\" (\"username\", \"isAdmin\")"
         }, {
-          arguments: ['mySchema.User', ['username', 'isAdmin']],
+          arguments: ['mySchema.User', ['username', 'isAdmin'], {}, 'User'],
           expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"mySchema\".\"User\" (\"username\", \"isAdmin\")'
+        }, {
+          arguments: ['User', ['fieldB', {attribute:'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
+            name: 'a_b_uniq',
+            unique: true,
+            method: 'BTREE'
+          }, 'User'],
+          expectation: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)'
+        }, {
+          arguments: ['User', ['fieldC'], {
+            type: 'FULLTEXT',
+            concurrently: true
+          }, 'User'],
+          expectation: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")'
         },
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: ['User', ['username', 'isAdmin']],
+          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
           expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)',
           context: {options: {quoteIdentifiers: false}}
         }, {
@@ -857,33 +870,22 @@ if (dialect.match(/^postgres/)) {
             'User', [
               { attribute: 'username', length: 10, order: 'ASC'},
               'isAdmin'
-            ]
+            ],
+            {},
+            'User'
           ],
-          expectation: "CREATE INDEX user_username_is_admin ON User (username(10) ASC, isAdmin)",
+          expectation: "CREATE INDEX user_username_is_admin ON User (username ASC, isAdmin)",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: [
-            'User', ['username', 'isAdmin'], { indicesType: 'FULLTEXT', indexName: 'bar'}
-          ],
-          expectation: "CREATE FULLTEXT INDEX bar ON User (username, isAdmin)",
+          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, {}, 'User'],
+          expectation: "CREATE INDEX bar ON User (username, isAdmin)",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['mySchema.User', ['username', 'isAdmin']],
+          arguments: ['mySchema.User', ['username', 'isAdmin'], {}, 'User'],
           expectation: 'CREATE INDEX user_username_is_admin ON mySchema.User (username, isAdmin)',
           context: {options: {quoteIdentifiers: false}}
         }
       ],
-
-      // FIXME: not implemented
-      //showIndexQuery: [
-      //  {
-      //    arguments: ['User'],
-      //    expectation: 'SHOW INDEX FROM \"User\"'
-      //  }, {
-      //    arguments: ['User', { database: 'sequelize' }],
-      //    expectation: "SHOW INDEX FROM \"User\" FROM \"sequelize\""
-      //  }
-      //],
 
       removeIndexQuery: [
         {
@@ -953,32 +955,30 @@ if (dialect.match(/^postgres/)) {
           context: {options: {quoteIdentifiers: false}}
         }
       ]
-    }
+    };
 
     _.each(suites, function(tests, suiteTitle) {
       describe(suiteTitle, function() {
-        afterEach(function(done) {
-          this.sequelize.options.quoteIdentifiers = true
-          QueryGenerator.options.quoteIdentifiers = true
-          done()
-        })
+        afterEach(function() {
+          this.sequelize.options.quoteIdentifiers = true;
+          QueryGenerator.options.quoteIdentifiers = true;
+        });
 
         tests.forEach(function(test) {
-          var title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments)
-          it(title, function(done) {
+          var title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+          it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
             if (test.needsSequelize) {
-              test.arguments[1] = test.arguments[1](this.sequelize)
+              test.arguments[1] = test.arguments[1](this.sequelize);
             }
-            QueryGenerator.options = context.options
-            QueryGenerator._dialect = this.sequelize.dialect
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments)
-            expect(conditions).to.deep.equal(test.expectation)
-            done()
-          })
-        })
-      })
-    })
-  })
+            QueryGenerator.options = context.options;
+            QueryGenerator._dialect = this.sequelize.dialect;
+            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            expect(conditions).to.deep.equal(test.expectation);
+          });
+        });
+      });
+    });
+  });
 }

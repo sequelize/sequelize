@@ -1297,7 +1297,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
 
       it('makes join table non-paranoid by default', function () {
-        var paranoidSequelize = new Sequelize('','','', {
+        var paranoidSequelize = Support.createSequelizeInstance({
             define: {
               paranoid: true
             }

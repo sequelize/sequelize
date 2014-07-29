@@ -328,6 +328,89 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it('should allow the user to specify indexes in options', function () {
+      var Model = this.sequelize.define('model', {
+        fieldA: Sequelize.STRING,
+        fieldB: Sequelize.INTEGER,
+        fieldC: Sequelize.STRING
+      }, {
+        indexes: [
+          {
+            name: 'a_b_uniq',
+            unique: true,
+            method: 'BTREE',
+            fields: ['fieldB', {attribute:'fieldA', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
+          },
+          {
+            type: 'FULLTEXT',
+            fields: ['fieldC'],
+            concurrently: true
+          },
+        ],
+        engine: 'MyISAM'
+      })
+
+      return this.sequelize.sync().bind(this).then(function () {
+        return this.sequelize.queryInterface.showIndex(Model.tableName);
+      }).spread(function () {
+        var primary, idx1, idx2;
+
+        if (dialect === 'sqlite') {
+          // PRAGMA index_info does not return the primary index
+          idx1 = arguments[0];
+          idx2 = arguments[1];
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: undefined},
+            { attribute: 'fieldA', length: undefined, order: undefined},
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: undefined}
+          ]);
+        } else if (dialect === 'postgres') {
+          // Postgres returns indexes in alphabetical order
+          primary = arguments[2];
+          idx1 = arguments[0];
+          idx2 = arguments[1];
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
+            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US'},
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined}
+          ]);
+        } else {
+          // And finally mysql returns the primary first, and then the rest in the order they were defined
+          primary = arguments[0];
+          idx1 = arguments[1];
+          idx2 = arguments[2];
+
+          expect(primary.primary).to.be.ok;
+
+          expect(idx1.type).to.equal('BTREE');
+          expect(idx2.type).to.equal('FULLTEXT');
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: 'ASC'},
+            { attribute: 'fieldA', length: 5, order: 'ASC'},
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: undefined}
+          ]);
+        }
+
+        expect(idx1.name).to.equal('a_b_uniq');
+        expect(idx1.unique).to.be.ok;
+
+        expect(idx2.name).to.equal('models_field_c');
+        expect(idx2.unique).not.to.be.ok;
+      });
+    });
   })
 
   describe('build', function() {
