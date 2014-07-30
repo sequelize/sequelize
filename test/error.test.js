@@ -43,10 +43,10 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
         new Sequelize.ValidationErrorItem('invalid', 'type', 'last_name', null)
       ];
       var validationError = new Sequelize.ValidationError('Validation error', errorItems);
-      expect(validationError).to.have.property('errorsForPath');
-      expect(validationError.errorsForPath).to.be.a('function');
+      expect(validationError).to.have.property('get');
+      expect(validationError.get).to.be.a('function');
 
-      var matches = validationError.errorsForPath('first_name');
+      var matches = validationError.get('first_name');
       expect(matches).to.be.instanceOf(Array);
       expect(matches).to.have.lengthOf(1);
       expect(matches[0]).to.have.property('message', 'invalid')

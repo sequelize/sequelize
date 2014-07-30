@@ -278,9 +278,9 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         .catch(function(err) {
           expect(err).to.be.ok
           expect(err).to.be.an("object")
-          expect(err.errorsForPath('validateTest')).to.be.an("array")
-          expect(err.errorsForPath('validateTest')[0]).to.be.ok
-          expect(err.errorsForPath('validateTest')[0].message).to.equal('Validation isInt failed')
+          expect(err.get('validateTest')).to.be.an("array")
+          expect(err.get('validateTest')[0]).to.be.ok
+          expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed')
           done()
         });
     })
@@ -290,10 +290,10 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
         .catch(function(err) {
           expect(err).to.be.ok
           expect(err).to.be.an("object")
-          expect(err.errorsForPath('validateCustom')).to.be.ok
-          expect(err.errorsForPath('validateCustom')).to.be.an("array")
-          expect(err.errorsForPath('validateCustom')[0]).to.be.ok
-          expect(err.errorsForPath('validateCustom')[0].message).to.equal('Length failed.')
+          expect(err.get('validateCustom')).to.be.ok
+          expect(err.get('validateCustom')).to.be.an("array")
+          expect(err.get('validateCustom')[0]).to.be.ok
+          expect(err.get('validateCustom')[0].message).to.equal('Length failed.')
           done()
         })
     })
@@ -304,10 +304,10 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       }).catch(function(err) {
         expect(err).to.be.ok
         expect(err).to.be.an("object")
-        expect(err.errorsForPath('validateTest')).to.be.ok
-        expect(err.errorsForPath('validateTest')).to.be.an("array")
-        expect(err.errorsForPath('validateTest')[0]).to.be.ok
-        expect(err.errorsForPath('validateTest')[0].message).to.equal('Validation isInt failed')
+        expect(err.get('validateTest')).to.be.ok
+        expect(err.get('validateTest')).to.be.an("array")
+        expect(err.get('validateTest')[0]).to.be.ok
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed')
         done()
       })
     })

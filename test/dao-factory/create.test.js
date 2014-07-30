@@ -425,16 +425,16 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         UserNull.create({ username: 'foo2', smth: null }).error(function(err) {
           expect(err).to.exist
 
-          expect(err.errorsForPath('smth')[0].path).to.equal('smth');
+          expect(err.get('smth')[0].path).to.equal('smth');
           if (Support.dialectIsMySQL()) {
             // We need to allow two different errors for MySQL, see:
             // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
-            expect(err.errorsForPath('smth')[0].type).to.match(/notNull Violation/)
+            expect(err.get('smth')[0].type).to.match(/notNull Violation/)
           }
           else if (dialect === "sqlite") {
-            expect(err.errorsForPath('smth')[0].type).to.match(/notNull Violation/)
+            expect(err.get('smth')[0].type).to.match(/notNull Violation/)
           } else {
-            expect(err.errorsForPath('smth')[0].type).to.match(/notNull Violation/)
+            expect(err.get('smth')[0].type).to.match(/notNull Violation/)
           }
           done()
         })
@@ -480,7 +480,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             expect(str2.str).to.equal('http://sequelizejs.org')
             StringIsNullOrUrl.create({ str: '' }).error(function(err) {
               expect(err).to.exist
-              expect(err.errorsForPath('str')[0].message).to.match(/Validation isURL failed/)
+              expect(err.get('str')[0].message).to.match(/Validation isURL failed/)
 
               done()
             })
@@ -1054,10 +1054,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           expect(errors).to.be.an('Array')
           expect(errors).to.have.length(2)
           expect(errors[0].record.code).to.equal('1234')
-          expect(errors[0].errors.errorsForPath('name')[0].type).to.equal('notNull Violation')
+          expect(errors[0].errors.get('name')[0].type).to.equal('notNull Violation')
           expect(errors[1].record.name).to.equal('bar')
           expect(errors[1].record.code).to.equal('1')
-          expect(errors[1].errors.errorsForPath('code')[0].message).to.equal('Validation len failed')
+          expect(errors[1].errors.get('code')[0].message).to.equal('Validation len failed')
           done()
         })
       })
