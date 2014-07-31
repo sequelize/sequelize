@@ -449,6 +449,48 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     }
   })
 
+  describe('set', function() {
+
+    it("one value", function ( done ) {
+      var S = this.sequelize;
+
+      S.transaction().then(function ( t ) {
+        S
+          .set({ foo: 'bar' }, { transaction: t })
+          .then(function () {
+            return S.query( 'SELECT @foo as `foo`', null, { raw: true, plain: true, transaction: t })
+          })
+          .then(function ( data ) {
+            expect( data ).to.be.ok
+            expect( data.foo ).to.be.equal( 'bar' )
+          })
+          .done( done )
+      })
+    })
+
+    it("multiple values", function ( done ) {
+      var S = this.sequelize;
+
+      S.transaction().then(function ( t ) {
+        S
+          .set({
+            foo: 'bar',
+            foos: 'bars',
+          }, { transaction: t })
+          .then(function () {
+            return S.query( 'SELECT @foo as `foo`, @foos as `foos`', null, { raw: true, plain: true, transaction: t })
+          })
+          .then(function ( data ) {
+            expect( data ).to.be.ok
+            expect( data.foo ).to.be.equal( 'bar' )
+            expect( data.foos ).to.be.equal( 'bars' )
+          })
+          .done( done )
+      })
+    })
+
+  })
+
   describe('define', function() {
     it("adds a new dao to the dao manager", function(done) {
       expect(this.sequelize.daoFactoryManager.all.length).to.equal(0)
