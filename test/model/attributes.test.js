@@ -277,6 +277,25 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
+      it('should sync foreign keys with custom field names', function() {
+        return this.sequelize.sync({ force: true })
+        .then(function() {
+          var attrs = this.Task.tableAttributes;
+          expect(attrs.user_id.references).to.equal('users');
+          expect(attrs.user_id.referencesKey).to.equal('userId');
+        }.bind(this));
+      });
+
+      it('should find the value of an attribute with a custom field name', function() {
+        return this.User.create({ name: 'test user' })
+        .then(function() {
+          return this.User.find({ where: { name: 'test user' } });
+        }.bind(this))
+        .then(function(user) {
+          expect(user.name).to.equal('test user');
+        });
+      });
+
       it('field names that are the same as property names should create, update, and read correctly', function () {
         var self = this;
 
