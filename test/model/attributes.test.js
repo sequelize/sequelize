@@ -257,27 +257,46 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
-    it('should support renaming of sequelize method fields', function () {
-      var User = this.sequelize.define('user', {
-        someProperty: Sequelize.VIRTUAL // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+      it('should support renaming of sequelize method fields', function () {
+        var Test = this.sequelize.define('test', {
+          someProperty: Sequelize.VIRTUAL // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+        });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return Test.create({});
+        }).then(function () {
+          return Test.findAll({
+            attributes: [
+              Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
+              [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
+            ]
+          });
+        }).then(function (tests) {
+          expect(tests[0].get('someProperty')).to.be.ok;
+          expect(tests[0].get('someProperty2')).to.be.ok;
+        });
       });
 
-      return this.sequelize.sync({ force: true }).then(function () {
-        return User.create({});
-      }).then(function () {
-        return User.findAll({
-          attributes: [
-            Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
-            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
-          ]
-        });
-      }).then(function (users) {
-        expect(users[0].get('someProperty')).to.be.ok;
-        expect(users[0].get('someProperty2')).to.be.ok;
+      it('should sync foreign keys with custom field names', function() {
+        return this.sequelize.sync({ force: true })
+        .then(function() {
+          var attrs = this.Task.tableAttributes;
+          expect(attrs.user_id.references).to.equal('users');
+          expect(attrs.user_id.referencesKey).to.equal('userId');
+        }.bind(this));
       });
-    });
-	  
-	  it('field names that are the same as property names should create, update, and read correctly', function () {
+
+      it('should find the value of an attribute with a custom field name', function() {
+        return this.User.create({ name: 'test user' })
+        .then(function() {
+          return this.User.find({ where: { name: 'test user' } });
+        }.bind(this))
+        .then(function(user) {
+          expect(user.name).to.equal('test user');
+        });
+      });
+
+      it('field names that are the same as property names should create, update, and read correctly', function () {
         var self = this;
 
         return this.Comment.create({
