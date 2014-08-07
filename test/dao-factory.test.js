@@ -642,6 +642,25 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
     })
+
+    it('should not fail if model is paranoid and where is an empty array', function(done) {
+      var User = this.sequelize.define('User', { username: Sequelize.STRING }, { paranoid: true })
+
+      User.sync({ force: true })
+        .then(function () {
+          return User.create({ username: 'A fancy name' })
+        })
+        .then(function(u) {
+          return User.find({ where: [] })
+        })
+        .then(function (u) {
+          expect(u.username).to.equal('A fancy name')
+          done();
+        })
+        .catch(function (err) {
+          done(err)
+        })
+    })
   })
 
   describe('findOrInitialize', function() {
