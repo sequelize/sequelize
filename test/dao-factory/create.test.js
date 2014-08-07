@@ -150,6 +150,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it("should have no problems with strings containing escaped unicode characters", function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: DataTypes.STRING
+        }
+      })
+
+      this.sequelize.sync({force: true}).done(function (err) {
+        expect(err).not.to.be.ok
+        User.create({email: "encoding@unico.de\u0000"}).done(function (err, user) {
+          expect(err).not.to.be.ok
+          expect(user).to.be.ok
+          expect(user.email).to.be.ok
+          done()
+        })
+      })
+    });
+
     it('should return an error for a unique constraint error', function (done) {
       var User = this.sequelize.define('User', {
         'email': {
