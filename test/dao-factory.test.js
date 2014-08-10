@@ -860,30 +860,38 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('sets updatedAt to the current timestamp', function(done) {
-      var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
+    it('sets updatedAt to the current timestamp', function() {
+      var data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul',  secretValue: '42' },
-                  { username: 'Bob',   secretValue: '43' }]
+                  { username: 'Bob',   secretValue: '43' }];
 
-      this.User.bulkCreate(data).success(function() {
-        self.User.update({username: 'Bill'}, {secretValue: '42'}).done(function(err) {
-          expect(err).not.to.be.ok
-          self.User.findAll({order: 'id'}).success(function(users) {
-            expect(users.length).to.equal(3)
+      this.clock = sinon.useFakeTimers();
 
-            expect(users[0].username).to.equal("Bill")
-            expect(users[1].username).to.equal("Bill")
-            expect(users[2].username).to.equal("Bob")
+      return this.User.bulkCreate(data).bind(this).then(function() {
+        return this.User.findAll({order: 'id'});
+      }).then(function (users) {
+        this.updatedAt = users[0].updatedAt;
 
-            expect(parseInt(+users[0].updatedAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1)
-            expect(parseInt(+users[1].updatedAt/5000, 10)).to.be.closeTo(parseInt(+new Date()/5000, 10), 1)
+        expect(this.updatedAt).to.be.ok;
+        expect(this.updatedAt).to.equalTime(users[2].updatedAt); // All users should have the same updatedAt
 
-            done()
-          })
-        })
-      })
-    })
+        // Pass the time so we can actually see a change
+        this.clock.tick(1000);
+
+        return this.User.update({username: 'Bill'}, {secretValue: '42'});
+      }).then(function () {
+        return this.User.findAll({order: 'id'});
+      }).then(function (users) {
+        expect(users[0].username).to.equal("Bill");
+        expect(users[1].username).to.equal("Bill");
+        expect(users[2].username).to.equal("Bob");
+
+        expect(users[0].updatedAt).to.be.afterTime(this.updatedAt);
+        expect(users[2].updatedAt).to.equalTime(this.updatedAt);
+
+        this.clock.restore();
+      });
+    });
 
     it('returns the number of affected rows', function(_done) {
      var self = this

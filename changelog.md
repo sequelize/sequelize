@@ -11,6 +11,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [BUG] Fixed problems with transcation parameter being removed / not passed on in associations [#1789](https://github.com/sequelize/sequelize/issues/1789) and [#1968](https://github.com/sequelize/sequelize/issues/1968)
 - [BUG] Fix problem with minConnections. [#2048](https://github.com/sequelize/sequelize/issues/2048)
 - [BUG] Fix default scope being overwritten [#2087](https://github.com/sequelize/sequelize/issues/2087)
+- [BUG] Fixed updatedAt timestamp not being set in bulk create when validate = true. [#1962](https://github.com/sequelize/sequelize/issues/1962)
 - [INTERNALS] Replaced lingo with inflection
 - [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
 - [INTERNALS] Update dependencies
