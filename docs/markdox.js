@@ -148,6 +148,7 @@ if (program.file) {
   files = [{file: program.file, output: 'tmp'}];
 } else {
   files = [
+    {file:'lib/errors.js', output: 'API-Reference-Errors'},
     {file:'lib/sequelize.js', output: 'API-Reference-Sequelize'},
     {file:'lib/instance.js', output: 'API-Reference-Instance'},
     {file:'lib/model.js', output: 'API-Reference-Model'},
