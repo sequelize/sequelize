@@ -28,6 +28,14 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - Model names are now used more verbatim in associations. This means that if you have a model named `Task` (plural T), or an association specifying `{ as: 'Task' }`, the tasks will be returned as `relatedModel.Tasks` instead of `relatedModel.tasks`. For more information and how to mitigate this, see https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0#inflection-replaces-lingo-and-changes-to-naming-conventions
 - Removed the freezeAssociations option - use model and assocation names instead to provide the plural form yourself
 - Removed sequelize.language option (not supported by inflection)
+- Error handling has been refactored. Code that listens for :
+    + All Error classes properly inherit from Error and a common SequelizeBaseError base
+    + Instance Validator returns a single instance of a ValidationError which contains an errors array property. This property contains individual error items for each failed validation.
+    + ValidationError includes a `get(path)` method to find all broken validations for a path on an instance. To migrate existing error handling, switch from array indexing to using the get method:
+        
+        Old: `err.validateCustom[0]` 
+        New: `err.get('validateCustom')[0]` 
+       
 
 # v2.0.0-dev12
 - [FEATURE] You can now return a promise to a hook rather than use a callback

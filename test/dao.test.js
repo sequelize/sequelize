@@ -941,9 +941,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       this.User.create({aNumber: 0, validateTest: 'hello'}).error(function(err){
         expect(err).to.exist
         expect(err).to.be.instanceof(Object)
-        expect(err.validateTest).to.be.instanceof(Array)
-        expect(err.validateTest[0]).to.exist
-        expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+        expect(err.get('validateTest')).to.be.instanceof(Array)
+        expect(err.get('validateTest')[0]).to.exist
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed')
         done()
       })
     })
@@ -953,10 +953,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       .error(function(err){
         expect(err).to.exist
         expect(err).to.be.instanceof(Object)
-        expect(err.validateCustom).to.exist
-        expect(err.validateCustom).to.be.instanceof(Array)
-        expect(err.validateCustom[0]).to.exist
-        expect(err.validateCustom[0].message).to.equal('Length failed.')
+        expect(err.get('validateCustom')).to.exist
+        expect(err.get('validateCustom')).to.be.instanceof(Array)
+        expect(err.get('validateCustom')[0]).to.exist
+        expect(err.get('validateCustom')[0].message).to.equal('Length failed.')
         done()
       })
     })
@@ -966,10 +966,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         user.updateAttributes({validateTest: 'hello'}).error(function(err){
           expect(err).to.exist
           expect(err).to.be.instanceof(Object)
-          expect(err.validateTest).to.exist
-          expect(err.validateTest).to.be.instanceof(Array)
-          expect(err.validateTest[0]).to.exist
-          expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+          expect(err.get('validateTest')).to.exist
+          expect(err.get('validateTest')).to.be.instanceof(Array)
+          expect(err.get('validateTest')[0]).to.exist
+          expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed')
           done()
         })
       })
