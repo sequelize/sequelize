@@ -6,6 +6,7 @@ Notice: All 1.7.x changes are present in 2.0.x aswell
 - [FEATURE] Added support for passing an `indexes` array in options to `sequelize.define`. [#1485](https://github.com/sequelize/sequelize/issues/1485). See API reference for details.
 - [FEATURE/INTERNALS] Standardized the output from `QueryInterface.showIndex`.
 - [FEATURE] Include deleted rows in find [#2083](https://github.com/sequelize/sequelize/pull/2083)
+- [FEATURE] Make addSingular and addPlural for n:m assocations (fx `addUser` and `addUsers` now both accept an array or an instance.
 - [BUG] Hid `dottie.transform` on raw queries behind a flag (`nest`) [#2064](https://github.com/sequelize/sequelize/pull/2064)
 - [BUG] Fixed problems with transcation parameter being removed / not passed on in associations [#1789](https://github.com/sequelize/sequelize/issues/1789) and [#1968](https://github.com/sequelize/sequelize/issues/1968)
 - [BUG] Fix problem with minConnections. [#2048](https://github.com/sequelize/sequelize/issues/2048)

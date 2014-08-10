@@ -1086,6 +1086,33 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
     });
 
     describe('addAssociations', function() {
+      it('supports both single instance and array', function () {
+         var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+        User.hasMany(Task);
+        Task.hasMany(User);
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return Promise.all([
+            User.create({ id: 12 }),
+            Task.create({ id: 50, title: 'get started' }),
+            Task.create({ id: 52, title: 'get done' }),
+          ]);
+        }).spread(function (user, task1, task2) {
+          return Promise.all([
+            user.addTask(task1),
+            user.addTask([task2]),
+          ]).return(user);
+        }).then(function (user) {
+          return user.getTasks();
+        }).then(function (tasks) {
+          expect(tasks).to.have.length(2);
+          expect(_.find(tasks, function (item) { return item.title === 'get started'; })).to.be.ok;
+          expect(_.find(tasks, function (item) { return item.title === 'get done'; })).to.be.ok;
+        });
+      });
+
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           this.User = sequelize.define('User', { username: DataTypes.STRING });
@@ -1181,6 +1208,33 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
     });
 
     describe('addMultipleAssociations', function () {
+      it('supports both single instance and array', function () {
+         var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+        User.hasMany(Task);
+        Task.hasMany(User);
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return Promise.all([
+            User.create({ id: 12 }),
+            Task.create({ id: 50, title: 'get started' }),
+            Task.create({ id: 52, title: 'get done' }),
+          ]);
+        }).spread(function (user, task1, task2) {
+          return Promise.all([
+            user.addTasks(task1),
+            user.addTasks([task2]),
+          ]).return(user);
+        }).then(function (user) {
+          return user.getTasks();
+        }).then(function (tasks) {
+          expect(tasks).to.have.length(2);
+          expect(_.find(tasks, function (item) { return item.title === 'get started'; })).to.be.ok;
+          expect(_.find(tasks, function (item) { return item.title === 'get done'; })).to.be.ok;
+        });
+      });
+
       it('adds associations without removing the current ones', function () {
         var User = this.sequelize.define('User', { username: DataTypes.STRING })
           , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
