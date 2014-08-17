@@ -1083,6 +1083,34 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           return this.t.rollback();
         });
       });
+
+      it('supports setting through table attributes', function () {
+        var User = this.sequelize.define('user', {})
+          , Group = this.sequelize.define('group', {})
+          , UserGroups = this.sequelize.define('user_groups', {
+            isAdmin: Sequelize.BOOLEAN
+          });
+
+          User.hasMany(Group, { through: UserGroups });
+          Group.hasMany(User, { through: UserGroups });
+
+          return this.sequelize.sync({ force: true }).then(function () {
+            return Group.create({});
+          }).then(function (group) {
+            return Promise.join(
+              group.createUser({ id: 1 }, { isAdmin: true }),
+              group.createUser({ id: 2 }, { isAdmin: false }),
+              function () {
+                return UserGroups.findAll();
+              }
+            );
+          }).then(function (userGroups) {
+            expect(userGroups[0].userId).to.equal(1);
+            expect(userGroups[0].isAdmin).to.be.ok;
+            expect(userGroups[1].userId).to.equal(2);
+            expect(userGroups[1].isAdmin).not.to.be.ok;
+          });
+      });
     });
 
     describe('addAssociations', function() {

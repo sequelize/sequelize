@@ -109,7 +109,7 @@ var options = {
       if (!javadoc.name) {
         var property = getTag(javadoc.raw.tags, 'property');
         if (property) {
-          javadoc.name = property.string;
+          javadoc.name = property.types[0];
         }
       }
       if (javadoc.isMixin) {
