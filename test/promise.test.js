@@ -321,7 +321,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
     describe('with spread', function () {
       it('user not created', function (done) {
         this.User
-          .findOrCreate({ id: 1})
+          .findOrCreate({ where: { id: 1}})
           .spread(function(user, created) {
             expect(user.id).to.equal(1)
             expect(created).to.equal(false)
@@ -331,7 +331,7 @@ describe(Support.getTestDialectTeaser("Promise"), function () {
       })
       it('user created', function (done) {
         this.User
-          .findOrCreate({ id: 2})
+          .findOrCreate({ where: { id: 2}})
           .spread(function(user, created) {
             expect(user.id).to.equal(2)
             expect(created).to.equal(true)

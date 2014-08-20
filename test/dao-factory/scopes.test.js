@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     return this.User.sync({ force: true });
   });
 
-  describe('scopes', function() {
+  describe.only('scopes', function() {
     beforeEach(function() {
       this.ScopeMe = this.sequelize.define('ScopeMe', {
         username: Sequelize.STRING,
@@ -267,7 +267,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     });
 
     it("should have no problem performing findOrCreate", function() {
-      return this.ScopeMe.findOrCreate({username: 'fake'}).spread(function(user) {
+      return this.ScopeMe.findOrCreate({ where: {username: 'fake'}}).spread(function(user) {
         expect(user.username).to.equal('fake');
       });
     });

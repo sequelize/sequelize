@@ -312,16 +312,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
 
     it('allows us to customize the error message for unique constraint', function(done) {
-      var User = this.sequelize.define('UserWithUniqueUsername', {
-        username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
-        email: { type: Sequelize.STRING, unique: 'user_and_email' },
-        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
-        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
-      })
+      var self = this
+        , User = this.sequelize.define('UserWithUniqueUsername', {
+            username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
+            email: { type: Sequelize.STRING, unique: 'user_and_email' },
+            aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+            bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+          })
 
       User.sync({ force: true }).success(function() {
         User.create({username: 'tobi', email: 'tobi@tobi.me'}).success(function() {
-          User.create({username: 'tobi', email: 'tobi@tobi.me'}).error(function(err) {
+          User.create({username: 'tobi', email: 'tobi@tobi.me'}).catch(self.sequelize.UniqueConstraintError, function(err) {
             expect(err.message).to.equal('User and email must be unique')
             done()
           })
