@@ -23,9 +23,9 @@
   /* questionable */
   "loopfunc":true,
 
-  "global": {
+  "globals": {
     "Promise": true
-  }
+  },
   
   "predef": [
     "alert",
