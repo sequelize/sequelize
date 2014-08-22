@@ -14,19 +14,22 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function() {
-    this.User = this.sequelize.define('User', {
-      username:     DataTypes.STRING,
-      secretValue:  DataTypes.STRING,
-      data:         DataTypes.STRING,
-      intVal:       DataTypes.INTEGER,
-      theDate:      DataTypes.DATE,
-      aBool:        DataTypes.BOOLEAN
-    });
+    return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
+      this.sequelize = sequelize;
+      this.User = this.sequelize.define('User', {
+        username:     DataTypes.STRING,
+        secretValue:  DataTypes.STRING,
+        data:         DataTypes.STRING,
+        intVal:       DataTypes.INTEGER,
+        theDate:      DataTypes.DATE,
+        aBool:        DataTypes.BOOLEAN
+      });
 
-    return this.User.sync({ force: true });
+      return this.User.sync({ force: true });
+    });
   });
 
-  describe.only('scopes', function() {
+  describe('scopes', function() {
     beforeEach(function() {
       this.ScopeMe = this.sequelize.define('ScopeMe', {
         username: Sequelize.STRING,

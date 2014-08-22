@@ -10,32 +10,35 @@ var chai      = require('chai')
 chai.config.includeStack = true
 
 describe(Support.getTestDialectTeaser("Promise"), function () {
-  beforeEach(function(done) {
-    this.User = this.sequelize.define('User', {
-      username:  { type: DataTypes.STRING },
-      touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-      aNumber:   { type: DataTypes.INTEGER },
-      bNumber:   { type: DataTypes.INTEGER },
+  beforeEach(function() {
+    return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
+      this.sequelize = sequelize;
+      this.User = this.sequelize.define('User', {
+        username:  { type: DataTypes.STRING },
+        touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+        aNumber:   { type: DataTypes.INTEGER },
+        bNumber:   { type: DataTypes.INTEGER },
 
-      validateTest: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        validate: {isInt: true}
-      },
-      validateCustom: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {len: {msg: 'Length failed.', args: [1, 20]}}
-      },
+        validateTest: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          validate: {isInt: true}
+        },
+        validateCustom: {
+          type: DataTypes.STRING,
+          allowNull: true,
+          validate: {len: {msg: 'Length failed.', args: [1, 20]}}
+        },
 
-      dateAllowNullTrue: {
-        type: DataTypes.DATE,
-        allowNull: true
-      }
+        dateAllowNullTrue: {
+          type: DataTypes.DATE,
+          allowNull: true
+        }
+      })
+
+      return this.User.sync({ force: true })
     })
-
-    this.User.sync({ force: true }).then(function() { done() })
-  })
+  });
 
   describe('increment', function () {
     beforeEach(function(done) {
