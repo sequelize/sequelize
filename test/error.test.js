@@ -74,12 +74,9 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       return this.sequelize.sync({ force: true }).bind(this).then(function () {
         return User.create({ first_name: 'jan', last_name: 'meier' });
       }).then(function () {
-        return Promise.join(
-          User.create({ first_name: 'jan', last_name: 'meier' }).catch(this.sequelize.UniqueConstraintError, spy),
-          function () {
-            expect(spy).to.have.been.calledOnce;
-          }
-        );
+        return User.create({ first_name: 'jan', last_name: 'meier' }).catch(this.sequelize.UniqueConstraintError, spy);
+      }).then(function () {
+        expect(spy).to.have.been.calledOnce;
       });
     });
   });

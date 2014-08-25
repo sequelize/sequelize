@@ -33,25 +33,25 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     });
   });
 
-  describe.only('findOrCreate', function () {
+  describe('findOrCreate', function () {
     it("supports transactions", function(done) {
       var self = this;
       this.sequelize.transaction().then(function(t) {
         self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
-          // self.User.count().success(function(count) {
-            // expect(count).to.equal(0)
+          self.User.count().success(function(count) {
+            expect(count).to.equal(0)
             t.commit().success(function() {
               self.User.count().success(function(count) {
                 expect(count).to.equal(1)
                 done()
-              // })
+              })
             })
           })
         })
       })
     })
 
-    it.skip("returns instance if already existent. Single find field.", function(done) {
+    it("returns instance if already existent. Single find field.", function(done) {
       var self = this,
         data = {
           username: 'Username'
@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it.skip("Returns instance if already existent. Multiple find fields.", function(done) {
+    it("Returns instance if already existent. Multiple find fields.", function(done) {
       var self = this,
         data = {
           username: 'Username',
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it.skip("creates new instance with default value.", function(done) {
+    it("creates new instance with default value.", function(done) {
       var data = {
           username: 'Username'
         },
@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it.skip("supports .or() (only using default values)", function (done) {
+    it("supports .or() (only using default values)", function (done) {
       this.User.findOrCreate({
         where: Sequelize.or({username: 'Fooobzz'}, {secretValue: 'Yolo'}),
         defaults: {username: 'Fooobzz', secretValue: 'Yolo'}
@@ -132,28 +132,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
               expect(first[0].id).to.equal(second[0].id);
 
-              return transaction.rollback();
+              return transaction.commit();
             }
           );
         });
       });
 
-      it('works without a transaction', function () {
-        var self = this;
-        if (dialect !== 'sqlite') { // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-          return Promise.join(
-            this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
-            this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
-            function (first, second) {
-              expect(first[0]).to.be.ok;
-              expect(first[1]).to.be.ok;
-              expect(second[0]).to.be.ok;
-              expect(second[1]).not.to.be.ok;
+      // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
+      (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', function () {
+        return Promise.join(
+          this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
+          this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
+          function (first, second) {
+            expect(first[0]).to.be.ok;
+            expect(first[1]).to.be.ok;
+            expect(second[0]).to.be.ok;
+            expect(second[1]).not.to.be.ok;
 
-              expect(first[0].id).to.equal(second[0].id);
-            }
-          );
-        }
+            expect(first[0].id).to.equal(second[0].id);
+          }
+        );
       });
     });
   });
