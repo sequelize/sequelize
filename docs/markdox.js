@@ -45,12 +45,13 @@ var options = {
 
     docfile.members = [];
     docfile.javadoc.forEach(function(javadoc){
-      // Find constructor tags
       javadoc.isConstructor = getTag(javadoc.raw.tags, 'constructor') !== undefined;
       javadoc.isMixin = getTag(javadoc.raw.tags, 'mixin') !== undefined;
       javadoc.isProperty = getTag(javadoc.raw.tags, 'property') !== undefined;
       javadoc.private = getTag(javadoc.raw.tags, 'private') !== undefined;
       javadoc.since = getTag(javadoc.raw.tags, 'since');
+      javadoc.extends = getTag(javadoc.raw.tags, 'extends');
+      // Find constructor tags
 
       // Only show params without a dot in them (dots means attributes of object, so no need to clutter the signature too much)
       var params = [] ;

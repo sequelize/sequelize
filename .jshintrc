@@ -26,7 +26,7 @@
   "globals": {
     "Promise": true
   },
-  
+
   "predef": [
     "alert",
     "describe",

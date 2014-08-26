@@ -48,7 +48,7 @@
         <? }) -?>
 
       <? if (comment.paramTags.length > 0) { ?>
-        ##### Params: 
+        ##### Params:
         | Name | Type | Description |
         | ---- | ---- | ----------- |
         <? comment.paramTags.forEach(function(paramTag) { -?>
@@ -65,6 +65,9 @@
       <? } ?>
       <? if (comment.since) { ?>
         __Since:__ *<?= comment.since.string ?>*
+      <? } ?>
+      <? if (comment.extends) { ?>
+        __Extends:__ *<?= comment.extends.otherClass ?>*
       <? } ?>
      ======
     <? } ?>

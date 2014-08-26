@@ -14,16 +14,19 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function() {
-    this.User = this.sequelize.define('User', {
-      username:     DataTypes.STRING,
-      secretValue:  DataTypes.STRING,
-      data:         DataTypes.STRING,
-      intVal:       DataTypes.INTEGER,
-      theDate:      DataTypes.DATE,
-      aBool:        DataTypes.BOOLEAN
-    });
+    return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
+      this.sequelize = sequelize;
+      this.User = this.sequelize.define('User', {
+        username:     DataTypes.STRING,
+        secretValue:  DataTypes.STRING,
+        data:         DataTypes.STRING,
+        intVal:       DataTypes.INTEGER,
+        theDate:      DataTypes.DATE,
+        aBool:        DataTypes.BOOLEAN
+      });
 
-    return this.User.sync({ force: true });
+      return this.User.sync({ force: true });
+    });
   });
 
   describe('scopes', function() {
@@ -267,7 +270,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     });
 
     it("should have no problem performing findOrCreate", function() {
-      return this.ScopeMe.findOrCreate({username: 'fake'}).spread(function(user) {
+      return this.ScopeMe.findOrCreate({ where: {username: 'fake'}}).spread(function(user) {
         expect(user.username).to.equal('fake');
       });
     });
