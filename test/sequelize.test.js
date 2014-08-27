@@ -464,7 +464,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
             expect( data ).to.be.ok
             expect( data.foo ).to.be.equal( 'bar' )
           })
-          .done( done )
+          .then(function () {
+            return t.commit()
+          })
+          .then( done )
       })
     })
 
@@ -485,7 +488,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
             expect( data.foo ).to.be.equal( 'bar' )
             expect( data.foos ).to.be.equal( 'bars' )
           })
-          .done( done )
+          .then(function () {
+            return t.commit()
+          })
+          .then( done )
       })
     })
 
