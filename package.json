@@ -1,20 +1,12 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "2.0.0-dev12",
+  "version": "2.0.0-dev13",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
       "name": "Sascha Depold",
       "email": "sascha@depold.com"
-    },
-    {
-      "name": "Meg Sharkey",
-      "email": "meg@metamarkets.com"
-    },
-    {
-      "name": "Chase Geigle",
-      "email": "sky@skytrife.com"
     },
     {
       "name": "Jan Aagaard Meier",
