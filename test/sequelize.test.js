@@ -449,7 +449,18 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     }
   })
 
-  describe('set', function() {
+  describe.only('set', function() {
+
+    it("should return an promised error if transaction isn't defined", function ( done ) {
+      var S = this.sequelize;
+
+      S.set({ foo: 'bar' })
+        .done( function ( err ) {
+          expect( err ).to.be.an.instanceof( TypeError )
+
+          done();
+        });
+    })
 
     it("one value", function ( done ) {
       var S = this.sequelize;
