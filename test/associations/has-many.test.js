@@ -1557,4 +1557,66 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       })
     })
   })
+  
+  describe("issue #2145 : Test for fix ORDER BY with INNER, OUTER JOIN and LIMIT", function() {
+    it("can order colum and limit records with outer join", function(done) {
+      var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+        , User = this.sequelize.define('User', { username: DataTypes.STRING })
+        , Subtask = this.sequelize.define('Subtask', { title: DataTypes.STRING })
+
+      User.hasMany(Task);
+      Task.belongsTo(User);
+      
+      Task.hasMany(Subtask);
+      Subtask.belongsTo(Task);
+
+      User.sync({ force: true }).success(function() {
+        Task.sync({ force: true }).success(function() {
+          Subtask.sync({ force: true }).success(function() {
+            User.create({ username: 'myuser' }).success(function(myuser) {
+              var bulkSubtasks = [{title: 'subtask1'},{title: 'another subtask1'},{title: 'mysubtask1'}]
+              Subtask.bulkCreate(bulkSubtasks).success(function() {
+                Task.bulkCreate([{title: 'myTask1'},{title: 'ztask'}]).success(function() {
+                  Task.create({title: 'task1'}).success(function(task1) {
+                    User.findAll().success(function(users){
+                      expect(users).to.have.length(1);
+                      Subtask.findAll().success(function(subtasks){
+                        expect(subtasks).to.have.length(3);
+                        task1.setSubtasks(subtasks).success(function(){
+                          Task.findAll().success(function(tasks){
+                            expect(tasks).to.have.length(3);
+                            myuser.setTasks(tasks).success(function(){
+                              Task.findAll({
+                                include: [
+                                  {model:User, attributes: ['username'], required: true},
+                                  {model:Subtask, attributes: ['title']},
+                                  ],
+                                order: [
+                                  [Sequelize.col('Tasks.title')],
+                                  [Sequelize.col('Subtasks.title')],
+                                  ],
+                                limit: 2
+                              }).success(function(ftasks){
+                                expect(ftasks).to.have.length(2);
+                                var count = 0;
+                                ftasks.forEach(function(task){
+                                  count += task.subtasks.length;
+                                });
+                                expect(count).to.equal(3);
+                                done();
+                              })
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })  
 })
