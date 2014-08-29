@@ -28,11 +28,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         aBool:        DataTypes.BOOLEAN,
         uniqueName:   { type: DataTypes.STRING, unique: true }
       })
+      this.Account = this.sequelize.define('Account', {
+        accountName: DataTypes.STRING
+      });
 
-      return this.User.sync({ force: true });
+      return this.sequelize.sync({ force: true });
     });
   });
-
+  
   describe('findOrCreate', function () {
     it("supports transactions", function(done) {
       var self = this;
@@ -45,6 +48,19 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                 expect(count).to.equal(1)
                 done()
               })
+            })
+          })
+        })
+      })
+    })
+
+    it("supports more than one models per transaction", function(done) {
+      var self = this;
+      this.sequelize.transaction().then(function(t) {
+        self.User.findOrCreate({ where: { username: 'Username'}, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
+          self.Account.findOrCreate({ where: { accountName: 'accountName'}}, { transaction: t}).then(function(){
+            t.commit().success(function() {
+              done()
             })
           })
         })
