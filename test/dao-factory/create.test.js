@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       return this.sequelize.sync({ force: true });
     });
   });
-  
+
   describe('findOrCreate', function () {
     it("supports transactions", function(done) {
       var self = this;
