@@ -12,6 +12,7 @@ We are working our way to the first 2.0.0 release candidate.
 - [BUG] Fix problem with minConnections. [#2048](https://github.com/sequelize/sequelize/issues/2048)
 - [BUG] Fix default scope being overwritten [#2087](https://github.com/sequelize/sequelize/issues/2087)
 - [BUG] Fixed updatedAt timestamp not being set in bulk create when validate = true. [#1962](https://github.com/sequelize/sequelize/issues/1962)
+- [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
 - [INTERNALS] Replaced lingo with inflection
 - [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
 - [INTERNALS] Update dependencies

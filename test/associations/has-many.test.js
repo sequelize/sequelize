@@ -504,11 +504,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           'title': DataTypes.STRING
 
         }), Label   = this.sequelize.define('Label', {
-          'text': DataTypes.STRING,
-          'ArticleId': {
-            type: DataTypes.INTEGER,
-            allowNull: false
-          }
+          'text': DataTypes.STRING
         });
 
         Article.hasMany(Label);
@@ -1337,7 +1333,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         }).then(function (user) {
           return user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) {
             expect(sql).to.have.string("DELETE FROM");
-            expect(sql).to.have.string("IN (1,2)");
+            expect(sql).to.match(/IN \(1,2\)|IN \(2,1\)/);
           }));
         }).then(function () {
           expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for DELETE

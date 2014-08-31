@@ -29,13 +29,13 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       User.hasMany( SomeConnection, { foreignKey: 'u' })
 
       SomeConnection.belongsTo( User, { foreignKey: 'u' })
-      SomeConnection.belongsTo( A, { foreignKey: 'fk' })
-      SomeConnection.belongsTo( B, { foreignKey: 'fk' })
-      SomeConnection.belongsTo( C, { foreignKey: 'fk' })
+      SomeConnection.belongsTo( A, { foreignKey: 'fk', constraints: false })
+      SomeConnection.belongsTo( B, { foreignKey: 'fk', constraints: false })
+      SomeConnection.belongsTo( C, { foreignKey: 'fk', constraints: false })
 
-      A.hasMany( SomeConnection, { foreignKey: 'fk' })
-      B.hasMany( SomeConnection, { foreignKey: 'fk' })
-      C.hasMany( SomeConnection, { foreignKey: 'fk' })
+      A.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
+      B.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
+      C.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
 
       // Sync them
       S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok;

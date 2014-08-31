@@ -532,6 +532,35 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       expect(Profile.rawAttributes.user_id.allowNull).to.be.false
     })
 
+    it('allows the user to provide an attribute definition as foreignKey', function () {
+      var Task = this.sequelize.define('task', {})
+        , User = this.sequelize.define('user', {
+            uid: {
+              type: Sequelize.INTEGER,
+              primaryKey: true
+            }
+          });
+
+      Task.belongsTo(User, {
+        foreignKey: {
+          allowNull: false
+        }
+      });
+
+      expect(Task.rawAttributes.userUid.allowNull).to.be.false;
+
+      var Project = this.sequelize.define('project', {
+        user_id: {
+          type: Sequelize.INTEGER
+        }
+      });
+
+      Project.belongsTo(User, { foreignKey: Project.rawAttributes.user_id});
+
+      expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName());
+      expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid');
+    });
+
     it('should throw an error if foreignKey and as result in a name clash', function () {
       var Person = this.sequelize.define('person', {})
         , Car = this.sequelize.define('car', {})

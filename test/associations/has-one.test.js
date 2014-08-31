@@ -487,6 +487,20 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
 
       User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id})
 
+      var Project = this.sequelize.define('project', {
+        user_id: {
+          type: Sequelize.INTEGER
+        }
+      });
+
+      User.hasOne(Project, {
+        foreignKey: {
+          allowNull: false
+        }
+      })
+
+      expect(Project.rawAttributes.userUid.allowNull).to.be.false;
+
       expect(Profile.rawAttributes.user_id).to.be.defined
       expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName())
       expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid')
