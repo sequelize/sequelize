@@ -74,7 +74,7 @@ var Support = {
 
     var sequelizeOptions = _.defaults(options, {
       host:           options.host || config.host,
-      logging:        false,
+      // logging:        false,
       dialect:        options.dialect,
       port:           options.port || process.env.SEQ_PORT || config.port,
       pool:           config.pool,

@@ -510,8 +510,27 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
 
-    it('allows the user to provide an attribute definition as foreignKey', function () {
-      var User = this.sequelize.define('user', {
+    describe('allows the user to provide an attribute definition object as foreignKey', function () {
+      it('works with a column that hasnt been defined before', function () {
+        var Task = this.sequelize.define('task', {})
+        , User = this.sequelize.define('user', {
+          });
+
+        Task.belongsTo(User, {
+          foreignKey: {
+            allowNull: false,
+            fieldName: 'uid'
+          }
+        });
+
+        expect(Task.rawAttributes.uid).to.be.defined
+        expect(Task.rawAttributes.uid.allowNull).to.be.false;
+        expect(Task.rawAttributes.uid.references).to.equal(User.getTableName())
+        expect(Task.rawAttributes.uid.referencesKey).to.equal('id')
+      });
+
+      it('works when taking a column directly from the object', function () {
+        var User = this.sequelize.define('user', {
             uid: {
               type: Sequelize.INTEGER,
               primaryKey: true
@@ -524,41 +543,29 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
             }
           })
 
-      Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id})
+        Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id})
 
-      expect(Profile.rawAttributes.user_id).to.be.defined
-      expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName())
-      expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid')
-      expect(Profile.rawAttributes.user_id.allowNull).to.be.false
-    })
+        expect(Profile.rawAttributes.user_id).to.be.defined
+        expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName())
+        expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid')
+        expect(Profile.rawAttributes.user_id.allowNull).to.be.false
+      });
 
-    it('allows the user to provide an attribute definition as foreignKey', function () {
-      var Task = this.sequelize.define('task', {})
-        , User = this.sequelize.define('user', {
-            uid: {
-              type: Sequelize.INTEGER,
-              primaryKey: true
+      it('works when merging with an existing definition', function () {
+        var Task = this.sequelize.define('task', {
+            projectId: {
+              defaultValue: 42,
+              type: Sequelize.INTEGER
             }
-          });
+          })
+        , Project = this.sequelize.define('project', {});
 
-      Task.belongsTo(User, {
-        foreignKey: {
-          allowNull: false
-        }
-      });
+        Task.belongsTo(Project, { foreignKey: { allowNull: true }});
 
-      expect(Task.rawAttributes.userUid.allowNull).to.be.false;
-
-      var Project = this.sequelize.define('project', {
-        user_id: {
-          type: Sequelize.INTEGER
-        }
-      });
-
-      Project.belongsTo(User, { foreignKey: Project.rawAttributes.user_id});
-
-      expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName());
-      expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid');
+        expect(Task.rawAttributes.projectId).to.be.defined
+        expect(Task.rawAttributes.projectId.defaultValue).to.equal(42);
+        expect(Task.rawAttributes.projectId.allowNull).to.be.ok;
+      })
     });
 
     it('should throw an error if foreignKey and as result in a name clash', function () {

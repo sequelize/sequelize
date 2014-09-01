@@ -2206,8 +2206,49 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
     });
 
-    it('allows the user to provide an attribute definition as foreignKey', function () {
-      var Task = this.sequelize.define('task', {})
+    describe('allows the user to provide an attribute definition object as foreignKey', function () {
+      it('works with a column that hasnt been defined before', function () {
+        var Task = this.sequelize.define('task', {})
+        , User = this.sequelize.define('user', {});
+
+        User.hasMany(Task, {
+          foreignKey: {
+            fieldName: 'uid',
+            allowNull: false
+          }
+        });
+
+        expect(Task.rawAttributes.uid).to.be.defined;
+        expect(Task.rawAttributes.uid.allowNull).to.be.false;
+        expect(Task.rawAttributes.uid.references).to.equal(User.getTableName());
+        expect(Task.rawAttributes.uid.referencesKey).to.equal('id');
+
+        Task.hasMany(User, {
+          foreignKey: {
+            allowNull: false
+          }
+        });
+
+        expect(Task.rawAttributes.uid).not.to.be.defined;
+
+        expect(Task.associations.tasksusers.through.rawAttributes.taskId).to.be.defined;
+        expect(Task.associations.tasksusers.through.rawAttributes.taskId.allowNull).to.be.false;
+        expect(Task.associations.tasksusers.through.rawAttributes.taskId.references).to.equal(Task.getTableName());
+        expect(Task.associations.tasksusers.through.rawAttributes.taskId.referencesKey).to.equal('id');
+
+        expect(Task.associations.tasksusers.through.rawAttributes.uid).to.be.defined;
+        expect(Task.associations.tasksusers.through.rawAttributes.uid.allowNull).to.be.false;
+        expect(Task.associations.tasksusers.through.rawAttributes.uid.references).to.equal(User.getTableName());
+        expect(Task.associations.tasksusers.through.rawAttributes.uid.referencesKey).to.equal('id');
+      });
+
+      it('works when taking a column directly from the object', function () {
+        var Project = this.sequelize.define('project', {
+            user_id: {
+              type: Sequelize.INTEGER,
+              defaultValue: 42
+            }
+          })
         , User = this.sequelize.define('user', {
             uid: {
               type: Sequelize.INTEGER,
@@ -2215,33 +2256,29 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             }
           });
 
-      User.hasMany(Task, {
-        foreignKey: {
-          fieldName: 'user_id',
-          allowNull: false
-        }
+        User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id});
+
+        expect(Project.rawAttributes.user_id).to.be.defined;
+        expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName());
+        expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid');
+        expect(Project.rawAttributes.user_id.defaultValue).to.equal(42);
       });
 
-      expect(Task.rawAttributes.user_id.allowNull).to.be.false;
+      it('works when merging with an existing definition', function () {
+        var Task = this.sequelize.define('task', {
+            userId: {
+              defaultValue: 42,
+              type: Sequelize.INTEGER
+            }
+          })
+        , User = this.sequelize.define('user', {});
 
-      Task.hasMany(User, {
-        foreignKey: {
-          allowNull: false
-        }
+        User.hasMany(Task, { foreignKey: { allowNull: true }});
+
+        expect(Task.rawAttributes.userId).to.be.defined;
+        expect(Task.rawAttributes.userId.defaultValue).to.equal(42);
+        expect(Task.rawAttributes.userId.allowNull).to.be.ok;
       });
-
-      expect(Task.associations.tasksusers.through.rawAttributes.taskId.allowNull).to.be.false;
-
-      var Project = this.sequelize.define('project', {
-        user_id: {
-          type: Sequelize.INTEGER
-        }
-      });
-
-      User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id});
-
-      expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName());
-      expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid');
     });
 
     it('should throw an error if foreignKey and as result in a name clash', function () {
