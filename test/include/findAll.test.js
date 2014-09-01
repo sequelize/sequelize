@@ -933,9 +933,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
 
-
-
-    it.only("should be possible to define a belongsTo include as required with child hasMany not required", function(done) {
+    it("should be possible to define a belongsTo include as required with child hasMany not required", function(done) {
       var S = this.sequelize
         , Address = S.define('Address', { 'active': DataTypes.BOOLEAN })
         , Street = S.define('Street', { 'active': DataTypes.BOOLEAN })
