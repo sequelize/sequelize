@@ -1939,6 +1939,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
 
       it("can restrict deletes", function() {
+        var self = this;
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -1954,7 +1955,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           this.task = task;
           return user.setTasks([task]);
         }).then(function() {
-          return this.user.destroy().catch(function () {
+          return this.user.destroy().catch(self.sequelize.ForeignKeyConstraintError, function () {
             // Should fail due to FK violation
             return Task.findAll();
           });
@@ -1992,6 +1993,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
 
       it("can restrict updates", function() {
+        var self = this;
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -2010,7 +2012,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           // `WHERE` clause
 
           var tableName = user.QueryInterface.QueryGenerator.addSchema(user.Model);
-          return user.QueryInterface.update(user, tableName, {id: 999}, user.id).catch(function() {
+          return user.QueryInterface.update(user, tableName, {id: 999}, user.id)
+          .catch(self.sequelize.ForeignKeyConstraintError, function() {
             // Should fail due to FK violation
             return Task.findAll();
           });
@@ -2090,8 +2093,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ]);
         }).then(function () {
           return Promise.all([
-            this.user1.destroy().catch(spy), // Fails because of RESTRICT constraint
-            this.task2.destroy().catch(spy)
+            this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
+            this.task2.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy)
           ]);
         }).then(function () {
           expect(spy).to.have.been.calledTwice;
@@ -2123,7 +2126,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ]);
         }).then(function () {
           return Promise.all([
-            this.user1.destroy().catch(spy), // Fails because of RESTRICT constraint
+            this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
             this.task2.destroy()
           ]);
         }).then(function () {

@@ -331,6 +331,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
     })
 
     it("can restrict deletes", function(done) {
+      var self = this
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })
 
@@ -341,7 +342,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
           User.create({ username: 'foo' }).success(function(user) {
             Task.create({ title: 'task' }).success(function(task) {
               user.setTask(task).success(function() {
-                user.destroy().error(function() {
+                user.destroy().catch(self.sequelize.ForeignKeyConstraintError, function() {
                   // Should fail due to FK restriction
                   Task.findAll().success(function(tasks) {
                     expect(tasks).to.have.length(1)
@@ -388,6 +389,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
     })
 
     it("can restrict updates", function(done) {
+      var self = this
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING })
 
@@ -405,7 +407,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
 
                 var tableName = user.QueryInterface.QueryGenerator.addSchema(user.Model)
                 user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-                .error(function() {
+                .catch(self.sequelize.ForeignKeyConstraintError, function() {
                   // Should fail due to FK restriction
                   Task.findAll().success(function(tasks) {
                     expect(tasks).to.have.length(1)
