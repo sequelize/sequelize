@@ -519,7 +519,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
         Task.belongsTo(User, {
           foreignKey: {
             allowNull: false,
-            fieldName: 'uid'
+            name: 'uid'
           }
         });
 

@@ -479,7 +479,21 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         User.hasOne(Profile, {
           foreignKey: {
             allowNull: false,
-            fieldName: 'uid'
+            name: 'uid'
+          }
+        });
+
+        expect(Profile.rawAttributes.uid).to.be.defined
+        expect(Profile.rawAttributes.uid.references).to.equal(User.getTableName())
+        expect(Profile.rawAttributes.uid.referencesKey).to.equal('id')
+        expect(Profile.rawAttributes.uid.allowNull).to.be.false;
+
+        // Let's clear it
+        Profile = this.sequelize.define('project', {})
+        User.hasOne(Profile, {
+          foreignKey: {
+            allowNull: false,
+            name: 'uid',
           }
         });
 
@@ -505,6 +519,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
 
         User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id})
 
+        console.log(Profile.rawAttributes.user_id);
         expect(Profile.rawAttributes.user_id).to.be.defined
         expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName())
         expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid')

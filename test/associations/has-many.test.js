@@ -2213,7 +2213,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         User.hasMany(Task, {
           foreignKey: {
-            fieldName: 'uid',
+            name: 'uid',
             allowNull: false
           }
         });

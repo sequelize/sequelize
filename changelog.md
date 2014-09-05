@@ -1,3 +1,10 @@
+# Next
+- [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
+- [FEATURE] Added `field` and `name` to the object form of foreign key definitions
+
+#### Backwards compatability changes
+- The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
+
 # v2.0.0-dev13
 We are working our way to the first 2.0.0 release candidate.
 
@@ -12,7 +19,6 @@ We are working our way to the first 2.0.0 release candidate.
 - [BUG] Fix problem with minConnections. [#2048](https://github.com/sequelize/sequelize/issues/2048)
 - [BUG] Fix default scope being overwritten [#2087](https://github.com/sequelize/sequelize/issues/2087)
 - [BUG] Fixed updatedAt timestamp not being set in bulk create when validate = true. [#1962](https://github.com/sequelize/sequelize/issues/1962)
-- [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
 - [INTERNALS] Replaced lingo with inflection
 - [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
 - [INTERNALS] Update dependencies
