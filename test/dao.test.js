@@ -544,6 +544,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('reload', function () {
+
     it('supports transactions', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
@@ -565,6 +566,39 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    it('supports transactions from an instance', function ( done ) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        sequelize.transaction()
+          .then(function ( t ){
+            return User.create({ username: 'foo' },{ transaction: t })
+          })
+          .then(function ( user ) {
+            user.username = 'bar';
+
+            return user;
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('bar');
+
+            return user.reload();
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('foo');
+
+            return user;
+          })
+          .then(function ( user ) {
+            return user.options.transaction.commit()
+              .then(function () {
+                return user;
+              });
+          })
+          .done( done );
+      })
+    });
 
     it("should return a reference to the same DAO instead of creating a new one", function(done) {
       this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
