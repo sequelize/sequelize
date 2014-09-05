@@ -596,6 +596,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                 return user;
               });
           })
+          .then(function ( user ) {
+            expect( user.options.transaction ).to.be.undefined;
+          })
           .done( done );
       })
     });
