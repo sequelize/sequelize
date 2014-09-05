@@ -1,3 +1,10 @@
+# Next
+- [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
+- [FEATURE] Added `field` and `name` to the object form of foreign key definitions
+
+#### Backwards compatability changes
+- The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
+
 # v2.0.0-dev13
 We are working our way to the first 2.0.0 release candidate.
 
