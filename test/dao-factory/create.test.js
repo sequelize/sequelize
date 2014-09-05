@@ -31,6 +31,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.Account = this.sequelize.define('Account', {
         accountName: DataTypes.STRING
       });
+      this.Student = this.sequelize.define('Student', {
+          no:     {type:DataTypes.INTEGER,primaryKey:true},
+          name: {type:DataTypes.STRING,allowNull:false},
+      })
 
       return this.sequelize.sync({ force: true });
     });
@@ -131,6 +135,38 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         done()
       })
+    })
+
+    it("should release transaction when meeting errors", function(done){
+        var self = this
+
+        var test = function(times) {
+            times = times || 0
+            if (times > 10) {
+                return true //  stop trying
+            }
+
+            /*without name, trigger ValidationError */
+            return self.Student.findOrCreate({where:{no:1},defaults:{}})
+            .timeout(1000)
+            .catch(Promise.TimeoutError,function(e){
+                throw new Error(e)
+            })
+            .then(function(){
+                return true
+            })
+            .catch(Sequelize.ValidationError,function(err){
+                return test(times+1)
+            })
+        }
+
+        test()
+        .then(function(){
+            done()
+        })
+        .catch(function(err){
+            done(err)
+        })
     })
 
     describe('several concurrent calls', function () {
