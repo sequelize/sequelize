@@ -519,7 +519,6 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
 
         User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id})
 
-        console.log(Profile.rawAttributes.user_id);
         expect(Profile.rawAttributes.user_id).to.be.defined
         expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName())
         expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid')
