@@ -883,4 +883,26 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
     })
   })
+
+  describe('association getter', function () {
+    it('should support getting an include on a N:M association getter', function () {
+      var Question = this.sequelize.define('Question', {})
+        , Answer = this.sequelize.define('Answer', {})
+        , Questionnaire = this.sequelize.define('Questionnaire', {});
+
+      Question.hasMany(Answer);
+      Answer.hasMany(Question);
+
+      Questionnaire.hasMany(Question);
+      Question.belongsTo(Questionnaire);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Questionnaire.create();
+      }).then(function (questionnaire) {
+        return questionnaire.getQuestions({
+          include: Answer
+        });
+      });
+    });
+  });
 })
