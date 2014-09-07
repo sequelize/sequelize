@@ -357,6 +357,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should work with a non-id named uuid primary key columns', function () {
+      var Monkey = this.sequelize.define('Monkey', {
+        monkeyId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, allowNull: false }
+      });
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Monkey.create();
+      }).then(function (monkey) {
+        expect(monkey.get('monkeyId')).to.be.ok;
+      });
+    })
+
     it('is possible to use functions as default values', function (done) {
       var self = this
         , userWithDefaults
