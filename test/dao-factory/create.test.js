@@ -137,36 +137,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it("should release transaction when meeting errors", function(done){
+    it("should release transaction when meeting errors", function(){
         var self = this
 
         var test = function(times) {
-            times = times || 0
             if (times > 10) {
-                return true //  stop trying
+                return true;
             }
-
-            /*without name, trigger ValidationError */
-            return self.Student.findOrCreate({where:{no:1},defaults:{}})
+            return self.Student.findOrCreate({
+              where: {
+                no: 1
+              }
+            })
             .timeout(1000)
             .catch(Promise.TimeoutError,function(e){
                 throw new Error(e)
             })
-            .then(function(){
-                return true
-            })
             .catch(Sequelize.ValidationError,function(err){
-                return test(times+1)
+                return test(times+1);
             })
         }
 
-        test()
-        .then(function(){
-            done()
-        })
-        .catch(function(err){
-            done(err)
-        })
+        return test(0);
     })
 
     describe('several concurrent calls', function () {
