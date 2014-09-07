@@ -49,7 +49,39 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           done();
         });
       });
+    });
 
+    it('should include a model with a where condition but no required', function () {
+      var User = this.sequelize.define('User', {}, { paranoid: false })
+        , Task = this.sequelize.define('Task', {
+          deletedAt: {
+            type: DataTypes.DATE
+          }
+        }, { paranoid: false });
+
+      User.hasMany(Task, {foreignKey: 'userId'});
+      Task.belongsTo(User, {foreignKey: 'userId'});
+
+      return this.sequelize.sync({
+        force: true
+      }).then(function () {
+        return User.create();
+      }).then(function (user) {
+        return Task.bulkCreate([
+          {userId: user.get('id'), deletedAt: new Date()},
+          {userId: user.get('id'), deletedAt: new Date()},
+          {userId: user.get('id'), deletedAt: new Date()}
+        ]);
+      }).then(function () {
+        return User.find({
+          include: [
+            {model: Task, where: {deletedAt: null}, required: false}
+          ]
+        });
+      }).then(function (user) {
+        expect(user).to.be.ok;
+        expect(user.Tasks.length).to.equal(0);
+      });
     });
 
     it("should still pull the main record when an included model is not required and has where restrictions without matches", function () {
