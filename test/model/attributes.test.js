@@ -66,10 +66,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             type: DataTypes.STRING,
             field: 'comment_text'
           },
-		  notes: {
-			type: DataTypes.STRING,
-			field: 'notes'
-		  }
+          notes: {
+            type: DataTypes.STRING,
+            field: 'notes'
+          }
         }, {
           tableName: 'comments',
           timestamps: false
@@ -127,9 +127,9 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             comment_text: {
               type: DataTypes.STRING
             },
-			notes: {
-			  type: DataTypes.STRING
-			}
+            notes: {
+              type: DataTypes.STRING
+            }
           })
         ]);
       });
@@ -240,6 +240,24 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
+      it('should work with a where or', function () {
+        var self = this;
+
+        return this.User.create({
+          name: 'Foobar'
+        }).then(function () {
+          return self.User.find({
+            where: self.sequelize.or({
+              name: 'Foobar'
+            }, {
+              name: 'Lollerskates'
+            })
+          });
+        }).then(function (user) {
+          expect(user).to.be.ok;
+        });
+      });
+
       it('should work with bulkCreate and findAll', function () {
         var self = this;
         return this.User.bulkCreate([{
@@ -318,7 +336,25 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(comment.get('notes')).to.equal('Barfoo');
         });
       });
-	  
+
+
+      it('should work with with an belongsTo association getter', function () {
+        var userId = Math.floor(Math.random() * 100000);
+        return Promise.join(
+          this.User.create({
+            id: userId
+          }),
+          this.Task.create({
+            user_id: userId
+          })
+        ).spread(function (user, task) {
+          return [user, task.getUser()];
+        }).spread(function (userA, userB) {
+          expect(userA.get('id')).to.equal(userB.get('id'));
+          expect(userA.get('id')).to.equal(userId);
+          expect(userB.get('id')).to.equal(userId);
+        });
+      });
     });
 
     describe('types', function () {
@@ -469,7 +505,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           test_value: {
             type: Sequelize.INTEGER,
             set: function(v) {
-              console.log("set called");
               self.callCount++;
               this.setDataValue('test_value', v+1);
             }
