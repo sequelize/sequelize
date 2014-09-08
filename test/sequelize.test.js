@@ -706,6 +706,19 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
     })
+
+    describe("match", function () {
+      it('will return an error not matching', function () {
+        return this.sequelize.sync({
+          force: true,
+          match: /alibabaizshaek/
+        }).then(function () {
+          throw new Error('I should not have succeeded!');
+        }, function (err) {
+          assert(true);
+        });
+      });
+    });
   })
 
   describe('drop should work', function() {
