@@ -1665,6 +1665,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to drop with schemas', function () {
+      return this.UserSpecial.drop();
+    });
+
     it("should be able to list schemas", function(done){
       this.sequelize.showAllSchemas().then(function(schemas) {
         expect(schemas).to.be.instanceof(Array)
