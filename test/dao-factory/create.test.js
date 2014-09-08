@@ -252,6 +252,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('works without any primary key', function () {
+      var Log = this.sequelize.define('log', {
+        level: DataTypes.STRING
+      });
+
+      Log.removeAttribute('id');
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          Log.create({level: 'info'}),
+          Log.bulkCreate([
+            {level: 'error'},
+            {level: 'debug'}
+          ])
+        );
+      }).then(function () {
+        return Log.findAll();
+      }).then(function (logs) {
+        logs.forEach(function (log) {
+          expect(log.get('id')).not.to.be.ok;
+        });
+      });
+    });
+
     it('supports transactions', function(done) {
       var self = this;
       this.sequelize.transaction().then(function(t) {
