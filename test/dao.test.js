@@ -1200,6 +1200,55 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it("dont return instance that isn't defined", function ( done ) {
+      var self = this;
+
+      self.Project.create({ lovelyUserId: null })
+        .then(function ( project ) {
+          return self.Project.find({
+            where: {
+              id: project.id,
+            },
+            include: [
+              { model: self.User, as: 'LovelyUser' }
+            ]
+          })
+        })
+        .then(function ( project ) {
+          var json = project.toJSON();
+
+          expect( json.LovelyUser ).to.be.equal( null )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
+    it("dont return instances that aren't defined", function ( done ) {
+      var self = this;
+
+      self.User.create({ username: 'cuss' })
+        .then(function ( user ) {
+          return self.User.find({
+            where: {
+              id: user.id,
+            },
+            include: [
+              { model: self.Project, as: 'Projects' }
+            ]
+          })
+        })
+        .then(function ( user ) {
+          var json = user.toJSON();
+
+          expect( user.Projects ).to.be.instanceof( Array )
+          expect( user.Projects ).to.be.length( 0 )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
     it('returns an object containing all values', function(done) {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
       expect(user.toJSON()).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null })
