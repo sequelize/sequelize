@@ -60,10 +60,6 @@ if (dialect.match(/^postgres/)) {
           expectation: {id: 'INTEGER UNIQUE'}
         },
         {
-          arguments: [{id: {type: 'INTEGER', comment: "I'm a comment!" }}],
-          expectation: {id: "INTEGER COMMENT ON COLUMN <%= table %>.\"id\" IS 'I''m a comment!'" }
-        },
-        {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
         },
@@ -121,14 +117,6 @@ if (dialect.match(/^postgres/)) {
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));",
-        },
-        {
-          arguments: ['myTable', {title: "INTEGER COMMENT ON COLUMN <%= table %>.\"title\" IS 'I''m a comment!'"}],
-          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" INTEGER ); COMMENT ON COLUMN \"myTable\".\"title\" IS 'I''m a comment!';",
-        },
-        {
-          arguments: ['myTable', {title: "INTEGER"}, {comment: "I'm a comment!"}],
-          expectation: "CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" INTEGER); COMMENT ON TABLE \"myTable\" IS 'I''m a comment!';",
         },
         {
           arguments: ['myTable', {data: "BLOB"}],

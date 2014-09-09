@@ -46,10 +46,6 @@ if (Support.dialectIsMySQL()) {
           expectation: {id: 'INTEGER UNIQUE'}
         },
         {
-          arguments: [{id: {type: 'INTEGER', comment: "I'm a comment!" }}],
-          expectation: {id: "INTEGER COMMENT 'I\\'m a comment!'" }
-        },
-        {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
         },
@@ -75,14 +71,6 @@ if (Support.dialectIsMySQL()) {
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;"
-        },
-        {
-          arguments: ['myTable', {title: "INTEGER COMMENT 'I\\'m a comment!'"}],
-          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER COMMENT 'I\\'m a comment!') ENGINE=InnoDB;"
-        },
-        {
-          arguments: ['myTable', {title: "INTEGER"}, {comment:  "I'm a comment!"}],
-          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER) COMMENT 'I\\'m a comment!' ENGINE=InnoDB;"
         },
         {
           arguments: ['myTable', {data: "BLOB"}],
