@@ -1200,6 +1200,30 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it.only('dont return instance that is not defined', function ( done ) {
+      var self = this;
+
+      self.Project.create({ lovelyUserId: null })
+        .then(function ( project ) {
+          return self.Project.find({
+            where: {
+              id: project.id,
+            },
+            include: [
+              { model: self.User, as: 'LovelyUser' }
+            ]
+          })
+        })
+        .then(function ( project ) {
+          var json = project.toJSON();
+
+          expect( json.LovelyUser ).to.be.equal( null )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
     it('returns an object containing all values', function(done) {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
       expect(user.toJSON()).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null })
