@@ -1200,7 +1200,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
-    it.only('dont return instance that is not defined', function ( done ) {
+    it('dont return instance that is not defined', function ( done ) {
       var self = this;
 
       self.Project.create({ lovelyUserId: null })
