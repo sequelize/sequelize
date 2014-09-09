@@ -2377,4 +2377,29 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
+  it('should be possible to use a key named UUID as foreign key', function () {
+    var project = this.sequelize.define('project', {
+      UserId: {
+        type: Sequelize.STRING,
+        references: 'Users',
+        referencesKey: 'UUID'
+      }
+    });
+
+    var user = this.sequelize.define('Users', {
+      UUID: {
+        type: Sequelize.STRING,
+        primaryKey: true,
+        unique: true,
+        allowNull: false,
+        validate: {
+          notNull: true,
+          notEmpty: true
+        }
+      }
+    });
+
+    return this.sequelize.sync({force: true});
+  });
+
 })

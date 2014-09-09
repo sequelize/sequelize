@@ -218,5 +218,35 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         return self.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id')
       })
     })
-  })
+  });
+
+  describe('addColumn', function () {
+    beforeEach(function () {
+      return this.queryInterface.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoincrement: true
+        }
+      });
+    });
+
+    it('should be able to add a foreign key reference', function () {
+      return this.queryInterface.createTable('level', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoincrement: true
+        }
+      }).bind(this).then(function () {
+        return this.queryInterface.addColumn('users', 'level_id', {
+          type: DataTypes.INTEGER,
+          references: 'level',
+          referenceKey: 'id',
+          onUpdate: 'cascade',
+          onDelete: 'restrict'
+        });
+      });
+    });
+  });
 })
