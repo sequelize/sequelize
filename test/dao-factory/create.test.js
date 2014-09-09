@@ -391,7 +391,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).then(function (monkey) {
         expect(monkey.get('monkeyId')).to.be.ok;
       });
-    })
+    });
 
     it('is possible to use functions as default values', function (done) {
       var self = this
