@@ -571,7 +571,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
 
-        sequelize.transaction()
+        User.sync({ force: true })
+          .then(function (){
+            return sequelize.transaction();
+          })
           .then(function ( t ){
             return User.create({ username: 'foo' },{ transaction: t })
           })
@@ -601,6 +604,47 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           })
           .done( done );
       })
+    });
+
+    it('should support include from options', function ( done ){
+      var sequelize = this.sequelize,
+          Promise = sequelize.Promise,
+
+          User = sequelize.define('User', { username: Support.Sequelize.STRING }),
+          Something = sequelize.define('Something', { what: Support.Sequelize.STRING });
+
+      User.hasOne( Something );
+      Something.belongsTo( User );
+
+      this.sequelize.sync({ force: true })
+        .then(function () {
+          return User.create({ username: 'foo' });
+        })
+        .then(function ( user ){
+          return Something.create({ what: 'bar' })
+            .then(function ( something ) {
+              return something.setUser( user );
+            })
+            .then(function () {
+              return user;
+            })
+        })
+        .then(function ( user ) {
+
+          expect( user.Something ).to.not.be.ok;
+
+          return user.reload({
+            include: [
+              Something,
+            ]
+          });
+        })
+        .then(function ( user ) {
+          
+          expect( user.Something ).to.be.ok;
+
+        })
+        .done( done );
     });
 
     it("should return a reference to the same DAO instead of creating a new one", function(done) {
@@ -809,8 +853,11 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
 
-        sequelize.transaction()
-          .then(function ( t ){
+        User.sync({ force: true })
+          .then(function () {
+            return sequelize.transaction();
+          })
+          .then(function ( t ) {
             return User.create({ username: 'foo' },{ transaction: t })
           })
           .then(function ( user ) {
