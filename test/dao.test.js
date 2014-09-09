@@ -1200,7 +1200,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
-    it('dont return instance that is not defined', function ( done ) {
+    it("dont return instance that isn't defined", function ( done ) {
       var self = this;
 
       self.Project.create({ lovelyUserId: null })
@@ -1218,6 +1218,31 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
           var json = project.toJSON();
 
           expect( json.LovelyUser ).to.be.equal( null )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
+    it("dont return instances that aren't defined", function ( done ) {
+      var self = this;
+
+      self.User.create({ username: 'cuss' })
+        .then(function ( user ) {
+          return self.User.find({
+            where: {
+              id: user.id,
+            },
+            include: [
+              { model: self.Project, as: 'Projects' }
+            ]
+          })
+        })
+        .then(function ( user ) {
+          var json = user.toJSON();
+
+          expect( user.Projects ).to.be.instanceof( Array )
+          expect( user.Projects ).to.be.length( 0 )
         })
         .done( done )
         .catch( done );
