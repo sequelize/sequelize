@@ -2250,12 +2250,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('should not overwrite a specified deletedAt', function(done) {
+    it('should not overwrite a specified deletedAt by setting paranoid: false', function(done) {
       var tableName = ''
       if(this.User.name) {
         tableName = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier(this.User.name) + '.'
       }
       this.User.findAll({
+        paranoid: false,
         where: [
           tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL '
         ],
@@ -2274,8 +2275,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(done)
     })
 
-    it('should not overwrite a specified deletedAt (complex query)', function (done) {
+    it('should not overwrite a specified deletedAt (complex query) by setting paranoid: false', function (done) {
       this.User.findAll({
+        paranoid: false,
         where: [
           this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
           this.sequelize.and(

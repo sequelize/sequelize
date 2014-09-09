@@ -1256,6 +1256,90 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it("sql should have paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll();
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll();
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+    });
+
+    it("sequelize.and as where should include paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.and({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.and({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
+    it("sequelize.or as where should include paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.or({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.or({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
     it("escapes a single single quotes properly in where clauses", function(done) {
       var self = this
 
