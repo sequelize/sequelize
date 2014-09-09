@@ -268,7 +268,9 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
         this.init({ from: 20111117063700, to: 20111205167000 }, function(migrator) {
           migrator.migrate().complete(function(err) {
+            expect(err).not.to.be.ok;
             self.sequelize.getQueryInterface().describeTable('User').complete(function(err, data) {
+              expect(err).not.to.be.ok;
               var signature = data.signature
                 , isAdmin   = data.isAdmin
                 , shopId    = data.shopId
