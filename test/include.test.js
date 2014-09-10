@@ -2,6 +2,7 @@
 /* jshint expr: true */
 var chai      = require('chai')
   , Sequelize = require('../index')
+  , Promise   = Sequelize.Promise
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + "/../lib/data-types")
@@ -53,6 +54,31 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         }, done)
       })
     })
+
+    it('should support including a belongsTo association rather than a model/as pair', function () {
+      var Company = this.sequelize.define('Company', {})
+        , Person = this.sequelize.define('Person', {});
+
+      Person.relation = {
+        Employer: Person.belongsTo(Company, {as: 'employer'})
+      };
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          Person.create(),
+          Company.create()
+        ).spread(function (person, company) {
+          return person.setEmployer(company);
+        });
+      }).then(function () {
+        return Person.find({
+          include: [Person.relation.Employer]
+        }).then(function (person) {
+          expect(person).to.be.ok;
+          expect(person.employer).to.be.ok;
+        });
+      });
+    });
 
     it('should support a simple nested belongsTo -> belongsTo include', function (done) {
       var Task = this.sequelize.define('Task', {})
