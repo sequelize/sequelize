@@ -543,7 +543,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
   })
 
-  describe('reload', function () {
+  describe.only('reload', function () {
     it('supports transactions', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
@@ -623,8 +623,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       Book.hasMany(Page)
       Page.belongsTo(Book)
 
-      Book.sync().success(function() {
-        Page.sync().success(function() {
+      Book.sync({force: true}).success(function() {
+        Page.sync({force: true}).success(function() {
           Book.create({ title: 'A very old book' }).success(function(book) {
             Page.create({ content: 'om nom nom' }).success(function(page) {
               book.setPages([ page ]).success(function() {
@@ -642,7 +642,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                       expect(leBook.Pages[0].content).to.equal('something totally different')
                       expect(page.content).to.equal('something totally different')
                       done()
-                    })
+                    });
                   })
                 })
               })

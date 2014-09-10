@@ -330,7 +330,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             var self = this
             expect(function() {
               self.Worker.find({ include: [ 1 ] })
-            }).to.throw(Error, 'Include unexpected. Element has to be either an instance of Model or an object.')
+            }).to.throw(Error)
             done()
           })
 
