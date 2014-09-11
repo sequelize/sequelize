@@ -544,6 +544,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('reload', function () {
+
     it('supports transactions', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
@@ -565,6 +566,86 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    it('supports transactions from an instance', function ( done ) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true })
+          .then(function (){
+            return sequelize.transaction();
+          })
+          .then(function ( t ){
+            return User.create({ username: 'foo' },{ transaction: t })
+          })
+          .then(function ( user ) {
+            user.username = 'bar';
+
+            return user;
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('bar');
+
+            return user.reload();
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('foo');
+
+            return user;
+          })
+          .then(function ( user ) {
+            return user.options.transaction.commit()
+              .then(function () {
+                return user;
+              });
+          })
+          .then(function ( user ) {
+            expect( user.options.transaction ).to.be.undefined;
+          })
+          .done( done );
+      })
+    });
+
+    it('should support include from options', function ( done ){
+      var sequelize = this.sequelize,
+          Promise = sequelize.Promise,
+
+          User = sequelize.define('User', { username: Support.Sequelize.STRING }),
+          Something = sequelize.define('Something', { what: Support.Sequelize.STRING });
+
+      User.hasOne( Something );
+      Something.belongsTo( User );
+
+      this.sequelize.sync({ force: true })
+        .then(function () {
+          return User.create({ username: 'foo' });
+        })
+        .then(function ( user ){
+          return Something.create({ what: 'bar' })
+            .then(function ( something ) {
+              return something.setUser( user );
+            })
+            .then(function () {
+              return user;
+            })
+        })
+        .then(function ( user ) {
+
+          expect( user.Something ).to.not.be.ok;
+
+          return user.reload({
+            include: [
+              Something,
+            ]
+          });
+        })
+        .then(function ( user ) {
+          
+          expect( user.Something ).to.be.ok;
+
+        })
+        .done( done );
+    });
 
     it("should return a reference to the same DAO instead of creating a new one", function(done) {
       this.User.create({ username: 'John Doe' }).complete(function(err, originalUser) {
@@ -767,6 +848,52 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    it('supports transactions from an instance', function ( done ) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING })
+
+        User.sync({ force: true })
+          .then(function () {
+            return sequelize.transaction();
+          })
+          .then(function ( t ) {
+            return User.create({ username: 'foo' },{ transaction: t })
+          })
+          .then(function ( user ) {
+            user.username = 'bar';
+
+            return user.save();
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('bar');
+
+            return user.reload();
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('bar');
+
+            return user.updateAttributes({ username: 'foo' });
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('foo');
+
+            return user.reload();
+          })
+          .then(function ( user ) {
+            expect(user.username).to.equal('foo');
+
+            return user.options.transaction.commit()
+              .then(function () {
+                return user;
+              });
+          })
+          .then(function ( user ) {
+            expect( user.options.transaction ).to.be.undefined;
+          })
+          .done( done );
+      })
+    });
 
     it('only updates fields in passed array', function(done) {
       var self   = this
