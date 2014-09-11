@@ -543,7 +543,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
     })
   })
 
-  describe.only('reload', function () {
+  describe('reload', function () {
     it('supports transactions', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
