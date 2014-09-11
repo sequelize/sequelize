@@ -58,27 +58,6 @@ describe(Support.getTestDialectTeaser("Paranoid"), function () {
 
   })
 
-  it( 'test if default required behavior is marked as false', function ( done ) {
-
-    var A = this.A,
-        B = this.B,
-        options = {
-          include: [
-            {
-              model: B,
-            }
-          ],
-        }
-
-    A.find( options ).done(function ( err ) {
-      expect( err ).not.to.be.ok
-      expect( options.include[0].required ).to.be.equal( false )
-
-      done()
-    })
-
-  })
-
   it( 'test if non required is marked as false', function ( done ) {
 
     var A = this.A,
