@@ -40,8 +40,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).success(function() {
           sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.find({ username: 'foo' }).success(function(user1) {
-                User.find({ username: 'foo' }, { transaction: t }).success(function(user2) {
+              User.find({
+                where: { username: 'foo' }
+              }).success(function(user1) {
+                User.find({
+                  where: { username: 'foo' },
+                }, { transaction: t }).success(function(user2) {
                   expect(user1).to.be.null
                   expect(user2).to.not.be.null
 
