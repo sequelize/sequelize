@@ -28,6 +28,11 @@ describe(Support.getTestDialectTeaser("associations"), function() {
 					}
 				}
 			});
+			this.Tag = this.sequelize.define('tag', {
+				name: Sequelize.STRING,
+				taggable: Sequelize.STRING,
+				taggable_id: Sequelize.INTEGER
+			});
 
 			this.Post.hasMany(this.Comment, {
 				foreignKey: 'commentable_id',
@@ -71,66 +76,93 @@ describe(Support.getTestDialectTeaser("associations"), function() {
 				}
 			});
 		});
+		
+		describe('1:M', function () {
+			it('should create, find and include associations with scope values', function () {
+				var self = this;
+				return this.sequelize.sync({force: true}).then(function () {
+					return Promise.join(
+						self.Post.create(),
+						self.Image.create(),
+						self.Question.create(),
+						self.Comment.create({
+							title: 'I am a image comment'
+						}),
+						self.Comment.create({
+							title: 'I am a question comment'
+						})
+					);
+				}).bind(this).spread(function (post, image, question, commentA, commentB) {
+					this.post = post;
+					this.image = image;
+					this.question = question;
+					return Promise.join(
+						post.createComment({
+							title: 'I am a post comment'
+						}),
+						image.addComment(commentA),
+						question.setComments([commentB])
+					);
+				}).then(function () {
+					return self.Comment.findAll();
+				}).then(function (comments) {
+					comments.forEach(function (comment) {
+						expect(comment.get('commentable')).to.be.ok;
+					});
+					expect(comments.map(function (comment) {
+						return comment.get('commentable');
+					}).sort()).to.deep.equal(['image', 'post', 'question']);
+				}).then(function () {
+					return Promise.join(
+						this.post.getComments(),
+						this.image.getComments(),
+						this.question.getComments()
+					);
+				}).spread(function (postComments, imageComments, questionComments) {
+					expect(postComments.length).to.equal(1);
+					expect(postComments[0].get('title')).to.equal('I am a post comment');
+					expect(imageComments.length).to.equal(1);
+					expect(imageComments[0].get('title')).to.equal('I am a image comment');
+					expect(questionComments.length).to.equal(1);
+					expect(questionComments[0].get('title')).to.equal('I am a question comment');
 
-		it('should create associations and find association with scope values', function () {
-			var self = this;
-			return this.sequelize.sync({force: true}).then(function () {
-				return Promise.join(
-					self.Post.create(),
-					self.Image.create(),
-					self.Question.create(),
-					self.Comment.create({
-						title: 'I am a image comment'
-					}),
-					self.Comment.create({
-						title: 'I am a question comment'
-					})
-				);
-			}).bind(this).spread(function (post, image, question, commentA, commentB) {
-				this.post = post;
-				this.image = image;
-				this.question = question;
-				return Promise.join(
-					post.createComment({
-						title: 'I am a post comment'
-					}),
-					image.addComment(commentA),
-					question.setComments([commentB])
-				);
-			}).then(function () {
-				return self.Comment.findAll();
-			}).then(function (comments) {
-				comments.forEach(function (comment) {
-					expect(comment.get('commentable')).to.be.ok;
+					return [postComments[0], imageComments[0], questionComments[0]];
+				}).spread(function (postComment, imageComment, questionComment) {
+					return Promise.join(
+						postComment.getItem(),
+						imageComment.getItem(),
+						questionComment.getItem()
+					);
+				}).spread(function (post, image, question) {
+					expect(post.Model).to.equal(self.Post);
+					expect(image.Model).to.equal(self.Image);
+					expect(question.Model).to.equal(self.Question);
+				}).then(function () {
+					return Promise.join(
+						self.Post.find({
+							include: [self.Comment]
+						}),
+						self.Image.find({
+							include: [self.Comment]
+						}),
+						self.Question.find({
+							include: [self.Comment]
+						})
+					);
+				}).spread(function (post, image, question) {
+					expect(post.comments.length).to.equal(1);
+					expect(post.comments[0].get('title')).to.equal('I am a post comment');
+					expect(image.comments.length).to.equal(1);
+					expect(image.comments[0].get('title')).to.equal('I am a image comment');
+					expect(question.comments.length).to.equal(1);
+					expect(question.comments[0].get('title')).to.equal('I am a question comment');
 				});
-				expect(comments.map(function (comment) {
-					return comment.get('commentable');
-				}).sort()).to.deep.equal(['image', 'post', 'question']);
-			}).then(function () {
-				return Promise.join(
-					this.post.getComments(),
-					this.image.getComments(),
-					this.question.getComments()
-				);
-			}).spread(function (postComments, imageComments, questionComments) {
-				expect(postComments.length).to.equal(1);
-				expect(postComments[0].get('title')).to.equal('I am a post comment');
-				expect(imageComments.length).to.equal(1);
-				expect(imageComments[0].get('title')).to.equal('I am a image comment');
-				expect(questionComments.length).to.equal(1);
-				expect(questionComments[0].get('title')).to.equal('I am a question comment');
+			});
+		});
 
-				return [postComments[0], imageComments[0], questionComments[0]];
-			}).spread(function (postComment, imageComment, questionComment) {
-				return Promise.join(
-					postComment.getItem(),
-					imageComment.getItem(),
-					questionComment.getItem()
-				);
-			}).spread(function (post, image, question) {
-				expect(post.Model).to.equal(self.Post);
-				expect(image.Model).to.equal(self.Image);
-				expect(question.Model).to.equal(self.Question);
+		describe('N:M', function () {
+			it.skip('should create associations and find association with scope values', function () {
+
 			});
 		});
 	});
