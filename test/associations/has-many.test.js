@@ -1101,6 +1101,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
               }
             );
           }).then(function (userGroups) {
+            userGroups.sort(function (a, b) {
+              return a.userId < b.userId ? - 1 : 1;
+            });
             expect(userGroups[0].userId).to.equal(1);
             expect(userGroups[0].isAdmin).to.be.ok;
             expect(userGroups[1].userId).to.equal(2);
