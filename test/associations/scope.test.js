@@ -159,13 +159,129 @@ describe(Support.getTestDialectTeaser("associations"), function() {
         });
       });
     });
+  
+    if (Support.getTestDialect() !== 'sqlite') {
+      describe('N:M', function () {
+        describe('on the target', function () {
+          beforeEach(function () {
+            this.Post = this.sequelize.define('post', {});
+            this.Tag = this.sequelize.define('tag', {
+              type: DataTypes.STRING
+            });
+            this.PostTag = this.sequelize.define('post_tag');
 
-    describe('N:M', function () {
-      describe('on the target', function () {
-        it('should create, find and include associations with scope values', function () {
+            this.Tag.hasMany(this.Post, {through: this.PostTag});
+            this.Post.hasMany(this.Tag, {as: 'categories', through: this.PostTag, scope: { type: 'category' }});
+            this.Post.hasMany(this.Tag, {as: 'tags', through: this.PostTag, scope: { type: 'tag' }});
+          });
+          it('should create, find and include associations with scope values', function () {
+            var self = this;
+            return Promise.join(
+              self.Post.sync({force: true}),
+              self.Tag.sync({force: true})
+            ).bind(this).then(function () {
+              return self.PostTag.sync({force: true});
+            }).then(function () {
+              return Promise.join(
+                self.Post.create(),
+                self.Post.create(),
+                self.Post.create(),
+                self.Tag.create({type: 'category'}),
+                self.Tag.create({type: 'category'}),
+                self.Tag.create({type: 'tag'}),
+                self.Tag.create({type: 'tag'})
+              );
+            }).spread(function (postA, postB, postC, categoryA, categoryB, tagA, tagB) {
+              this.postA = postA;
+              this.postB = postB;
+              this.postC = postC;
 
+              return Promise.join(
+                postA.addCategory(categoryA),
+                postB.setCategories([categoryB]),
+                postC.createCategory(),
+                postA.createTag(),
+                postB.addTag(tagA),
+                postC.setTags([tagB])
+              );
+            }).then(function () {
+              return Promise.join(
+                this.postA.getCategories(),
+                this.postA.getTags(),
+                this.postB.getCategories(),
+                this.postB.getTags(),
+                this.postC.getCategories(),
+                this.postC.getTags()
+              );
+            }).spread(function (postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags) {
+              expect(postACategories.length).to.equal(1);
+              expect(postATags.length).to.equal(1);
+              expect(postBCategories.length).to.equal(1);
+              expect(postBTags.length).to.equal(1);
+              expect(postCCategories.length).to.equal(1);
+              expect(postCTags.length).to.equal(1);
+
+              expect(postACategories[0].get('type')).to.equal('category');
+              expect(postATags[0].get('type')).to.equal('tag');
+              expect(postBCategories[0].get('type')).to.equal('category');
+              expect(postBTags[0].get('type')).to.equal('tag');
+              expect(postCCategories[0].get('type')).to.equal('category');
+              expect(postCTags[0].get('type')).to.equal('tag');
+            }).then(function () {
+              return Promise.join(
+                self.Post.find({
+                  where: {
+                    id: self.postA.get('id')
+                  },
+                  include: [
+                    {model: self.Tag, as: 'tags'},
+                    {model: self.Tag, as: 'categories'}
+                  ]
+                }),
+                self.Post.find({
+                  where: {
+                    id: self.postB.get('id')
+                  },
+                  include: [
+                    {model: self.Tag, as: 'tags'},
+                    {model: self.Tag, as: 'categories'}
+                  ]
+                }),
+                self.Post.find({
+                  where: {
+                    id: self.postC.get('id')
+                  },
+                  include: [
+                    {model: self.Tag, as: 'tags'},
+                    {model: self.Tag, as: 'categories'}
+                  ]
+                })
+              );
+            }).spread(function (postA, postB, postC) {
+              //console.log(postA.get('categories'));
+              expect(postA.get('categories').length).to.equal(1);
+              expect(postA.get('tags').length).to.equal(1);
+              expect(postB.get('categories').length).to.equal(1);
+              expect(postB.get('tags').length).to.equal(1);
+              expect(postC.get('categories').length).to.equal(1);
+              expect(postC.get('tags').length).to.equal(1);
+
+              expect(postA.get('categories')[0].get('type')).to.equal('category');
+              expect(postA.get('tags')[0].get('type')).to.equal('tag');
+              expect(postB.get('categories')[0].get('type')).to.equal('category');
+              expect(postB.get('tags')[0].get('type')).to.equal('tag');
+              expect(postC.get('categories')[0].get('type')).to.equal('category');
+              expect(postC.get('tags')[0].get('type')).to.equal('tag');
+            });
+          });
+        });
+
+        describe.skip('on the through model', function () {
+          it('should create, find and include associations with scope values', function () {
+
+          });
         });
       });
-    });
+    }
   });
 });
