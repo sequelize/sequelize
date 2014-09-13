@@ -1,6 +1,7 @@
 # Next
 - [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
 - [FEATURE] Added `field` and `name` to the object form of foreign key definitions
+- [FEATURE] Added support for calling `Promise.done`, thus explicitly ending the promise chain by calling done with no arguments. Done with a function argument still continues the promise chain, to maintain BC.
 
 #### Backwards compatability changes
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
