@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser("Self"), function() {
       });
     }).then(function () {
       return this.john.getChildren().on('sql', function(sql) {
-        var whereClause = sql.split('WHERE')[1]; // look only in the whereClause
+        var whereClause = sql.split('FROM')[1]; // look only in the whereClause
         expect(whereClause).to.have.string('preexisting_child');
         expect(whereClause).to.have.string('preexisting_parent');
       });

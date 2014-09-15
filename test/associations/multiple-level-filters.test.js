@@ -217,7 +217,6 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
           User.find(1).success(function(user){
             Project.find(1).success(function(project){
               user.setProjects([project]).success(function(){
-
                 User.find(2).success(function(user){
                   Project.find(2).success(function(project){
                     user.setProjects([project]).success(function(){
@@ -246,6 +245,6 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
           });
         });
       });
-    })
-  })
-})
+    });
+  });
+});
