@@ -5,6 +5,7 @@
 
 #### Backwards compatability changes
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
+- The naming of the join table entry for N:M association getters is now singular (like includes)
 
 # v2.0.0-dev13
 We are working our way to the first 2.0.0 release candidate.
