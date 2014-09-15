@@ -976,6 +976,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     t.rollback().success(function(){ done() })
                   })
                 })
+              }).on('sql', function (sql) {
+                console.log(sql);
               })
             })
           })
