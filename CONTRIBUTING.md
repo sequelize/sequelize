@@ -87,6 +87,38 @@ $ sudo docker stop $CONTAINER
 
 When running tests repeatedly, you only need to redo step 3 if you haven't stopped the container.
 
+#### 3b. Docker and OSX:
+
+Docker does not run on OSX natively so you will have to use an VM layer like `boot2docker`. See [OSX Docker Documentation](http://docs.docker.com/installation/mac/) for install or you can also use [Homebrew](http://brew.sh) to install `boot2docker` after installing [VirtualBox](https://www.virtualbox.org)
+
+After installing and intializing docker you can pull the docker container:
+```console
+$ boot2docker up
+Waiting for VM and Docker daemon to start...
+......
+Started.
+
+To connect the Docker client to the Docker daemon, please set:
+    export DOCKER_HOST=tcp://192.168.59.103:2375
+
+$ export DOCKER_HOST=tcp://192.168.59.103:2375
+$ docker pull mhansen/sequelize-contribution
+```
+
+And then setup and run the tests:
+```console
+$ CONTAINER=$(docker run -d -i -t mhansen/sequelize-contribution)
+$ CONTAINER_IP=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
+$ SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
+```
+
+These are the same commands as above, although `sudo` is not required.
+
+When you are done with your testing:
+```console
+$ boot2docker down
+```
+
 ### 4. Run the tests ###
 
 All tests are located in the `test` folder (which contains the
