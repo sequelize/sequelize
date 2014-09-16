@@ -2,9 +2,11 @@
 - [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
 - [FEATURE] Added `field` and `name` to the object form of foreign key definitions
 - [FEATURE] Added support for calling `Promise.done`, thus explicitly ending the promise chain by calling done with no arguments. Done with a function argument still continues the promise chain, to maintain BC.
+- [FEATURE] Added `scope` to hasMany association definitions, provides default values to association setters/finders [#2268](https://github.com/sequelize/sequelize/pull/2268)
 
 #### Backwards compatability changes
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
+- The naming of the join table entry for N:M association getters is now singular (like includes)
 
 # v2.0.0-dev13
 We are working our way to the first 2.0.0 release candidate.

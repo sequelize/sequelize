@@ -894,9 +894,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         }).then(function(projects) {
           expect(projects).to.have.length(1);
           var project = projects[0];
-          expect(project.ProjectUsers).to.be.defined;
+          expect(project.ProjectUser).to.be.defined;
           expect(project.status).not.to.exist;
-          expect(project.ProjectUsers.status).to.equal('active');
+          expect(project.ProjectUser.status).to.equal('active');
         });
       });
     });
@@ -1101,6 +1101,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
               }
             );
           }).then(function (userGroups) {
+            userGroups.sort(function (a, b) {
+              return a.userId < b.userId ? - 1 : 1;
+            });
             expect(userGroups[0].userId).to.equal(1);
             expect(userGroups[0].isAdmin).to.be.ok;
             expect(userGroups[1].userId).to.equal(2);
@@ -1363,7 +1366,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           expect(associationName).not.to.equal(this.User.tableName);
           expect(associationName).not.to.equal(this.Task.tableName);
 
-          var through = this.User.associations[associationName].through;
+          var through = this.User.associations[associationName].through.model;
           if (typeof through !== 'undefined') {
             expect(through.tableName).to.equal(associationName);
           }
@@ -1390,7 +1393,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         expect(ParanoidTask.options.paranoid).to.be.ok;
 
         _.forEach(ParanoidUser.associations, function (association) {
-          expect(association.through.options.paranoid).not.to.be.ok;
+          expect(association.through.model.options.paranoid).not.to.be.ok;
         });
       });
     });
@@ -1472,7 +1475,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         _.each([this.UserTasks, this.UserTasks2], function (model) {
           fk = Object.keys(model.options.uniqueKeys)[0];
-          expect(model.options.uniqueKeys[fk].fields).to.deep.equal([ 'TaskId', 'UserId' ]);
+          expect(model.options.uniqueKeys[fk].fields.sort()).to.deep.equal([ 'TaskId', 'UserId' ]);
         });
       });
 
@@ -1538,8 +1541,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
             expect(project.UserProjects).to.be.defined;
             expect(project.status).not.to.exist;
-            expect(project.UserProjects.status).to.equal('active');
-            expect(project.UserProjects.data).to.equal(42);
+            expect(project.UserProject.status).to.equal('active');
+            expect(project.UserProject.data).to.equal(42);
           });
         });
 
@@ -1556,8 +1559,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
             expect(project.UserProjects).to.be.defined;
             expect(project.status).not.to.exist;
-            expect(project.UserProjects.status).to.equal('active');
-            expect(project.UserProjects.data).not.to.exist;
+            expect(project.UserProject.status).to.equal('active');
+            expect(project.UserProject.data).not.to.exist;
           });
         });
       });
@@ -1841,9 +1844,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         User.hasMany(Group, { as: 'MyGroups', through: 'group_user'});
         Group.hasMany(User, { as: 'MyUsers', through: 'group_user'});
 
-        expect(Group.associations.MyUsers.through === User.associations.MyGroups.through);
-        expect(Group.associations.MyUsers.through.rawAttributes.UserId).to.exist;
-        expect(Group.associations.MyUsers.through.rawAttributes.GroupId).to.exist;
+        expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
+        expect(Group.associations.MyUsers.through.model.rawAttributes.UserId).to.exist;
+        expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
       });
 
       it("correctly identifies its counterpart when through is a model", function () {
@@ -1854,10 +1857,10 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         User.hasMany(Group, { as: 'MyGroups', through: UserGroup});
         Group.hasMany(User, { as: 'MyUsers', through: UserGroup});
 
-        expect(Group.associations.MyUsers.through === User.associations.MyGroups.through);
+        expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
 
-        expect(Group.associations.MyUsers.through.rawAttributes.UserId).to.exist;
-        expect(Group.associations.MyUsers.through.rawAttributes.GroupId).to.exist;
+        expect(Group.associations.MyUsers.through.model.rawAttributes.UserId).to.exist;
+        expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
       });
     });
   });
@@ -2234,15 +2237,15 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
         expect(Task.rawAttributes.uid).not.to.be.defined;
 
-        expect(Task.associations.tasksusers.through.rawAttributes.taskId).to.be.defined;
-        expect(Task.associations.tasksusers.through.rawAttributes.taskId.allowNull).to.be.false;
-        expect(Task.associations.tasksusers.through.rawAttributes.taskId.references).to.equal(Task.getTableName());
-        expect(Task.associations.tasksusers.through.rawAttributes.taskId.referencesKey).to.equal('id');
+        expect(Task.associations.tasksusers.through.model.rawAttributes.taskId).to.be.defined;
+        expect(Task.associations.tasksusers.through.model.rawAttributes.taskId.allowNull).to.be.false;
+        expect(Task.associations.tasksusers.through.model.rawAttributes.taskId.references).to.equal(Task.getTableName());
+        expect(Task.associations.tasksusers.through.model.rawAttributes.taskId.referencesKey).to.equal('id');
 
-        expect(Task.associations.tasksusers.through.rawAttributes.uid).to.be.defined;
-        expect(Task.associations.tasksusers.through.rawAttributes.uid.allowNull).to.be.false;
-        expect(Task.associations.tasksusers.through.rawAttributes.uid.references).to.equal(User.getTableName());
-        expect(Task.associations.tasksusers.through.rawAttributes.uid.referencesKey).to.equal('id');
+        expect(Task.associations.tasksusers.through.model.rawAttributes.uid).to.be.defined;
+        expect(Task.associations.tasksusers.through.model.rawAttributes.uid.allowNull).to.be.false;
+        expect(Task.associations.tasksusers.through.model.rawAttributes.uid.references).to.equal(User.getTableName());
+        expect(Task.associations.tasksusers.through.model.rawAttributes.uid.referencesKey).to.equal('id');
       });
 
       it('works when taking a column directly from the object', function () {
