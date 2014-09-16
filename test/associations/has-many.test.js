@@ -550,6 +550,31 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           return this.t.rollback();
         });
       });
+
+      it('supports passing the field option', function () {
+        var Article = this.sequelize.define('Article', {
+          'title': DataTypes.STRING
+        });
+        var Label = this.sequelize.define('Label', {
+          'text': DataTypes.STRING
+        });
+
+        Article.hasMany(Label);
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return Article.create();
+        }).then(function (article) {
+          return article.createLabel({
+            text: 'yolo'
+          }, {
+            fields: ['text']
+          }).return(article);
+        }).then(function (article) {
+          return article.getLabels();
+        }).then(function (labels) {
+          expect(labels.length).to.be.ok;
+        });
+      });
     });
 
     describe("getting assocations with options", function() {
@@ -1087,28 +1112,49 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             isAdmin: Sequelize.BOOLEAN
           });
 
-          User.hasMany(Group, { through: UserGroups });
-          Group.hasMany(User, { through: UserGroups });
+        User.hasMany(Group, { through: UserGroups });
+        Group.hasMany(User, { through: UserGroups });
 
-          return this.sequelize.sync({ force: true }).then(function () {
-            return Group.create({});
-          }).then(function (group) {
-            return Promise.join(
-              group.createUser({ id: 1 }, { isAdmin: true }),
-              group.createUser({ id: 2 }, { isAdmin: false }),
-              function () {
-                return UserGroups.findAll();
-              }
-            );
-          }).then(function (userGroups) {
-            userGroups.sort(function (a, b) {
-              return a.userId < b.userId ? - 1 : 1;
-            });
-            expect(userGroups[0].userId).to.equal(1);
-            expect(userGroups[0].isAdmin).to.be.ok;
-            expect(userGroups[1].userId).to.equal(2);
-            expect(userGroups[1].isAdmin).not.to.be.ok;
+        return this.sequelize.sync({ force: true }).then(function () {
+          return Group.create({});
+        }).then(function (group) {
+          return Promise.join(
+            group.createUser({ id: 1 }, { isAdmin: true }),
+            group.createUser({ id: 2 }, { isAdmin: false }),
+            function () {
+              return UserGroups.findAll();
+            }
+          );
+        }).then(function (userGroups) {
+          userGroups.sort(function (a, b) {
+            return a.userId < b.userId ? - 1 : 1;
           });
+          expect(userGroups[0].userId).to.equal(1);
+          expect(userGroups[0].isAdmin).to.be.ok;
+          expect(userGroups[1].userId).to.equal(2);
+          expect(userGroups[1].isAdmin).not.to.be.ok;
+        });
+      });
+
+      it('supports using the field parameter', function () {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+        User.hasMany(Task);
+        Task.hasMany(User);
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return Task.create({ title: 'task' });
+        }).bind({}).then(function(task) {
+          this.task = task;
+          return task.createUser({ username: 'foo' }, {fields: ['username']});
+        }).then(function(createdUser) {
+          expect(createdUser.Model).to.equal(User);
+          expect(createdUser.username).to.equal('foo');
+          return this.task.getUsers();
+        }).then(function(_users) {
+          expect(_users).to.have.length(1);
+        });
       });
     });
 
