@@ -68,6 +68,11 @@ if (dialect.match(/^postgres/)) {
         done()
       })
 
+      it('should handle empty string correctly', function(done) {
+        expect(hstore.stringify({foo : ""})).to.equal('"foo"=>\"\"')
+        done()
+      })
+
       it('should handle simple objects correctly', function(done) {
         expect(hstore.stringify({ test: 'value' })).to.equal('"test"=>"value"')
         done()
@@ -100,6 +105,11 @@ if (dialect.match(/^postgres/)) {
         done()
       })
 
+      it('should handle empty string correctly', function(done) {
+        expect(hstore.parse('"foo"=>\"\"')).to.equal({foo : ""})
+        done()
+      })
+
       it('should handle empty objects correctly', function(done) {
         expect(hstore.parse('')).to.deep.equal({ })
         done()
@@ -127,6 +137,14 @@ if (dialect.match(/^postgres/)) {
 
       it('should handle multiple keys with different types of values', function(done) {
         expect(hstore.parse('"true"=>true,"false"=>false,"null"=>NULL,"undefined"=>NULL,"integer"=>1,"array"=>"[1,\\"2\\"]","object"=>"{\\"object\\":\\"value\\"}"')).to.deep.equal({ true: true, false: false, null: null, undefined: null, integer: "1", array: [1,'2'], object: { object: 'value' }})
+        done()
+      })
+    })
+    describe('stringify and parse', function() {
+      it('should stringify then parse back the same structure', function(done){
+        var testObj = {foo : "bar", count : "1", emptyString : "", quotyString : "\"\"", nully : null};
+        expect(hstore.parse(hstore.stringify(testObj))).to.deep.equal(testObj);
+        expect(hstore.parse(hstore.stringify(hstore.parse(hstore.stringify(testObj))))).to.deep.equal(testObj);
         done()
       })
     })
