@@ -449,6 +449,65 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     }
   })
 
+  describe('set', function() {
+
+    it("should return an promised error if transaction isn't defined", function ( done ) {
+      var S = this.sequelize;
+
+      S.set({ foo: 'bar' })
+        .done( function ( err ) {
+          expect( err ).to.be.an.instanceof( TypeError )
+
+          done();
+        });
+    })
+
+    it("one value", function ( done ) {
+      var S = this.sequelize;
+
+      S.transaction().then(function ( t ) {
+        S
+          .set({ foo: 'bar' }, { transaction: t })
+          .then(function () {
+            return S.query( 'SELECT @foo as `foo`', null, { raw: true, plain: true, transaction: t })
+          })
+          .then(function ( data ) {
+            expect( data ).to.be.ok
+            expect( data.foo ).to.be.equal( 'bar' )
+          })
+          .then(function () {
+            return t.commit()
+          })
+          .then( done )
+      })
+    })
+
+    it("multiple values", function ( done ) {
+      var S = this.sequelize;
+
+      S.transaction().then(function ( t ) {
+        S
+          .set({
+            foo: 'bar',
+            foos: 'bars',
+          }, { transaction: t })
+          .then(function () {
+            return S.query( 'SELECT @foo as `foo`, @foos as `foos`', null, { raw: true, plain: true, transaction: t })
+          })
+          .then(function ( data ) {
+            expect( data ).to.be.ok
+            expect( data.foo ).to.be.equal( 'bar' )
+            expect( data.foos ).to.be.equal( 'bars' )
+          })
+          .then(function () {
+            return t.commit()
+          })
+          .then( done )
+      })
+    })
+
+  })
+
   describe('define', function() {
     it("adds a new dao to the dao manager", function(done) {
       expect(this.sequelize.daoFactoryManager.all.length).to.equal(0)
