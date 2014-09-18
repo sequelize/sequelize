@@ -40,6 +40,7 @@
     "node-uuid": "~1.4.1",
     "bluebird": "~2.3.2",
     "sql": "~0.40.0",
+    "pg-hstore": "^2.1.2",
     "toposort-class": "~0.3.0",
     "validator": "~3.22.0"
   },
