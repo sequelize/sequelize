@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       }).success(function() {
         self.queryInterface.dropAllTables({skip: ['skipme']}).complete(function(err){
           expect(err).to.be.null
-          
+
           self.queryInterface.showAllTables().complete(function(err, tableNames) {
             expect(err).to.be.null
 
