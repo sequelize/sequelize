@@ -16,11 +16,12 @@ if (dialect.match(/^postgres/)) {
         username: DataTypes.STRING,
         email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
         settings: DataTypes.HSTORE,
-        document: { type: DataTypes.HSTORE, defaultValue: { default: 'value' } },
-        phones: DataTypes.ARRAY(DataTypes.HSTORE),
+        document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
+        phones: DataTypes.ARRAY(DataTypes.HSTORE)
         emergency_contact: DataTypes.JSON
       })
-      this.User.sync({ force: true }).success(function() {
+      this.User.sync({ force: true })
+      .success(function() {
         done()
       })
     })
@@ -193,11 +194,12 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           settings: {mailing: false, push: 'facebook', frequency: 3}
         }).on('sql', function(sql) {
-          var expected = 'INSERT INTO "Users" ("id","username","email","settings","document","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',ARRAY[\'myemail@email.com\']::TEXT[],\'"mailing"=>false,"push"=>"facebook","frequency"=>3\',\'"default"=>"value"\''
+          var expected = 'INSERT INTO "Users" ("id","username","email","settings","document","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',ARRAY[\'myemail@email.com\']::TEXT[],\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\''
           expect(sql.indexOf(expected)).to.equal(0)
           done()
         })
       })
+
     })
 
     describe('enums', function() {
@@ -385,11 +387,11 @@ if (dialect.match(/^postgres/)) {
 
       it("should save hstore correctly", function(done) {
         this.User
-          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
+          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: '"value"' }})
           .success(function(newUser) {
             // Check to see if the default value for an hstore field works
-            expect(newUser.document).to.deep.equal({ default: 'value' })
-            expect(newUser.settings).to.deep.equal({ created: { test: '"value"' }})
+            expect(newUser.document).to.deep.equal({ default: "'value'" })
+            expect(newUser.settings).to.deep.equal({ created: '"value"' })
 
             // Check to see if updating an hstore field works
             newUser.updateAttributes({settings: {should: 'update', to: 'this', first: 'place'}}).success(function(oldUser){
@@ -402,26 +404,55 @@ if (dialect.match(/^postgres/)) {
       })
 
       it('should save hstore array correctly', function(done) {
+        var User = this.User;
+
         this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
-          phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }]
-        }).on('sql', function(sql) {
-          var expected = 'INSERT INTO "Users" ("id","username","email","document","phones","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',ARRAY[\'myemail@email.com\']::TEXT[],\'"default"=>"value"\',ARRAY[\'"number"=>"123456789","type"=>"mobile"\',\'"number"=>"987654321","type"=>"landline"\']::HSTORE[]'
-          expect(sql).to.contain(expected)
-          done()
+          phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }, { number : '8675309', type : "Jenny's"}, {number : '5555554321', type : '"home"' }]
         })
+        .success(function(){
+          User.find(1)
+          .success(function(user){
+            expect(user.phones.length).to.equal(4);
+            expect(user.phones[1].number).to.equal('987654321');
+            expect(user.phones[2].type).to.equal("Jenny's");
+            expect(user.phones[3].type).to.equal('"home"');
+            done();
+          })
+          .error(done)
+        })
+        .error(done)
+      })
+
+      it('should bulkCreate with hstore property', function(done) {
+        var User = this.User;
+
+        this.User.bulkCreate([{
+          username: 'bob',
+          email: ['myemail@email.com'],
+          settings: {mailing: true, push: 'facebook', frequency: 3}
+        }])
+        .success(function(){
+          User.find(1)
+          .success(function(user){
+            expect(user.settings.mailing).to.equal("true")
+            done()
+          })
+          .error(done)
+        })
+        .error(done)
       })
 
       it("should update hstore correctly", function(done) {
         var self = this
 
         this.User
-          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
+          .create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }})
           .success(function(newUser) {
             // Check to see if the default value for an hstore field works
-            expect(newUser.document).to.deep.equal({default: 'value'})
-            expect(newUser.settings).to.deep.equal({ created: { test: '"value"' }})
+            expect(newUser.document).to.deep.equal({default: "'value'"})
+            expect(newUser.settings).to.deep.equal({ test: '"value"' })
 
             // Check to see if updating an hstore field works
             self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: newUser.identifiers}).success(function() {
@@ -439,7 +470,7 @@ if (dialect.match(/^postgres/)) {
         var self = this
 
         this.User
-          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
+          .create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }})
           .success(function(oldUser) {
             // Update the user and check that the returned object's fields have been parsed by the hstore library
             self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
@@ -453,7 +484,7 @@ if (dialect.match(/^postgres/)) {
 
       it("should read hstore correctly", function(done) {
         var self = this
-        var data = { username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}}
+        var data = { username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }}
 
         this.User
           .create(data)
@@ -490,24 +521,24 @@ if (dialect.match(/^postgres/)) {
         var self = this
 
         self.User
-          .create({ username: 'user1', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
+          .create({ username: 'user1', email: ['foo@bar.com'], settings: { test: '"value"' }})
           .then(function() {
-            return self.User.create({ username: 'user2', email: ['foo2@bar.com'], settings: { updated: { another: '"example"' }}})
+            return self.User.create({ username: 'user2', email: ['foo2@bar.com'], settings: { another : '"example"' }})
           })
           .then(function() {
             // Check that the hstore fields are the same when retrieving the user
             return self.User.findAll({ order: 'username' })
           })
           .then(function(users) {
-            expect(users[0].settings).to.deep.equal({ created: { test: '"value"' }})
-            expect(users[1].settings).to.deep.equal({ updated: { another: '"example"' }})
+            expect(users[0].settings).to.deep.equal({ test: '"value"' })
+            expect(users[1].settings).to.deep.equal({ another: '"example"' })
 
             done()
           })
           .error(console.log)
       })
     })
- 
+
     describe('[POSTGRES] Unquoted identifiers', function() {
       it("can insert and select", function(done) {
         var self = this
