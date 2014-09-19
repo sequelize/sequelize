@@ -18,6 +18,7 @@ We are working our way to the first 2.0.0 release candidate.
 - [FEATURE/INTERNALS] Standardized the output from `QueryInterface.showIndex`.
 - [FEATURE] Include deleted rows in find [#2083](https://github.com/sequelize/sequelize/pull/2083)
 - [FEATURE] Make addSingular and addPlural for n:m assocations (fx `addUser` and `addUsers` now both accept an array or an instance.
+- [FEATURE] Added support to Node Fibers [#2149](https://github.com/sequelize/sequelize/issues/2149)
 - [BUG] Hid `dottie.transform` on raw queries behind a flag (`nest`) [#2064](https://github.com/sequelize/sequelize/pull/2064)
 - [BUG] Fixed problems with transcation parameter being removed / not passed on in associations [#1789](https://github.com/sequelize/sequelize/issues/1789) and [#1968](https://github.com/sequelize/sequelize/issues/1968)
 - [BUG] Fix problem with minConnections. [#2048](https://github.com/sequelize/sequelize/issues/2048)

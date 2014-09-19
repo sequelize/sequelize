@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "dottie": "0.2.4",
+    "fibers": "^1.0.1",
     "generic-pool": "2.1.1",
     "inflection": "1.4.2",
     "lodash": "~2.4.0",
