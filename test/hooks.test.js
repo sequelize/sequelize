@@ -4177,6 +4177,123 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
     })
   })
 
+  describe('#find', function() {
+    beforeEach(function(done) {
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        mood: {
+          type: DataTypes.ENUM,
+          values: ['happy', 'sad', 'neutral']
+        }
+      });
+
+      this.User.sync({ force: true }).bind(this).then(function() {
+        return this.User.bulkCreate([
+          {username: 'adam', mood: 'happy'},
+          {username: 'joe', mood: 'sad'}
+        ]);
+      }).then(function() {
+        done();
+      });
+    });
+
+    describe('on success', function() {
+      it('all hooks run', function(done) {
+        var beforeHook = false
+          , beforeHook2 = false
+          , afterHook = false;
+
+        this.User.beforeFind(function(options) {
+          beforeHook = true;
+        });
+
+        this.User.beforeFindAfterExpandIncludeAll(function(options) {
+          beforeHook2 = true;
+        });
+
+        this.User.afterFind(function(users, options) {
+          afterHook = true;
+        });
+
+        this.User.find({where: {username: 'adam'}}).then(function(user) {
+          expect(user.mood).to.equal('happy');
+          expect(beforeHook).to.be.true;
+          expect(beforeHook2).to.be.true;
+          expect(afterHook).to.be.true;
+          done();
+        });
+      });
+
+      it('beforeFind hook can change options', function(done) {
+        this.User.beforeFind(function(options) {
+          options.where.username = 'joe';
+        });
+
+        this.User.find({where: {username: 'adam'}}).then(function(user) {
+          expect(user.mood).to.equal('sad');
+          done();
+        });
+      });
+
+      it('beforeFindAfterExpandIncludeAll hook can change options', function(done) {
+        this.User.beforeFindAfterExpandIncludeAll(function(options) {
+          options.where.username = 'joe';
+        });
+
+        this.User.find({where: {username: 'adam'}}).then(function(user) {
+          expect(user.mood).to.equal('sad');
+          done();
+        });
+      });
+
+      it('afterFind hook can change results', function(done) {
+        this.User.afterFind(function(user, options) {
+          user.mood = 'sad';
+        });
+
+        this.User.find({where: {username: 'adam'}}).then(function(user) {
+          expect(user.mood).to.equal('sad');
+          done();
+        });
+      });
+    });
+
+    describe('on error', function() {
+      it('in beforeFind hook returns error', function(done) {
+        this.User.beforeFind(function(options) {
+          throw new Error('Oops!');
+        });
+
+        this.User.find({where: {username: 'adam'}}).catch(function(err) {
+          expect(err.message).to.equal('Oops!');
+          done();
+        });
+      });
+
+      it('in beforeFindAfterExpandIncludeAll hook returns error', function(done) {
+        this.User.beforeFindAfterExpandIncludeAll(function(options) {
+          throw new Error('Oops!');
+        });
+
+        this.User.find({where: {username: 'adam'}}).catch(function(err) {
+          expect(err.message).to.equal('Oops!');
+          done();
+        });
+      });
+
+      it('in afterFind hook returns error', function(done) {
+        this.User.afterFind(function(options) {
+          throw new Error('Oops!');
+        });
+
+        this.User.find({where: {username: 'adam'}}).catch(function(err) {
+          expect(err.message).to.equal('Oops!');
+          done();
+        });
+      });
+    });
+  });
+
   describe('aliases', function() {
     describe('direct method', function() {
       describe('#delete', function() {
