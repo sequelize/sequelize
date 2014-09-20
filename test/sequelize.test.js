@@ -449,6 +449,46 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     }
   })
 
+  if (Support.dialectIsMySQL()) {
+    describe('set', function() {
+      it("should return an promised error if transaction isn't defined", function () {
+        expect(function () {
+          this.sequelize.set({ foo: 'bar' })
+        }.bind(this)).to.throw(TypeError, "options.transaction is required")
+      })
+
+      it("one value", function () {
+        return this.sequelize.transaction().bind(this).then(function (t) {
+          this.t = t;
+          return this.sequelize.set({ foo: 'bar' }, { transaction: t });
+        }).then(function () {
+          return this.sequelize.query( 'SELECT @foo as `foo`', null, { raw: true, plain: true, transaction: this.t });
+        }).then(function (data) {
+          expect(data).to.be.ok
+          expect(data.foo).to.be.equal('bar')
+          return this.t.commit();
+        });
+      });
+
+      it("multiple values", function () {
+        return this.sequelize.transaction().bind(this).then(function (t) {
+          this.t = t;
+          return this.sequelize.set({
+            foo: 'bar',
+            foos: 'bars',
+          }, { transaction: t });
+        }).then(function () {
+          return this.sequelize.query( 'SELECT @foo as `foo`, @foos as `foos`', null, { raw: true, plain: true, transaction: this.t });
+        }).then(function (data) {
+          expect(data).to.be.ok;
+          expect(data.foo).to.be.equal('bar');
+          expect(data.foos).to.be.equal('bars');
+          return this.t.commit();
+        });
+      });
+    });
+  }
+
   describe('define', function() {
     it("adds a new dao to the dao manager", function(done) {
       expect(this.sequelize.daoFactoryManager.all.length).to.equal(0)

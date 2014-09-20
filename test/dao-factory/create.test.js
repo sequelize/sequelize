@@ -168,13 +168,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
             this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
             function (first, second) {
+               var firstInstance = first[0]
+              , firstCreated = first[1]
+              , secondInstance = second[0]
+              , secondCreated = second[1];
 
-              expect(first[0]).to.be.ok;
-              expect(first[1]).to.be.ok;
-              expect(second[0]).to.be.ok;
-              expect(second[1]).not.to.be.ok;
+              expect(firstInstance).to.be.ok;
+              expect(firstCreated).to.be.ok;
+              expect(secondInstance).to.be.ok;
+              expect(secondCreated).not.to.be.ok;
 
-              expect(first[0].id).to.equal(second[0].id);
+              expect(firstInstance.id).to.equal(secondInstance.id);
 
               return transaction.commit();
             }
@@ -188,12 +192,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
           function (first, second) {
-            expect(first[0]).to.be.ok;
-            expect(first[1]).to.be.ok;
-            expect(second[0]).to.be.ok;
-            expect(second[1]).not.to.be.ok;
+            var firstInstance = first[0]
+              , firstCreated = first[1]
+              , secondInstance = second[0]
+              , secondCreated = second[1];
 
-            expect(first[0].id).to.equal(second[0].id);
+            // Depending on execution order and MAGIC either the first OR the second call should return true
+            expect(firstCreated ? !secondCreated : secondCreated).to.be.ok // XOR
+
+            expect(firstInstance).to.be.ok;
+            expect(secondInstance).to.be.ok;
+
+            expect(firstInstance.id).to.equal(secondInstance.id);
           }
         );
       });

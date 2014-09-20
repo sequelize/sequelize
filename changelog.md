@@ -3,6 +3,7 @@
 - [FEATURE] Added `field` and `name` to the object form of foreign key definitions
 - [FEATURE] Added support for calling `Promise.done`, thus explicitly ending the promise chain by calling done with no arguments. Done with a function argument still continues the promise chain, to maintain BC.
 - [FEATURE] Added `scope` to hasMany association definitions, provides default values to association setters/finders [#2268](https://github.com/sequelize/sequelize/pull/2268)
+- [BUG] Only try to create indexes which don't already exist. Closes [#2162](https://github.com/sequelize/sequelize/issues/2162)
 
 #### Backwards compatability changes
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
