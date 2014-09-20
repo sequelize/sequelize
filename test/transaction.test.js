@@ -3,49 +3,49 @@ var chai        = require('chai')
   , Support     = require(__dirname + '/support')
   , dialect     = Support.getTestDialect()
   , Transaction = require(__dirname + '/../lib/transaction')
-  , sinon       = require('sinon')
+  , sinon       = require('sinon');
 
 
 describe(Support.getTestDialectTeaser("Transaction"), function () {
   this.timeout(4000);
   describe('constructor', function() {
     it('stores options', function() {
-      var transaction = new Transaction(this.sequelize)
-      expect(transaction.options).to.be.an.instanceOf(Object)
-    })
+      var transaction = new Transaction(this.sequelize);
+      expect(transaction.options).to.be.an.instanceOf(Object);
+    });
 
     it('generates an identifier', function() {
-      var transaction = new Transaction(this.sequelize)
-      expect(transaction.id).to.exist
-    })
-  })
+      var transaction = new Transaction(this.sequelize);
+      expect(transaction.id).to.exist;
+    });
+  });
 
   describe('commit', function() {
     it('is a commit method available', function() {
-      expect(Transaction).to.respondTo('commit')
-    })
-  })
+      expect(Transaction).to.respondTo('commit');
+    });
+  });
 
   describe('rollback', function() {
     it('is a rollback method available', function() {
-      expect(Transaction).to.respondTo('rollback')
-    })
-  })
+      expect(Transaction).to.respondTo('rollback');
+    });
+  });
 
   if (dialect !== 'sqlite') {
     describe('row locking', function () {
       this.timeout(10000);
       it('supports for update', function (done) {
         var User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN
-            })
+            username: Support.Sequelize.STRING,
+            awesome: Support.Sequelize.BOOLEAN
+          })
           , self = this
           , t1Spy = sinon.spy()
-          , t2Spy = sinon.spy()
+          , t2Spy = sinon.spy();
 
         this.sequelize.sync({ force: true }).then(function () {
-          return User.create({ username: 'jan'})
+          return User.create({ username: 'jan'});
         }).then(function () {
           self.sequelize.transaction().then(function (t1) {
             return User.find({
@@ -63,48 +63,48 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
                   where: {
                     username: 'jan'
                   },
-                }, { 
-                  lock: t2.LOCK.UPDATE, 
+                }, {
+                  lock: t2.LOCK.UPDATE,
                   transaction: t2
                 }).then(function () {
                   t2Spy()
                   t2.commit().then(function () {
-                    expect(t2Spy).to.have.been.calledAfter(t1Spy) // Find should not succeed before t1 has comitted
-                    done()
-                  })
-                })
+                    expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has comitted
+                    done();
+                  });
+                });
 
                 t1Jan.updateAttributes({
                   awesome: true
                 }, { transaction: t1}).then(function () {
                   t1Spy()
-                  setTimeout(t1.commit.bind(t1), 2000)
-                })
-              })
-            })
-          })
-        })
-      })
+                  setTimeout(t1.commit.bind(t1), 2000);
+                });
+              });
+            });
+          });
+        });
+      });
 
       it('supports for share', function (done) {
         var User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN
-            })
+            username: Support.Sequelize.STRING,
+            awesome: Support.Sequelize.BOOLEAN
+          })
           , self = this
           , t1Spy = sinon.spy()
           , t2FindSpy = sinon.spy()
-          , t2UpdateSpy = sinon.spy()
+          , t2UpdateSpy = sinon.spy();
 
         this.sequelize.sync({ force: true }).then(function () {
-          return User.create({ username: 'jan'})
+          return User.create({ username: 'jan'});
         }).then(function () {
           self.sequelize.transaction().then(function (t1) {
             return User.find({
               where: {
                 username: 'jan'
               }
-            }, { 
+            }, {
               lock: t1.LOCK.SHARE,
               transaction: t1
             }).then(function (t1Jan) {
@@ -116,21 +116,21 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
                     username: 'jan'
                   }
                 }, { transaction: t2}).then(function (t2Jan) {
-                  t2FindSpy()
+                  t2FindSpy();
 
                   t2Jan.updateAttributes({
                     awesome: false
-                  }, { 
+                  }, {
                     transaction: t2
                   }).then(function () {
-                    t2UpdateSpy()
+                    t2UpdateSpy();
                     t2.commit().then(function () {
-                      expect(t2FindSpy).to.have.been.calledBefore(t1Spy) // The find call should have returned
-                      expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy) // But the update call should not happen before the first transaction has committed
-                      done()
-                    })
-                  })
-                })
+                      expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
+                      expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
+                      done();
+                    });
+                  });
+                });
 
                 t1Jan.updateAttributes({
                   awesome: true
@@ -138,15 +138,15 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
                   transaction: t1
                 }).then(function () {
                   setTimeout(function () {
-                    t1Spy()
-                    t1.commit()
-                  }, 2000)
-                })
-              })
-            })
-          })
-        })
-      })
-    })
+                    t1Spy();
+                    t1.commit();
+                  }, 2000);
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   }
-})
+});
