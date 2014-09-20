@@ -1232,7 +1232,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       });
 
 
-      return self.sequelize.dropAllSchemas().bind(this).then(function () {
+      return this.sequelize.dropAllSchemas().bind(this).then(function () {
         return this.sequelize.createSchema('space1');
       }).then(function () {
         return Dummy.sync({force: true});
