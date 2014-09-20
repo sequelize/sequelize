@@ -4201,6 +4201,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       it('all hooks run', function(done) {
         var beforeHook = false
           , beforeHook2 = false
+          , beforeHook3 = false
           , afterHook = false;
 
         this.User.beforeFind(function(options) {
@@ -4211,6 +4212,10 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           beforeHook2 = true;
         });
 
+        this.User.beforeFindAfterOptions(function(options) {
+          beforeHook3 = true;
+        });
+
         this.User.afterFind(function(users, options) {
           afterHook = true;
         });
@@ -4219,6 +4224,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
           expect(user.mood).to.equal('happy');
           expect(beforeHook).to.be.true;
           expect(beforeHook2).to.be.true;
+          expect(beforeHook3).to.be.true;
           expect(afterHook).to.be.true;
           done();
         });
@@ -4237,6 +4243,17 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
       it('beforeFindAfterExpandIncludeAll hook can change options', function(done) {
         this.User.beforeFindAfterExpandIncludeAll(function(options) {
+          options.where.username = 'joe';
+        });
+
+        this.User.find({where: {username: 'adam'}}).then(function(user) {
+          expect(user.mood).to.equal('sad');
+          done();
+        });
+      });
+
+      it('beforeFindAfterOptions hook can change options', function(done) {
+        this.User.beforeFindAfterOptions(function(options) {
           options.where.username = 'joe';
         });
 
@@ -4272,6 +4289,17 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
 
       it('in beforeFindAfterExpandIncludeAll hook returns error', function(done) {
         this.User.beforeFindAfterExpandIncludeAll(function(options) {
+          throw new Error('Oops!');
+        });
+
+        this.User.find({where: {username: 'adam'}}).catch(function(err) {
+          expect(err.message).to.equal('Oops!');
+          done();
+        });
+      });
+
+      it('in beforeFindAfterOptions hook returns error', function(done) {
+        this.User.beforeFindAfterOptions(function(options) {
           throw new Error('Oops!');
         });
 
