@@ -5267,20 +5267,39 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       return this.User.sync({ force: true })
     })
 
-    it('can return a promise and modify fields', function () {
+    it('can return a promise', function () {
       var self = this
+        , hookRun = false
 
-      this.User.beforeBulkCreate(function (daos, fields) {
-        return self.sequelize.Promise.resolve([daos, ['username']])
+      this.User.beforeBulkCreate(function (daos, options) {
+        hookRun = true
+        return self.sequelize.Promise.resolve()
       })
 
       return this.User.bulkCreate([
-        {username: 'Bob', mood: 'cold'},
-        {username: 'Tobi', mood: 'hot'}
-      ], { fields: [], individualHooks: false }).success(function(bulkUsers) {
+        {username: 'Bob', mood: 'happy'},
+        {username: 'Tobi', mood: 'sad'}
+      ], { individualHooks: false }).success(function(bulkUsers) {
         return self.User.all().success(function(users) {
-          expect(users[0].mood).to.equal(null)
-          expect(users[1].mood).to.equal(null)
+          expect(hookRun).to.equal(true)
+        })
+      })
+    })
+
+    it('can return undefined', function () {
+      var self = this
+        , hookRun = false
+
+      this.User.beforeBulkCreate(function (daos, options) {
+        hookRun = true
+      })
+
+      return this.User.bulkCreate([
+        {username: 'Bob', mood: 'happy'},
+        {username: 'Tobi', mood: 'sad'}
+      ], { individualHooks: false }).success(function(bulkUsers) {
+        return self.User.all().success(function(users) {
+          expect(hookRun).to.equal(true)
         })
       })
     })
@@ -5289,11 +5308,23 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       var self = this
 
       this.User.beforeCreate(function () {
-        return self.sequelize.Utils.Promise.reject("I'm afraid I can't let you do that");
+        return self.sequelize.Utils.Promise.reject(new Error("I'm afraid I can't let you do that"));
       })
 
       return this.User.create({}).catch(function (err) {
-        expect(err).to.equal("I'm afraid I can't let you do that")
+        expect(err.message).to.equal("I'm afraid I can't let you do that")
+      })
+    })
+
+    it('can return an error by throwing', function () {
+      var self = this
+
+      this.User.beforeCreate(function () {
+        throw(new Error("I'm afraid I can't let you do that"));
+      })
+
+      return this.User.create({}).catch(function (err) {
+        expect(err.message).to.equal("I'm afraid I can't let you do that")
       })
     })
   })
