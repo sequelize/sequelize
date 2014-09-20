@@ -674,9 +674,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).success(function() {
           sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.findOrInitialize({ username: 'foo' }).spread(function(user1) {
-                User.findOrInitialize({ username: 'foo' }, { transaction: t }).spread(function(user2) {
-                  User.findOrInitialize({ username: 'foo' }, { foo: 'asd' }, { transaction: t }).spread(function(user3) {
+              User.findOrInitialize({ 
+                where: {username: 'foo'}
+              }).spread(function(user1) {
+                User.findOrInitialize({ 
+                  where: {username: 'foo'},
+                  transaction: t
+                }).spread(function(user2) {
+                  User.findOrInitialize({ 
+                    where: {username: 'foo'},
+                    defaults: { foo: 'asd' },
+                    transaction: t
+                  }).spread(function(user3) {
                     expect(user1.isNewRecord).to.be.true
                     expect(user2.isNewRecord).to.be.false
                     expect(user3.isNewRecord).to.be.false
@@ -696,7 +705,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         this.User.create({ username: 'Username' }).success(function (user) {
           self.User.findOrInitialize({
-            username: user.username
+            where: { username: user.username }
           }).spread(function (_user, initialized) {
             expect(_user.id).to.equal(user.id)
             expect(_user.username).to.equal('Username')
@@ -710,10 +719,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var self = this
 
         this.User.create({ username: 'Username', data: 'data' }).success(function (user) {
-          self.User.findOrInitialize({
+          self.User.findOrInitialize({ where: {
             username: user.username,
             data: user.data
-          }).spread(function (_user, initialized) {
+          }}).spread(function (_user, initialized) {
             expect(_user.id).to.equal(user.id)
             expect(_user.username).to.equal('Username')
             expect(_user.data).to.equal('data')
@@ -731,7 +740,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             data: 'ThisIsData'
           }
 
-        this.User.findOrInitialize(data, default_values).spread(function(user, initialized) {
+        this.User.findOrInitialize({
+          where: data,
+          defaults: default_values
+        }).spread(function(user, initialized) {
           expect(user.id).to.be.null
           expect(user.username).to.equal('Username')
           expect(user.data).to.equal('ThisIsData')

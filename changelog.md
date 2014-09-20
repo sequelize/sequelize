@@ -12,9 +12,10 @@
 #### Backwards compatability changes
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
 - The naming of the join table entry for N:M association getters is now singular (like includes)
-- Signature of hooks has changed to pass options to all hooks
+- Signature of hooks has changed to pass options to all hooks. Any hooks previously defined like `Model.beforeCreate(values)` now need to be `Model.beforeCreate(values, options)` etc.
 - Results returned by hooks are ignored - changes to results by hooks should be made by reference
 - `Model.destroy()` signature has been changed from `(where, options)` to `(options)`, options now take a where parameter.
+- The syntax for `Model.findOrBuild` has changed, to be more in line with the rest of the library. `Model.findOrBuild(where, defaults);` becomes `Model.findOrBuild({ where: where, defaults: defaults });`.
 
 # v2.0.0-dev13
 We are working our way to the first 2.0.0 release candidate.
