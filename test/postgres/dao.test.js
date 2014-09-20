@@ -16,7 +16,8 @@ if (dialect.match(/^postgres/)) {
         email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
         settings: DataTypes.HSTORE,
         document: { type: DataTypes.HSTORE, defaultValue: { default: 'value' } },
-        phones: DataTypes.ARRAY(DataTypes.HSTORE)
+        phones: DataTypes.ARRAY(DataTypes.HSTORE),
+        emergency_contact: DataTypes.JSON
       })
       this.User.sync({ force: true }).success(function() {
         done()
@@ -31,7 +32,7 @@ if (dialect.match(/^postgres/)) {
 
     it('should be able to search within an array', function(done) {
       this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
-        expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
+        expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
         done()
       })
     })
@@ -50,6 +51,101 @@ if (dialect.match(/^postgres/)) {
         })
       })
     })
+
+    describe('json', function () {
+      it('should tell me that a column is json', function() {
+        return this.sequelize.queryInterface.describeTable('Users')
+          .then(function (table) {
+            expect(table.emergency_contact.type).to.equal('JSON');
+          });
+      });
+
+      it('should stringify json with insert', function () {
+        return this.User.create({
+          username: 'bob',
+          emergency_contact: { name: 'joe', phones: [1337, 42] }
+        }).on('sql', function (sql) {
+          var expected = 'INSERT INTO "Users" ("id","username","document","emergency_contact","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',\'"default"=>"value"\',\'{"name":"joe","phones":[1337,42]}\''
+          expect(sql.indexOf(expected)).to.equal(0);
+        });
+      });
+
+      it('should be able retrieve json value as object', function () {
+        var self = this;
+        var emergency_contact = { name: 'kate', phone: 1337 };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergency_contact); // .eql does deep value comparison instead of strict equal comparison
+            return self.User.find({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergency_contact);
+          });
+      });
+
+      it('should be able to retrieve element of array by index', function () {
+        var self = this;
+        var emergency_contact = { name: 'kate', phones: [1337,42] };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergency_contact);
+            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact->\'phones\'->1', 'emergency_contact']] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact).to.equal(42);
+          });
+      });
+
+      it('should be able to retrieve root level value of an object by key', function () {
+        var self = this;
+        var emergency_contact = { kate: 1337 };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergency_contact);
+            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact->\'kate\'', 'emergency_contact']] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact).to.equal(1337);
+          });
+      });
+
+      it('should be able to retrieve nested value of an object by path', function () {
+        var self = this;
+        var emergency_contact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergency_contact);
+            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact#>\'{kate,email}\'', 'emergency_contact']] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact).to.equal('kate@kate.com');
+          })
+          .then(function () {
+            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact#>\'{kate,phones,1}\'', 'emergency_contact']] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact).to.equal(42);
+          });
+      });
+
+      it('should be able to retrieve a row based on the values of the json document', function () {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(function () {
+            return self.User.find({ where: 'emergency_contact->>\'name\' = \'kate\'', attributes: ['username', 'emergency_contact'] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact.name).to.equal('kate');
+          });
+      });
+    });
 
     describe('hstore', function() {
       it('should tell me that a column is hstore and not USER-DEFINED', function(done) {
