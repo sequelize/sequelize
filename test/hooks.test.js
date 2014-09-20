@@ -3081,7 +3081,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                User.update({mood: 'happy'}, {mood: 'sad'}).success(function() {
+                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
                   expect(beforeHook).to.be.true
                   expect(afterHook).to.be.true
                   done()
@@ -3132,7 +3132,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                User.update({mood: 'happy'}, {mood: 'sad'}).success(function() {
+                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
                   expect(beforeHook).to.be.true
                   expect(afterHook).to.be.true
                   done()
@@ -3173,7 +3173,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   expect(beforeHook).to.be.true
                   expect(afterHook).to.be.true
@@ -3225,7 +3225,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   expect(beforeHook).to.be.true
                   expect(afterHook).to.be.true
@@ -3610,7 +3610,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).success(function() {
-          self.User.update({aNumber: 10}, {aNumber: 1}, {individualHooks: true}).spread(function(affectedRows, records) {
+          self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread(function(affectedRows, records) {
             records.forEach(function(record) {
               expect(record.username).to.equal('User' + record.id)
               expect(record.beforeHookTest).to.be.true

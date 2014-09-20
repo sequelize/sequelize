@@ -551,7 +551,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             sequelize.transaction().then(function(t) {
-              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+              User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).success(function() {
                 user.reload().success(function(user) {
                   expect(user.username).to.equal('foo')
                   user.reload({ transaction: t }).success(function(user) {
