@@ -14,6 +14,7 @@
 - The naming of the join table entry for N:M association getters is now singular (like includes)
 - Signature of hooks has changed to pass options to all hooks
 - Results returned by hooks are ignored - changes to results by hooks should be made by reference
+- `Model.destroy()` signature has been changed from `(where, options)` to `(options)`, options now take a where parameter.
 
 # v2.0.0-dev13
 We are working our way to the first 2.0.0 release candidate.

@@ -970,7 +970,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function() {
             sequelize.transaction().then(function(t) {
-              User.destroy({}, { transaction: t }).success(function() {
+              User.destroy({transaction: t }).success(function() {
                 User.count().success(function(count1) {
                   User.count({ transaction: t }).success(function(count2) {
                     expect(count1).to.equal(1)
@@ -992,7 +992,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   { username: 'Bob',   secretValue: '43' }]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.destroy({secretValue: '42'})
+        self.User.destroy({where: {secretValue: '42'}})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).to.equal(1)
@@ -1021,7 +1021,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         ParanoidUser.bulkCreate(data).success(function() {
           // since we save in UTC, let's format to UTC time
           var date = moment().utc().format('YYYY-MM-DD h:mm')
-          ParanoidUser.destroy({secretValue: '42'}).success(function() {
+          ParanoidUser.destroy({where: {secretValue: '42'}}).success(function() {
             ParanoidUser.findAll({order: 'id'}).success(function(users) {
               expect(users.length).to.equal(1)
               expect(users[0].username).to.equal("Bob")
@@ -1166,10 +1166,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   tobi.destroy().success(function() {
                     self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', null, {raw: true, plain: true}).success(function(result) {
                       expect(result.username).to.equal('Tobi')
-                      User.destroy({username: 'Tony'}).success(function() {
+                      User.destroy({where: {username: 'Tony'}}).success(function() {
                         self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', null, {raw: true, plain: true}).success(function(result) {
                           expect(result.username).to.equal('Tony')
-                          User.destroy({username: ['Tony', 'Max']}, {force: true}).success(function() {
+                          User.destroy({where: {username: ['Tony', 'Max']}, force: true}).success(function() {
                             self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true}).success(function(users) {
                               expect(users).to.have.length(1)
                               expect(users[0].username).to.equal('Tobi')
@@ -1188,32 +1188,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-   it('returns the number of affected rows', function(_done) {
-     var self = this
+    it('returns the number of affected rows', function () {
+      var self = this
         , data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul',  secretValue: '42' },
-                  { username: 'Bob',   secretValue: '43' }]
-        , done = _.after(2, _done)
+                  { username: 'Bob',   secretValue: '43' }];
 
+      return this.User.bulkCreate(data).then(function() {
+        return self.User.destroy({where: {secretValue: '42'}}).then(function(affectedRows) {
+          expect(affectedRows).to.equal(2);
+        });
+      }).then(function () {
+        return self.User.destroy({where: {secretValue: '44'}}).then(function(affectedRows) {
+          expect(affectedRows).to.equal(0);
+        });
+      });
+    });
 
-      this.User.bulkCreate(data).success(function() {
-        self.User.destroy({secretValue: '42'}).done(function(err, affectedRows) {
-          expect(err).not.to.be.ok
-          expect(affectedRows).to.equal(2)
-
-          done()
-        })
-
-        self.User.destroy({secretValue: '44'}).done(function(err, affectedRows) {
-          expect(err).not.to.be.ok
-          expect(affectedRows).to.equal(0)
-
-          done()
-        })
-      })
-    })
-
-   it('supports table schema/prefix', function(done) {
+    it('supports table schema/prefix', function(done) {
      var self = this
        , data = [{ username: 'Peter', secretValue: '42' },
                  { username: 'Paul',  secretValue: '42' },
@@ -1223,7 +1215,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
      var run = function() {
        prefixUser.sync({ force: true }).success(function() {
          prefixUser.bulkCreate(data).success(function() {
-           prefixUser.destroy({secretValue: '42'})
+           prefixUser.destroy({where: {secretValue: '42'}})
              .success(function() {
                prefixUser.findAll({order: 'id'}).success(function(users) {
                  expect(users.length).to.equal(1)
