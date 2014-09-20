@@ -764,7 +764,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).done(function() {
           User.create({ username: 'foo' }).done(function() {
             sequelize.transaction().then(function(t) {
-              User.update({ username: 'bar' }, {}, { transaction: t }).done(function(err) {
+              User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).done(function(err) {
                 User.all().done(function(err, users1) {
                   User.all({ transaction: t }).done(function(err, users2) {
                     expect(users1[0].username).to.equal('foo')
@@ -826,7 +826,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       this.User.bulkCreate(data).success(function() {
 
-        self.User.update({username: 'Bill'}, {secretValue: '42'})
+        self.User.update({username: 'Bill'}, {where: {secretValue: '42'}})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).to.equal(3)
@@ -851,7 +851,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.create({
         username: 'John'
       }).success(function(user) {
-        self.User.update({username: self.sequelize.cast('1', 'char')}, {username: 'John'}).success(function() {
+        self.User.update({username: self.sequelize.cast('1', 'char')}, {where: {username: 'John'}}).success(function() {
           self.User.all().success(function(users) {
             expect(users[0].username).to.equal('1')
             done()
@@ -866,7 +866,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.create({
         username: 'John'
       }).success(function(user) {
-        self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {username: 'John'}).success(function () {
+        self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {where: {username: 'John'}}).success(function () {
           self.User.all().success(function(users) {
             expect(users[0].username).to.equal('JOHN')
             done()
@@ -893,7 +893,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         // Pass the time so we can actually see a change
         this.clock.tick(1000);
 
-        return this.User.update({username: 'Bill'}, {secretValue: '42'});
+        return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
       }).then(function () {
         return this.User.findAll({order: 'id'});
       }).then(function (users) {
@@ -916,13 +916,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         , done = _.after(2, _done)
 
       this.User.bulkCreate(data).success(function() {
-        self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
+        self.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(2)
 
           done()
         })
 
-        self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
+        self.User.update({username: 'Bill'}, {where: {secretValue: '44'}}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(0)
 
           done()
@@ -939,14 +939,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           , done = _.after(2, _done)
 
         this.User.bulkCreate(data).success(function() {
-          self.User.update({ username: 'Bill' }, { secretValue: '42' }, { returning: true }).spread(function(count, rows) {
+          self.User.update({ username: 'Bill' }, { where: {secretValue: '42' }, returning: true }).spread(function(count, rows) {
             expect(count).to.equal(2)
             expect(rows).to.have.length(2)
 
             done()
           })
 
-          self.User.update({ username: 'Bill'}, { secretValue: '44' }, { returning: true }).spread(function(count, rows) {
+          self.User.update({ username: 'Bill'}, { where: {secretValue: '44' }, returning: true }).spread(function(count, rows) {
             expect(count).to.equal(0)
             expect(rows).to.have.length(0)
 
@@ -964,7 +964,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     { username: 'Peter', secretValue: '42' }]
 
         this.User.bulkCreate(data).success(function () {
-          self.User.update({secretValue: '43'}, {username: 'Peter'}, {limit: 1}).spread(function(affectedRows) {
+          self.User.update({secretValue: '43'}, {where: {username: 'Peter'}, limit: 1}).spread(function(affectedRows) {
             expect(affectedRows).to.equal(1)
             done()
           })

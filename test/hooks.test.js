@@ -163,7 +163,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             })
 
             this.User.create({mood: 'sad'}).success(function() {
-              self.User.update({mood: 'ecstatic'}, {username: 'Toni'}, {validate: true}).success(function() {
+              self.User.update({mood: 'ecstatic'}, {where: {username: 'Toni'}, validate: true}).success(function() {
                 self.User.find({where: {username: 'Toni'}}).success(function(user) {
                   expect(beforeBulkUpdate).to.be.true
                   expect(afterBulkUpdate).to.be.true
@@ -3275,7 +3275,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).success(function() {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
                   expect(beforeBulk).to.be.true
                   expect(afterBulk).to.be.true
                   done()
@@ -3296,7 +3296,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3314,7 +3314,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3349,7 +3349,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).success(function() {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
                   expect(beforeBulk).to.be.true
                   expect(afterBulk).to.be.true
                   done()
@@ -3374,7 +3374,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3396,7 +3396,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3428,7 +3428,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).success(function() {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
                   expect(beforeBulk).to.be.true
                   expect(afterBulk).to.be.true
                   done()
@@ -3449,7 +3449,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3467,7 +3467,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3502,7 +3502,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).success(function() {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
                   expect(beforeBulk).to.be.true
                   expect(afterBulk).to.be.true
                   done()
@@ -3527,7 +3527,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3549,7 +3549,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
               ]).success(function() {
-                self.User.update({mood: 'happy'}, {mood: 'sad'}).error(function(err) {
+                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
                   expect(err).to.be.instanceOf(Error)
                   done()
                 })
@@ -3647,7 +3647,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
-          self.User.update({aNumber: 10}, {aNumber: 1}, {individualHooks: true}).error(function(err) {
+          self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).error(function(err) {
             expect(err).to.be.instanceOf(Error)
             expect(beforeBulk).to.be.true
             expect(afterBulk).to.be.false
