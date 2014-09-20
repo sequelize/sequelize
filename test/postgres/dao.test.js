@@ -297,7 +297,7 @@ if (dialect.match(/^postgres/)) {
             expect(newUser.settings).to.deep.equal({ created: { test: '"value"' }})
 
             // Check to see if updating an hstore field works
-            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, newUser.identifiers).success(function() {
+            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: newUser.identifiers}).success(function() {
               newUser.reload().success(function() {
                 // Postgres always returns keys in alphabetical order (ascending)
                 expect(newUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
@@ -315,7 +315,7 @@ if (dialect.match(/^postgres/)) {
           .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
           .success(function(oldUser) {
             // Update the user and check that the returned object's fields have been parsed by the hstore library
-            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, oldUser.identifiers, { returning: true }).spread(function(count, users) {
+            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
               expect(count).to.equal(1);
               expect(users[0].settings).to.deep.equal({should: 'update', to: 'this', first: 'place'})
               done()
