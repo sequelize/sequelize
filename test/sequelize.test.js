@@ -887,22 +887,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
 
-      it('throws an error if a function was passed as the first argument', function() {
-        var self = this
-
-        expect(function() {
-          self.sequelizeWithTransaction.transaction(function() {})
-        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
-      });
-
-      it('throws an error if a function was passed as the second argument', function() {
-        var self = this
-
-        expect(function() {
-          self.sequelizeWithTransaction.transaction(null, function() {})
-        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
-      });
-
       it('allows me to define a callback on the result', function(done) {
         this
           .sequelizeWithTransaction
