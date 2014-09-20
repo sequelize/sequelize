@@ -94,11 +94,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         ]).done( function ( err, cs ) { expect( err ).not.to.be.ok; expect( cs ).to.be.length( 1 )
 
           // Delete some of conns to prove the concept
-          SomeConnection.destroy({
+          SomeConnection.destroy({where: {
             m: 'A',
             u: 1,
             fk: [ 1, 2 ],
-          }).done( function ( err ) { expect( err ).not.to.be.ok
+          }}).done( function ( err ) { expect( err ).not.to.be.ok
 
             // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
             A.findAndCountAll({

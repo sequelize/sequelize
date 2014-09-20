@@ -3686,7 +3686,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             })
 
             User.sync({ force: true }).success(function() {
-              User.destroy({username: 'Cheech', mood: 'sad'}).success(function() {
+              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
                 expect(beforeHook).to.be.true
                 expect(afterHook).to.be.true
                 done()
@@ -3732,7 +3732,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             })
 
             User.sync({ force: true }).success(function() {
-              User.destroy({username: 'Cheech', mood: 'sad'}).success(function() {
+              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
                 expect(beforeHook).to.be.true
                 expect(afterHook).to.be.true
                 done()
@@ -3768,7 +3768,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             })
 
             User.sync({ force: true }).success(function() {
-              User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 expect(beforeHook).to.be.true
                 expect(afterHook).to.be.true
@@ -3815,7 +3815,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
             })
 
             User.sync({ force: true }).success(function() {
-              User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 expect(beforeHook).to.be.true
                 expect(afterHook).to.be.true
@@ -3860,7 +3860,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn()
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).success(function() {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
                 expect(beforeBulk).to.be.true
                 expect(afterBulk).to.be.true
                 done()
@@ -3874,7 +3874,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -3885,7 +3885,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -3915,7 +3915,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn()
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).success(function() {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
                 expect(beforeBulk).to.be.true
                 expect(afterBulk).to.be.true
                 done()
@@ -3933,7 +3933,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -3948,7 +3948,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -3975,7 +3975,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn()
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).success(function() {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
                 expect(beforeBulk).to.be.true
                 expect(afterBulk).to.be.true
                 done()
@@ -3989,7 +3989,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -4000,7 +4000,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -4030,7 +4030,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn()
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).success(function() {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
                 expect(beforeBulk).to.be.true
                 expect(afterBulk).to.be.true
                 done()
@@ -4048,7 +4048,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -4063,7 +4063,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 fn(new Error('Whoops!'))
               })
 
-              this.User.destroy({username: 'Cheech', mood: 'sad'}).error(function(err) {
+              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
                 expect(err).to.be.instanceOf(Error)
                 done()
               })
@@ -4126,7 +4126,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).success(function() {
-          self.User.destroy({aNumber: 1}, {individualHooks: true}).success(function() {
+          self.User.destroy({where: {aNumber: 1}, individualHooks: true}).success(function() {
             expect(beforeBulk).to.be.true
             expect(afterBulk).to.be.true
             expect(beforeHook).to.be.true
@@ -4164,7 +4164,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
         })
 
         this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
-          self.User.destroy({aNumber: 1}, {individualHooks: true}).error(function(err) {
+          self.User.destroy({where: {aNumber: 1}, individualHooks: true}).error(function(err) {
             expect(err).to.be.instanceOf(Error)
             expect(beforeBulk).to.be.true
             expect(beforeHook).to.be.true
