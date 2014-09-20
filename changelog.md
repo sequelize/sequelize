@@ -5,10 +5,15 @@
 - [FEATURE] Added `scope` to hasMany association definitions, provides default values to association setters/finders [#2268](https://github.com/sequelize/sequelize/pull/2268)
 - [FEATURE] We now support transactions that automatically commit/rollback based on the result of the promise chain returned to the callback.
 - [BUG] Only try to create indexes which don't already exist. Closes [#2162](https://github.com/sequelize/sequelize/issues/2162)
+- [FEATURE] Hooks are passed options
+- [FEATURE] Hooks need not return a result - undefined return is interpreted as a resolved promise
+- [FEATURE] Added `find()` hooks
 
 #### Backwards compatability changes
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
 - The naming of the join table entry for N:M association getters is now singular (like includes)
+- Signature of hooks has changed to pass options to all hooks
+- Results returned by hooks are ignored - changes to results by hooks should be made by reference
 
 # v2.0.0-dev13
 We are working our way to the first 2.0.0 release candidate.
@@ -18,9 +23,9 @@ We are working our way to the first 2.0.0 release candidate.
 - [FEATURE] Added support for passing an `indexes` array in options to `sequelize.define`. [#1485](https://github.com/sequelize/sequelize/issues/1485). See API reference for details.
 - [FEATURE/INTERNALS] Standardized the output from `QueryInterface.showIndex`.
 - [FEATURE] Include deleted rows in find [#2083](https://github.com/sequelize/sequelize/pull/2083)
-- [FEATURE] Make addSingular and addPlural for n:m assocations (fx `addUser` and `addUsers` now both accept an array or an instance.
+- [FEATURE] Make addSingular and addPlural for n:m associations (fx `addUser` and `addUsers` now both accept an array or an instance.
 - [BUG] Hid `dottie.transform` on raw queries behind a flag (`nest`) [#2064](https://github.com/sequelize/sequelize/pull/2064)
-- [BUG] Fixed problems with transcation parameter being removed / not passed on in associations [#1789](https://github.com/sequelize/sequelize/issues/1789) and [#1968](https://github.com/sequelize/sequelize/issues/1968)
+- [BUG] Fixed problems with transaction parameter being removed / not passed on in associations [#1789](https://github.com/sequelize/sequelize/issues/1789) and [#1968](https://github.com/sequelize/sequelize/issues/1968)
 - [BUG] Fix problem with minConnections. [#2048](https://github.com/sequelize/sequelize/issues/2048)
 - [BUG] Fix default scope being overwritten [#2087](https://github.com/sequelize/sequelize/issues/2087)
 - [BUG] Fixed updatedAt timestamp not being set in bulk create when validate = true. [#1962](https://github.com/sequelize/sequelize/issues/1962)

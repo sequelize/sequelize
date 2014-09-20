@@ -332,18 +332,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         describe('generic', function() {
           it('throws an error about unexpected input if include contains a non-object', function(done) {
             var self = this
-            expect(function() {
-              self.Worker.find({ include: [ 1 ] })
-            }).to.throw(Error)
-            done()
+            self.Worker.find({ include: [ 1 ] }).catch(function(err) {
+              expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
+              done()
+            })
           })
 
           it('throws an error if included DaoFactory is not associated', function(done) {
             var self = this
-            expect(function() {
-              self.Worker.find({ include: [ self.Task ] })
-            }).to.throw(Error, 'Task is not associated to Worker!')
-            done()
+            self.Worker.find({ include: [ self.Task ] }).catch(function(err) {
+              expect(err.message).to.equal('Task is not associated to Worker!');
+              done()
+            })
           })
 
           it('returns the associated worker via task.worker', function(done) {
@@ -518,10 +518,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('throws an error if included DaoFactory is not associated', function(done) {
           var self = this
-          expect(function() {
-            self.Task.find({ include: [ self.Worker ] })
-          }).to.throw(Error, 'Worker is not associated to Task!')
-          done()
+          self.Task.find({ include: [ self.Worker ] }).catch(function(err) {
+            expect(err.message).to.equal('Worker is not associated to Task!');
+            done()
+          })
         })
 
         it('returns the associated task via worker.task', function(done) {
@@ -577,10 +577,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       describe('hasOne with alias', function() {
         it('throws an error if included DaoFactory is not referenced by alias', function(done) {
           var self = this
-          expect(function() {
-            self.Worker.find({ include: [ self.Task ] })
-          }).to.throw(Error, 'Task is not associated to Worker!')
-          done()
+          self.Worker.find({ include: [ self.Task ] }).catch(function(err) {
+            expect(err.message).to.equal('Task is not associated to Worker!');
+            done()
+          })
         })
 
         describe('alias', function() {
@@ -596,10 +596,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
           it('throws an error if alias is not associated', function(done) {
             var self = this
-            expect(function() {
-              self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] })
-            }).to.throw(Error, 'Task (Work) is not associated to Worker!')
-            done()
+            self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] }).catch(function(err) {
+              expect(err.message).to.equal('Task (Work) is not associated to Worker!');
+              done()
+            })
           })
 
           it('returns the associated task via worker.task', function(done) {
@@ -657,10 +657,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         it('throws an error if included DaoFactory is not associated', function(done) {
           var self = this
-          expect(function() {
-            self.Task.find({ include: [ self.Worker ] })
-          }).to.throw(Error, 'Worker is not associated to Task!')
-          done()
+          self.Task.find({ include: [ self.Worker ] }).catch(function(err) {
+            expect(err.message).to.equal('Worker is not associated to Task!');
+            done()
+          })
         })
 
         it('returns the associated tasks via worker.tasks', function(done) {
@@ -759,10 +759,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       describe('hasMany with alias', function() {
         it('throws an error if included DaoFactory is not referenced by alias', function(done) {
           var self = this
-          expect(function() {
-            self.Worker.find({ include: [ self.Task ] })
-          }).to.throw(Error, 'Task is not associated to Worker!')
-          done()
+          self.Worker.find({ include: [ self.Task ] }).catch(function(err) {
+            expect(err.message).to.equal('Task is not associated to Worker!');
+            done()
+          })
         })
 
         describe('alias', function() {
@@ -778,10 +778,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
           it('throws an error if alias is not associated', function(done) {
             var self = this
-            expect(function() {
-              self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] })
-            }).to.throw(Error, 'Task (Work) is not associated to Worker!')
-            done()
+            self.Worker.find({ include: [ { daoFactory: self.Task, as: 'Work' } ] }).catch(function(err) {
+              expect(err.message).to.equal('Task (Work) is not associated to Worker!');
+              done()
+            })
           })
 
           it('returns the associated task via worker.task', function(done) {
