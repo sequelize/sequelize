@@ -1222,6 +1222,28 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should support schemas', function () {
+      var Dummy = this.sequelize.define("Dummy", {
+        foo : DataTypes.STRING,
+        bar : DataTypes.STRING
+      }, {
+        schema    : "space1",
+        tableName : 'Dummy'
+      });
+
+
+      return this.sequelize.dropSchema('space1').bind(this).then(function () {
+        return this.sequelize.createSchema('space1');
+      }).then(function () {
+        return Dummy.sync({force: true});
+      }).then(function () {
+        return Dummy.bulkCreate([
+          {foo : "a", bar : "b"},
+          {foo : "c", bar : "d"}
+        ]);
+      });
+    });
+
     if (Support.getTestDialect() !== 'postgres') {
       it("should support the ignoreDuplicates option", function(done) {
         var self = this
