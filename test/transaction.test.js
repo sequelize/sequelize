@@ -2,6 +2,7 @@ var chai        = require('chai')
   , expect      = chai.expect
   , Support     = require(__dirname + '/support')
   , dialect     = Support.getTestDialect()
+  , Promise     = require(__dirname + '/../lib/promise')
   , Transaction = require(__dirname + '/../lib/transaction')
   , sinon       = require('sinon');
 
@@ -29,6 +30,28 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
   describe('rollback', function() {
     it('is a rollback method available', function() {
       expect(Transaction).to.respondTo('rollback');
+    });
+  });
+
+  describe('autoCallback', function () {
+    it('supports automatically committing', function () {
+      return this.sequelize.transaction(function (t) {
+        return Promise.resolve();
+      });
+    });
+    it('supports automatically rolling back with a thrown error', function () {
+      return this.sequelize.transaction(function (t) {
+        throw new Error('Yolo');
+      }).catch(function (err) {
+        expect(err).to.be.ok;
+      });
+    });
+    it('supports automatically rolling back with a rejection', function () {
+      return this.sequelize.transaction(function (t) {
+        return Promise.reject('Swag');
+      }).catch(function (err) {
+        expect(err).to.be.ok;
+      });
     });
   });
 
