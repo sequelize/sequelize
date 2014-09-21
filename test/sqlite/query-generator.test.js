@@ -163,6 +163,32 @@ if (dialect === 'sqlite') {
           expectation: "SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;",
           context: QueryGenerator
         }, {
+          title: 'sequelize.where with .fn as attribute and default comparator',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              where: sequelize.and(
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'jan'),
+                { type: 1 }
+              )
+            };
+          }],
+          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = 'jan' AND `myTable`.`type`=1);",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'sequelize.where with .fn as attribute and LIKE comparator',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              where: sequelize.and(
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'LIKE', '%t%'),
+                { type: 1 }
+              )
+            };
+          }],
+          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE '%t%' AND `myTable`.`type`=1);",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
           title: 'functions can take functions as arguments',
           arguments: ['myTable', function (sequelize) {
             return {
