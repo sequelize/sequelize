@@ -175,20 +175,5 @@ var num  = 1
   , date = new Date();
 ```
 
-#### 6.3. Brackets ####
-
-Always use brackets, also for one-line blocks:
-
-```js
-// good
-if (condition) {
-  doStuff();
-}
-
-//bad
-if (condition)
-  doStuff();
-```
-
-#### 6.4. Semicolons ####
+#### 6.3. Semicolons ####
 Yes
