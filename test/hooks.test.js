@@ -4366,6 +4366,43 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
     });
   });
 
+  describe('#instantiate', function() {
+    before(function(done) {
+      Sequelize.addHook('beforeInstantiate', function(config, options) {
+        config.database = 'db2';
+        options.host = 'server9';
+      });
+
+      Sequelize.addHook('afterInstantiate', function(sequelize) {
+        sequelize.options.protocol = 'udp';
+      });
+
+      this.seq = new Sequelize('db', 'user', 'pass', {});
+
+      done();
+    });
+
+    it('beforeInstantiate hook can alter config', function(done) {
+      expect(this.seq.config.database).to.equal('db2');
+      done();
+    });
+
+    it('beforeInstantiate hook can alter options', function(done) {
+      expect(this.seq.options.host).to.equal('server9');
+      done();
+    });
+
+    it('afterInstantiate hook can alter options', function(done) {
+      expect(this.seq.options.protocol).to.equal('udp');
+      done();
+    });
+
+    after(function(done) {
+      Sequelize.options.hooks = {};
+      done();
+    });
+  });
+
   describe('universal', function() {
     beforeEach(function(done) {
       this.sequelize.addHook('beforeFind', function(options) {
