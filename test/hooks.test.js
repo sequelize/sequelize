@@ -4323,7 +4323,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
   });
 
   describe('#define', function() {
-    before(function(done) {
+    before(function() {
       this.sequelize.addHook('beforeDefine', function(attributes, options) {
         options.modelName = 'bar';
         options.name.plural = 'barrs';
@@ -4335,39 +4335,32 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       });
 
       this.model = this.sequelize.define('foo', {name: DataTypes.STRING});
-
-      done();
     });
 
-    it('beforeDefine hook can change model name', function(done) {
+    it('beforeDefine hook can change model name', function() {
       expect(this.model.name).to.equal('bar');
-      done();
     });
 
-    it('beforeDefine hook can alter options', function(done) {
+    it('beforeDefine hook can alter options', function() {
       expect(this.model.options.name.plural).to.equal('barrs');
-      done();
     });
 
-    it('beforeDefine hook can alter attributes', function(done) {
+    it('beforeDefine hook can alter attributes', function() {
       expect(this.model.rawAttributes.type).to.be.ok;
-      done();
     });
 
-    it('afterDefine hook can alter options', function(done) {
+    it('afterDefine hook can alter options', function() {
       expect(this.model.options.name.singular).to.equal('barr');
-      done();
     });
 
-    after(function(done) {
+    after(function() {
       this.sequelize.options.hooks = {};
       this.sequelize.modelManager.removeDAO(this.model);
-      done();
     });
   });
 
   describe('#instantiate', function() {
-    before(function(done) {
+    before(function() {
       Sequelize.addHook('beforeInstantiate', function(config, options) {
         config.database = 'db2';
         options.host = 'server9';
@@ -4378,28 +4371,22 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       });
 
       this.seq = new Sequelize('db', 'user', 'pass', {});
-
-      done();
     });
 
-    it('beforeInstantiate hook can alter config', function(done) {
+    it('beforeInstantiate hook can alter config', function() {
       expect(this.seq.config.database).to.equal('db2');
-      done();
     });
 
-    it('beforeInstantiate hook can alter options', function(done) {
+    it('beforeInstantiate hook can alter options', function() {
       expect(this.seq.options.host).to.equal('server9');
-      done();
     });
 
-    it('afterInstantiate hook can alter options', function(done) {
+    it('afterInstantiate hook can alter options', function() {
       expect(this.seq.options.protocol).to.equal('udp');
-      done();
     });
 
-    after(function(done) {
+    after(function() {
       Sequelize.options.hooks = {};
-      done();
     });
   });
 
@@ -4427,9 +4414,8 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
       });
     });
 
-    afterEach(function(done) {
+    afterEach(function() {
       this.sequelize.options.hooks = {};
-      done();
     });
   });
 
