@@ -4391,26 +4391,23 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
   });
 
   describe('universal', function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       this.sequelize.addHook('beforeFind', function(options) {
         options.where.name = 'Chong';
       });
 
       this.Person = this.sequelize.define('Person', {name: DataTypes.STRING});
 
-      this.Person.sync({ force: true }).bind(this).then(function() {
+      return this.Person.sync({ force: true }).bind(this).then(function() {
         return this.Person.create({name: 'Cheech'});
       }).then(function() {
         return this.Person.create({name: 'Chong'});
-      }).then(function() {
-        done();
       });
     });
 
-    it('hooks run on all models', function(done) {
-      this.Person.find({where: {name: 'Cheech'}}).then(function(person) {
+    it('hooks run on all models', function() {
+      return this.Person.find({where: {name: 'Cheech'}}).then(function(person) {
         expect(person.name).to.equal('Chong');
-        done();
       });
     });
 
