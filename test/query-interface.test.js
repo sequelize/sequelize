@@ -87,12 +87,11 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
 
         self.queryInterface.showIndex('Group').complete(function(err, indexes) {
           expect(err).to.be.null
-
-          var indexColumns = _.uniq(indexes.map(function(index) { 
-
-            console.log('index:', index)
+ 
+          var indexColumns = _.uniq(indexes.map(function(index) {
             return index.name 
           }))
+
           expect(indexColumns).to.include('group_username_is_admin')
 
           self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).complete(function(err) {
@@ -128,16 +127,33 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       Users.sync({ force: true }).success(function() {
         self.queryInterface.describeTable('_Users').complete(function(err, metadata) {
           expect(err).to.be.null
-
           var username = metadata.username
           var isAdmin  = metadata.isAdmin
           var enumVals = metadata.enumVals
 
-          expect(username.type).to.equal(dialect === 'postgres' ? 'CHARACTER VARYING' : 'VARCHAR(255)')
+          var assertVal = 'VARCHAR(255)';
+          switch(dialect){
+            case 'postgres':
+              assertVal = 'CHARACTER VARYING';
+              break;
+            case 'mssql':
+              assertVal = 'VARCHAR';
+              break;
+          }
+          expect(username.type).to.equal(assertVal)            
           expect(username.allowNull).to.be.true
           expect(username.defaultValue).to.be.null
 
-          expect(isAdmin.type).to.equal(dialect === 'postgres' ? 'BOOLEAN' : 'TINYINT(1)')
+          assertVal = 'TINYINT(1)';
+          switch(dialect){
+            case 'postgres':
+              assertVal = 'BOOLEAN';
+              break;
+            case 'mssql':
+              assertVal = 'BIT';
+              break;
+          }
+          expect(isAdmin.type).to.equal(assertVal)
           expect(isAdmin.allowNull).to.be.true
           expect(isAdmin.defaultValue).to.be.null
 
@@ -145,7 +161,6 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
             expect(enumVals.special).to.be.instanceof(Array)
             expect(enumVals.special).to.have.length(2);
           }
-
           done()
         })
       })
