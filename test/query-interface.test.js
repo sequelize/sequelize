@@ -88,7 +88,11 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         self.queryInterface.showIndex('Group').complete(function(err, indexes) {
           expect(err).to.be.null
 
-          var indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
+          var indexColumns = _.uniq(indexes.map(function(index) { 
+
+            console.log('index:', index)
+            return index.name 
+          }))
           expect(indexColumns).to.include('group_username_is_admin')
 
           self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).complete(function(err) {
