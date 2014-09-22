@@ -38,7 +38,7 @@
     "lodash": "~2.4.0",
     "moment": "~2.7.0",
     "node-uuid": "~1.4.1",
-    "sequelize-bluebird": "git://github.com/sequelize/bluebird.git#9df139af53c5d346ffd38df30fc9dc60c62a9c98",
+    "bluebird": "2.3.2",
     "sql": "~0.39.0",
     "toposort-class": "~0.3.0",
     "validator": "~3.16.0"
