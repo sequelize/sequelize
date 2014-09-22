@@ -4322,6 +4322,50 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
     });
   });
 
+  describe('#define', function() {
+    before(function(done) {
+      this.sequelize.addHook('beforeDefine', function(attributes, options) {
+        options.modelName = 'bar';
+        options.name.plural = 'barrs';
+        attributes.type = DataTypes.STRING;
+      });
+
+      this.sequelize.addHook('afterDefine', function(factory) {
+        factory.options.name.singular = 'barr';
+      });
+
+      this.model = this.sequelize.define('foo', {name: DataTypes.STRING});
+
+      done();
+    });
+
+    it('beforeDefine hook can change model name', function(done) {
+      expect(this.model.name).to.equal('bar');
+      done();
+    });
+
+    it('beforeDefine hook can alter options', function(done) {
+      expect(this.model.options.name.plural).to.equal('barrs');
+      done();
+    });
+
+    it('beforeDefine hook can alter attributes', function(done) {
+      expect(this.model.rawAttributes.type).to.be.ok;
+      done();
+    });
+
+    it('afterDefine hook can alter options', function(done) {
+      expect(this.model.options.name.singular).to.equal('barr');
+      done();
+    });
+
+    after(function(done) {
+      this.sequelize.options.hooks = {};
+      this.sequelize.modelManager.removeDAO(this.model);
+      done();
+    });
+  });
+
   describe('universal', function() {
     beforeEach(function(done) {
       this.sequelize.addHook('beforeFind', function(options) {
