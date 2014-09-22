@@ -27,6 +27,44 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
     }.bind(this)
   })
 
+  describe('getCompletedMigrations', function(){
+    it("supports coffee files", function(done) {
+      this.init({ filesFilter: /\.coffee$/, to: 20111117063700 }, function(migrator, SequelizeMeta) {
+        SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
+          migrator.getCompletedMigrations(function(err, migrations) {
+            expect(err).to.be.null
+            expect(migrations).to.have.length(1)
+            done()
+          })
+        })
+      })
+    })
+
+    it("only returns migrations if timestamps in db are after timestamps of files", function(done) {
+      this.init({ to: 20111117063700 }, function(migrator, SequelizeMeta) {
+        SequelizeMeta.create({ from: null, to: 20111117063700 }).success(function() {
+          migrator.getCompletedMigrations(function(err, migrations) {
+            expect(err).to.be.null
+            expect(migrations).to.have.length(1)
+            done()
+          })
+        })
+      })
+    })
+
+    it("returns no migrations if timestamps in db are before timestamps of files", function(done) {
+      this.init({ to: 20111117063700 }, function(migrator, SequelizeMeta) {
+        SequelizeMeta.create({ from: null, to: 20101117063700 }).success(function() {
+          migrator.getCompletedMigrations(function(err, migrations) {
+            expect(err).to.be.null
+            expect(migrations).to.have.length(0)
+            done()
+          })
+        })
+      })
+    })
+  })
+
   describe('getUndoneMigrations', function() {
     it("supports coffee files", function(done) {
       this.init({
