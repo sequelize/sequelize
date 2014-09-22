@@ -4359,29 +4359,29 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
     });
   });
 
-  describe('#instantiate', function() {
+  describe('#init', function() {
     before(function() {
-      Sequelize.addHook('beforeInstantiate', function(config, options) {
+      Sequelize.addHook('beforeInit', function(config, options) {
         config.database = 'db2';
         options.host = 'server9';
       });
 
-      Sequelize.addHook('afterInstantiate', function(sequelize) {
+      Sequelize.addHook('afterInit', function(sequelize) {
         sequelize.options.protocol = 'udp';
       });
 
       this.seq = new Sequelize('db', 'user', 'pass', {});
     });
 
-    it('beforeInstantiate hook can alter config', function() {
+    it('beforeInit hook can alter config', function() {
       expect(this.seq.config.database).to.equal('db2');
     });
 
-    it('beforeInstantiate hook can alter options', function() {
+    it('beforeInit hook can alter options', function() {
       expect(this.seq.options.host).to.equal('server9');
     });
 
-    it('afterInstantiate hook can alter options', function() {
+    it('afterInit hook can alter options', function() {
       expect(this.seq.options.protocol).to.equal('udp');
     });
 
