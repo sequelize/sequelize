@@ -50,7 +50,8 @@ sequelize.sync({ force: true })
     console.log('=====================================');
     console.log('Searching for any content in Japanese');
     console.log('-------------------------------------');
-    return Content.find({ where: "metadata->>'language' = 'Japanese'" })
+    
+    return Content.find({ where: Sequelize.json({ metadata: { language: 'Japanese' } }) })
       .then(function(content) {
         console.log('Result:', content.dataValues);
         console.log('=====================================');
@@ -60,6 +61,7 @@ sequelize.sync({ force: true })
     console.log('=====================================');
     console.log('Searching for any content in English');
     console.log('-------------------------------------');
+
     return Content.find({ where: "metadata->>'language' = 'English'" })
       .then(function(content) {
         console.log('Result:', content.dataValues);
