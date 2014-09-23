@@ -4322,6 +4322,100 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
     });
   });
 
+  describe('#define', function() {
+    before(function() {
+      this.sequelize.addHook('beforeDefine', function(attributes, options) {
+        options.modelName = 'bar';
+        options.name.plural = 'barrs';
+        attributes.type = DataTypes.STRING;
+      });
+
+      this.sequelize.addHook('afterDefine', function(factory) {
+        factory.options.name.singular = 'barr';
+      });
+
+      this.model = this.sequelize.define('foo', {name: DataTypes.STRING});
+    });
+
+    it('beforeDefine hook can change model name', function() {
+      expect(this.model.name).to.equal('bar');
+    });
+
+    it('beforeDefine hook can alter options', function() {
+      expect(this.model.options.name.plural).to.equal('barrs');
+    });
+
+    it('beforeDefine hook can alter attributes', function() {
+      expect(this.model.rawAttributes.type).to.be.ok;
+    });
+
+    it('afterDefine hook can alter options', function() {
+      expect(this.model.options.name.singular).to.equal('barr');
+    });
+
+    after(function() {
+      this.sequelize.options.hooks = {};
+      this.sequelize.modelManager.removeDAO(this.model);
+    });
+  });
+
+  describe('#init', function() {
+    before(function() {
+      Sequelize.addHook('beforeInit', function(config, options) {
+        config.database = 'db2';
+        options.host = 'server9';
+      });
+
+      Sequelize.addHook('afterInit', function(sequelize) {
+        sequelize.options.protocol = 'udp';
+      });
+
+      this.seq = new Sequelize('db', 'user', 'pass', {});
+    });
+
+    it('beforeInit hook can alter config', function() {
+      expect(this.seq.config.database).to.equal('db2');
+    });
+
+    it('beforeInit hook can alter options', function() {
+      expect(this.seq.options.host).to.equal('server9');
+    });
+
+    it('afterInit hook can alter options', function() {
+      expect(this.seq.options.protocol).to.equal('udp');
+    });
+
+    after(function() {
+      Sequelize.options.hooks = {};
+    });
+  });
+
+  describe('universal', function() {
+    beforeEach(function() {
+      this.sequelize.addHook('beforeFind', function(options) {
+        options.where.name = 'Chong';
+      });
+
+      this.Person = this.sequelize.define('Person', {name: DataTypes.STRING});
+
+      return this.Person.sync({ force: true }).bind(this).then(function() {
+        return this.Person.create({name: 'Cheech'});
+      }).then(function() {
+        return this.Person.create({name: 'Chong'});
+      });
+    });
+
+    it('hooks run on all models', function() {
+      return this.Person.find({where: {name: 'Cheech'}}).then(function(person) {
+        expect(person.name).to.equal('Chong');
+      });
+    });
+
+    afterEach(function() {
+      this.sequelize.options.hooks = {};
+    });
+  });
+
   describe('aliases', function() {
     describe('direct method', function() {
       describe('#delete', function() {
