@@ -87,15 +87,16 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to retrieve element of array by index', function () {
         var self = this;
-        var emergencyContact = { name: 'kate', phones: [1337,42] };
+        var emergencyContact = { name: 'kate', phones: [1337, 42] };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function (user) {
             expect(user.emergency_contact).to.eql(emergencyContact);
-            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact->\'phones\'->1', 'emergency_contact']] });
+            //return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact->\'phones\'->1', 'emergency_contact']] });
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.phones.1'), 'emergency_contact']] });
           })
           .then(function (user) {
-            expect(user.emergency_contact).to.equal(42);
+            expect(parseInt(user.emergency_contact)).to.equal(42);
           });
       });
 
@@ -106,10 +107,10 @@ if (dialect.match(/^postgres/)) {
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function (user) {
             expect(user.emergency_contact).to.eql(emergencyContact);
-            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact->\'kate\'', 'emergency_contact']] });
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.kate'), 'emergency_contact']] });
           })
           .then(function (user) {
-            expect(user.emergency_contact).to.equal(1337);
+            expect(parseInt(user.emergency_contact)).to.equal(1337);
           });
       });
 
@@ -120,16 +121,16 @@ if (dialect.match(/^postgres/)) {
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function (user) {
             expect(user.emergency_contact).to.eql(emergencyContact);
-            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact#>\'{kate,email}\'', 'emergency_contact']] });
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.kate.email'), 'emergency_contact']] });
           })
           .then(function (user) {
             expect(user.emergency_contact).to.equal('kate@kate.com');
           })
           .then(function () {
-            return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact#>\'{kate,phones,1}\'', 'emergency_contact']] });
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.kate.phones.1'), 'emergency_contact']] });
           })
           .then(function (user) {
-            expect(user.emergency_contact).to.equal(42);
+            expect(parseInt(user.emergency_contact)).to.equal(42);
           });
       });
 

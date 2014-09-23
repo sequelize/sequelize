@@ -16,7 +16,7 @@ var Sequelize = require(__dirname + "/../../index")
 
 var Content = sequelize.define('Content', {
     title: { type: Sequelize.STRING },
-    type: { type: Sequelize.STRING }, // ENUM('Movie', 'Episode', 'Music Video') },
+    type: { type: Sequelize.STRING },
     metadata: { type: Sequelize.JSON }
   })
   , movie = Content.build({
@@ -30,6 +30,7 @@ var Content = sequelize.define('Content', {
   })
   , episode = Content.build({
     title: 'Chapter 3',
+    type: 'Episode',
     metadata: {
       season: 1,
       episode: 3,
@@ -50,7 +51,8 @@ sequelize.sync({ force: true })
     console.log('=====================================');
     console.log('Searching for any content in Japanese');
     console.log('-------------------------------------');
-    
+
+    // Using nested object query syntax
     return Content.find({ where: Sequelize.json({ metadata: { language: 'Japanese' } }) })
       .then(function(content) {
         console.log('Result:', content.dataValues);
@@ -62,12 +64,21 @@ sequelize.sync({ force: true })
     console.log('Searching for any content in English');
     console.log('-------------------------------------');
 
-    return Content.find({ where: "metadata->>'language' = 'English'" })
+    // Using the postgres json syntax
+    return Content.find({ where: Sequelize.json("metadata->>'language'", 'English') })
       .then(function(content) {
         console.log('Result:', content.dataValues);
         console.log('=====================================');
       })
   })
-  .error(function(error) {
-    console.log(error)
+  .then(function() {
+    console.log('===========================================');
+    console.log('Searching for series named "House of Cards"');
+    console.log('-------------------------------------------');
+
+    return Content.find({ where: Sequelize.json('metadata.seriesTitle', 'House of Cards') })
+      .then(function(content) {
+        console.log('Result:', content.dataValues);
+        console.log('===========================================');
+      })
   });

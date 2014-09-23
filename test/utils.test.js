@@ -157,7 +157,23 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
         another_json_field: { x: 1 }
       };
       expect((new Utils.json(conditions)).toString()).to.deep.equal("metadata#>>'{language}' = 'icelandic' and metadata#>>'{pg_rating,dk}' = 'G' and another_json_field#>>'{x}' = '1'");
-    })
+    });
+
+    it('successfully parses a string using dot notation', function () {
+      var path = 'metadata.pg_rating.dk';
+      expect((new Utils.json(path)).toString()).to.equal("metadata#>>'{pg_rating,dk}'");
+    });
+
+    it('successfully parses a string and value using dot notation', function () {
+      var path = 'metadata.pg_rating.dk';
+      var value = 'G';
+      expect((new Utils.json(path, value)).toString()).to.equal("metadata#>>'{pg_rating,dk}' = 'G'");
+    });
+
+    it('allows postgres json syntax', function () {
+      var path = 'metadata->pg_rating->>dk';
+      expect((new Utils.json(path)).toString()).to.equal(path);
+    });
   });
 
   describe('inflection', function () {
