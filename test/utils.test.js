@@ -147,6 +147,19 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
     });
   });
 
+  describe('json', function () {
+    it('successfully parses a complex nested condition hash', function() {
+      var conditions = {
+        metadata: {
+          language: 'icelandic',
+          pg_rating: { 'dk': 'G' }
+        },
+        another_json_field: { x: 1 }
+      };
+      expect((new Utils.json(conditions)).toString()).to.deep.equal("metadata#>>'{language}' = 'icelandic' and metadata#>>'{pg_rating,dk}' = 'G' and another_json_field#>>'{x}' = '1'");
+    })
+  });
+
   describe('inflection', function () {
     it('works better than lingo ;)', function () {
       expect(Utils.pluralize('buy')).to.equal('buys');

@@ -4,6 +4,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , _         = require('lodash')
+  , sequelize = require(__dirname + '/../../lib/sequelize');
 
 chai.config.includeStack = true
 
@@ -72,25 +73,25 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able retrieve json value as object', function () {
         var self = this;
-        var emergency_contact = { name: 'kate', phone: 1337 };
+        var emergencyContact = { name: 'kate', phone: 1337 };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function (user) {
-            expect(user.emergency_contact).to.eql(emergency_contact); // .eql does deep value comparison instead of strict equal comparison
+            expect(user.emergency_contact).to.eql(emergencyContact); // .eql does deep value comparison instead of strict equal comparison
             return self.User.find({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
           })
           .then(function (user) {
-            expect(user.emergency_contact).to.eql(emergency_contact);
+            expect(user.emergency_contact).to.eql(emergencyContact);
           });
       });
 
       it('should be able to retrieve element of array by index', function () {
         var self = this;
-        var emergency_contact = { name: 'kate', phones: [1337,42] };
+        var emergencyContact = { name: 'kate', phones: [1337,42] };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function (user) {
-            expect(user.emergency_contact).to.eql(emergency_contact);
+            expect(user.emergency_contact).to.eql(emergencyContact);
             return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact->\'phones\'->1', 'emergency_contact']] });
           })
           .then(function (user) {
@@ -100,11 +101,11 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to retrieve root level value of an object by key', function () {
         var self = this;
-        var emergency_contact = { kate: 1337 };
+        var emergencyContact = { kate: 1337 };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function (user) {
-            expect(user.emergency_contact).to.eql(emergency_contact);
+            expect(user.emergency_contact).to.eql(emergencyContact);
             return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact->\'kate\'', 'emergency_contact']] });
           })
           .then(function (user) {
@@ -114,11 +115,11 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to retrieve nested value of an object by path', function () {
         var self = this;
-        var emergency_contact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
+        var emergencyContact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergency_contact })
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function (user) {
-            expect(user.emergency_contact).to.eql(emergency_contact);
+            expect(user.emergency_contact).to.eql(emergencyContact);
             return self.User.find({ where: { username: 'swen' }, attributes: [['emergency_contact#>\'{kate,email}\'', 'emergency_contact']] });
           })
           .then(function (user) {
@@ -140,6 +141,22 @@ if (dialect.match(/^postgres/)) {
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(function () {
             return self.User.find({ where: 'emergency_contact->>\'name\' = \'kate\'', attributes: ['username', 'emergency_contact'] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact.name).to.equal('kate');
+          });
+      });
+
+      it('should be able to query using the nested query language', function () {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(function () {
+            return self.User.find({
+              where: sequelize.json({ emergency_contact: { name: 'kate' } }),
+              attributes: ['username', 'emergency_contact'] });
           })
           .then(function (user) {
             expect(user.emergency_contact.name).to.equal('kate');
