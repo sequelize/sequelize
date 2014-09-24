@@ -164,15 +164,15 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
       expect((new Utils.json(path)).toString()).to.equal("metadata#>>'{pg_rating,dk}'");
     });
 
-    it('successfully parses a string and value using dot notation', function () {
-      var path = 'metadata.pg_rating.dk';
-      var value = 'G';
-      expect((new Utils.json(path, value)).toString()).to.equal("metadata#>>'{pg_rating,dk}' = 'G'");
-    });
-
     it('allows postgres json syntax', function () {
       var path = 'metadata->pg_rating->>dk';
       expect((new Utils.json(path)).toString()).to.equal(path);
+    });
+
+    it('can take a value to compare against', function () {
+      var path = 'metadata.pg_rating.is';
+      var value = 'U';
+      expect((new Utils.json(path, value)).toString()).to.equal("metadata#>>'{pg_rating,is}' = 'U'");
     });
   });
 
