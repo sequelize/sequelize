@@ -1600,6 +1600,26 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe('updateAttributes', function() {
+    it('should save ONLY what we requested (avoid injections)', function ( done ) {
+      var user = this.User.build()
+
+      user.save().done(function ( err ){
+        expect( err ).not.to.be.ok
+
+        user.validateTest = 5
+        expect( user.changed( 'validateTest' ) ).to.be.ok
+
+        user.updateAttributes({
+          validateCustom: '1'
+        }).done(function ( err ) {
+          expect( err ).not.to.be.ok
+          expect( user.changed( 'validateTest' ) ).to.be.ok
+          expect( user.validateTest ).to.be.equal( 5 )
+          done()
+        })
+      })
+    })
+
     it('supports transactions', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING })
