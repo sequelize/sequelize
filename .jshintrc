@@ -35,8 +35,5 @@
     "beforeEach",
     "after",
     "afterEach"
-  ],
-  "globals":{
-    "Promise": true
-  }
+  ]
 }
