@@ -155,11 +155,25 @@ if (dialect.match(/^postgres/)) {
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(function () {
             return self.User.find({
-              where: sequelize.json({ emergency_contact: { name: 'kate' } }),
-              attributes: ['username', 'emergency_contact'] });
+              where: sequelize.json({ emergency_contact: { name: 'kate' } })
+            });
           })
           .then(function (user) {
             expect(user.emergency_contact.name).to.equal('kate');
+          });
+      });
+
+      it('should be ablo to query using dot syntax', function () {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(function () {
+            return self.User.find({ where: sequelize.json('emergency_contact.name', 'joe') });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact.name).to.equal('joe');
           });
       });
     });
