@@ -148,6 +148,8 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
   });
 
   describe('json', function () {
+    var queryGeneratorStub = { escape: function (value) { return "'" + value + "'"; } };
+
     it('successfully parses a complex nested condition hash', function() {
       var conditions = {
         metadata: {
@@ -156,23 +158,24 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
         },
         another_json_field: { x: 1 }
       };
-      expect((new Utils.json(conditions)).toString()).to.deep.equal("metadata#>>'{language}' = 'icelandic' and metadata#>>'{pg_rating,dk}' = 'G' and another_json_field#>>'{x}' = '1'");
+      var expected = "metadata#>>'{language}' = 'icelandic' and metadata#>>'{pg_rating,dk}' = 'G' and another_json_field#>>'{x}' = '1'";
+      expect((new Utils.json(conditions)).toString(queryGeneratorStub)).to.deep.equal(expected);
     });
 
     it('successfully parses a string using dot notation', function () {
       var path = 'metadata.pg_rating.dk';
-      expect((new Utils.json(path)).toString()).to.equal("metadata#>>'{pg_rating,dk}'");
+      expect((new Utils.json(path)).toString(queryGeneratorStub)).to.equal("metadata#>>'{pg_rating,dk}'");
     });
 
     it('allows postgres json syntax', function () {
       var path = 'metadata->pg_rating->>dk';
-      expect((new Utils.json(path)).toString()).to.equal(path);
+      expect((new Utils.json(path)).toString(queryGeneratorStub)).to.equal(path);
     });
 
     it('can take a value to compare against', function () {
       var path = 'metadata.pg_rating.is';
       var value = 'U';
-      expect((new Utils.json(path, value)).toString()).to.equal("metadata#>>'{pg_rating,is}' = 'U'");
+      expect((new Utils.json(path, value)).toString(queryGeneratorStub)).to.equal("metadata#>>'{pg_rating,is}' = 'U'");
     });
   });
 
