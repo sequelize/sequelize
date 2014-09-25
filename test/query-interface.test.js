@@ -249,4 +249,49 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       });
     });
   });
+
+  describe('describeForeignKeys', function() {
+    beforeEach(function () {
+      return this.queryInterface.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoincrement: true
+        },
+      }).bind(this).then(function () {
+        return this.queryInterface.createTable('hosts', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoincrement: true
+          },
+          owner: {
+            type: DataTypes.INTEGER,
+            references: 'users',
+            referenceKey: 'id',
+          }
+        })
+      })
+    })
+
+    it('should get a list of foreign keys for the table', function (done) {
+      this.sequelize.query(this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database)).complete(function(err, fks) {
+        expect(err).to.be.null
+        expect(fks).to.have.length(1)
+        keys = Object.keys(fks[0]);
+        if (dialect === "postgres" || dialect === "postgres-native") {
+          expect(keys).to.have.length(5)
+        } else if (dialect === "sqlite") {
+          expect(keys).to.have.length(8)
+        } else if (dialect === "mysql") {
+          expect(keys).to.have.length(1)
+        } else {
+          console.log("This test doesn't support " + dialect)
+        }
+        done()
+      })
+
+    })
+  })
+
 })
