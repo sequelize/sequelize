@@ -281,7 +281,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         ]);
       }).spread(function (user, task) {
         return task.setUserXYZ(user).then(function () {
-          return task.getUserXYZ().on('sql', console.log);
+          return task.getUserXYZ();
         });
       }).then(function (user) {
         // the sql query should correctly look at task_id instead of taskId
