@@ -10,6 +10,8 @@ Issues are always very welcome - after all, they are a big part of making sequel
 * Which dialect you are using?
 * Which sequelize version you are using?
 
+When you post code, please use [Github flavored markdown](https://help.github.com/articles/github-flavored-markdown), in order to get proper syntax highlighting!
+
 If you can even provide a pull request with a failing unit test, we will love you long time! Plus your issue will likely be fixed much faster.
 
 # Pull requests
