@@ -291,9 +291,9 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       this.sequelize.query(this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database)).complete(function(err, fks) {
         expect(err).to.be.null
         expect(fks).to.have.length(3)
-        keys = Object.keys(fks[0])
-        keys2 = Object.keys(fks[1])
-        keys3 = Object.keys(fks[2])
+        var keys = Object.keys(fks[0]),
+          keys2 = Object.keys(fks[1]),
+          keys3 = Object.keys(fks[2])
         if (dialect === "postgres" || dialect === "postgres-native") {
           expect(keys).to.have.length(6)
           expect(keys2).to.have.length(7)
