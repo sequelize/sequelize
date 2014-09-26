@@ -173,10 +173,11 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
               , secondInstance = second[0]
               , secondCreated = second[1];
 
+              // Depending on execution order and MAGIC either the first OR the second call should return true
+              expect(firstCreated ? !secondCreated : secondCreated).to.be.ok // XOR
+
               expect(firstInstance).to.be.ok;
-              expect(firstCreated).to.be.ok;
               expect(secondInstance).to.be.ok;
-              expect(secondCreated).not.to.be.ok;
 
               expect(firstInstance.id).to.equal(secondInstance.id);
 

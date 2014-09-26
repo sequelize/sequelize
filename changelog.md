@@ -1,4 +1,4 @@
-# Next
+# 2.0.0-rc1
 - [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
 - [FEATURE] Added `field` and `name` to the object form of foreign key definitions
 - [FEATURE] Added support for calling `Promise.done`, thus explicitly ending the promise chain by calling done with no arguments. Done with a function argument still continues the promise chain, to maintain BC.
