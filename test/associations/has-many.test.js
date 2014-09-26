@@ -1472,6 +1472,45 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
     });
 
+    describe('foreign key with fields specified', function() {
+      it('should correctly get associations', function() {
+        var User = this.sequelize.define('User', { name: DataTypes.STRING });
+        var Project = this.sequelize.define('Project', { name: DataTypes.STRING });
+
+        User.hasMany(Project, {
+          through: 'user_projects',
+          as: 'Projects',
+          foreignKey: {
+            field: 'user_id',
+            name: 'userId'
+          }
+        });
+        Project.hasMany(User, {
+          through: 'user_projects',
+          as: 'Users',
+          foreignKey: {
+            field: 'project_id',
+            name: 'projectId'
+          }
+        });
+
+        return this.sequelize.sync().then(function() {
+          return Promise.all([
+            User.create({name: 'Matt'}),
+            Project.create({name: 'Good Will Hunting'})
+          ]);
+        }).spread(function (user, project) {
+          return user.addProject(project).return(user);
+        }).then(function(user) {
+          return user.getProjects();
+        }).then(function(projects) {
+          var project = projects[0];
+
+          expect(project).to.be.defined;
+        });
+      });
+    })
+
     describe('primary key handling for join table', function () {
       beforeEach(function () {
         this.User = this.sequelize.define('User',

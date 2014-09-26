@@ -3,6 +3,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , Sequelize = require('../../index')
+  , Promise   = Sequelize.Promise
 
 chai.config.includeStack = true
 
@@ -255,6 +256,44 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
 
       expect(User.rawAttributes.AccountId).to.exist
     })
+
+    it('should support specifying the field of a foreign key', function() {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING })
+        , self = this;
+
+      Task.hasOne(User, {
+        foreignKey: {
+          name: 'taskId',
+          field: 'task_id'
+        }
+      });
+
+      expect(User.rawAttributes.taskId).to.exist
+      expect(User.rawAttributes.taskId.field).to.equal('task_id')
+      return Task.sync({ force: true }).then(function () {
+        // Can't use Promise.all cause of foreign key references
+        return  User.sync({ force: true });
+      }).then(function () {
+        return Promise.all([
+          User.create({ username: 'foo', gender: 'male' }),
+          Task.create({ title: 'task', status: 'inactive' })
+        ]);
+      }).spread(function (user, task) {
+        return task.setUserXYZ(user).then(function () {
+          return task.getUserXYZ();
+        });
+      }).then(function (user) {
+        // the sql query should correctly look at task_id instead of taskId
+        expect(user).to.not.be.null;
+        return Task.find({
+          where: {title: 'task'},
+          include: [ User ]
+        })
+      }).then(function(task) {
+        expect(task.UserXYZ).to.exist
+      });
+    });
   })
 
   describe("foreign key constraints", function() {
