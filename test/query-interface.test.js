@@ -265,11 +265,24 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
             primaryKey: true,
             autoincrement: true
           },
+          admin: {
+            type: DataTypes.INTEGER,
+            references: 'users',
+            referenceKey: 'id',
+          },
+          operator: {
+            type: DataTypes.INTEGER,
+            references: 'users',
+            referenceKey: 'id',
+            onUpdate: 'cascade',
+          },
           owner: {
             type: DataTypes.INTEGER,
             references: 'users',
             referenceKey: 'id',
-          }
+            onUpdate: 'cascade',
+            onDelete: 'restrict'
+          },
         })
       })
     })
@@ -277,10 +290,14 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
     it('should get a list of foreign keys for the table', function (done) {
       this.sequelize.query(this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database)).complete(function(err, fks) {
         expect(err).to.be.null
-        expect(fks).to.have.length(1)
-        keys = Object.keys(fks[0]);
+        expect(fks).to.have.length(3)
+        keys = Object.keys(fks[0])
+        keys2 = Object.keys(fks[1])
+        keys3 = Object.keys(fks[2])
         if (dialect === "postgres" || dialect === "postgres-native") {
-          expect(keys).to.have.length(5)
+          expect(keys).to.have.length(6)
+          expect(keys2).to.have.length(7)
+          expect(keys3).to.have.length(8)
         } else if (dialect === "sqlite") {
           expect(keys).to.have.length(8)
         } else if (dialect === "mysql") {
