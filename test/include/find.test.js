@@ -22,7 +22,6 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       // Associations
       A.hasMany(B);
 
-      B.belongsTo(B);
       B.belongsTo(D);
       B.hasMany(C, {
         through: 'BC',
