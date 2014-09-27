@@ -15,7 +15,7 @@ var chai        = require('chai')
 chai.config.includeStack = true
 
 var qq = function(str) {
-  if (dialect == 'postgres' || dialect == 'sqlite') {
+  if (dialect == 'postgres' || dialect == 'sqlite' || dialect === 'mssql') {
     return '"' + str + '"'
   } else if (Support.dialectIsMySQL()) {
     return '`' + str + '`'
@@ -24,7 +24,7 @@ var qq = function(str) {
   }
 }
 
-describe(Support.getTestDialectTeaser("Sequelize"), function () {
+describe.only(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
     if (dialect !== 'sqlite') {
       it('should work with minConnections', function () {
@@ -105,11 +105,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
 
         it('triggers the actual adapter error', function(done) {
-
           this
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
+              console.log(err.message);
               if (dialect === 'mariadb') {
                 expect(err.message).to.match(/Access denied for user/)
               } else if (dialect === 'postgres') {
@@ -117,6 +117,8 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                   err.message.match(/Failed to authenticate for PostgresSQL/) ||
                   err.message.match(/invalid port number/)
                 ).to.be.ok
+              } else if (dialect === 'mssql'){
+                expect(err.message.match(/Failed on step 'connecting'.Login failed for user/)).to.be.ok
               } else {
                 expect(err.message).to.match(/Failed to authenticate/)
               }
@@ -328,7 +330,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('dot separated attributes when doing a raw query without nest', function(done) {
-      var tickChar = (dialect === 'postgres') ? '"' : '`'
+      var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
       this.sequelize.query(sql, null, { raw: true, nest: false }).success(function(result) {
@@ -338,7 +340,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('destructs dot separated attributes when doing a raw query using nest', function(done) {
-      var tickChar = (dialect === 'postgres') ? '"' : '`'
+      var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
       this.sequelize.query(sql, null, { raw: true, nest: true }).success(function(result) {
@@ -423,7 +425,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('handles AS in conjunction with functions just fine', function(done) {
-      this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
+      var datetime = (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()');
+      if(dialect==="mssql"){
+        datetime = "GETDATE()"
+      }
+      this.sequelize.query('SELECT ' + datetime + ' AS t').success(function(result) {
         expect(moment(result[0].t).isValid()).to.be.true
         done()
       })
@@ -616,7 +622,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
         var User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
-        User2.sync().error(function(err) {
+        User2.sync().done(function(err) {
           if (dialect === "postgres" || dialect === "postgres-native") {
             assert([
               'fe_sendauth: no password supplied',
@@ -624,7 +630,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               'FATAL:  role "bar" does not exist',
               'password authentication failed for user "bar"'
             ].indexOf(err.message.trim()) !== -1)
-          } else {
+          } else if (dialect === 'mssql'){
+            assert(err.message.indexOf('Seriate SqlContext Error. Failed on step') !== 0);
+          }else {
             expect(err.message.toString()).to.match(/.*Access\ denied.*/)
           }
           done()
@@ -681,7 +689,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           authorID: { type: Sequelize.BIGINT, allowNull: false, references: 'User', referencesKey: 'id' },
         })
 
-        this.sequelize.sync().error(function (error) {
+        this.sequelize.sync().done(function (error) {
           assert.ok(error);
           done()
         })
