@@ -147,37 +147,39 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
     });
   });
 
-  describe('json', function () {
-    var queryGeneratorStub = { escape: function (value) { return "'" + value + "'"; } };
+  if (Support.getTestDialect() === 'postgres') {
+    describe('json', function () {
+      var queryGenerator = require('../lib/dialects/postgres/query-generator.js');
 
-    it('successfully parses a complex nested condition hash', function() {
-      var conditions = {
-        metadata: {
-          language: 'icelandic',
-          pg_rating: { 'dk': 'G' }
-        },
-        another_json_field: { x: 1 }
-      };
-      var expected = "metadata#>>'{language}' = 'icelandic' and metadata#>>'{pg_rating,dk}' = 'G' and another_json_field#>>'{x}' = '1'";
-      expect((new Utils.json(conditions)).toString(queryGeneratorStub)).to.deep.equal(expected);
-    });
+      it('successfully parses a complex nested condition hash', function() {
+        var conditions = {
+          metadata: {
+            language: 'icelandic',
+            pg_rating: { 'dk': 'G' }
+          },
+          another_json_field: { x: 1 }
+        };
+        var expected = "metadata#>>'{language}' = 'icelandic' and metadata#>>'{pg_rating,dk}' = 'G' and another_json_field#>>'{x}' = '1'";
+        expect(queryGenerator.handleSequelizeMethod(new Utils.json(conditions))).to.deep.equal(expected);
+      });
 
-    it('successfully parses a string using dot notation', function () {
-      var path = 'metadata.pg_rating.dk';
-      expect((new Utils.json(path)).toString(queryGeneratorStub)).to.equal("metadata#>>'{pg_rating,dk}'");
-    });
+      it('successfully parses a string using dot notation', function () {
+        var path = 'metadata.pg_rating.dk';
+        expect(queryGenerator.handleSequelizeMethod(new Utils.json(path))).to.equal("metadata#>>'{pg_rating,dk}'");
+      });
 
-    it('allows postgres json syntax', function () {
-      var path = 'metadata->pg_rating->>dk';
-      expect((new Utils.json(path)).toString(queryGeneratorStub)).to.equal(path);
-    });
+      it('allows postgres json syntax', function () {
+        var path = 'metadata->pg_rating->>dk';
+        expect(queryGenerator.handleSequelizeMethod(new Utils.json(path))).to.equal(path);
+      });
 
-    it('can take a value to compare against', function () {
-      var path = 'metadata.pg_rating.is';
-      var value = 'U';
-      expect((new Utils.json(path, value)).toString(queryGeneratorStub)).to.equal("metadata#>>'{pg_rating,is}' = 'U'");
+      it('can take a value to compare against', function () {
+        var path = 'metadata.pg_rating.is';
+        var value = 'U';
+        expect(queryGenerator.handleSequelizeMethod(new Utils.json(path, value))).to.equal("metadata#>>'{pg_rating,is}' = 'U'");
+      });
     });
-  });
+  }
 
   describe('inflection', function () {
     it('works better than lingo ;)', function () {

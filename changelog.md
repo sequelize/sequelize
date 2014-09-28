@@ -1,3 +1,6 @@
+# Next
+- [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator
+
 # 2.0.0-rc1
 - [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
 - [FEATURE] Added `field` and `name` to the object form of foreign key definitions
