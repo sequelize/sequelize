@@ -1497,7 +1497,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
       it('should correctly get associations', function() {
         var self = this;
-        return this.sequelize.sync().then(function() {
+        return this.sequelize.sync({force: true}).then(function() {
           return Promise.all([
             self.User.create({name: 'Matt'}),
             self.Project.create({name: 'Good Will Hunting'})
@@ -1525,13 +1525,21 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             name: 'groupId'
           }
         });
+        this.User.hasMany(this.Group, {
+          through: 'group_users',
+          as: 'Groups',
+          foreignKey: {
+            field: 'user_id',
+            name: 'userId'
+          }
+        });
 
-        return this.sequelize.sync().then(function() {
-          return Promise.all([
+        return this.sequelize.sync({force: true}).then(function() {
+          return Promise.join(
             self.Group.create({groupName: 'The Illuminati'}),
             self.User.create({name: 'Matt'}),
             self.Project.create({name: 'Good Will Hunting'})
-          ]);
+          );
         }).spread(function (group, user, project) {
           return user.addProject(project).then(function() {
             return group.addUser(user).return(group);
@@ -1543,10 +1551,13 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             include: [
               {
                 model: self.User,
-                include: [ self.Project ]
+                as: 'Users',
+                include: [
+                  { model: self.Project, as: 'Projects' }
+                ]
               }
             ]
-          })
+          });
         }).then(function(groups) {
           var group = groups[0];
           expect(group).to.be.defined;

@@ -269,8 +269,8 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
         }
       });
 
-      expect(User.rawAttributes.taskId).to.exist
-      expect(User.rawAttributes.taskId.field).to.equal('task_id')
+      expect(User.rawAttributes.taskId).to.exist;
+      expect(User.rawAttributes.taskId.field).to.equal('task_id');
       return Task.sync({ force: true }).then(function () {
         // Can't use Promise.all cause of foreign key references
         return  User.sync({ force: true });
@@ -291,7 +291,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
           include: [ User ]
         })
       }).then(function(task) {
-        expect(task.UserXYZ).to.exist
+        expect(task.UserXYZ).to.exist;
       });
     });
   })
