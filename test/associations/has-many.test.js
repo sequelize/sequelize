@@ -1472,6 +1472,96 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
     });
 
+    describe('foreign key with fields specified', function() {
+      beforeEach(function() {
+        this.User = this.sequelize.define('User', { name: DataTypes.STRING });
+        this.Project = this.sequelize.define('Project', { name: DataTypes.STRING });
+
+        this.User.hasMany(this.Project, {
+          through: 'user_projects',
+          as: 'Projects',
+          foreignKey: {
+            field: 'user_id',
+            name: 'userId'
+          }
+        });
+        this.Project.hasMany(this.User, {
+          through: 'user_projects',
+          as: 'Users',
+          foreignKey: {
+            field: 'project_id',
+            name: 'projectId'
+          }
+        });
+      });
+
+      it('should correctly get associations', function() {
+        var self = this;
+        return this.sequelize.sync().then(function() {
+          return Promise.all([
+            self.User.create({name: 'Matt'}),
+            self.Project.create({name: 'Good Will Hunting'})
+          ]);
+        }).spread(function (user, project) {
+          return user.addProject(project).return(user);
+        }).then(function(user) {
+          return user.getProjects();
+        }).then(function(projects) {
+          var project = projects[0];
+
+          expect(project).to.be.defined;
+        });
+      });
+
+      it('should be able to handle nested includes properly', function() {
+        var self = this;
+        this.Group = this.sequelize.define('Group', { groupName: DataTypes.STRING});
+
+        this.Group.hasMany(this.User, {
+          through: 'group_users',
+          as: 'Users',
+          foreignKey: {
+            field: 'group_id',
+            name: 'groupId'
+          }
+        });
+
+        return this.sequelize.sync().then(function() {
+          return Promise.all([
+            self.Group.create({groupName: 'The Illuminati'}),
+            self.User.create({name: 'Matt'}),
+            self.Project.create({name: 'Good Will Hunting'})
+          ]);
+        }).spread(function (group, user, project) {
+          return user.addProject(project).then(function() {
+            return group.addUser(user).return(group);
+          });
+        }).then(function(group) {
+          // get the group and include both the users in the group and their project's
+          return self.Group.findAll({
+            where: {id: group.id},
+            include: [
+              {
+                model: self.User,
+                include: [ self.Project ]
+              }
+            ]
+          })
+        }).then(function(groups) {
+          var group = groups[0];
+          expect(group).to.be.defined;
+
+          var user = group.Users[0];
+          expect(user).to.be.defined;
+
+          var project = user.Projects[0];
+          expect(project).to.be.defined;
+          expect(project.name).to.equal('Good Will Hunting');
+        });
+      });
+    });
+
+
     describe('primary key handling for join table', function () {
       beforeEach(function () {
         this.User = this.sequelize.define('User',
