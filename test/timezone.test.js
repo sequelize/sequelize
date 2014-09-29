@@ -20,7 +20,11 @@ if (dialect !== 'sqlite') {
     });
 
     it('returns the same value for current timestamp', function () {
-      var query = "SELECT now() as now";
+      var now = 'now()';
+      if(dialect === 'mssql'){
+        now = 'GETDATE()';
+      }
+      var query = "SELECT " + now + " as now";
       return Promise.all([
         this.sequelize.query(query),
         this.sequelizeWithTimezone.query(query)

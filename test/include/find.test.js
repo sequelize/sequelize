@@ -115,7 +115,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         });
     });
 
-    it.only('should support many levels of belongsTo (with a lower level having a where)', function (done) {
+    it('should support many levels of belongsTo (with a lower level having a where)', function (done) {
       var A = this.sequelize.define('a', {})
         , B = this.sequelize.define('b', {})
         , C = this.sequelize.define('c', {})

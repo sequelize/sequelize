@@ -24,7 +24,7 @@ var qq = function(str) {
   }
 }
 
-describe.only(Support.getTestDialectTeaser("Sequelize"), function () {
+describe(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
     if (dialect !== 'sqlite') {
       it('should work with minConnections', function () {
