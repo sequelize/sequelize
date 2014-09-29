@@ -195,6 +195,32 @@ if (Support.dialectIsMySQL()) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
+          title: 'sequelize.where with .fn as attribute and default comparator',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              where: sequelize.and(
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'jan'),
+                { type: 1 }
+              )
+            };
+          }],
+          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = 'jan' AND `myTable`.`type`=1);",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'sequelize.where with .fn as attribute and LIKE comparator',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              where: sequelize.and(
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'LIKE', '%t%'),
+                { type: 1 }
+              )
+            };
+          }],
+          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE '%t%' AND `myTable`.`type`=1);",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
           title: 'single string argument is not quoted',
           arguments: ['myTable', {group: "name"}],
           expectation: "SELECT * FROM `myTable` GROUP BY name;",
