@@ -35,7 +35,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         this.User.find({
           where: Sequelize[method]( "1=1", "2=2" )
         }).on('sql', function(sql) {
-          expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+          if(dialect === 'mssql'){
+            expect(sql).to.contain("WHERE (1=1 " + word + " 2=2)")
+          }else{
+            expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+          }
           done()
         })
       })
@@ -44,7 +48,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         this.User.find({
           where: Sequelize[method]( ["1=?", 1], ["2=?", 2] )
         }).on('sql', function(sql) {
-          expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+          if(dialect === 'mssql'){
+            expect(sql).to.contain("WHERE (1=1 " + word + " 2=2)")
+          }else{
+            expect(sql).to.contain("WHERE (1=1 " + word + " 2=2) LIMIT 1")
+          }
           done()
         })
       })
@@ -52,9 +60,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       it('can handle objects', function(done) {
         this.User.find({
           where: Sequelize[method]( { username: "foo", intVal: 2 }, { secretValue: 'bar' } )
-        }).on('sql', function(sql) {
+        }).on('sql', function(sql) {   
           var expectation = ({
             mysql: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
+            mssql: 'WHERE ("User"."username"=\'foo\' AND "User"."intVal"=2 ' + word + ' "User"."secretValue"=\'bar\')',
             sqlite: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
             postgres: 'WHERE ("User"."username"=\'foo\' AND "User"."intVal"=2 ' + word + ' "User"."secretValue"=\'bar\')',
             mariadb: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')"
@@ -74,11 +83,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       it('can handle numbers', function(done) {
         this.User.find({
           where: Sequelize[method]( 1, 2 )
-        }).on('sql', function(sql) {
+        }).on('sql', function(sql) {   
           var expectation = ({
             mysql: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
             sqlite: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
             postgres: 'WHERE ("User"."id"=1 ' + word + ' "User"."id"=2)',
+            mssql: 'WHERE ("User"."id"=1 ' + word + ' "User"."id"=2)',
             mariadb: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)"
           })[Support.getTestDialect()]
 
@@ -100,7 +110,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       this.User.find({
         where: Sequelize.and( Sequelize.or("1=1", "2=2"), Sequelize.or("3=3", "4=4") )
       }).on('sql', function(sql) {
-        expect(sql).to.contain("WHERE ((1=1 OR 2=2) AND (3=3 OR 4=4)) LIMIT 1")
+        if(dialect === 'mssql'){
+          expect(sql).to.contain("WHERE ((1=1 OR 2=2) AND (3=3 OR 4=4))")
+        }else{
+          expect(sql).to.contain("WHERE ((1=1 OR 2=2) AND (3=3 OR 4=4)) LIMIT 1")
+        }
         done()
       })
     })
@@ -114,6 +128,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           mysql: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
           sqlite: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
           postgres: 'WHERE (("User"."username" = \'foo\' OR "User"."username" = \'bar\') AND ("User"."id" = 1 OR "User"."id" = 4)) LIMIT 1',
+          mssql: 'WHERE (("User"."username" = \'foo\' OR "User"."username" = \'bar\') AND ("User"."id" = 1 OR "User"."id" = 4))',
           mariadb: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1"
         })[Support.getTestDialect()]
 
@@ -131,7 +146,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       this.User.find({
         where: Sequelize.or( Sequelize.and("1=1", "2=2"), Sequelize.and("3=3", "4=4") )
       }).on('sql', function(sql) {
-        expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4)) LIMIT 1")
+        if(dialect === 'mssql'){
+          expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4))")
+        }else{
+          expect(sql).to.contain("WHERE ((1=1 AND 2=2) OR (3=3 AND 4=4)) LIMIT 1")
+        }
         done()
       })
     })
@@ -145,6 +164,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           mysql: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
           sqlite: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
           postgres: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4)) LIMIT 1',
+          mssql: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4))', 
           mariadb: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1"
         })[Support.getTestDialect()]
 
@@ -186,7 +206,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             )
           ]
         }).on('sql', function(sql) {
-          if (Support.getTestDialect() === 'postgres') {
+          if (Support.getTestDialect() === 'postgres' || dialect === 'mssql') {
             expect(sql).to.contain(
               'WHERE (' + [
                 '"User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\' AND ',

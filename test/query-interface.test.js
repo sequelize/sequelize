@@ -426,7 +426,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         var keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
           keys3 = Object.keys(fks[2])
-        if (dialect === "postgres" || dialect === "postgres-native") {
+        if (dialect === "postgres" || dialect === "postgres-native" || dialect == 'mssql') {
           expect(keys).to.have.length(6)
           expect(keys2).to.have.length(7)
           expect(keys3).to.have.length(7)
