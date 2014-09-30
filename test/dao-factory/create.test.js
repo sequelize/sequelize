@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   });
 
   describe('findOrCreate', function () {
-    it("supports transactions", function(done) {
+    it.only("supports transactions", function(done) {
       var self = this;
       this.sequelize.transaction().then(function(t) {
         self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
