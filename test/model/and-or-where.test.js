@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       it('can handle objects', function(done) {
         this.User.find({
           where: Sequelize[method]( { username: "foo", intVal: 2 }, { secretValue: 'bar' } )
-        }).on('sql', function(sql) {   
+        }).on('sql', function(sql) {
           var expectation = ({
             mysql: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
             mssql: 'WHERE ("User"."username"=\'foo\' AND "User"."intVal"=2 ' + word + ' "User"."secretValue"=\'bar\')',
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       it('can handle numbers', function(done) {
         this.User.find({
           where: Sequelize[method]( 1, 2 )
-        }).on('sql', function(sql) {   
+        }).on('sql', function(sql) {
           var expectation = ({
             mysql: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
             sqlite: "WHERE (`User`.`id`=1 " + word + " `User`.`id`=2)",
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('allows nesting of Sequelize.or using object notation', function(done) {
       this.User.find({
-        where: Sequelize.and( Sequelize.or({username: {eq: "foo"}}, {username: {eq:"bar"}}), 
+        where: Sequelize.and( Sequelize.or({username: {eq: "foo"}}, {username: {eq:"bar"}}),
                               Sequelize.or({id: {eq: 1}}, {id: {eq:4}}) )
       }).on('sql', function(sql) {
         var expectation = ({
@@ -157,14 +157,14 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('allows nesting of Sequelize.and using object notation', function(done) {
       this.User.find({
-        where: Sequelize.or( Sequelize.and({username: {eq: "foo"}}, {username: {eq:"bar"}}), 
+        where: Sequelize.or( Sequelize.and({username: {eq: "foo"}}, {username: {eq:"bar"}}),
                               Sequelize.and({id: {eq: 1}}, {id: {eq:4}}) )
       }).on('sql', function(sql) {
         var expectation = ({
           mysql: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
           sqlite: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
           postgres: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4)) LIMIT 1',
-          mssql: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4))', 
+          mssql: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4))',
           mariadb: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1"
         })[Support.getTestDialect()]
 
