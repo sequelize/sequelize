@@ -32,13 +32,13 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
+    "bluebird": "2.3.2",
     "dottie": "0.2.4",
     "generic-pool": "2.1.1",
     "inflection": "1.4.2",
     "lodash": "~2.4.0",
     "moment": "~2.7.0",
     "node-uuid": "~1.4.1",
-    "bluebird": "2.3.2",
     "sql": "~0.39.0",
     "toposort-class": "~0.3.0",
     "validator": "~3.16.0"
@@ -58,7 +58,7 @@
     "mocha": "~1.21.3",
     "mysql": "~2.4.1",
     "pg": "~3.4.0",
-    "seriate": "^0.3.3",
+    "mssql": "^1.2.0",
     "sinon": "~1.10.3",
     "sinon-chai": "~2.5.0",
     "sqlite3": "~2.2.4",

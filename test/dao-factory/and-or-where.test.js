@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe.only('Combinations of Sequelize.and and Sequelize.or', function() {
+  describe('Combinations of Sequelize.and and Sequelize.or', function() {
     it('allows nesting of Sequelize.or', function(done) {
       this.User.find({
         where: Sequelize.and( Sequelize.or("1=1", "2=2"), Sequelize.or("3=3", "4=4") )
