@@ -326,24 +326,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
     });
 
-    describe('#build yes', function() {
-      it('should correctly validate isEmail', function() {
-        var User = this.sequelize.define('User', {
-          email: {
-            type: Sequelize.STRING,
-            isEmail: true
-          }
-        });
-
-        return this.sequelize.sync({ force: true }).then(function() {
-          var user = User.build({email: 'not an email'});
-          return user.validate();
-        }).then(function(err) {
-          expect(err).to.not.be.null;
-          expect(err).to.not.be.undefined;
-        });
-      });
-
+    describe('#build', function() {
       it('should correctly validate uniqueness', function() {
         var User = this.sequelize.define('User', {
           email: {
