@@ -304,6 +304,44 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
 
       expect(User.rawAttributes.AccountId).to.exist;
     });
+
+    it('should support specifying the field of a foreign key', function () {
+       var User  = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: false })
+         , Account = this.sequelize.define('Account', { title: Sequelize.STRING }, { underscored: false });
+
+      User.belongsTo(Account, {
+        foreignKey: {
+          name: 'AccountId',
+          field: 'account_id'
+        }
+      });
+
+      expect(User.rawAttributes.AccountId).to.exist;
+      expect(User.rawAttributes.AccountId.field).to.equal('account_id');
+
+      return Account.sync({ force: true }).then(function () {
+        // Can't use Promise.all cause of foreign key references
+        return  User.sync({ force: true });
+      }).then(function () {
+        return Promise.all([
+          User.create({ username: 'foo' }),
+          Account.create({ title: 'pepsico' })
+        ]);
+      }).spread(function (user, account) {
+        return user.setAccount(account).then(function () {
+          return user.getAccount();
+        });
+      }).then(function (user) {
+        // the sql query should correctly look at task_id instead of taskId
+        expect(user).to.not.be.null;
+        return User.find({
+          where: {username: 'foo'},
+          include: [ Account ]
+        })
+      }).then(function(task) {
+        expect(task.Account).to.exist;
+      });
+    });
   });
 
   describe("foreign key constraints", function() {
