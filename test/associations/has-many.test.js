@@ -1540,11 +1540,13 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         }).spread(function (user, puppy) {
           return user.addPuppy(puppy).return(user);
         }).then(function(user) {
-          return user.getPuppies();
-        }).then(function(puppies) {
-          var puppy = puppies[0];
+          return user.getPuppies().then(function(puppies) {
+            var puppy = puppies[0];
 
-          expect(puppy).to.be.defined;
+            expect(puppy).to.be.defined;
+            expect(puppy.rawAttributes.userId).to.be.ok
+            expect(puppy.userId).to.equal(user.id)
+          });
         });
       });
 
