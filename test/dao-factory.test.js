@@ -311,6 +311,19 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })))
     })
 
+    it('allows unique on column with field aliases', function(done) {
+      var User = this.sequelize.define('UserWithUniqueFieldAlias', {
+        userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
+      });
+      User.sync({ force: true })
+        .then(function() {
+          return done();
+        })
+        .catch(function(err) {
+          throw err;
+        });
+    });
+
     it('allows us to customize the error message for unique constraint', function(done) {
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
