@@ -1476,7 +1476,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', { name: DataTypes.STRING });
         this.Project = this.sequelize.define('Project', { name: DataTypes.STRING });
+        this.Puppy = this.sequelize.define('Puppy', { breed: DataTypes.STRING });
 
+        // doubly linked has many
         this.User.hasMany(this.Project, {
           through: 'user_projects',
           as: 'Projects',
@@ -1493,9 +1495,24 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             name: 'projectId'
           }
         });
+
+        // singly linked has many
+        this.User.hasMany(this.Puppy, {
+          as: 'Puppies',
+          foreignKey: {
+            field: 'user_id',
+            name: 'userId'
+          }
+        });
+        this.Puppy.belongsTo(this.User, {
+          foreignKey: {
+            field: 'user_id',
+            name: 'userId'
+          }
+        });
       });
 
-      it('should correctly get associations', function() {
+      it('should correctly get associations when doubly linked', function() {
         var self = this;
         return this.sequelize.sync({force: true}).then(function() {
           return Promise.all([
@@ -1510,6 +1527,24 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           var project = projects[0];
 
           expect(project).to.be.defined;
+        });
+      });
+
+      it('should correctly get associations when singly linked', function() {
+        var self = this;
+        return this.sequelize.sync({force: true}).then(function() {
+          return Promise.all([
+            self.User.create({name: 'Matt'}),
+            self.Puppy.create({breed: 'Terrier'})
+          ]);
+        }).spread(function (user, puppy) {
+          return user.addPuppy(puppy).return(user);
+        }).then(function(user) {
+          return user.getPuppies();
+        }).then(function(puppies) {
+          var puppy = puppies[0];
+
+          expect(puppy).to.be.defined;
         });
       });
 
