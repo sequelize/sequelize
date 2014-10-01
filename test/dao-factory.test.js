@@ -315,13 +315,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
       });
-      User.sync({ force: true })
-        .then(function() {
-          return done();
-        })
-        .catch(function(err) {
-          throw err;
-        });
+      return User.sync({ force: true });
     });
 
     it('allows us to customize the error message for unique constraint', function(done) {
