@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
           return User.findAll({}, {transaction:t});
         })
         .then(function(users) {
-          return expect(users.length).to.equal(2);
+          return expect(users.length).to.equal(1);
         })
         .then(function(object) {
           done();
