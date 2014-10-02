@@ -55,41 +55,41 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
     });
   });
 
-	if (dialect == 'sqlite'){
-		it('provides persistent transactions', function (done) {
-			var sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'});
-			var User = sequelize.define('user', {
-				username: Support.Sequelize.STRING,
-				awesome: Support.Sequelize.BOOLEAN
-			});
-			return sequelize.transaction()
-				.then(function(t) {
-					return sequelize.sync({transaction:t})
-						.then(function( ) {
-							return t;							
-						});
-				})
-				.then(function(t) {
-					return User.create({}, {transaction:t})
-						.then(function( ) {
-							t.commit();
-						});
-				})
-				.then(function( ) {
-					return sequelize.transaction();
-				})
-				.then(function(t) {
-					return User.findAll({}, {transaction:t});
-				})
-				.then(function(users) {
-					return expect(users.length).to.equal(2);
-				})
-				.then(function(object) {
-					done();
-				});
-		});	
-	}
-			
+  if (dialect === 'sqlite'){
+    it('provides persistent transactions', function (done) {
+      var sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
+          User = sequelize.define('user', {
+            username: Support.Sequelize.STRING,
+            awesome: Support.Sequelize.BOOLEAN
+          });
+      return sequelize.transaction()
+        .then(function(t) {
+          return sequelize.sync({transaction:t})
+            .then(function( ) {
+              return t;              
+            });
+        })
+        .then(function(t) {
+          return User.create({}, {transaction:t})
+            .then(function( ) {
+              t.commit();
+            });
+        })
+        .then(function( ) {
+          return sequelize.transaction();
+        })
+        .then(function(t) {
+          return User.findAll({}, {transaction:t});
+        })
+        .then(function(users) {
+          return expect(users.length).to.equal(2);
+        })
+        .then(function(object) {
+          done();
+        });
+    });  
+  }
+
   if (dialect !== 'sqlite') {
     describe('row locking', function () {
       this.timeout(10000);
