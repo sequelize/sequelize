@@ -47,7 +47,7 @@ var Support = {
         } else {
           resolve();
         }
-      }).then(function () {  
+      }).then(function () {
         var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: p })
           , _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
