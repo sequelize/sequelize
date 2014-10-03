@@ -311,6 +311,39 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })))
     })
 
+    it('allows unique on column with field aliases', function() {
+      var User = this.sequelize.define('UserWithUniqueFieldAlias', {
+        userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
+      });
+      return User.sync({ force: true }).bind(this).then(function() {
+        return this.sequelize.queryInterface.showIndex(User.tableName).then(function(indexes) {
+          var idxPrimary, idxUnique;
+          if (dialect === 'sqlite') {
+            expect(indexes).to.have.length(1);
+            idxUnique = indexes[0];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', length: undefined, order: undefined}]);
+          } else if (dialect === 'mysql') {
+            expect(indexes).to.have.length(2);
+            idxPrimary = indexes[0];
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', length: undefined, order: 'ASC'}]);
+            expect(idxUnique.type).to.equal('BTREE');
+          } else if (dialect === 'postgres') {
+            expect(indexes).to.have.length(2);
+            idxPrimary = indexes[0];
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, order: undefined, length: undefined}]);
+          }
+        });
+      });
+    });
+
     it('allows us to customize the error message for unique constraint', function(done) {
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
