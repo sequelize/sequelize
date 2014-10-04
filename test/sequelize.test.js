@@ -26,9 +26,10 @@ var qq = function(str) {
   }
 }
 
-describe(Support.getTestDialectTeaser("Sequelize"), function () {
+describe.only(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
-    if (dialect !== 'sqlite') {
+    //MSSQL already pools, this test is not relevent
+    if (dialect !== 'sqlite' && dialect !== 'mssql') {
       it('should work with minConnections', function () {
         var ConnectionManager = require(__dirname + '/../lib/dialects/' + dialect + '/connection-manager.js')
           , connectionSpy = ConnectionManager.prototype.connect = chai.spy(ConnectionManager.prototype.connect);
