@@ -116,6 +116,47 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         });
     });
 
+    it('should support a nested include (with a where)', function() {
+      var A = this.sequelize.define('A', {
+        name: DataTypes.STRING
+      });
+
+      var B = this.sequelize.define('B', {
+        flag: DataTypes.BOOLEAN
+      });
+
+      var C = this.sequelize.define('C', {
+        name: DataTypes.STRING
+      });
+
+      A.hasOne(B);
+      B.belongsTo(A);
+
+      B.hasMany(C);
+      C.belongsTo(B);
+
+      return this.sequelize
+        .sync({ force: true })
+        .then(function () {
+          return A.find({
+            include: [
+              {
+                model: B,
+                where: { flag: true },
+                include: [
+                  {
+                    model: C
+                  }
+                ]
+              }
+            ]
+          })
+        })
+        .then(function (a) {
+          expect(a).to.not.exist;
+        });
+    });
+
     it('should support many levels of belongsTo (with a lower level having a where)', function (done) {
       var A = this.sequelize.define('a', {})
         , B = this.sequelize.define('b', {})
