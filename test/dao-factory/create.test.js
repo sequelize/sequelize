@@ -979,7 +979,7 @@ describe.only(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('bulkCreate', function() {
-    it("supports transactions", function(done) {
+    it.only("supports transactions", function(done) {
       var self = this;
       this.sequelize.transaction().then(function(t) {
         self.User
