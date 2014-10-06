@@ -12,7 +12,6 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
     it("when we don't have the correct server details", function(done) {
       // mysql is not properly supported due to the custom pooling system
       if (dialect !== "postgres" && dialect !== "postgres-native") {
-        console.log('This dialect doesn\'t support me :(')
         expect(true).to.be.true // Silence Buster
         return done()
       }
@@ -26,7 +25,6 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
 
     it('when we don\'t have the correct login information', function(done) {
       if (dialect !== "postgres" && dialect !== "postgres-native") {
-        console.log('This dialect doesn\'t support me :(')
         expect(true).to.be.true // Silence Buster
         return done()
       }

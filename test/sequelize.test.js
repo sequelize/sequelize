@@ -24,7 +24,7 @@ var qq = function(str) {
   }
 }
 
-describe.only(Support.getTestDialectTeaser("Sequelize"), function () {
+describe(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
     //MSSQL already pools, this test is not relevent
     if (dialect !== 'sqlite' && dialect !== 'mssql') {
