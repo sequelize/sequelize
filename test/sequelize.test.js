@@ -110,7 +110,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
-              console.log(err.message);
               if (dialect === 'mariadb') {
                 expect(err.message).to.match(/Access denied for user/)
               } else if (dialect === 'postgres') {
@@ -119,7 +118,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                   err.message.match(/invalid port number/)
                 ).to.be.ok
               } else if (dialect === 'mssql'){
-                expect(err.message.match(/Failed on step 'connecting'.Login failed for user/)).to.be.ok
+                expect(err.message.match(/ConnectionError: Login failed for user/)).to.be.ok
               } else {
                 expect(err.message).to.match(/Failed to authenticate/)
               }
