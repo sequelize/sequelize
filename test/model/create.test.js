@@ -665,7 +665,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it.only('should only store the values passed in the whitelist', function(done) {
+    it('should only store the values passed in the whitelist', function(done) {
       var self = this
         , data = { username: 'Peter', secretValue: '42' }
 
@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it.only('saves data with single quote', function(done) {
+    it('saves data with single quote', function(done) {
       var quote = "single'quote"
         , self  = this
 
@@ -1039,11 +1039,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it.only('saves data with single quote', function(done) {
+    it('saves data with single quote', function(done) {
       var self = this
         , quote = "Single'Quote"
-        , data = [{ username: 'Peter', data: quote},
-                  { username: 'Paul', data: quote}]
+        , data = [{ username: 'Peter', data: quote, uniqueName: '1'},
+                  { username: 'Paul', data: quote,  uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1060,8 +1060,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     it('saves data with double quote', function(done) {
       var self = this
         , quote = 'Double"Quote'
-        , data = [{ username: 'Peter', data: quote},
-                  { username: 'Paul', data: quote}]
+        , data = [{ username: 'Peter', data: quote, uniqueName: '1'},
+                  { username: 'Paul', data: quote, uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1078,8 +1078,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     it('saves stringified JSON data', function(done) {
       var self = this
         , json = JSON.stringify({ key: 'value' })
-        , data = [{ username: 'Peter', data: json},
-                  { username: 'Paul', data: json}]
+        , data = [{ username: 'Peter', data: json, uniqueName: '1'},
+                  { username: 'Paul', data: json, uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
