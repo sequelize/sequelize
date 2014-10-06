@@ -26,7 +26,7 @@ var qq = function(str) {
   }
 }
 
-describe.only(Support.getTestDialectTeaser("Sequelize"), function () {
+describe(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
     //MSSQL already pools, this test is not relevent
     if (dialect !== 'sqlite' && dialect !== 'mssql') {
@@ -120,6 +120,8 @@ describe.only(Support.getTestDialectTeaser("Sequelize"), function () {
                   err.message.match(/connect ECONNREFUSED/) ||
                   err.message.match(/invalid port number/)
                 ).to.be.ok
+              } else if (dialect === 'mssql'){
+                expect(err.message.match(/ConnectionError: Login failed for user/)).to.be.ok
               } else {
                 expect(err.message).to.match(/connect ECONNREFUSED/)
               }

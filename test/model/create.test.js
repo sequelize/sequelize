@@ -377,7 +377,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it('is possible to use funtions when creating an instance', function (done) {
+    it('is possible to use functions when creating an instance', function (done) {
       var self = this
       this.User.create({
         secretValue: this.sequelize.fn('upper', 'sequelize')
@@ -665,7 +665,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it('should only store the values passed in the whitelist', function(done) {
+    it.only('should only store the values passed in the whitelist', function(done) {
       var self = this
         , data = { username: 'Peter', secretValue: '42' }
 
@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it('saves data with single quote', function(done) {
+    it.only('saves data with single quote', function(done) {
       var quote = "single'quote"
         , self  = this
 
@@ -1039,7 +1039,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it('saves data with single quote', function(done) {
+    it.only('saves data with single quote', function(done) {
       var self = this
         , quote = "Single'Quote"
         , data = [{ username: 'Peter', data: quote},
