@@ -6,6 +6,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
+  , dialect   = Support.getTestDialect()
   , config    = require(__dirname + "/../config/config")
   , datetime  = require('chai-datetime')
   , promised  =  require("chai-as-promised")
@@ -170,7 +171,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         })
       })
 
-      it("should make aliased attributes available", function(done) {
+      it.only("should make aliased attributes available", function(done) {
         this.User.find({
           where: { id: 1 },
           attributes: ['id', ['username', 'name']]
