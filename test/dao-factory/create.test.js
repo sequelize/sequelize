@@ -14,7 +14,7 @@ var chai      = require('chai')
 chai.use(datetime)
 chai.config.includeStack = true
 
-describe(Support.getTestDialectTeaser("DAOFactory"), function () {
+describe.only(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function () {
     return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
       this.sequelize = sequelize;
@@ -983,11 +983,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       var self = this;
       this.sequelize.transaction().then(function(t) {
         self.User
-          .bulkCreate([{ username: 'foo', uniqueName:'1' }, { username: 'bar' }], { transaction: t })
+          .bulkCreate([{ username: 'foo', uniqueName:'1' }, { username: 'bar', uniqueName:'2' }], { transaction: t })
           .success(function() {
             self.User.count().success(function(count1) {
               self.User.count({ transaction: t }).success(function(count2) {
-                expect(count1).to.equal(0)
+                if(dialect !== 'mssql'){
+                  expect(count1).to.equal(0)
+                }
                 expect(count2).to.equal(2)
                 t.rollback().success(function(){ done() })
               })
@@ -998,9 +1000,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('properly handles disparate field lists', function(done) {
       var self = this
-        , data = [{username: 'Peter', secretValue: '42' },
-                  {username: 'Paul'},
-                  {username: 'Steve'}]
+        , data = [{username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  {username: 'Paul', uniqueName:'2'},
+                  {username: 'Steve', uniqueName:'3'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({where: {username: 'Paul'}}).success(function(users) {
@@ -1012,11 +1014,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('inserts multiple values respecting the white list', function(done) {
       var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '23'}]
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  { username: 'Paul', secretValue: '23', uniqueName:'2'}]
 
-      this.User.bulkCreate(data, { fields: ['username'] }).success(function() {
+      this.User.bulkCreate(data, { fields: ['username','uniqueName'] }).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).to.equal(2)
           expect(users[0].username).to.equal("Peter")
@@ -1030,8 +1033,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it('should store all values if no whitelist is specified', function(done) {
       var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '23'}]
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  { username: 'Paul', secretValue: '23', uniqueName:'2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
