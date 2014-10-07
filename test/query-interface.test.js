@@ -99,7 +99,6 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
 
             self.queryInterface.showIndex('Group').complete(function(err, indexes) {
               expect(err).to.be.null
-              console.log(indexes);
               indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
               expect(indexColumns).to.be.empty
 

@@ -14,7 +14,7 @@ var chai      = require('chai')
 chai.use(datetime)
 chai.config.includeStack = true
 
-describe.only(Support.getTestDialectTeaser("DAOFactory"), function () {
+describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function () {
     return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
       this.sequelize = sequelize;
@@ -979,11 +979,11 @@ describe.only(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('bulkCreate', function() {
-    it.only("supports transactions", function(done) {
+    it("supports transactions", function(done) {
       var self = this;
       this.sequelize.transaction().then(function(t) {
         self.User
-          .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
+          .bulkCreate([{ username: 'foo', uniqueName:'1' }, { username: 'bar' }], { transaction: t })
           .success(function() {
             self.User.count().success(function(count1) {
               self.User.count({ transaction: t }).success(function(count2) {
