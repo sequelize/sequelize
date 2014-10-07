@@ -791,9 +791,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('destroy', function() {
-    it('supports transactions', function(done) {
+    it('supports transactions for non-paranoid tables', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var User = sequelize.define('User', { username: Sequelize.STRING })
+
+        User.sync({ force: true }).success(function() {
+          User.create({ username: 'foo' }).success(function() {
+            sequelize.transaction(function(t) {
+              User.destroy({}, { transaction: t }).success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(1)
+                    expect(count2).to.equal(0)
+                    t.rollback().success(function(){ done() })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    it('supports transactions for paranoid tables', function(done) {
+      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        var User = sequelize.define('User', { username: Sequelize.STRING }, { paranoid: true })
 
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function() {
