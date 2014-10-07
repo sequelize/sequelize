@@ -169,7 +169,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         })
       })
 
-      it.only("should make aliased attributes available", function(done) {
+      it("should make aliased attributes available", function(done) {
         this.User.find({
           where: { id: 1 },
           attributes: ['id', ['username', 'name']]
