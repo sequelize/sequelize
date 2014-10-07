@@ -991,9 +991,9 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('properly handles disparate field lists', function(done) {
       var self = this
-        , data = [{username: 'Peter', secretValue: '42' },
-                  {username: 'Paul'},
-                  {username: 'Steve'}]
+        , data = [{username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  {username: 'Paul', uniqueName:'2'},
+                  {username: 'Steve', uniqueName:'3'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({where: {username: 'Paul'}}).success(function(users) {
@@ -1007,10 +1007,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('inserts multiple values respecting the white list', function(done) {
       var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '23'}]
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  { username: 'Paul', secretValue: '23', uniqueName:'2'}]
 
-      this.User.bulkCreate(data, { fields: ['username'] }).success(function() {
+      this.User.bulkCreate(data, { fields: ['username','uniqueName'] }).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).to.equal(2)
           expect(users[0].username).to.equal("Peter")
@@ -1024,8 +1024,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('should store all values if no whitelist is specified', function(done) {
       var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '23'}]
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  { username: 'Paul', secretValue: '23', uniqueName:'2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
