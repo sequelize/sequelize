@@ -1012,7 +1012,6 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('inserts multiple values respecting the white list', function(done) {
       var self = this
         , data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '23'}]
