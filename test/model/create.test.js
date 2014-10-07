@@ -1107,8 +1107,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('stores the current date in createdAt', function(done) {
       var self = this
-        , data = [{ username: 'Peter'},
-                  { username: 'Paul'}]
+        , data = [{ username: 'Peter', uniqueName: '1'},
+                  { username: 'Paul', uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1244,7 +1244,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       });
     });
 
-    if (Support.getTestDialect() !== 'postgres') {
+    //mssql does not support INSERT IGNORE
+    if (Support.getTestDialect() !== 'postgres' && dialect !== 'mssql') {
       it("should support the ignoreDuplicates option", function(done) {
         var self = this
           , data = [{ uniqueName: 'Peter', secretValue: '42' },
@@ -1277,8 +1278,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
           self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).error(function(err) {
             expect(err).to.exist
-            expect(err.message).to.match(/Postgres does not support the \'ignoreDuplicates\' option./)
-
+            if(dialect === 'mssql'){
+              expect(err.message).to.match(/MSSQL does not support the \'ignoreDuplicates\' option./)
+            }else{
+              expect(err.message).to.match(/Postgres does not support the \'ignoreDuplicates\' option./)
+            }
             done();
           })
         })
