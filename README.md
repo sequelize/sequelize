@@ -1,3 +1,10 @@
+# Note:
+The master Branch (fork of Sequelize 2.x.x) not support Oracle.
+For Oracle support, view branch 1.7.x
+
+
+
+
 # Sequelize
 
 [![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Coverage Status](https://codeclimate.com/github/sequelize/sequelize/coverage.png)](https://codeclimate.com/github/sequelize/sequelize)[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize)
