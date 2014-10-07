@@ -313,8 +313,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
 
       User.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
-        expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
-        expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
+        if(dialect === 'mssql'){
+          expect(sql).to.contain('"username" NVARCHAR(255) NULL UNIQUE, "email" NVARCHAR(255) NULL UNIQUE, "aCol" NVARCHAR(255) NULL UNIQUE, "bCol" NVARCHAR(255) NULL UNIQUE');
+        }else{
+          expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
+          expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
+        }
         done()
       })))
     })
@@ -352,7 +356,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       });
     })
 
-    it('allows us to customize the error message for unique constraint', function() {
+    if(dialect !== 'mssql' ? it : it.skip)('allows us to customize the error message for unique constraint', function(done) {
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
             username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
@@ -445,7 +449,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined}
           ]);
-        } else if (dialect === 'postgres') {
+        } else if (dialect === 'postgres' || dialect === 'mssql') {
           // Postgres returns indexes in alphabetical order
           primary = arguments[2];
           idx1 = arguments[0];
@@ -870,7 +874,11 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       User.sync({ force: true }).success(function() {
         User.create({username: 'Peter', secretValue: '42'}).success(function(user) {
           user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
-            expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+            if(dialect === 'mssql'){
+              expect(sql).to.not.contain('createdAt')
+            }else{
+              expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+            }
             done()
           })
         })
@@ -927,11 +935,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('updates with casting', function (done) {
       var self = this
-
       this.User.create({
         username: 'John'
       }).success(function(user) {
-        self.User.update({username: self.sequelize.cast('1', 'char')}, {where: {username: 'John'}}).success(function() {
+        self.User.update({username: self.sequelize.cast('1', dialect ==='mssql' ? 'nvarchar' : 'char' )}, {where: {username: 'John'}}).success(function() {
           self.User.all().success(function(users) {
             expect(users[0].username).to.equal('1')
             done()
@@ -1428,7 +1435,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     })
 
     // sqlite can't handle multiple primary keys
-    if(dialect !== "sqlite") {
+    // neither can mssql
+    if(dialect !== "sqlite" && dialect !== 'mssql') {
       it("correctly determines equality with multiple primary keys", function(done) {
         var userKeys = this.sequelize.define('userkeys', {
           foo: {type: Sequelize.STRING, primaryKey: true},
@@ -1449,7 +1457,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
   describe('equalsOneOf', function() {
     // sqlite can't handle multiple primary keys
-    if (dialect !== "sqlite") {
+    // neither can mssql
+    if (dialect !== "sqlite" && dialect !== 'mssql') {
       beforeEach(function(done) {
         this.userKey = this.sequelize.define('userKeys', {
           foo: {type: Sequelize.STRING, primaryKey: true},
@@ -1901,7 +1910,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         UserPublic.schema('special').sync({ force: true }).success(function() {
           self.sequelize.queryInterface.describeTable('Publics')
           .on('sql', function(sql) {
-            if (dialect === "sqlite" || Support.dialectIsMySQL()) {
+            if (dialect === "sqlite" || Support.dialectIsMySQL() || dialect === 'mssql') {
               expect(sql).to.not.contain('special')
               _done()
             }
@@ -1914,7 +1923,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
             self.sequelize.queryInterface.describeTable('Publics', 'special')
             .on('sql', function(sql) {
-              if (dialect === "sqlite" || Support.dialectIsMySQL()) {
+              if (dialect === "sqlite" || Support.dialectIsMySQL() || dialect === 'mssql') {
                 expect(sql).to.contain('special')
                 _done()
               }
@@ -1950,6 +1959,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           ItemPub.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
             if (dialect === "postgres") {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/)
+            } else if(dialect === 'mssql'){
+              expect(sql).to.match(/REFERENCES\s+"prefix.UserPubs" \("id"\)/)
             } else {
               expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/)
             }
@@ -1977,6 +1988,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           .on('sql', function(UserSpecial){
             expect(UserSpecial).to.exist
             expect(UserPublic).to.exist
+
             if (dialect === "postgres") {
               expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
               expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1)
@@ -1985,6 +1997,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
               expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1)
+            } else if (dialect === 'mssql'){
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('special.UserSpecials');
+              expect(UserSpecial.indexOf('INSERT INTO "special.UserSpecials"')).to.be.above(-1)
+              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1)
             } else {
               expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
@@ -1992,17 +2008,21 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             }
           })
           .done(function(err, UserSpecial){
+            if(err) throw err;
             expect(err).not.to.be.ok
             UserSpecial.updateAttributes({age: 5})
             .on('sql', function(user){
               expect(user).to.exist
               if (dialect === "postgres") {
                 expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1)
+              } else if(dialect === 'mssql'){
+                expect(user.indexOf('UPDATE "special.UserSpecials"')).to.be.above(-1)
               } else {
                 expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1)
               }
               done()
             }).error(function (err) {
+              if(err) throw err;
               expect(err).not.to.be.ok
             })
           })
@@ -2048,6 +2068,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+        } else if (dialect === 'mssql') {
+
         } else {
           throw new Error('Undefined dialect!')
         }
@@ -2078,7 +2100,9 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
-        } else {
+        } else if (dialect == 'mssql') {
+          expect(sql).to.match(/"authorId" INTEGER NULL REFERENCES "authors" \("id"\)/)
+        }else {
           throw new Error('Undefined dialect!')
         }
 
@@ -2123,6 +2147,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(1).to.equal(2)
         } else if (dialect === 'postgres') {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/)
+        } else if (dialect === 'mssql'){
+          expect(err.message).to.match(/Could not create constraint/)
         } else {
           throw new Error('Undefined dialect!')
         }
@@ -2200,8 +2226,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     describe("strings", function () {
       it("should be able to take a string as parameter to a BLOB field", function (done) {
+        var data = 'Sequelize';
+        if(dialect === 'mssql'){
+          data = this.sequelize.cast('Sequelize', 'varbinary');
+        }
         this.BlobUser.create({
-          data: 'Sequelize'
+          data: data
         }).success(function (user) {
           expect(user).to.be.ok
           done()
@@ -2210,8 +2240,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
       it("should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string", function (done) {
         var self = this
+        var data = 'Sequelize';
+        if(dialect === 'mssql'){
+          data = this.sequelize.cast('Sequelize', 'varbinary');
+        }
         this.BlobUser.create({
-          data: 'Sequelize'
+          data: data
         }).success(function (user) {
           self.BlobUser.find(user.id).success(function (user) {
             expect(user.data).to.be.an.instanceOf(Buffer)

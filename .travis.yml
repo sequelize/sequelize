@@ -15,10 +15,11 @@ env:
   - DB=mysql DIALECT=postgres-native
   - DB=mysql DIALECT=sqlite
   - DB=mysql DIALECT=mariadb
+  - DB=mysql DIALECT=mssql
 
 addons:
   postgresql: "9.3"
-  
+
 before_script:
   - "mysql -e 'create database sequelize_test;'"
   - "psql -c 'create database sequelize_test;' -U postgres"
@@ -29,7 +30,7 @@ script:
 branches:
   only:
     - master
-    - 1.7.0
+    - feature/ms-sql-server
 
 matrix:
   fast_finish: true
