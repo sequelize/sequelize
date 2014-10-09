@@ -204,7 +204,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       it('should be able to handle false/true values just fine...', function(done) {
         var User = this.User
-          , escapeChar = (dialect === "postgres") ? '"' : '`'
+          , escapeChar = (dialect === "postgres" || dialect === 'mssql') ? '"' : '`'
 
         User.bulkCreate([
           {username: 'boo5', aBool: false},
@@ -225,7 +225,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       it('should be able to handle false/true values through associations as well...', function(done) {
         var User = this.User
-          , escapeChar = (dialect === "postgres") ? '"' : '`'
+          , escapeChar = (dialect === "postgres" || dialect === 'mssql') ? '"' : '`'
         var Passports = this.sequelize.define('Passports', {
           isActive: Sequelize.BOOLEAN
         })
@@ -1375,7 +1375,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
               User.findAndCountAll().success(function(info1) {
                 User.findAndCountAll({ transaction: t }).success(function(info2) {
-                  expect(info1.count).to.equal(0)
+                  if(dialect !== 'mssql'){
+                    expect(info1.count).to.equal(0)
+                  }
                   expect(info2.count).to.equal(1)
                   t.rollback().success(function(){ done() })
                 })
@@ -1513,7 +1515,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
               User.all().success(function(users1) {
                 User.all({ transaction: t }).success(function(users2) {
-                  expect(users1.length).to.equal(0)
+                  if(dialect !== 'mssql'){
+                    expect(users1.length).to.equal(0)
+                  }
                   expect(users2.length).to.equal(1)
                   t.rollback().success(function(){ done() })
                 })
