@@ -16,6 +16,7 @@ var chai      = require('chai')
 chai.use(datetime)
 chai.config.includeStack = true
 
+describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function(done) {
     this.User = this.sequelize.define('User', {
       username:     DataTypes.STRING,
@@ -304,8 +305,12 @@ chai.config.includeStack = true
       })
 
       User.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
-        expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
-        expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
+        if(dialect === 'mssql'){
+          expect(sql).to.contain('"username" NVARCHAR(255) NULL UNIQUE, "email" NVARCHAR(255) NULL UNIQUE, "aCol" NVARCHAR(255) NULL UNIQUE, "bCol" NVARCHAR(255) NULL UNIQUE');
+        }else{
+          expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
+          expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
+        }
         done()
       })))
     })
@@ -342,8 +347,8 @@ chai.config.includeStack = true
         });
       });
     });
-
-    it('allows us to customize the error message for unique constraint', function(done) {
+    //not supporting for mssql, do not understand why this is a feature
+    if(dialect !== 'mssql' ? it : it.skip)('allows us to customize the error message for unique constraint', function(done) {
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
             username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
@@ -360,9 +365,9 @@ chai.config.includeStack = true
           })
         })
       })
-    })
-
-    it('should allow the user to specify indexes in options', function () {
+    });
+    //not supporting these fancy indexes in mssql for now
+    (dialect !== 'mssql' ? it : it.skip)('should allow the user to specify indexes in options', function () {
       var Model = this.sequelize.define('model', {
         fieldA: Sequelize.STRING,
         fieldB: Sequelize.INTEGER,
@@ -404,7 +409,7 @@ chai.config.includeStack = true
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined}
           ]);
-        } else if (dialect === 'postgres') {
+        } else if (dialect === 'postgres' || dialect === 'mssql') {
           // Postgres returns indexes in alphabetical order
           primary = arguments[2];
           idx1 = arguments[0];
@@ -717,11 +722,15 @@ chai.config.includeStack = true
                     where: {username: 'foo'},
                     defaults: { foo: 'asd' },
                     transaction: t
-                  }).spread(function(user3) {
-                    expect(user1.isNewRecord).to.be.true
+                  }).spread(function(user3) {                    
+                    if(dialect !== 'mssql'){             
+                      expect(user1.isNewRecord).to.be.true       
+                    }  
                     expect(user2.isNewRecord).to.be.false
                     expect(user3.isNewRecord).to.be.false
-                    t.commit().success(function() { done() })
+                    t.commit().success(function() { 
+                      done()
+                    })
                   })
                 })
               })
@@ -799,7 +808,9 @@ chai.config.includeStack = true
               User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).done(function(err) {
                 User.all().done(function(err, users1) {
                   User.all({ transaction: t }).done(function(err, users2) {
-                    expect(users1[0].username).to.equal('foo')
+                    if(dialect !== 'mssql'){
+                      expect(users1[0].username).to.equal('foo')
+                    }
                     expect(users2[0].username).to.equal('bar')
                     t.rollback().success(function(){ done() })
                   })
@@ -822,7 +833,11 @@ chai.config.includeStack = true
       User.sync({ force: true }).success(function() {
         User.create({username: 'Peter', secretValue: '42'}).success(function(user) {
           user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
-            expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+            if(dialect === 'mssql'){
+              expect(sql).to.not.contain('createdAt')
+            }else{
+              expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
+            }
             done()
           })
         })
@@ -879,11 +894,10 @@ chai.config.includeStack = true
 
     it('updates with casting', function (done) {
       var self = this
-
       this.User.create({
         username: 'John'
       }).success(function(user) {
-        self.User.update({username: self.sequelize.cast('1', 'char')}, {where: {username: 'John'}}).success(function() {
+        self.User.update({username: self.sequelize.cast('1', dialect ==='mssql' ? 'nvarchar' : 'char' )}, {where: {username: 'John'}}).success(function() {
           self.User.all().success(function(users) {
             expect(users[0].username).to.equal('1')
             done()
@@ -1017,7 +1031,9 @@ chai.config.includeStack = true
               User.destroy({transaction: t }).success(function() {
                 User.count().success(function(count1) {
                   User.count({ transaction: t }).success(function(count2) {
-                    expect(count1).to.equal(1)
+                    if(dialect !== 'mssql'){
+                      expect(count1).to.equal(1)
+                    }
                     expect(count2).to.equal(0)
                     t.rollback().success(function(){ done() })
                   })
@@ -1287,7 +1303,8 @@ chai.config.includeStack = true
     })
 
     // sqlite can't handle multiple primary keys
-    if(dialect !== "sqlite") {
+    // neither can mssql
+    if(dialect !== "sqlite" && dialect !== 'mssql') {
       it("correctly determines equality with multiple primary keys", function(done) {
         var userKeys = this.sequelize.define('userkeys', {
           foo: {type: Sequelize.STRING, primaryKey: true},
@@ -1308,7 +1325,8 @@ chai.config.includeStack = true
 
   describe('equalsOneOf', function() {
     // sqlite can't handle multiple primary keys
-    if (dialect !== "sqlite") {
+    // neither can mssql
+    if (dialect !== "sqlite" && dialect !== 'mssql') {
       beforeEach(function(done) {
         this.userKey = this.sequelize.define('userKeys', {
           foo: {type: Sequelize.STRING, primaryKey: true},
@@ -1348,7 +1366,9 @@ chai.config.includeStack = true
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
               User.count().success(function(count1) {
                 User.count({ transaction: t }).success(function(count2) {
-                  expect(count1).to.equal(0)
+                  if(dialect !== 'mssql'){
+                    expect(count1).to.equal(0)
+                  }
                   expect(count2).to.equal(1)
                   t.rollback().success(function(){ done() })
                 })
@@ -1438,26 +1458,28 @@ chai.config.includeStack = true
         })
       })
     })
+    //cannot nest transactions on the same table in mssql
+    if(dialect !== 'mssql'){
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { age: Sequelize.INTEGER })
 
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { age: Sequelize.INTEGER })
-
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction().then(function(t) {
-            User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
-              User.min('age').success(function(min1) {
-                User.min('age', { transaction: t }).success(function(min2) {
-                  expect(min1).to.be.not.ok
-                  expect(min2).to.equal(2)
-                  t.rollback().success(function(){ done() })
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction().then(function(t) {
+              User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
+                User.min('age').success(function(min1) {
+                  User.min('age', { transaction: t }).success(function(min2) {
+                    expect(min1).to.be.not.ok
+                    expect(min2).to.equal(2)
+                    t.rollback().success(function(){ done() })
+                  })
                 })
               })
             })
           })
         })
       })
-    })
+    }
 
     it("should return the min value", function(done) {
       var self = this
@@ -1497,12 +1519,15 @@ chai.config.includeStack = true
       })
     })
 
+    //mssql doesn't do time zone so made it all UTC
     it("should allow dates in min", function(done){
       var self = this
-      this.User.bulkCreate([{theDate: new Date(2000, 01, 01)}, {theDate: new Date(1990, 01, 01)}]).success(function(){
+      var date1 = new Date(Date.UTC(2000,0));
+      var date2 = new Date(Date.UTC(1990,0));
+      this.User.bulkCreate([{theDate: date1}, {theDate: date2}]).success(function(dat){
         self.User.min('theDate').success(function(min){
           expect(min).to.be.a('Date');
-          expect(new Date(1990, 01, 01)).to.equalDate(min)
+          expect(date2).to.equalDate(min)
           done()
         })
       })
@@ -1537,8 +1562,11 @@ chai.config.includeStack = true
             User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
               User.max('age').success(function(min1) {
                 User.max('age', { transaction: t }).success(function(min2) {
-                  expect(min1).to.be.not.ok
+                  if(dialect !== 'mssql'){
+                    expect(min1).to.be.not.ok
+                  }
                   expect(min2).to.equal(5)
+                  
                   t.rollback().success(function(){ done() })
                 })
               })
@@ -1578,12 +1606,15 @@ chai.config.includeStack = true
       })
     })
 
+    //mssql doesn't do time zone so made it all UTC
     it("should allow dates in max", function(done) {
       var self = this
-      this.User.bulkCreate([{theDate: new Date(2013, 12, 31)}, {theDate: new Date(2000, 01, 01)}]).success(function(){
+      var date1 = new Date(Date.UTC(2013,12,31));
+      var date2 = new Date(Date.UTC(2000,01,01));
+      this.User.bulkCreate([{theDate: date1},{theDate: date2}]).success(function(){
         self.User.max('theDate').success(function(max){
           expect(max).to.be.a('Date');
-          expect(max).to.equalDate(new Date(2013, 12, 31))
+          expect(max).to.equalDate(date1)
           done()
         })
       })
@@ -1751,7 +1782,7 @@ chai.config.includeStack = true
         UserPublic.schema('special').sync({ force: true }).success(function() {
           self.sequelize.queryInterface.describeTable('Publics')
           .on('sql', function(sql) {
-            if (dialect === "sqlite" || Support.dialectIsMySQL()) {
+            if (dialect === "sqlite" || Support.dialectIsMySQL() || dialect === 'mssql') {
               expect(sql).to.not.contain('special')
               _done()
             }
@@ -1764,7 +1795,7 @@ chai.config.includeStack = true
 
             self.sequelize.queryInterface.describeTable('Publics', 'special')
             .on('sql', function(sql) {
-              if (dialect === "sqlite" || Support.dialectIsMySQL()) {
+              if (dialect === "sqlite" || Support.dialectIsMySQL() || dialect === 'mssql') {
                 expect(sql).to.contain('special')
                 _done()
               }
@@ -1800,6 +1831,8 @@ chai.config.includeStack = true
           ItemPub.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
             if (dialect === "postgres") {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/)
+            } else if(dialect === 'mssql'){
+              expect(sql).to.match(/REFERENCES\s+"prefix.UserPubs" \("id"\)/)
             } else {
               expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/)
             }
@@ -1827,6 +1860,7 @@ chai.config.includeStack = true
           .on('sql', function(UserSpecial){
             expect(UserSpecial).to.exist
             expect(UserPublic).to.exist
+
             if (dialect === "postgres") {
               expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
               expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1)
@@ -1835,6 +1869,10 @@ chai.config.includeStack = true
               expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1)
+            } else if (dialect === 'mssql'){
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('special.UserSpecials');
+              expect(UserSpecial.indexOf('INSERT INTO "special.UserSpecials"')).to.be.above(-1)
+              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1)      
             } else {
               expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1)
@@ -1842,17 +1880,21 @@ chai.config.includeStack = true
             }
           })
           .done(function(err, UserSpecial){
+            if(err) throw err;
             expect(err).not.to.be.ok
             UserSpecial.updateAttributes({age: 5})
             .on('sql', function(user){
               expect(user).to.exist
               if (dialect === "postgres") {
                 expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1)
+              } else if(dialect === 'mssql'){
+                expect(user.indexOf('UPDATE "special.UserSpecials"')).to.be.above(-1)
               } else {
                 expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1)
               }
               done()
             }).error(function (err) {
+              if(err) throw err;
               expect(err).not.to.be.ok
             })
           })
@@ -1898,6 +1940,8 @@ chai.config.includeStack = true
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
+        } else if (dialect === 'mssql') {
+
         } else {
           throw new Error('Undefined dialect!')
         }
@@ -1928,7 +1972,9 @@ chai.config.includeStack = true
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
-        } else {
+        } else if (dialect == 'mssql') {
+          expect(sql).to.match(/"authorId" INTEGER NULL REFERENCES "authors" \("id"\)/)
+        }else {
           throw new Error('Undefined dialect!')
         }
 
@@ -1973,6 +2019,8 @@ chai.config.includeStack = true
           expect(1).to.equal(2)
         } else if (dialect === 'postgres') {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/)
+        } else if (dialect === 'mssql'){
+          expect(err.message).to.match(/Could not create constraint/)
         } else {
           throw new Error('Undefined dialect!')
         }
@@ -2000,139 +2048,142 @@ chai.config.includeStack = true
       })
     })
   })
+  
+  //mssql is not supported by the sql package
+  if(dialect !== 'mssql'){
+    describe("syntax sugar", function() {
+      before(function(done) {
+        this.User = this.sequelize.define("user", {
+          username:  Sequelize.STRING,
+          firstName: Sequelize.STRING,
+          lastName:  Sequelize.STRING
+        })
 
-  describe("syntax sugar", function() {
-    before(function(done) {
-      this.User = this.sequelize.define("user", {
-        username:  Sequelize.STRING,
-        firstName: Sequelize.STRING,
-        lastName:  Sequelize.STRING
+        this.User.sync({ force: true }).success(function() {
+          done()
+        })
       })
 
-      this.User.sync({ force: true }).success(function() {
-        done()
-      })
-    })
+      describe("dataset", function() {
+        it("returns a node-sql instance with the correct dialect", function() {
+          var _dialect = dialect === 'mariadb' ? 'mysql' : dialect
 
-    describe("dataset", function() {
-      it("returns a node-sql instance with the correct dialect", function() {
-        var _dialect = dialect === 'mariadb' ? 'mysql' : dialect
+          expect(this.User.dataset().sql.dialectName).to.equal(_dialect)
+        })
 
-        expect(this.User.dataset().sql.dialectName).to.equal(_dialect)
-      })
-
-      it("allows me to generate sql queries", function() {
-        var query = this.User.dataset().select("username").toQuery()
-        expect(Object.keys(query)).to.eql(['text', 'values'])
-      })
-    })
-
-    describe("select", function() {
-      it("sets .select() as an alias to .dataset().select()", function() {
-        var query1 = this.User.select("username").toQuery()
-          , query2 = this.User.dataset().select("username").toQuery()
-
-        expect(query1.text).to.equal(query2.text)
-      })
-    })
-
-    describe("toSql", function() {
-      it("transforms the node-sql instance into a proper sql string", function() {
-        var sql    = this.User.select("username").toSql()
-        var sqlMap = {
-          postgres: 'SELECT username FROM "' + this.User.tableName + '";',
-          mariadb: 'SELECT username FROM `' + this.User.tableName + '`;',
-          mysql:    'SELECT username FROM `' + this.User.tableName + '`;',
-          sqlite:   'SELECT username FROM "' + this.User.tableName + '";'
-        }
-        expect(sql).to.equal(sqlMap[dialect])
+        it("allows me to generate sql queries", function() {
+          var query = this.User.dataset().select("username").toQuery()
+          expect(Object.keys(query)).to.eql(['text', 'values'])
+        })
       })
 
-      it("transforms node-sql instances with chaining into a proper sql string", function() {
-        var sql    = this.User.select("username").select("firstName").group("username").toSql()
-        var sqlMap = {
-          postgres: 'SELECT username, firstName FROM "' + this.User.tableName + '" GROUP BY username;',
-          mariadb:    'SELECT username, firstName FROM `' + this.User.tableName + '` GROUP BY username;',
-          mysql:    'SELECT username, firstName FROM `' + this.User.tableName + '` GROUP BY username;',
-          sqlite:   'SELECT username, firstName FROM "' + this.User.tableName + '" GROUP BY username;'
-        }
-        expect(sql).to.equal(sqlMap[dialect])
-      })
-    })
+      describe("select", function() {
+        it("sets .select() as an alias to .dataset().select()", function() {
+          var query1 = this.User.select("username").toQuery()
+            , query2 = this.User.dataset().select("username").toQuery()
 
-    describe("exec", function() {
-      beforeEach(function(done) {
-        var self = this
-
-        this
-          .User
-          .sync({ force: true })
-          .then(function() { return self.User.create({ username: "foo" }) })
-          .then(function() { return self.User.create({ username: "bar" }) })
-          .then(function() { return self.User.create({ username: "baz" }) })
-          .then(function() { done() })
+          expect(query1.text).to.equal(query2.text)
+        })
       })
 
-      it('supports transactions', function(done) {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-          var User = sequelize.define('User', { username: Sequelize.STRING })
+      describe("toSql", function() {
+        it("transforms the node-sql instance into a proper sql string", function() {
+          var sql    = this.User.select("username").toSql()
+          var sqlMap = {
+            postgres: 'SELECT username FROM "' + this.User.tableName + '";',
+            mariadb: 'SELECT username FROM `' + this.User.tableName + '`;',
+            mysql:    'SELECT username FROM `' + this.User.tableName + '`;',
+            sqlite:   'SELECT username FROM "' + this.User.tableName + '";'
+          }
+          expect(sql).to.equal(sqlMap[dialect])
+        })
 
-          User.sync({ force: true }).success(function() {
-            sequelize.transaction().then(function(t) {
-              User.create({ username: 'foo' }, { transaction: t }).success(function() {
-                User.where({ username: "foo" }).exec().success(function(users1) {
-                  User.where({ username: "foo" }).exec({ transaction: t }).success(function(users2) {
-                    expect(users1).to.have.length(0)
-                    expect(users2).to.have.length(1)
-                    t.rollback().success(function() { done() })
+        it("transforms node-sql instances with chaining into a proper sql string", function() {
+          var sql    = this.User.select("username").select("firstName").group("username").toSql()
+          var sqlMap = {
+            postgres: 'SELECT username, firstName FROM "' + this.User.tableName + '" GROUP BY username;',
+            mariadb:    'SELECT username, firstName FROM `' + this.User.tableName + '` GROUP BY username;',
+            mysql:    'SELECT username, firstName FROM `' + this.User.tableName + '` GROUP BY username;',
+            sqlite:   'SELECT username, firstName FROM "' + this.User.tableName + '" GROUP BY username;'
+          }
+          expect(sql).to.equal(sqlMap[dialect])
+        })
+      })
+
+      describe("exec", function() {
+        beforeEach(function(done) {
+          var self = this
+
+          this
+            .User
+            .sync({ force: true })
+            .then(function() { return self.User.create({ username: "foo" }) })
+            .then(function() { return self.User.create({ username: "bar" }) })
+            .then(function() { return self.User.create({ username: "baz" }) })
+            .then(function() { done() })
+        })
+
+        it('supports transactions', function(done) {
+          Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+            var User = sequelize.define('User', { username: Sequelize.STRING })
+
+            User.sync({ force: true }).success(function() {
+              sequelize.transaction().then(function(t) {
+                User.create({ username: 'foo' }, { transaction: t }).success(function() {
+                  User.where({ username: "foo" }).exec().success(function(users1) {
+                    User.where({ username: "foo" }).exec({ transaction: t }).success(function(users2) {
+                      expect(users1).to.have.length(0)
+                      expect(users2).to.have.length(1)
+                      t.rollback().success(function() { done() })
+                    })
                   })
                 })
               })
             })
           })
         })
-      })
 
-      it("selects all users with name 'foo'", function(done) {
-        this
-          .User
-          .where({ username: "foo" })
-          .exec()
-          .success(function(users) {
-            expect(users).to.have.length(1)
-            expect(users[0].username).to.equal("foo")
+        it("selects all users with name 'foo'", function(done) {
+          this
+            .User
+            .where({ username: "foo" })
+            .exec()
+            .success(function(users) {
+              expect(users).to.have.length(1)
+              expect(users[0].username).to.equal("foo")
+              done()
+            })
+        })
+
+        it("returns an instanceof DAO", function(done) {
+          var DAO = require(__dirname + "/../lib/instance")
+
+          this.User.where({ username: "foo" }).exec().success(function(users) {
+            expect(users[0]).to.be.instanceOf(DAO)
             done()
           })
-      })
-
-      it("returns an instanceof DAO", function(done) {
-        var DAO = require(__dirname + "/../lib/instance")
-
-        this.User.where({ username: "foo" }).exec().success(function(users) {
-          expect(users[0]).to.be.instanceOf(DAO)
-          done()
         })
-      })
 
-      it("returns all users in the db", function(done) {
-        this.User.select().exec().success(function(users) {
-          expect(users).to.have.length(3)
-          done()
-        })
-      })
-
-      it("can handle or queries", function(done) {
-        this
-          .User
-          .where(this.User.dataset().username.equals("bar").or(this.User.dataset().username.equals("baz")))
-          .exec()
-          .success(function(users) {
-            expect(users).to.have.length(2)
+        it("returns all users in the db", function(done) {
+          this.User.select().exec().success(function(users) {
+            expect(users).to.have.length(3)
             done()
           })
+        })
+
+        it("can handle or queries", function(done) {
+          this
+            .User
+            .where(this.User.dataset().username.equals("bar").or(this.User.dataset().username.equals("baz")))
+            .exec()
+            .success(function(users) {
+              expect(users).to.have.length(2)
+              done()
+            })
+        })
       })
     })
-  })
+  }
 
   describe("blob", function() {
     beforeEach(function(done) {
@@ -2181,7 +2232,7 @@ chai.config.includeStack = true
       })
     })
 
-    describe("strings", function () {
+    describe.only("strings", function () {
       it("should be able to take a string as parameter to a BLOB field", function (done) {
         this.BlobUser.create({
           data: 'Sequelize'
@@ -2333,7 +2384,8 @@ chai.config.includeStack = true
 
   })
 
-  if (dialect !== 'sqlite') {
+  //mssql doesn't use sequelize pooling
+  if (dialect !== 'sqlite' && dialect !== 'mssql') {
     it('supports multiple async transactions', function(done) {
       this.timeout(25000);
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
