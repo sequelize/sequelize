@@ -9,7 +9,8 @@ var chai      = require('chai')
   , _         = require('lodash')
   , moment    = require('moment')
   , sinon     = require('sinon')
-  , Promise   = Sequelize.Promise;
+  , Promise   = Sequelize.Promise
+  , dialect   = Support.getTestDialect();
 
 chai.config.includeStack = true;
 
@@ -1361,7 +1362,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           this.Task.create({ id: 15, title: 'task2' }),
         ]).spread(function(user, task1, task2) {
           return user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
-            var tickChar = (Support.getTestDialect() === 'postgres') ? '"' : '`';
+            var tickChar = (Support.getTestDialect() === 'postgres' || dialect === 'mssql') ? '"' : '`';
             expect(sql).to.have.string("INSERT INTO %TasksUsers% (%TaskId%,%UserId%) VALUES (12,1),(15,1)".replace(/%/g, tickChar));
           }));
         }).then(function () {
