@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
               assertVal = 'CHARACTER VARYING';
               break;
             case 'mssql':
-              assertVal = 'VARCHAR';
+              assertVal = 'NVARCHAR';
               break;
           }
           expect(username.type).to.equal(assertVal)            
@@ -425,13 +425,13 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         var keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
           keys3 = Object.keys(fks[2])
-        if (dialect === "postgres" || dialect === "postgres-native" || dialect == 'mssql') {
+        if (dialect === "postgres" || dialect === "postgres-native" ) {
           expect(keys).to.have.length(6)
           expect(keys2).to.have.length(7)
           expect(keys3).to.have.length(7)
         } else if (dialect === "sqlite") {
           expect(keys).to.have.length(8)
-        } else if (dialect === "mysql") {
+        } else if (dialect === "mysql" || dialect == 'mssql') {
           expect(keys).to.have.length(1)
         } else {
           console.log("This test doesn't support " + dialect)

@@ -12,11 +12,11 @@ module.exports = {
     return parseInt(Math.random() * 999, 10)
   },
 
-  mssql: {
-    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || ('sequelize_test_' + ~~(Math.random() * 100)),
+    mssql: {
+    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || ('sequelize_test_1'),// + ~~(Math.random() * 100)),
     username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || "sequelize",
-    password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || "53qu3l1z3",
-    host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || "server2.barfooz.net",
+    password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || "test",
+    host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || "ec2-54-76-93-58.eu-west-1.compute.amazonaws.com",
     port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
     pool:     {
       maxConnections: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
