@@ -2232,10 +2232,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    describe.only("strings", function () {
+    describe("strings", function () {
       it("should be able to take a string as parameter to a BLOB field", function (done) {
+        var data = 'Sequelize';
+        if(dialect === 'mssql'){
+          data = this.sequelize.cast('Sequelize', 'varbinary');
+        }
         this.BlobUser.create({
-          data: 'Sequelize'
+          data: data
         }).success(function (user) {
           expect(user).to.be.ok
           done()
@@ -2244,8 +2248,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       it("should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string", function (done) {
         var self = this
+        var data = 'Sequelize';
+        if(dialect === 'mssql'){
+          data = this.sequelize.cast('Sequelize', 'varbinary');
+        }
         this.BlobUser.create({
-          data: 'Sequelize'
+          data: data
         }).success(function (user) {
           self.BlobUser.find(user.id).success(function (user) {
             expect(user.data).to.be.an.instanceOf(Buffer)
