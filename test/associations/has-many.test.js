@@ -1278,6 +1278,39 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           expect(tasks[0].title).to.equal('get started');
         });
       });
+
+
+      it('should not pass indexes to the join table',function(){
+        var User = this.sequelize.define(
+          'User',
+          { username: DataTypes.STRING },
+          {
+            indexes: [
+              {
+                name: 'username_unique',
+                unique: true,
+                method: 'BTREE',
+                fields: ['username']
+              }
+            ]
+          });
+        var Task = this.sequelize.define(
+          'Task',
+          { title: DataTypes.STRING },
+          {
+            indexes: [
+              {
+                name: 'title_index',
+                method: 'BTREE',
+                fields: ['title']
+              }
+            ]
+          });
+        //create associations
+        User.hasMany(Task);
+        Task.hasMany(User);
+        return this.sequelize.sync({ force: true });
+      });
     });
 
     describe('addMultipleAssociations', function () {
