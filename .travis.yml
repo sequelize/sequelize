@@ -21,7 +21,7 @@ node_js:
 branches:
   only:
     - master
-    - feature/ms-sql-server
+    - 1.7.0
 
 cache:
   directories:

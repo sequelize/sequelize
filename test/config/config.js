@@ -13,7 +13,7 @@ module.exports = {
   },
 
     mssql: {
-    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || ('sequelize_test_1'),// + ~~(Math.random() * 100)),
+    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || ('sequelize_test_' + ~~(Math.random() * 100)),
     username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || "sequelize",
     password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || "test",
     host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || "ec2-54-76-93-58.eu-west-1.compute.amazonaws.com",
