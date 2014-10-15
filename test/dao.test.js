@@ -13,7 +13,7 @@ var chai      = require('chai')
 chai.use(datetime)
 chai.config.includeStack = true
 
-describe.only(Support.getTestDialectTeaser("DAO"), function () {
+describe(Support.getTestDialectTeaser("DAO"), function () {
   beforeEach(function(done) {
     this.User = this.sequelize.define('User', {
       username:  { type: DataTypes.STRING },
