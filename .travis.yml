@@ -27,6 +27,7 @@ branches:
   only:
     - master
     - 1.7.0
+    - feature/ms-sql-server
 
 cache:
   directories:
