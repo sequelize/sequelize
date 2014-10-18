@@ -18,6 +18,7 @@
 - Signature of hooks has changed to pass options to all hooks. Any hooks previously defined like `Model.beforeCreate(values)` now need to be `Model.beforeCreate(values, options)` etc.
 - Results returned by hooks are ignored - changes to results by hooks should be made by reference
 - `Model.destroy()` signature has been changed from `(where, options)` to `(options)`, options now take a where parameter.
+- `Model.update()` signature has been changed from `(values, where, options)` to `(values, options)`, options now take a where parameter.
 - The syntax for `Model.findOrBuild` has changed, to be more in line with the rest of the library. `Model.findOrBuild(where, defaults);` becomes `Model.findOrBuild({ where: where, defaults: defaults });`.
 
 # v2.0.0-dev13
