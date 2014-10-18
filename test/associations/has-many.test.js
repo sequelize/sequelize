@@ -2080,6 +2080,42 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
       });
     });
+
+    describe('multiple hasMany', function() {
+      beforeEach(function() {
+        this.User = this.sequelize.define('user', { name: Sequelize.STRING });
+        this.Project = this.sequelize.define('project', { projectName: Sequelize.STRING });
+      });
+
+      describe('project has owners and users and owners and users have projects', function() {
+        beforeEach(function() {
+          
+          this.Project.hasMany(this.User, { as: 'owners', through: 'projectOwners'});
+          this.Project.hasMany(this.User, { as: 'users', through: 'projectUsers'});
+
+          this.User.hasMany(this.Project, { as: 'owners', through: 'projectOwners'});
+          this.User.hasMany(this.User, { as: 'users', through: 'projectUsers'});
+
+          return this.sequelize.sync({ force: true });
+        });
+
+        it('correctly sets user and owner', function() {
+          var self = this;
+
+          var p1 = this.Project.build({ projectName: 'p1' })
+            , u1 = this.User.build({ name: 'u1' })
+            , u2 = this.User.build({ name: 'u2' });
+
+          return p1
+            .save()
+            .then(function() { return u1.save(); })
+            .then(function() { return u2.save(); })
+            .then(function() { return p1.setUsers([u1]); })
+            .then(function() { return p1.setOwners([u2]); });
+        });
+      });
+    });
+
   });
 
   describe("Foreign key constraints", function() {
