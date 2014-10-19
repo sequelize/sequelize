@@ -2089,14 +2089,18 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
       describe('project has owners and users and owners and users have projects', function() {
         beforeEach(function() {
-          
           this.Project.hasMany(this.User, { as: 'owners', through: 'projectOwners'});
           this.Project.hasMany(this.User, { as: 'users', through: 'projectUsers'});
 
-          this.User.hasMany(this.Project, { as: 'owners', through: 'projectOwners'});
-          this.User.hasMany(this.User, { as: 'users', through: 'projectUsers'});
+          this.User.hasMany(this.Project, { as: 'ownedProjects', through: 'projectOwners'});
+          this.User.hasMany(this.Project, { as: 'memberProjects', through: 'projectUsers'});
 
           return this.sequelize.sync({ force: true });
+        });
+
+        it('correctly pairs associations', function () {
+          expect(this.Project.associations.owners.targetAssociation).to.equal(this.User.associations.ownedProjects);
+          expect(this.Project.associations.users.targetAssociation).to.equal(this.User.associations.memberProjects);
         });
 
         it('correctly sets user and owner', function() {
