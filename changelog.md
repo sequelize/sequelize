@@ -1,5 +1,10 @@
-# Next
+# 2.0.0-rc2
 - [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator
+- [FEATURE] Added countercache functionality to hasMany associations [#2375](https://github.com/sequelize/sequelize/pull/2375)
+- [FEATURE] Basic JSON support [#2314](https://github.com/sequelize/sequelize/pull/2314)
+- [BUG] Fixes regression bug with multiple hasMany between the same models with different join tables. Closes [#2316](https://github.com/sequelize/sequelize/issues/2316)
+- [BUG] Don't set autocommit in nested transactions [#2418](https://github.com/sequelize/sequelize/issues/2418)
+- [BUG] Improved `field` support
 
 # 2.0.0-rc1
 - [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
