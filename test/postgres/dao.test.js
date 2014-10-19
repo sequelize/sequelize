@@ -536,14 +536,24 @@ if (dialect.match(/^postgres/)) {
                 where: {fullName: "John Smith"}
               })
               .success(function(user2) {
-                self.sequelize.options.quoteIndentifiers = true
-                self.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true
-                self.sequelize.options.logging = false
                 // We can map values back to non-quoted identifiers
                 expect(user2.id).to.equal(user.id)
                 expect(user2.username).to.equal('user')
                 expect(user2.fullName).to.equal('John Smith')
-                done()
+
+                // We can query and aggregate by non-quoted identifiers
+                self.User
+                  .count({
+                    where: {fullName: "John Smith"}
+                  })
+                  .success(function(count) {
+                    self.sequelize.options.quoteIndentifiers = true
+                    self.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true
+                    self.sequelize.options.logging = false
+
+                    expect(count).to.equal(1)
+                    done()
+                  })
               })
             })
         })
