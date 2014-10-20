@@ -1,5 +1,13 @@
 # Next
+- [BUG] Add support for `field` named the same as the attribute in `reload`, `bulkCreate` and `save` [#2348](https://github.com/sequelize/sequelize/issues/2348)
+
+# 2.0.0-rc2
 - [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator
+- [FEATURE] Added countercache functionality to hasMany associations [#2375](https://github.com/sequelize/sequelize/pull/2375)
+- [FEATURE] Basic JSON support [#2314](https://github.com/sequelize/sequelize/pull/2314)
+- [BUG] Fixes regression bug with multiple hasMany between the same models with different join tables. Closes [#2316](https://github.com/sequelize/sequelize/issues/2316)
+- [BUG] Don't set autocommit in nested transactions [#2418](https://github.com/sequelize/sequelize/issues/2418)
+- [BUG] Improved `field` support
 
 # 2.0.0-rc1
 - [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
@@ -18,6 +26,7 @@
 - Signature of hooks has changed to pass options to all hooks. Any hooks previously defined like `Model.beforeCreate(values)` now need to be `Model.beforeCreate(values, options)` etc.
 - Results returned by hooks are ignored - changes to results by hooks should be made by reference
 - `Model.destroy()` signature has been changed from `(where, options)` to `(options)`, options now take a where parameter.
+- `Model.update()` signature has been changed from `(values, where, options)` to `(values, options)`, options now take a where parameter.
 - The syntax for `Model.findOrBuild` has changed, to be more in line with the rest of the library. `Model.findOrBuild(where, defaults);` becomes `Model.findOrBuild({ where: where, defaults: defaults });`.
 
 # v2.0.0-dev13
