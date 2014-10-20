@@ -1,3 +1,6 @@
+# Next
+- [BUG] Add support for `field` named the same as the attribute in `reload`, `bulkCreate` and `save` [#2348](https://github.com/sequelize/sequelize/issues/2348)
+
 # 2.0.0-rc2
 - [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator
 - [FEATURE] Added countercache functionality to hasMany associations [#2375](https://github.com/sequelize/sequelize/pull/2375)
