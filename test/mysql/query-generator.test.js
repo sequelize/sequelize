@@ -46,10 +46,6 @@ if (Support.dialectIsMySQL()) {
           expectation: {id: 'INTEGER UNIQUE'}
         },
         {
-          arguments: [{id: {type: 'INTEGER', comment: "I'm a comment!" }}],
-          expectation: {id: "INTEGER COMMENT 'I\\'m a comment!'" }
-        },
-        {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
         },
@@ -75,14 +71,6 @@ if (Support.dialectIsMySQL()) {
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;"
-        },
-        {
-          arguments: ['myTable', {title: "INTEGER COMMENT 'I\\'m a comment!'"}],
-          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER COMMENT 'I\\'m a comment!') ENGINE=InnoDB;"
-        },
-        {
-          arguments: ['myTable', {title: "INTEGER"}, {comment:  "I'm a comment!"}],
-          expectation: "CREATE TABLE IF NOT EXISTS `myTable` (`title` INTEGER) COMMENT 'I\\'m a comment!' ENGINE=InnoDB;"
         },
         {
           arguments: ['myTable', {data: "BLOB"}],
@@ -204,6 +192,32 @@ if (Support.dialectIsMySQL()) {
             };
           }],
           expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'sequelize.where with .fn as attribute and default comparator',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              where: sequelize.and(
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'jan'),
+                { type: 1 }
+              )
+            };
+          }],
+          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = 'jan' AND `myTable`.`type`=1);",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'sequelize.where with .fn as attribute and LIKE comparator',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              where: sequelize.and(
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'LIKE', '%t%'),
+                { type: 1 }
+              )
+            };
+          }],
+          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE '%t%' AND `myTable`.`type`=1);",
           context: QueryGenerator,
           needsSequelize: true
         }, {

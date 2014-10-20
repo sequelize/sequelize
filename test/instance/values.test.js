@@ -120,7 +120,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             // Create the user first to set the proper default values. PG does not support column references in insert,
             // so we must create a record with the right value for always_false, then reference it in an update
             var now = dialect === 'sqlite' ? self.sequelize.fn('', self.sequelize.fn('datetime', 'now')) : self.sequelize.fn('NOW')
-
+            if(dialect === 'mssql'){
+              now = self.sequelize.fn('', self.sequelize.fn('getdate'))
+            }
             user.set({
               d: now,
               b: self.sequelize.col('always_false')
@@ -318,7 +320,40 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             done();
           });
         });
-      })
+      });
+
+      describe('plain', function () {
+        it('should return plain values when true', function () {
+          var Product = this.sequelize.define('product', {
+            title: Sequelize.STRING
+          })
+          var User = this.sequelize.define('user', {
+            first_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
+          })
+
+          Product.belongsTo(User)
+
+          var product = Product.build({}, {
+            include: [
+              User
+            ]
+          });
+
+          product.set({
+            id: 1,
+            title: 'Chair',
+            user: {
+              id: 1,
+              first_name: 'Mick',
+              last_name: 'Hansen'
+            }
+          }, {raw: true});
+
+          expect(product.get('user', {plain: true}).$Model).not.to.be.ok;
+          expect(product.get({plain: true}).user.$Model).not.to.be.ok;
+        });
+      });
     })
 
     describe('changed', function () {

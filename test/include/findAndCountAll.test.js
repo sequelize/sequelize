@@ -29,13 +29,13 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       User.hasMany( SomeConnection, { foreignKey: 'u' })
 
       SomeConnection.belongsTo( User, { foreignKey: 'u' })
-      SomeConnection.belongsTo( A, { foreignKey: 'fk' })
-      SomeConnection.belongsTo( B, { foreignKey: 'fk' })
-      SomeConnection.belongsTo( C, { foreignKey: 'fk' })
+      SomeConnection.belongsTo( A, { foreignKey: 'fk', constraints: false })
+      SomeConnection.belongsTo( B, { foreignKey: 'fk', constraints: false })
+      SomeConnection.belongsTo( C, { foreignKey: 'fk', constraints: false })
 
-      A.hasMany( SomeConnection, { foreignKey: 'fk' })
-      B.hasMany( SomeConnection, { foreignKey: 'fk' })
-      C.hasMany( SomeConnection, { foreignKey: 'fk' })
+      A.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
+      B.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
+      C.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
 
       // Sync them
       S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok;
@@ -94,11 +94,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         ]).done( function ( err, cs ) { expect( err ).not.to.be.ok; expect( cs ).to.be.length( 1 )
 
           // Delete some of conns to prove the concept
-          SomeConnection.destroy({
+          SomeConnection.destroy({where: {
             m: 'A',
             u: 1,
             fk: [ 1, 2 ],
-          }).done( function ( err ) { expect( err ).not.to.be.ok
+          }}).done( function ( err ) { expect( err ).not.to.be.ok
 
             // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
             A.findAndCountAll({

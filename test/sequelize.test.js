@@ -15,7 +15,7 @@ var chai        = require('chai')
 chai.config.includeStack = true
 
 var qq = function(str) {
-  if (dialect == 'postgres' || dialect == 'sqlite') {
+  if (dialect == 'postgres' || dialect == 'sqlite' || dialect === 'mssql') {
     return '"' + str + '"'
   } else if (Support.dialectIsMySQL()) {
     return '`' + str + '`'
@@ -26,7 +26,8 @@ var qq = function(str) {
 
 describe(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
-    if (dialect !== 'sqlite') {
+    //MSSQL already pools, this test is not relevent
+    if (dialect !== 'sqlite' && dialect !== 'mssql') {
       it('should work with minConnections', function () {
         var ConnectionManager = require(__dirname + '/../lib/dialects/' + dialect + '/connection-manager.js')
           , connectionSpy = ConnectionManager.prototype.connect = chai.spy(ConnectionManager.prototype.connect);
@@ -105,7 +106,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
 
         it('triggers the actual adapter error', function(done) {
-
           this
             .sequelizeWithInvalidConnection
             .authenticate()
@@ -117,6 +117,8 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                   err.message.match(/Failed to authenticate for PostgresSQL/) ||
                   err.message.match(/invalid port number/)
                 ).to.be.ok
+              } else if (dialect === 'mssql'){
+                expect(err.message.match(/ConnectionError: Login failed for user/)).to.be.ok
               } else {
                 expect(err.message).to.match(/Failed to authenticate/)
               }
@@ -328,7 +330,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('dot separated attributes when doing a raw query without nest', function(done) {
-      var tickChar = (dialect === 'postgres') ? '"' : '`'
+      var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
       this.sequelize.query(sql, null, { raw: true, nest: false }).success(function(result) {
@@ -338,7 +340,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('destructs dot separated attributes when doing a raw query using nest', function(done) {
-      var tickChar = (dialect === 'postgres') ? '"' : '`'
+      var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
       this.sequelize.query(sql, null, { raw: true, nest: true }).success(function(result) {
@@ -423,7 +425,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('handles AS in conjunction with functions just fine', function(done) {
-      this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
+      var datetime = (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()');
+      if(dialect==="mssql"){
+        datetime = "GETDATE()"
+      }
+      this.sequelize.query('SELECT ' + datetime + ' AS t').success(function(result) {
         expect(moment(result[0].t).isValid()).to.be.true
         done()
       })
@@ -448,6 +454,46 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     }
   })
+
+  if (Support.dialectIsMySQL()) {
+    describe('set', function() {
+      it("should return an promised error if transaction isn't defined", function () {
+        expect(function () {
+          this.sequelize.set({ foo: 'bar' })
+        }.bind(this)).to.throw(TypeError, "options.transaction is required")
+      })
+
+      it("one value", function () {
+        return this.sequelize.transaction().bind(this).then(function (t) {
+          this.t = t;
+          return this.sequelize.set({ foo: 'bar' }, { transaction: t });
+        }).then(function () {
+          return this.sequelize.query( 'SELECT @foo as `foo`', null, { raw: true, plain: true, transaction: this.t });
+        }).then(function (data) {
+          expect(data).to.be.ok
+          expect(data.foo).to.be.equal('bar')
+          return this.t.commit();
+        });
+      });
+
+      it("multiple values", function () {
+        return this.sequelize.transaction().bind(this).then(function (t) {
+          this.t = t;
+          return this.sequelize.set({
+            foo: 'bar',
+            foos: 'bars',
+          }, { transaction: t });
+        }).then(function () {
+          return this.sequelize.query( 'SELECT @foo as `foo`, @foos as `foos`', null, { raw: true, plain: true, transaction: this.t });
+        }).then(function (data) {
+          expect(data).to.be.ok;
+          expect(data.foo).to.be.equal('bar');
+          expect(data.foos).to.be.equal('bars');
+          return this.t.commit();
+        });
+      });
+    });
+  }
 
   describe('define', function() {
     it("adds a new dao to the dao manager", function(done) {
@@ -576,7 +622,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
         var User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
-        User2.sync().error(function(err) {
+        User2.sync().done(function(err) {
           if (dialect === "postgres" || dialect === "postgres-native") {
             assert([
               'fe_sendauth: no password supplied',
@@ -584,7 +630,9 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               'FATAL:  role "bar" does not exist',
               'password authentication failed for user "bar"'
             ].indexOf(err.message.trim()) !== -1)
-          } else {
+          } else if (dialect === 'mssql'){
+            assert(err.message.indexOf('Seriate SqlContext Error. Failed on step') !== 0);
+          }else {
             expect(err.message.toString()).to.match(/.*Access\ denied.*/)
           }
           done()
@@ -641,7 +689,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           authorID: { type: Sequelize.BIGINT, allowNull: false, references: 'User', referencesKey: 'id' },
         })
 
-        this.sequelize.sync().error(function (error) {
+        this.sequelize.sync().done(function (error) {
           assert.ok(error);
           done()
         })
@@ -706,6 +754,19 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
     })
+
+    describe("match", function () {
+      it('will return an error not matching', function () {
+        return this.sequelize.sync({
+          force: true,
+          match: /alibabaizshaek/
+        }).then(function () {
+          throw new Error('I should not have succeeded!');
+        }, function (err) {
+          assert(true);
+        });
+      });
+    });
   })
 
   describe('drop should work', function() {
@@ -783,7 +844,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         it("doesn't save an instance if value is not in the range of enums", function(done) {
           this.Review.create({status: 'fnord'}).error(function(err) {
             expect(err).to.be.instanceOf(Error);
-            expect(err.status[0].message).to.equal('Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
+            expect(err.get('status')[0].message).to.equal('Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished')
             done()
           })
         })
@@ -833,22 +894,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           done()
         })
       })
-
-      it('throws an error if a function was passed as the first argument', function() {
-        var self = this
-
-        expect(function() {
-          self.sequelizeWithTransaction.transaction(function() {})
-        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
-      });
-
-      it('throws an error if a function was passed as the second argument', function() {
-        var self = this
-
-        expect(function() {
-          self.sequelizeWithTransaction.transaction(null, function() {})
-        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
-      });
 
       it('allows me to define a callback on the result', function(done) {
         this

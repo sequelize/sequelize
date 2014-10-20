@@ -66,10 +66,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             type: DataTypes.STRING,
             field: 'comment_text'
           },
-		  notes: {
-			type: DataTypes.STRING,
-			field: 'notes'
-		  }
+          notes: {
+            type: DataTypes.STRING,
+            field: 'notes'
+          }
         }, {
           tableName: 'comments',
           timestamps: false
@@ -127,11 +127,51 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             comment_text: {
               type: DataTypes.STRING
             },
-			notes: {
-			  type: DataTypes.STRING
-			}
+            notes: {
+              type: DataTypes.STRING
+            }
           })
         ]);
+      });
+
+      describe('field and attribute name is the same', function () {
+        beforeEach(function () {
+          return this.Comment.bulkCreate([
+            { notes: 'Number one'},
+            { notes: 'Number two'},
+          ]);
+        });
+
+        it('bulkCreate should work', function () {
+          return this.Comment.findAll().then(function (comments) {
+           expect(comments[0].notes).to.equal('Number one');
+           expect(comments[1].notes).to.equal('Number two');
+          });
+        });
+
+        it('find with where should work', function () {
+          return this.Comment.findAll({ where: { notes: 'Number one' }}).then(function (comments) {
+            expect(comments).to.have.length(1);
+            expect(comments[0].notes).to.equal('Number one');
+          });
+        });
+
+        it('reload should work', function () {
+          return this.Comment.find(1).then(function (comment) {
+            return comment.reload();
+          });
+        });
+
+        it('save should work', function () {
+          return this.Comment.create({ notes: 'my note' }).then(function (comment) {
+            comment.notes = 'new note';
+            return comment.save();
+          }).then(function (comment) {
+            return comment.reload();
+          }).then(function (comment) {
+            expect(comment.notes).to.equal('new note');
+          });
+        });
       });
 
       it('should create, fetch and update with alternative field names from a simple model', function () {
@@ -240,6 +280,24 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
+      it('should work with a where or', function () {
+        var self = this;
+
+        return this.User.create({
+          name: 'Foobar'
+        }).then(function () {
+          return self.User.find({
+            where: self.sequelize.or({
+              name: 'Foobar'
+            }, {
+              name: 'Lollerskates'
+            })
+          });
+        }).then(function (user) {
+          expect(user).to.be.ok;
+        });
+      });
+
       it('should work with bulkCreate and findAll', function () {
         var self = this;
         return this.User.bulkCreate([{
@@ -257,27 +315,46 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
-    it('should support renaming of sequelize method fields', function () {
-      var User = this.sequelize.define('user', {
-        someProperty: Sequelize.VIRTUAL // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+      it('should support renaming of sequelize method fields', function () {
+        var Test = this.sequelize.define('test', {
+          someProperty: Sequelize.VIRTUAL // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+        });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return Test.create({});
+        }).then(function () {
+          return Test.findAll({
+            attributes: [
+              Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
+              [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
+            ]
+          });
+        }).then(function (tests) {
+          expect(tests[0].get('someProperty')).to.be.ok;
+          expect(tests[0].get('someProperty2')).to.be.ok;
+        });
       });
 
-      return this.sequelize.sync({ force: true }).then(function () {
-        return User.create({});
-      }).then(function () {
-        return User.findAll({
-          attributes: [
-            Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
-            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
-          ]
-        });
-      }).then(function (users) {
-        expect(users[0].get('someProperty')).to.be.ok;
-        expect(users[0].get('someProperty2')).to.be.ok;
+      it('should sync foreign keys with custom field names', function() {
+        return this.sequelize.sync({ force: true })
+        .then(function() {
+          var attrs = this.Task.tableAttributes;
+          expect(attrs.user_id.references).to.equal('users');
+          expect(attrs.user_id.referencesKey).to.equal('userId');
+        }.bind(this));
       });
-    });
-	  
-	  it('field names that are the same as property names should create, update, and read correctly', function () {
+
+      it('should find the value of an attribute with a custom field name', function() {
+        return this.User.create({ name: 'test user' })
+        .then(function() {
+          return this.User.find({ where: { name: 'test user' } });
+        }.bind(this))
+        .then(function(user) {
+          expect(user.name).to.equal('test user');
+        });
+      });
+
+      it('field names that are the same as property names should create, update, and read correctly', function () {
         var self = this;
 
         return this.Comment.create({
@@ -299,7 +376,25 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(comment.get('notes')).to.equal('Barfoo');
         });
       });
-	  
+
+
+      it('should work with with an belongsTo association getter', function () {
+        var userId = Math.floor(Math.random() * 100000);
+        return Promise.join(
+          this.User.create({
+            id: userId
+          }),
+          this.Task.create({
+            user_id: userId
+          })
+        ).spread(function (user, task) {
+          return [user, task.getUser()];
+        }).spread(function (userA, userB) {
+          expect(userA.get('id')).to.equal(userB.get('id'));
+          expect(userA.get('id')).to.equal(userId);
+          expect(userB.get('id')).to.equal(userId);
+        });
+      });
     });
 
     describe('types', function () {
@@ -419,6 +514,71 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             return self.User.findAll();
           }).then(function (users) {
             expect(users[0].storage).to.equal('something');
+          });
+        });
+      });
+    });
+
+    describe('set', function () {
+      it('should only be called once when used on a join model called with an association getter', function () {
+        var self = this;
+        self.callCount = 0;
+
+        this.Student = this.sequelize.define('student', {
+          no: {type:Sequelize.INTEGER, primaryKey:true},
+          name: Sequelize.STRING,
+        }, {
+          tableName: "student",
+          timestamps: false
+        });
+
+        this.Course = this.sequelize.define('course', {
+          no: {type:Sequelize.INTEGER,primaryKey:true},
+          name: Sequelize.STRING,
+        },{
+          tableName: 'course',
+          timestamps: false
+        });
+
+        this.Score = this.sequelize.define('score',{
+          score: Sequelize.INTEGER,
+          test_value: {
+            type: Sequelize.INTEGER,
+            set: function(v) {
+              self.callCount++;
+              this.setDataValue('test_value', v+1);
+            }
+          }
+        }, {
+          tableName: 'score',
+          timestamps: false
+        });
+
+        this.Student.hasMany(this.Course, {through: this.Score, foreignKey: 'StudentId'});
+        this.Course.hasMany(this.Student, {through: this.Score, foreignKey: 'CourseId'});
+
+        return this.sequelize.sync({force:true}).then(function () {
+          return Promise.join(
+            self.Student.create({no:1, name:'ryan'}),
+            self.Course.create({no:100, name:'history'})
+          ).spread(function(student, course){
+            return student.addCourse(course, {score: 98, test_value: 1000});
+          }).then(function(){
+            expect(self.callCount).to.equal(1);
+            return self.Score.find({StudentId: 1, CourseId: 100}).then(function(score){
+              expect(score.test_value).to.equal(1001);
+            });
+          })
+          .then(function(){
+            return Promise.join(
+              self.Student.build({no: 1}).getCourses({where: {no: 100}}),
+              self.Score.find({StudentId: 1, CourseId:100})
+            );
+          })
+          .spread(function(courses, score) {
+            expect(score.test_value).to.equal(1001);
+            expect(courses[0].score.toJSON().test_value).to.equal(1001);
+            expect(self.callCount).to.equal(1);
           });
         });
       });

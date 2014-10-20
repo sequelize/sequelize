@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       }).success(function() {
         self.queryInterface.dropAllTables({skip: ['skipme']}).complete(function(err){
           expect(err).to.be.null
-          
+
           self.queryInterface.showAllTables().complete(function(err, tableNames) {
             expect(err).to.be.null
 
@@ -87,8 +87,11 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
 
         self.queryInterface.showIndex('Group').complete(function(err, indexes) {
           expect(err).to.be.null
+ 
+          var indexColumns = _.uniq(indexes.map(function(index) {
+            return index.name 
+          }))
 
-          var indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
           expect(indexColumns).to.include('group_username_is_admin')
 
           self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).complete(function(err) {
@@ -96,7 +99,6 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
 
             self.queryInterface.showIndex('Group').complete(function(err, indexes) {
               expect(err).to.be.null
-
               indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
               expect(indexColumns).to.be.empty
 
@@ -124,16 +126,33 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       Users.sync({ force: true }).success(function() {
         self.queryInterface.describeTable('_Users').complete(function(err, metadata) {
           expect(err).to.be.null
-
           var username = metadata.username
           var isAdmin  = metadata.isAdmin
           var enumVals = metadata.enumVals
 
-          expect(username.type).to.equal(dialect === 'postgres' ? 'CHARACTER VARYING' : 'VARCHAR(255)')
+          var assertVal = 'VARCHAR(255)';
+          switch(dialect){
+            case 'postgres':
+              assertVal = 'CHARACTER VARYING';
+              break;
+            case 'mssql':
+              assertVal = 'NVARCHAR';
+              break;
+          }
+          expect(username.type).to.equal(assertVal)            
           expect(username.allowNull).to.be.true
           expect(username.defaultValue).to.be.null
 
-          expect(isAdmin.type).to.equal(dialect === 'postgres' ? 'BOOLEAN' : 'TINYINT(1)')
+          assertVal = 'TINYINT(1)';
+          switch(dialect){
+            case 'postgres':
+              assertVal = 'BOOLEAN';
+              break;
+            case 'mssql':
+              assertVal = 'BIT';
+              break;
+          }
+          expect(isAdmin.type).to.equal(assertVal)
           expect(isAdmin.allowNull).to.be.true
           expect(isAdmin.defaultValue).to.be.null
 
@@ -141,7 +160,6 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
             expect(enumVals.special).to.be.instanceof(Array)
             expect(enumVals.special).to.have.length(2);
           }
-
           done()
         })
       })
@@ -218,5 +236,97 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         return self.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id')
       })
     })
+  });
+
+  describe('addColumn', function () {
+    beforeEach(function () {
+      return this.queryInterface.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoincrement: true
+        }
+      });
+    });
+
+    it('should be able to add a foreign key reference', function () {
+      return this.queryInterface.createTable('level', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoincrement: true
+        }
+      }).bind(this).then(function () {
+        return this.queryInterface.addColumn('users', 'level_id', {
+          type: DataTypes.INTEGER,
+          references: 'level',
+          referenceKey: 'id',
+          onUpdate: 'cascade',
+          onDelete: 'restrict'
+        });
+      });
+    });
+  });
+
+  describe('describeForeignKeys', function() {
+    beforeEach(function () {
+      return this.queryInterface.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoincrement: true
+        },
+      }).bind(this).then(function () {
+        return this.queryInterface.createTable('hosts', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoincrement: true
+          },
+          admin: {
+            type: DataTypes.INTEGER,
+            references: 'users',
+            referenceKey: 'id',
+          },
+          operator: {
+            type: DataTypes.INTEGER,
+            references: 'users',
+            referenceKey: 'id',
+            onUpdate: 'cascade',
+          },
+          owner: {
+            type: DataTypes.INTEGER,
+            references: 'users',
+            referenceKey: 'id',
+            onUpdate: 'cascade',
+            onDelete: 'restrict'
+          },
+        })
+      })
+    })
+
+    it('should get a list of foreign keys for the table', function (done) {
+      this.sequelize.query(this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database)).complete(function(err, fks) {
+        expect(err).to.be.null
+        expect(fks).to.have.length(3)
+        var keys = Object.keys(fks[0]),
+          keys2 = Object.keys(fks[1]),
+          keys3 = Object.keys(fks[2])
+        if (dialect === "postgres" || dialect === "postgres-native" ) {
+          expect(keys).to.have.length(6)
+          expect(keys2).to.have.length(7)
+          expect(keys3).to.have.length(8)
+        } else if (dialect === "sqlite") {
+          expect(keys).to.have.length(8)
+        } else if (dialect === "mysql" || dialect == 'mssql') {
+          expect(keys).to.have.length(1)
+        } else {
+          console.log("This test doesn't support " + dialect)
+        }
+        done()
+      })
+
+    })
   })
+
 })

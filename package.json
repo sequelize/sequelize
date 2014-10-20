@@ -1,20 +1,12 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "2.0.0-dev12",
+  "version": "2.0.0-rc2",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
       "name": "Sascha Depold",
       "email": "sascha@depold.com"
-    },
-    {
-      "name": "Meg Sharkey",
-      "email": "meg@metamarkets.com"
-    },
-    {
-      "name": "Chase Geigle",
-      "email": "sky@skytrife.com"
     },
     {
       "name": "Jan Aagaard Meier",
@@ -40,13 +32,13 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
+    "bluebird": "2.3.2",
     "dottie": "0.2.4",
     "generic-pool": "2.1.1",
-    "inflection": "^1.3.8",
+    "inflection": "1.4.2",
     "lodash": "~2.4.0",
     "moment": "~2.7.0",
     "node-uuid": "~1.4.1",
-    "sequelize-bluebird": "git://github.com/sequelize/bluebird.git#9df139af53c5d346ffd38df30fc9dc60c62a9c98",
     "sql": "~0.39.0",
     "toposort-class": "~0.3.0",
     "validator": "~3.16.0"
@@ -66,7 +58,7 @@
     "mocha": "~1.21.3",
     "mysql": "~2.4.1",
     "pg": "~3.4.0",
-    "seriate": "^0.3.3",
+    "mssql": "^1.2.0",
     "sinon": "~1.10.3",
     "sinon-chai": "~2.5.0",
     "sqlite3": "~2.2.4",

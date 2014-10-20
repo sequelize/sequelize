@@ -282,7 +282,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               user.increment('number', { by: 2, transaction: t }).success(function() {
                 User.all().success(function(users1) {
                   User.all({ transaction: t }).success(function(users2) {
-                    expect(users1[0].number).to.equal(1)
+                    if(dialect !== 'mssql'){
+                      expect(users1[0].number).to.equal(1)
+                    }
                     expect(users2[0].number).to.equal(3)
                     t.rollback().success(function() { done() })
                   })
@@ -426,7 +428,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               user.decrement('number', { by: 2, transaction: t }).success(function() {
                 User.all().success(function(users1) {
                   User.all({ transaction: t }).success(function(users2) {
-                    expect(users1[0].number).to.equal(3)
+                    if(dialect !== 'mssql'){
+                      expect(users1[0].number).to.equal(3)
+                    }
                     expect(users2[0].number).to.equal(1)
                     t.rollback().success(function() { done() })
                   })
@@ -551,9 +555,11 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             sequelize.transaction().then(function(t) {
-              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+              User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).success(function() {
                 user.reload().success(function(user) {
-                  expect(user.username).to.equal('foo')
+                  if(dialect !== 'mssql'){
+                    expect(user.username).to.equal('foo')
+                  }
                   user.reload({ transaction: t }).success(function(user) {
                     expect(user.username).to.equal('bar')
                     t.rollback().success(function() { done() })
@@ -623,8 +629,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       Book.hasMany(Page)
       Page.belongsTo(Book)
 
-      Book.sync().success(function() {
-        Page.sync().success(function() {
+      Book.sync({force: true}).success(function() {
+        Page.sync({force: true}).success(function() {
           Book.create({ title: 'A very old book' }).success(function(book) {
             Page.create({ content: 'om nom nom' }).success(function(page) {
               book.setPages([ page ]).success(function() {
@@ -642,7 +648,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                       expect(leBook.Pages[0].content).to.equal('something totally different')
                       expect(page.content).to.equal('something totally different')
                       done()
-                    })
+                    });
                   })
                 })
               })
@@ -757,7 +763,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             User.build({ username: 'foo' }).save({ transaction: t }).success(function() {
               User.count().success(function(count1) {
                 User.count({ transaction: t }).success(function(count2) {
-                  expect(count1).to.equal(0)
+                  if(dialect !== 'mssql'){
+                    expect(count1).to.equal(0)
+                  }
                   expect(count2).to.equal(1)
                   t.rollback().success(function(){ done() })
                 })
@@ -941,9 +949,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       this.User.create({aNumber: 0, validateTest: 'hello'}).error(function(err){
         expect(err).to.exist
         expect(err).to.be.instanceof(Object)
-        expect(err.validateTest).to.be.instanceof(Array)
-        expect(err.validateTest[0]).to.exist
-        expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+        expect(err.get('validateTest')).to.be.instanceof(Array)
+        expect(err.get('validateTest')[0]).to.exist
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed')
         done()
       })
     })
@@ -953,10 +961,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       .error(function(err){
         expect(err).to.exist
         expect(err).to.be.instanceof(Object)
-        expect(err.validateCustom).to.exist
-        expect(err.validateCustom).to.be.instanceof(Array)
-        expect(err.validateCustom[0]).to.exist
-        expect(err.validateCustom[0].message).to.equal('Length failed.')
+        expect(err.get('validateCustom')).to.exist
+        expect(err.get('validateCustom')).to.be.instanceof(Array)
+        expect(err.get('validateCustom')[0]).to.exist
+        expect(err.get('validateCustom')[0].message).to.equal('Length failed.')
         done()
       })
     })
@@ -966,10 +974,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         user.updateAttributes({validateTest: 'hello'}).error(function(err){
           expect(err).to.exist
           expect(err).to.be.instanceof(Object)
-          expect(err.validateTest).to.exist
-          expect(err.validateTest).to.be.instanceof(Array)
-          expect(err.validateTest[0]).to.exist
-          expect(err.validateTest[0].message).to.equal('Validation isInt failed')
+          expect(err.get('validateTest')).to.exist
+          expect(err.get('validateTest')).to.be.instanceof(Array)
+          expect(err.get('validateTest')[0]).to.exist
+          expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed')
           done()
         })
       })
@@ -1200,6 +1208,55 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it("dont return instance that isn't defined", function ( done ) {
+      var self = this;
+
+      self.Project.create({ lovelyUserId: null })
+        .then(function ( project ) {
+          return self.Project.find({
+            where: {
+              id: project.id,
+            },
+            include: [
+              { model: self.User, as: 'LovelyUser' }
+            ]
+          })
+        })
+        .then(function ( project ) {
+          var json = project.toJSON();
+
+          expect( json.LovelyUser ).to.be.equal( null )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
+    it("dont return instances that aren't defined", function ( done ) {
+      var self = this;
+
+      self.User.create({ username: 'cuss' })
+        .then(function ( user ) {
+          return self.User.find({
+            where: {
+              id: user.id,
+            },
+            include: [
+              { model: self.Project, as: 'Projects' }
+            ]
+          })
+        })
+        .then(function ( user ) {
+          var json = user.toJSON();
+
+          expect( user.Projects ).to.be.instanceof( Array )
+          expect( user.Projects ).to.be.length( 0 )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
     it('returns an object containing all values', function(done) {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
       expect(user.toJSON()).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null })
@@ -1255,6 +1312,90 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         done()
       })
     })
+
+    it("sql should have paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll();
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll();
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+    });
+
+    it("sequelize.and as where should include paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.and({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.and({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
+    it("sequelize.or as where should include paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.or({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.or({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+
+    });
 
     it("escapes a single single quotes properly in where clauses", function(done) {
       var self = this
@@ -1337,7 +1478,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               }
               else if (Support.dialectIsMySQL()) {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
-              } else {
+              } else if(dialect === 'mssql'){
+                expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId"=\'123ABC\' ;SELECT @@ROWCOUNT AS AFFECTEDROWS;')
+              }else {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")
               }
               done()
@@ -1445,6 +1588,10 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         var query = { where: { username: 'fnord' }}
 
         self.User.find(query).success(function(user2) {
+          if(dialect === 'mssql'){
+            user1.dataValues.uuidv1 = user1.dataValues.uuidv1.toUpperCase();
+            user1.dataValues.uuidv4 = user1.dataValues.uuidv4.toUpperCase();
+          }
           expect(user1.equals(user2)).to.be.true
           done()
         })
@@ -1477,7 +1624,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               user.updateAttributes({ username: 'bar' }, { transaction: t }).success(function() {
                 User.all().success(function(users1) {
                   User.all({ transaction: t }).success(function(users2) {
-                    expect(users1[0].username).to.equal('foo')
+                    if(dialect !== 'mssql'){                      
+                      expect(users1[0].username).to.equal('foo')
+                    }
                     expect(users2[0].username).to.equal('bar')
                     t.rollback().success(function(){ done() })
                   })
@@ -1585,7 +1734,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             expect(download.finishedAt).to.not.be.ok
 
             Download.all({
-              where: (dialect === 'postgres' ? '"finishedAt" IS NULL' : "`finishedAt` IS NULL")
+              where: (dialect === 'postgres' || dialect === 'mssql' ? '"finishedAt" IS NULL' : "`finishedAt` IS NULL")
             }).success(function(downloads) {
               downloads.forEach(function(download) {
                 expect(download.startedAt instanceof Date).to.be.true
@@ -1611,7 +1760,9 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
               user.destroy({ transaction: t }).success(function() {
                 User.count().success(function(count1) {
                   User.count({ transaction: t }).success(function(count2) {
-                    expect(count1).to.equal(1)
+                    if(dialect !== 'mssql'){
+                      expect(count1).to.equal(1)
+                    }
                     expect(count2).to.equal(0)
                     t.rollback().success(function() { done() })
                   })

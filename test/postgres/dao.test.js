@@ -4,6 +4,7 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , _         = require('lodash')
+  , sequelize = require(__dirname + '/../../lib/sequelize');
 
 chai.config.includeStack = true
 
@@ -16,7 +17,8 @@ if (dialect.match(/^postgres/)) {
         email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
         settings: DataTypes.HSTORE,
         document: { type: DataTypes.HSTORE, defaultValue: { default: 'value' } },
-        phones: DataTypes.ARRAY(DataTypes.HSTORE)
+        phones: DataTypes.ARRAY(DataTypes.HSTORE),
+        emergency_contact: DataTypes.JSON
       })
       this.User.sync({ force: true }).success(function() {
         done()
@@ -31,7 +33,7 @@ if (dialect.match(/^postgres/)) {
 
     it('should be able to search within an array', function(done) {
       this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
-        expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
+        expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."email" && ARRAY[\'hello\',\'world\']::TEXT[];')
         done()
       })
     })
@@ -50,6 +52,131 @@ if (dialect.match(/^postgres/)) {
         })
       })
     })
+
+    describe('json', function () {
+      it('should tell me that a column is json', function() {
+        return this.sequelize.queryInterface.describeTable('Users')
+          .then(function (table) {
+            expect(table.emergency_contact.type).to.equal('JSON');
+          });
+      });
+
+      it('should stringify json with insert', function () {
+        return this.User.create({
+          username: 'bob',
+          emergency_contact: { name: 'joe', phones: [1337, 42] }
+        }).on('sql', function (sql) {
+          var expected = 'INSERT INTO "Users" ("id","username","document","emergency_contact","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',\'"default"=>"value"\',\'{"name":"joe","phones":[1337,42]}\''
+          expect(sql.indexOf(expected)).to.equal(0);
+        });
+      });
+
+      it('should be able retrieve json value as object', function () {
+        var self = this;
+        var emergencyContact = { name: 'kate', phone: 1337 };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergencyContact); // .eql does deep value comparison instead of strict equal comparison
+            return self.User.find({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergencyContact);
+          });
+      });
+
+      it('should be able to retrieve element of array by index', function () {
+        var self = this;
+        var emergencyContact = { name: 'kate', phones: [1337, 42] };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergencyContact);
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.phones.1'), 'firstEmergencyNumber']] });
+          })
+          .then(function (user) {
+            expect(parseInt(user.getDataValue('firstEmergencyNumber'))).to.equal(42);
+          });
+      });
+
+      it('should be able to retrieve root level value of an object by key', function () {
+        var self = this;
+        var emergencyContact = { kate: 1337 };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergencyContact);
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.kate'), 'katesNumber']] });
+          })
+          .then(function (user) {
+            expect(parseInt(user.getDataValue('katesNumber'))).to.equal(1337);
+          });
+      });
+
+      it('should be able to retrieve nested value of an object by path', function () {
+        var self = this;
+        var emergencyContact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
+
+        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
+          .then(function (user) {
+            expect(user.emergency_contact).to.eql(emergencyContact);
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.kate.email'), 'katesEmail']] });
+          })
+          .then(function (user) {
+            expect(user.getDataValue('katesEmail')).to.equal('kate@kate.com');
+          })
+          .then(function () {
+            return self.User.find({ where: { username: 'swen' }, attributes: [[sequelize.json('emergency_contact.kate.phones.1'), 'katesFirstPhone']] });
+          })
+          .then(function (user) {
+            expect(parseInt(user.getDataValue('katesFirstPhone'))).to.equal(42);
+          });
+      });
+
+      it('should be able to retrieve a row based on the values of the json document', function () {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(function () {
+            return self.User.find({ where: sequelize.json("emergency_contact->>'name'", 'kate'), attributes: ['username', 'emergency_contact'] });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact.name).to.equal('kate');
+          });
+      });
+
+      it('should be able to query using the nested query language', function () {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(function () {
+            return self.User.find({
+              where: sequelize.json({ emergency_contact: { name: 'kate' } })
+            });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact.name).to.equal('kate');
+          });
+      });
+
+      it('should be ablo to query using dot syntax', function () {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(function () {
+            return self.User.find({ where: sequelize.json('emergency_contact.name', 'joe') });
+          })
+          .then(function (user) {
+            expect(user.emergency_contact.name).to.equal('joe');
+          });
+      });
+    });
 
     describe('hstore', function() {
       it('should tell me that a column is hstore and not USER-DEFINED', function(done) {
@@ -297,7 +424,7 @@ if (dialect.match(/^postgres/)) {
             expect(newUser.settings).to.deep.equal({ created: { test: '"value"' }})
 
             // Check to see if updating an hstore field works
-            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, newUser.identifiers).success(function() {
+            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: newUser.identifiers}).success(function() {
               newUser.reload().success(function() {
                 // Postgres always returns keys in alphabetical order (ascending)
                 expect(newUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
@@ -315,7 +442,7 @@ if (dialect.match(/^postgres/)) {
           .create({ username: 'user', email: ['foo@bar.com'], settings: { created: { test: '"value"' }}})
           .success(function(oldUser) {
             // Update the user and check that the returned object's fields have been parsed by the hstore library
-            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, oldUser.identifiers, { returning: true }).spread(function(count, users) {
+            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
               expect(count).to.equal(1);
               expect(users[0].settings).to.deep.equal({should: 'update', to: 'this', first: 'place'})
               done()
@@ -409,14 +536,24 @@ if (dialect.match(/^postgres/)) {
                 where: {fullName: "John Smith"}
               })
               .success(function(user2) {
-                self.sequelize.options.quoteIndentifiers = true
-                self.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true
-                self.sequelize.options.logging = false
                 // We can map values back to non-quoted identifiers
                 expect(user2.id).to.equal(user.id)
                 expect(user2.username).to.equal('user')
                 expect(user2.fullName).to.equal('John Smith')
-                done()
+
+                // We can query and aggregate by non-quoted identifiers
+                self.User
+                  .count({
+                    where: {fullName: "John Smith"}
+                  })
+                  .success(function(count) {
+                    self.sequelize.options.quoteIndentifiers = true
+                    self.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true
+                    self.sequelize.options.logging = false
+
+                    expect(count).to.equal(1)
+                    done()
+                  })
               })
             })
         })
