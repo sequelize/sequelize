@@ -26,6 +26,7 @@ We're glad to get pull request if any functionality is missing or something is b
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 1.7 branch are accepted without tests.
 * If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation  ) for the specifics.
+* Add an entry to [the changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md), with a link to the issue you are solving
 
 Still interested? Coolio! Here is how to get started:
 
