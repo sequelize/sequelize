@@ -17,7 +17,7 @@ if (dialect.match(/^postgres/)) {
         email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
         settings: DataTypes.HSTORE,
         document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
-        phones: DataTypes.ARRAY(DataTypes.HSTORE)
+        phones: DataTypes.ARRAY(DataTypes.HSTORE),
         emergency_contact: DataTypes.JSON
       })
       this.User.sync({ force: true })
