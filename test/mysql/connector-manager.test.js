@@ -52,5 +52,69 @@ if (Support.dialectIsMySQL()) {
         })
       })
     })
-  })
+
+    // This should run only on direct mysql
+    if (Support.dialectIsMySQL(true)) {
+      it('should maintain connection', function () {
+        var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}}),
+            cm = sequelize.connectionManager,
+            conn;
+
+        return sequelize.sync()
+          .then(function () {
+            return cm.getConnection();
+          })
+          .then(function (connection) {
+            // Save current connection
+            conn = connection;
+          })
+          .then(function () {
+            return cm.releaseConnection(conn);
+          })
+          .then(function () {
+            // Get next available connection
+            return cm.getConnection();
+          })
+          .then(function (connection) {
+            // Old threadId should be different from current new one
+            expect(conn.threadId).to.be.equal(connection.threadId);
+            expect(cm.validate(conn)).to.be.ok;
+
+            return cm.releaseConnection(connection);
+          });
+      });
+      it('should work with handleDisconnects', function () {
+        var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}}),
+            cm = sequelize.connectionManager,
+            conn;
+
+        return sequelize.sync()
+          .then(function (){
+            return cm.getConnection();
+          })
+          .then(function (connection) {
+            // Save current connection
+            conn = connection;
+
+            // simulate a unexpected end
+            connection._protocol.end();
+          })
+          .then(function () {
+            return cm.releaseConnection(conn);
+          })
+          .then(function () {
+            // Get next available connection
+            return cm.getConnection();
+          })
+          .then(function (connection) {
+            // Old threadId should be different from current new one
+            expect(conn.threadId).to.not.be.equal(connection.threadId);
+            expect(cm.validate(conn)).to.not.be.ok;
+
+            return cm.releaseConnection(connection);
+          });
+      });
+    }
+
+  });
 }
