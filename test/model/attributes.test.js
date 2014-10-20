@@ -134,6 +134,46 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         ]);
       });
 
+      describe('field and attribute name is the same', function () {
+        beforeEach(function () {
+          return this.Comment.bulkCreate([
+            { notes: 'Number one'},
+            { notes: 'Number two'},
+          ]);
+        });
+
+        it('bulkCreate should work', function () {
+          return this.Comment.findAll().then(function (comments) {
+           expect(comments[0].notes).to.equal('Number one');
+           expect(comments[1].notes).to.equal('Number two');
+          });
+        });
+
+        it('find with where should work', function () {
+          return this.Comment.findAll({ where: { notes: 'Number one' }}).then(function (comments) {
+            expect(comments).to.have.length(1);
+            expect(comments[0].notes).to.equal('Number one');
+          });
+        });
+
+        it('reload should work', function () {
+          return this.Comment.find(1).then(function (comment) {
+            return comment.reload();
+          });
+        });
+
+        it('save should work', function () {
+          return this.Comment.create({ notes: 'my note' }).then(function (comment) {
+            comment.notes = 'new note';
+            return comment.save();
+          }).then(function (comment) {
+            return comment.reload();
+          }).then(function (comment) {
+            expect(comment.notes).to.equal('new note');
+          });
+        });
+      });
+
       it('should create, fetch and update with alternative field names from a simple model', function () {
         var self = this;
 
