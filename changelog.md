@@ -1,5 +1,6 @@
 # Next
 - [BUG] Add support for `field` named the same as the attribute in `reload`, `bulkCreate` and `save` [#2348](https://github.com/sequelize/sequelize/issues/2348)
+- [BUG] Copy the options object in association getters. [#2311](https://github.com/sequelize/sequelize/issues/2311)
 
 # 2.0.0-rc2
 - [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator

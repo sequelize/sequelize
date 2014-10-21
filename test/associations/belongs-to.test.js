@@ -57,6 +57,23 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
 
+    it('does not modify the passed arguments', function () {
+      var User = this.sequelize.define('user', {})
+        , Project = this.sequelize.define('project', {});
+
+      User.belongsTo(Project);
+
+      return this.sequelize.sync({ force: true }).bind(this).then(function () {
+        return User.create({});
+      }).then(function (user) {
+        this.options = {};
+
+        return user.getProject(this.options);
+      }).then(function () {
+        expect(this.options).to.deep.equal({});
+      });
+    });
+
     it('should be able to handle a where object that\'s a first class citizen.', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING })
