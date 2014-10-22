@@ -2,6 +2,7 @@ var chai      = require('chai')
   , expect    = chai.expect
   , Sequelize = require(__dirname + '/../index')
   , Support   = require(__dirname + '/support')
+  , dialect   = Support.getTestDialect()
 
 chai.config.includeStack = true
 
@@ -104,6 +105,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
   tests.forEach(function(test) {
     it('transforms "' + test[1] + '" to "' + test[2] + '"', function(done) {
+      if(dialect === 'mssql' && test[1] ==='STRING'){
+        test[2] = 'NVARCHAR(255)';
+      }
       expect(test[0].toString()).to.equal(test[2])
       done()
     })
