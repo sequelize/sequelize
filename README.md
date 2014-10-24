@@ -52,3 +52,7 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 Instructions for running samples are located in the [example directory](https://github.com/sequelize/sequelize/tree/master/examples). Try these samples in a live sandbox environment:
 
 <a href="https://runnable.com/sequelize" target="_blank"><img src="https://runnable.com/external/styles/assets/runnablebtn.png"></a>
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lebretr/sequelize/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
