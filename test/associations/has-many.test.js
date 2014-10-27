@@ -939,9 +939,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         }).then(function(projects) {
           expect(projects).to.have.length(1);
           var project = projects[0];
-          expect(project.ProjectUser).to.be.defined;
+          expect(project.ProjectUsers).to.be.defined;
           expect(project.status).not.to.exist;
-          expect(project.ProjectUser.status).to.equal('active');
+          expect(project.ProjectUsers.status).to.equal('active');
         });
       });
     });
@@ -1778,8 +1778,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
             expect(project.UserProjects).to.be.defined;
             expect(project.status).not.to.exist;
-            expect(project.UserProject.status).to.equal('active');
-            expect(project.UserProject.data).to.equal(42);
+            expect(project.UserProjects.status).to.equal('active');
+            expect(project.UserProjects.data).to.equal(42);
           });
         });
 
@@ -1796,8 +1796,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
 
             expect(project.UserProjects).to.be.defined;
             expect(project.status).not.to.exist;
-            expect(project.UserProject.status).to.equal('active');
-            expect(project.UserProject.data).not.to.exist;
+            expect(project.UserProjects.status).to.equal('active');
+            expect(project.UserProjects.data).not.to.exist;
           });
         });
       });
