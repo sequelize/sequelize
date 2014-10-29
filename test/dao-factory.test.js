@@ -304,24 +304,58 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
       })
 
-      User.sync({ force: true }).on('sql', _.after(2, function(sql) {
+      User.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
         expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
         expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
         done()
-      }))
+      })))
     })
 
+    it('allows unique on column with field aliases', function() {
+      var User = this.sequelize.define('UserWithUniqueFieldAlias', {
+        userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
+      });
+      return User.sync({ force: true }).bind(this).then(function() {
+        return this.sequelize.queryInterface.showIndex(User.tableName).then(function(indexes) {
+          var idxPrimary, idxUnique;
+          if (dialect === 'sqlite') {
+            expect(indexes).to.have.length(1);
+            idxUnique = indexes[0];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', length: undefined, order: undefined}]);
+          } else if (dialect === 'mysql') {
+            expect(indexes).to.have.length(2);
+            idxPrimary = indexes[0];
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', length: undefined, order: 'ASC'}]);
+            expect(idxUnique.type).to.equal('BTREE');
+          } else if (dialect === 'postgres') {
+            expect(indexes).to.have.length(2);
+            idxPrimary = indexes[0];
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, order: undefined, length: undefined}]);
+          }
+        });
+      });
+    });
+
     it('allows us to customize the error message for unique constraint', function(done) {
-      var User = this.sequelize.define('UserWithUniqueUsername', {
-        username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
-        email: { type: Sequelize.STRING, unique: 'user_and_email' },
-        aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
-        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
-      })
+      var self = this
+        , User = this.sequelize.define('UserWithUniqueUsername', {
+            username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
+            email: { type: Sequelize.STRING, unique: 'user_and_email' },
+            aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
+            bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+          })
 
       User.sync({ force: true }).success(function() {
         User.create({username: 'tobi', email: 'tobi@tobi.me'}).success(function() {
-          User.create({username: 'tobi', email: 'tobi@tobi.me'}).error(function(err) {
+          User.create({username: 'tobi', email: 'tobi@tobi.me'}).catch(self.sequelize.UniqueConstraintError, function(err) {
             expect(err.message).to.equal('User and email must be unique')
             done()
           })
@@ -352,6 +386,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
 
       return this.sequelize.sync().bind(this).then(function () {
+        return this.sequelize.sync(); // The second call should not try to create the indices again
+      }).then(function () {
         return this.sequelize.queryInterface.showIndex(Model.tableName);
       }).spread(function () {
         var primary, idx1, idx2;
@@ -671,9 +707,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).success(function() {
           sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.findOrInitialize({ username: 'foo' }).spread(function(user1) {
-                User.findOrInitialize({ username: 'foo' }, { transaction: t }).spread(function(user2) {
-                  User.findOrInitialize({ username: 'foo' }, { foo: 'asd' }, { transaction: t }).spread(function(user3) {
+              User.findOrInitialize({ 
+                where: {username: 'foo'}
+              }).spread(function(user1) {
+                User.findOrInitialize({ 
+                  where: {username: 'foo'},
+                  transaction: t
+                }).spread(function(user2) {
+                  User.findOrInitialize({ 
+                    where: {username: 'foo'},
+                    defaults: { foo: 'asd' },
+                    transaction: t
+                  }).spread(function(user3) {
                     expect(user1.isNewRecord).to.be.true
                     expect(user2.isNewRecord).to.be.false
                     expect(user3.isNewRecord).to.be.false
@@ -693,7 +738,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
         this.User.create({ username: 'Username' }).success(function (user) {
           self.User.findOrInitialize({
-            username: user.username
+            where: { username: user.username }
           }).spread(function (_user, initialized) {
             expect(_user.id).to.equal(user.id)
             expect(_user.username).to.equal('Username')
@@ -707,10 +752,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         var self = this
 
         this.User.create({ username: 'Username', data: 'data' }).success(function (user) {
-          self.User.findOrInitialize({
+          self.User.findOrInitialize({ where: {
             username: user.username,
             data: user.data
-          }).spread(function (_user, initialized) {
+          }}).spread(function (_user, initialized) {
             expect(_user.id).to.equal(user.id)
             expect(_user.username).to.equal('Username')
             expect(_user.data).to.equal('data')
@@ -728,7 +773,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             data: 'ThisIsData'
           }
 
-        this.User.findOrInitialize(data, default_values).spread(function(user, initialized) {
+        this.User.findOrInitialize({
+          where: data,
+          defaults: default_values
+        }).spread(function(user, initialized) {
           expect(user.id).to.be.null
           expect(user.username).to.equal('Username')
           expect(user.data).to.equal('ThisIsData')
@@ -749,7 +797,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).done(function() {
           User.create({ username: 'foo' }).done(function() {
             sequelize.transaction().then(function(t) {
-              User.update({ username: 'bar' }, {}, { transaction: t }).done(function(err) {
+              User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).done(function(err) {
                 User.all().done(function(err, users1) {
                   User.all({ transaction: t }).done(function(err, users2) {
                     expect(users1[0].username).to.equal('foo')
@@ -811,7 +859,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       this.User.bulkCreate(data).success(function() {
 
-        self.User.update({username: 'Bill'}, {secretValue: '42'})
+        self.User.update({username: 'Bill'}, {where: {secretValue: '42'}})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).to.equal(3)
@@ -836,7 +884,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.create({
         username: 'John'
       }).success(function(user) {
-        self.User.update({username: self.sequelize.cast('1', 'char')}, {username: 'John'}).success(function() {
+        self.User.update({username: self.sequelize.cast('1', 'char')}, {where: {username: 'John'}}).success(function() {
           self.User.all().success(function(users) {
             expect(users[0].username).to.equal('1')
             done()
@@ -851,7 +899,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       this.User.create({
         username: 'John'
       }).success(function(user) {
-        self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {username: 'John'}).success(function () {
+        self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {where: {username: 'John'}}).success(function () {
           self.User.all().success(function(users) {
             expect(users[0].username).to.equal('JOHN')
             done()
@@ -878,7 +926,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         // Pass the time so we can actually see a change
         this.clock.tick(1000);
 
-        return this.User.update({username: 'Bill'}, {secretValue: '42'});
+        return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
       }).then(function () {
         return this.User.findAll({order: 'id'});
       }).then(function (users) {
@@ -901,13 +949,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         , done = _.after(2, _done)
 
       this.User.bulkCreate(data).success(function() {
-        self.User.update({username: 'Bill'}, {secretValue: '42'}).spread(function(affectedRows) {
+        self.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(2)
 
           done()
         })
 
-        self.User.update({username: 'Bill'}, {secretValue: '44'}).spread(function(affectedRows) {
+        self.User.update({username: 'Bill'}, {where: {secretValue: '44'}}).spread(function(affectedRows) {
           expect(affectedRows).to.equal(0)
 
           done()
@@ -924,14 +972,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           , done = _.after(2, _done)
 
         this.User.bulkCreate(data).success(function() {
-          self.User.update({ username: 'Bill' }, { secretValue: '42' }, { returning: true }).spread(function(count, rows) {
+          self.User.update({ username: 'Bill' }, { where: {secretValue: '42' }, returning: true }).spread(function(count, rows) {
             expect(count).to.equal(2)
             expect(rows).to.have.length(2)
 
             done()
           })
 
-          self.User.update({ username: 'Bill'}, { secretValue: '44' }, { returning: true }).spread(function(count, rows) {
+          self.User.update({ username: 'Bill'}, { where: {secretValue: '44' }, returning: true }).spread(function(count, rows) {
             expect(count).to.equal(0)
             expect(rows).to.have.length(0)
 
@@ -949,7 +997,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                     { username: 'Peter', secretValue: '42' }]
 
         this.User.bulkCreate(data).success(function () {
-          self.User.update({secretValue: '43'}, {username: 'Peter'}, {limit: 1}).spread(function(affectedRows) {
+          self.User.update({secretValue: '43'}, {where: {username: 'Peter'}, limit: 1}).spread(function(affectedRows) {
             expect(affectedRows).to.equal(1)
             done()
           })
@@ -967,7 +1015,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function() {
             sequelize.transaction().then(function(t) {
-              User.destroy({}, { transaction: t }).success(function() {
+              User.destroy({transaction: t }).success(function() {
                 User.count().success(function(count1) {
                   User.count({ transaction: t }).success(function(count2) {
                     expect(count1).to.equal(1)
@@ -989,7 +1037,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   { username: 'Bob',   secretValue: '43' }]
 
       this.User.bulkCreate(data).success(function() {
-        self.User.destroy({secretValue: '42'})
+        self.User.destroy({where: {secretValue: '42'}})
           .success(function() {
             self.User.findAll({order: 'id'}).success(function(users) {
               expect(users.length).to.equal(1)
@@ -1018,7 +1066,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         ParanoidUser.bulkCreate(data).success(function() {
           // since we save in UTC, let's format to UTC time
           var date = moment().utc().format('YYYY-MM-DD h:mm')
-          ParanoidUser.destroy({secretValue: '42'}).success(function() {
+          ParanoidUser.destroy({where: {secretValue: '42'}}).success(function() {
             ParanoidUser.findAll({order: 'id'}).success(function(users) {
               expect(users.length).to.equal(1)
               expect(users[0].username).to.equal("Bob")
@@ -1163,10 +1211,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
                   tobi.destroy().success(function() {
                     self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', null, {raw: true, plain: true}).success(function(result) {
                       expect(result.username).to.equal('Tobi')
-                      User.destroy({username: 'Tony'}).success(function() {
+                      User.destroy({where: {username: 'Tony'}}).success(function() {
                         self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', null, {raw: true, plain: true}).success(function(result) {
                           expect(result.username).to.equal('Tony')
-                          User.destroy({username: ['Tony', 'Max']}, {force: true}).success(function() {
+                          User.destroy({where: {username: ['Tony', 'Max']}, force: true}).success(function() {
                             self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true}).success(function(users) {
                               expect(users).to.have.length(1)
                               expect(users[0].username).to.equal('Tobi')
@@ -1185,32 +1233,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-   it('returns the number of affected rows', function(_done) {
-     var self = this
+    it('returns the number of affected rows', function () {
+      var self = this
         , data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul',  secretValue: '42' },
-                  { username: 'Bob',   secretValue: '43' }]
-        , done = _.after(2, _done)
+                  { username: 'Bob',   secretValue: '43' }];
 
+      return this.User.bulkCreate(data).then(function() {
+        return self.User.destroy({where: {secretValue: '42'}}).then(function(affectedRows) {
+          expect(affectedRows).to.equal(2);
+        });
+      }).then(function () {
+        return self.User.destroy({where: {secretValue: '44'}}).then(function(affectedRows) {
+          expect(affectedRows).to.equal(0);
+        });
+      });
+    });
 
-      this.User.bulkCreate(data).success(function() {
-        self.User.destroy({secretValue: '42'}).done(function(err, affectedRows) {
-          expect(err).not.to.be.ok
-          expect(affectedRows).to.equal(2)
-
-          done()
-        })
-
-        self.User.destroy({secretValue: '44'}).done(function(err, affectedRows) {
-          expect(err).not.to.be.ok
-          expect(affectedRows).to.equal(0)
-
-          done()
-        })
-      })
-    })
-
-   it('supports table schema/prefix', function(done) {
+    it('supports table schema/prefix', function(done) {
      var self = this
        , data = [{ username: 'Peter', secretValue: '42' },
                  { username: 'Paul',  secretValue: '42' },
@@ -1220,7 +1260,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
      var run = function() {
        prefixUser.sync({ force: true }).success(function() {
          prefixUser.bulkCreate(data).success(function() {
-           prefixUser.destroy({secretValue: '42'})
+           prefixUser.destroy({where: {secretValue: '42'}})
              .success(function() {
                prefixUser.findAll({order: 'id'}).success(function(users) {
                  expect(users.length).to.equal(1)
@@ -1664,6 +1704,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('should be able to drop with schemas', function () {
+      return this.UserSpecial.drop();
+    });
+
     it("should be able to list schemas", function(done){
       this.sequelize.showAllSchemas().then(function(schemas) {
         expect(schemas).to.be.instanceof(Array)
@@ -1754,14 +1798,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       var run = function() {
         UserPub.sync({ force: true }).success(function() {
-          ItemPub.sync({ force: true }).on('sql', _.after(2, function(sql) {
+          ItemPub.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
             if (dialect === "postgres") {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/)
             } else {
               expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/)
             }
             done()
-          }))
+          })))
         })
       }
 
@@ -1848,7 +1892,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Post.belongsTo(this.Author)
 
       // The posts table gets dropped in the before filter.
-      Post.sync().on('sql', function(sql) {
+      Post.sync().on('sql', _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
         } else if (Support.dialectIsMySQL()) {
@@ -1860,7 +1904,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
 
         done()
-      })
+      }))
     })
 
     it('uses a table name as a string and references the author table', function(done) {
@@ -1878,7 +1922,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       Post.belongsTo(this.Author)
 
       // The posts table gets dropped in the before filter.
-      Post.sync().on('sql', function(sql) {
+      Post.sync().on('sql', _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
         } else if (Support.dialectIsMySQL()) {
@@ -1890,7 +1934,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         }
 
         done()
-      })
+      }))
     })
 
     it("emits an error event as the referenced table name is invalid", function(done) {
@@ -2245,12 +2289,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('should not overwrite a specified deletedAt', function(done) {
+    it('should not overwrite a specified deletedAt by setting paranoid: false', function(done) {
       var tableName = ''
       if(this.User.name) {
         tableName = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier(this.User.name) + '.'
       }
       this.User.findAll({
+        paranoid: false,
         where: [
           tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL '
         ],
@@ -2269,8 +2314,9 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       }).error(done)
     })
 
-    it('should not overwrite a specified deletedAt (complex query)', function (done) {
+    it('should not overwrite a specified deletedAt (complex query) by setting paranoid: false', function (done) {
       this.User.findAll({
+        paranoid: false,
         where: [
           this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
           this.sequelize.and(
@@ -2341,10 +2387,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         str: { type: Sequelize.STRING, unique: true }
       })
 
-      uniqueTrue.sync({force: true}).on('sql', _.after(2, function(s) {
+      uniqueTrue.sync({force: true}).on('sql', _.after(2, _.once(function(s) {
         expect(s).to.match(/UNIQUE/)
         done()
-      }))
+      })))
     })
 
     it("should not set unique when unique is false", function(done) {
@@ -2353,10 +2399,10 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         str: { type: Sequelize.STRING, unique: false }
       })
 
-      uniqueFalse.sync({force: true}).on('sql', _.after(2, function(s) {
+      uniqueFalse.sync({force: true}).on('sql', _.after(2, _.once(function(s) {
         expect(s).not.to.match(/UNIQUE/)
         done()
-      }))
+      })))
     })
 
     it("should not set unique when unique is unset", function(done) {
@@ -2365,11 +2411,35 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         str: { type: Sequelize.STRING }
       })
 
-      uniqueUnset.sync({force: true}).on('sql', _.after(2, function(s) {
+      uniqueUnset.sync({force: true}).on('sql', _.after(2, _.once(function(s) {
         expect(s).not.to.match(/UNIQUE/)
         done()
-      }))
+      })))
     })
   })
 
+  it('should be possible to use a key named UUID as foreign key', function () {
+    var project = this.sequelize.define('project', {
+      UserId: {
+        type: Sequelize.STRING,
+        references: 'Users',
+        referencesKey: 'UUID'
+      }
+    });
+
+    var user = this.sequelize.define('Users', {
+      UUID: {
+        type: Sequelize.STRING,
+        primaryKey: true,
+        unique: true,
+        allowNull: false,
+        validate: {
+          notNull: true,
+          notEmpty: true
+        }
+      }
+    });
+
+    return this.sequelize.sync({force: true});
+  });
 })

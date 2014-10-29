@@ -449,6 +449,46 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     }
   })
 
+  if (Support.dialectIsMySQL()) {
+    describe('set', function() {
+      it("should return an promised error if transaction isn't defined", function () {
+        expect(function () {
+          this.sequelize.set({ foo: 'bar' })
+        }.bind(this)).to.throw(TypeError, "options.transaction is required")
+      })
+
+      it("one value", function () {
+        return this.sequelize.transaction().bind(this).then(function (t) {
+          this.t = t;
+          return this.sequelize.set({ foo: 'bar' }, { transaction: t });
+        }).then(function () {
+          return this.sequelize.query( 'SELECT @foo as `foo`', null, { raw: true, plain: true, transaction: this.t });
+        }).then(function (data) {
+          expect(data).to.be.ok
+          expect(data.foo).to.be.equal('bar')
+          return this.t.commit();
+        });
+      });
+
+      it("multiple values", function () {
+        return this.sequelize.transaction().bind(this).then(function (t) {
+          this.t = t;
+          return this.sequelize.set({
+            foo: 'bar',
+            foos: 'bars',
+          }, { transaction: t });
+        }).then(function () {
+          return this.sequelize.query( 'SELECT @foo as `foo`, @foos as `foos`', null, { raw: true, plain: true, transaction: this.t });
+        }).then(function (data) {
+          expect(data).to.be.ok;
+          expect(data.foo).to.be.equal('bar');
+          expect(data.foos).to.be.equal('bars');
+          return this.t.commit();
+        });
+      });
+    });
+  }
+
   describe('define', function() {
     it("adds a new dao to the dao manager", function(done) {
       expect(this.sequelize.daoFactoryManager.all.length).to.equal(0)
@@ -706,6 +746,19 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
       })
     })
+
+    describe("match", function () {
+      it('will return an error not matching', function () {
+        return this.sequelize.sync({
+          force: true,
+          match: /alibabaizshaek/
+        }).then(function () {
+          throw new Error('I should not have succeeded!');
+        }, function (err) {
+          assert(true);
+        });
+      });
+    });
   })
 
   describe('drop should work', function() {
@@ -833,22 +886,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           done()
         })
       })
-
-      it('throws an error if a function was passed as the first argument', function() {
-        var self = this
-
-        expect(function() {
-          self.sequelizeWithTransaction.transaction(function() {})
-        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
-      });
-
-      it('throws an error if a function was passed as the second argument', function() {
-        var self = this
-
-        expect(function() {
-          self.sequelizeWithTransaction.transaction(null, function() {})
-        }).to.throw('DEPRECATION WARNING: This function no longer accepts callbacks. Use sequelize.transaction().then(function (t) {}) instead.')
-      });
 
       it('allows me to define a callback on the result', function(done) {
         this

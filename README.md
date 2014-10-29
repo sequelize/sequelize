@@ -1,6 +1,8 @@
 # Sequelize
 
-[![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Coverage Status](https://codeclimate.com/github/sequelize/sequelize/coverage.png)](https://codeclimate.com/github/sequelize/sequelize)[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize)
+[![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Coverage Status](https://codeclimate.com/github/sequelize/sequelize/coverage.png)](https://codeclimate.com/github/sequelize/sequelize)
+[![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
+[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize)
 
 MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
 

@@ -35,14 +35,6 @@ if (Support.dialectIsMySQL()) {
         done()
       })
 
-      it("handles extended attributes (comment)", function(done) {
-        var User = this.sequelize.define('User' + config.rand(), {
-          username: {type: DataTypes.STRING, comment: 'This be\'s a comment'}
-        }, { timestamps: false })
-        expect(this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(User.attributes)).to.deep.equal({username:"VARCHAR(255) COMMENT 'This be\\'s a comment'",id:"INTEGER NOT NULL auto_increment PRIMARY KEY"})
-        done()
-      })
-
       it("handles extended attributes (primaryKey)", function(done) {
         var User = this.sequelize.define('User' + config.rand(), {
           username: {type: DataTypes.STRING, primaryKey: true}

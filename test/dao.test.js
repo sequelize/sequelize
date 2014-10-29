@@ -551,7 +551,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         User.sync({ force: true }).success(function() {
           User.create({ username: 'foo' }).success(function(user) {
             sequelize.transaction().then(function(t) {
-              User.update({ username: 'bar' }, {}, { transaction: t }).success(function() {
+              User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).success(function() {
                 user.reload().success(function(user) {
                   expect(user.username).to.equal('foo')
                   user.reload({ transaction: t }).success(function(user) {
@@ -623,8 +623,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       Book.hasMany(Page)
       Page.belongsTo(Book)
 
-      Book.sync().success(function() {
-        Page.sync().success(function() {
+      Book.sync({force: true}).success(function() {
+        Page.sync({force: true}).success(function() {
           Book.create({ title: 'A very old book' }).success(function(book) {
             Page.create({ content: 'om nom nom' }).success(function(page) {
               book.setPages([ page ]).success(function() {
@@ -642,7 +642,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                       expect(leBook.Pages[0].content).to.equal('something totally different')
                       expect(page.content).to.equal('something totally different')
                       done()
-                    })
+                    });
                   })
                 })
               })
@@ -1200,6 +1200,55 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
 
+    it("dont return instance that isn't defined", function ( done ) {
+      var self = this;
+
+      self.Project.create({ lovelyUserId: null })
+        .then(function ( project ) {
+          return self.Project.find({
+            where: {
+              id: project.id,
+            },
+            include: [
+              { model: self.User, as: 'LovelyUser' }
+            ]
+          })
+        })
+        .then(function ( project ) {
+          var json = project.toJSON();
+
+          expect( json.LovelyUser ).to.be.equal( null )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
+    it("dont return instances that aren't defined", function ( done ) {
+      var self = this;
+
+      self.User.create({ username: 'cuss' })
+        .then(function ( user ) {
+          return self.User.find({
+            where: {
+              id: user.id,
+            },
+            include: [
+              { model: self.Project, as: 'Projects' }
+            ]
+          })
+        })
+        .then(function ( user ) {
+          var json = user.toJSON();
+
+          expect( user.Projects ).to.be.instanceof( Array )
+          expect( user.Projects ).to.be.length( 0 )
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
     it('returns an object containing all values', function(done) {
       var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true })
       expect(user.toJSON()).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null })
@@ -1255,6 +1304,90 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         done()
       })
     })
+
+    it("sql should have paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll();
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll();
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+    });
+
+    it("sequelize.and as where should include paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.and({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.and({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+
+    });
+
+    it("sequelize.or as where should include paranoid condition", function ( done ) {
+      var self = this;
+
+      self.ParanoidUser.create({ username: 'cuss' })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.or({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 1 );
+
+          return users[ 0 ].destroy();
+        })
+        .then(function () {
+          return self.ParanoidUser.findAll({
+            where: self.sequelize.or({
+              username: 'cuss'
+            })
+          });
+        })
+        .then(function ( users ) {
+          expect( users ).to.have.length( 0 );
+        })
+        .done( done )
+        .catch( done );
+
+    });
 
     it("escapes a single single quotes properly in where clauses", function(done) {
       var self = this

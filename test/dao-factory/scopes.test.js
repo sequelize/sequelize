@@ -14,16 +14,19 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   beforeEach(function() {
-    this.User = this.sequelize.define('User', {
-      username:     DataTypes.STRING,
-      secretValue:  DataTypes.STRING,
-      data:         DataTypes.STRING,
-      intVal:       DataTypes.INTEGER,
-      theDate:      DataTypes.DATE,
-      aBool:        DataTypes.BOOLEAN
-    });
+    return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
+      this.sequelize = sequelize;
+      this.User = this.sequelize.define('User', {
+        username:     DataTypes.STRING,
+        secretValue:  DataTypes.STRING,
+        data:         DataTypes.STRING,
+        intVal:       DataTypes.INTEGER,
+        theDate:      DataTypes.DATE,
+        aBool:        DataTypes.BOOLEAN
+      });
 
-    return this.User.sync({ force: true });
+      return this.User.sync({ force: true });
+    });
   });
 
   describe('scopes', function() {
@@ -32,7 +35,8 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         username: Sequelize.STRING,
         email: Sequelize.STRING,
         access_level: Sequelize.INTEGER,
-        other_value: Sequelize.INTEGER
+        other_value: Sequelize.INTEGER,
+        parent_id: Sequelize.INTEGER
       }, {
         defaultScope: {
           where: {
@@ -107,12 +111,30 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       return this.sequelize.sync({force: true}).then(function() {
         var records = [
-          {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
-          {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
-          {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7}
+          {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10, parent_id: 1},
+          {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, parent_id: 2},
+          {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7, parent_id: 1},
+          {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7, parent_id: 1}
         ];
         return this.ScopeMe.bulkCreate(records);
       }.bind(this));
+    });
+
+    it("should be able use where in scope", function() {
+      return this.ScopeMe.scope({where: { parent_id: 2 }}).findAll().then(function(users) {
+        expect(users).to.be.an.instanceof(Array);
+        expect(users.length).to.equal(1);
+        expect(users[0].username).to.equal('tobi');
+      });
+    });
+
+    it("should be able to combine scope and findAll where clauses", function() {
+      return this.ScopeMe.scope({where: { parent_id: 1 }}).findAll({ where: {access_level: 3}}).then(function(users) {
+        expect(users).to.be.an.instanceof(Array);
+        expect(users.length).to.equal(2);
+        expect(['tony', 'fred'].indexOf(users[0].username) !== -1).to.be.true;
+        expect(['tony', 'fred'].indexOf(users[1].username) !== -1).to.be.true;
+      });
     });
 
     it("should have no problems with escaping SQL", function() {
@@ -262,12 +284,12 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     it("should be able to remove all scopes", function() {
       return this.ScopeMe.scope(null).findAll().then(function(users) {
         expect(users).to.be.an.instanceof(Array);
-        expect(users.length).to.equal(3);
+        expect(users.length).to.equal(4);
       });
     });
 
     it("should have no problem performing findOrCreate", function() {
-      return this.ScopeMe.findOrCreate({username: 'fake'}).spread(function(user) {
+      return this.ScopeMe.findOrCreate({ where: {username: 'fake'}}).spread(function(user) {
         expect(user.username).to.equal('fake');
       });
     });

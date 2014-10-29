@@ -188,7 +188,7 @@ var Support = {
 };
 
 var sequelize = Support.createSequelizeInstance();
-
+//
 // For Postgres' HSTORE functionality and to properly execute it's commands we'll need this...
 before(function() {
   var dialect = Support.getTestDialect();
@@ -204,5 +204,6 @@ beforeEach(function() {
 
   return Support.clearDatabase(this.sequelize);
 });
+
 
 module.exports = Support;

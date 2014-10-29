@@ -23,6 +23,10 @@
   /* questionable */
   "loopfunc":true,
 
+  "globals": {
+    "Promise": true
+  },
+
   "predef": [
     "alert",
     "describe",

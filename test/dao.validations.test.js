@@ -269,7 +269,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
         User.sync({ force: true }).success(function() {
           User.create({ username: 'bob', email: 'hello@world.com' }).success(function(user) {
             User
-              .update({ username: 'toni' }, { id: user.id })
+              .update({ username: 'toni' }, { where: {id: user.id }})
               .error(function(err) { console.log(err) })
               .success(function() {
                 User.find(1).success(function(user) {
@@ -316,7 +316,7 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
 
         Model.sync({ force: true }).success(function() {
           Model.create({name: 'World'}).success(function() {
-            Model.update({name: ''}, {id: 1}).error(function(err) {
+            Model.update({name: ''}, {where: {id: 1}}).error(function(err) {
               expect(err).to.be.an.instanceOf(Error)
               expect(err.get('name')[0].message).to.equal('Validation notEmpty failed')
               done()
