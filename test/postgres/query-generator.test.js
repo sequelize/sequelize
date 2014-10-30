@@ -249,9 +249,10 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."id";',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: [["id", 'DESC']]}],
-          expectation: 'SELECT * FROM "myTable" ORDER BY "id" DESC;',
-          context: QueryGenerator
+          arguments: ['myTable', {order: [["id", 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC;',
+          context: QueryGenerator,
+          needsSequelize: true
         }, {
          title: 'raw arguments are neither quoted nor escaped',
           arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
@@ -984,7 +985,8 @@ if (dialect.match(/^postgres/)) {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
             if (test.needsSequelize) {
-              test.arguments[1] = test.arguments[1](this.sequelize);
+              if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
+              if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
             QueryGenerator.options = context.options;
             QueryGenerator._dialect = this.sequelize.dialect;
