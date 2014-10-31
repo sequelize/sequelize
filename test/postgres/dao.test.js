@@ -370,6 +370,26 @@ if (dialect.match(/^postgres/)) {
       })
     })
 
+    describe('timestamps', function () {
+      beforeEach( function (done) {
+        this.User = this.sequelize.define('User', {
+          dates : DataTypes.ARRAY(DataTypes.DATE)
+        })
+        this.User.sync({ force: true }).success(function() {
+          done()
+        })
+      })
+
+      it('should use postgres "TIMESTAMP WITH TIME ZONE" instead of "DATETIME"', function (done) {
+        this.User.create({
+          dates: []
+        }).on('sql', function(sql) {
+          expect(sql.indexOf('TIMESTAMP WITH TIME ZONE')).to.be.greaterThan(0)
+          done()
+        })
+      })
+    })
+
     describe('model', function() {
       it("create handles array correctly", function(done) {
         this.User
