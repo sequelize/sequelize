@@ -235,6 +235,97 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       }
     })
 
+    it('should accept nested `where` and `limit` at the same time', function (done) {
+      var Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          })
+        , ProductTag = this.sequelize.define('ProductTag', {
+            priority: DataTypes.INTEGER
+        })
+        , Set = this.sequelize.define('Set', {
+          title: DataTypes.STRING
+        })
+
+      Set.hasMany(Product)
+      Product.belongsTo(Set)
+      Product.hasMany(Tag, {through: ProductTag})
+      Tag.hasMany(Product, {through: ProductTag})
+
+      this.sequelize.sync({force: true}).done(function () {
+        async.auto({
+          sets: function(callback) {
+            Set.bulkCreate([
+              {title: 'office'}
+            ]).done(function () {
+              Set.findAll().done(callback)
+            })
+          },
+          products: function (callback) {
+            Product.bulkCreate([
+              {title: 'Chair'},
+              {title: 'Desk'},
+              {title: 'Dress'}
+            ]).done(function () {
+              Product.findAll().done(callback)
+            })
+          },
+          tags: function(callback) {
+            Tag.bulkCreate([
+              {name: 'A'},
+              {name: 'B'},
+              {name: 'C'}
+            ]).done(function () {
+              Tag.findAll().done(callback)
+            })
+          },
+          productSets: ['sets','products', function(callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+            chainer.add(results.sets[0].addProduct(results.products[0]))
+            chainer.add(results.sets[0].addProduct(results.products[1]))
+            chainer.run().done(callback)
+          }],
+          productTags: ['products', 'tags', function (callback, results) {
+            var chainer = new Sequelize.Utils.QueryChainer()
+            chainer.add(results.products[0].addTag(results.tags[0], {priority: 1}))
+            chainer.add(results.products[0].addTag(results.tags[1], {priority: 2}))
+
+            chainer.add(results.products[1].addTag(results.tags[1], {priority: 1}))
+
+            chainer.add(results.products[2].addTag(results.tags[0], {priority: 3}))
+            chainer.add(results.products[2].addTag(results.tags[1], {priority: 1}))
+            chainer.add(results.products[2].addTag(results.tags[2], {priority: 2}))
+
+            chainer.run().done(callback)
+          }]
+        }, function (err) {
+          expect(err).not.to.be.ok
+
+          Set.findAll({
+            include: [
+              {
+                model: Product,
+                include: [
+                  {
+                    model: Tag,
+                    where: {
+                      name: 'A'
+                    }
+                  }
+                ]
+            }],
+            limit: 1
+          }).done(function (err, products) {
+            expect(err).not.to.be.ok
+            done()
+          })
+        })
+      })
+
+
+    })
     it('should support an include with multiple different association types', function (done) {
       var User = this.sequelize.define('User', {})
         , Product = this.sequelize.define('Product', {
