@@ -248,6 +248,17 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         });
       });
     });
+
+    it('should work with enums (1)', function () {
+      return this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
+    });
+
+    it('should work with enums (2)', function () {
+      return this.queryInterface.addColumn('users', 'someOtherEnum', {
+        type: DataTypes.ENUM,
+        values: ['value1', 'value2', 'value3']
+      });
+    });
   });
 
   describe('describeForeignKeys', function() {
