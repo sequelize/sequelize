@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     });
   });
 
-  it.only('can handle n:m associations', function() {
+  it('can handle n:m associations', function() {
     var self = this;
 
     var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
@@ -60,7 +60,6 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier');
     var rawAttributes = _.keys(this.sequelize.models.Family.rawAttributes);
 
-    console.log(rawAttributes);
     expect(foreignIdentifiers.length).to.equal(2);
     expect(rawAttributes.length).to.equal(4);
 
