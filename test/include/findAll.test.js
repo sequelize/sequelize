@@ -1057,11 +1057,16 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             // Test
             User.find({
               where: { username: 'John'},
-              include: [
-                { model: Address, include: [
-                  { model: Street }
-                ], required: true, where: { active: true } }
-              ]
+              include: [{
+                model: Address,
+                required: true,
+                where: {
+                  active: true
+                },
+                include: [{
+                  model: Street
+                }]
+              }]
             }).done(function (err, john) {
               expect(err).not.to.be.ok
               expect(john.Address).to.be.ok
@@ -1123,7 +1128,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err) {
+        }, function (err) {          
           expect(err).not.to.be.ok
 
           User.findAll({
