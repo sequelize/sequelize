@@ -1048,6 +1048,31 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('supports .field', function () {
+      var UserProject = this.sequelize.define('UserProject', {
+        userId: {
+          type: DataTypes.INTEGER,
+          field: 'user_id'
+        }
+      });
+
+      return UserProject.sync({force: true}).then(function () {
+        return UserProject.create({
+          userId: 10
+        });
+      }).then(function (userProject) {
+        return UserProject.destroy({
+          where: {
+            userId: 10
+          }
+        });
+      }).then(function () {
+        return UserProject.findAll();
+      }).then(function (userProjects) {
+        expect(userProjects.length).to.equal(0);
+      });
+    });
+
     it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
       var self = this
         , ParanoidUser = self.sequelize.define('ParanoidUser', {
