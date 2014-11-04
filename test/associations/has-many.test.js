@@ -1582,8 +1582,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           var project = projects[0];
 
           expect(project).to.be.defined;
-          return self.user.removeProject(project);
-        }).then(function() {
+          return self.user.removeProject(project).on('sql', function (sql) {
+          }).return(project);
+        }).then(function(project) {
           return self.user.setProjects([project]);
         });
       });
