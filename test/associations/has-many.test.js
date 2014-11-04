@@ -1566,8 +1566,9 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
 
       it('should correctly get associations even after a child instance is deleted', function() {
-        var self = this;
-        return this.sequelize.sync({force: true}).then(function() {
+        var self = this,
+          user, projects;
+        return this.sequelize.sync({logging: console.log}).then(function() {
           return Promise.all([
             self.User.create({name: 'Matt'}),
             self.Project.create({name: 'Good Will Hunting'}),
@@ -1583,14 +1584,20 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
               user.getProjects()
               ]);
           })
-          .spread(function(user, projects) {
+          .then(function(savedUser, savedProjects) {
+            var user = savedUser,
+              projects = savedProjects;
+            return Promise.all([
+              self.sequelize.query('alter table user_projects drop constraint user_projects_project_id_fkey;'),
+              self.sequelize.query('alter table user_projects drop constraint user_projects_user_id_fkey;')
+              ])
+          })
+          .spread(function() {
             var project = projects[0];
-
             expect(project).to.be.defined;
             return project.destroy().return(user);
           })
           .then(function(user) {
-            return user.getProjects();
             return self.User.find({
               where: { id: user.id},
               include: self.Project
