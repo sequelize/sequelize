@@ -67,7 +67,7 @@ if (dialect.match(/^postgres/)) {
           username: 'bob',
           emergency_contact: { name: 'joe', phones: [1337, 42] }
         }).on('sql', function (sql) {
-          var expected = 'INSERT INTO "Users" ("id","username","document","emergency_contact","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',\'"default"=>"value"\',\'{"name":"joe","phones":[1337,42]}\''
+          var expected = 'INSERT INTO "Users" ("id","username","document","emergency_contact","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',\'"default"=>"\'\'value\'\'"\',\'{"name":"joe","phones":[1337,42]}\''
           expect(sql.indexOf(expected)).to.equal(0);
         });
       });
