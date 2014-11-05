@@ -7,6 +7,7 @@ var chai      = require('chai')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , datetime  = require('chai-datetime')
   , async     = require('async')
+  , Promise   = Sequelize.Promise;
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -235,7 +236,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       }
     })
 
-    it('should accept nested `where` and `limit` at the same time', function (done) {
+    it('should accept nested `where` and `limit` at the same time', function () {
       var Product = this.sequelize.define('Product', {
             title: DataTypes.STRING
           })
@@ -246,77 +247,54 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             priority: DataTypes.INTEGER
         })
         , Set = this.sequelize.define('Set', {
-          title: DataTypes.STRING
-        })
+            title: DataTypes.STRING
+        });
 
-      Set.hasMany(Product)
-      Product.belongsTo(Set)
-      Product.hasMany(Tag, {through: ProductTag})
-      Tag.hasMany(Product, {through: ProductTag})
+      Set.hasMany(Product);
+      Product.belongsTo(Set);
+      Product.hasMany(Tag, {through: ProductTag});
+      Tag.hasMany(Product, {through: ProductTag});
 
-      this.sequelize.sync({force: true}).then(function () {
-
-        return Set.bulkCreate([
-                       {title: 'office'}
-        ])
-        .then( function() {
-          return Product.bulkCreate([
-                             {title: 'Chair'},
-                             {title: 'Desk'},
-                             {title: 'Dress'}
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          Set.bulkCreate([
+            {title: 'office'}
+          ]),
+          Product.bulkCreate([
+            {title: 'Chair'},
+            {title: 'Desk'},
+            {title: 'Dress'}
+          ]),
+          Tag.bulkCreate([
+            {name: 'A'},
+            {name: 'B'},
+            {name: 'C'}
           ])
-        })
-        .then( function() {
-          return Tag.bulkCreate([
-                         {name: 'A'},
-                         {name: 'B'},
-                         {name: 'C'}
-          ]).done(function () {
-            return Tag.findAll()
-          })
-        })
-        .then(function() {
-          return Set.findAll()
-        })
-        .then(function(sets) {
-          return [sets, Product.findAll()]
-        })
-        .spread( function(sets, products) {
-          return sets[0].addProduct(products[0])
-          .then( function() {
-            return sets[0].addProduct(products[1])
-          }).then( function() {
-            return [sets, products]
-          })
-        })
-        .spread( function(sets, products) {
-          return [sets, products, Tag.findAll()]
-        })
-        .spread( function(sets, products, tags) {
-          return products[0].addTag(tags[0], {priority:1})
-          .then( function() {
-            return products[0].addTag(tags[1], {priority:2})
-          })
-          .then( function() {
-            return products[0].addTag(tags[2], {priority:1})
-          })
-          .then( function() {
-            return products[1].addTag(tags[1], {priority:2})
-          })
-          .then( function() {
-            return products[2].addTag(tags[1], {priority:3})
-          })
-          .then( function() {
-            return products[2].addTag(tags[2], {priority:0})
-          })
-        })
-        .then( function() {
+        ).then(function () {
+          return Promise.join(
+            Set.findAll(),
+            Product.findAll(),
+            Tag.findAll()
+          );
+        }).spread(function (sets, products, tags) {
+          return Promise.join(
+            sets[0].addProducts([products[0], products[1]]),
+            products[0].addTag(tags[0], {priority: 1}).then(function() {
+              return products[0].addTag(tags[1], {priority:2});
+            }).then(function() {
+              return products[0].addTag(tags[2], {priority:1});
+            }),
+            products[1].addTag(tags[1], {priority:2}).then(function() {
+              return products[2].addTag(tags[1], {priority:3});
+            }).then( function() {
+              return products[2].addTag(tags[2], {priority:0});
+            })
+          );
+        }).then(function() {
           return Set.findAll({
-            include: [
-              {
+            include: [{
               model: Product,
-              include: [
-                {
+              include: [{
                 model: Tag,
                 where: {
                   name: 'A'
@@ -324,17 +302,12 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               }]
             }],
             limit: 1
-          })
-        })
-        .then( function() {
-          done()
-        })
-        .catch(function (err) {
-            expect(err).not.to.be.ok
-            done()
-          })
-        })
-      })
+          }).on('sql', function (sql) {
+            console.log(sql);
+          });
+        });
+      });
+    });
     it('should support an include with multiple different association types', function (done) {
       var User = this.sequelize.define('User', {})
         , Product = this.sequelize.define('Product', {
