@@ -457,38 +457,30 @@ if (dialect.match(/^postgres/)) {
           })
       })
 
-      it("should read hstore correctly", function(done) {
+      it("should read hstore correctly", function() {
         var self = this
         var data = { username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }}
 
-        this.User
-          .create(data)
-          .success(function() {
-            // Check that the hstore fields are the same when retrieving the user
-            self.User.find({ where: { username: 'user' }})
-              .success(function(user) {
-                expect(user.settings).to.deep.equal(data.settings)
-
-                done()
-              })
+        return this.User.create(data)
+          .then(function() {
+            return self.User.find({ where: { username: 'user' }})
           })
-          .error(console.log)
+          .then(function(user){
+            // Check that the hstore fields are the same when retrieving the user
+            expect(user.settings).to.deep.equal(data.settings)
+          })
       })
 
-      it('should read an hstore array correctly', function(done) {
+      it('should read an hstore array correctly', function() {
         var self = this
         var data = { username: 'user', email: ['foo@bar.com'], phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }] }
 
-        this.User
-          .create(data)
-          .success(function() {
+        return this.User.create(data)
+          .then(function() {
             // Check that the hstore fields are the same when retrieving the user
-            self.User.find({ where: { username: 'user' }})
-              .success(function(user) {
-                expect(user.phones).to.deep.equal(data.phones)
-
-                done()
-              })
+            return self.User.find({ where: { username: 'user' }});
+          }).then(function(user) {
+            expect(user.phones).to.deep.equal(data.phones)
           })
       })
 
