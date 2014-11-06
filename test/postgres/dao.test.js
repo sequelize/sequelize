@@ -20,8 +20,7 @@ if (dialect.match(/^postgres/)) {
         phones: DataTypes.ARRAY(DataTypes.HSTORE),
         emergency_contact: DataTypes.JSON
       })
-      this.User.sync({ force: true })
-      .success(function() {
+      this.User.sync({ force: true }).success(function() {
         done()
       })
     })
@@ -180,23 +179,21 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('hstore', function() {
-      it('should tell me that a column is hstore and not USER-DEFINED', function(done) {
-        this.sequelize.queryInterface.describeTable('Users').success(function(table) {
+      it('should tell me that a column is hstore and not USER-DEFINED', function() {
+        return this.sequelize.queryInterface.describeTable('Users').then(function(table) {
           expect(table.settings.type).to.equal('HSTORE')
           expect(table.document.type).to.equal('HSTORE')
-          done()
         })
       })
 
-      it('should stringify hstore with insert', function(done) {
-        this.User.create({
+      it('should stringify hstore with insert', function() {
+        return this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
           settings: {mailing: false, push: 'facebook', frequency: 3}
         }).on('sql', function(sql) {
           var expected = 'INSERT INTO "Users" ("id","username","email","settings","document","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',ARRAY[\'myemail@email.com\']::TEXT[],\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\''
           expect(sql.indexOf(expected)).to.equal(0)
-          done()
         })
       })
 
@@ -385,101 +382,79 @@ if (dialect.match(/^postgres/)) {
           })
       })
 
-      it("should save hstore correctly", function(done) {
-        this.User
-          .create({ username: 'user', email: ['foo@bar.com'], settings: { created: '"value"' }})
-          .success(function(newUser) {
+      it("should save hstore correctly", function() {
+        return this.User.create({ username: 'user', email: ['foo@bar.com'], settings: { created: '"value"' }}).then(function(newUser) {
             // Check to see if the default value for an hstore field works
             expect(newUser.document).to.deep.equal({ default: "'value'" })
             expect(newUser.settings).to.deep.equal({ created: '"value"' })
 
             // Check to see if updating an hstore field works
-            newUser.updateAttributes({settings: {should: 'update', to: 'this', first: 'place'}}).success(function(oldUser){
+            return newUser.updateAttributes({settings: {should: 'update', to: 'this', first: 'place'}}).then(function(oldUser){
               // Postgres always returns keys in alphabetical order (ascending)
               expect(oldUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
-              done()
             })
           })
-          .error(console.log)
       })
 
-      it('should save hstore array correctly', function(done) {
+      it('should save hstore array correctly', function() {
         var User = this.User;
 
-        this.User.create({
+        return this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
           phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }, { number : '8675309', type : "Jenny's"}, {number : '5555554321', type : '"home"' }]
-        })
-        .success(function(){
-          User.find(1)
-          .success(function(user){
+        }).then(function(){
+          return User.find(1).then(function(user){
             expect(user.phones.length).to.equal(4);
             expect(user.phones[1].number).to.equal('987654321');
             expect(user.phones[2].type).to.equal("Jenny's");
             expect(user.phones[3].type).to.equal('"home"');
-            done();
           })
-          .error(done)
         })
-        .error(done)
       })
 
-      it('should bulkCreate with hstore property', function(done) {
+      it('should bulkCreate with hstore property', function() {
         var User = this.User;
 
-        this.User.bulkCreate([{
+        return this.User.bulkCreate([{
           username: 'bob',
           email: ['myemail@email.com'],
           settings: {mailing: true, push: 'facebook', frequency: 3}
-        }])
-        .success(function(){
-          User.find(1)
-          .success(function(user){
+        }]).then(function(){
+          return User.find(1).then(function(user){
             expect(user.settings.mailing).to.equal("true")
-            done()
           })
-          .error(done)
         })
-        .error(done)
       })
 
-      it("should update hstore correctly", function(done) {
-        var self = this
+      it("should update hstore correctly", function() {
+        var self = this;
 
-        this.User
-          .create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }})
-          .success(function(newUser) {
+        return this.User.create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }}).then(function(newUser) {
             // Check to see if the default value for an hstore field works
             expect(newUser.document).to.deep.equal({default: "'value'"})
             expect(newUser.settings).to.deep.equal({ test: '"value"' })
 
             // Check to see if updating an hstore field works
-            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: newUser.identifiers}).success(function() {
-              newUser.reload().success(function() {
+            return self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: newUser.identifiers}).then(function() {
+              return newUser.reload().success(function() {
                 // Postgres always returns keys in alphabetical order (ascending)
                 expect(newUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'})
-                done()
-              });
+              })
             })
           })
-          .error(console.log)
       })
 
-      it("should update hstore correctly and return the affected rows", function(done) {
+      it("should update hstore correctly and return the affected rows", function() {
         var self = this
 
-        this.User
-          .create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }})
-          .success(function(oldUser) {
+        return this.User.create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }}).then(function(oldUser) {
             // Update the user and check that the returned object's fields have been parsed by the hstore library
-            self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
+            return self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
               expect(count).to.equal(1);
               expect(users[0].settings).to.deep.equal({should: 'update', to: 'this', first: 'place'})
-              done()
             })
           })
-          .error(console.log)
       })
 
       it("should read hstore correctly", function(done) {
