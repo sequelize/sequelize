@@ -1304,13 +1304,13 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
     })
   })
 
-  describe("undestroy", function(){
+  describe("restore", function(){
     it("returns an error if the model is not paranoid", function(){
       var self = this;
 
       return this.User.create({username : "Peter", secretValue : "42"}).then(function(user){
         return user.destroy().then(function(){
-          return self.User.undestroy({where : {username : "Peter"}}).then(function(){
+          return self.User.restore({where : {username : "Peter"}}).then(function(){
             expect(false).to.be.ok
           }, function(err){
             expect(err).to.exist
@@ -1336,7 +1336,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       return ParanoidUser.sync({ force: true }).then(function() {
         return ParanoidUser.bulkCreate(data).then(function() {
           return ParanoidUser.destroy({where: {secretValue: '42'}}).then(function() {
-            return ParanoidUser.undestroy({where : {secretValue: '42'}}).then(function() {
+            return ParanoidUser.restore({where : {secretValue: '42'}}).then(function() {
               return ParanoidUser.find({where : {secretValue : "42"}}).then(function(user){
                 expect(user).to.be.ok
                 expect(user.username).to.equal("Peter")
