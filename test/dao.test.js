@@ -1828,8 +1828,8 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
             paranoid: true
           })
         , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul',  secretValue: '42' },
-                  { username: 'Bob',   secretValue: '43' }]
+                  { username: 'Paul',  secretValue: '43' },
+                  { username: 'Bob',   secretValue: '44' }]
 
       ParanoidUser.sync({ force: true }).success(function() {
         ParanoidUser.bulkCreate(data).success(function() {
