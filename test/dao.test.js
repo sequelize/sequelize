@@ -1799,25 +1799,21 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
   })
 
   describe("undestroy", function(){
-    it("returns an error if the model is not paranoid", function(done){
+    it("returns an error if the model is not paranoid", function(){
       var self = this;
 
-      this.User.create({username : "Peter", secretValue : "42"})
-      .success(function(user){
-        user.destroy()
-        .success(function(){
-          user.undestroy()
-          .success(function(){
-            done("Should not return success for unparanoid model");
-          })
-          .error(function(err){
-            done()
+      return this.User.create({username : "Peter", secretValue : "42"}).then(function(user){
+        return user.destroy().then(function(){
+          return user.undestroy().then(function(){
+            expect(false).to.be.ok
+          }, function(err){
+            expect(err).to.exist
           })
         })
       })
     })
 
-    it("restores a previously deleted model", function(done){
+    it("restores a previously deleted model", function(){
       var self = this
         , ParanoidUser = self.sequelize.define('ParanoidUser', {
           username:     DataTypes.STRING,
@@ -1831,19 +1827,14 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                   { username: 'Paul',  secretValue: '43' },
                   { username: 'Bob',   secretValue: '44' }]
 
-      ParanoidUser.sync({ force: true }).success(function() {
-        ParanoidUser.bulkCreate(data).success(function() {
-          ParanoidUser.find({where : {secretValue : "42"}})
-          .success(function(user){
-            user.destroy()
-            .success(function() {
-              user.undestroy()
-              .success(function() {
-                ParanoidUser.find({where : {secretValue : "42"}})
-                .success(function(user){
+      return ParanoidUser.sync({ force: true }).then(function() {
+        return ParanoidUser.bulkCreate(data).then(function() {
+          return ParanoidUser.find({where : {secretValue : "42"}}).then(function(user){
+            return user.destroy().then(function() {
+              return user.undestroy().then(function() {
+                return ParanoidUser.find({where : {secretValue : "42"}}).then(function(user){
                   expect(user).to.be.ok
                   expect(user.username).to.equal("Peter")
-                  done()
                 })
               })
             })
