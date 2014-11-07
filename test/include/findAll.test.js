@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         })
       }
     });
-    it.only('should work on pretty complicated case', function () {
+    it('should work on pretty complicated case', function () {
       var User = this.sequelize.define('User', {
       })
       , SubscriptionForm = this.sequelize.define('SubscriptionForm', {
