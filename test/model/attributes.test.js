@@ -517,6 +517,31 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           });
         });
       });
+
+      describe('FLOAT', function() {
+        it('should be able to recover floats of the same value', function() {
+          var User = this.sequelize.define('user', {
+            coolnessFactor: Sequelize.FLOAT,
+          });
+          var self = this;
+          var coolUser;
+          return this.sequelize.sync({ force: true })
+            .then(function() {
+              return self.sequelize.query('ALTER TABLE users ALTER COLUMN "coolnessFactor" TYPE real;');
+            })
+            .then(function() {
+              var user = User.build({coolnessFactor: 5.3});
+              return user.save();
+            })
+            .then(function(user) {
+              coolUser = user;
+              return User.find({where: {coolnessFactor: 5.3}}).on('sql', console.log);
+            })
+            .then(function(hopefullyCoolUser) {
+              expect(hopefullyCoolUser).to.not.be.null;
+            });
+        });
+      });
     });
 
     describe('set', function () {
