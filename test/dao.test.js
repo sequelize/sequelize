@@ -1827,7 +1827,7 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
                   { username: 'Bob',   secretValue: '44' }]
 
       return ParanoidUser.sync({ force: true }).then(function() {
-        ParanoidUser.bulkCreate(data)
+        return ParanoidUser.bulkCreate(data)
       }).then(function() {
         return ParanoidUser.find({where : {secretValue : "42"}});
       }).then(function(user){
