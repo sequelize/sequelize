@@ -236,23 +236,17 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       }
     });
     it('should work on pretty complicated case', function () {
-      var User = this.sequelize.define('User', {
-      })
-      , SubscriptionForm = this.sequelize.define('SubscriptionForm', {
-      })
-      , Collection = this.sequelize.define('Collection', {
-      })
-      , Category= this.sequelize.define('Category', {
-      })
-      , SubCategory = this.sequelize.define('SubCategory', {
-      })
-      , Capital = this.sequelize.define('Capital', {
-      });
+      var User = this.sequelize.define('User', {})
+      , SubscriptionForm = this.sequelize.define('SubscriptionForm', {})
+      , Collection = this.sequelize.define('Collection', {})
+      , Category= this.sequelize.define('Category', {})
+      , SubCategory = this.sequelize.define('SubCategory', {})
+      , Capital = this.sequelize.define('Capital', {});
       
       Capital.hasMany(Category, { foreignKey: 'boundCapital'})
       SubCategory.belongsTo(Category, {foreignKey: 'boundCategory'})
       Category.belongsTo(Capital, {foreignKey:'boundCapital'})
-      Category.hasMany(SubCategory, {foreignKey:'boundCapital'})
+      Category.hasMany(SubCategory, {foreignKey:'boundCategory'})
       Category.hasMany(SubscriptionForm, {foreignKey:'boundCategory'})
       Collection.belongsTo(SubscriptionForm, {foreignKey:'boundDesigner'})
       SubscriptionForm.belongsTo(User, {foreignKey:'boundUser'})
