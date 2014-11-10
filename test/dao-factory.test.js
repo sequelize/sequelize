@@ -1310,11 +1310,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
       return this.User.create({username : "Peter", secretValue : "42"})
       .then(function(user){
-        try{
-          expect(self.User.destroy({where : {secretValue : "42"}})).to.throw(Error, "Model is not paranoid");
-        }catch (ex){
-
-        }
+        expect(function(){self.User.restore({where : {secretValue : "42"}});}).to.throw(Error, "Model is not paranoid");
       })
     })
 
