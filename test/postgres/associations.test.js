@@ -151,7 +151,12 @@ if (dialect.match(/^postgres/)) {
                           self.user.removeTask(self.tasks[0]).on('success', function() {
                             self.user.getTasks().on('success', function(_tasks) {
                               expect(_tasks).to.have.length(self.tasks.length - 1)
-                              done()
+                              self.user.removeTasks([self.tasks[1], self.tasks[2]]).on('success', function() {
+                                self.user.getTasks().on('success', function(_tasks) {
+                                  expect(_tasks).to.have.length(self.tasks.length - 3)
+                                  done()
+                                })
+                              })
                             })
                           })
                         })

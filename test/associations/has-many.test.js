@@ -1986,6 +1986,34 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             expect(tasks.length).to.equal(1);
           });
         });
+
+        it('should remove multiple entries without any attributes (and timestamps off) on the through model', function () {
+          var Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+            , Task = this.sequelize.define('Task', {}, {timestamps: false})
+            , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
+
+          Worker.hasMany(Task, { through: WorkerTasks });
+          Task.hasMany(Worker, { through: WorkerTasks });
+
+          // Test setup
+          return this.sequelize.sync().then(function() {
+            return Sequelize.Promise.all([
+              Worker.create({}),
+              Task.bulkCreate([{}, {}, {}]).then(function () {
+                return Task.findAll();
+              })
+            ]);
+          }).spread(function (worker, tasks) {
+            // Set all tasks, then remove two tasks, then return all tasks
+            return worker.setTasks(tasks).then(function () {
+              return worker.removeTasks([tasks[0], tasks[1]]);
+            }).then(function () {
+              return worker.getTasks();
+            });
+          }).then(function (tasks) {
+            expect(tasks.length).to.equal(1);
+          });
+        });
       });
     });
 
