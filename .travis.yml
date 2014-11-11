@@ -1,15 +1,13 @@
-before_script:
-  - "mysql -e 'create database sequelize_test;'"
-  - "psql -c 'create database sequelize_test;' -U postgres"
+language: node_js
 
-script:
-  - "make test"
+node_js:
+  - "0.10"
 
-notifications:
-  hipchat:
-    - 40e8850aaba9854ac4c9963bd33f8b@253477
-  irc:
-    - "chat.freenode.net#sequelizejs"
+sudo: false
+
+cache:
+  directories:
+    - node_modules
 
 env:
   - DB=mysql DIALECT=mysql
@@ -18,30 +16,32 @@ env:
   - DB=mysql DIALECT=sqlite
   - DB=mysql DIALECT=mariadb
 
-language: node_js
+addons:
+  postgresql: "9.3"
+  
+before_script:
+  - "mysql -e 'create database sequelize_test;'"
+  - "psql -c 'create database sequelize_test;' -U postgres"
 
-node_js:
-  - "0.10"
+script:
+  - "make test"
 
 branches:
   only:
     - master
     - 1.7.0
 
-cache:
-  directories:
-    - node_modules
-
 matrix:
   fast_finish: true
-
   include:
     - node_js: "0.10"
       env: COVERAGE=true
-
   allow_failures:
     - node_js: "0.10"
       env: COVERAGE=true
 
-addons:
-  postgresql: "9.3"
+notifications:
+  hipchat:
+    - 40e8850aaba9854ac4c9963bd33f8b@253477
+  irc:
+    - "chat.freenode.net#sequelizejs"
