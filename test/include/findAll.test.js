@@ -257,24 +257,20 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       return this.sequelize.sync({force: true})
       .then(function() {
         return User.find({
-          include: [
-            {
+          include: [{
             model: SubscriptionForm,
-            include: [
-              {
+            include: [{
               model: Collection,
               where: {
                 id: 0
               }
             }, {
               model: Category,
-              include: [
-                {
+              include: [{
                 model: SubCategory
               }, {
                 model: Capital,
-                include: [
-                  {
+                include: [{
                   model: Category
                 }]
               }]
