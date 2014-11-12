@@ -342,7 +342,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           }
         });
       });
-    });
+    })
 
     it('allows us to customize the error message for unique constraint', function(done) {
       var self = this
@@ -356,6 +356,40 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       User.sync({ force: true }).success(function() {
         User.create({username: 'tobi', email: 'tobi@tobi.me'}).success(function() {
           User.create({username: 'tobi', email: 'tobi@tobi.me'}).catch(self.sequelize.UniqueConstraintError, function(err) {
+            expect(err.message).to.equal('User and email must be unique')
+            done()
+          })
+        })
+      })
+    })
+
+    // If you use migrations to create unique indexes that have explicit names and/or contain fields
+    // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
+    it('allows us to map the customized error message with unique constraint name', function(done) {
+      // Fake migration style index creation with explicit index definition
+      var self = this
+        , User = this.sequelize.define('UserWithUniqueUsername', {
+            user_id: { type: Sequelize.INTEGER},
+            email: { type: Sequelize.STRING}
+          }, {
+            indexes: [
+            {
+              name: 'user_and_email_index',
+              msg: 'User and email must be unique',
+              unique: true,
+              method: 'BTREE',
+              fields: ['user_id', {attribute:'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
+            }]
+          });
+
+      User.sync({ force: true }).success(function() {
+        // Redefine the model to use the index in database and override error message
+        User = self.sequelize.define('UserWithUniqueUsername', {
+            user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
+            email: { type: Sequelize.STRING, unique: 'user_and_email_index'}
+          });
+        User.create({user_id: 1, email: 'tobi@tobi.me'}).success(function() {
+          User.create({user_id: 1, email: 'tobi@tobi.me'}).catch(self.sequelize.UniqueConstraintError, function(err) {
             expect(err.message).to.equal('User and email must be unique')
             done()
           })
@@ -707,14 +741,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).success(function() {
           sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.findOrInitialize({ 
+              User.findOrInitialize({
                 where: {username: 'foo'}
               }).spread(function(user1) {
-                User.findOrInitialize({ 
+                User.findOrInitialize({
                   where: {username: 'foo'},
                   transaction: t
                 }).spread(function(user2) {
-                  User.findOrInitialize({ 
+                  User.findOrInitialize({
                     where: {username: 'foo'},
                     defaults: { foo: 'asd' },
                     transaction: t
