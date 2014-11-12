@@ -6,7 +6,7 @@
 
 MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
 
-### Install
+## Install
 
 To install 1.x.x (currently 1.7.x) - which has a stable API and is mostly backwards compatible:
 
@@ -18,7 +18,7 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 
 [Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0)
 
-### Features
+## Features
 
 - Schema definition
 - Schema synchronization/dropping
@@ -31,7 +31,7 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 - Migrations
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
-### Resources
+## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
 - [Getting Started](http://sequelizejs.com/articles/getting-started)
 - [Documentation](http://sequelizejs.com/docs)
@@ -39,11 +39,9 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 - [Roadmap](https://github.com/sequelize/sequelize/wiki/Roadmap)
 - [Meetups](https://github.com/sequelize/sequelize/wiki/Meetups)
-- [Twitter](http://twitter.com/sdepold)
-- [IRC](http://webchat.freenode.net?channels=sequelizejs)
+- [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS
+- [IRC](http://webchat.freenode.net?channels=sequelizejs): sequelizejs on Freenode
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
 
 ## Running Examples
-Instructions for running samples are located in the [example directory](https://github.com/sequelize/sequelize/tree/master/examples). Try these samples in a live sandbox environment:
-
-<a href="https://runnable.com/sequelize" target="_blank"><img src="https://runnable.com/external/styles/assets/runnablebtn.png"></a>
+Instructions for running samples are located in the [example directory](https://github.com/sequelize/sequelize/tree/master/examples). Try these samples in a <a href="https://runnable.com/sequelize" target="_blank">live sandbox environment</a>. These examples are outdated for Sequelize 2.0 and need to be updated.
