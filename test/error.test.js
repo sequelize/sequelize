@@ -55,6 +55,14 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       expect(matches).to.have.lengthOf(1);
       expect(matches[0]).to.have.property('message', 'invalid');
     });
+    it('SequelizeDatabaseError should keep original message', function() {
+      var orig = new Error('original database error message');
+      var databaseError = new Sequelize.DatabaseError(orig);
+
+      expect(databaseError).to.have.property('parent');
+      expect(databaseError.name).to.equal('SequelizeDatabaseError');
+      expect(databaseError.message).to.equal('original database error message');
+    });
   });
 
   describe('Constraint error', function () {
