@@ -707,14 +707,14 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
         User.sync({ force: true }).success(function() {
           sequelize.transaction().then(function(t) {
             User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.findOrInitialize({ 
+              User.findOrInitialize({
                 where: {username: 'foo'}
               }).spread(function(user1) {
-                User.findOrInitialize({ 
+                User.findOrInitialize({
                   where: {username: 'foo'},
                   transaction: t
                 }).spread(function(user2) {
-                  User.findOrInitialize({ 
+                  User.findOrInitialize({
                     where: {username: 'foo'},
                     defaults: { foo: 'asd' },
                     transaction: t
@@ -1301,6 +1301,45 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
        run.call(self)
      })
 
+    })
+  })
+
+  describe("restore", function(){
+    it("returns an error if the model is not paranoid", function(){
+      var self = this;
+
+      return this.User.create({username : "Peter", secretValue : "42"})
+      .then(function(user){
+        expect(function(){self.User.restore({where : {secretValue : "42"}});}).to.throw(Error, "Model is not paranoid");
+      })
+    })
+
+    it("restores a previously deleted model", function(){
+      var self = this
+        , ParanoidUser = self.sequelize.define('ParanoidUser', {
+          username:     Sequelize.STRING,
+          secretValue:  Sequelize.STRING,
+          data:         Sequelize.STRING,
+          intVal:       { type: Sequelize.INTEGER, defaultValue: 1}
+        }, {
+            paranoid: true
+          })
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '43' },
+                  { username: 'Bob',   secretValue: '44' }]
+
+      return ParanoidUser.sync({ force: true }).then(function() {
+        return ParanoidUser.bulkCreate(data);
+      }).then(function() {
+        return ParanoidUser.destroy({where: {secretValue: '42'}});
+      }).then(function() {
+        return ParanoidUser.restore({where : {secretValue: '42'}});
+      }).then(function() {
+        return ParanoidUser.find({where : {secretValue : "42"}});
+      }).then(function(user){
+        expect(user).to.be.ok
+        expect(user.username).to.equal("Peter")
+      })
     })
   })
 

@@ -1797,4 +1797,46 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
       })
     })
   })
+
+  describe("restore", function(){
+    it("returns an error if the model is not paranoid", function(){
+      var self = this;
+
+      return this.User.create({username : "Peter", secretValue : "42"})
+      .then(function(user){
+        expect(function(){user.restore();}).to.throw(Error, "Model is not paranoid");
+      })
+    })
+
+    it("restores a previously deleted model", function(){
+      var self = this
+        , ParanoidUser = self.sequelize.define('ParanoidUser', {
+          username:     DataTypes.STRING,
+          secretValue:  DataTypes.STRING,
+          data:         DataTypes.STRING,
+          intVal:       { type: DataTypes.INTEGER, defaultValue: 1}
+        }, {
+            paranoid: true
+          })
+        , data = [{ username: 'Peter', secretValue: '42' },
+                  { username: 'Paul',  secretValue: '43' },
+                  { username: 'Bob',   secretValue: '44' }]
+
+      return ParanoidUser.sync({ force: true }).then(function() {
+        return ParanoidUser.bulkCreate(data)
+      }).then(function() {
+        return ParanoidUser.find({where : {secretValue : "42"}});
+      }).then(function(user){
+        return user.destroy()
+        .then(function(){
+          return user.restore();
+        });
+      }).then(function() {
+        return ParanoidUser.find({where : {secretValue : "42"}})
+      }).then(function(user){
+        expect(user).to.be.ok
+        expect(user.username).to.equal("Peter")
+      })
+    })
+  })
 })
