@@ -344,7 +344,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       });
     })
 
-    it('allows us to customize the error message for unique constraint', function(done) {
+    it('allows us to customize the error message for unique constraint', function() {
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
             username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
@@ -353,19 +353,18 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
           })
 
-      User.sync({ force: true }).bind(this).then(function() {
+      return User.sync({ force: true }).bind(this).then(function() {
         return self.sequelize.Promise.all([
           User.create({username: 'tobi', email: 'tobi@tobi.me'}),
           User.create({username: 'tobi', email: 'tobi@tobi.me'})])
       }).catch(self.sequelize.UniqueConstraintError, function(err) {
         expect(err.message).to.equal('User and email must be unique')
-        done()
-      })
+      });
     })
 
     // If you use migrations to create unique indexes that have explicit names and/or contain fields
     // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
-    it('allows us to map the customized error message with unique constraint name', function(done) {
+    it('allows us to map the customized error message with unique constraint name', function() {
       // Fake migration style index creation with explicit index definition
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
@@ -382,7 +381,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
             }]
           });
 
-      User.sync({ force: true }).bind(this).then(function() {
+      return User.sync({ force: true }).bind(this).then(function() {
         // Redefine the model to use the index in database and override error message
         User = self.sequelize.define('UserWithUniqueUsername', {
             user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
@@ -393,8 +392,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           User.create({user_id: 1, email: 'tobi@tobi.me'})])
       }).catch(self.sequelize.UniqueConstraintError, function(err) {
         expect(err.message).to.equal('User and email must be unique')
-        done()
-      })
+      });
     })
 
     it('should allow the user to specify indexes in options', function () {
