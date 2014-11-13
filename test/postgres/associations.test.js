@@ -18,7 +18,7 @@ if (dialect.match(/^postgres/)) {
           Table1.hasMany(Table2)
           Table2.hasMany(Table1)
 
-          expect(this.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).to.exist
+          expect(this.sequelize.daoFactoryManager.getDAO('wp_table1wp_table2')).to.exist
           done()
         })
       })

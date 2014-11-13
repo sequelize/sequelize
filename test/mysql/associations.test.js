@@ -18,7 +18,7 @@ if (Support.dialectIsMySQL()) {
           Table2.hasMany(Table1)
           Table1.sync({ force: true }).success(function() {
             Table2.sync({ force: true }).success(function() {
-              expect(self.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).to.exist
+              expect(self.sequelize.daoFactoryManager.getDAO('wp_table1wp_table2')).to.exist
               done()
             })
           })

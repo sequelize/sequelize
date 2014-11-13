@@ -2093,7 +2093,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         return this.sequelize.sync({force:true}).then(function () {
           return self.sequelize.getQueryInterface().showAllTables();
         }).then(function (result) {
-          expect(result.indexOf('group_user')).not.to.equal(-1);
+          expect(result.indexOf('group_users')).not.to.equal(-1);
         });
       });
 
@@ -2346,7 +2346,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       beforeEach(function () {
         this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
         this.User = this.sequelize.define('user', { username: DataTypes.STRING });
-        this.UserTasks = this.sequelize.define('tasksusers', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+        this.UserTask = this.sequelize.define('taskuser', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
       });
 
       it("can cascade deletes both ways by default", function () {
@@ -2378,8 +2378,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ]);
         }).then(function () {
           return Promise.all([
-            self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
-            self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }})
+            self.sequelize.model('taskuser').findAll({ where: { userId: this.user1.id }}),
+            self.sequelize.model('taskuser').findAll({ where: { taskId: this.task2.id }})
           ]);
         }).spread(function (tu1, tu2) {
           expect(tu1).to.have.length(0);
@@ -2452,7 +2452,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
             ]);
           }).then(function () {
             expect(spy).to.have.been.calledOnce;
-            return self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }});
+            return self.sequelize.model('taskuser').findAll({ where: { taskId: this.task2.id }});
           }).then(function(usertasks) {
             // This should not exist because deletes cascade
             expect(usertasks).to.have.length(0);
@@ -2490,8 +2490,8 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
           ]);
         }).then(function () {
           return Promise.all([
-            self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
-            self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }}),
+            self.sequelize.model('taskuser').findAll({ where: { userId: this.user1.id }}),
+            self.sequelize.model('taskuser').findAll({ where: { taskId: this.task2.id }}),
           ]);
         }).spread(function (ut1, ut2) {
           expect(ut1).to.have.length(1);
