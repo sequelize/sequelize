@@ -22,7 +22,7 @@ if (dialect !== 'sqlite') {
       var now = 'now()'
         , startQueryTime = Date.now();
 
-      if(dialect === 'mssql'){
+      if (dialect === 'mssql') {
         now = 'GETDATE()';
       }
 
