@@ -63,6 +63,62 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       expect(databaseError.name).to.equal('SequelizeDatabaseError');
       expect(databaseError.message).to.equal('original database error message');
     });
+    it('ConnectionError should keep original message', function() {
+      var orig = new Error('original connection error message');
+      var connectionError = new Sequelize.ConnectionError(orig);
+
+      expect(connectionError).to.have.property('parent');
+      expect(connectionError.name).to.equal('SequelizeConnectionError');
+      expect(connectionError.message).to.equal('original connection error message');
+    });
+    it('ConnectionRefusedError should keep original message', function() {
+      var orig = new Error('original connection error message');
+      var connectionError = new Sequelize.ConnectionRefusedError(orig);
+
+      expect(connectionError).to.have.property('parent');
+      expect(connectionError.name).to.equal('SequelizeConnectionRefusedError');
+      expect(connectionError.message).to.equal('original connection error message');
+    });
+    it('AccessDeniedError should keep original message', function() {
+      var orig = new Error('original connection error message');
+      var connectionError = new Sequelize.AccessDeniedError(orig);
+
+      expect(connectionError).to.have.property('parent');
+      expect(connectionError.name).to.equal('SequelizeAccessDeniedError');
+      expect(connectionError.message).to.equal('original connection error message');
+    });
+    it('HostNotFoundError should keep original message', function() {
+      var orig = new Error('original connection error message');
+      var connectionError = new Sequelize.HostNotFoundError(orig);
+
+      expect(connectionError).to.have.property('parent');
+      expect(connectionError.name).to.equal('SequelizeHostNotFoundError');
+      expect(connectionError.message).to.equal('original connection error message');
+    });
+    it('HostNotReachableError should keep original message', function() {
+      var orig = new Error('original connection error message');
+      var connectionError = new Sequelize.HostNotReachableError(orig);
+
+      expect(connectionError).to.have.property('parent');
+      expect(connectionError.name).to.equal('SequelizeHostNotReachableError');
+      expect(connectionError.message).to.equal('original connection error message');
+    });
+    it('InvalidConnectionError should keep original message', function() {
+      var orig = new Error('original connection error message');
+      var connectionError = new Sequelize.InvalidConnectionError(orig);
+
+      expect(connectionError).to.have.property('parent');
+      expect(connectionError.name).to.equal('SequelizeInvalidConnectionError');
+      expect(connectionError.message).to.equal('original connection error message');
+    });
+    it('ConnectionTimedOutError should keep original message', function() {
+      var orig = new Error('original connection error message');
+      var connectionError = new Sequelize.ConnectionTimedOutError(orig);
+
+      expect(connectionError).to.have.property('parent');
+      expect(connectionError.name).to.equal('SequelizeConnectionTimedOutError');
+      expect(connectionError.message).to.equal('original connection error message');
+    });
   });
 
   describe('Constraint error', function () {
