@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
 
       var seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
       seq.query('select 1 as hello').error(function(err) {
-        expect(err.message).to.match(/Failed to find (.*?) Please double check your settings\./)
+        expect(err.message).to.match(/connect EINVAL/)
         done()
       })
     })
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
 
       var seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
       seq.query('select 1 as hello').error(function(err) {
-        expect(err.message).to.match(/^Failed to authenticate/)
+        expect(err.message).to.match(/connect ECONNREFUSED/)
         done()
       })
     })
