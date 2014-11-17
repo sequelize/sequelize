@@ -3,7 +3,7 @@
 var chai      = require('chai')
   , Sequelize = require('../../index')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support') 
+  , Support   = require(__dirname + '/../support')
   , dialect   = Support.getTestDialect()
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , datetime  = require('chai-datetime')
@@ -229,7 +229,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                   }, callback)
                 },
                 function (err) {
-                  console.log('err', err);
+                  // console.log('err', err);
                   expect(err).not.to.be.ok
                   done()
                 }
@@ -256,14 +256,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       SubscriptionForm.belongsTo(Category, {foreignKey:'boundCategory'});
       Category.hasMany(SubscriptionForm, {foreignKey:'boundCategory'});
-      
+
       Capital.hasMany(Category, { foreignKey: 'boundCapital'});
       Category.belongsTo(Capital, {foreignKey:'boundCapital'});
 
       Category.hasMany(SubCategory, {foreignKey:'boundCategory'});
       SubCategory.belongsTo(Category, {foreignKey: 'boundCategory'});
-      
-      
+
+
       return this.sequelize.sync({force: true}).then(function() {
         return User.find({
           include: [
@@ -1162,7 +1162,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err) {          
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({
