@@ -409,24 +409,27 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     })
 
     it('should allow the user to specify indexes in options', function () {
+      var indices = [{
+        name: 'a_b_uniq',
+        unique: true,
+        method: 'BTREE',
+        fields: ['fieldB', {attribute:'fieldA', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
+      }];
+
+      if (dialect !== 'mssql') {
+        indices.push({
+          type: 'FULLTEXT',
+          fields: ['fieldC'],
+          concurrently: true
+        });
+      }
+
       var Model = this.sequelize.define('model', {
         fieldA: Sequelize.STRING,
         fieldB: Sequelize.INTEGER,
         fieldC: Sequelize.STRING
       }, {
-        indexes: [
-          {
-            name: 'a_b_uniq',
-            unique: true,
-            method: 'BTREE',
-            fields: ['fieldB', {attribute:'fieldA', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
-          },
-          {
-            type: 'FULLTEXT',
-            fields: ['fieldC'],
-            concurrently: true
-          },
-        ],
+        indexes: indices,
         engine: 'MyISAM'
       })
 
@@ -449,6 +452,13 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined}
+          ]);
+        } else if (dialect === 'mssql') {
+          idx1 = arguments[0];
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
+            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined},
           ]);
         } else if (dialect === 'postgres' || dialect === 'mssql') {
           // Postgres returns indexes in alphabetical order
@@ -488,8 +498,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         expect(idx1.name).to.equal('a_b_uniq');
         expect(idx1.unique).to.be.ok;
 
-        expect(idx2.name).to.equal('models_field_c');
-        expect(idx2.unique).not.to.be.ok;
+        if (dialect !== 'mssql') {
+          expect(idx2.name).to.equal('models_field_c');
+          expect(idx2.unique).not.to.be.ok;
+        }
       });
     });
   })
