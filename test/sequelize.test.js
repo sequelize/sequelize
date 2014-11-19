@@ -113,23 +113,26 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
             .authenticate()
             .complete(function(err, result) {
               if (dialect === 'mariadb') {
-                expect(err.message).to.match(/Access denied for user/)
+                expect(err.message).to.match(/Access denied for user/);
               } else if (dialect === 'postgres') {
                 expect(
                   err.message.match(/connect ECONNREFUSED/) ||
                   err.message.match(/invalid port number/)
-                ).to.be.ok
+                ).to.be.ok;
               } else if (dialect === 'mssql'){
-                expect(err.message.match(/ConnectionError: Login failed for user/)).to.be.ok
+                expect(
+                  err.message.match(/ConnectionError: Login failed for user/) ||
+                  err.message.match(/RangeError: Port should be > 0 and < 65536/)
+                ).to.be.ok;
               } else {
                 expect(err.message).to.match(/connect ECONNREFUSED/)
               }
 
-              done()
+              done();
 
-            })
-        })
-      })
+            });
+        });
+      });
 
       describe('with invalid credentials', function() {
         beforeEach(function() {
