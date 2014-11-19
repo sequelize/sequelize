@@ -9,10 +9,10 @@ module.exports = {
   },
 
   rand: function() {
-    return parseInt(Math.random() * 999, 10)
+    return parseInt(Math.random() * 999, 10);
   },
 
-    mssql: {
+  mssql: {
     database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || ('sequelize_test_' + ~~(Math.random() * 100)),
     username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || "sequelize",
     password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || "test",
@@ -63,4 +63,4 @@ module.exports = {
       maxIdleTime:    process.env.SEQ_MYSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
     }
   }
-}
+};
