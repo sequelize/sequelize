@@ -354,9 +354,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           }
         });
       });
-    })
+    });
 
-    if(dialect !== 'mssql' ? it : it.skip)('allows us to customize the error message for unique constraint', function(done) {
+    it('allows us to customize the error message for unique constraint', function() {
+
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
             username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
