@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
     });
     it('errors when no promise chain is returned', function () {
       return expect(this.sequelize.transaction(function (t) {
-        
+
       })).to.eventually.be.rejected;
     });
   });
