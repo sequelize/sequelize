@@ -187,7 +187,8 @@ var Support = {
   }
 };
 
-var sequelize = Support.createSequelizeInstance();
+var sequelize = Support.sequelize = Support.createSequelizeInstance();
+
 //
 // For Postgres' HSTORE functionality and to properly execute it's commands we'll need this...
 before(function() {

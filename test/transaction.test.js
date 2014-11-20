@@ -4,8 +4,8 @@ var chai        = require('chai')
   , dialect     = Support.getTestDialect()
   , Promise     = require(__dirname + '/../lib/promise')
   , Transaction = require(__dirname + '/../lib/transaction')
-  , sinon       = require('sinon');
-
+  , sinon       = require('sinon')
+  , current     = Support.sequelize;
 
 describe(Support.getTestDialectTeaser("Transaction"), function () {
   this.timeout(4000);
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
     });
   });
 
-  if (dialect !== 'sqlite') {
+  if (current.dialect.supports.lock) {
     describe('row locking', function () {
       this.timeout(10000);
       it('supports for update', function (done) {
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
               where: {
                 username: 'jan'
               }
-            }, { 
+            }, {
               lock: t1.LOCK.UPDATE,
               transaction: t1
             }).then(function (t1Jan) {
