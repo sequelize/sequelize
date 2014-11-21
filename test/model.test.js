@@ -313,9 +313,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
 
       User.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
-        if(dialect === 'mssql'){
-          expect(sql).to.contain('"username" NVARCHAR(255) NULL UNIQUE, "email" NVARCHAR(255) NULL UNIQUE, "aCol" NVARCHAR(255) NULL UNIQUE, "bCol" NVARCHAR(255) NULL UNIQUE');
-        }else{
+        if (dialect === 'mssql') {
+          expect(sql).to.match(/CONSTRAINT\s*(user_and_email)?\s*UNIQUE\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*(a_and_b)?\s*UNIQUE\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
+        } else {
           expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/)
           expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/)
         }
@@ -362,8 +363,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         , User = this.sequelize.define('UserWithUniqueUsername', {
             username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
             email: { type: Sequelize.STRING, unique: 'user_and_email' },
-            aCol: { type: Sequelize.STRING, unique: 'a_and_b' },
-            bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
           })
 
       return User.sync({ force: true }).bind(this).then(function() {
@@ -2119,8 +2118,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else if (dialect == 'mssql') {
-          expect(sql).to.match(/"authorId" INTEGER NULL REFERENCES "authors" \("id"\)/)
-        }else {
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/)
+        } else {
           throw new Error('Undefined dialect!')
         }
 
