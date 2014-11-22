@@ -41,9 +41,3 @@ matrix:
   allow_failures:
     - node_js: "0.10"
       env: COVERAGE=true
-
-notifications:
-  hipchat:
-    - 40e8850aaba9854ac4c9963bd33f8b@253477
-  irc:
-    - "chat.freenode.net#sequelizejs"
