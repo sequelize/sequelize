@@ -10,7 +10,8 @@ var chai      = require('chai')
   , moment    = require('moment')
   , sinon     = require('sinon')
   , Promise   = Sequelize.Promise
-  , current   = Support.sequelize;
+  , current   = Support.sequelize
+  , dialect   = Support.getTestDialect();
 
 chai.config.includeStack = true;
 

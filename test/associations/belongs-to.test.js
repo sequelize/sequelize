@@ -6,7 +6,8 @@ var chai      = require('chai')
   , Sequelize = require('../../index')
   , Promise   = Sequelize.Promise
   , assert    = require('assert')
-  , current   = Support.sequelize;
+  , current   = Support.sequelize
+  , dialect   = Support.getTestDialect();
 
 chai.config.includeStack = true
 
