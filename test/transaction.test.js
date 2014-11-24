@@ -56,6 +56,13 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
 
       })).to.eventually.be.rejected;
     });
+    it('supports automatically rolling back with a rejection', function () {
+      return this.sequelize.transaction(function (t) {
+        return Promise.reject('Swag');
+      }).catch(function (err) {
+        expect(err).to.be.ok;
+      });
+    });
   });
 
   it('does not allow queries after commit', function () {

@@ -48,7 +48,7 @@
     "sqlite3": "~3.0.0",
     "mysql": "~2.5.0",
     "pg": "~3.6.0",
-    "mssql": "^1.2.0",
+    "tedious": "^1.7.0",
     "watchr": "~2.4.11",
     "chai": "~1.9.2",
     "mocha": "~2.0.0",
@@ -69,6 +69,7 @@
     "sqlite",
     "postgresql",
     "postgres",
+    "mssql",
     "orm",
     "nodejs",
     "object relational mapper"
