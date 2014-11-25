@@ -20,12 +20,16 @@ if (dialect !== 'sqlite') {
     });
 
     it('returns the same value for current timestamp', function () {
-      var query = "SELECT now() as now";
+      var now = 'now()';
+      var query = "SELECT " + now + " as now";
+      var startQueryTime = Date.now();
+
       return Promise.all([
         this.sequelize.query(query),
         this.sequelizeWithTimezone.query(query)
       ]).spread(function (now1, now2) {
-        expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), 50);
+        var elapsedQueryTime = Date.now() - startQueryTime;
+        expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
       });
     });
 
