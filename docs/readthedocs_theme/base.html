@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% block htmltitle %}
+  <title>{{ page_title }}</title>
+  {% endblock %}
+
+  {# CSS #}
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="{{ base_url }}/css/theme.css" type="text/css" />
+  {%- for path in extra_css %}
+  <link href="{{ path }}" rel="stylesheet">
+  {%- endfor %}
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+  <script src="{{ base_url }}/js/theme.js"></script>
+  {%- for path in extra_javascript %}
+  <script src="{{ path }}"></script>
+  {%- endfor %}
+
+  <style>
+    body {font-size: 90%;}
+    pre, code {font-size: 100%;}
+    h3, h4, h5, h6 {color: #2980b9; font-weight: 300}
+  </style>
+  {%- block extrahead %} {% endblock %}
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    {# SIDE NAV, TOGGLES ON MOBILE #}
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="{{ homepage_url }}" class="icon icon-home"> {{ site_name }}</a>
+        {% include "searchbox.html" %}
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      {% include "toc.html" %}
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      {# MOBILE NAV, TRIGGLES SIDE NAV ON TOGGLE #}
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="icon icon-reorder"></i>
+        <a href="{{ homepage_url }}">{{ project }}</a>
+      </nav>
+
+      {# PAGE CONTENT #}
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          {% include "breadcrumbs.html" %}
+          <div role="main">
+            <div class="section">
+              {{ content }}
+            </div>
+          </div>
+	  {%- block footer %} 
+          {% include "footer.html" %}
+	  {% endblock %}
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        {% if repo_name == 'GitHub' %}
+            <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+        {% elif repo_name == 'Bitbucket' %}
+            <a class="icon icon-bitbucket" style="float: left; color: #fcfcfc"> BitBucket</a>
+        {% endif %}
+      <span><a href="" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="" style="color: #fcfcfc">Next &raquo;</a></span>
+    </span>
+</div>
+</body>
+</html>

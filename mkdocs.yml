@@ -1,0 +1,38 @@
+site_name: Sequelize - node.js ORM for Postgres, MySQl, MariaDB and SQLite
+theme_dir: docs/readthedocs_theme
+repo_url: https://github.com/sequelize/sequelize
+site_favicon: favicon.ico
+markdown_extensions: [gfm]
+extra_css:
+- css/custom.css
+extra_javascript:
+- //cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js
+pages:
+- ['index.md', 'Home', 'Welcome']
+- ['imprint.md', 'Home', 'Imprint']
+
+- ['articles/getting-started.md', 'Articles', 'Getting started']
+- ['articles/heroku.md', 'Articles', 'Heroku']
+- ['articles/express.md', 'Articles', 'Usage with Express.JS']
+
+- ['docs/installation.md', 'Docs', 'Installation']
+- ['docs/usage.md', 'Docs', 'Usage']
+- ['docs/promises.md', 'Docs', 'Promises']
+- ['docs/models.md', 'Docs', 'Models']
+- ['docs/instances.md', 'Docs', 'Instances']
+- ['docs/associations.md', 'Docs', 'Associations']
+- ['docs/hooks.md', 'Docs', 'Hooks']
+- ['docs/transactions.md', 'Docs', 'Transactions']
+- ['docs/migrations.md', 'Docs', 'Migrations']
+- ['docs/misc.md', 'Docs', 'Misc']
+
+- ['api/sequelize.md', 'API', 'Sequelize']
+- ['api/model.md', 'API', 'Model']
+- ['api/instance.md', 'API', 'Instance']
+- ['api/associations.md', 'API', 'Associations']
+- ['api/hooks.md', 'API', 'Hooks']
+- ['api/promise.md', 'API', 'Promise']
+- ['api/transaction.md', 'API', 'Transaction']
+- ['api/datatypes.md', 'API', 'Datatypes']
+- ['api/errors.md', 'API', 'Errors']
+

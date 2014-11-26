@@ -90,9 +90,3 @@ coveralls: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb
 codeclimate: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover merge-coverage codeclimate-send
 
 .PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test
-
-api-docs:
-	node docs/docs-generator.js
-
-clean:
-	node docs/docs-generator.js --clean	

@@ -1,0 +1,24 @@
+table {
+  width:100%;
+}
+
+th:nth-child(1),
+td:nth-child(1) {
+  width: 35%;
+  word-break: break-all;
+}
+
+td:nth-child(2),
+td:nth-child(2) {
+  width: 20%;
+  word-break: break-word;
+}
+
+td,
+th {
+  padding: 6px 13px;
+  border: 1px solid #ddd;
+}
+tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}

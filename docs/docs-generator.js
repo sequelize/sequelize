@@ -11,19 +11,8 @@ program
   .version('0.0.2')
   .option('-f, --file [file]', 'Process a single file', '')
   .option('-a, --all', 'Process all files, generate index etc. (default if no options are specified')
-  .option('-c, --clean', 'Remove all generated markdown and HTML files')
-  .option('-o --out [dir]', '', path.dirname(__filename))
+  .option('-o --out [dir]', '', path.dirname(__filename) + '/api')
   .parse(process.argv);
-
-if (program.clean) {
-  fs.readdirSync('docs/').forEach(function (file) {
-    if (file !== 'index.md' && path.extname(file) === '.md') {
-      fs.unlinkSync ('docs/' + file);
-    }
-  });
-
-  return;
-}
 
 var files;
 if (program.file) {

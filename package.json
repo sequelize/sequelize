@@ -76,7 +76,8 @@
   "main": "index",
   "scripts": {
     "test": "make all",
-    "docs": "node_modules/.bin/yuidoc . -o docs"
+    "docs": "node docs/docs-generator.js",
+    "prepublish": "docs"
   },
   "engines": {
     "node": ">=0.6.21"
