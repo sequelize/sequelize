@@ -428,7 +428,7 @@ Series = sequelize.define('Series', {
   // Set FK relationship (hasMany) with `Trainer`
   trainer_id: {
     type: DataTypes.INTEGER,
-    references: "Trainer",
+    references: "Trainers",
     referencesKey: "id"
   }
 })
