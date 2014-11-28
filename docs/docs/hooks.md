@@ -144,14 +144,11 @@ afterBulkCreate / afterBulkUpdate / afterBulkDestroy
 If you want to emit hooks for each individual record, along with the bulk hooks you can pass `individualHooks: true` to the call.
     
 ```js
-Model.destroy({accessLevel: 0}, {individualHooks: true}) 
+Model.destroy({ where: {accessLevel: 0}}, {individualHooks: true}) 
 // Will select all records that are about to be deleted and emit before- + after- Destroy on each instance
  
-Model.update({username: 'Toni'}, {accessLevel: 0}, {individualHooks: true})
+Model.update({username: 'Toni'}, { where: {accessLevel: 0}}, {individualHooks: true})
 // Will select all records that are about to be updated and emit before- + after- Update on each instance
- 
-Model.bulkCreate({accessLevel: 0}, null, {individualHooks: true}) 
-// Will select all records that are about to be deleted and emit before- + after- Create on each instance
 ```
 
 Some model hooks have two or three parameters sent to each hook depending on it's type.
@@ -172,13 +169,13 @@ Model.beforeBulkUpdate(function(attributes, where, fn) {
   // where = second argument sent to Model.update
 })
  
-Model.update({gender: 'Male'} /*attributes argument*/, {username: 'Tom'} /*where argument*/)
+Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
  
 Model.beforeBulkDestroy(function(whereClause, fn) {
   // whereClause = first argument sent to Model.destroy
 })
  
-Model.destroy({username: 'Tom'} /*whereClause argument*/)
+Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 ```
 
 ## Associations
