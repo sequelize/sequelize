@@ -5,6 +5,7 @@
 - [BUG] Copy the options object in association getters. [#2311](https://github.com/sequelize/sequelize/issues/2311)
 - [BUG] `Model#destroy()` now supports `field`, this also fixes an issue with `N:M#removeAssociation` and `field`
 - [BUG] Customized error message can now be set for unique constraint that was created manually (not with sync, but e.g. with migrations) or that has fields with underscore naming. This was problem at least with postgres before.
+- [BUG] Fixed a bug where plain objects like `{ in: [...] }` were not properly converted to SQL when combined with a sequelize method (`fn`, `where` etc.). Closes [#2077](https://github.com/sequelize/sequelize/issues/2077)
 - [INTERNALS] Update `inflection` dependency to v1.5.2
 
 #### Backwards compatability changes

@@ -279,6 +279,19 @@ if (Support.dialectIsMySQL()) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
+          title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
+          arguments: ['myTable', function (sequelize) {
+            return {
+              where: sequelize.and(
+                { archived: null},
+                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { in: ['Lost', 'Found'] })
+              )
+            };
+          }],
+          expectation: "SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN ('Lost','Found'));",
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
           arguments: ['myTable', {limit: 10}],
           expectation: "SELECT * FROM `myTable` LIMIT 10;",
           context: QueryGenerator
