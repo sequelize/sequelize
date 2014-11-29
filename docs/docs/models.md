@@ -647,7 +647,11 @@ The success handler will always receive an object with two properties&colon;
 ```js
 Project
   .findAndCountAll({
-     where: ["title LIKE 'foo%'"],
+     where: {
+        title: {
+            like: 'foo%'
+        }
+     },
      offset: 10,
      limit: 2
   })
