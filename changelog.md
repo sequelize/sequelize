@@ -1,6 +1,7 @@
 # Next
 - [FEATURE] Added the possibility of removing multiple associations in 1 call [#2338](https://github.com/sequelize/sequelize/issues/2338)
-- [FEAUTRE] Undestroy method for paranoid models [#2540](https://github.com/sequelize/sequelize/pull/2540)
+- [FEATURE] Undestroy method for paranoid models [#2540](https://github.com/sequelize/sequelize/pull/2540)
+- [FEATURE] Support for UPSERT
 - [BUG] Add support for `field` named the same as the attribute in `reload`, `bulkCreate` and `save` [#2348](https://github.com/sequelize/sequelize/issues/2348)
 - [BUG] Copy the options object in association getters. [#2311](https://github.com/sequelize/sequelize/issues/2311)
 - [BUG] `Model#destroy()` now supports `field`, this also fixes an issue with `N:M#removeAssociation` and `field`
