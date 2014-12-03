@@ -818,7 +818,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\"='foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\"='foo')"
+          expectation: "DELETE FROM \"myTable\" WHERE \"name\"='foo'"
         },
 
         // Variants when quoteIdentifiers is false
@@ -848,7 +848,7 @@ if (dialect.match(/^postgres/)) {
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM myTable WHERE id IN (SELECT id FROM myTable WHERE name='foo')",
+          expectation: "DELETE FROM myTable WHERE name='foo'",
           context: {options: {quoteIdentifiers: false}}
         }
       ],

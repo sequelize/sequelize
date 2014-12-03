@@ -1263,6 +1263,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                 beforeUpdate: function(attributes, options, fn) {
                   beforeHook = true
                   attributes.mood = 'happy'
+                  options.fields.push('mood');
                   fn()
                 },
                 afterUpdate: function(attributes, options, fn) {
@@ -1303,6 +1304,7 @@ describe(Support.getTestDialectTeaser("Hooks"), function () {
                   function(attributes, options, fn) {
                     beforeHook = true
                     attributes.mood = 'joyful'
+                    options.fields.push('mood');
                     fn()
                   },
                   function(attributes, options, fn) {
