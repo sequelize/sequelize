@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             { id: list.get('id') },
             Sequelize.or(
               { OwnerId: user1_id },
-              { 'SharedUsers.id': user1_id }
+              { 'SharedUsers.UserId': user1_id }
             )
           ),
           include: [
