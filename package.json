@@ -32,17 +32,17 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
+    "bluebird": "~2.3.11",
     "dottie": "0.2.4",
     "generic-pool": "2.1.1",
     "inflection": "1.5.2",
     "lodash": "~2.4.0",
     "moment": "~2.8.0",
     "node-uuid": "~1.4.1",
-    "bluebird": "~2.3.2",
-    "sql": "~0.40.0",
     "pg-hstore": "^2.2.0",
+    "sql": "~0.42.0",
     "toposort-class": "~0.3.0",
-    "validator": "~3.22.0"
+    "validator": "~3.22.1"
   },
   "devDependencies": {
     "chai-as-promised": "^4.1.1",
