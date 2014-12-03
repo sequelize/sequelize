@@ -1582,6 +1582,41 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         });
       });
 
+      it('should correctly get associations even after a child instance is deleted', function() {
+        var self = this
+          , user
+          , projects;
+
+        return this.sequelize.sync({force: true}).then(function() {
+          return Promise.join(
+            self.User.create({name: 'Matt'}),
+            self.Project.create({name: 'Good Will Hunting'}),
+            self.Project.create({name: 'The Departed'})
+          );
+        }).spread(function (user, project1, project2) {
+          return user.addProjects([project1, project2]).return(user);
+        }).then(function(user) {
+          return Promise.join(
+            user,
+            user.getProjects()
+          );
+        }).spread(function(user, projects) {
+          var project = projects[0];
+          expect(project).to.be.defined;
+          return project.destroy().return(user);
+        }).then(function(user) {
+          return self.User.find({
+            where: { id: user.id},
+            include: [{model: self.Project, as: 'Projects'}]
+          });
+        }).then(function(user) {
+          var projects = user.Projects
+            , project = projects[0];
+
+          expect(project).to.be.defined;
+        });
+      });
+
       it('should correctly get associations when doubly linked', function() {
         var self = this;
         return this.sequelize.sync({force: true}).then(function() {
