@@ -176,5 +176,41 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         expect(result.count).to.equal(1);
       });
     });
-  })
-})
+
+    it("should return the correct count and rows when using a required belongsTo and a limit", function() {
+      var s = this.sequelize
+        , Foo = s.define('Foo', {})
+        , Bar = s.define('Bar', {});
+
+      Foo.hasMany(Bar);
+      Bar.belongsTo(Foo);
+
+      return s.sync({ force: true }).then(function() {
+        // Make five instances of Foo
+        return Foo.bulkCreate([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}]);
+      }).then(function() {
+        // Make four instances of Bar, related to the last four instances of Foo
+        return Bar.bulkCreate([{'FooId': 2}, {'FooId': 3}, {'FooId': 4}, {'FooId': 5}]);
+      }).then(function() {
+        // Query for the first two instances of Foo which have related Bars
+        return Foo.findAndCountAll({
+          include: [{ model: Bar, required: true }],
+          limit: 2
+        }).tap(function () {
+          return Foo.findAll({
+            include: [{ model: Bar, required: true }],
+            limit: 2
+          }).then(function (items) {
+            expect(items.length).to.equal(2);
+          });
+        });
+      }).then(function(result) {
+        expect(result.count).to.equal(4);
+
+        // The first two of those should be returned due to the limit (Foo
+        // instances 2 and 3)
+        expect(result.rows.length).to.equal(2);
+      });
+    });
+  });
+});
