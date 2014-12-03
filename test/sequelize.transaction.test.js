@@ -3,6 +3,10 @@ var chai        = require('chai')
   , Support     = require(__dirname + '/support')
   , Promise     = require(__dirname + '/../lib/promise')
   , Transaction = require(__dirname + '/../lib/transaction')
+  , current   = Support.sequelize;
+
+
+if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
   this.timeout(4000);
@@ -182,3 +186,5 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
     })
   })
 })
+
+}

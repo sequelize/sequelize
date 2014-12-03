@@ -10,6 +10,8 @@ var chai      = require('chai')
   , datetime  = require('chai-datetime')
   , _         = require('lodash')
   , assert    = require('assert')
+  , current   = Support.sequelize;
+
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -41,35 +43,37 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   });
 
   describe('findOrCreate', function () {
-    it("supports transactions", function(done) {
-      var self = this;
-      this.sequelize.transaction().then(function(t) {
-        self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
-          self.User.count().success(function(count) {
-            expect(count).to.equal(0)
-            t.commit().success(function() {
-              self.User.count().success(function(count) {
-                expect(count).to.equal(1)
+    if (current.dialect.supports.transactions) {
+      it("supports transactions", function(done) {
+        var self = this;
+        this.sequelize.transaction().then(function(t) {
+          self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
+            self.User.count().success(function(count) {
+              expect(count).to.equal(0)
+              t.commit().success(function() {
+                self.User.count().success(function(count) {
+                  expect(count).to.equal(1)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+
+      it("supports more than one models per transaction", function(done) {
+        var self = this;
+        this.sequelize.transaction().then(function(t) {
+          self.User.findOrCreate({ where: { username: 'Username'}, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
+            self.Account.findOrCreate({ where: { accountName: 'accountName'}}, { transaction: t}).then(function(){
+              t.commit().success(function() {
                 done()
               })
             })
           })
         })
       })
-    })
-
-    it("supports more than one models per transaction", function(done) {
-      var self = this;
-      this.sequelize.transaction().then(function(t) {
-        self.User.findOrCreate({ where: { username: 'Username'}, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
-          self.Account.findOrCreate({ where: { accountName: 'accountName'}}, { transaction: t}).then(function(){
-            t.commit().success(function() {
-              done()
-            })
-          })
-        })
-      })
-    })
+    }
 
     it("returns instance if already existent. Single find field.", function(done) {
       var self = this,
@@ -137,55 +141,59 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it("should release transaction when meeting errors", function(){
-        var self = this
+    if (current.dialect.supports.transactions) {
+      it("should release transaction when meeting errors", function(){
+          var self = this
 
-        var test = function(times) {
-            if (times > 10) {
-                return true;
-            }
-            return self.Student.findOrCreate({
-              where: {
-                no: 1
+          var test = function(times) {
+              if (times > 10) {
+                  return true;
               }
-            })
-            .timeout(1000)
-            .catch(Promise.TimeoutError,function(e){
-                throw new Error(e)
-            })
-            .catch(Sequelize.ValidationError,function(err){
-                return test(times+1);
-            })
-        }
+              return self.Student.findOrCreate({
+                where: {
+                  no: 1
+                }
+              })
+              .timeout(1000)
+              .catch(Promise.TimeoutError,function(e){
+                  throw new Error(e)
+              })
+              .catch(Sequelize.ValidationError,function(err){
+                  return test(times+1);
+              })
+          }
 
-        return test(0);
-    })
+          return test(0);
+      })
+    }
 
     describe('several concurrent calls', function () {
-      it('works with a transaction', function () {
-        return this.sequelize.transaction().bind(this).then(function (transaction) {
-          return Promise.join(
-            this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
-            this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
-            function (first, second) {
-               var firstInstance = first[0]
-              , firstCreated = first[1]
-              , secondInstance = second[0]
-              , secondCreated = second[1];
+      if (current.dialect.supports.transactions) {
+        it('works with a transaction', function () {
+          return this.sequelize.transaction().bind(this).then(function (transaction) {
+            return Promise.join(
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
+              function (first, second) {
+                 var firstInstance = first[0]
+                , firstCreated = first[1]
+                , secondInstance = second[0]
+                , secondCreated = second[1];
 
-              // Depending on execution order and MAGIC either the first OR the second call should return true
-              expect(firstCreated ? !secondCreated : secondCreated).to.be.ok // XOR
+                // Depending on execution order and MAGIC either the first OR the second call should return true
+                expect(firstCreated ? !secondCreated : secondCreated).to.be.ok // XOR
 
-              expect(firstInstance).to.be.ok;
-              expect(secondInstance).to.be.ok;
+                expect(firstInstance).to.be.ok;
+                expect(secondInstance).to.be.ok;
 
-              expect(firstInstance.id).to.equal(secondInstance.id);
+                expect(firstInstance.id).to.equal(secondInstance.id);
 
-              return transaction.commit();
-            }
-          );
+                return transaction.commit();
+              }
+            );
+          });
         });
-      });
+      }
 
       // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
       (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', function () {
@@ -287,22 +295,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       });
     });
 
-    it('supports transactions', function(done) {
-      var self = this;
-      this.sequelize.transaction().then(function(t) {
-        self.User.create({ username: 'user' }, { transaction: t }).success(function() {
-          self.User.count().success(function(count) {
-            expect(count).to.equal(0)
-            t.commit().success(function() {
-              self.User.count().success(function(count) {
-                expect(count).to.equal(1)
-                done()
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        var self = this;
+        this.sequelize.transaction().then(function(t) {
+          self.User.create({ username: 'user' }, { transaction: t }).success(function() {
+            self.User.count().success(function(count) {
+              expect(count).to.equal(0)
+              t.commit().success(function() {
+                self.User.count().success(function(count) {
+                  expect(count).to.equal(1)
+                  done()
+                })
               })
             })
           })
         })
       })
-    })
+    }
 
     it('is possible to use casting when creating an instance', function (done) {
       var self = this
@@ -960,22 +970,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('bulkCreate', function() {
-    it("supports transactions", function(done) {
-      var self = this;
-      this.sequelize.transaction().then(function(t) {
-        self.User
-          .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
-          .success(function() {
-            self.User.count().success(function(count1) {
-              self.User.count({ transaction: t }).success(function(count2) {
-                expect(count1).to.equal(0)
-                expect(count2).to.equal(2)
-                t.rollback().success(function(){ done() })
+    if (current.dialect.supports.transactions) {
+      it("supports transactions", function(done) {
+        var self = this;
+        this.sequelize.transaction().then(function(t) {
+          self.User
+            .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
+            .success(function() {
+              self.User.count().success(function(count1) {
+                self.User.count({ transaction: t }).success(function(count2) {
+                  expect(count1).to.equal(0)
+                  expect(count2).to.equal(2)
+                  t.rollback().success(function(){ done() })
+                })
               })
             })
-          })
+        })
       })
-    })
+    }
 
     it('properly handles disparate field lists', function(done) {
       var self = this
