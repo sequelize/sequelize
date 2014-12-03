@@ -1086,6 +1086,33 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
+    it('works without a primary key', function () {
+      var Log = this.sequelize.define('Log', {
+        client_id: DataTypes.INTEGER,
+        content: DataTypes.TEXT,
+        timestamp: DataTypes.DATE
+      });
+      Log.removeAttribute('id');
+
+      return Log.sync({force: true}).then(function () {
+        return Log.create({
+          client_id: 13,
+          content: 'Error!',
+          timestamp: new Date()
+        });
+      }).then(function () {
+        return Log.destroy({
+          where: {
+            client_id: 13
+          }
+        });
+      }).then(function () {
+        return Log.findAll().then(function (logs) {
+          expect(logs.length).to.equal(0);
+        });
+      });
+    });
+
     it('supports .field', function () {
       var UserProject = this.sequelize.define('UserProject', {
         userId: {
