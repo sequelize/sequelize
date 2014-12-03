@@ -11,6 +11,8 @@ var chai      = require('chai')
   , promised  =  require("chai-as-promised")
   , _         = require('lodash')
   , async     = require('async')
+  , current   = Support.sequelize;
+
 
 chai.use(promised);
 chai.use(datetime)
@@ -33,24 +35,26 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('find', function() {
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING })
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING })
 
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction().then(function(t) {
-            User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.find({
-                where: { username: 'foo' }
-              }).success(function(user1) {
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction().then(function(t) {
+              User.create({ username: 'foo' }, { transaction: t }).success(function() {
                 User.find({
-                  where: { username: 'foo' },
-                }, { transaction: t }).success(function(user2) {
-                  expect(user1).to.be.null
-                  expect(user2).to.not.be.null
+                  where: { username: 'foo' }
+                }).success(function(user1) {
+                  User.find({
+                    where: { username: 'foo' },
+                  }, { transaction: t }).success(function(user2) {
+                    expect(user1).to.be.null
+                    expect(user2).to.not.be.null
 
-                  t.rollback().success(function() {
-                    done()
+                    t.rollback().success(function() {
+                      done()
+                    })
                   })
                 })
               })
@@ -58,7 +62,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
-    })
+    }
 
     describe('general / basic function', function() {
       beforeEach(function(done) {

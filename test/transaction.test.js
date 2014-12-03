@@ -7,6 +7,8 @@ var chai        = require('chai')
   , sinon       = require('sinon')
   , current     = Support.sequelize;
 
+if (current.dialect.supports.transactions) {
+
 describe(Support.getTestDialectTeaser("Transaction"), function () {
   this.timeout(4000);
   describe('constructor', function() {
@@ -173,3 +175,5 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
     });
   }
 });
+
+}
