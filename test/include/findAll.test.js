@@ -361,8 +361,6 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               }]
             }],
             limit: 1
-          }).on('sql', function (sql) {
-            console.log(sql);
           });
         });
       });
