@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       }
 
       // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-      (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', function () {
+      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('works without a transaction', function () {
         return Promise.join(
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
