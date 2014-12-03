@@ -1583,48 +1583,38 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
       });
 
       it('should correctly get associations even after a child instance is deleted', function() {
-        var self = this,
-          user, projects;
-        return this.sequelize.sync({logging: console.log}).then(function() {
-          return Promise.all([
+        var self = this
+          , user
+          , projects;
+
+        return this.sequelize.sync({force: true}).then(function() {
+          return Promise.join(
             self.User.create({name: 'Matt'}),
             self.Project.create({name: 'Good Will Hunting'}),
             self.Project.create({name: 'The Departed'})
-            ]);
-        })
-          .spread(function (user, project1, project2) {
-            return user.addProjects([project1, project2]).return(user);
-          })
-          .then(function(user) {
-            return Promise.all([
-              user,
-              user.getProjects()
-              ]);
-          })
-          .then(function(savedUser, savedProjects) {
-            var user = savedUser,
-              projects = savedProjects;
-            return Promise.all([
-              self.sequelize.query('alter table user_projects drop constraint user_projects_project_id_fkey;'),
-              self.sequelize.query('alter table user_projects drop constraint user_projects_user_id_fkey;')
-              ])
-          })
-          .spread(function() {
-            var project = projects[0];
-            expect(project).to.be.defined;
-            return project.destroy().return(user);
-          })
-          .then(function(user) {
-            return self.User.find({
-              where: { id: user.id},
-              include: self.Project
-            });
-          })
-          .then(function(user) {
-            var projects = user.Projects;
-            var project = projects[0];
-            expect(project).to.be.defined;
+          );
+        }).spread(function (user, project1, project2) {
+          return user.addProjects([project1, project2]).return(user);
+        }).then(function(user) {
+          return Promise.join(
+            user,
+            user.getProjects()
+          );
+        }).spread(function(user, projects) {
+          var project = projects[0];
+          expect(project).to.be.defined;
+          return project.destroy().return(user);
+        }).then(function(user) {
+          return self.User.find({
+            where: { id: user.id},
+            include: [{model: self.Project, as: 'Projects'}]
           });
+        }).then(function(user) {
+          var projects = user.Projects
+            , project = projects[0];
+
+          expect(project).to.be.defined;
+        });
       });
 
       it('should correctly get associations when doubly linked', function() {
