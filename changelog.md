@@ -10,6 +10,7 @@
 - [BUG] Made the default for array search in postgres exact comparison instead of overlap
 - [BUG] Allow logging from individual functions even though the global logging setting is false. Closes [#2571](https://github.com/sequelize/sequelize/issues/2571)
 - [INTERNALS] Update `inflection` dependency to v1.5.2
+- [REMOVED] Remove query generation syntactic sugar provided by `node-sql`, as well as the dependency on that module
 
 #### Backwards compatability changes
 - When eager-loading a many-to-many association, the attributes of the through table are now accessible through an attribute named after the through model rather than the through table name singularized. i.e. `Task.find({include: Worker})` where the table name for through model `TaskWorker` is `TableTaskWorkers` used to produce `{ Worker: { ..., TableTaskWorker: {...} } }`. It now produces `{ Worker: { ..., TaskWorker: {...} } }`. Does not affect models where table name is auto-defined by Sequelize, or where table name is model name pluralized.
@@ -17,6 +18,7 @@
 - Nested HSTORE objects are no longer supported. Use DataTypes.JSON instead.
 - In PG `where: { arr: [1, 2] }` where the `arr` column is an array will now use strict comparison (`=`) instead of the overlap operator (`&&`). To obtain the old behaviour, use `  where: { arr: { overlap: [1, 2] }}`
 - The default `fields` for `Instance#save` (when not a new record) is now an intersection of the model attributes and the changed attributes making saves more atomic while still allowing only defined attributes.
+- Syntactic sugar for query generation was removed. You will no longer be able to call Model.dataset() to generate raw sql queries
 
 # 2.0.0-rc2
 - [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator

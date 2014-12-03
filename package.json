@@ -40,7 +40,6 @@
     "moment": "~2.8.0",
     "node-uuid": "~1.4.1",
     "pg-hstore": "^2.2.0",
-    "sql": "~0.42.0",
     "toposort-class": "~0.3.0",
     "validator": "~3.22.1"
   },
