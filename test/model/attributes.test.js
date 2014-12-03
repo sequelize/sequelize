@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       it('should not contain the field properties after create', function () {
         var Model = this.sequelize.define('test', {
           id: {
-            type         : Sequelize.INTEGER.UNSIGNED,
+            type         : Sequelize.INTEGER,
             field        : 'test_id',
             autoIncrement: true,
             primaryKey   : true,
