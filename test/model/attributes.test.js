@@ -134,6 +134,31 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         ]);
       });
 
+      describe('primaryKey', function () {
+        describe('in combination with allowNull', function () {
+          beforeEach(function () {
+            this.ModelUnderTest = this.sequelize.define('ModelUnderTest', {
+              identifier: {
+                primaryKey: true,
+                type:       Sequelize.STRING,
+                allowNull: false
+              }
+            });
+
+            return this.ModelUnderTest.sync({ force: true });
+          });
+
+          it('sets the column to not allow null', function () {
+            return this
+              .ModelUnderTest
+              .describe()
+              .then(function (fields) {
+                expect(fields.identifier).to.include({ allowNull: false });
+              });
+          });
+        });
+      });
+
       describe('field and attribute name is the same', function () {
         beforeEach(function () {
           return this.Comment.bulkCreate([
