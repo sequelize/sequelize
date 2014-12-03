@@ -5,7 +5,11 @@ var fs        = require('fs')
   , _         = require('lodash')
   , Sequelize = require(__dirname + "/../index")
   , DataTypes = require(__dirname + "/../lib/data-types")
-  , Config    = require(__dirname + "/config/config");
+  , Config    = require(__dirname + "/config/config")
+  , chai = require("chai")
+  , chaiAsPromised = require("chai-as-promised");
+
+chai.use(chaiAsPromised);
 
 // Make sure errors get thrown when testing
 Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {

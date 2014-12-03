@@ -42,18 +42,19 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
       });
     });
     it('supports automatically rolling back with a thrown error', function () {
-      return this.sequelize.transaction(function (t) {
+      return expect(this.sequelize.transaction(function (t) {
         throw new Error('Yolo');
-      }).catch(function (err) {
-        expect(err).to.be.ok;
-      });
+      })).to.eventually.be.rejected;
     });
     it('supports automatically rolling back with a rejection', function () {
-      return this.sequelize.transaction(function (t) {
+      return expect(this.sequelize.transaction(function (t) {
         return Promise.reject('Swag');
-      }).catch(function (err) {
-        expect(err).to.be.ok;
-      });
+      })).to.eventually.be.rejected;
+    });
+    it('errors when no promise chain is returned', function () {
+      return expect(this.sequelize.transaction(function (t) {
+        
+      })).to.eventually.be.rejected;
     });
   });
 
