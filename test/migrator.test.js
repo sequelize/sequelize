@@ -4,8 +4,11 @@ var chai         = require('chai')
   , Migrator     = require("../lib/migrator")
   , DataTypes     = require("../lib/data-types")
   , dialect      = Support.getTestDialect()
+  , current   = Support.sequelize;
 
 chai.config.includeStack = true
+
+if (current.dialect.supports.migrations) {
 
 describe(Support.getTestDialectTeaser("Migrator"), function() {
   beforeEach(function() {
@@ -590,3 +593,5 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
   } // if dialect postgres
 })
+
+}
