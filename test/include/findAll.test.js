@@ -234,7 +234,66 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           }, done.bind(this))
         })
       }
-    })
+    });
+
+    it('should work on a nested set of relations with a where condition in between relations', function () {
+      var User = this.sequelize.define('User', {})
+        , SubscriptionForm = this.sequelize.define('SubscriptionForm', {})
+        , Collection = this.sequelize.define('Collection', {})
+        , Category= this.sequelize.define('Category', {})
+        , SubCategory = this.sequelize.define('SubCategory', {})
+        , Capital = this.sequelize.define('Capital', {});
+
+      User.hasOne(SubscriptionForm, {foreignKey:'boundUser'});
+      SubscriptionForm.belongsTo(User, {foreignKey:'boundUser'});
+
+      SubscriptionForm.hasOne(Collection, {foreignKey:'boundDesigner'});
+      Collection.belongsTo(SubscriptionForm, {foreignKey:'boundDesigner'});
+
+      SubscriptionForm.belongsTo(Category, {foreignKey:'boundCategory'});
+      Category.hasMany(SubscriptionForm, {foreignKey:'boundCategory'});
+      
+      Capital.hasMany(Category, { foreignKey: 'boundCapital'});
+      Category.belongsTo(Capital, {foreignKey:'boundCapital'});
+
+      Category.hasMany(SubCategory, {foreignKey:'boundCategory'});
+      SubCategory.belongsTo(Category, {foreignKey: 'boundCategory'});
+      
+      
+      return this.sequelize.sync({force: true}).then(function() {
+        return User.find({
+          include: [
+            {
+              model: SubscriptionForm,
+              include: [
+                {
+                  model: Collection,
+                  where: {
+                    id: 13
+                  }
+                },
+                {
+                  model: Category,
+                  include: [
+                    {
+                      model: SubCategory
+                    },
+                    {
+                      model: Capital,
+                      include: [
+                        {
+                          model: Category
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        });
+      });
+    });
 
     it('should accept nested `where` and `limit` at the same time', function () {
       var Product = this.sequelize.define('Product', {
