@@ -16,6 +16,7 @@
 - When using `Model#find()` with an `order` clause, the table name is prepended to the `ORDER BY` SQL. e.g. `ORDER BY Task.id` rather than `ORDER BY id`. The change is to avoid ambiguous column names where there are eager-loaded associations with the same column names. A side effect is that code like `Task.findAll( { include: [ User ], order: [ [ 'Users.id', 'ASC' ] ] } )` will now throw an error. This should be achieved with `Task.findAll( { include: [ User ], order: [ [ User, 'id', 'ASC' ] ] } )` instead.
 - Nested HSTORE objects are no longer supported. Use DataTypes.JSON instead.
 - In PG `where: { arr: [1, 2] }` where the `arr` column is an array will now use strict comparison (`=`) instead of the overlap operator (`&&`). To obtain the old behaviour, use `  where: { arr: { overlap: [1, 2] }}`
+- The default `fields` for `Instance#save` (when not a new record) is now an intersection of the model attributes and the changed attributes making saves more atomic while still allowing only defined attributes.
 
 # 2.0.0-rc2
 - [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator
