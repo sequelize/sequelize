@@ -92,12 +92,12 @@ It's also possible to define which attributes should be saved when calling`save`
 ```js
 task.title = 'foooo'
 task.description = 'baaaaaar'
-task.save(['title']).success(function() {
+task.save({fields: ['title']}).then(function() {
  // title will now be 'foooo' but description is the very same as before
 })
  
 // The equivalent call using updateAttributes looks like this:
-task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, ['title']).success(function() {
+task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).success(function() {
  // title will now be 'foooo' but description is the very same as before
 })
 ```
