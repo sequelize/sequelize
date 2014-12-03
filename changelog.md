@@ -9,6 +9,7 @@
 - [BUG] Fixed a bug where plain objects like `{ in: [...] }` were not properly converted to SQL when combined with a sequelize method (`fn`, `where` etc.). Closes [#2077](https://github.com/sequelize/sequelize/issues/2077)
 - [BUG] Made the default for array search in postgres exact comparison instead of overlap
 - [BUG] Allow logging from individual functions even though the global logging setting is false. Closes [#2571](https://github.com/sequelize/sequelize/issues/2571)
+- [BUG] Allow increment/decrement operations when using schemata
 - [INTERNALS] Update `inflection` dependency to v1.5.2
 
 #### Backwards compatability changes
