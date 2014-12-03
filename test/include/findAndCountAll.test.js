@@ -5,6 +5,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + "/../../lib/data-types")
   , datetime  = require('chai-datetime')
+  , Promise   = require('bluebird');
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -140,6 +141,40 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       })
 
     })
-
+    
+    it('should count on a where and not use an uneeded include', function () {
+      var Project = this.sequelize.define('Project', { 
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        project_name: { type: DataTypes.STRING}
+      })
+       
+      var User = this.sequelize.define('User', { 
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        user_name: { type: DataTypes.STRING }
+      })
+       
+      User.hasMany(Project);
+       
+      var userId = null
+       
+      return User.sync({force: true}).then(function () {
+        return Project.sync({force: true});
+      }).then(function() {
+        return Promise.all([User.create(), Project.create(), Project.create(), Project.create()]);
+      }).then(function(results) {
+        var user = results[0];
+        userId = user.id;
+        return user.setProjects([results[1], results[2], results[3]]);
+      }).then(function() {
+        return User.findAndCountAll({
+          where: {id: userId},
+          include: [Project]
+        });
+      }).then(function(result) {
+        expect(result.rows.length).to.equal(1);
+        expect(result.rows[0].Projects.length).to.equal(3);
+        expect(result.count).to.equal(1);
+      });
+    });
   })
 })

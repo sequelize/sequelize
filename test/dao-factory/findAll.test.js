@@ -1459,25 +1459,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           Citizen.create({ name: 'Bob' }).done(function (err, bob) {
             expect(err).not.be.ok
             Election.create({ name: 'Some election' }).done(function (err, election) {
-              expect(err).not.be.ok
-              election.setCitizen(alice).done(function (err) {
+              Election.create({ name: 'Some other election' }).done(function (err, election) {
                 expect(err).not.be.ok
-                election.setVoters([alice, bob]).done(function (err) {
+                election.setCitizen(alice).done(function (err) {
                   expect(err).not.be.ok
-
-                  var criteria = {
-                    offset: 5,
-                    limit: 1,
-                    include: [
-                      Citizen, // Election creator
-                      { model: Citizen, as: 'Voters' } // Election voters
-                    ]
-                  }
-                  Election.findAndCountAll(criteria).done(function (err, elections) {
+                  election.setVoters([alice, bob]).done(function (err) {
                     expect(err).not.be.ok
-                    expect(elections.count).to.equal(2)
-                    expect(elections.rows.length).to.equal(0)
-                    done()
+
+                    var criteria = {
+                      offset: 5,
+                      limit: 1,
+                      include: [
+                        Citizen, // Election creator
+                        { model: Citizen, as: 'Voters' } // Election voters
+                      ]
+                    }
+                    Election.findAndCountAll(criteria).done(function (err, elections) {
+                      expect(err).not.be.ok
+                      expect(elections.count).to.equal(2)
+                      expect(elections.rows.length).to.equal(0)
+                      done()
+                    })
                   })
                 })
               })
