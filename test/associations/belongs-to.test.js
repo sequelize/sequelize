@@ -25,26 +25,29 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe('getAssociation', function() {
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
-          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
 
-        Group.belongsTo(User)
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+            , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
 
-        sequelize.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Group.create({ name: 'bar' }).success(function(group) {
-              sequelize.transaction().then(function(t) {
-                group.setUser(user, { transaction: t }).success(function() {
-                  Group.all().success(function(groups) {
-                    groups[0].getUser().success(function(associatedUser) {
-                      expect(associatedUser).to.be.null
-                      Group.all({ transaction: t }).success(function(groups) {
-                        groups[0].getUser({ transaction: t }).success(function(associatedUser) {
-                          expect(associatedUser).to.be.not.null
-                          t.rollback().success(function() {
-                            done()
+          Group.belongsTo(User)
+
+          sequelize.sync({ force: true }).success(function() {
+            User.create({ username: 'foo' }).success(function(user) {
+              Group.create({ name: 'bar' }).success(function(group) {
+                sequelize.transaction().then(function(t) {
+                  group.setUser(user, { transaction: t }).success(function() {
+                    Group.all().success(function(groups) {
+                      groups[0].getUser().success(function(associatedUser) {
+                        expect(associatedUser).to.be.null
+                        Group.all({ transaction: t }).success(function(groups) {
+                          groups[0].getUser({ transaction: t }).success(function(associatedUser) {
+                            expect(associatedUser).to.be.not.null
+                            t.rollback().success(function() {
+                              done()
+                            })
                           })
                         })
                       })
@@ -56,7 +59,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
           })
         })
       })
-    })
+    }
 
     it('does not modify the passed arguments', function () {
       var User = this.sequelize.define('user', {})
@@ -126,22 +129,25 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
   })
 
   describe('setAssociation', function() {
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
-          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
 
-        Group.belongsTo(User)
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+            , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
 
-        sequelize.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Group.create({ name: 'bar' }).success(function(group) {
-              sequelize.transaction().then(function(t) {
-                group.setUser(user, { transaction: t }).success(function() {
-                  Group.all().success(function(groups) {
-                    groups[0].getUser().success(function(associatedUser) {
-                      expect(associatedUser).to.be.null
-                      t.rollback().success(function() { done() })
+          Group.belongsTo(User)
+
+          sequelize.sync({ force: true }).success(function() {
+            User.create({ username: 'foo' }).success(function(user) {
+              Group.create({ name: 'bar' }).success(function(group) {
+                sequelize.transaction().then(function(t) {
+                  group.setUser(user, { transaction: t }).success(function() {
+                    Group.all().success(function(groups) {
+                      groups[0].getUser().success(function(associatedUser) {
+                        expect(associatedUser).to.be.null
+                        t.rollback().success(function() { done() })
+                      })
                     })
                   })
                 })
@@ -150,7 +156,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
           })
         })
       })
-    })
+    }
 
     it('can set the association with declared primary keys...', function(done) {
       var User = this.sequelize.define('UserXYZ', { user_id: {type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING })
@@ -277,24 +283,26 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
       })
     })
 
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
-          , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User  = sequelize.define('User', { username: Support.Sequelize.STRING })
+            , Group = sequelize.define('Group', { name: Support.Sequelize.STRING })
 
-        Group.belongsTo(User)
+          Group.belongsTo(User)
 
-        sequelize.sync({ force: true }).success(function() {
-          Group.create({ name: 'bar' }).success(function(group) {
-            sequelize.transaction().then(function(t) {
-              group.createUser({ username: 'foo' }, { transaction: t }).success(function() {
-                group.getUser().success(function(user) {
-                  expect(user).to.be.null
+          sequelize.sync({ force: true }).success(function() {
+            Group.create({ name: 'bar' }).success(function(group) {
+              sequelize.transaction().then(function(t) {
+                group.createUser({ username: 'foo' }, { transaction: t }).success(function() {
+                  group.getUser().success(function(user) {
+                    expect(user).to.be.null
 
-                  group.getUser({ transaction: t }).success(function(user) {
-                    expect(user).not.to.be.null
+                    group.getUser({ transaction: t }).success(function(user) {
+                      expect(user).not.to.be.null
 
-                    t.rollback().success(function() { done() })
+                      t.rollback().success(function() { done() })
+                    })
                   })
                 })
               })
@@ -302,7 +310,7 @@ describe(Support.getTestDialectTeaser("BelongsTo"), function() {
           })
         })
       })
-    })
+    }
   })
 
   describe("foreign key", function () {

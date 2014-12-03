@@ -4,7 +4,6 @@ var chai        = require('chai')
   , expect      = chai.expect
   , Support     = require(__dirname + '/support')
   , dialect     = Support.getTestDialect()
-  , Transaction = require(__dirname + '/../lib/transaction')
   , Sequelize   = require(__dirname + '/../index')
   , Promise     = Sequelize.Promise
   , sinon       = require('sinon');

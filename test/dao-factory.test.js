@@ -12,6 +12,8 @@ var chai      = require('chai')
   , _         = require('lodash')
   , moment    = require('moment')
   , async     = require('async')
+  , current   = Support.sequelize;
+
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -694,22 +696,24 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('find', function() {
-    it('supports the transaction option in the first parameter', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
+    if (current.dialect.supports.transactions) {
+      it('supports the transaction option in the first parameter', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
 
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction().then(function(t) {
-            User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.find({ where: { username: 'foo' }, transaction: t }).success(function(user) {
-                expect(user).to.not.be.null
-                t.rollback().success(function() { done() })
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction().then(function(t) {
+              User.create({ username: 'foo' }, { transaction: t }).success(function() {
+                User.find({ where: { username: 'foo' }, transaction: t }).success(function(user) {
+                  expect(user).to.not.be.null
+                  t.rollback().success(function() { done() })
+                })
               })
             })
           })
         })
       })
-    })
+    }
 
     it('should not fail if model is paranoid and where is an empty array', function(done) {
       var User = this.sequelize.define('User', { username: Sequelize.STRING }, { paranoid: true })
@@ -732,29 +736,32 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('findOrInitialize', function() {
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
 
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction().then(function(t) {
-            User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.findOrInitialize({
-                where: {username: 'foo'}
-              }).spread(function(user1) {
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING })
+
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction().then(function(t) {
+              User.create({ username: 'foo' }, { transaction: t }).success(function() {
                 User.findOrInitialize({
-                  where: {username: 'foo'},
-                  transaction: t
-                }).spread(function(user2) {
+                  where: {username: 'foo'}
+                }).spread(function(user1) {
                   User.findOrInitialize({
                     where: {username: 'foo'},
-                    defaults: { foo: 'asd' },
                     transaction: t
-                  }).spread(function(user3) {
-                    expect(user1.isNewRecord).to.be.true
-                    expect(user2.isNewRecord).to.be.false
-                    expect(user3.isNewRecord).to.be.false
-                    t.commit().success(function() { done() })
+                  }).spread(function(user2) {
+                    User.findOrInitialize({
+                      where: {username: 'foo'},
+                      defaults: { foo: 'asd' },
+                      transaction: t
+                    }).spread(function(user3) {
+                      expect(user1.isNewRecord).to.be.true
+                      expect(user2.isNewRecord).to.be.false
+                      expect(user3.isNewRecord).to.be.false
+                      t.commit().success(function() { done() })
+                    })
                   })
                 })
               })
@@ -762,7 +769,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
-    })
+    }
 
     describe('returns an instance if it already exists', function() {
       it('with a single find field', function (done) {
@@ -822,19 +829,21 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('update', function() {
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING })
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING })
 
-        User.sync({ force: true }).done(function() {
-          User.create({ username: 'foo' }).done(function() {
-            sequelize.transaction().then(function(t) {
-              User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).done(function(err) {
-                User.all().done(function(err, users1) {
-                  User.all({ transaction: t }).done(function(err, users2) {
-                    expect(users1[0].username).to.equal('foo')
-                    expect(users2[0].username).to.equal('bar')
-                    t.rollback().success(function(){ done() })
+          User.sync({ force: true }).done(function() {
+            User.create({ username: 'foo' }).done(function() {
+              sequelize.transaction().then(function(t) {
+                User.update({ username: 'bar' }, {where: {username: 'foo'}, transaction: t }).done(function(err) {
+                  User.all().done(function(err, users1) {
+                    User.all({ transaction: t }).done(function(err, users2) {
+                      expect(users1[0].username).to.equal('foo')
+                      expect(users2[0].username).to.equal('bar')
+                      t.rollback().success(function(){ done() })
+                    })
                   })
                 })
               })
@@ -842,7 +851,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
-    })
+    }
 
     it('updates the attributes that we select only without updating createdAt', function(done) {
       var User = this.sequelize.define('User1', {
@@ -1040,19 +1049,21 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('destroy', function() {
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING })
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING })
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function() {
-            sequelize.transaction().then(function(t) {
-              User.destroy({transaction: t }).success(function() {
-                User.count().success(function(count1) {
-                  User.count({ transaction: t }).success(function(count2) {
-                    expect(count1).to.equal(1)
-                    expect(count2).to.equal(0)
-                    t.rollback().success(function(){ done() })
+          User.sync({ force: true }).success(function() {
+            User.create({ username: 'foo' }).success(function() {
+              sequelize.transaction().then(function(t) {
+                User.destroy({transaction: t }).success(function() {
+                  User.count().success(function(count1) {
+                    User.count({ transaction: t }).success(function(count2) {
+                      expect(count1).to.equal(1)
+                      expect(count2).to.equal(0)
+                      t.rollback().success(function(){ done() })
+                    })
                   })
                 })
               })
@@ -1060,7 +1071,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           })
         })
       })
-    })
+    }
 
     it('deletes values that match filter', function(done) {
       var self = this
@@ -1436,25 +1447,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
   })
 
   describe('count', function() {
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { username: Sequelize.STRING })
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { username: Sequelize.STRING })
 
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction().then(function(t) {
-            User.create({ username: 'foo' }, { transaction: t }).success(function() {
-              User.count().success(function(count1) {
-                User.count({ transaction: t }).success(function(count2) {
-                  expect(count1).to.equal(0)
-                  expect(count2).to.equal(1)
-                  t.rollback().success(function(){ done() })
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction().then(function(t) {
+              User.create({ username: 'foo' }, { transaction: t }).success(function() {
+                User.count().success(function(count1) {
+                  User.count({ transaction: t }).success(function(count2) {
+                    expect(count1).to.equal(0)
+                    expect(count2).to.equal(1)
+                    t.rollback().success(function(){ done() })
+                  })
                 })
               })
             })
           })
         })
       })
-    })
+    }
 
     it('counts all created objects', function(done) {
       var self = this
@@ -1536,25 +1549,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { age: Sequelize.INTEGER })
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { age: Sequelize.INTEGER })
 
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction().then(function(t) {
-            User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
-              User.min('age').success(function(min1) {
-                User.min('age', { transaction: t }).success(function(min2) {
-                  expect(min1).to.be.not.ok
-                  expect(min2).to.equal(2)
-                  t.rollback().success(function(){ done() })
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction().then(function(t) {
+              User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
+                User.min('age').success(function(min1) {
+                  User.min('age', { transaction: t }).success(function(min2) {
+                    expect(min1).to.be.not.ok
+                    expect(min2).to.equal(2)
+                    t.rollback().success(function(){ done() })
+                  })
                 })
               })
             })
           })
         })
       })
-    })
+    }
 
     it("should return the min value", function(done) {
       var self = this
@@ -1625,25 +1640,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
       })
     })
 
-    it('supports transactions', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-        var User = sequelize.define('User', { age: Sequelize.INTEGER })
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function(done) {
+        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+          var User = sequelize.define('User', { age: Sequelize.INTEGER })
 
-        User.sync({ force: true }).success(function() {
-          sequelize.transaction().then(function(t) {
-            User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
-              User.max('age').success(function(min1) {
-                User.max('age', { transaction: t }).success(function(min2) {
-                  expect(min1).to.be.not.ok
-                  expect(min2).to.equal(5)
-                  t.rollback().success(function(){ done() })
+          User.sync({ force: true }).success(function() {
+            sequelize.transaction().then(function(t) {
+              User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).success(function() {
+                User.max('age').success(function(min1) {
+                  User.max('age', { transaction: t }).success(function(min2) {
+                    expect(min1).to.be.not.ok
+                    expect(min2).to.equal(5)
+                    t.rollback().success(function(){ done() })
+                  })
                 })
               })
             })
           })
         })
       })
-    })
+    }
 
     it("should return the max value for a field named the same as an SQL reserved keyword", function(done) {
       var self = this
@@ -2170,25 +2187,27 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
           .then(function() { done() })
       })
 
-      it('supports transactions', function(done) {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-          var User = sequelize.define('User', { username: Sequelize.STRING })
+      if (current.dialect.supports.transactions) {
+        it('supports transactions', function(done) {
+          Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+            var User = sequelize.define('User', { username: Sequelize.STRING })
 
-          User.sync({ force: true }).success(function() {
-            sequelize.transaction().then(function(t) {
-              User.create({ username: 'foo' }, { transaction: t }).success(function() {
-                User.where({ username: "foo" }).exec().success(function(users1) {
-                  User.where({ username: "foo" }).exec({ transaction: t }).success(function(users2) {
-                    expect(users1).to.have.length(0)
-                    expect(users2).to.have.length(1)
-                    t.rollback().success(function() { done() })
+            User.sync({ force: true }).success(function() {
+              sequelize.transaction().then(function(t) {
+                User.create({ username: 'foo' }, { transaction: t }).success(function() {
+                  User.where({ username: "foo" }).exec().success(function(users1) {
+                    User.where({ username: "foo" }).exec({ transaction: t }).success(function(users2) {
+                      expect(users1).to.have.length(0)
+                      expect(users2).to.have.length(1)
+                      t.rollback().success(function() { done() })
+                    })
                   })
                 })
               })
             })
           })
         })
-      })
+      }
 
       it("selects all users with name 'foo'", function(done) {
         this
@@ -2430,7 +2449,7 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
   })
 
-  if (dialect !== 'sqlite') {
+  if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', function(done) {
       this.timeout(25000);
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
