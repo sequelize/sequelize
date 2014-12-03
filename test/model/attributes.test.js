@@ -197,6 +197,36 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
+      it('should not contain the field properties after create', function () {
+        var Model = this.sequelize.define('test', {
+          id: {
+            type         : Sequelize.INTEGER.UNSIGNED,
+            field        : 'test_id',
+            autoIncrement: true,
+            primaryKey   : true,
+            validate     : {
+              min: 1
+            }
+          },
+          title: {
+            allowNull: false,
+            type     : Sequelize.STRING(255),
+            field    : 'test_title',
+          }
+        }, {
+          timestamps: true,
+          underscored: true,
+          freezeTableName: true
+        });
+
+        return Model.sync({force: true}).then(function () {
+          return Model.create({title: 'test'}).then(function (data) {
+            expect(data.get('test_title')).to.be.an('undefined');
+            expect(data.get('test_id')).to.be.an('undefined');
+          });
+        });
+      });
+
       it('should make the aliased auto incremented primary key available after create', function () {
         var self = this;
         return this.User.create({
