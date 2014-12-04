@@ -4,17 +4,15 @@
 [![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
 [![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize)
 
-MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
+Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and MariaDB. It features solid transaction support, relations, read replication and more.
 
-## Install
+[Documentation](http://sequelize.readthedocs.org/en/latest/)
 
-To install 1.x.x (currently 1.7.x) - which has a stable API and is mostly backwards compatible:
+## Installation
 
 `npm install sequelize`
 
-To install 2.x.x branch - which has a unstable API and will break backwards compatability:
-
-`npm install sequelize@unstable`
+Will install the latest version of sequelize (currently 2.0). 
 
 [Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0)
 
@@ -34,14 +32,11 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
 - [Getting Started](http://sequelizejs.com/articles/getting-started)
-- [Documentation](http://sequelizejs.com/docs)
-- [API Reference](https://github.com/sequelize/sequelize/wiki/API-Reference) *Work in progress*
+- [Documentation](http://sequelize.readthedocs.org/en/latest/)
+- [API Reference](http://sequelize.readthedocs.org/en/latest/)
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 - [Roadmap](https://github.com/sequelize/sequelize/wiki/Roadmap)
 - [Meetups](https://github.com/sequelize/sequelize/wiki/Meetups)
 - [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS
 - [IRC](http://webchat.freenode.net?channels=sequelizejs): sequelizejs on Freenode
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
-
-## Running Examples
-Instructions for running samples are located in the [example directory](https://github.com/sequelize/sequelize/tree/master/examples). Try these samples in a <a href="https://runnable.com/sequelize" target="_blank">live sandbox environment</a>. These examples are outdated for Sequelize 2.0 and need to be updated.
