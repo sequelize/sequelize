@@ -1480,8 +1480,8 @@ describe(Support.getTestDialectTeaser("Instance"), function () {
               }
               else if (Support.dialectIsMySQL()) {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
-              } else if(dialect === 'mssql'){
-                expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId"=\'123ABC\' ;SELECT @@ROWCOUNT AS AFFECTEDROWS;')
+              } else if (dialect === 'mssql') {
+                expect(sql).to.equal('DELETE TOP(1) FROM "UserDestroys" WHERE "newId"=\'123ABC\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;')
               }else {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")
               }
