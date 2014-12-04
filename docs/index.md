@@ -1,15 +1,6 @@
 Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and MariaDB. It features solid transaction support, relations, read replication and more. 
 
-## Installation
-```bash
-$ npm install sequelize --save
-
-# And one of the following:
-$ npm install pg
-$ npm install mysql
-$ npm install mariasql
-$ npm install sqlite3
-```
+[Installation](http://sequelize.readthedocs.org/en/latest/docs/installation/)
 
 ## Example usage
 ```js    
