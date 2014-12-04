@@ -759,7 +759,9 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       });
 
       return Bar.sync({force: true}).then(function () {
-        return Bar.create({ field: 'value3' }, {validate: false});
+        return Bar.create({ field: 'value3' }, {validate: false}).catch(Sequelize.DatabaseError, function () {
+
+        });
       });
     });
 
