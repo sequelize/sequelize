@@ -15,12 +15,13 @@ return sequelize.transaction(t) {
       firstName: 'John',
       lastName: 'Boothe'
     }, {transction: t});
-  }).then(function () {
-    // Transaction has been committed
-  }).catch(function (err) {
-    // Transaction has been rolled back
-    // err is whatever rejected the promise chain returned to the transaction callback
   });
+}).then(function (result) {
+  // Transaction has been committed
+  // result is whatever the result of the promise chain returned to the transaction callback is
+}).catch(function (err) {
+  // Transaction has been rolled back
+  // err is whatever rejected the promise chain returned to the transaction callback is
 });
 ```
 
