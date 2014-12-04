@@ -8,11 +8,11 @@ var chai = require('chai')
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Schema'), function () {
-  before(function() {
+  beforeEach(function() {
     return this.sequelize.createSchema('testschema');
   });
 
-  after(function() {
+  afterEach(function() {
     return this.sequelize.dropSchema('testschema');
   });
 
