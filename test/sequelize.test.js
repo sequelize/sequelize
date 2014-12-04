@@ -961,7 +961,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                             expect(cnt).to.equal(1)
 
                             t2.rollback().success(function() {
-                              count(t2, function(cnt) {
+                              count(null, function(cnt) {
                                 expect(cnt).to.equal(0)
 
                                 t1.commit().success(function() {
@@ -1081,7 +1081,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                 self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(function(t2) {
                   user.updateAttributes({ username: 'bar' }, { transaction: t2 }).success(function() {
                     t2.rollback().then(function() {
-                      user.reload({ transaction: t2 }).success(function(newUser) {
+                      user.reload({ transaction: t1 }).success(function(newUser) {
                         expect(newUser.username).to.equal('foo')
 
                         t1.commit().then(function() {
