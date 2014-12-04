@@ -161,8 +161,27 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
           type: DataTypes.ENUM,
           values: ['value1', 'value2', 'value3']
         }
-      })
-    })
+      });
+    });
+
+    it('should work with schemas', function () {
+      var self = this;
+      return self.sequelize.dropAllSchemas().then(function () {
+        return self.sequelize.createSchema("hero");
+      }).then(function () {
+        return self.queryInterface.createTable('User', {
+          name: {
+            type: DataTypes.STRING
+          }
+        }, {
+          schema: 'hero'
+        });
+      }).then(function () {
+        return self.queryInterface.rawSelect('User', {
+          schema: 'hero'
+        }, 'name');
+      });
+    });
   })
 
   describe('renameColumn', function() {
