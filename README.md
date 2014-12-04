@@ -12,6 +12,8 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and MariaDB
 
 `npm install sequelize`
 
+Will install the latest version of sequelize (currently 2.0). 
+
 [Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0)
 
 ## Features
