@@ -6,31 +6,22 @@ $ npm install sequelize
 $ npm install mysql
 ```
 
-## Simple usage
+## Example usage
 ```js    
 var Sequelize = require('sequelize')
-  , sequelize = new Sequelize('database', 'username', 'password')
+  , sequelize = new Sequelize('database', 'username', 'password');
 
 var User = sequelize.define('User', {
   username: Sequelize.STRING,
   birthday: Sequelize.DATE
-})
+});
 
-sequelize.sync().success(function() {
-  User.create({
+return sequelize.sync().then(function() {
+  return User.create({
     username: 'sdepold',
     birthday: new Date(1986, 06, 28)
-  }).success(function(sdepold) {
+  }).then(function(sdepold) {
     console.log(sdepold.values)
-  })
-})
+  });
+});
 ```
-
-## Trusted and used by
-
-[![](/images/shutterstock.png)](docs/misc#shutterstock)
-[![](/images/clevertech.png)](docs/misc#clevertech)
-[![](/images/metamarkets.png)](docs/misc#metamarkets)
-[![](/images/filsh.png)](docs/misc#filsh)
-
-(c) Sascha Depold, [et al.](https://github.com/sequelize/sequelize-doc/graphs/contributors) 2006 - 2014 [Imprint](imprint)

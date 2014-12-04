@@ -470,9 +470,9 @@ Project.drop() // will emit success or failure event
 Task.drop() // will emit success or failure event
  
 // event handling:
-Project.[sync|drop]().success(function() {
+Project.[sync|drop]().then(function() {
   // ok ... everything is nice!
-}).error(function(error) {
+}).catch(function(error) {
   // oooh, did you entered wrong database credentials?
 })
 ```
@@ -490,9 +490,9 @@ sequelize.sync({force: true}) // emit ... nomnomnom
 sequelize.drop() // I guess you've got it (emit)
  
 // emit handling:
-sequelize.[sync|drop]().success(function() {
+sequelize.[sync|drop]().then(function() {
   // woot woot
-}).error(function(error) {
+}).catch(function(error) {
   // whooops
 })
 ```
@@ -561,13 +561,13 @@ Finder methods are designed to get data from the database&period; The returned d
 ### find - Search for one specific element in the database
 ```js
 // search for known ids
-Project.find(123).success(function(project) {
+Project.find(123).then(function(project) {
   // project will be an instance of Project and stores the content of the table entry
   // with id 123. if such an entry is not defined you will get null
 })
  
 // search for attributes
-Project.find({ where: {title: 'aProject'} }).success(function(project) {
+Project.find({ where: {title: 'aProject'} }).then(function(project) {
   // project will be the first entry of the Projects table with the title 'aProject' || null
 })
  
@@ -575,7 +575,7 @@ Project.find({ where: {title: 'aProject'} }).success(function(project) {
 Project.find({
   where: {title: 'aProject'},
   attributes: ['id', ['name', 'title']]
-}).success(function(project) {
+}).then(function(project) {
   // project will be the first entry of the Projects table with the title 'aProject' || null
   // project.title will contain the name of the project
 })
@@ -590,7 +590,7 @@ Let's assume we have an empty database with a `User` model which has a `username
 ```js
 User
   .findOrCreate({ username: 'sdepold' }, { job: 'Technical Lead JavaScript' })
-  .success(function(user, created) {
+  .then(function(user, created) {
     console.log(user.values)
     console.log(created)
    
@@ -611,10 +611,10 @@ The code created a new instance&period; So when we already have an instance &per
 ```js
 User
   .create({ username: 'fnord', job: 'omnomnom' })
-  .success(function() {
+  .then(function() {
     User
       .findOrCreate({ username: 'fnord' }, { job: 'something else' })
-      .success(function(user, created) {
+      .then(function(user, created) {
         console.log(user.values)
         console.log(created)
      
@@ -655,7 +655,7 @@ Project
      offset: 10,
      limit: 2
   })
-  .success(function(result) {
+  .then(function(result) {
     console.log(result.count);
     console.log(result.rows);
   });
@@ -666,33 +666,33 @@ The options &lsqb;object&rsqb; that you pass to`findAndCountAll&lpar;&rpar;`is t
 ### findAll - Search for multiple elements in the database
 ```js
 // find multiple entries
-Project.findAll().success(function(projects) {
+Project.findAll().then(function(projects) {
   // projects will be an array of all Project instances
 })
  
 // also possible:
-Project.all().success(function(projects) {
+Project.all().then(function(projects) {
   // projects will be an array of all Project instances
 })
  
 // search for specific attributes - hash usage
-Project.findAll({ where: { name: 'A Project' } }).success(function(projects) {
+Project.findAll({ where: { name: 'A Project' } }).then(function(projects) {
   // projects will be an array of Project instances with the specified name
 })
  
 // search with string replacements
-Project.findAll({ where: ["id > ?", 25] }).success(function(projects) {
+Project.findAll({ where: ["id > ?", 25] }).then(function(projects) {
   // projects will be an array of Projects having a greater id than 25
 })
  
 // search within a specific range
-Project.findAll({ where: { id: [1,2,3] } }).success(function(projects) {
+Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
   // projects will be an array of Projects having the id 1, 2 or 3
   // this is actually doing an IN query
 })
  
 // or
-Project.findAll({ where: "name = 'A Project'" }).success(function(projects) {
+Project.findAll({ where: "name = 'A Project'" }).then(function(projects) {
   // the difference between this and the usage of hashes (objects) is, that string usage
   // is not sql injection safe. so make sure you know what you are doing!
 })
@@ -824,11 +824,11 @@ Project.findAll({ where: ... }, { raw: true })
 There is also a method for counting database objects&colon;
     
 ```js
-Project.count().success(function(c) {
+Project.count().then(function(c) {
   console.log("There are " + c + " projects!")
 })
  
-Project.count({ where: ["id > ?", 25] }).success(function(c) {
+Project.count({ where: ["id > ?", 25] }).then(function(c) {
   console.log("There are " + c + " projects with an id greater than 25.")
 })
 ```
@@ -844,11 +844,11 @@ And here is a method for getting the max value of an attribute&colon;
   the second one is 5 years old,
   the third one is 40 years old.
 */
-Project.max('age').success(function(max) {
+Project.max('age').then(function(max) {
   // this will return 40
 })
  
-Project.max('age', { where: { age: { lt: 20 } } }).success(function(max) {
+Project.max('age', { where: { age: { lt: 20 } } }).then(function(max) {
   // will be 10
 })
 ```
@@ -864,11 +864,11 @@ And here is a method for getting the min value of an attribute&colon;
   the second one is 5 years old,
   the third one is 40 years old.
 */
-Project.min('age').success(function(min) {
+Project.min('age').then(function(min) {
   // this will return 5
 })
  
-Project.min('age', { where: { age: { gt: 5 } } }).success(function(min) {
+Project.min('age', { where: { age: { gt: 5 } } }).then(function(min) {
   // will be 10
 })
 ```
@@ -885,11 +885,11 @@ use the `sum` method.
   the second one is 5 years old,
   the third one is 40 years old.
 */
-Project.sum('age').success(function(sum) {
+Project.sum('age').then(function(sum) {
   // this will return 55
 })
  
-Project.sum('age', { where: { age: { gt: 5 } } }).success(function(sum) {
+Project.sum('age', { where: { age: { gt: 5 } } }).then(function(sum) {
   // wil be 50
 })
 ```
@@ -915,7 +915,7 @@ sequelize.sync().done(function() {
 OK&period; So&comma; first of all&comma; let's load all tasks with their associated user&period;
 
 ```js
-Task.findAll({ include: [ User ] }).success(function(tasks) {
+Task.findAll({ include: [ User ] }).then(function(tasks) {
   console.log(JSON.stringify(tasks))
  
   /*
@@ -941,7 +941,7 @@ Notice that the accessor of the associated data is the name of the model in came
 Next thing&colon; Loading of data with many-to-something associations&excl;
     
 ```js
-User.findAll({ include: [ Task ] }).success(function(users) {
+User.findAll({ include: [ Task ] }).then(function(users) {
   console.log(JSON.stringify(users))
  
   /*
@@ -967,7 +967,7 @@ Notice that the accessor is plural&period; This is because the association is ma
 If an association is aliased &lpar;using the`as`option&rpar;&comma; you_must_specify this alias when including the model&period; Notice how the user's`Tool`s are aliased as`Instruments`above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
     
 ```js
-User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).success(function(users) {
+User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(users) {
   console.log(JSON.stringify(users))
  
   /*
@@ -1022,7 +1022,7 @@ User.findAll({
       {model: Teacher, include: [ /* etc */]}
     ]}
   ]
-}).success(function(users) {
+}).then(function(users) {
   console.log(JSON.stringify(users))
  
   /*
@@ -1049,7 +1049,7 @@ User.findAll({
 **Final note&colon;**If you include an object which is not associated&comma; Sequelize will throw an error&period;
     
 ```js
-Tool.findAll({ include: [ User ] }).success(function(tools) {
+Tool.findAll({ include: [ User ] }).then(function(tools) {
   console.log(JSON.stringify(tools))
 })
  

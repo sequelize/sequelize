@@ -34,11 +34,11 @@ task.rating // ==> 3
 To get it stored in the database&comma; use the `save`-method and catch the events ... if needed&colon;
 
 ```js
-project.save().success(function() {
+project.save().then(function() {
   // my nice callback stuff
 })
  
-task.save().error(function(error) {
+task.save().catch(function(error) {
   // mhhh, wth!
 })
  
@@ -46,9 +46,9 @@ task.save().error(function(error) {
 Task
   .build({ title: 'foo', description: 'bar', deadline: new Date() })
   .save()
-  .success(function(anotherTask) {
+  .then(function(anotherTask) {
     // you can now access the currently saved task with the variable anotherTask... nice!
-  }).error(function(error) {
+  }).catch(function(error) {
     // Ooops, do some error-handling
   })
 ```
@@ -58,7 +58,7 @@ Task
 Besides constructing objects&comma; that needs an explicit save call to get stored in the database&comma; there is also the possibility to do all those steps with one single command&period; It's called `create`.
     
 ```js
-Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).success(function(task) {
+Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(function(task) {
   // you can now access the newly created task via the variable task
 })
 ```
@@ -66,7 +66,7 @@ Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).success(
 It is also possible to define which attributes can be set via the create method&period; This can be especially very handy if you create database entries based on a form which can be filled by a user&period; Using that would for example allow you to restrict the `User` model to set only a username and an address but not an admin flag&colon;
     
 ```js
-User.create({ username: 'barfooz', isAdmin: true }, [ 'username' ]).success(function(user) {
+User.create({ username: 'barfooz', isAdmin: true }, [ 'username' ]).then(function(user) {
   // let's assume the default of isAdmin is false:
   console.log(user.values) // => { username: 'barfooz', isAdmin: false }
 })
@@ -79,12 +79,12 @@ Now lets change some values and save changes to the database&period;&period;&per
 ```js
 // way 1
 task.title = 'a very different title now'
-task.save().success(function() {})
+task.save().then(function() {})
  
 // way 2
 task.updateAttributes({
   title: 'a very different title now'
-}).success(function() {})
+}).then(function() {})
 ```
 
 It's also possible to define which attributes should be saved when calling`save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `updateAttributes`&period; This is how it looks like&colon;
@@ -97,7 +97,7 @@ task.save({fields: ['title']}).then(function() {
 })
  
 // The equivalent call using updateAttributes looks like this:
-task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).success(function() {
+task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(function() {
  // title will now be 'foooo' but description is the very same as before
 })
 ```
@@ -107,10 +107,10 @@ task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['tit
 Once you created an object and got a reference to it&comma; you can delete it from the database&period; The relevant method is `destroy`&colon;
 
 ```js
-Task.create({ title: 'a task' }).success(function(task) {
+Task.create({ title: 'a task' }).then(function(task) {
   // now you see me...
  
-  task.destroy().success(function() {
+  task.destroy().then(function() {
     // now i'm gone :)
   })
 })
@@ -139,8 +139,8 @@ User.bulkCreate([
   { username: 'barfooz', isAdmin: true },
   { username: 'foo', isAdmin: true },
   { username: 'bar', isAdmin: false }
-]).success(function() { // Notice: There are no arguments here, as of right now you'll have to...
-  User.findAll().success(function(users) {
+]).then(function() { // Notice: There are no arguments here, as of right now you'll have to...
+  User.findAll().then(function(users) {
     console.log(users) // ... in order to get the array of user objects
   })
 })
@@ -153,13 +153,13 @@ Task.bulkCreate([
   {subject: 'programming', status: 'executing'},
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
-]).success(function() {
+]).then(function() {
   Task.update(
     { status: 'inactive' } /* set attributes' value */, 
     { where: { subject: 'programming' }} /* where criteria */
-  ).success(function(affectedRows) {
+  ).then(function(affectedRows) {
     // affectedRows will be 2
-    Task.findAll().success(function(tasks) {
+    Task.findAll().then(function(tasks) {
       console.log(tasks) // the 'programming' tasks will both have a status of 'inactive'
     })
   })
@@ -173,13 +173,13 @@ Task.bulkCreate([
   {subject: 'programming', status: 'executing'},
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
-]).success(function() {
+]).then(function() {
   Task.destroy(
     { where: {subject: 'programming'}} /* where criteria */,
     {truncate: true /* truncate the whole table, ignoring where criteria */} /* options */
-  ).success(function(affectedRows) {
+  ).then(function(affectedRows) {
     // affectedRows will be 2
-    Task.findAll().success(function(tasks) {
+    Task.findAll().then(function(tasks) {
       console.log(tasks) // no programming, just reading :(
     })
   })
@@ -192,7 +192,7 @@ If you are accepting values directly from the user, it might be beneficial to li
 User.bulkCreate([
   { username: 'foo' },
   { username: 'bar', admin: true}
-], { fields: ['username'] }).success(function() {
+], { fields: ['username'] }).then(function() {
   // nope bar, you can't be admin! 
 })
 ```
@@ -219,7 +219,7 @@ Tasks.bulkCreate([
   {name: 'foo', code: '123'},
   {code: '1234'},
   {name: 'bar', code: '1'}
-], { validate: true }).error(function(errors) {
+], { validate: true }).catch(function(errors) {
   /* console.log(errors) would look like:
   [
     { record: 
@@ -247,7 +247,7 @@ If you log an instance you will notice&comma; that there is a lot of additional 
 Person.create({
   name: 'Rambow',
   firstname: 'John'
-}).success(function(john) {
+}).then(function(john) {
   console.log(john.values)
 })
  
@@ -268,11 +268,11 @@ Person.create({
 If you need to get your instance in sync&comma; you can use the method`reload`&period; It will fetch the current data from the database and overwrite the attributes of the model on which the method has been called on&period;
 
 ```js
-Person.find({ where: { name: 'john' } }).success(function(person) {
+Person.find({ where: { name: 'john' } }).then(function(person) {
   person.name = 'jane'
   console.log(person.name) // 'jane'
  
-  person.reload().success(function() {
+  person.reload().then(function() {
     console.log(person.name) // 'john'
   })
 })
@@ -285,27 +285,27 @@ In order to increment values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
     
 ```js
-User.find(1).success(function(user) {
-  user.increment('my-integer-field', 2).success(/* ... */)
+User.find(1).then(function(user) {
+  user.increment('my-integer-field', 2).then(/* ... */)
 })
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
     
 ```js
-User.find(1).success(function(user) {
-  user.increment([ 'my-integer-field', 'my-very-other-field' ], 2).success(/* ... */)
+User.find(1).then(function(user) {
+  user.increment([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)
 })
 ```
 
 Third&comma; you can define an object containing fields and its increment values&period;
     
 ```js
-User.find(1).success(function(user) {
+User.find(1).then(function(user) {
   user.increment({
     'my-integer-field':    2,
     'my-very-other-field': 3
-  }).success(/* ... */)
+  }).then(/* ... */)
 })
 ```
 
@@ -316,26 +316,26 @@ In order to decrement values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
     
 ```js
-User.find(1).success(function(user) {
-  user.decrement('my-integer-field', 2).success(/* ... */)
+User.find(1).then(function(user) {
+  user.decrement('my-integer-field', 2).then(/* ... */)
 })
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
     
 ```js
-User.find(1).success(function(user) {
-  user.decrement([ 'my-integer-field', 'my-very-other-field' ], 2).success(/* ... */)
+User.find(1).then(function(user) {
+  user.decrement([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)
 })
 ```
 
 Third&comma; you can define an object containing fields and its decrement values&period;
 
 ```js
-User.find(1).success(function(user) {
+User.find(1).then(function(user) {
   user.decrement({
     'my-integer-field':    2,
     'my-very-other-field': 3
-  }).success(/* ... */)
+  }).then(/* ... */)
 })
 ```

@@ -127,7 +127,7 @@ User.create({username: 'Not a Boss', accessLevel: 20}).error(function(err) {
 The following example would emit a success event:
 
 ```js
-User.create({username: 'Boss', accessLevel: 20}).success(function(user) {
+User.create({username: 'Boss', accessLevel: 20}).then(function(user) {
   console.log(user) // user object with username as Boss and accessLevel of 20
 })
 ```

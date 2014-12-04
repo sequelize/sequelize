@@ -1,7 +1,5 @@
 With Sequelize you can also specify associations between multiple classes&period; Doing so will help you to easily access and set those associated objects&period; The library therefore provides for each defined class different methods&comma; which are explained in the following chapters&period;
 
-**Note&colon; **Associations with models that use custom primaryKeys &lpar;so not the field 'id'&rpar; are currently unsupported&period;
-
 ## One-To-One associations
 
 One-To-One associations are connecting one source with exactly one target&period; In order to define a proper database schema&comma; Sequelize utilizes the methods `belongsTo` and `hasOne`&period; You can use them as follows&colon;
@@ -47,19 +45,11 @@ Person#setFather
 Person#getFather
  
 // If you need to join a table twice you can double join the same table
-Team
-  .hasOne(Game, {foreignKey : 'homeTeamId'});
-  .hasOne(Game, {foreignKey : 'awayTeamId'});
-Game
-  .belongsTo(Team);
+Team.hasOne(Game, {as: 'HomeTeam', foreignKey : 'homeTeamId'});
+Team.hasOne(Game, {as: 'AwayTeam', foreignKey : 'awayTeamId'});
+
+Game.belongsTo(Team);
  
- 
-// Since v1.3.0 you can also chain associations:
-Project
-  .hasOne(User)
-  .hasOne(Deadline)
-  .hasOne(Attachment)
-```
 
 To get the association working the other way around &lpar;so from `User` to `Project`&rpar;&comma; it's necessary to do this&colon;
 
@@ -208,24 +198,24 @@ Task.create()...
 Task.create()...
  
 // save them... and then:
-project.setTasks([task1, task2]).success(function() {
+project.setTasks([task1, task2]).then(function() {
   // saved!
 })
  
 // ok now they are save... how do I get them later on?
-project.getTasks().success(function(associatedTasks) {
+project.getTasks().then(function(associatedTasks) {
   // associatedTasks is an array of tasks
 })
  
 // You can also pass filters to the getter method.
 // They are equal to the options you can pass to a usual finder method.
-project.getTasks({ where: 'id > 10' }).success(function(tasks) {
+project.getTasks({ where: 'id > 10' }).then(function(tasks) {
   // tasks with an id greater than 10 :)
 })
  
 // You can also only retrieve certain fields of a associated object.
 // This example will retrieve the attibutes "title" and "id"
-project.getTasks({attributes: ['title']}).success(function(tasks) {
+project.getTasks({attributes: ['title']}).then(function(tasks) {
   // tasks with an id greater than 10 :)
 })
 ```
@@ -234,22 +224,22 @@ To remove created associations you can just call the set method without a specif
     
 ```js
 // remove the association with task1
-project.setTasks([task2]).success(function(associatedTasks) {
+project.setTasks([task2]).then(function(associatedTasks) {
   // you will get task2 only
 })
  
 // remove 'em all
-project.setTasks([]).success(function(associatedTasks) {
+project.setTasks([]).then(function(associatedTasks) {
   // you will get an empty array
 })
  
 // or remove 'em more directly
-project.removeTask(task1).success(function() {
+project.removeTask(task1).then(function() {
   // it's gone
 })
  
 // and add 'em again
-project.addTask(task1).success(function() {
+project.addTask(task1).then(function() {
   // it's back again
 })
 ```
@@ -258,7 +248,7 @@ You can of course also do it vice versa&colon;
 
 ```js
 // project is associated with task1 and task2
-task2.setProject(null).success(function() {
+task2.setProject(null).then(function() {
   // and it's gone
 })
 ```
@@ -296,14 +286,14 @@ u.setProjects([project1, project2], { status: 'active' })
 When getting data on an association that has a custom join table&comma; the data from the join table will be returned as a DAO instance&colon;
 
 ```js
-u.getProjects().success(function(projects) {
+u.getProjects().then(function(projects) {
   var project = projects[0]
  
   if (project.UserProjects.status === 'active') {
     // .. do magic
  
     // since this is a real DAO instance, you can save it directly after you are done doing magic
-    project.UserProjects.save()
+    return project.UserProjects.save()
   }
 })
 ```
@@ -320,12 +310,12 @@ You can also check if an object is already associated with another one &lpar;N&c
     
 ```js
 // check if an object is one of associated ones:
-Project.create({ /* */ }).success(function(project) {
-  User.create({ /* */ }).success(function(user) {
-    project.hasUser(user).success(function(result) {
+Project.create({ /* */ }).then(function(project) {
+  return User.create({ /* */ }).then(function(user) {
+    return project.hasUser(user).then(function(result) {
       // result would be false
-      project.addUser(user).success(function() {
-        project.hasUser(user).success(function(result) {
+      return project.addUser(user).then(function() {
+        return project.hasUser(user).then(function(result) {
           // result would be true
         })
       })
@@ -335,10 +325,10 @@ Project.create({ /* */ }).success(function(project) {
  
 // check if all associated objects are as expected:
 // let's assume we have already a project and two users
-project.setUsers([user1, user2]).success(function() {
-  project.hasUsers([user1]).success(function(result) {
+project.setUsers([user1, user2]).then(function() {
+  return project.hasUsers([user1]).then(function(result) {
     // result would be false
-    project.hasUsers([user1, user2]).success(function(result) {
+    return project.hasUsers([user1, user2]).then(function(result) {
       // result would be true
     })
   })
