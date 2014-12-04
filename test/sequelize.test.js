@@ -586,22 +586,45 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
   })
 
+  describe('truncate', function() {
+    it("truncates all daos", function(done) {
+      var Project = this.sequelize.define('project' + config.rand(), { title: DataTypes.STRING });
+
+      // Initially, force the tables to be created.
+      this.sequelize.sync({ force: true })
+      .then(function() {
+        return Project.create({ title: 'bla' });
+      })
+      .bind(this)
+      .then(function(project) {
+        expect(project).to.exist;
+        expect(project.title).to.equal('bla');
+        return this.sequelize.sync({ truncate: true }).then(function() {
+          return Project.findAll({});
+        });
+      })
+      .then(function(projects) {
+        expect(projects).to.exist;
+        expect(projects).to.have.length(0);
+        done();
+      })
+      .catch(done);
+    });
+  });
+
   describe('sync', function() {
     it("synchronizes all daos", function(done) {
       var Project = this.sequelize.define('project' + config.rand(), { title: DataTypes.STRING })
-      var Task = this.sequelize.define('task' + config.rand(), { title: DataTypes.STRING })
 
-      Project.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          Project.create({title: 'bla'}).success(function() {
-            Task.create({title: 'bla'}).success(function(task){
-              expect(task).to.exist
-              expect(task.title).to.equal('bla')
-              done()
-            })
-          })
-        })
+      this.sequelize.sync({ force: true }).then(function() {
+        return Project.create({title: 'bla'});
       })
+      .then(function(project) {
+        expect(project).to.exist;
+        expect(project.title).to.equal('bla');
+        done();
+      })
+      .catch(done);
     })
 
     it('works with correct database credentials', function(done) {
