@@ -1511,5 +1511,81 @@ describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
       })
     })
 
-  })
-})
+  });
+
+  describe('findOne', function () {
+    it('should work with schemas', function () {
+      var self = this;
+      var UserModel = this.sequelize.define('User', {
+        Id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true
+        },
+        Name: DataTypes.STRING,
+        UserType: DataTypes.INTEGER,
+        Email: DataTypes.STRING,
+        PasswordHash: DataTypes.STRING,
+        Enabled: {
+          type: DataTypes.BOOLEAN
+        },
+        CreatedDatetime: DataTypes.DATE,
+        UpdatedDatetime: DataTypes.DATE
+      }, {
+        schema: 'hero',
+        tableName: 'User',
+        timestamps: false
+      });
+
+      var ResumeModel = this.sequelize.define('Resume', {
+        Id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true
+        },
+        UserId: {
+          type:Sequelize.INTEGER,
+          references: UserModel,
+          referencesKey: "Id"
+        },
+        Name: Sequelize.STRING,
+        Contact: Sequelize.STRING,
+        School: Sequelize.STRING,
+        WorkingAge: Sequelize.STRING,
+        Description: Sequelize.STRING,
+        PostType: Sequelize.INTEGER,
+        RefreshDatetime: Sequelize.DATE,
+        CreatedDatetime: Sequelize.DATE
+      }, {
+        schema: 'hero',
+        tableName: 'resume',
+        timestamps: false
+      });
+
+      UserModel.hasOne(ResumeModel, {
+        foreignKey: 'UserId',
+        as: 'Resume'
+      });
+
+      ResumeModel.belongsTo(UserModel, {
+        foreignKey: 'UserId'
+      });
+
+      return self.sequelize.dropAllSchemas().then(function () {
+        return self.sequelize.createSchema("hero");
+      }).then(function () {
+        return self.sequelize.sync({force: true}).then(function () {
+          return UserModel.find({
+            where: {
+              Id: 1
+            },
+            include: [{
+              model: ResumeModel,
+              as: 'Resume'
+            }]
+          }).on('sql', function (sql) {
+            console.log(sql);
+          });
+        });
+      });
+    });
+  });
+});
