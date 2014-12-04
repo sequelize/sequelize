@@ -222,6 +222,30 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         });
       });
 
+      it('should bulk update', function () {
+        var Entity = this.sequelize.define('Entity', {
+            strField: {type: Sequelize.STRING, field: 'str_field'},
+        });
+
+        return this.sequelize.sync({force: true}).then(function() {
+          return Entity.create({strField: 'foo'});
+        }).then(function() {
+          return Entity.update(
+            {strField: 'bar'},
+            {where: {strField: 'foo'}}
+          );
+        }).then(function () {
+          return Entity.findOne({
+            where: {
+              strField: 'bar'
+            }
+          }).then(function (entity) {
+            expect(entity).to.be.ok;
+            expect(entity.get('strField')).to.equal('bar');
+          });
+        });
+      });
+
       it('should not contain the field properties after create', function () {
         var Model = this.sequelize.define('test', {
           id: {
