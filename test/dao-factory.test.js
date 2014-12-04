@@ -1727,14 +1727,17 @@ describe(Support.getTestDialectTeaser("DAOFactory"), function () {
 
     it("should allow dates in max", function(done) {
       var self = this
-      this.User.bulkCreate([{theDate: new Date(2013, 12, 31)}, {theDate: new Date(2000, 01, 01)}]).success(function(){
-        self.User.max('theDate').success(function(max){
+      this.User.bulkCreate([
+        {theDate: new Date(2013, 11, 31)},
+        {theDate: new Date(2000, 01, 01)}
+      ]).success(function() {
+        self.User.max('theDate').success(function(max) {
           expect(max).to.be.a('Date');
-          expect(max).to.equalDate(new Date(2013, 12, 31))
-          done()
-        })
-      })
-    })
+          expect(max).to.equalDate(new Date(2013, 11, 31));
+          done();
+        });
+      });
+    });
 
     it("should allow strings in max", function(done) {
       var self = this
