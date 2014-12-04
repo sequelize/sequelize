@@ -13,6 +13,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       if (dialect === 'mariadb') {
         console.log('This dialect doesn\'t support me :(')
         expect(true).to.be.true // Silence Buster
+        return;
       }
 
       var seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
@@ -28,6 +29,7 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       if (dialect === 'mariadb') {
         console.log('This dialect doesn\'t support me :(')
         expect(true).to.be.true // Silence Buster
+        return;
       }
 
       var seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
