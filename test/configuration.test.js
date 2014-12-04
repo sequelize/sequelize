@@ -11,12 +11,22 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
   describe('Connections problems should fail with a nice message', function() {
     it("when we don't have the correct server details", function(done) {
       var seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
-      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.InvalidConnectionError, 'connect EINVAL')
+      if (dialect === 'sqlite') {
+        // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
+        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file').notify(done)
+      } else {
+        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.InvalidConnectionError, 'connect EINVAL').notify(done)
+      }
     })
 
     it('when we don\'t have the correct login information', function(done) {
       var seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
-      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionRefusedError, 'connect ECONNREFUSED')
+      if (dialect === 'sqlite') {
+        // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
+        return expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled.notify(done)
+      } else {
+        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionRefusedError, 'connect ECONNREFUSED').notify(done)
+      }
     })
 
     it('when we don\'t have a valid dialect.', function(done) {
