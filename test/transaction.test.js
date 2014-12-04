@@ -58,6 +58,32 @@ describe(Support.getTestDialectTeaser("Transaction"), function () {
     });
   });
 
+  it('does not allow queries after commit', function () {
+    var self = this;
+    return expect(
+      this.sequelize.transaction().then(function (t) {
+        return self.sequelize.query("SELECT 1+1", null, {transaction: t, raw: true}).then(function () {
+          return t.commit();
+        }).then(function () {
+          return self.sequelize.query("SELECT 1+1", null, {transaction: t, raw: true});
+        });
+      })
+    ).to.eventually.be.rejected;
+  });
+
+  it('does not allow queries after rollback', function () {
+    var self = this;
+    return expect(
+      this.sequelize.transaction().then(function (t) {
+        return self.sequelize.query("SELECT 1+1", null, {transaction: t, raw: true}).then(function () {
+          return t.commit();
+        }).then(function () {
+          return self.sequelize.query("SELECT 1+1", null, {transaction: t, raw: true});
+        });
+      })
+    ).to.eventually.be.rejected;
+  });
+
   if (current.dialect.supports.lock) {
     describe('row locking', function () {
       this.timeout(10000);
