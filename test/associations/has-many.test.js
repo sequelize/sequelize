@@ -1477,6 +1477,30 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         return this.sequelize.sync({ force: true });
       });
 
+      it('should work with non integer primary keys', function () {
+        var Beacons = this.sequelize.define('Beacon', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.UUID
+          },
+          name: {
+            type: DataTypes.STRING,
+          }
+        });
+
+        // Usar not to clash with the beforEach definition
+        var Users = this.sequelize.define('Usar', {
+          name: {
+            type: DataTypes.STRING
+          }
+        });
+
+        Beacons.hasMany(Users);
+        Users.hasMany(Beacons);
+
+        return this.sequelize.sync({force: true, logging: true});
+      });
+
       it('uses the specified joinTableName or a reasonable default', function() {
         for (var associationName in this.User.associations) {
           expect(associationName).not.to.equal(this.User.tableName);
