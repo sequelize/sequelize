@@ -10,6 +10,7 @@ sequelize.define('User', {
 ```
 
 ## Fields
+```js
 sequelize.define('ModelName', {
   userId: {
     type: Sequelize.INTEGER,
