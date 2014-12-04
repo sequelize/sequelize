@@ -18,24 +18,18 @@ describe(Support.getTestDialectTeaser("Configuration"), function() {
       }
 
       var seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect})
-      seq.query('select 1 as hello').error(function(err) {
-        expect(err.message).to.match(/connect EINVAL/)
-        done()
-      })
+      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.InvalidConnectionError, 'connect EINVAL')
     })
 
     it('when we don\'t have the correct login information', function(done) {
-      if (dialect !== "postgres" && dialect !== "postgres-native") {
+      if (dialect !== "postgres" && dialect !== "postgres-native" && dialect !== "mysql") {
         console.log('This dialect doesn\'t support me :(')
         expect(true).to.be.true // Silence Buster
         return done()
       }
 
       var seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect})
-      seq.query('select 1 as hello').error(function(err) {
-        expect(err.message).to.match(/connect ECONNREFUSED/)
-        done()
-      })
+      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionRefusedError, 'connect ECONNREFUSED')
     })
 
     it('when we don\'t have a valid dialect.', function(done) {
