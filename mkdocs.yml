@@ -10,7 +10,6 @@ extra_javascript:
 pages:
 - ['index.md', 'Home']
 
-- ['docs/installation.md', 'Docs', 'Installation']
 - ['docs/usage.md', 'Docs', 'Usage']
 - ['docs/models.md', 'Docs', 'Models']
 - ['docs/instances.md', 'Docs', 'Instances']
@@ -18,7 +17,6 @@ pages:
 - ['docs/hooks.md', 'Docs', 'Hooks']
 - ['docs/transactions.md', 'Docs', 'Transactions']
 - ['docs/migrations.md', 'Docs', 'Migrations']
-- ['docs/misc.md', 'Docs', 'Misc']
 
 - ['api/sequelize.md', 'API', 'Sequelize']
 - ['api/model.md', 'API', 'Model']

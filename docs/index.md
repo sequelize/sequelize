@@ -1,9 +1,9 @@
 The Sequelize library provides easy access to MySQL, MariaDB, SQLite or PostgreSQL databases by mapping database entries to objects and vice versa. To put it in a nutshell, it's an ORM (Object-Relational-Mapper). The library is written entirely in JavaScript and can be used in the Node.JS environment.
 
-## Easy installation 
+## Installation
 ```bash
 $ npm install sequelize
-$ npm install mysql
+$ npm install mysql|pg|sqlite
 ```
 
 ## Example usage
