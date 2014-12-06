@@ -195,6 +195,28 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         return self.queryInterface.renameColumn('_Users', 'username', 'pseudo')
       })
     })
+
+    it('works with schemas', function () {
+      var self = this
+      var Users = self.sequelize.define('User', {
+        username: DataTypes.STRING
+      }, { 
+        tableName: 'Users',
+        schema: 'archive'
+      })
+
+      return self.sequelize.dropAllSchemas().then(function () {
+        return self.sequelize.createSchema("archive");
+      }).then(function () {
+        return Users.sync({ force: true }).then(function() {
+          return self.queryInterface.renameColumn({
+            schema: 'archive',
+            tableName: 'Users'
+          }, 'username', 'pseudo');
+        });
+      });
+    });
+
     it('rename a column non-null without default value', function() {
       var self = this
       var Users = self.sequelize.define('_Users', {
