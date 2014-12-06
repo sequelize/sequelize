@@ -35,7 +35,7 @@
     "bluebird": "~2.3.11",
     "dottie": "0.2.4",
     "generic-pool": "2.1.1",
-    "inflection": "1.5.2",
+    "inflection": "1.5.3",
     "lodash": "~2.4.0",
     "moment": "~2.8.0",
     "node-uuid": "~1.4.1",

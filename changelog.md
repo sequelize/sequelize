@@ -1,3 +1,6 @@
+# Next
+- [INTERNALS] Update `inflection` dependency to v1.5.3
+
 # 2.0.0-rc3
 - [FEATURE] Added the possibility of removing multiple associations in 1 call [#2338](https://github.com/sequelize/sequelize/issues/2338)
 - [FEATURE] Undestroy method for paranoid models [#2540](https://github.com/sequelize/sequelize/pull/2540)
