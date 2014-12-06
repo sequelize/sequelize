@@ -46,10 +46,12 @@ And if your model has no primary key at all you can use `Model.removeAttribute('
 ## Foreign keys
 ```js
 // 1:1
-User.belongsTo(Organization, {foreignKey: 'organization_id'});
+Organization.belongsTo(User, {foreignKey: 'owner_id'});
+User.hasOne(Organization, {foreignKey: 'owner_id'});
 
 // 1:M
 Project.hasMany(Task, {foreignkey: 'tasks_pk'});
+Task.belongsTo(Project, {foreignKey: 'tasks_pk'});
 
 // N:M
 User.hasMany(Role, {through: 'user_has_roles', foreignKey: 'user_role_user_id'});
