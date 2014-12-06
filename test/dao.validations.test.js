@@ -825,10 +825,70 @@ describe(Support.getTestDialectTeaser("DaoValidator"), function() {
       })
     })
 
+    it('raises an error for array on a STRING(20)', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: Sequelize.STRING(20)
+        }
+      })
+
+      User.build({
+        email: ['iama', 'dummy.com']
+      }).validate().success(function (errors) {
+        expect(errors).to.be.an.instanceof(Sequelize.ValidationError)
+        done()
+      })
+    })
+
+    it('raises an error for array on a TEXT', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: Sequelize.TEXT
+        }
+      })
+
+      User.build({
+        email: ['iama', 'dummy.com']
+      }).validate().success(function (errors) {
+        expect(errors).to.be.an.instanceof(Sequelize.ValidationError)
+        done()
+      })
+    })
+
     it('raises an error for {} on a STRING', function (done) {
       var User = this.sequelize.define('User', {
         'email': {
           type: Sequelize.STRING
+        }
+      })
+
+      User.build({
+        email: {lol: true}
+      }).validate().success(function (errors) {
+        expect(errors).to.be.an.instanceof(Sequelize.ValidationError)
+        done()
+      })
+    })
+
+    it('raises an error for {} on a STRING(20)', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: Sequelize.STRING(20)
+        }
+      })
+
+      User.build({
+        email: {lol: true}
+      }).validate().success(function (errors) {
+        expect(errors).to.be.an.instanceof(Sequelize.ValidationError)
+        done()
+      })
+    })
+
+    it('raises an error for {} on a TEXT', function (done) {
+      var User = this.sequelize.define('User', {
+        'email': {
+          type: Sequelize.TEXT
         }
       })
 
