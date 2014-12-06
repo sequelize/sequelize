@@ -1498,7 +1498,7 @@ describe(Support.getTestDialectTeaser("HasMany"), function() {
         Beacons.hasMany(Users);
         Users.hasMany(Beacons);
 
-        return this.sequelize.sync({force: true, logging: true});
+        return this.sequelize.sync({force: true});
       });
 
       it('uses the specified joinTableName or a reasonable default', function() {
