@@ -424,6 +424,9 @@ if (Support.dialectIsMySQL()) {
         }, {
           arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {ignoreDuplicates: true}],
           expectation: "INSERT IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+        }, {
+          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {updateOnDuplicate: ['name']}],
+          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);"
         }
       ],
 
