@@ -682,10 +682,7 @@ describe(Support.getTestDialectTeaser("BelongsToMany"), function() {
         this.Task.create({ id: 12, title: 'task1' }),
         this.Task.create({ id: 15, title: 'task2' }),
       ]).spread(function(user, task1, task2) {
-        return user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function (sql) {
-          var tickChar = (Support.getTestDialect() === 'postgres') ? '"' : '`';
-          expect(sql).to.have.string("INSERT INTO %TasksUsers% (%UserId%,%TaskId%) VALUES (1,12),(1,15)".replace(/%/g, tickChar));
-        }));
+        return user.setTasks([task1, task2]).on('sql', spy);
       }).then(function () {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
       });
@@ -702,10 +699,7 @@ describe(Support.getTestDialectTeaser("BelongsToMany"), function() {
       ]).spread(function (user, task1, task2) {
         return user.setTasks([task1, task2]).return(user);
       }).then(function (user) {
-        return user.setTasks(null).on('sql', spy).on('sql', _.after(2, function (sql) {
-          expect(sql).to.have.string("DELETE FROM");
-          expect(sql).to.match(/IN \(1,2\)|IN \(2,1\)/);
-        }));
+        return user.setTasks(null).on('sql', spy);
       }).then(function () {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for DELETE
       });
