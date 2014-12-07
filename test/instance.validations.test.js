@@ -9,7 +9,7 @@ var chai      = require('chai')
 
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("DaoValidator"), function() {
+describe(Support.getTestDialectTeaser("InstanceValidator"), function() {
   describe('validations', function() {
     var checks = {
       is: {
