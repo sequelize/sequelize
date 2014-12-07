@@ -1483,18 +1483,58 @@ describe(Support.getTestDialectTeaser("BelongsToMany"), function() {
   });
 
   describe("Foreign key constraints", function() {
-    describe('n:m', function () {
-      beforeEach(function () {
-        this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
-        this.User = this.sequelize.define('user', { username: DataTypes.STRING });
-        this.UserTasks = this.sequelize.define('tasksusers', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+    beforeEach(function () {
+      this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
+      this.User = this.sequelize.define('user', { username: DataTypes.STRING });
+      this.UserTasks = this.sequelize.define('tasksusers', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+    });
+
+    it("can cascade deletes both ways by default", function () {
+      var self = this;
+
+      this.User.belongsToMany(this.Task);
+      this.Task.belongsToMany(this.User);
+
+      return this.sequelize.sync({ force: true }).bind({}).then(function() {
+        return Promise.all([
+          self.User.create({ id: 67, username: 'foo' }),
+          self.Task.create({ id: 52, title: 'task' }),
+          self.User.create({ id: 89, username: 'bar' }),
+          self.Task.create({ id: 42, title: 'kast' }),
+        ]);
+      }).spread(function (user1, task1, user2, task2) {
+        this.user1 = user1;
+        this.task1 = task1;
+        this.user2 = user2;
+        this.task2 = task2;
+        return Promise.all([
+          user1.setTasks([task1]),
+          task2.setUsers([user2])
+        ]);
+      }).then(function () {
+        return Promise.all([
+          this.user1.destroy(),
+          this.task2.destroy()
+        ]);
+      }).then(function () {
+        return Promise.all([
+          self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
+          self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }})
+        ]);
+      }).spread(function (tu1, tu2) {
+        expect(tu1).to.have.length(0);
+        expect(tu2).to.have.length(0);
       });
+    });
 
-      it("can cascade deletes both ways by default", function () {
-        var self = this;
+    if (current.dialect.supports.constraints.restrict) {
 
-        this.User.belongsToMany(this.Task);
-        this.Task.belongsToMany(this.User);
+      it("can restrict deletes both ways", function () {
+        var self = this
+          , spy = sinon.spy();
+
+        this.User.belongsToMany(this.Task, { onDelete: 'RESTRICT'});
+        this.Task.belongsToMany(this.User, { onDelete: 'RESTRICT'});
 
         return this.sequelize.sync({ force: true }).bind({}).then(function() {
           return Promise.all([
@@ -1514,130 +1554,88 @@ describe(Support.getTestDialectTeaser("BelongsToMany"), function() {
           ]);
         }).then(function () {
           return Promise.all([
-            this.user1.destroy(),
-            this.task2.destroy()
+            this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
+            this.task2.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy)
           ]);
         }).then(function () {
-          return Promise.all([
-            self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
-            self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }})
-          ]);
-        }).spread(function (tu1, tu2) {
-          expect(tu1).to.have.length(0);
-          expect(tu2).to.have.length(0);
+          expect(spy).to.have.been.calledTwice;
         });
       });
 
-      if (current.dialect.supports.constraints.restrict) {
+      it("can cascade and restrict deletes", function () {
+        var spy = sinon.spy()
+          , self = this;
 
-        it("can restrict deletes both ways", function () {
-          var self = this
-            , spy = sinon.spy();
+        self.User.belongsToMany(self.Task, { onDelete: 'RESTRICT'});
+        self.Task.belongsToMany(self.User, { onDelete: 'CASCADE'});
 
-          this.User.belongsToMany(this.Task, { onDelete: 'RESTRICT'});
-          this.Task.belongsToMany(this.User, { onDelete: 'RESTRICT'});
-
-          return this.sequelize.sync({ force: true }).bind({}).then(function() {
-            return Promise.all([
-              self.User.create({ id: 67, username: 'foo' }),
-              self.Task.create({ id: 52, title: 'task' }),
-              self.User.create({ id: 89, username: 'bar' }),
-              self.Task.create({ id: 42, title: 'kast' }),
-            ]);
-          }).spread(function (user1, task1, user2, task2) {
-            this.user1 = user1;
-            this.task1 = task1;
-            this.user2 = user2;
-            this.task2 = task2;
-            return Promise.all([
-              user1.setTasks([task1]),
-              task2.setUsers([user2])
-            ]);
-          }).then(function () {
-            return Promise.all([
-              this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
-              this.task2.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy)
-            ]);
-          }).then(function () {
-            expect(spy).to.have.been.calledTwice;
-          });
-        });
-
-        it("can cascade and restrict deletes", function () {
-          var spy = sinon.spy()
-            , self = this;
-
-          self.User.belongsToMany(self.Task, { onDelete: 'RESTRICT'});
-          self.Task.belongsToMany(self.User); // Implicit CASCADE
-
-          return this.sequelize.sync({ force: true }).bind({}).then(function() {
-            return Promise.all([
-              self.User.create({ id: 67, username: 'foo' }),
-              self.Task.create({ id: 52, title: 'task' }),
-              self.User.create({ id: 89, username: 'bar' }),
-              self.Task.create({ id: 42, title: 'kast' }),
-            ]);
-          }).spread(function (user1, task1, user2, task2) {
-            this.user1 = user1;
-            this.task1 = task1;
-            this.user2 = user2;
-            this.task2 = task2;
-            return Promise.all([
-              user1.setTasks([task1]),
-              task2.setUsers([user2])
-            ]);
-          }).then(function () {
-            return Promise.all([
-              this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
-              this.task2.destroy()
-            ]);
-          }).then(function () {
-            expect(spy).to.have.been.calledOnce;
-            return self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }});
-          }).then(function(usertasks) {
-            // This should not exist because deletes cascade
-            expect(usertasks).to.have.length(0);
-          });
-        });
-
-      }
-
-      it("should be possible to remove all constraints", function () {
-        var self = this;
-
-        this.User.belongsToMany(this.Task, { constraints: false });
-        this.Task.belongsToMany(this.User, { constraints: false });
-
-        return this.sequelize.sync({ force: true }).bind({}).then(function() {
-          return Promise.all([
+        return this.sequelize.sync({ force: true, logging: true }).bind({}).then(function() {
+          return Sequelize.Promise.join(
             self.User.create({ id: 67, username: 'foo' }),
             self.Task.create({ id: 52, title: 'task' }),
             self.User.create({ id: 89, username: 'bar' }),
-            self.Task.create({ id: 42, title: 'kast' }),
-          ]);
+            self.Task.create({ id: 42, title: 'kast' })
+          );
         }).spread(function (user1, task1, user2, task2) {
           this.user1 = user1;
           this.task1 = task1;
           this.user2 = user2;
           this.task2 = task2;
-          return Promise.all([
+          return Sequelize.Promise.join(
             user1.setTasks([task1]),
             task2.setUsers([user2])
-          ]);
+          );
         }).then(function () {
-          return Promise.all([
-            this.user1.destroy(),
+          return Sequelize.Promise.join(
+            this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
             this.task2.destroy()
-          ]);
+          );
         }).then(function () {
-          return Promise.all([
-            self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
-            self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }}),
-          ]);
-        }).spread(function (ut1, ut2) {
-          expect(ut1).to.have.length(1);
-          expect(ut2).to.have.length(1);
+          expect(spy).to.have.been.calledOnce;
+          return self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }});
+        }).then(function(usertasks) {
+          // This should not exist because deletes cascade
+          expect(usertasks).to.have.length(0);
         });
+      });
+
+    }
+
+    it("should be possible to remove all constraints", function () {
+      var self = this;
+
+      this.User.belongsToMany(this.Task, { constraints: false });
+      this.Task.belongsToMany(this.User, { constraints: false });
+
+      return this.sequelize.sync({ force: true }).bind({}).then(function() {
+        return Promise.all([
+          self.User.create({ id: 67, username: 'foo' }),
+          self.Task.create({ id: 52, title: 'task' }),
+          self.User.create({ id: 89, username: 'bar' }),
+          self.Task.create({ id: 42, title: 'kast' }),
+        ]);
+      }).spread(function (user1, task1, user2, task2) {
+        this.user1 = user1;
+        this.task1 = task1;
+        this.user2 = user2;
+        this.task2 = task2;
+        return Promise.all([
+          user1.setTasks([task1]),
+          task2.setUsers([user2])
+        ]);
+      }).then(function () {
+        return Promise.all([
+          this.user1.destroy(),
+          this.task2.destroy()
+        ]);
+      }).then(function () {
+        return Promise.all([
+          self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
+          self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }}),
+        ]);
+      }).spread(function (ut1, ut2) {
+        expect(ut1).to.have.length(1);
+        expect(ut2).to.have.length(1);
       });
     });
   });
