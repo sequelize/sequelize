@@ -1118,4 +1118,13 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       })
     }
   })
-})
+
+  describe('databaseVersion', function () {
+    it('should database/dialect version', function () {
+      return this.sequelize.databaseVersion().then(function (version) {
+        expect(typeof version).to.equal('string');
+        expect(version).to.be.ok;
+      });
+    });
+  });
+});
