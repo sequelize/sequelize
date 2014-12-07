@@ -1743,6 +1743,27 @@ describe(Support.getTestDialectTeaser("DAO"), function () {
         })
       })
     })
+
+    it('should update fields that are not specified on create', function(done) {
+      var User = this.sequelize.define('User' + config.rand(), {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        email: DataTypes.STRING
+      })
+
+      User.sync({force: true}).success(function() {
+        User.create({
+          name: 'snafu',
+          email: 'email'
+        }, {fields: ['name', 'email']}).success(function(user) {
+          var emitter = user.updateAttributes({bio: 'bio'});
+          emitter.on('sql', function(sql) {
+            expect(sql).to.match(/[`"]bio[`"]..bio./)
+            done();
+          })
+        })
+      })
+    })
   })
 
   describe('destroy', function() {
