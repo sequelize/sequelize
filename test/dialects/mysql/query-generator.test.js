@@ -3,7 +3,7 @@
 /* jshint camelcase: false */
 var chai      = require('chai')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
+  , Support   = require(__dirname + '/../../support')
   , _         = require('lodash')
   , QueryGenerator = require("../../../lib/dialects/mysql/query-generator")
 
