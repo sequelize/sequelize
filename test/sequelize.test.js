@@ -227,7 +227,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       this.sequelize.query(this.insertQuery, null, { raw: true })
       .complete(function(err, result) {
         expect(err).to.be.null
-        expect(result).to.be.null
         done()
       })
     })
@@ -236,7 +235,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       this.sequelize.query(this.insertQuery)
       .complete(function(err, result) {
         expect(err).to.be.null
-        expect(result).to.not.exist
         done()
       })
     })
