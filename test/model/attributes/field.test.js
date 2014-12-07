@@ -3,11 +3,11 @@
 /* jshint camelcase: false */
 /* jshint expr: true */
 var chai      = require('chai')
-  , Sequelize = require('../../index')
+  , Sequelize = require('../../../index')
   , Promise   = Sequelize.Promise
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+  , Support   = require(__dirname + '/../../support')
+  , DataTypes = require(__dirname + "/../../../lib/data-types")
   , dialect   = Support.getTestDialect()
   , datetime  = require('chai-datetime');
 
