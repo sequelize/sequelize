@@ -81,16 +81,13 @@ Project.hasMany(User, {as: 'Workers'})
 This will add the attribute ProjectId or `project_id` to User. Instances of Project will get the accessors getWorkers and setWorkers.  We could just leave it the way it is and let it be a one-way association.
 But we want more! Let's define it the other way around by creating a many to many assocation in the next section:
 
-## Many-To-Many associations
+## Belongs-To-Many associations
 
-Many-To-Many associations are used to connect sources with multiple targets&period; Furthermore the targets can also have connections to multiple sources&period;
+Belongs-To-Many associations are used to connect sources with multiple targets&period; Furthermore the targets can also have connections to multiple sources&period;
     
 ```js
-// again the Project association to User
-Project.hasMany(User)
- 
-// now comes the association between User and Project
-User.hasMany(Project)
+Project.belongsToMany(User);
+User.belongsToMany(Project);
 ```
 
 This will remove the attribute `ProjectId` (or `project_id`) from User and create a new model called ProjectsUsers with the equivalent foreign keys `ProjectId`(or `project_id`) and `UserId` (or `user_id`). Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
@@ -99,8 +96,8 @@ This will add methods `getUsers`, `setUsers`, `addUsers` to `Project`, and `getP
 
 Sometimes you may want to rename your models when using them in associations. Let's define users as workers and projects as tasks by using the alias (`as`) option:
 ```js  
-User.hasMany(Project, { as: 'Tasks', through: 'worker_tasks' })
-Project.hasMany(User, { as: 'Workers', through: 'worker_tasks' })
+User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks' })
+Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks' })
 ```
 
 Notice how we used the `through` option together with the alias in the code above. This is needed to tell sequelize that the two `hasMany` calls are actually two sides of the same association. If you don't use an alias (as shown in the first example of this section) this matching happens
@@ -109,13 +106,9 @@ automagically, but with aliassed assocations `through` is required.
 Of course you can also define self references with hasMany:
     
 ```js
-Person.hasMany(Person, { as: 'Children' })
+Person.belongsToMany(Person, { as: 'Children' })
 // This will create the table ChildrenPersons which stores the ids of the objects.
- 
-// You can also reference the same Model without creating a junction
-// table (but only if each object will have just one 'parent'). If you need that,
-// use the option foreignKey and set through to null
-Comment.hasMany(Comment, { as: 'Children', foreignKey: 'ParentId', through: null })
+
 ```
 
 By default, sequelize will handle everything related to the join table for you. However, sometimes you might want some more control over the table. This is where th e`through` options comes in handy.
@@ -123,8 +116,8 @@ By default, sequelize will handle everything related to the join table for you. 
 If you just want to control the name of the join table, you can pass a string:
     
 ```js
-Project.hasMany(User, {through: 'project_has_users'})
-User.hasMany(Project, {through: 'project_has_users'})
+Project.belongsToMany(User, {through: 'project_has_users'})
+User.belongsToMany(Project, {through: 'project_has_users'})
 ```
 
 If you want additional attributes in your join table&comma; you can define a model for the join table in sequelize&comma; before you define the association&comma; and then tell sequelize that it should use that model for joining&comma; instead of creating a new one&colon;
@@ -136,8 +129,8 @@ UserProjects = sequelize.define('UserProjects', {
     status: DataTypes.STRING
 })
  
-User.hasMany(Project, { through: UserProjects })
-Project.hasMany(User, { through: UserProjects })
+User.belongsToMany(Project, { through: UserProjects })
+Project.belongsToMany(User, { through: UserProjects })
 ```
 
 To add a new project to a user and set it's status, you pass an extra object to the setter, which contains the attributes for the join table
@@ -166,7 +159,7 @@ By default sequelize will use the model name (the name passed to `sequelize.defi
 As we've already seen, you can alias models in associations using `as`. In single assocations (has one and belongs to), the alias should be singular, while for many associations (has many) it should be plural. Sequelize then uses the [inflection ][0]library to convert the alias to its singular form. However, this might not always work for irregular or non-english words. In this case, you can provide both the plural and the singular form of the alias:
    
 ```js 
-User.hasMany(Project, { as: { singular: 'task', plural: 'tasks' }}) 
+User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks' }}) 
 // Notice that inflection has no problem singularizing tasks, this is just for illustrative purposes.
 ```
 
@@ -180,7 +173,7 @@ var Project = sequelize.define('project', attributes, {
   }
 })
  
-User.hasMany(Project);
+User.belongsToMany(Project);
 ```
 
 This will add the functions `add/set/get Tasks` to user instances.
@@ -190,8 +183,8 @@ This will add the functions `add/set/get Tasks` to user instances.
 Because Sequelize is doing a lot of magic&comma; you have to call `Sequelize.sync` after setting the associations&excl; Doing so will allow you the following&colon;
     
 ```js
-Project.hasMany(Task)
-Task.hasMany(Project)
+Project.belongsToMany(Task)
+Task.belongsToMany(Project)
  
 Project.create()...
 Task.create()...
