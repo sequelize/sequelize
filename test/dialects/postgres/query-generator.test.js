@@ -3,10 +3,10 @@
 /* jshint camelcase: false */
 var chai            = require('chai')
   , expect          = chai.expect
-  , QueryGenerator  = require("../../lib/dialects/postgres/query-generator")
-  , Support         = require(__dirname + '/../support')
+  , QueryGenerator  = require("../../../lib/dialects/postgres/query-generator")
+  , Support         = require(__dirname + '/../../support')
   , dialect         = Support.getTestDialect()
-  , DataTypes       = require(__dirname + "/../../lib/data-types")
+  , DataTypes       = require(__dirname + "/../../../lib/data-types")
   , moment          = require('moment')
   , util            = require("util")
   , _               = require('lodash');

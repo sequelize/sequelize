@@ -1,9 +1,9 @@
 var chai      = require('chai')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
+  , Support   = require(__dirname + '/../../support')
   , dialect   = Support.getTestDialect()
-  , config    = require(__dirname + '/../config/config')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+  , config    = require(__dirname + '/../../config/config')
+  , DataTypes = require(__dirname + "/../../../lib/data-types")
 
 chai.config.includeStack = true
 

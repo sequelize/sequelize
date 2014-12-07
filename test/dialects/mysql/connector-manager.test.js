@@ -1,8 +1,8 @@
 var chai      = require('chai')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
+  , Support   = require(__dirname + '/../../support')
   , sinon     = require('sinon')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+  , DataTypes = require(__dirname + "/../../../lib/data-types")
 
 chai.config.includeStack = true
 

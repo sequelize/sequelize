@@ -1,8 +1,8 @@
 /* jshint camelcase: false */
 var chai      = require('chai')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+  , Support   = require(__dirname + '/../../support')
+  , DataTypes = require(__dirname + "/../../../lib/data-types")
   , dialect   = Support.getTestDialect()
   , dbFile    = __dirname + '/test.sqlite'
   , storages  = [dbFile]

@@ -15,7 +15,7 @@ var chai      = require('chai')
 chai.use(datetime)
 chai.config.includeStack = true
 
-describe(Support.getTestDialectTeaser("DAO"), function () {
+describe(Support.getTestDialectTeaser("Instance"), function () {
   beforeEach(function(done) {
     this.User = this.sequelize.define('User', {
       username:  { type: DataTypes.STRING },

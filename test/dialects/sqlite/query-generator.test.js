@@ -2,13 +2,13 @@
 
 var chai      = require('chai')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+  , Support   = require(__dirname + '/../../support')
+  , DataTypes = require(__dirname + "/../../../lib/data-types")
   , dialect   = Support.getTestDialect()
   , util      = require("util")
   , _         = require('lodash')
   , moment    = require('moment')
-  , QueryGenerator = require("../../lib/dialects/sqlite/query-generator");
+  , QueryGenerator = require("../../../lib/dialects/sqlite/query-generator");
 
 chai.config.includeStack = true;
 

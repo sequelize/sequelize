@@ -1,10 +1,10 @@
 var chai      = require('chai')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
+  , Support   = require(__dirname + '/../../support')
   , dialect   = Support.getTestDialect()
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+  , DataTypes = require(__dirname + "/../../../lib/data-types")
   , _         = require('lodash')
-  , sequelize = require(__dirname + '/../../lib/sequelize');
+  , sequelize = require(__dirname + '/../../../lib/sequelize');
 
 chai.config.includeStack = true
 

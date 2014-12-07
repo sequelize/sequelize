@@ -1,9 +1,9 @@
 /* jshint camelcase: false */
 var chai      = require('chai')
   , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
+  , Support   = require(__dirname + '/../../support')
   , dialect   = Support.getTestDialect()
-  , hstore    = require("../../lib/dialects/postgres/hstore")
+  , hstore    = require("../../../lib/dialects/postgres/hstore")
 
 chai.config.includeStack = true
 

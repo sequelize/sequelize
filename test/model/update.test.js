@@ -18,7 +18,7 @@ var chai      = require('chai')
 chai.use(datetime);
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("DAOFactory"), function () {
+describe(Support.getTestDialectTeaser("Model"), function () {
   beforeEach(function () {
     this.clock = sinon.useFakeTimers();
 
