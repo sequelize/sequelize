@@ -6,7 +6,7 @@ The key difference is that the managed transaction uses a callback that expects 
 
 ### Auto commit/rollback
 ```js
-return sequelize.transaction(t) {
+return sequelize.transaction(function (t) {
   return User.create({
     firstName: 'Abraham',
     lastName: 'Lincoln'
@@ -25,9 +25,9 @@ return sequelize.transaction(t) {
 });
 ```
 
-### Handled by user
+### Handled manually
 ```js    
-return sequelize.transaction().function (t) {
+return sequelize.transaction().then(function (t) {
   return User.create({
     firstName: 'Homer',
     lastName: 'Simpson'
