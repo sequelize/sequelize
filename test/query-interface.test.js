@@ -149,6 +149,20 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
   })
 
   describe('createTable', function () {
+    it('should create a auto increment primary key', function () {
+      return this.queryInterface.createTable('TableWithPK', {
+        table_id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      }).bind(this).then(function () {
+        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true}).then(function (response) {
+          expect(response.table_id || (typeof response !== "object" && response)).to.be.ok;
+        });
+      });
+    });
+
     it('should work with enums (1)', function () {
       return this.queryInterface.createTable('SomeTable', {
         someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
