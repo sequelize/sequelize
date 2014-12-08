@@ -116,11 +116,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                 expect(err.message).to.match(/Access denied for user/)
               } else if (dialect === 'postgres') {
                 expect(
-                  err.message.match(/Failed to authenticate for PostgresSQL/) ||
+                  err.message.match(/connect ECONNREFUSED/) ||
                   err.message.match(/invalid port number/)
                 ).to.be.ok
               } else {
-                expect(err.message).to.match(/Failed to authenticate/)
+                expect(err.message).to.match(/connect ECONNREFUSED/)
               }
 
               done()
