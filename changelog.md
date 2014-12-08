@@ -1,5 +1,9 @@
 # Next
 - [INTERNALS] Update `inflection` dependency to v1.5.3
+- [FEATURE] Replaced string error messages for connection errors with error objects. [#2576](https://github.com/sequelize/sequelize/pull/2576)
+
+#### Backwards compatability changes
+- Some of the string error messages for connection errors have been replaced with actual error instances. Checking for connection errors should now be more consistent.
 
 # 2.0.0-rc3
 - [FEATURE] Added the possibility of removing multiple associations in 1 call [#2338](https://github.com/sequelize/sequelize/issues/2338)
