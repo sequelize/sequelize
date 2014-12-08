@@ -352,6 +352,13 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             expect(idxUnique.primary).to.equal(false);
             expect(idxUnique.unique).to.equal(true);
             expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, order: undefined, length: undefined}]);
+          } else if (dialect === 'mssql') {
+            expect(indexes).to.have.length(2);
+            idxPrimary = indexes[0];
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC'}]);
           }
         });
       });
@@ -886,11 +893,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       User.sync({ force: true }).success(function() {
         User.create({username: 'Peter', secretValue: '42'}).success(function(user) {
           user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
-            if(dialect === 'mssql'){
+            if (dialect === 'mssql') {
               expect(sql).to.not.contain('createdAt')
-            }else{
+            } else {
               expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+=1/)
             }
+
             done()
           })
         })
@@ -1447,8 +1455,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     })
 
     // sqlite can't handle multiple primary keys
-    // neither can mssql
-    if(dialect !== "sqlite" && dialect !== 'mssql') {
+    if(dialect !== "sqlite") {
       it("correctly determines equality with multiple primary keys", function(done) {
         var userKeys = this.sequelize.define('userkeys', {
           foo: {type: Sequelize.STRING, primaryKey: true},
@@ -1469,8 +1476,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
   describe('equalsOneOf', function() {
     // sqlite can't handle multiple primary keys
-    // neither can mssql
-    if (dialect !== "sqlite" && dialect !== 'mssql') {
+    if (dialect !== "sqlite") {
       beforeEach(function(done) {
         this.userKey = this.sequelize.define('userKeys', {
           foo: {type: Sequelize.STRING, primaryKey: true},
@@ -2025,7 +2031,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             }
           })
           .done(function(err, UserSpecial){
-            if(err) throw err;
             expect(err).not.to.be.ok
             UserSpecial.updateAttributes({age: 5})
             .on('sql', function(user){
@@ -2039,7 +2044,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
               }
               done()
             }).error(function (err) {
-              if(err) throw err;
               expect(err).not.to.be.ok
             })
           })
@@ -2083,10 +2087,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/)
         } else if (Support.dialectIsMySQL()) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/)
+        } else if (dialect === 'mssql') {
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else if (dialect === 'mssql') {
-
+          expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else {
           throw new Error('Undefined dialect!')
         }
@@ -2241,39 +2247,38 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    describe("strings", function () {
-      it("should be able to take a string as parameter to a BLOB field", function (done) {
-        var data = 'Sequelize';
-        if(dialect === 'mssql'){
-          data = this.sequelize.cast('Sequelize', 'varbinary');
-        }
-        this.BlobUser.create({
-          data: data
-        }).success(function (user) {
-          expect(user).to.be.ok
-          done()
-        })
-      })
+    if (dialect !== 'mssql') {
+      // NOTE: someone remember to inform me about the intent of these tests. Are
+      //       you saying that data passed in as a string is automatically converted
+      //       to binary? i.e. "Sequelize" is CAST as binary, OR that actual binary
+      //       data is passed in, in string form? Very unclear, and very different.
 
-      it("should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string", function (done) {
-        var self = this
-        var data = 'Sequelize';
-        if(dialect === 'mssql'){
-          data = this.sequelize.cast('Sequelize', 'varbinary');
-        }
-        this.BlobUser.create({
-          data: data
-        }).success(function (user) {
-          self.BlobUser.find(user.id).success(function (user) {
-            expect(user.data).to.be.an.instanceOf(Buffer)
-            expect(user.data.toString()).to.have.string('Sequelize')
+      describe("strings", function () {
+        it("should be able to take a string as parameter to a BLOB field", function (done) {
+          this.BlobUser.create({
+            data: 'Sequelize'
+          }).success(function (user) {
+            expect(user).to.be.ok
             done()
           })
         })
-      })
-    })
-  })
 
+        it("should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string", function (done) {
+          var self = this
+          this.BlobUser.create({
+            data: 'Sequelize'
+          }).success(function (user) {
+            self.BlobUser.find(user.id).success(function (user) {
+              expect(user.data).to.be.an.instanceOf(Buffer)
+              expect(user.data.toString()).to.have.string('Sequelize')
+              done()
+            })
+          })
+        })
+      })
+    }
+
+  })
 
   describe('paranoid is true and where is an array', function() {
 

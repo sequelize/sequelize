@@ -87,10 +87,8 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
 
         self.queryInterface.showIndex('Group').complete(function(err, indexes) {
           expect(err).to.be.null
- 
-          var indexColumns = _.uniq(indexes.map(function(index) {
-            return index.name 
-          }))
+
+          var indexColumns = _.uniq(indexes.map(function(index) { return index.name  }))
 
           expect(indexColumns).to.include('group_username_is_admin')
 
@@ -139,7 +137,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
               assertVal = 'NVARCHAR';
               break;
           }
-          expect(username.type).to.equal(assertVal)            
+          expect(username.type).to.equal(assertVal)
           expect(username.allowNull).to.be.true
           expect(username.defaultValue).to.be.null
 
@@ -232,7 +230,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       var self = this
       var Users = self.sequelize.define('User', {
         username: DataTypes.STRING
-      }, { 
+      }, {
         tableName: 'Users',
         schema: 'archive'
       })

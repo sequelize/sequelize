@@ -4,8 +4,7 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/../support')
   , Sequelize = require('../../index')
   , Promise   = Sequelize.Promise
-  , current   = Support.sequelize
-  , dialect   = Support.getTestDialect();
+  , current   = Support.sequelize;
 
 chai.config.includeStack = true
 
@@ -396,7 +395,7 @@ describe(Support.getTestDialectTeaser("HasOne"), function() {
     })
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (dialect !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql') {
       it("can cascade updates", function(done) {
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING })

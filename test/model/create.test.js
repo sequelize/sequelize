@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       }
 
       // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('works without a transaction', function () {
+      (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', function () {
         return Promise.join(
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
@@ -377,7 +377,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       })
     })
 
-    it('is possible to use functions when creating an instance', function (done) {
+    it('is possible to use funtions when creating an instance', function (done) {
       var self = this
       this.User.create({
         secretValue: this.sequelize.fn('upper', 'sequelize')
@@ -1244,8 +1244,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       });
     });
 
-    //mssql does not support INSERT IGNORE
-    if (Support.getTestDialect() !== 'postgres' && dialect !== 'mssql') {
+    if (dialect !== 'postgres' && dialect !== 'mssql') {
       it("should support the ignoreDuplicates option", function(done) {
         var self = this
           , data = [{ uniqueName: 'Peter', secretValue: '42' },
@@ -1278,11 +1277,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
           self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).error(function(err) {
             expect(err).to.exist
-            if(dialect === 'mssql'){
+            if (dialect === 'mssql') {
               expect(err.message).to.match(/MSSQL does not support the \'ignoreDuplicates\' option./)
-            }else{
+            } else {
               expect(err.message).to.match(/Postgres does not support the \'ignoreDuplicates\' option./)
             }
+
             done();
           })
         })

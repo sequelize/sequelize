@@ -28,8 +28,7 @@ var qq = function(str) {
 
 describe(Support.getTestDialectTeaser("Sequelize"), function () {
   describe('constructor', function() {
-    //MSSQL already pools, this test is not relevent
-    if (dialect !== 'sqlite' && dialect !== 'mssql') {
+    if (dialect !== 'sqlite') {
       it('should work with minConnections', function () {
         var ConnectionManager = require(__dirname + '/../lib/dialects/' + dialect + '/connection-manager.js')
           , connectionSpy = ConnectionManager.prototype.connect = chai.spy(ConnectionManager.prototype.connect);
@@ -108,12 +107,13 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
         })
 
         it('triggers the actual adapter error', function(done) {
+
           this
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
               if (dialect === 'mariadb') {
-                expect(err.message).to.match(/Access denied for user/);
+                expect(err.message).to.match(/Access denied for user/)
               } else if (dialect === 'postgres') {
                 expect(
                   err.message.match(/connect ECONNREFUSED/) ||
@@ -128,11 +128,11 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                 expect(err.message).to.match(/connect ECONNREFUSED/)
               }
 
-              done();
+              done()
 
-            });
-        });
-      });
+            })
+        })
+      })
 
       describe('with invalid credentials', function() {
         beforeEach(function() {
@@ -626,7 +626,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
 
         var User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT })
 
-        User2.sync().done(function(err) {
+        User2.sync().error(function(err) {
           if (dialect === "postgres" || dialect === "postgres-native") {
             assert([
               'fe_sendauth: no password supplied',
@@ -639,7 +639,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
           } else {
             expect(err.message.toString()).to.match(/.*Access\ denied.*/);
           }
-
           done()
         })
       })

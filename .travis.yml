@@ -31,7 +31,6 @@ branches:
   only:
     - master
     - 1.7.0
-    - feature/mssql-dialect
 
 matrix:
   fast_finish: true
