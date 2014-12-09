@@ -466,7 +466,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
             { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
             { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined},
           ]);
-        } else if (dialect === 'postgres' || dialect === 'mssql') {
+        } else if (dialect === 'postgres') {
           // Postgres returns indexes in alphabetical order
           primary = arguments[2];
           idx1 = arguments[0];
