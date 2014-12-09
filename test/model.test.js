@@ -2091,8 +2091,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/)
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
-        } else if (dialect === 'mssql') {
-          expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/)
         } else {
           throw new Error('Undefined dialect!')
         }
