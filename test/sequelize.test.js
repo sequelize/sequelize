@@ -586,7 +586,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
   })
 
-  describe('truncate', function() {
+  describe.only('truncate', function() {
     it("truncates all daos", function(done) {
       var Project = this.sequelize.define('project' + config.rand(), { title: DataTypes.STRING });
 
@@ -599,7 +599,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       .then(function(project) {
         expect(project).to.exist;
         expect(project.title).to.equal('bla');
-        return this.sequelize.sync({ truncate: true }).then(function() {
+        return this.sequelize.truncate().then(function() {
           return Project.findAll({});
         });
       })
@@ -622,7 +622,6 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
       .then(function(project) {
         expect(project).to.exist;
         expect(project.title).to.equal('bla');
-        done();
       })
       .catch(done);
     })
