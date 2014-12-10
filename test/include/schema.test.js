@@ -17,6 +17,7 @@ var sortById = function(a, b) {
 
 describe(Support.getTestDialectTeaser("Includes with schemas"), function () {
   describe('findAll', function () {
+    this.timeout(30000);
     beforeEach(function () {
       var self = this
       this.fixtureA = function(done) {

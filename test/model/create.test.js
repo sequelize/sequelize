@@ -991,9 +991,9 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('properly handles disparate field lists', function(done) {
       var self = this
-        , data = [{username: 'Peter', secretValue: '42' },
-                  {username: 'Paul'},
-                  {username: 'Steve'}]
+        , data = [{username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  {username: 'Paul', uniqueName:'2'},
+                  {username: 'Steve', uniqueName:'3'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({where: {username: 'Paul'}}).success(function(users) {
@@ -1007,10 +1007,10 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('inserts multiple values respecting the white list', function(done) {
       var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '23'}]
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  { username: 'Paul', secretValue: '23', uniqueName:'2'}]
 
-      this.User.bulkCreate(data, { fields: ['username'] }).success(function() {
+      this.User.bulkCreate(data, { fields: ['username','uniqueName'] }).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
           expect(users.length).to.equal(2)
           expect(users[0].username).to.equal("Peter")
@@ -1024,8 +1024,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('should store all values if no whitelist is specified', function(done) {
       var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '23'}]
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName:'1' },
+                  { username: 'Paul', secretValue: '23', uniqueName:'2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1042,8 +1042,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     it('saves data with single quote', function(done) {
       var self = this
         , quote = "Single'Quote"
-        , data = [{ username: 'Peter', data: quote},
-                  { username: 'Paul', data: quote}]
+        , data = [{ username: 'Peter', data: quote, uniqueName: '1'},
+                  { username: 'Paul', data: quote,  uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1060,8 +1060,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     it('saves data with double quote', function(done) {
       var self = this
         , quote = 'Double"Quote'
-        , data = [{ username: 'Peter', data: quote},
-                  { username: 'Paul', data: quote}]
+        , data = [{ username: 'Peter', data: quote, uniqueName: '1'},
+                  { username: 'Paul', data: quote, uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1078,8 +1078,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
     it('saves stringified JSON data', function(done) {
       var self = this
         , json = JSON.stringify({ key: 'value' })
-        , data = [{ username: 'Peter', data: json},
-                  { username: 'Paul', data: json}]
+        , data = [{ username: 'Peter', data: json, uniqueName: '1'},
+                  { username: 'Paul', data: json, uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1107,8 +1107,8 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
     it('stores the current date in createdAt', function(done) {
       var self = this
-        , data = [{ username: 'Peter'},
-                  { username: 'Paul'}]
+        , data = [{ username: 'Peter', uniqueName: '1'},
+                  { username: 'Paul', uniqueName: '2'}]
 
       this.User.bulkCreate(data).success(function() {
         self.User.findAll({order: 'id'}).success(function(users) {
@@ -1244,7 +1244,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       });
     });
 
-    if (Support.getTestDialect() !== 'postgres') {
+    if (dialect !== 'postgres' && dialect !== 'mssql') {
       it("should support the ignoreDuplicates option", function(done) {
         var self = this
           , data = [{ uniqueName: 'Peter', secretValue: '42' },
@@ -1277,7 +1277,12 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
           self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).error(function(err) {
             expect(err).to.exist
-            expect(err.message).to.match(/Postgres does not support the \'ignoreDuplicates\' option./)
+            if (dialect === 'mssql') {
+              console.log(err.message);
+              expect(err.message).to.match(/mssql does not support the \'ignoreDuplicates\' option./)
+            } else {
+              expect(err.message).to.match(/postgres does not support the \'ignoreDuplicates\' option./)
+            }
 
             done();
           })

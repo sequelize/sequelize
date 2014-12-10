@@ -683,7 +683,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
         it('including two has many relations should not result in duplicate values', function(done) {
           var self = this
 
-          self.Contact = self.sequelize.define('Contact', { name: DataTypes.TEXT })
+          self.Contact = self.sequelize.define('Contact', { name: DataTypes.STRING })
           self.Photo = self.sequelize.define('Photo', { img: DataTypes.TEXT })
           self.PhoneNumber = self.sequelize.define('PhoneNumber', { phone: DataTypes.TEXT })
 

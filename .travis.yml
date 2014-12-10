@@ -15,10 +15,11 @@ env:
   - DB=mysql DIALECT=postgres-native
   - DB=mysql DIALECT=sqlite
   - DB=mysql DIALECT=mariadb
+  - DB=mysql DIALECT=mssql
 
 addons:
   postgresql: "9.3"
-  
+
 before_script:
   - "mysql -e 'create database sequelize_test;'"
   - "psql -c 'create database sequelize_test;' -U postgres"
@@ -39,6 +40,8 @@ matrix:
   allow_failures:
     - node_js: "0.10"
       env: COVERAGE=true
+    - node_js: "0.10"
+      env: DB=mysql DIALECT=mssql
 
 notifications:
   hipchat:

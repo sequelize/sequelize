@@ -68,7 +68,6 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
         this.buf = new Buffer(16);
         this.buf.fill('\x01');
-
         this.User.bulkCreate([
           {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
           {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00', binary: this.buf }
@@ -207,7 +206,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
       it('should be able to handle false/true values just fine...', function(done) {
         var User = this.User
-          , escapeChar = (dialect === "postgres") ? '"' : '`'
+          , escapeChar = (dialect === "postgres" || dialect === 'mssql') ? '"' : '`'
 
         User.bulkCreate([
           {username: 'boo5', aBool: false},
@@ -228,7 +227,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
       it('should be able to handle false/true values through associations as well...', function(done) {
         var User = this.User
-          , escapeChar = (dialect === "postgres") ? '"' : '`'
+          , escapeChar = (dialect === "postgres" || dialect === 'mssql') ? '"' : '`'
         var Passports = this.sequelize.define('Passports', {
           isActive: Sequelize.BOOLEAN
         })

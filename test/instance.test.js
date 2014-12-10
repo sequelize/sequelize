@@ -1480,7 +1480,9 @@ describe(Support.getTestDialectTeaser("Instance"), function () {
               }
               else if (Support.dialectIsMySQL()) {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1")
-              } else {
+              } else if (dialect === 'mssql') {
+                expect(sql).to.equal('DELETE TOP(1) FROM "UserDestroys" WHERE "newId"=\'123ABC\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;')
+              }else {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'")
               }
               done()
@@ -1588,6 +1590,11 @@ describe(Support.getTestDialectTeaser("Instance"), function () {
         var query = { where: { username: 'fnord' }}
 
         self.User.find(query).success(function(user2) {
+          if (dialect === 'mssql') {
+            user1.dataValues.uuidv1 = user1.dataValues.uuidv1.toUpperCase();
+            user1.dataValues.uuidv4 = user1.dataValues.uuidv4.toUpperCase();
+          }
+
           expect(user1.equals(user2)).to.be.true
           done()
         })
@@ -1730,7 +1737,7 @@ describe(Support.getTestDialectTeaser("Instance"), function () {
             expect(download.finishedAt).to.not.be.ok
 
             Download.all({
-              where: (dialect === 'postgres' ? '"finishedAt" IS NULL' : "`finishedAt` IS NULL")
+              where: (dialect === 'postgres' || dialect === 'mssql' ? '"finishedAt" IS NULL' : "`finishedAt` IS NULL")
             }).success(function(downloads) {
               downloads.forEach(function(download) {
                 expect(download.startedAt instanceof Date).to.be.true

@@ -252,14 +252,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       SubscriptionForm.belongsTo(Category, {foreignKey:'boundCategory'});
       Category.hasMany(SubscriptionForm, {foreignKey:'boundCategory'});
-      
+
       Capital.hasMany(Category, { foreignKey: 'boundCapital'});
       Category.belongsTo(Capital, {foreignKey:'boundCapital'});
 
       Category.hasMany(SubCategory, {foreignKey:'boundCategory'});
       SubCategory.belongsTo(Category, {foreignKey: 'boundCategory'});
-      
-      
+
+
       return this.sequelize.sync({force: true}).then(function() {
         return User.find({
           include: [
@@ -1158,7 +1158,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
             chainer.run().done(callback)
           }]
-        }, function (err) {          
+        }, function (err) {
           expect(err).not.to.be.ok
 
           User.findAll({

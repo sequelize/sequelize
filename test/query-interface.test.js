@@ -88,7 +88,8 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         self.queryInterface.showIndex('Group').complete(function(err, indexes) {
           expect(err).to.be.null
 
-          var indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
+          var indexColumns = _.uniq(indexes.map(function(index) { return index.name  }))
+
           expect(indexColumns).to.include('group_username_is_admin')
 
           self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).complete(function(err) {
@@ -96,7 +97,6 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
 
             self.queryInterface.showIndex('Group').complete(function(err, indexes) {
               expect(err).to.be.null
-
               indexColumns = _.uniq(indexes.map(function(index) { return index.name }))
               expect(indexColumns).to.be.empty
 
@@ -124,16 +124,33 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       Users.sync({ force: true }).success(function() {
         self.queryInterface.describeTable('_Users').complete(function(err, metadata) {
           expect(err).to.be.null
-
           var username = metadata.username
           var isAdmin  = metadata.isAdmin
           var enumVals = metadata.enumVals
 
-          expect(username.type).to.equal(dialect === 'postgres' ? 'CHARACTER VARYING' : 'VARCHAR(255)')
+          var assertVal = 'VARCHAR(255)';
+          switch(dialect){
+            case 'postgres':
+              assertVal = 'CHARACTER VARYING';
+              break;
+            case 'mssql':
+              assertVal = 'NVARCHAR';
+              break;
+          }
+          expect(username.type).to.equal(assertVal)
           expect(username.allowNull).to.be.true
           expect(username.defaultValue).to.be.null
 
-          expect(isAdmin.type).to.equal(dialect === 'postgres' ? 'BOOLEAN' : 'TINYINT(1)')
+          assertVal = 'TINYINT(1)';
+          switch(dialect){
+            case 'postgres':
+              assertVal = 'BOOLEAN';
+              break;
+            case 'mssql':
+              assertVal = 'BIT';
+              break;
+          }
+          expect(isAdmin.type).to.equal(assertVal)
           expect(isAdmin.allowNull).to.be.true
           expect(isAdmin.defaultValue).to.be.null
 
@@ -141,7 +158,6 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
             expect(enumVals.special).to.be.instanceof(Array)
             expect(enumVals.special).to.have.length(2);
           }
-
           done()
         })
       })
@@ -214,7 +230,7 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
       var self = this
       var Users = self.sequelize.define('User', {
         username: DataTypes.STRING
-      }, { 
+      }, {
         tableName: 'Users',
         schema: 'archive'
       })
@@ -407,13 +423,13 @@ describe(Support.getTestDialectTeaser("QueryInterface"), function () {
         var keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
           keys3 = Object.keys(fks[2])
-        if (dialect === "postgres" || dialect === "postgres-native") {
+        if (dialect === "postgres" || dialect === "postgres-native" ) {
           expect(keys).to.have.length(6)
           expect(keys2).to.have.length(7)
           expect(keys3).to.have.length(7)
         } else if (dialect === "sqlite") {
           expect(keys).to.have.length(8)
-        } else if (dialect === "mysql") {
+        } else if (dialect === "mysql" || dialect == 'mssql') {
           expect(keys).to.have.length(1)
         } else {
           console.log("This test doesn't support " + dialect)

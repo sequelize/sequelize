@@ -104,6 +104,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
   tests.forEach(function(test) {
     it('transforms "' + test[1] + '" to "' + test[2] + '"', function(done) {
+      if (Support.getTestDialect() === 'mssql' && test[1] ==='STRING') {
+        test[2] = 'NVARCHAR(255)';
+      }
+
       expect(test[0].toString()).to.equal(test[2])
       done()
     })

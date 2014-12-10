@@ -17,7 +17,7 @@ var chai        = require('chai')
 chai.config.includeStack = true
 
 var qq = function(str) {
-  if (dialect == 'postgres' || dialect == 'sqlite') {
+  if (dialect == 'postgres' || dialect == 'sqlite' || dialect === 'mssql') {
     return '"' + str + '"'
   } else if (Support.dialectIsMySQL()) {
     return '`' + str + '`'
@@ -118,7 +118,12 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
                 expect(
                   err.message.match(/connect ECONNREFUSED/) ||
                   err.message.match(/invalid port number/)
-                ).to.be.ok
+                ).to.be.ok;
+              } else if (dialect === 'mssql'){
+                expect(
+                  err.message.match(/ConnectionError: Login failed for user/) ||
+                  err.message.match(/RangeError: Port should be > 0 and < 65536/)
+                ).to.be.ok;
               } else {
                 expect(err.message).to.match(/connect ECONNREFUSED/)
               }
@@ -328,7 +333,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('dot separated attributes when doing a raw query without nest', function(done) {
-      var tickChar = (dialect === 'postgres') ? '"' : '`'
+      var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
       this.sequelize.query(sql, null, { raw: true, nest: false }).success(function(result) {
@@ -338,7 +343,7 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('destructs dot separated attributes when doing a raw query using nest', function(done) {
-      var tickChar = (dialect === 'postgres') ? '"' : '`'
+      var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql      = "select 1 as " + Sequelize.Utils.addTicks('foo.bar.baz', tickChar)
 
       this.sequelize.query(sql, null, { raw: true, nest: true }).success(function(result) {
@@ -423,11 +428,16 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
     })
 
     it('handles AS in conjunction with functions just fine', function(done) {
-      this.sequelize.query('SELECT ' + (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()') + ' AS t').success(function(result) {
+      var datetime = (dialect === "sqlite" ? 'date(\'now\')' : 'NOW()');
+      if (dialect==="mssql") {
+        datetime = "GETDATE()"
+      }
+
+      this.sequelize.query('SELECT ' + datetime + ' AS t').success(function(result) {
         expect(moment(result[0].t).isValid()).to.be.true
         done()
-      })
-    })
+      });
+    });
 
     if (Support.getTestDialect() === 'postgres') {
       it('replaces named parameters with the passed object and ignores casts', function(done) {
@@ -624,8 +634,10 @@ describe(Support.getTestDialectTeaser("Sequelize"), function () {
               'FATAL:  role "bar" does not exist',
               'password authentication failed for user "bar"'
             ].indexOf(err.message.trim()) !== -1)
+          } else if (dialect === 'mssql') {
+            expect(err.message).to.match(/.*ECONNREFUSED.*/);
           } else {
-            expect(err.message.toString()).to.match(/.*Access\ denied.*/)
+            expect(err.message.toString()).to.match(/.*Access\ denied.*/);
           }
           done()
         })

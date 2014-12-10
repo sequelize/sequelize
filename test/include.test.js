@@ -9,6 +9,7 @@ var chai      = require('chai')
   , datetime  = require('chai-datetime')
   , async     = require('async')
   , _         = require('lodash')
+  , dialect   = Support.getTestDialect();
 
 chai.use(datetime)
 chai.config.includeStack = true
@@ -619,15 +620,25 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           comment_title: 'WAT'
         });
       }).then(function () {
+        var findAttributes;
+        if (dialect === 'mssql') {
+          findAttributes = [
+            Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
+            [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
+          ];
+        } else {
+          findAttributes = [
+            Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
+            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
+          ];
+        }
+        findAttributes.push(['comment_title', 'commentTitle']);
+
         return Post.findAll({
           include: [
             {
               model: PostComment,
-              attributes: [
-                Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
-                [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
-                ['comment_title', 'commentTitle']
-              ]
+              attributes: findAttributes
             }
           ]
         })
