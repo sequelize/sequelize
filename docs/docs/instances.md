@@ -1,4 +1,4 @@
-## Building a not-persistant instance
+## Building a non-persistent instance
 
 In order to create instances of defined classes just do as follows&period; You might recognize the syntax if you coded Ruby in the past&period; Using the `build`-method will return an unsaved object&comma; which you explicitly have to save&period;
     
@@ -53,7 +53,7 @@ Task
   })
 ```
 
-## Creating persistant instances
+## Creating persistent instances
 
 Besides constructing objects&comma; that needs an explicit save call to get stored in the database&comma; there is also the possibility to do all those steps with one single command&period; It's called `create`.
     
@@ -102,7 +102,7 @@ task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['tit
 })
 ```
 
-## Destroying / Deleting persistant instances
+## Destroying / Deleting persistent instances
 
 Once you created an object and got a reference to it&comma; you can delete it from the database&period; The relevant method is `destroy`&colon;
 
