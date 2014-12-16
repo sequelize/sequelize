@@ -1,6 +1,6 @@
 <a name="mixin"></a>
 # Mixin Mixin
-[View code](https://github.com/sequelize/sequelize/blob/5aa77fa291abeaf0498f65724000c75da9ab9028/lib/associations/mixin.js#L94)
+[View code](https://github.com/sequelize/sequelize/blob/cdd8c3be7961c58c1446cb4893939a2986db9876/lib/associations/mixin.js#L95)
 Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions
 on a model (the source), and prodiving another model as the first argument to the function (the target).
 
@@ -89,7 +89,7 @@ you should either disable some constraints, or rethink your associations complet
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/5aa77fa291abeaf0498f65724000c75da9ab9028/lib/associations/mixin.js#L144)
+[View code](https://github.com/sequelize/sequelize/blob/cdd8c3be7961c58c1446cb4893939a2986db9876/lib/associations/mixin.js#L145)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
@@ -121,7 +121,7 @@ All methods return a promise
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/5aa77fa291abeaf0498f65724000c75da9ab9028/lib/associations/mixin.js#L169)
+[View code](https://github.com/sequelize/sequelize/blob/cdd8c3be7961c58c1446cb4893939a2986db9876/lib/associations/mixin.js#L170)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
@@ -153,7 +153,7 @@ All methods return a promise
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/5aa77fa291abeaf0498f65724000c75da9ab9028/lib/associations/mixin.js#L244)
+[View code](https://github.com/sequelize/sequelize/blob/cdd8c3be7961c58c1446cb4893939a2986db9876/lib/associations/mixin.js#L245)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -226,6 +226,85 @@ user.getProjects().success(function (projects) {
 | [options.through.unique=true] | boolean | If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes) |
 | [options.as] | string &#124; object | The alias of this model. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the pluralized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the target table / join table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
+| [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
+| [options.onDelete='SET&nbsp;NULL|CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
+| [options.onUpdate='CASCADE'] | string |  |
+| [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
+
+
+***
+
+<a name="belongstomany"></a>
+## `belongsToMany(target, [options])`
+[View code](https://github.com/sequelize/sequelize/blob/cdd8c3be7961c58c1446cb4893939a2986db9876/lib/associations/mixin.js#L339)
+Create an N:M association with a join table
+
+```js
+User.belongsToMany(Project)
+Project.belongsToMany(User)
+```
+By default, the name of the join table will be source+target, so in this case projectsusers. This can be overridden by providing either a string or a Model as `through` in the options.
+
+The following methods are injected on the source:
+
+* get[AS] - for example getPictures(finder). The finder object is passed to `target.find`.
+* set[AS] - for example setPictures(instances, defaultAttributes|options). Update the associations. All currently associated models that are not in instances will be removed.
+* add[AS] - for example addPicture(instance, defaultAttributes|options). Add another associated object.
+* add[AS] [plural] - for example addPictures([instance1, instance2], defaultAttributes|options). Add some more associated objects.
+* create[AS] - for example createPicture(values, options). Build and save a new association.
+* remove[AS] - for example removePicture(instance). Remove a single association.
+* remove[AS] [plural] - for example removePictures(instance). Remove multiple association.
+* has[AS] - for example hasPicture(instance). Is source associated to this target?
+* has[AS] [plural] - for example hasPictures(instances). Is source associated to all these targets?
+
+All methods return a promise
+
+If you use a through model with custom attributes, these attributes can be set when adding / setting new associations in two ways. Consider users and projects from before
+with a join table that stores whether the project has been started yet:
+```js
+var UserProjects = sequelize.define('userprojects', {
+  started: Sequelize.BOOLEAN
+})
+User.belongsToMany(Project, { through: UserProjects })
+Project.belongsToMany(User, { through: UserProjects })
+```
+```js
+jan.addProject(homework, { started: false }) // The homework project is not started yet
+jan.setProjects([makedinner, doshopping], { started: true}) // Both shopping and dinner has been started
+```
+
+If you want to set several target instances, but with different attributes you have to set the attributes on the instance, using a property with the name of the through model:
+
+```js
+p1.userprojects {
+  started: true
+}
+user.setProjects([p1, p2], {started: false}) // The default value is false, but p1 overrides that.
+```
+
+Similarily, when fetching through a join table with custom attributes, these attributes will be available as an object with the name of the through model.
+```js
+user.getProjects().then(function (projects) {
+  var p1 = projects[0]
+  p1.userprojects.started // Is this project started yet?
+})
+```
+
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| target | Model |  |
+| [options] | object |  |
+| [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
+| [options.through] | Model &#124; string|object | The name of the table that is used to join source and target in n:m associations. Can also be a sequelize model if you want to define the junction table yourself and add extra attributes to it. |
+| [options.through.model] | Model | The model used to join both sides of the N:M association. |
+| [options.through.scope] | object | A key/value set that will be used for association create and find defaults on the through model. (Remember to add the attributes to the through model) |
+| [options.through.unique=true] | boolean | If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes) |
+| [options.as] | string &#124; object | The alias of this association. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the pluralized name of target |
+| [options.foreignKey] | string &#124; object | The name of the foreign key in the join table (representing the source model) or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
+| [options.otherKey] | string &#124; object | The name of the foreign key in the join table (representing the target model) or an object representing the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of target |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
 | [options.onDelete='SET&nbsp;NULL|CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
 | [options.onUpdate='CASCADE'] | string |  |
