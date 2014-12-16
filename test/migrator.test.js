@@ -66,6 +66,21 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
         })
       })
     })
+
+    it("only returns migrations where timestamps in requested range", function(done) {
+      this.init({from: 20111130161100, to: 20111130161100}, function(migrator, SequelizeMeta) {
+        SequelizeMeta.bulkCreate([
+          { from: 20111117063700, to: 20111117063700 },
+          { from: 20111130161100, to: 20111130161100 }
+        ]).success(function() {
+          migrator.getCompletedMigrations(function(err, migrations) {
+            expect(err).to.be.null
+            expect(migrations).to.have.length(1)
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('getUndoneMigrations', function() {
