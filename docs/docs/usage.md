@@ -198,7 +198,7 @@ The library for PostgreSQL is`pg&commat;~2&period;0&period;0`&period; You'll jus
 
 ### Executing raw SQL queries
 
-As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries&comma; you can utilize the function`sequelize&period;query`&period;
+As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries&comma; you can utilize the function `sequelize.query`&period;
 
 Here is how it works&colon;
     
@@ -255,6 +255,7 @@ The syntax used depends on the fourth argument passed to the function:
 If the object contains keys not found in the query or vice verca, an exception
 will be thrown.
 
+```
     sequelize
       .query(
         'SELECT * FROM projects WHERE status = ?', null,
@@ -272,7 +273,7 @@ will be thrown.
       .success(function(projects) {
         console.log(projects)
       })
-    
+```    
 
 **One note:** If the attribute names of the table contain dots, the resulting objects will be nested:
     
