@@ -5331,6 +5331,321 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
     });
+
+    describe('multiple 1:M', function () {
+      describe('cascade', function() {
+        beforeEach(function(done) {
+          var self = this;
+          this.Projects = this.sequelize.define('Project', {
+            title: DataTypes.STRING
+          });
+
+          this.Tasks = this.sequelize.define('Task', {
+            title: DataTypes.STRING
+          });
+
+          this.MiniTasks = this.sequelize.define('MiniTask', {
+            mini_title: DataTypes.STRING
+          });
+
+          this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
+          this.Projects.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+          
+          this.Tasks.belongsTo(this.Projects, {hooks: true});
+          this.Tasks.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+
+          this.MiniTasks.belongsTo(this.Projects, {hooks: true});
+          this.MiniTasks.belongsTo(this.Tasks, {hooks: true});
+
+          this.Projects.sync({ force: true }).success(function() {
+            self.Tasks.sync({ force: true }).success(function() {
+              self.MiniTasks.sync({ force: true }).success(function() {
+                done();
+              });
+            });
+          });
+        });
+
+        describe('#remove', function() {
+          it('with no errors', function(done) {
+            var self = this
+              , beforeProject = false
+              , afterProject = false
+              , beforeTask = false
+              , afterTask = false
+              , beforeMiniTask = false
+              , afterMiniTask = false;
+
+
+            this.Projects.beforeCreate(function(project, options, fn) {
+              beforeProject = true;
+              fn();
+            });
+
+            this.Projects.afterCreate(function(project, options, fn) {
+              afterProject = true;
+              fn();
+            });
+
+            this.Tasks.beforeDestroy(function(task, options, fn) {
+              beforeTask = true;
+              fn();
+            });
+
+            this.Tasks.afterDestroy(function(task, options, fn) {
+              afterTask = true;
+              fn();
+            });
+
+            this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              beforeMiniTask = true;
+              fn();
+            });
+
+            this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              afterMiniTask = true;
+              fn();
+            });
+
+            this.Projects.create({title: 'New Project'}).success(function(project) {
+              self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
+                project.addMiniTask(minitask).success(function() {
+                  project.destroy().success(function(err) {
+                    expect(beforeProject).to.be.true;
+                    expect(afterProject).to.be.true;
+                    expect(beforeTask).to.be.false;
+                    expect(afterTask).to.be.false;
+                    expect(beforeMiniTask).to.be.true;
+                    expect(afterMiniTask).to.be.true;
+                    done();
+                  });
+                });
+              });
+            });
+          });
+
+          it('with errors', function(done) {
+            var self = this
+              , beforeProject = false
+              , afterProject = false
+              , beforeTask = false
+              , afterTask = false
+              , beforeMiniTask = false
+              , afterMiniTask = false;
+
+
+            this.Projects.beforeCreate(function(project, options, fn) {
+              beforeProject = true;
+              fn();
+            });
+
+            this.Projects.afterCreate(function(project, options, fn) {
+              afterProject = true;
+              fn();
+            });
+
+            this.Tasks.beforeDestroy(function(task, options, fn) {
+              beforeTask = true;
+              fn();
+            });
+
+            this.Tasks.afterDestroy(function(task, options, fn) {
+              afterTask = true;
+              fn();
+            });
+
+            this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              beforeMiniTask = true;
+              fn(new Error('Whoops!'));
+            });
+
+            this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              afterMiniTask = true;
+              fn();
+            });
+
+            this.Projects.create({title: 'New Project'}).success(function(project) {
+              self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
+                project.addMiniTask(minitask).success(function() {
+                  project.destroy().error(function(err) {
+                    expect(err).to.be.instanceOf(Error);
+                    expect(beforeProject).to.be.true;
+                    expect(afterProject).to.be.true;
+                    expect(beforeTask).to.be.false;
+                    expect(afterTask).to.be.false;
+                    expect(beforeMiniTask).to.be.true;
+                    expect(afterMiniTask).to.be.false;
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+
+    describe('multiple 1:M sequential hooks', function () {
+      describe('cascade', function() {
+        beforeEach(function(done) {
+          var self = this;
+          this.Projects = this.sequelize.define('Project', {
+            title: DataTypes.STRING
+          });
+
+          this.Tasks = this.sequelize.define('Task', {
+            title: DataTypes.STRING
+          });
+
+          this.MiniTasks = this.sequelize.define('MiniTask', {
+            mini_title: DataTypes.STRING
+          });
+
+          this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
+          this.Projects.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+          
+          this.Tasks.belongsTo(this.Projects, {hooks: true});
+          this.Tasks.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+
+          this.MiniTasks.belongsTo(this.Projects, {hooks: true});
+          this.MiniTasks.belongsTo(this.Tasks, {hooks: true});
+
+          this.Projects.sync({ force: true }).success(function() {
+            self.Tasks.sync({ force: true }).success(function() {
+              self.MiniTasks.sync({ force: true }).success(function() {
+                done();
+              });
+            });
+          });
+        });
+
+        describe('#remove', function() {
+          it('with no errors', function(done) {
+            var self = this
+              , beforeProject = false
+              , afterProject = false
+              , beforeTask = false
+              , afterTask = false
+              , beforeMiniTask = false
+              , afterMiniTask = false;
+
+
+            this.Projects.beforeCreate(function(project, options, fn) {
+              beforeProject = true;
+              fn();
+            });
+
+            this.Projects.afterCreate(function(project, options, fn) {
+              afterProject = true;
+              fn();
+            });
+
+            this.Tasks.beforeDestroy(function(task, options, fn) {
+              beforeTask = true;
+              fn();
+            });
+
+            this.Tasks.afterDestroy(function(task, options, fn) {
+              afterTask = true;
+              fn();
+            });
+
+            this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              beforeMiniTask = true;
+              fn();
+            });
+
+            this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              afterMiniTask = true;
+              fn();
+            });
+
+            this.Projects.create({title: 'New Project'}).success(function(project) {
+              self.Tasks.create({title: 'New Task'}).success(function(task) {
+                self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
+                  task.addMiniTask(minitask).success(function () {
+                    project.addTask(task).success(function() {
+                      project.destroy().success(function() {
+                        expect(beforeProject).to.be.true;
+                        expect(afterProject).to.be.true;
+                        expect(beforeTask).to.be.true;
+                        expect(afterTask).to.be.true;
+                        expect(beforeMiniTask).to.be.true;
+                        expect(afterMiniTask).to.be.true;
+                        done();
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+
+          it('with errors', function(done) {
+            var self = this
+              , beforeProject = false
+              , afterProject = false
+              , beforeTask = false
+              , afterTask = false
+              , beforeMiniTask = false
+              , afterMiniTask = false;
+
+
+            this.Projects.beforeCreate(function(project, options, fn) {
+              beforeProject = true;
+              fn();
+            });
+
+            this.Projects.afterCreate(function(project, options, fn) {
+              afterProject = true;
+              fn();
+            });
+
+            this.Tasks.beforeDestroy(function(task, options, fn) {
+              beforeTask = true;
+              fn(new Error('Whoops!'));
+              fn();
+            });
+
+            this.Tasks.afterDestroy(function(task, options, fn) {
+              afterTask = true;
+              fn();
+            });
+
+            this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              beforeMiniTask = true;
+            });
+
+            this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              afterMiniTask = true;
+              fn();
+            });
+
+            this.Projects.create({title: 'New Project'}).success(function(project) {
+              self.Tasks.create({title: 'New Task'}).success(function(task) {
+                self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
+                  task.addMiniTask(minitask).success(function () {
+                    project.addTask(task).success(function() {
+                      project.destroy().error(function() {
+                        expect(beforeProject).to.be.true;
+                        expect(afterProject).to.be.true;
+                        expect(beforeTask).to.be.true;
+                        expect(afterTask).to.be.false;
+                        expect(beforeMiniTask).to.be.false;
+                        expect(afterMiniTask).to.be.false;
+                        done();
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
   });
 
   describe('passing DAO instances', function() {
