@@ -246,5 +246,43 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         });
       });
     });
+    
+    it('should include a model with a complex filter using a through N:M association', function () {
+      var User = this.sequelize.define('User', {}, { paranoid: false })
+        , List = this.sequelize.define('List', {}, { paranoid: false })
+        , SharedLists = this.sequelize.define('SharedLists', {}, { paranoid: false });
+
+      List.belongsTo(User, { as: 'Owner', foreignKey: 'OwnerId' });
+      List.hasMany(User, { as: 'SharedUsers', through: SharedLists });
+      User.hasMany(List, { as: 'SharedLists', through: SharedLists });
+
+      var user1_id;
+      return this.sequelize.sync({
+        force: true
+      }).then(function () {
+        return User.create();
+      }).then(function (user) {
+        user1_id = user.get('id');
+        return List.create(
+          { OwnerId: user1_id }
+        );
+      }).then(function (list) {
+        return List.find({
+          where: Sequelize.and(
+            { id: list.get('id') },
+            Sequelize.or(
+              { OwnerId: user1_id },
+              { 'SharedUsers.UserId': user1_id }
+            )
+          ),
+          include: [
+            { model: User, as: 'Owner' }, 
+            { model: User, as: 'SharedUsers' }
+          ]
+        });
+      }).then(function (list) {
+        expect(list).to.be.ok;
+      });
+    });
   });
 });
