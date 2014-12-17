@@ -5334,7 +5334,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('multiple 1:M', function () {
       describe('cascade', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -5357,17 +5357,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.MiniTasks.belongsTo(this.Projects, {hooks: true});
           this.MiniTasks.belongsTo(this.Tasks, {hooks: true});
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              self.MiniTasks.sync({ force: true }).success(function() {
-                done();
-              });
-            });
-          });
+          return this.sequelize.sync({force: true});
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5407,24 +5401,25 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
-                project.addMiniTask(minitask).success(function() {
-                  project.destroy().success(function(err) {
-                    expect(beforeProject).to.be.true;
-                    expect(afterProject).to.be.true;
-                    expect(beforeTask).to.be.false;
-                    expect(afterTask).to.be.false;
-                    expect(beforeMiniTask).to.be.true;
-                    expect(afterMiniTask).to.be.true;
-                    done();
-                  });
-                });
-              });
+            return this.sequelize.Promise.all([
+              this.Projects.create({title: 'New Project'}),
+              this.MiniTasks.create({mini_title: 'New MiniTask'})
+            ]).bind(this).spread(function(project, minitask) {
+              return project.addMiniTask(minitask);
+            }).then(function(project) {
+              return project.destroy();
+            }).then(function() {
+              expect(beforeProject).to.be.true;
+              expect(afterProject).to.be.true;
+              expect(beforeTask).to.be.false;
+              expect(afterTask).to.be.false;
+              expect(beforeMiniTask).to.be.true;
+              expect(afterMiniTask).to.be.true;
             });
+
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5464,21 +5459,20 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
-                project.addMiniTask(minitask).success(function() {
-                  project.destroy().error(function(err) {
-                    expect(err).to.be.instanceOf(Error);
-                    expect(beforeProject).to.be.true;
-                    expect(afterProject).to.be.true;
-                    expect(beforeTask).to.be.false;
-                    expect(afterTask).to.be.false;
-                    expect(beforeMiniTask).to.be.true;
-                    expect(afterMiniTask).to.be.false;
-                    done();
-                  });
-                });
-              });
+            return this.sequelize.Promise.all([
+              this.Projects.create({title: 'New Project'}),
+              this.MiniTasks.create({mini_title: 'New MiniTask'})
+            ]).bind(this).spread(function(project, minitask) {
+              return project.addMiniTask(minitask);
+            }).then(function(project) {
+              return project.destroy();
+            }).catch(function() {
+              expect(beforeProject).to.be.true;
+              expect(afterProject).to.be.true;
+              expect(beforeTask).to.be.false;
+              expect(afterTask).to.be.false;
+              expect(beforeMiniTask).to.be.true;
+              expect(afterMiniTask).to.be.false;
             });
           });
         });
@@ -5488,7 +5482,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('multiple 1:M sequential hooks', function () {
       describe('cascade', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -5511,17 +5505,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.MiniTasks.belongsTo(this.Projects, {hooks: true});
           this.MiniTasks.belongsTo(this.Tasks, {hooks: true});
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              self.MiniTasks.sync({ force: true }).success(function() {
-                done();
-              });
-            });
-          });
+          return this.sequelize.sync({force: true});
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5561,28 +5549,29 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
-                  task.addMiniTask(minitask).success(function () {
-                    project.addTask(task).success(function() {
-                      project.destroy().success(function() {
-                        expect(beforeProject).to.be.true;
-                        expect(afterProject).to.be.true;
-                        expect(beforeTask).to.be.true;
-                        expect(afterTask).to.be.true;
-                        expect(beforeMiniTask).to.be.true;
-                        expect(afterMiniTask).to.be.true;
-                        done();
-                      });
-                    });
-                  });
-                });
-              });
+
+            return this.sequelize.Promise.all([
+              this.Projects.create({title: 'New Project'}),
+              this.Tasks.create({title: 'New Task'}),
+              this.MiniTasks.create({mini_title: 'New MiniTask'})
+            ]).bind(this).spread(function(project, task, minitask) {
+              return this.sequelize.Promise.all([
+                        task.addMiniTask(minitask),
+                        project.addTask(task)
+                      ]).return(project);
+            }).then(function(project) {
+              return project.destroy();
+            }).then(function() {
+              expect(beforeProject).to.be.true;
+              expect(afterProject).to.be.true;
+              expect(beforeTask).to.be.true;
+              expect(afterTask).to.be.true;
+              expect(beforeMiniTask).to.be.true;
+              expect(afterMiniTask).to.be.true;
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5622,24 +5611,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                self.MiniTasks.create({mini_title: 'New MiniTask'}).success(function(minitask) {
-                  task.addMiniTask(minitask).success(function () {
-                    project.addTask(task).success(function() {
-                      project.destroy().error(function() {
-                        expect(beforeProject).to.be.true;
-                        expect(afterProject).to.be.true;
-                        expect(beforeTask).to.be.true;
-                        expect(afterTask).to.be.false;
-                        expect(beforeMiniTask).to.be.false;
-                        expect(afterMiniTask).to.be.false;
-                        done();
-                      });
-                    });
-                  });
-                });
-              });
+            return this.sequelize.Promise.all([
+              this.Projects.create({title: 'New Project'}),
+              this.Tasks.create({title: 'New Task'}),
+              this.MiniTasks.create({mini_title: 'New MiniTask'})
+            ]).bind(this).spread(function(project, task, minitask) {
+              return this.sequelize.Promise.all([
+                        task.addMiniTask(minitask),
+                        project.addTask(task)
+                      ]).return(project);
+            }).then(function(project) {
+              return project.destroy();
+            }).catch(function() {
+              expect(beforeProject).to.be.true;
+              expect(afterProject).to.be.true;
+              expect(beforeTask).to.be.true;
+              expect(afterTask).to.be.false;
+              expect(beforeMiniTask).to.be.false;
+              expect(afterMiniTask).to.be.false;
             });
           });
         });
