@@ -5332,7 +5332,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
     });
-
+    
+    // NOTE: Reenable when FK constraints create table query is fixed when using hooks
     if (dialect !== "mssql") {
       describe('multiple 1:M', function () {
 
