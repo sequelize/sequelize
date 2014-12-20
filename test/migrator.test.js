@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
 
     it("returns no files if timestamps are after the files timestamp", function(done) {
       this.init({ from: 20140101010101 }, function(migrator) {
-        migrator.getUndoneMigrations(function(err, migrations) {
+        migrator.getCompletedMigrations(function(err, migrations) {
           expect(err).to.be.null
           expect(migrations.length).to.equal(0)
           done()
@@ -207,6 +207,46 @@ describe(Support.getTestDialectTeaser("Migrator"), function() {
             })
           })
         })
+      })
+
+      it("executes migrations correctly up twice and downwards twice", function(done) {
+        var self = this
+
+        this.migrator.options.from = 20111205064000
+        this.migrator.options.to = 20111205064000
+
+        var getTables = function() {
+          return self.sequelize.getQueryInterface()
+            .showAllTables()
+            .then(function(tableNames) {
+              return tableNames.filter(function(e){ return e != 'SequelizeMeta' })
+            })
+        }
+
+        var migrateDown = function(ts) {
+          self.migrator.options.from = ts
+          self.migrator.options.to = ts
+          return self.migrator.migrate({method: 'down'})
+        }
+
+        this.migrator.migrate()
+          .then(getTables)
+          .then(function(tableNames) {
+            expect(tableNames).to.eql([ 'User' ])
+            return migrateDown(20111205064000)
+          })
+          .then(getTables)
+          .then(function(tableNames) {
+            expect(tableNames).to.eql([ 'Person' ])
+            return migrateDown(20111117063700)
+          })
+          .then(getTables)
+          .then(function(tableNames) {
+            expect(tableNames).to.eql([])
+          })
+          .done(function(err) {
+            done(err)
+          }, done)
       })
 
       it("supports coffee files", function(done) {
