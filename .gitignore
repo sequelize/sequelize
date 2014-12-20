@@ -11,3 +11,4 @@ test/sqlite/test.sqlite
 coverage-*
 docs/*.md
 docs/*.html
+nbproject/*
