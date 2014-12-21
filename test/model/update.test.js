@@ -1,25 +1,23 @@
-"use strict";
+'use strict';
 
-/* jshint camelcase: false */
-/* jshint expr: true */
-var chai      = require('chai')
-  , sinon     = require('sinon')
+var chai = require('chai')
+  , sinon = require('sinon')
   , Sequelize = require('../../index')
-  , Promise   = Sequelize.Promise
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
-  , dialect   = Support.getTestDialect()
-  , datetime  = require('chai-datetime')
-  , _         = require('lodash')
-  , assert    = require('assert')
-  , current   = Support.sequelize;
+  , Promise = Sequelize.Promise
+  , expect = chai.expect
+  , Support = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../lib/data-types')
+  , dialect = Support.getTestDialect()
+  , datetime = require('chai-datetime')
+  , _ = require('lodash')
+  , assert = require('assert')
+  , current = Support.sequelize;
 
 chai.use(datetime);
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("Model"), function () {
-  beforeEach(function () {
+describe(Support.getTestDialectTeaser('Model'), function() {
+  beforeEach(function() {
     this.clock = sinon.useFakeTimers();
 
     this.User = this.sequelize.define('user', {
@@ -31,20 +29,20 @@ describe(Support.getTestDialectTeaser("Model"), function () {
       bar: {
         unique: 'foobar',
         type: DataTypes.INTEGER
-      },
+      }
     });
 
     return this.sequelize.sync({ force: true });
   });
 
-  afterEach(function () {
+  afterEach(function() {
     this.clock.restore();
   });
 
   if (current.dialect.supports.upserts) {
-    describe('upsert', function () {
-      it('works with upsert on id', function () {
-        return this.User.upsert({ id: 42, username: 'john' }).bind(this).then(function (created) {
+    describe('upsert', function() {
+      it('works with upsert on id', function() {
+        return this.User.upsert({ id: 42, username: 'john' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).not.to.be.defined;
           } else {
@@ -53,7 +51,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
           this.clock.tick(2000); // Make sure to pass some time so updatedAt != createdAt
           return this.User.upsert({ id: 42, username: 'doe' });
-        }).then(function (created) {
+        }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).not.to.be.defined;
           } else {
@@ -61,15 +59,15 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           }
 
           return this.User.find(42);
-        }).then(function (user) {
+        }).then(function(user) {
           expect(user.createdAt).to.be.defined;
           expect(user.username).to.equal('doe');
           expect(user.updatedAt).to.be.afterTime(user.createdAt);
         });
       });
 
-      it('works with upsert on a composite key', function () {
-        return this.User.upsert({ foo: 'baz', bar: 19, username: 'john' }).bind(this).then(function (created) {
+      it('works with upsert on a composite key', function() {
+        return this.User.upsert({ foo: 'baz', bar: 19, username: 'john' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).not.to.be.defined;
           } else {
@@ -78,7 +76,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
 
           this.clock.tick(2000); // Make sure to pass some time so updatedAt != createdAt
           return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
-        }).then(function (created) {
+        }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).not.to.be.defined;
           } else {
@@ -86,7 +84,7 @@ describe(Support.getTestDialectTeaser("Model"), function () {
           }
 
           return this.User.find({ where: { foo: 'baz', bar: 19 }});
-        }).then(function (user) {
+        }).then(function(user) {
           expect(user.createdAt).to.be.defined;
           expect(user.username).to.equal('doe');
           expect(user.updatedAt).to.be.afterTime(user.createdAt);

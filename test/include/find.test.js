@@ -1,19 +1,19 @@
-/* jshint camelcase: false */
-/* jshint expr: true */
-var chai      = require('chai')
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
+'use strict';
+
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/../support')
   , Sequelize = require(__dirname + '/../../index')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
-  , datetime  = require('chai-datetime')
-  , async     = require('async');
+  , DataTypes = require(__dirname + '/../../lib/data-types')
+  , datetime = require('chai-datetime')
+  , async = require('async');
 
-chai.use(datetime)
-chai.config.includeStack = true
+chai.use(datetime);
+chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("Include"), function () {
-  describe('find', function () {
-    it('should include a non required model, with conditions and two includes N:M 1:M', function ( done ) {
+describe(Support.getTestDialectTeaser('Include'), function() {
+  describe('find', function() {
+    it('should include a non required model, with conditions and two includes N:M 1:M', function(done ) {
       var A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true })
         , B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true })
         , C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true })
@@ -24,17 +24,17 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       B.belongsTo(D);
       B.hasMany(C, {
-        through: 'BC',
+        through: 'BC'
       });
 
       C.hasMany(B, {
-        through: 'BC',
+        through: 'BC'
       });
 
       D.hasMany(B);
 
-      this.sequelize.sync({ force: true }).done(function ( err ) {
-        expect( err ).not.to.be.ok;
+      this.sequelize.sync({ force: true }).done(function(err ) {
+        expect(err).not.to.be.ok;
 
         A.find({
           include: [
@@ -43,14 +43,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               { model: D }
             ]}
           ]
-        }).done( function ( err ) {
-          expect( err ).not.to.be.ok;
+        }).done(function(err ) {
+          expect(err).not.to.be.ok;
           done();
         });
       });
     });
 
-    it('should include a model with a where condition but no required', function () {
+    it('should include a model with a where condition but no required', function() {
       var User = this.sequelize.define('User', {}, { paranoid: false })
         , Task = this.sequelize.define('Task', {
           deletedAt: {
@@ -63,27 +63,27 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       return this.sequelize.sync({
         force: true
-      }).then(function () {
+      }).then(function() {
         return User.create();
-      }).then(function (user) {
+      }).then(function(user) {
         return Task.bulkCreate([
           {userId: user.get('id'), deletedAt: new Date()},
           {userId: user.get('id'), deletedAt: new Date()},
           {userId: user.get('id'), deletedAt: new Date()}
         ]);
-      }).then(function () {
+      }).then(function() {
         return User.find({
           include: [
             {model: Task, where: {deletedAt: null}, required: false}
           ]
         });
-      }).then(function (user) {
+      }).then(function(user) {
         expect(user).to.be.ok;
         expect(user.Tasks.length).to.equal(0);
       });
     });
 
-    it("should still pull the main record when an included model is not required and has where restrictions without matches", function () {
+    it('should still pull the main record when an included model is not required and has where restrictions without matches', function() {
       var A = this.sequelize.define('a', {
           name: DataTypes.STRING(40)
         })
@@ -96,12 +96,12 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       return this.sequelize
         .sync({force: true})
-        .then(function () {
+        .then(function() {
           return A.create({
             name: 'Foobar'
           });
         })
-        .then(function () {
+        .then(function() {
           return A.find({
             where: {name: 'Foobar'},
             include: [
@@ -109,7 +109,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
             ]
           });
         })
-        .then(function (a) {
+        .then(function(a) {
           expect(a).to.not.equal(null);
           expect(a.get('bs')).to.deep.equal([]);
         });
@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
 
       return this.sequelize
         .sync({ force: true })
-        .then(function () {
+        .then(function() {
           return A.find({
             include: [
               {
@@ -149,14 +149,14 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 ]
               }
             ]
-          })
+          });
         })
-        .then(function (a) {
+        .then(function(a) {
           expect(a).to.not.exist;
         });
     });
 
-    it('should support many levels of belongsTo (with a lower level having a where)', function (done) {
+    it('should support many levels of belongsTo (with a lower level having a where)', function(done) {
       var A = this.sequelize.define('a', {})
         , B = this.sequelize.define('b', {})
         , C = this.sequelize.define('c', {})
@@ -188,23 +188,23 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         H
       ];
 
-      this.sequelize.sync().done(function () {
+      this.sequelize.sync().done(function() {
         async.auto({
-          a: function (callback) {
+          a: function(callback) {
             A.create({}).done(callback);
           },
-          singleChain: function (callback) {
+          singleChain: function(callback) {
             var previousInstance;
 
-            async.eachSeries(singles, function (model, callback) {
+            async.eachSeries(singles, function(model, callback) {
               var values = {};
 
               if (model.name === 'g') {
                 values.name = 'yolo';
               }
-              model.create(values).done(function (err, instance) {
+              model.create(values).done(function(err, instance) {
                 if (previousInstance) {
-                  previousInstance["set"+Sequelize.Utils.uppercaseFirst(model.name)](instance).done(function () {
+                  previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).done(function() {
                     previousInstance = instance;
                     callback();
                   });
@@ -215,10 +215,10 @@ describe(Support.getTestDialectTeaser("Include"), function () {
               });
             }, callback);
           },
-          ab: ['a', 'singleChain', function (callback, results) {
+          ab: ['a', 'singleChain', function(callback, results) {
             results.a.setB(b).done(callback);
           }]
-        }, function () {
+        }, function() {
 
           A.find({
             include: [
@@ -238,7 +238,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 ]}
               ]}
             ]
-          }).done(function (err, a) {
+          }).done(function(err, a) {
             expect(err).not.to.be.ok;
             expect(a.b.c.d.e.f.g.h).to.be.ok;
             done();

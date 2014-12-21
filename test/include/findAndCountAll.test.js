@@ -1,45 +1,45 @@
-/* jshint camelcase: false */
-/* jshint expr: true */
-var chai      = require('chai')
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
-  , datetime  = require('chai-datetime')
-  , Promise   = require('bluebird');
+'use strict';
 
-chai.use(datetime)
-chai.config.includeStack = true
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../lib/data-types')
+  , datetime = require('chai-datetime')
+  , Promise = require('bluebird');
 
-describe(Support.getTestDialectTeaser("Include"), function () {
-  describe('findAndCountAll', function () {
+chai.use(datetime);
+chai.config.includeStack = true;
 
-    it( 'Try to include a required model. Result rows should match count', function ( done ) {
+describe(Support.getTestDialectTeaser('Include'), function() {
+  describe('findAndCountAll', function() {
+
+    it('Try to include a required model. Result rows should match count', function(done ) {
       var DT = DataTypes,
           S = this.sequelize,
           User = S.define('User', { name: DT.STRING(40) }, { paranoid: true }),
           SomeConnection = S.define('SomeConnection', {
             m: DT.STRING(40),
             fk: DT.INTEGER,
-            u: DT.INTEGER,
+            u: DT.INTEGER
           }, { paranoid: true }),
           A = S.define('A', { name: DT.STRING(40) }, { paranoid: true }),
           B = S.define('B', { name: DT.STRING(40) }, { paranoid: true }),
-          C = S.define('C', { name: DT.STRING(40) }, { paranoid: true })
+          C = S.define('C', { name: DT.STRING(40) }, { paranoid: true });
 
       // Associate them
-      User.hasMany( SomeConnection, { foreignKey: 'u' })
+      User.hasMany(SomeConnection, { foreignKey: 'u' });
 
-      SomeConnection.belongsTo( User, { foreignKey: 'u' })
-      SomeConnection.belongsTo( A, { foreignKey: 'fk', constraints: false })
-      SomeConnection.belongsTo( B, { foreignKey: 'fk', constraints: false })
-      SomeConnection.belongsTo( C, { foreignKey: 'fk', constraints: false })
+      SomeConnection.belongsTo(User, { foreignKey: 'u' });
+      SomeConnection.belongsTo(A, { foreignKey: 'fk', constraints: false });
+      SomeConnection.belongsTo(B, { foreignKey: 'fk', constraints: false });
+      SomeConnection.belongsTo(C, { foreignKey: 'fk', constraints: false });
 
-      A.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
-      B.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
-      C.hasMany( SomeConnection, { foreignKey: 'fk', constraints: false })
+      A.hasMany(SomeConnection, { foreignKey: 'fk', constraints: false });
+      B.hasMany(SomeConnection, { foreignKey: 'fk', constraints: false });
+      C.hasMany(SomeConnection, { foreignKey: 'fk', constraints: false });
 
       // Sync them
-      S.sync({ force: true }).done( function ( err ) { expect( err ).not.to.be.ok;
+      S.sync({ force: true }).done(function(err ) { expect(err).not.to.be.ok;
 
         // Create an enviroment
         User.bulkCreate([
@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           { name: 'Google' },
           { name: 'Yahoo' },
           { name: '404' }
-        ]).done( function ( err, users ) { expect( err ).not.to.be.ok; expect( users ).to.be.length( 5 )
+        ]).done(function(err, users ) { expect(err).not.to.be.ok; expect(users).to.be.length(5);
 
         SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
           { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
@@ -74,32 +74,32 @@ describe(Support.getTestDialectTeaser("Include"), function () {
           { u: 3, m: 'A', fk: 3 },
           { u: 2, m: 'B', fk: 2 },
           { u: 1, m: 'A', fk: 4 }, // 4
-          { u: 4, m: 'A', fk: 2 },
-        ]).done( function ( err, conns ) { expect( err ).not.to.be.ok; expect( conns ).to.be.length( 24 )
+          { u: 4, m: 'A', fk: 2 }
+        ]).done(function(err, conns ) { expect(err).not.to.be.ok; expect(conns).to.be.length(24);
 
         A.bulkCreate([
           { name: 'Just' },
           { name: 'for' },
           { name: 'testing' },
           { name: 'proposes' },
-          { name: 'only' },
-        ]).done( function ( err, as ) { expect( err ).not.to.be.ok; expect( as ).to.be.length( 5 )
+          { name: 'only' }
+        ]).done(function(err, as ) { expect(err).not.to.be.ok; expect(as).to.be.length(5);
 
         B.bulkCreate([
           { name: 'this should not' },
           { name: 'be loaded' }
-        ]).done( function ( err, bs ) { expect( err ).not.to.be.ok; expect( bs ).to.be.length( 2 )
+        ]).done(function(err, bs ) { expect(err).not.to.be.ok; expect(bs).to.be.length(2);
 
         C.bulkCreate([
           { name: 'because we only want A' }
-        ]).done( function ( err, cs ) { expect( err ).not.to.be.ok; expect( cs ).to.be.length( 1 )
+        ]).done(function(err, cs ) { expect(err).not.to.be.ok; expect(cs).to.be.length(1);
 
           // Delete some of conns to prove the concept
           SomeConnection.destroy({where: {
             m: 'A',
             u: 1,
-            fk: [ 1, 2 ],
-          }}).done( function ( err ) { expect( err ).not.to.be.ok
+            fk: [1, 2]
+          }}).done(function(err ) { expect(err).not.to.be.ok;
 
             // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
             A.findAndCountAll({
@@ -112,52 +112,52 @@ describe(Support.getTestDialectTeaser("Include"), function () {
                 }
               }],
 
-              limit: 5,
+              limit: 5
 
             })
-            .done( function ( err, result ) {
+            .done(function(err, result ) {
 
               // Test variables
-              expect( err ).not.to.be.ok
-              expect( result.count ).to.be.equal( 2 )
-              expect( result.rows.length ).to.be.equal( 2 )
+              expect(err).not.to.be.ok;
+              expect(result.count).to.be.equal(2);
+              expect(result.rows.length).to.be.equal(2);
 
-              done()
+              done();
 
             // Last and most important queries - END
-            })
+            });
 
           // Delete some of conns to prove the concept - END
-          })
+          });
 
         // Create an enviroment - END
-        })
-        })
-        })
-        })
-        })
+        });
+        });
+        });
+        });
+        });
 
       // Sync them - END
-      })
+      });
 
-    })
-    
-    it('should count on a where and not use an uneeded include', function () {
-      var Project = this.sequelize.define('Project', { 
+    });
+
+    it('should count on a where and not use an uneeded include', function() {
+      var Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
         project_name: { type: DataTypes.STRING}
-      })
-       
-      var User = this.sequelize.define('User', { 
+      });
+
+      var User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
         user_name: { type: DataTypes.STRING }
-      })
-       
+      });
+
       User.hasMany(Project);
-       
-      var userId = null
-       
-      return User.sync({force: true}).then(function () {
+
+      var userId = null;
+
+      return User.sync({force: true}).then(function() {
         return Project.sync({force: true});
       }).then(function() {
         return Promise.all([User.create(), Project.create(), Project.create(), Project.create()]);
@@ -177,7 +177,7 @@ describe(Support.getTestDialectTeaser("Include"), function () {
       });
     });
 
-    it("should return the correct count and rows when using a required belongsTo and a limit", function() {
+    it('should return the correct count and rows when using a required belongsTo and a limit', function() {
       var s = this.sequelize
         , Foo = s.define('Foo', {})
         , Bar = s.define('Bar', {});
@@ -196,11 +196,11 @@ describe(Support.getTestDialectTeaser("Include"), function () {
         return Foo.findAndCountAll({
           include: [{ model: Bar, required: true }],
           limit: 2
-        }).tap(function () {
+        }).tap(function() {
           return Foo.findAll({
             include: [{ model: Bar, required: true }],
             limit: 2
-          }).then(function (items) {
+          }).then(function(items) {
             expect(items.length).to.equal(2);
           });
         });

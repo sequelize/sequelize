@@ -7,7 +7,7 @@ var chai = require('chai')
 
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser('Schema'), function () {
+describe(Support.getTestDialectTeaser('Schema'), function() {
   beforeEach(function() {
     return this.sequelize.createSchema('testschema');
   });
@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('Schema'), function () {
    return this.User.sync({ force: true });
   });
 
-  it('supports increment', function () {
+  it('supports increment', function() {
     return this.User.create({ aNumber: 1 }).then(function(user) {
       return user.increment('aNumber', { by: 3 });
     }).then(function(result) {
@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('Schema'), function () {
     });
   });
 
-  it('supports decrement', function () {
+  it('supports decrement', function() {
     return this.User.create({ aNumber: 10 }).then(function(user) {
       return user.decrement('aNumber', { by: 3 });
     }).then(function(result) {

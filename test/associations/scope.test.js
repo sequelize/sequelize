@@ -1,19 +1,18 @@
-"use strict";
+'use strict';
 
-/* jshint camelcase: false, expr: true */
-var chai      = require('chai')
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../lib/data-types')
   , Sequelize = require('../../index')
-  , Promise   = Sequelize.Promise
-  , assert    = require('assert');
+  , Promise = Sequelize.Promise
+  , assert = require('assert');
 
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("associations"), function() {
-  describe('scope', function () {
-    beforeEach(function () {
+describe(Support.getTestDialectTeaser('associations'), function() {
+  describe('scope', function() {
+    beforeEach(function() {
       this.Post = this.sequelize.define('post', {});
       this.Image = this.sequelize.define('image', {});
       this.Question = this.sequelize.define('question', {});
@@ -24,7 +23,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
       }, {
         instanceMethods: {
           getItem: function() {
-            return this['get'+this.get('commentable').substr(0, 1).toUpperCase()+this.get('commentable').substr(1)]();
+            return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
           }
         }
       });
@@ -62,11 +61,11 @@ describe(Support.getTestDialectTeaser("associations"), function() {
         as: 'question'
       });
     });
-    
-    describe('1:M', function () {
-      it('should create, find and include associations with scope values', function () {
+
+    describe('1:M', function() {
+      it('should create, find and include associations with scope values', function() {
         var self = this;
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             self.Post.create(),
             self.Image.create(),
@@ -78,7 +77,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
               title: 'I am a question comment'
             })
           );
-        }).bind(this).spread(function (post, image, question, commentA, commentB) {
+        }).bind(this).spread(function(post, image, question, commentA, commentB) {
           this.post = post;
           this.image = image;
           this.question = question;
@@ -89,22 +88,22 @@ describe(Support.getTestDialectTeaser("associations"), function() {
             image.addComment(commentA),
             question.setComments([commentB])
           );
-        }).then(function () {
+        }).then(function() {
           return self.Comment.findAll();
-        }).then(function (comments) {
-          comments.forEach(function (comment) {
+        }).then(function(comments) {
+          comments.forEach(function(comment) {
             expect(comment.get('commentable')).to.be.ok;
           });
-          expect(comments.map(function (comment) {
+          expect(comments.map(function(comment) {
             return comment.get('commentable');
           }).sort()).to.deep.equal(['image', 'post', 'question']);
-        }).then(function () {
+        }).then(function() {
           return Promise.join(
             this.post.getComments(),
             this.image.getComments(),
             this.question.getComments()
           );
-        }).spread(function (postComments, imageComments, questionComments) {
+        }).spread(function(postComments, imageComments, questionComments) {
           expect(postComments.length).to.equal(1);
           expect(postComments[0].get('title')).to.equal('I am a post comment');
           expect(imageComments.length).to.equal(1);
@@ -113,17 +112,17 @@ describe(Support.getTestDialectTeaser("associations"), function() {
           expect(questionComments[0].get('title')).to.equal('I am a question comment');
 
           return [postComments[0], imageComments[0], questionComments[0]];
-        }).spread(function (postComment, imageComment, questionComment) {
+        }).spread(function(postComment, imageComment, questionComment) {
           return Promise.join(
             postComment.getItem(),
             imageComment.getItem(),
             questionComment.getItem()
           );
-        }).spread(function (post, image, question) {
+        }).spread(function(post, image, question) {
           expect(post.Model).to.equal(self.Post);
           expect(image.Model).to.equal(self.Image);
           expect(question.Model).to.equal(self.Question);
-        }).then(function () {
+        }).then(function() {
           return Promise.join(
             self.Post.find({
               include: [self.Comment]
@@ -135,7 +134,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
               include: [self.Comment]
             })
           );
-        }).spread(function (post, image, question) {
+        }).spread(function(post, image, question) {
           expect(post.comments.length).to.equal(1);
           expect(post.comments[0].get('title')).to.equal('I am a post comment');
           expect(image.comments.length).to.equal(1);
@@ -145,11 +144,11 @@ describe(Support.getTestDialectTeaser("associations"), function() {
         });
       });
     });
-  
+
     if (Support.getTestDialect() !== 'sqlite') {
-      describe('N:M', function () {
-        describe('on the target', function () {
-          beforeEach(function () {
+      describe('N:M', function() {
+        describe('on the target', function() {
+          beforeEach(function() {
             this.Post = this.sequelize.define('post', {});
             this.Tag = this.sequelize.define('tag', {
               type: DataTypes.STRING
@@ -160,14 +159,15 @@ describe(Support.getTestDialectTeaser("associations"), function() {
             this.Post.hasMany(this.Tag, {as: 'categories', through: this.PostTag, scope: { type: 'category' }});
             this.Post.hasMany(this.Tag, {as: 'tags', through: this.PostTag, scope: { type: 'tag' }});
           });
-          it('should create, find and include associations with scope values', function () {
+
+          it('should create, find and include associations with scope values', function() {
             var self = this;
             return Promise.join(
               self.Post.sync({force: true}),
               self.Tag.sync({force: true})
-            ).bind(this).then(function () {
+            ).bind(this).then(function() {
               return self.PostTag.sync({force: true});
-            }).then(function () {
+            }).then(function() {
               return Promise.join(
                 self.Post.create(),
                 self.Post.create(),
@@ -177,7 +177,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
                 self.Tag.create({type: 'tag'}),
                 self.Tag.create({type: 'tag'})
               );
-            }).spread(function (postA, postB, postC, categoryA, categoryB, tagA, tagB) {
+            }).spread(function(postA, postB, postC, categoryA, categoryB, tagA, tagB) {
               this.postA = postA;
               this.postB = postB;
               this.postC = postC;
@@ -190,7 +190,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
                 postB.addTag(tagA),
                 postC.setTags([tagB])
               );
-            }).then(function () {
+            }).then(function() {
               return Promise.join(
                 this.postA.getCategories(),
                 this.postA.getTags(),
@@ -199,7 +199,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
                 this.postC.getCategories(),
                 this.postC.getTags()
               );
-            }).spread(function (postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags) {
+            }).spread(function(postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags) {
               expect(postACategories.length).to.equal(1);
               expect(postATags.length).to.equal(1);
               expect(postBCategories.length).to.equal(1);
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
               expect(postBTags[0].get('type')).to.equal('tag');
               expect(postCCategories[0].get('type')).to.equal('category');
               expect(postCTags[0].get('type')).to.equal('tag');
-            }).then(function () {
+            }).then(function() {
               return Promise.join(
                 self.Post.find({
                   where: {
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser("associations"), function() {
                   ]
                 })
               );
-            }).spread(function (postA, postB, postC) {
+            }).spread(function(postA, postB, postC) {
               expect(postA.get('categories').length).to.equal(1);
               expect(postA.get('tags').length).to.equal(1);
               expect(postB.get('categories').length).to.equal(1);
@@ -261,8 +261,8 @@ describe(Support.getTestDialectTeaser("associations"), function() {
           });
         });
 
-        describe('on the through model', function () {
-          beforeEach(function () {
+        describe('on the through model', function() {
+          beforeEach(function() {
             this.Post = this.sequelize.define('post', {});
             this.Image = this.sequelize.define('image', {});
             this.Question = this.sequelize.define('question', {});
@@ -348,16 +348,17 @@ describe(Support.getTestDialectTeaser("associations"), function() {
               foreignKey: 'tag_id'
             });
           });
-          it('should create, find and include associations with scope values', function () {
+
+          it('should create, find and include associations with scope values', function() {
             var self = this;
             return Promise.join(
               this.Post.sync({force: true}),
               this.Image.sync({force: true}),
               this.Question.sync({force: true}),
               this.Tag.sync({force: true})
-            ).bind(this).then(function () {
+            ).bind(this).then(function() {
               return this.ItemTag.sync({force: true});
-            }).then(function () {
+            }).then(function() {
               return Promise.join(
                 this.Post.create(),
                 this.Image.create(),
@@ -366,49 +367,49 @@ describe(Support.getTestDialectTeaser("associations"), function() {
                 this.Tag.create({name: 'tagB'}),
                 this.Tag.create({name: 'tagC'})
               );
-            }).spread(function (post, image, question, tagA, tagB, tagC) {
+            }).spread(function(post, image, question, tagA, tagB, tagC) {
               this.post = post;
               this.image = image;
               this.question = question;
               return Promise.join(
-                post.setTags([tagA]).then(function () {
+                post.setTags([tagA]).then(function() {
                   return Promise.join(
                     post.createTag({name: 'postTag'}),
                     post.addTag(tagB)
                   );
                 }),
-                image.setTags([tagB]).then(function () {
+                image.setTags([tagB]).then(function() {
                   return Promise.join(
                     image.createTag({name: 'imageTag'}),
                     image.addTag(tagC)
                   );
                 }),
-                question.setTags([tagC]).then(function () {
+                question.setTags([tagC]).then(function() {
                   return Promise.join(
                     question.createTag({name: 'questionTag'}),
                     question.addTag(tagA)
                   );
                 })
               );
-            }).then(function () {
+            }).then(function() {
               return Promise.join(
                 this.post.getTags(),
                 this.image.getTags(),
                 this.question.getTags()
-              ).spread(function (postTags, imageTags, questionTags) {
+              ).spread(function(postTags, imageTags, questionTags) {
                 expect(postTags.length).to.equal(3);
                 expect(imageTags.length).to.equal(3);
                 expect(questionTags.length).to.equal(3);
 
-                expect(postTags.map(function (tag) {
+                expect(postTags.map(function(tag) {
                   return tag.name;
                 }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
 
-                expect(imageTags.map(function (tag) {
+                expect(imageTags.map(function(tag) {
                   return tag.name;
                 }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
 
-                expect(questionTags.map(function (tag) {
+                expect(questionTags.map(function(tag) {
                   return tag.name;
                 }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
               });

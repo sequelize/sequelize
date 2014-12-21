@@ -1,25 +1,26 @@
-var chai        = require('chai')
-  , expect      = chai.expect
-  , Support     = require(__dirname + '/support')
-  , Promise     = require(__dirname + '/../lib/promise')
-  , Transaction = require(__dirname + '/../lib/transaction')
-  , current   = Support.sequelize;
+'use strict';
 
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/support')
+  , Promise = require(__dirname + '/../lib/promise')
+  , Transaction = require(__dirname + '/../lib/transaction')
+  , current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
 
-describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
+describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
   this.timeout(4000);
 
   describe('success', function() {
-    it("gets triggered once a transaction has been successfully committed", function(done) {
+    it('gets triggered once a transaction has been successfully committed', function(done) {
       this
         .sequelize
         .transaction().then(function(t) { t.commit(); })
         .success(function() { done(); });
     });
 
-    it("gets triggered once a transaction has been successfully rollbacked", function(done) {
+    it('gets triggered once a transaction has been successfully rollbacked', function(done) {
       this
         .sequelize
         .transaction().then(function(t) { t.rollback(); })
@@ -35,11 +36,11 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
 
           return sequelize.sync({ force: true }).success(function() {
             return sequelize.transaction();
-          }).then(function (t) {
+          }).then(function(t) {
             expect(t).to.be.ok;
             var query = 'select sleep(2);';
 
-            switch(Support.getTestDialect()) {
+            switch (Support.getTestDialect()) {
             case 'postgres':
               query = 'select pg_sleep(2);';
               break;
@@ -62,15 +63,15 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                 .getQueryInterface()
                 .QueryGenerator
                 .insertQuery(User.tableName, dao.values, User.rawAttributes);
-            }).then(function () {
+            }).then(function() {
               return Promise.delay(1000);
-            }).then(function () {
+            }).then(function() {
               return sequelize.query(query, null, {
                 raw: true,
                 plain: true,
                 transaction: t
               });
-            }).then(function () {
+            }).then(function() {
               return t.commit();
             });
           }).then(function() {
@@ -79,7 +80,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
               expect(users[0].name).to.equal('foo');
               done();
             });
-          }).catch(done);
+          }).catch (done);
         });
       });
     }
@@ -90,7 +91,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
       // not sure if we can test this in sqlite ...
       // how could we enforce an authentication error in sqlite?
     } else {
-      it("gets triggered once an error occurs", function(done) {
+      it('gets triggered once an error occurs', function(done) {
         var sequelize = Support.createSequelizeInstance();
 
         // lets overwrite the host to get an error
@@ -98,7 +99,7 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
 
         sequelize
           .transaction().then(function() {})
-          .catch(function(err) {
+          .catch (function(err) {
             expect(err).to.not.be.undefined;
             done();
           });
@@ -107,12 +108,12 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
   });
 
   describe('complex long running example', function() {
-    it("works with promise syntax", function(done) {
+    it('works with promise syntax', function(done) {
       Support.prepareTransactionTest(this.sequelize, function(sequelize) {
         var Test = sequelize.define('Test', {
-          id:   { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+          id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
           name: { type: Support.Sequelize.STRING }
-        })
+        });
 
         sequelize
           .sync({ force: true })
@@ -126,41 +127,41 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                   setTimeout(function() {
                     transaction
                       .commit()
-                      .then(function() { return Test.count() })
+                      .then(function() { return Test.count(); })
                       .then(function(count) {
-                        expect(count).to.equal(1)
-                        done()
-                      })
-                  }, 1000)
-                })
-            })
-          })
-      })
-    })
-  })
+                        expect(count).to.equal(1);
+                        done();
+                      });
+                  }, 1000);
+                });
+            });
+          });
+      });
+    });
+  });
 
   describe('concurrency', function() {
     describe('having tables with uniqueness constraints', function() {
       beforeEach(function(done) {
-        var self = this
+        var self = this;
 
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-          self.sequelize = sequelize
+          self.sequelize = sequelize;
 
           self.Model = sequelize.define('Model', {
             name: { type: Support.Sequelize.STRING, unique: true }
           }, {
             timestamps: false
-          })
+          });
 
           self.Model
             .sync({ force: true })
-            .success(function() { done() })
-        })
-      })
+            .success(function() { done(); });
+        });
+      });
 
-      it("triggers the error event for the second transactions", function(done) {
-        var self = this
+      it('triggers the error event for the second transactions', function(done) {
+        var self = this;
 
         this.sequelize.transaction().then(function(t1) {
           self.sequelize.transaction().then(function(t2) {
@@ -173,18 +174,18 @@ describe(Support.getTestDialectTeaser("Sequelize#transaction"), function () {
                   .create({ name: 'omnom' }, { transaction: t2 })
                   .error(function(err) {
                     t2.rollback().success(function() {
-                      expect(err).to.be.defined
-                      done()
-                    })
-                  })
+                      expect(err).to.be.defined;
+                      done();
+                    });
+                  });
 
-                setTimeout(function() { t1.commit() }, 100)
-              })
-          })
-        })
-      })
-    })
-  })
-})
+                setTimeout(function() { t1.commit(); }, 100);
+              });
+          });
+        });
+      });
+    });
+  });
+});
 
 }

@@ -1,13 +1,14 @@
-"use strict";
+'use strict';
 
-var fs        = require('fs')
-  , path      = require('path')
-  , _         = require('lodash')
-  , Sequelize = require(__dirname + "/../index")
-  , DataTypes = require(__dirname + "/../lib/data-types")
-  , Config    = require(__dirname + "/config/config")
-  , chai = require("chai")
-  , chaiAsPromised = require("chai-as-promised");
+var fs = require('fs')
+  , path = require('path')
+  , _ = require('lodash')
+  , Sequelize = require(__dirname + '/../index')
+  , DataTypes = require(__dirname + '/../lib/data-types')
+  , Config = require(__dirname + '/config/config')
+  , chai = require('chai')
+  , expect = chai.expect
+  , chaiAsPromised = require('chai-as-promised');
 
 chai.use(chaiAsPromised);
 
@@ -44,21 +45,21 @@ var Support = {
     if (dialect === 'sqlite') {
       var p = path.join(__dirname, 'tmp', 'db.sqlite');
 
-      return new Sequelize.Promise(function (resolve, reject) {
+      return new Sequelize.Promise(function(resolve, reject) {
         // We cannot promisify exists, since exists does not follow node callback convention - first argument is a boolean, not an error / null
         if (fs.existsSync(p)) {
           resolve(Sequelize.Promise.promisify(fs.unlink)(p));
         } else {
           resolve();
         }
-      }).then(function () {
-        var options    = Sequelize.Utils._.extend({}, sequelize.options, { storage: p })
+      }).then(function() {
+        var options = Sequelize.Utils._.extend({}, sequelize.options, { storage: p })
           , _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
         if (callback) {
           _sequelize.sync({ force: true }).success(function() { callback(_sequelize); });
         } else {
-          return _sequelize.sync({ force: true }).return(_sequelize);
+          return _sequelize.sync({ force: true }).return (_sequelize);
         }
       });
     } else {
@@ -77,11 +78,11 @@ var Support = {
     var config = Config[options.dialect];
 
     var sequelizeOptions = _.defaults(options, {
-      host:           options.host || config.host,
-      logging:        (process.env.SEQ_LOG ? console.log : false),
-      dialect:        options.dialect,
-      port:           options.port || process.env.SEQ_PORT || config.port,
-      pool:           config.pool,
+      host: options.host || config.host,
+      logging: (process.env.SEQ_LOG ? console.log : false),
+      dialect: options.dialect,
+      port: options.port || process.env.SEQ_PORT || config.port,
+      pool: config.pool,
       dialectOptions: options.dialectOptions || {}
     });
 
@@ -111,11 +112,11 @@ var Support = {
         return sequelize
           .getQueryInterface()
           .dropAllEnums()
-          .catch(function (err) {
+          .catch (function(err) {
             console.log('Error in support.clearDatabase() dropAllEnums() :: ', err);
           });
       })
-      .catch(function(err) {
+      .catch (function(err) {
         console.log('Error in support.clearDatabase() dropAllTables() :: ', err);
       });
   },
@@ -168,7 +169,7 @@ var Support = {
       dialect = 'postgres-native';
     }
 
-    return "[" + dialect.toUpperCase() + "] " + moduleName;
+    return '[' + dialect.toUpperCase() + '] ' + moduleName;
   },
 
   getTestUrl: function(config) {
@@ -180,12 +181,12 @@ var Support = {
     } else {
 
       var credentials = dbConfig.username;
-      if(dbConfig.password) {
-        credentials += ":" + dbConfig.password;
+      if (dbConfig.password) {
+        credentials += ':' + dbConfig.password;
       }
 
-      url = config.dialect + "://" + credentials
-      + "@" + dbConfig.host + ":" + dbConfig.port + "/" + dbConfig.database;
+      url = config.dialect + '://' + credentials
+      + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database;
     }
     return url;
   }
@@ -197,7 +198,7 @@ var sequelize = Support.sequelize = Support.createSequelizeInstance();
 // For Postgres' HSTORE functionality and to properly execute it's commands we'll need this...
 before(function() {
   var dialect = Support.getTestDialect();
-  if (dialect !== "postgres" && dialect !== "postgres-native") {
+  if (dialect !== 'postgres' && dialect !== 'postgres-native') {
     return;
   }
 

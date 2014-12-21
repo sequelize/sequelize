@@ -1,40 +1,42 @@
-var chai      = require('chai')
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../../support')
-  , DataTypes = require(__dirname + "/../../../lib/data-types")
-  , dialect   = Support.getTestDialect()
+'use strict';
 
-chai.config.includeStack = true
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/../../support')
+  , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , dialect = Support.getTestDialect();
+
+chai.config.includeStack = true;
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', function() {
     beforeEach(function(done) {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING
-      })
+      });
       this.User.sync({ force: true }).success(function() {
-        done()
-      })
-    })
+        done();
+      });
+    });
 
     describe('findAll', function() {
-      it("handles dates correctly", function(done) {
+      it('handles dates correctly', function(done) {
         var self = this
-          , user = this.User.build({ username: 'user' })
+          , user = this.User.build({ username: 'user' });
 
-        user.dataValues['createdAt'] = new Date(2011, 04, 04)
+        user.dataValues['createdAt'] = new Date(2011, 4, 4);
 
         user.save().success(function() {
           self.User.create({ username: 'new user' }).success(function() {
             self.User.findAll({
-              where: ['createdAt > ?', new Date(2012, 01, 01)]
+              where: ['createdAt > ?', new Date(2012, 1, 1)]
             }).success(function(users) {
-              expect(users).to.have.length(1)
-              done()
-            })
-          })
-        })
-      })
-    })
-  })
+              expect(users).to.have.length(1);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
 }

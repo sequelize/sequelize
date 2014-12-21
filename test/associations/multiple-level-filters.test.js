@@ -1,19 +1,20 @@
-/* jshint camelcase: false, expr: true */
-var chai      = require('chai')
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+'use strict';
 
-chai.config.includeStack = true
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../lib/data-types');
 
-describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
+chai.config.includeStack = true;
+
+describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
   it('can filter through belongsTo', function(done) {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
-      , Project = this.sequelize.define('Project', { title: DataTypes.STRING })
+      , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
-    User.hasMany(Project)
+    User.hasMany(Project);
 
     Task.belongsTo(Project);
     Project.hasMany(Task);
@@ -53,35 +54,34 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                   User
                 ]}
               ]
-            }).done(function(err, tasks){
-              expect(err).not.to.be.ok
+            }).done(function(err, tasks) {
+              expect(err).not.to.be.ok;
 
-              try{
+              try {
                 expect(tasks.length).to.be.equal(2);
                 expect(tasks[0].title).to.be.equal('fight empire');
                 expect(tasks[1].title).to.be.equal('stablish republic');
                 done();
-              }catch(e){
+              }catch (e) {
                 done(e);
               }
-            })
+            });
           });
         });
       });
-    })
-  })
+    });
+  });
 
   it('avoids duplicated tables in query', function(done) {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
-      , Project = this.sequelize.define('Project', { title: DataTypes.STRING })
+      , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
-    User.hasMany(Project)
+    User.hasMany(Project);
 
     Task.belongsTo(Project);
     Project.hasMany(Task);
-
 
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
@@ -119,29 +119,29 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                   User
                 ]}
               ]
-            }).success(function(tasks){
-              try{
+            }).success(function(tasks) {
+              try {
                 expect(tasks.length).to.be.equal(2);
                 expect(tasks[0].title).to.be.equal('fight empire');
                 expect(tasks[1].title).to.be.equal('stablish republic');
                 done();
-              }catch(e){
+              }catch (e) {
                 done(e);
               }
-            })
+            });
           });
         });
       });
-    })
-  })
+    });
+  });
 
   it('can filter through hasMany', function(done) {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
-      , Project = this.sequelize.define('Project', { title: DataTypes.STRING })
+      , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
-    User.hasMany(Project)
+    User.hasMany(Project);
 
     Task.belongsTo(Project);
     Project.hasMany(Task);
@@ -181,27 +181,27 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                   Task
                 ]}
               ]
-            }).done(function(err, users){
-              try{
+            }).done(function(err, users) {
+              try {
                 expect(users.length).to.be.equal(1);
                 expect(users[0].username).to.be.equal('leia');
                 done();
-              }catch(e){
+              }catch (e) {
                 done(e);
               }
-            })
+            });
           });
         });
       });
-    })
-  })
+    });
+  });
 
   it('can filter through hasMany connector', function(done) {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
-      , Project = this.sequelize.define('Project', { title: DataTypes.STRING })
+      , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.hasMany(User);
-    User.hasMany(Project)
+    User.hasMany(Project);
 
     this.sequelize.sync({ force: true }).success(function() {
       User.bulkCreate([{
@@ -214,12 +214,12 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
         },{
           title: 'empire'
         }]).success(function() {
-          User.find(1).success(function(user){
-            Project.find(1).success(function(project){
-              user.setProjects([project]).success(function(){
-                User.find(2).success(function(user){
-                  Project.find(2).success(function(project){
-                    user.setProjects([project]).success(function(){
+          User.find(1).success(function(user) {
+            Project.find(1).success(function(project) {
+              user.setProjects([project]).success(function() {
+                User.find(2).success(function(user) {
+                  Project.find(2).success(function(project) {
+                    user.setProjects([project]).success(function() {
                       User.findAll({
                         where: {
                           'Projects.title': 'republic'
@@ -227,15 +227,15 @@ describe(Support.getTestDialectTeaser("Multiple Level Filters"), function() {
                         include: [
                           {model: Project}
                         ]
-                      }).success(function(users){
-                        try{
+                      }).success(function(users) {
+                        try {
                           expect(users.length).to.be.equal(1);
                           expect(users[0].username).to.be.equal('leia');
                           done();
-                        }catch(e){
+                        }catch (e) {
                           done(e);
                         }
-                      })
+                      });
                     });
                   });
                 });
