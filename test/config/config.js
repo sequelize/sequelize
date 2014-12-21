@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   username: process.env.SEQ_USER || "root",
   password: process.env.SEQ_PW   || null,

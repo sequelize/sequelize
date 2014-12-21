@@ -1,6 +1,5 @@
-"use strict";
+'use strict';
 
-/* jshint camelcase: false */
 var chai      = require('chai')
   , sinon     = require('sinon')
   , expect    = chai.expect
@@ -10,7 +9,7 @@ var chai      = require('chai')
 
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
+describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
   describe('API Surface', function() {
     it('Should have the Error constructors exposed', function() {
       expect(Sequelize).to.have.property('Error');

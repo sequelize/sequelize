@@ -1,17 +1,17 @@
-"use strict";
+'use strict';
 
-var chai    = require('chai')
-  , spies   = require('chai-spies')
-  , expect  = chai.expect
-  , Utils   = require(__dirname + '/../lib/utils')
+var chai = require('chai')
+  , spies = require('chai-spies')
+  , expect = chai.expect
+  , Utils = require(__dirname + '/../lib/utils')
   , Support = require(__dirname + '/support');
 
 chai.use(spies);
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("Utils"), function() {
+describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('removeCommentsFromFunctionString', function() {
-    it("removes line comments at the start of a line", function() {
+    it('removes line comments at the start of a line', function() {
       var functionWithLineComments = function() {
         // noot noot
       };
@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
       expect(result).not.to.match(/.*noot.*/);
     });
 
-    it("removes lines comments in the middle of a line", function() {
+    it('removes lines comments in the middle of a line', function() {
       var functionWithLineComments = function() {
         alert(1); // noot noot
       };
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
       expect(result).not.to.match(/.*noot.*/);
     });
 
-    it("removes range comments", function() {
+    it('removes range comments', function() {
       var s = function() {
         alert(1); /*
           noot noot
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
 
   describe('argsArePrimaryKeys', function() {
     it("doesn't detect primary keys if primareyKeys and values have different lengths", function() {
-      expect(Utils.argsArePrimaryKeys([1,2,3], [1])).to.be.false;
+      expect(Utils.argsArePrimaryKeys([1, 2, 3], [1])).to.be.false;
     });
 
     it("doesn't detect primary keys if primary keys are hashes or arrays", function() {
@@ -61,10 +61,10 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
     });
 
     it('detects primary keys if length is correct and data types are matching', function() {
-      expect(Utils.argsArePrimaryKeys([1,2,3], ["INTEGER", "INTEGER", "INTEGER"])).to.be.true;
+      expect(Utils.argsArePrimaryKeys([1, 2, 3], ['INTEGER', 'INTEGER', 'INTEGER'])).to.be.true;
     });
 
-    it("detects primary keys if primary keys are dates and lengths are matching", function() {
+    it('detects primary keys if primary keys are dates and lengths are matching', function() {
       expect(Utils.argsArePrimaryKeys([new Date()], ['foo'])).to.be.true;
     });
   });
@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
 
     describe('expectation', function() {
       it('uses the instanceof method if the expectation is a class', function() {
-        expect(Utils.validateParameter(new Number(1), Number)).to.be.true;
+        expect(Utils.validateParameter(new Number(1), Number)).to.be.true; // jshint ignore:line
       });
     });
 
@@ -148,7 +148,7 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
   });
 
   if (Support.getTestDialect() === 'postgres') {
-    describe('json', function () {
+    describe('json', function() {
       var queryGenerator = require('../lib/dialects/postgres/query-generator.js');
 
       it('successfully parses a complex nested condition hash', function() {
@@ -163,17 +163,17 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
         expect(queryGenerator.handleSequelizeMethod(new Utils.json(conditions))).to.deep.equal(expected);
       });
 
-      it('successfully parses a string using dot notation', function () {
+      it('successfully parses a string using dot notation', function() {
         var path = 'metadata.pg_rating.dk';
         expect(queryGenerator.handleSequelizeMethod(new Utils.json(path))).to.equal("metadata#>>'{pg_rating,dk}'");
       });
 
-      it('allows postgres json syntax', function () {
+      it('allows postgres json syntax', function() {
         var path = 'metadata->pg_rating->>dk';
         expect(queryGenerator.handleSequelizeMethod(new Utils.json(path))).to.equal(path);
       });
 
-      it('can take a value to compare against', function () {
+      it('can take a value to compare against', function() {
         var path = 'metadata.pg_rating.is';
         var value = 'U';
         expect(queryGenerator.handleSequelizeMethod(new Utils.json(path, value))).to.equal("metadata#>>'{pg_rating,is}' = 'U'");
@@ -181,8 +181,8 @@ describe(Support.getTestDialectTeaser("Utils"), function() {
     });
   }
 
-  describe('inflection', function () {
-    it('works better than lingo ;)', function () {
+  describe('inflection', function() {
+    it('works better than lingo ;)', function() {
       expect(Utils.pluralize('buy')).to.equal('buys');
       expect(Utils.pluralize('holiday')).to.equal('holidays');
       expect(Utils.pluralize('days')).to.equal('days');

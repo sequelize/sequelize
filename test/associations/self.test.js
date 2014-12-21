@@ -1,18 +1,17 @@
-"use strict";
+'use strict';
 
-/* jshint camelcase: false, expr: true */
-var chai      = require('chai')
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
-  , Sequelize = require(__dirname + "/../../index")
-  , Promise   = Sequelize.Promise
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../lib/data-types')
+  , Sequelize = require(__dirname + '/../../index')
+  , Promise = Sequelize.Promise
   , _ = require('lodash');
 
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("Self"), function() {
-  it('supports freezeTableName', function () {
+describe(Support.getTestDialectTeaser('Self'), function() {
+  it('supports freezeTableName', function() {
     var Group = this.sequelize.define('Group', {}, {
       tableName: 'user_group',
       timestamps: false,
@@ -21,7 +20,7 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     });
 
     Group.belongsTo(Group, { as: 'Parent', foreignKey: 'parent_id' });
-    return Group.sync({force: true}).then(function () {
+    return Group.sync({force: true}).then(function() {
       return Group.findAll({
         include: [{
           model: Group,
@@ -31,20 +30,20 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     });
   });
 
-  it('can handle 1:m associations', function () {
+  it('can handle 1:m associations', function() {
     var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
     Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id'});
 
     expect(Person.rawAttributes.parent_id).to.be.ok;
 
-    return this.sequelize.sync({force: true}).then(function () {
+    return this.sequelize.sync({force: true}).then(function() {
       return Promise.all([
         Person.create({ name: 'Mary' }),
         Person.create({ name: 'John' }),
         Person.create({ name: 'Chris' })
       ]);
-    }).spread(function (mary, john, chris) {
+    }).spread(function(mary, john, chris) {
       return mary.setChildren([john, chris]);
     });
   });
@@ -63,15 +62,15 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     expect(foreignIdentifiers.length).to.equal(2);
     expect(rawAttributes.length).to.equal(4);
 
-    expect(foreignIdentifiers).to.have.members([ 'PersonId', 'ChildId' ]);
-    expect(rawAttributes).to.have.members([ 'createdAt', 'updatedAt', 'PersonId', 'ChildId' ]);
+    expect(foreignIdentifiers).to.have.members(['PersonId', 'ChildId']);
+    expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
 
     return this.sequelize.sync({ force: true }).then(function() {
       return self.sequelize.Promise.all([
         Person.create({ name: 'Mary' }),
         Person.create({ name: 'John' }),
         Person.create({ name: 'Chris' })
-      ]).spread(function (mary, john, chris) {
+      ]).spread(function(mary, john, chris) {
         return mary.setParents([john]).then(function() {
           return chris.addParent(john);
         }).then(function() {
@@ -105,8 +104,8 @@ describe(Support.getTestDialectTeaser("Self"), function() {
     expect(foreignIdentifiers.length).to.equal(2);
     expect(rawAttributes.length).to.equal(2);
 
-    expect(foreignIdentifiers).to.have.members([ 'preexisting_parent', 'preexisting_child' ]);
-    expect(rawAttributes).to.have.members([ 'preexisting_parent', 'preexisting_child' ]);
+    expect(foreignIdentifiers).to.have.members(['preexisting_parent', 'preexisting_child']);
+    expect(rawAttributes).to.have.members(['preexisting_parent', 'preexisting_child']);
 
     return this.sequelize.sync({ force: true }).bind(this).then(function() {
       return Promise.all([
@@ -114,7 +113,7 @@ describe(Support.getTestDialectTeaser("Self"), function() {
         Person.create({ name: 'John' }),
         Person.create({ name: 'Chris' })
       ]);
-    }).spread(function (mary, john, chris) {
+    }).spread(function(mary, john, chris) {
       this.mary = mary;
       this.chris = chris;
       this.john = john;
@@ -124,14 +123,14 @@ describe(Support.getTestDialectTeaser("Self"), function() {
           expect(sql).to.have.string('preexisting_parent');
         }
       });
-    }).then(function () {
+    }).then(function() {
       return this.mary.addParent(this.chris).on('sql', function(sql) {
         if (sql.match(/INSERT/)) {
             expect(sql).to.have.string('preexisting_child');
             expect(sql).to.have.string('preexisting_parent');
         }
       });
-    }).then(function () {
+    }).then(function() {
       return this.john.getChildren().on('sql', function(sql) {
         var whereClause = sql.split('FROM')[1]; // look only in the whereClause
         expect(whereClause).to.have.string('preexisting_child');

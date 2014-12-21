@@ -1,17 +1,18 @@
-/* jshint camelcase: false, expr: true */
-var chai      = require('chai')
-  , expect    = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + "/../../lib/data-types")
+'use strict';
+
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../lib/data-types')
   , Sequelize = require('../../index')
-  , Promise   = Sequelize.Promise
-  , assert    = require('assert');
+  , Promise = Sequelize.Promise
+  , assert = require('assert');
 
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser("CounterCache"), function() {
+describe(Support.getTestDialectTeaser('CounterCache'), function() {
   it('adds an integer column', function() {
-    var User  = this.sequelize.define('User', {})
+    var User = this.sequelize.define('User', {})
       , Group = this.sequelize.define('Group', {});
 
     User.hasMany(Group, { counterCache: true });
@@ -21,7 +22,7 @@ describe(Support.getTestDialectTeaser("CounterCache"), function() {
   });
 
   it('supports `as`', function() {
-    var User  = this.sequelize.define('User', {})
+    var User = this.sequelize.define('User', {})
       , Group = this.sequelize.define('Group', {});
 
     User.hasMany(Group, { counterCache: { as: 'countDemGroups' } });
@@ -30,23 +31,23 @@ describe(Support.getTestDialectTeaser("CounterCache"), function() {
   });
 
   it('inits at 0', function() {
-    var User  = this.sequelize.define('User', {})
+    var User = this.sequelize.define('User', {})
       , Group = this.sequelize.define('Group', {});
 
     User.hasMany(Group, { counterCache: true });
 
-    return this.sequelize.sync({ force: true }).then(function () {
+    return this.sequelize.sync({ force: true }).then(function() {
       return User.create();
-    }).then(function (user) {
+    }).then(function(user) {
       expect(user.countGroups).to.equal(0);
     });
   });
 
-  describe('hooks', function () {
+  describe('hooks', function() {
     var User, Group;
 
     beforeEach(function() {
-      User  = this.sequelize.define('User', {});
+      User = this.sequelize.define('User', {});
       Group = this.sequelize.define('Group', {});
 
       User.hasMany(Group, { counterCache: true });
@@ -55,13 +56,13 @@ describe(Support.getTestDialectTeaser("CounterCache"), function() {
     });
 
     it('increments', function() {
-      return User.create().then(function (user) {
+      return User.create().then(function(user) {
         expect(user.countGroups).to.equal(0);
 
-        return user.createGroup().return(user);
-      }).then(function (user) {
+        return user.createGroup().return (user);
+      }).then(function(user) {
         return User.find(user.id);
-      }).then(function (user) {
+      }).then(function(user) {
         expect(user.countGroups).to.equal(1);
       });
     });
@@ -69,41 +70,41 @@ describe(Support.getTestDialectTeaser("CounterCache"), function() {
     it('decrements', function() {
       var user;
 
-      return User.create().then(function (tmpUser) {
+      return User.create().then(function(tmpUser) {
         user = tmpUser;
         return user.createGroup();
-      }).then(function (group) {
+      }).then(function(group) {
         return group.destroy();
-      }).then(function () {
+      }).then(function() {
         return user.reload();
-      }).then(function () {
+      }).then(function() {
         expect(user.countGroups).to.equal(0);
       });
     });
 
-    it('works on update', function () {
+    it('works on update', function() {
       var user, otherUser;
 
-      return User.create().then(function (tmpUser) {
+      return User.create().then(function(tmpUser) {
         otherUser = tmpUser;
 
         return User.create();
-      }).then(function (tmpUser) {
+      }).then(function(tmpUser) {
         user = tmpUser;
         return user.createGroup();
-      }).tap(function (group) {
+      }).tap(function(group) {
         return user.reload();
-      }).tap(function () {
+      }).tap(function() {
         expect(user.countGroups).to.equal(1);
-      }).then(function (group) {
+      }).then(function(group) {
         group.UserId = otherUser.id;
         return group.save();
-      }).then(function () {
+      }).then(function() {
         return Promise.all([user.reload(), otherUser.reload()]);
-      }).then(function () {
+      }).then(function() {
         expect(user.countGroups).to.equal(0);
         expect(otherUser.countGroups).to.equal(1);
       });
     });
   });
-})
+});

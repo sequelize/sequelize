@@ -5332,9 +5332,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
     });
-    
+
     // NOTE: Reenable when FK constraints create table query is fixed when using hooks
-    if (dialect !== "mssql") {
+    if (dialect !== 'mssql') {
       describe('multiple 1:M', function () {
 
         describe('cascade', function() {
@@ -5354,7 +5354,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
             this.Projects.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
-            
+
             this.Tasks.belongsTo(this.Projects, {hooks: true});
             this.Tasks.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
 
@@ -5502,7 +5502,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
             this.Projects.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
-            
+
             this.Tasks.belongsTo(this.Projects, {hooks: true});
             this.Tasks.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
 

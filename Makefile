@@ -26,7 +26,7 @@ test-only:
 	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
 
 jshint:
-	./node_modules/.bin/jshint lib
+	./node_modules/.bin/jshint lib test
 
 cover:
 	rm -rf coverage \
