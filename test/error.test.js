@@ -60,6 +60,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var databaseError = new Sequelize.DatabaseError(orig);
 
       expect(databaseError).to.have.property('parent');
+      expect(databaseError).to.have.property('original');
       expect(databaseError.name).to.equal('SequelizeDatabaseError');
       expect(databaseError.message).to.equal('original database error message');
     });
@@ -68,6 +69,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var connectionError = new Sequelize.ConnectionError(orig);
 
       expect(connectionError).to.have.property('parent');
+      expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeConnectionError');
       expect(connectionError.message).to.equal('original connection error message');
     });
@@ -76,6 +78,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var connectionError = new Sequelize.ConnectionRefusedError(orig);
 
       expect(connectionError).to.have.property('parent');
+      expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeConnectionRefusedError');
       expect(connectionError.message).to.equal('original connection error message');
     });
@@ -84,6 +87,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var connectionError = new Sequelize.AccessDeniedError(orig);
 
       expect(connectionError).to.have.property('parent');
+      expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeAccessDeniedError');
       expect(connectionError.message).to.equal('original connection error message');
     });
@@ -92,6 +96,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var connectionError = new Sequelize.HostNotFoundError(orig);
 
       expect(connectionError).to.have.property('parent');
+      expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeHostNotFoundError');
       expect(connectionError.message).to.equal('original connection error message');
     });
@@ -100,6 +105,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var connectionError = new Sequelize.HostNotReachableError(orig);
 
       expect(connectionError).to.have.property('parent');
+      expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeHostNotReachableError');
       expect(connectionError.message).to.equal('original connection error message');
     });
@@ -108,6 +114,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var connectionError = new Sequelize.InvalidConnectionError(orig);
 
       expect(connectionError).to.have.property('parent');
+      expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeInvalidConnectionError');
       expect(connectionError.message).to.equal('original connection error message');
     });
@@ -116,6 +123,7 @@ describe(Support.getTestDialectTeaser("Sequelize Errors"), function () {
       var connectionError = new Sequelize.ConnectionTimedOutError(orig);
 
       expect(connectionError).to.have.property('parent');
+      expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeConnectionTimedOutError');
       expect(connectionError.message).to.equal('original connection error message');
     });
