@@ -129,26 +129,40 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
   });
 
   describe('Constraint error', function () {
-    it('Can be intercepted using .catch', function () {
-      var spy = sinon.spy()
-        , User = this.sequelize.define('user', {
-          first_name: {
-            type: Sequelize.STRING,
-            unique: 'unique_name'
-          },
-          last_name: {
-            type: Sequelize.STRING,
-            unique: 'unique_name'
-          }
-        });
+    [
+      {
+        type: 'UniqueConstraintError',
+        exception: Sequelize.UniqueConstraintError
+      },
+      {
+        type: 'ValidationError',
+        exception: Sequelize.ValidationError
+      }
+    ].forEach(function(constraintTest) {
 
-      return this.sequelize.sync({ force: true }).bind(this).then(function () {
-        return User.create({ first_name: 'jan', last_name: 'meier' });
-      }).then(function () {
-        return User.create({ first_name: 'jan', last_name: 'meier' }).catch(this.sequelize.UniqueConstraintError, spy);
-      }).then(function () {
-        expect(spy).to.have.been.calledOnce;
+      it('Can be intercepted as ' + constraintTest.type + ' using .catch', function () {
+        var spy = sinon.spy()
+          , User = this.sequelize.define('user', {
+            first_name: {
+              type: Sequelize.STRING,
+              unique: 'unique_name'
+            },
+            last_name: {
+              type: Sequelize.STRING,
+              unique: 'unique_name'
+            }
+          });
+
+        var record = { first_name: 'jan', last_name: 'meier' };
+        return this.sequelize.sync({ force: true }).bind(this).then(function () {
+          return User.create(record);
+        }).then(function () {
+          return User.create(record).catch(constraintTest.exception, spy);
+        }).then(function () {
+          expect(spy).to.have.been.calledOnce;
+        });
       });
+
     });
   });
 });
