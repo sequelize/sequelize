@@ -50,14 +50,22 @@ if (dialect.match(/^postgres/)) {
         username: 'bob', email: ['myemail@email.com']
       })
       .then(function(userInstance){
-        console.log(userInstance);
         expect(userInstance.friends).to.have.length(0);
 
         return userInstance.updateAttributes({
           friends: [{
             name: 'John Smythe'
-          }]
+          }],
+
+          //friends: [JSON.stringify({
+            //name: 'John Smythe'
+          //})]
         });
+      })
+      .get('friends')
+      .tap(console.log)
+      .tap(function(friends){
+        expect(friends).to.have.length(1);
       });
     });
 
