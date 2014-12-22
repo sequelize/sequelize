@@ -121,6 +121,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(user.storage).to.equal('something');
             return user.updateAttributes({
               field1: 'something else'
+            }, {
+              fields: ['storage']
             });
           }).then(function(user) {
             expect(user.virtualWithDefault).to.equal('cake');
