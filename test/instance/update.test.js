@@ -68,6 +68,31 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     }
 
+    it('should update fields that are not specified on create', function() {
+      var User = this.sequelize.define('User' + config.rand(), {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        email: DataTypes.STRING
+      });
+
+     return User.sync({force: true}).then(function() {
+        return User.create({
+          name: 'snafu',
+          email: 'email'
+        }, {
+          fields: ['name', 'email']
+        }).then(function(user) {
+          return user.updateAttributes({bio: 'swag'});
+        }).then(function(user) {
+          return user.reload();
+        }).then(function(user) {
+          expect(user.get('name')).to.equal('snafu');
+          expect(user.get('email')).to.equal('email');
+          expect(user.get('bio')).to.equal('swag');
+        });
+      });
+    });
+
     it('updates attributes in the database', function(done) {
       this.User.create({ username: 'user' }).success(function(user) {
         expect(user.username).to.equal('user');
