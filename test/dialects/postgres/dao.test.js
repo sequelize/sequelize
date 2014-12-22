@@ -43,9 +43,7 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
-    it.only('should be able update a field with type ARRAY(JSON)', function(){
-      var self = this;
-
+    it('should be able update a field with type ARRAY(JSON)', function(){
       return this.User.create({
         username: 'bob', email: ['myemail@email.com']
       })
@@ -63,7 +61,6 @@ if (dialect.match(/^postgres/)) {
         });
       })
       .get('friends')
-      .tap(console.log)
       .tap(function(friends){
         expect(friends).to.have.length(1);
       });
