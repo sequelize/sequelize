@@ -1955,7 +1955,67 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
     });
 
+    it('should work with a main record where & order and an include where', function () {
+      var Post = this.sequelize.define('post', {
+        date: DataTypes.DATE,
+        "public": DataTypes.BOOLEAN
+      });
+      var Category = this.sequelize.define('category', {
+        slug: DataTypes.STRING
+      });
 
 
+      Post.hasMany(Category);
+      Category.belongsTo(Post);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          Post.create({"public": true}),
+          Post.create({"public": true}),
+          Post.create({"public": false}),
+          Post.create({"public": true}),
+
+          Post.create({"public": true}),
+          Post.create({"public": false}),
+          Post.create({"public": true}),
+          Post.create({"public": true}),
+
+          Post.create({"public": false}),
+          Post.create({"public": false})
+        ).then(function (posts) {
+          return Promise.join(
+            Promise.map(posts.slice(4), function (post) {
+              return post.createCategory({slug: 'food'});
+            }),
+            Promise.map(posts.slice(4, 4), function (post) {
+              return post.createCategory({slug: 'yolo'});
+            })
+          );
+        }).then(function () {
+          return Post.findAll({
+            limit: 3,
+            order: [['date', 'DESC']],
+            where: {
+              "public": true
+            },
+            include: [
+              {
+                model: Category,
+                where: {
+                  slug: 'food'
+                }
+              }
+            ]
+          }).on('sql', function (sql) {
+            console.log(sql);
+          }).then(function (posts) {
+            expect(posts.length).to.equal(3);
+          });
+        });
+      }).catch(function (err) {
+        console.log(err.sql);
+        throw err;
+      });
+    });
   });
 });
