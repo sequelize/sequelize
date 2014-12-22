@@ -155,6 +155,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               });
           });
         });
+
+        it('should support instance.destroy()', function () {
+          return this.User.create().then(function (user) {
+            return user.destroy();
+          });
+        });
+
+        it('should support Model.destroy()', function () {
+          return this.User.create().bind(this).then(function (user) {
+            return this.User.destroy({
+              where: {
+                id: user.get('id')
+              }
+            });
+          });
+        });
       });
 
       describe('field and attribute name is the same', function() {
