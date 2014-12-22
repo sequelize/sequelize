@@ -246,5 +246,31 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
       });
     });
+
+    it('should work with combinding a where and a scope', function () {
+      var User = this.sequelize.define('User', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING
+      }, { underscored: true });
+
+      var Post = this.sequelize.define('Post', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, unique: true },
+        owner_id: { type: DataTypes.INTEGER, unique: 'combiIndex' },
+        owner_type: { type: DataTypes.ENUM, values: ['user', 'org'], defaultValue: 'user', unique: 'combiIndex' },
+        "private": { type: DataTypes.BOOLEAN, defaultValue: false }
+      }, { underscored: true });
+
+      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', constraints: false });
+      Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', constraints: false });
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return User.find({ 
+          where: { id: 2 },
+          include: [
+            { model: Post, as: 'UserPosts', where: {"private": true} }
+          ]
+        });
+      });
+    });
   });
 });
