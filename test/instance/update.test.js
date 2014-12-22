@@ -82,13 +82,39 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         }, {
           fields: ['name', 'email']
         }).then(function(user) {
-          return user.updateAttributes({bio: 'swag'});
+          return user.update({bio: 'swag'});
         }).then(function(user) {
           return user.reload();
         }).then(function(user) {
           expect(user.get('name')).to.equal('snafu');
           expect(user.get('email')).to.equal('email');
           expect(user.get('bio')).to.equal('swag');
+        });
+      });
+    });
+
+    it('should not set attributes that are not specified by fields', function () {
+      var User = this.sequelize.define('User' + config.rand(), {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        email: DataTypes.STRING
+      });
+
+     return User.sync({force: true}).then(function() {
+        return User.create({
+          name: 'snafu',
+          email: 'email'
+        }).then(function(user) {
+          return user.update({
+            bio: 'heyo',
+            email: 'heho'
+          }, {
+            fields: ['bio']
+          });
+        }).then(function(user) {
+          expect(user.get('name')).to.equal('snafu');
+          expect(user.get('email')).to.equal('email');
+          expect(user.get('bio')).to.equal('heyo');
         });
       });
     });
