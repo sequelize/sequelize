@@ -1,4 +1,4 @@
-# Next
+# 2.0.0-rc4
 - [INTERNALS] Update `inflection` dependency to v1.5.3
 - [FEATURE] Replaced string error messages for connection errors with error objects. [#2576](https://github.com/sequelize/sequelize/pull/2576)
 - [FEATURE] Support for updating fields on duplicate key in bulk update (mysql only) [#2692](https://github.com/sequelize/sequelize/pull/2692)
