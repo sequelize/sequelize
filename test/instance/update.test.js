@@ -93,6 +93,24 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should only save passed attributes', function () {
+      var user = this.User.build();
+      return user.save().then(function () {
+        user.set('validateTest', 5);
+        expect(user.changed('validateTest')).to.be.ok;
+        return user.updateAttributes({
+          validateCustom: '1'
+        });
+      }).then(function () {
+        expect(user.changed('validateTest')).to.be.ok;
+        expect(user.validateTest).to.be.equal(5);
+      }).then(function () {
+        return user.reload();
+      }).then(function () {
+        expect(user.validateTest).to.not.be.equal(5);
+      });
+    });
+
     it('should not set attributes that are not specified by fields', function () {
       var User = this.sequelize.define('User' + config.rand(), {
         name: DataTypes.STRING,
