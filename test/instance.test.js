@@ -1621,6 +1621,31 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
   });
 
   describe('updateAttributes', function() {
+
+      it('should save ONLY what we requested (avoid injections)', function ( done ) {
+        var user = this.User.build();
+
+        return user.save()
+          .then(function () {
+            user.validateTest = 5
+            expect( user.changed( 'validateTest' ) ).to.be.ok
+
+            return user.updateAttributes({
+              validateCustom: '1'
+            })
+          })
+          .then(function () {
+            expect( user.changed( 'validateTest' ) ).to.be.ok
+            expect( user.validateTest ).to.be.equal( 5 );
+          })
+          .then(function () {
+              return user.reload()
+          })
+          .then(function () {
+              expect( user.validateTest ).to.not.be.equal( 5 )
+          })
+      })
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', function(done) {
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
