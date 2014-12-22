@@ -20,7 +20,11 @@ if (dialect.match(/^postgres/)) {
         settings: DataTypes.HSTORE,
         document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
         phones: DataTypes.ARRAY(DataTypes.HSTORE),
-        emergency_contact: DataTypes.JSON
+        emergency_contact: DataTypes.JSON,
+        friends: {
+          type: DataTypes.ARRAY(DataTypes.JSON),
+          defaultValue: []
+        }
       });
       this.User.sync({ force: true }).success(function() {
         done();
@@ -36,6 +40,24 @@ if (dialect.match(/^postgres/)) {
       this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
         expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
         done();
+      });
+    });
+
+    it.only('should be able update a field with type ARRAY(JSON)', function(){
+      var self = this;
+
+      return this.User.create({
+        username: 'bob', email: ['myemail@email.com']
+      })
+      .then(function(userInstance){
+        console.log(userInstance);
+        expect(userInstance.friends).to.have.length(0);
+
+        return userInstance.updateAttributes({
+          friends: [{
+            name: 'John Smythe'
+          }]
+        });
       });
     });
 
