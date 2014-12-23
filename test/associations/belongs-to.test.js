@@ -261,6 +261,34 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         });
       });
     });
+
+    it('should set the foreign key value without saving when using save: false', function () {
+      var Comment = this.sequelize.define('comment', {
+        text: DataTypes.STRING
+      });
+
+      var Post = this.sequelize.define('post', {
+        title: DataTypes.STRING
+      });
+
+      Post.hasMany(Comment, {foreignKey: 'post_id'});
+      Comment.belongsTo(Post, {foreignKey: 'post_id'});
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          Post.create(),
+          Comment.create()
+        ).spread(function (post, comment) {
+          expect(comment.get('post_id')).to.be.undefined;
+
+          var setter = comment.setPost(post, {save: false});
+
+          expect(setter).to.be.undefined;
+          expect(comment.get('post_id')).to.equal(post.get('id'));
+          expect(comment.changed('post_id')).to.be.true;
+        });
+      });
+    });
   });
 
   describe('createAssociation', function() {
