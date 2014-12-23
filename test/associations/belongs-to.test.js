@@ -279,7 +279,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
           Post.create(),
           Comment.create()
         ).spread(function (post, comment) {
-          expect(comment.get('post_id')).to.be.undefined;
+          expect(comment.get('post_id')).not.to.be.ok;
 
           var setter = comment.setPost(post, {save: false});
 
