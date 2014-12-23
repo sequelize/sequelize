@@ -1955,7 +1955,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
     });
 
-    it('should work with paranoid, a main record where, an include where, and a limit', function (done) {
+    it('should work with paranoid, a main record where, an include where, and a limit', function () {
       var Post = this.sequelize.define('post', {
         date: DataTypes.DATE,
         "public": DataTypes.BOOLEAN
@@ -1995,7 +1995,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             ]
           }).then(function (posts) {
             expect(posts.length).to.equal(2);
-            done();
           });
         });
       });
