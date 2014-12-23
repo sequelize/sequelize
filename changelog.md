@@ -1,3 +1,6 @@
+# Next
+- [BUG] Fixed issue with subquery creating `include.where` and a paranoid main model.#2749/#2769
+
 # 2.0.0-rc4
 - [INTERNALS] Update `inflection` dependency to v1.5.3
 - [FEATURE] Replaced string error messages for connection errors with error objects. [#2576](https://github.com/sequelize/sequelize/pull/2576)
