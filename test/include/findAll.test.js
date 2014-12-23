@@ -1955,15 +1955,16 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
     });
 
-    it('should work with a main record where & order and an include where', function () {
+    it('should work with paranoid, a main record where, an include where, and a limit', function () {
       var Post = this.sequelize.define('post', {
         date: DataTypes.DATE,
         "public": DataTypes.BOOLEAN
+      }, {
+        paranoid: true
       });
       var Category = this.sequelize.define('category', {
         slug: DataTypes.STRING
       });
-
 
       Post.hasMany(Category);
       Category.belongsTo(Post);
@@ -1972,29 +1973,15 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         return Promise.join(
           Post.create({"public": true}),
           Post.create({"public": true}),
-          Post.create({"public": false}),
           Post.create({"public": true}),
-
-          Post.create({"public": true}),
-          Post.create({"public": false}),
-          Post.create({"public": true}),
-          Post.create({"public": true}),
-
-          Post.create({"public": false}),
-          Post.create({"public": false})
+          Post.create({"public": true})
         ).then(function (posts) {
-          return Promise.join(
-            Promise.map(posts.slice(4), function (post) {
-              return post.createCategory({slug: 'food'});
-            }),
-            Promise.map(posts.slice(4, 4), function (post) {
-              return post.createCategory({slug: 'yolo'});
-            })
-          );
+          return Promise.map(posts.slice(1, 3), function (post) {
+            return post.createCategory({slug: 'food'});
+          });
         }).then(function () {
           return Post.findAll({
-            limit: 3,
-            order: [['date', 'DESC']],
+            limit: 2,
             where: {
               "public": true
             },
@@ -2006,16 +1993,12 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 }
               }
             ]
-          }).on('sql', function (sql) {
-            console.log(sql);
           }).then(function (posts) {
-            expect(posts.length).to.equal(3);
+            expect(posts.length).to.equal(2);
           });
         });
-      }).catch(function (err) {
-        console.log(err.sql);
-        throw err;
       });
     });
+
   });
 });
