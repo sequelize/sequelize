@@ -1,5 +1,6 @@
 # Next
 - [BUG] Fixed issue with subquery creating `include.where` and a paranoid main model.#2749/#2769
+- UniqueConstraintErrors will now extend from ValidationError making it possible to catch both with `.catch(ValidationError)`
 
 # 2.0.0-rc4
 - [INTERNALS] Update `inflection` dependency to v1.5.3
