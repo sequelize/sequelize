@@ -313,11 +313,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       User.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
         if (dialect === 'mssql') {
-          expect(sql).to.match(/CONSTRAINT\s*(user_and_email)?\s*UNIQUE\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
-          expect(sql).to.match(/CONSTRAINT\s*(a_and_b)?\s*UNIQUE\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"]?user_and_email[`"]?)?\s*UNIQUE\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"]?a_and_b[`"]?)?\s*UNIQUE\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
         } else {
-          expect(sql).to.match(/UNIQUE\s*(user_and_email)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
-          expect(sql).to.match(/UNIQUE\s*(a_and_b)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
+          expect(sql).to.match(/UNIQUE\s*([`"]?user_and_email[`"]?)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
+          expect(sql).to.match(/UNIQUE\s*([`"]?a_and_b[`"]?)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
         }
         done();
       })));
