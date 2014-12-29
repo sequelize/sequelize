@@ -164,5 +164,24 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       });
 
     });
+
+    it('Supports newlines in keys', function () {
+      var spy = sinon.spy()
+        , User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              unique: 'unique \n unique',
+            }
+          });
+
+      return this.sequelize.sync({ force: true }).bind(this).then(function () {
+        return User.create({ name: 'jan' });
+      }).then(function () {
+        // If the error was successfully parsed, we can catch it!
+        return User.create({ name: 'jan' }).catch(this.sequelize.UniqueConstraintError, spy);
+      }).then(function () {
+        expect(spy).to.have.been.calledOnce;
+      });
+    });
   });
 });
