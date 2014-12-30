@@ -3,6 +3,7 @@
 - UniqueConstraintErrors will now extend from ValidationError making it possible to catch both with `.catch(ValidationError)`
 - [FEATURE] Adds `{save: false}` for belongsTo relationship setters. `user.setOrganization(organization, {save: false})` will then only set the foreign key value, but not trigger a save on `user`.
 - [FEATURE] When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
+- [BUG] Sequelize will no longer fail on a postgres constraint error not defined by Sequelize
 
 #### Backwards compatability changes
 - When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
