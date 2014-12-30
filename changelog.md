@@ -2,6 +2,10 @@
 - [BUG] Fixed issue with subquery creating `include.where` and a paranoid main model.#2749/#2769
 - UniqueConstraintErrors will now extend from ValidationError making it possible to catch both with `.catch(ValidationError)`
 - [FEATURE] Adds `{save: false}` for belongsTo relationship setters. `user.setOrganization(organization, {save: false})` will then only set the foreign key value, but not trigger a save on `user`.
+- [FEATURE] When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
+
+#### Backwards compatability changes
+- When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
 
 # 2.0.0-rc4
 - [INTERNALS] Update `inflection` dependency to v1.5.3

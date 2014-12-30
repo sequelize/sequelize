@@ -426,6 +426,34 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
         expect(user.isDirty).to.be.true;
         expect(user.previous('name')).to.equal('Jan Meier');
       });
+
+      it('should be available to a afterUpdate hook', function () {
+        var User = this.sequelize.define('User', {
+          name: {type: DataTypes.STRING}
+        });
+        var changed;
+
+        User.afterUpdate(function (instance) {
+          changed = instance.changed();
+          return;
+        });
+
+        return User.sync({force: true}).then(function () {
+          return User.create({
+            name: 'Ford Prefect'
+          });
+        }).then(function (user) {
+          return user.update({
+            name: 'Arthur Dent'
+          });
+        }).then(function (user) {
+          expect(changed).to.be.ok;
+          expect(changed.length).to.be.ok;
+          expect(changed.indexOf('name') > -1).to.be.ok;
+
+          expect(user.changed()).not.to.be.ok;
+        });
+      });
     });
 
     describe('previous', function() {
