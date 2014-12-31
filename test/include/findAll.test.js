@@ -366,6 +366,48 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should support a nested include (with a where on nester include) and limit', function() {
+      var A = this.sequelize.define('A', {
+        name: DataTypes.STRING
+      });
+
+      var B = this.sequelize.define('B', {
+        flag: DataTypes.BOOLEAN
+      });
+
+      var C = this.sequelize.define('C', {
+        name: DataTypes.STRING
+      });
+
+      A.belongsTo(B);
+      B.hasMany(A);
+
+      B.hasMany(C);
+      C.belongsTo(B);
+
+      return this.sequelize
+        .sync({ force: true })
+        .then(function() {
+          return A.findAll({
+            include: [
+              {
+                model: B,
+                include: [
+                  {
+                    model: C,
+                    where: { name: 'something' }
+                  }
+                ],
+              }
+            ],
+            limit:1
+          });
+        })
+        .then(function(a) {
+          expect(a.length).to.equal(0);
+        });
+    });
+
     it('should support an include with multiple different association types', function(done) {
       var User = this.sequelize.define('User', {})
         , Product = this.sequelize.define('Product', {
