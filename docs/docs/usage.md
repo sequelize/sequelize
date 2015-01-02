@@ -161,7 +161,7 @@ With the release of Sequelize`v1&period;6&period;0`&comma; the library got indep
 
 ### MySQL
 
-In order to get Sequelize working nicely together with MySQL&comma; you'll need to install`mysql&commat;~2&period;0&period;0-alpha7`or higher&period; Once that's done you can use it like this&colon;
+In order to get Sequelize working nicely together with MySQL&comma; you'll need to install`mysql@~2.5.0`or higher. Once that's done you can use it like this&colon;
     
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -178,7 +178,7 @@ for examples (currently only mysql and mariadb are supported).
 
 ### MariaDB
 
-For MariaDB compatibility you have to install the package `mariasql@0.1.20`, or higher.
+For MariaDB compatibility you have to install the package `mariasql@~0.1.20`.
 The configuration needs to look like this:
   
 ```js  
@@ -189,7 +189,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ### SQLite
 
-For SQLite compatibility you'll need`sqlite3&commat;~2&period;1&period;5`&period; Configure Sequelize like this&colon;
+For SQLite compatibility you'll need`sqlite3@~3.0.0`. Configure Sequelize like this&colon;
 
 ```js    
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -204,7 +204,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ### PostgreSQL
 
-The library for PostgreSQL is`pg&commat;~2&period;0&period;0`&period; You'll just need to define the dialect&colon;
+The library for PostgreSQL is`pg@~3.6.0` You'll just need to define the dialect&colon;
  
 ```js   
 var sequelize = new Sequelize('database', 'username', 'password', {
