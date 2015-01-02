@@ -213,6 +213,16 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
+### MSSQL
+
+The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect&colon;
+ 
+```js   
+var sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'mssql'
+})
+```
+
 ## Executing raw SQL queries
 
 As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries&comma; you can utilize the function`sequelize&period;query`&period;
