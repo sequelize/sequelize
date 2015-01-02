@@ -45,7 +45,7 @@ Open the created directory in your favorite text editor and add a new file calle
 ```js
 var Sequelize = require('sequelize')
   , sequelize = new Sequelize('database_name', 'username', 'password', {
-      dialect: "mysql", // or 'sqlite', 'postgres', 'mariadb'
+      dialect: "mysql", // or 'sqlite', 'postgres', 'mariadb', 'mssql'
       port:    3306, // or 5432 (for postgres)
     });
 

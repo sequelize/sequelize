@@ -56,12 +56,12 @@ var sequelize = new Sequelize('database', 'username', 'password', {
  
   // the sql dialect of the database
   // - default is 'mysql'
-  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mariadb'
+  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mariadb', 'mssql'
   dialect: 'mysql',
  
   // you can also pass any dialect options to the underlying dialect library
   // - default is empty
-  // - currently supported: 'mysql', 'mariadb'
+  // - currently supported: 'mysql', 'mariadb', 'postgres', 'mssql'
   dialectOptions: {
     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
     supportBigNumbers: true,

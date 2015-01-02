@@ -17,7 +17,7 @@ Sequelize will setup a connection pool on initialization so you should ideally o
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'mariadb'|'sqlite'|'postgres'
+  dialect: 'mysql'|'mariadb'|'sqlite'|'postgres'|'mssql'
 });
 
 // Or you can simply use a connection uri

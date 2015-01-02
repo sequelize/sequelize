@@ -1,4 +1,4 @@
-Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and MariaDB. It features solid transaction support, relations, read replication and more. 
+Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite, MariaDB and MSSQL. It features solid transaction support, relations, read replication and more. 
 
 [Installation](http://sequelize.readthedocs.org/en/latest/docs/installation/)
 
