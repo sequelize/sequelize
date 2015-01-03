@@ -4,31 +4,31 @@ Hooks (also known as callbacks or lifecycle events), are functions which are cal
 
 ```    
 (1) 
-  beforeBulkCreate(daos, fields, fn) 
-  beforeBulkDestroy(daos, fields, fn) 
-  beforeBulkUpdate(daos, fields, fn)
+  beforeBulkCreate(instances, options, fn) 
+  beforeBulkDestroy(instances, options, fn) 
+  beforeBulkUpdate(instances, options, fn)
 (2) 
-  beforeValidate(dao, fn)
+  beforeValidate(instance, options, fn)
 (-)
   validate
 (3) 
-  afterValidate(dao, fn)
+  afterValidate(instance, options, fn)
 (4) 
-  beforeCreate(dao, fn)
-  beforeDestroy(dao, fn)
-  beforeUpdate(dao, fn)
+  beforeCreate(instance, options, fn)
+  beforeDestroy(instance, options, fn)
+  beforeUpdate(instance, options, fn)
 (-) 
   create 
   destroy 
   update
 (5) 
-  afterCreate(dao, fn) 
-  afterDestroy(dao, fn)
-  afterUpdate(dao, fn) 
+  afterCreate(instance, options, fn) 
+  afterDestroy(instance, options, fn)
+  afterUpdate(instance, options, fn) 
 (6) 
-  afterBulkCreate(daos, fields, fn) 
-  afterBulkDestory(daos, fields, fn) 
-  afterBulkUpdate(daos, fields, fn)
+  afterBulkCreate(instances, options, fn) 
+  afterBulkDestory(instances, options, fn) 
+  afterBulkUpdate(instances, options, fn)
 ```
 
 ## Declaring Hooks
@@ -46,11 +46,11 @@ var User = sequelize.define('User', {
   }
 }, {
   hooks: {
-    beforeValidate: function(user, fn) {
+    beforeValidate: function(user, options, fn) {
       user.mood = 'happy'
       fn(null, user)
     },
-    afterValidate: function(user, fn) {
+    afterValidate: function(user, options, fn) {
       user.username = 'Toni'
       fn(null, user)
     }
@@ -66,12 +66,12 @@ var User = sequelize.define('User', {
   }
 })
  
-User.hook('beforeValidate', function(user, fn) {
+User.hook('beforeValidate', function(user, options, fn) {
   user.mood = 'happy'
   fn(null, user)
 })
  
-User.hook('afterValidate', function(user) {
+User.hook('afterValidate', function(user, options) {
   return sequelize.Promise.reject("I'm afraid I can't let you do that!")
 })
  
@@ -84,12 +84,12 @@ var User = sequelize.define('User', {
   }
 })
  
-User.beforeValidate(function(user) {
+User.beforeValidate(function(user, options) {
   user.mood = 'happy'
   return sequelize.Promise.resolve(user)
 })
  
-User.afterValidate(function(user, fn) {
+User.afterValidate(function(user, options, fn) {
   user.username = 'Toni'
   fn(null, user)
 })
@@ -108,18 +108,17 @@ afterCreate / afterUpdate / afterDestroy
 
 ```js
 // ...define ...
-User.beforeCreate(function(user, fn) {
+User.beforeCreate(function(user) {
   if (user.accessLevel > 10 && user.username !== "Boss") {
-    return fn("You can't grant this user an access level above 10!")
- }
- return fn()
+    throw new Error("You can't grant this user an access level above 10!")
+  }
 })
 ```
 
 This example will emit an error:
     
 ```js
-User.create({username: 'Not a Boss', accessLevel: 20}).error(function(err) {
+User.create({username: 'Not a Boss', accessLevel: 20}).catch(function(err) {
   console.log(err) // You can't grant this user an access level above 10!
 })
 ```
@@ -206,6 +205,29 @@ DELETE FROM `table` WHERE associatedIdentifiier = associatedIdentifier.primaryKe
 
 However, adding `hooks: true` explicitly tells Sequelize that optimization is not of your concern and will perform a `SELECT` on the associated objects and destroy each instance one by one in order to be able to call the hooks with the right parameters.
 
+## Promises and callbacks
+
+Sequelize will look at the function length of your hook callback to determine whether or not you're using callbacks or promises.
+
+```js
+// Will stall if the condition isn't met since the callback is never called
+User.beforeCreate(function(user, options, callback) {
+  if (user.accessLevel > 10 && user.username !== "Boss") {
+    return callback("You can't grant this user an access level above 10!");
+  }
+});
+
+// Will never stall since returning undefined will act as a resolved promise with an undefined value
+User.beforeCreate(function(user, options) {
+  if (user.accessLevel > 10 && user.username !== "Boss") {
+    return throw new Error("You can't grant this user an access level above 10!");
+  }
+  if (something) {
+    return Promise.reject();
+  }
+});
+```
+
 ## A Note About Transactions
 
 Note that many model operations in Sequelize allow you to specify a transaction in the options parameter of the method. If a transaction _is_ specified in the original call, it will be present in the options parameter passed to the hook function. For example, consider the following snippet:
@@ -214,7 +236,7 @@ Note that many model operations in Sequelize allow you to specify a transaction 
 // Here we use the promise-style of async hooks rather than
 // the callback.
 User.hook('afterCreate', function(user, options) {
-  // 'trans' will be available in options.transaction
+  // 'transaction' will be available in options.transaction
  
   // This operation will be part of the same transaction as the 
   // original User.create call.
@@ -229,12 +251,12 @@ User.hook('afterCreate', function(user, options) {
 });
  
  
-sequelize.transaction(function(trans) {
+sequelize.transaction(function(t) {
   User.create({
     username: 'someguy',
     mood: 'happy'
   }, {
-    transaction: trans
+    transaction: t
   });
 });
 ```
