@@ -50,6 +50,28 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should work with a nested set of 1:M relations with a where on the last include', function ()  {
+      var Model = this.sequelize.define("Model", {});
+      var Model2 = this.sequelize.define("Model2", {});
+      var Model4 = this.sequelize.define("Model4", {something: { type: DataTypes.INTEGER }});
+
+      Model.belongsTo(Model2);
+      Model2.hasMany(Model);
+
+      Model2.hasMany(Model4);
+      Model4.belongsTo(Model2);
+
+      return this.sequelize.sync({force: true}).then(function() {
+        Model.find({
+          include: [
+            {model: Model2, include: [
+              {model: Model4, where: {something: 2}}
+            ]}
+          ]
+        });
+      });
+    });
+
     it('should include a model with a where condition but no required', function() {
       var User = this.sequelize.define('User', {}, { paranoid: false })
         , Task = this.sequelize.define('Task', {
