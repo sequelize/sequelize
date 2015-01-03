@@ -38,6 +38,22 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should support a belongsTo association reference', function () {
+      var Company = this.sequelize.define('Company', {})
+        , User = this.sequelize.define('User', {})
+        , Employer = User.belongsTo(Company, {as: 'Employer'});
+
+      return this.sequelize.sync({force: true}).done(function() {
+        return User.create();
+      }).then(function () {
+        return User.find({
+          include: [Employer]
+        });
+      }).then(function (user) {
+        expect(user).to.be.ok;
+      });
+    });
+
     it('should support a empty hasOne include', function(done) {
       var Company = this.sequelize.define('Company', {})
         , Person = this.sequelize.define('Person', {});
@@ -53,6 +69,22 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             done();
           });
         }, done);
+      });
+    });
+
+    it('should support a hasOne association reference', function () {
+      var Company = this.sequelize.define('Company', {})
+        , Person = this.sequelize.define('Person', {})
+        , CEO = Company.hasOne(Person, {as: 'CEO'});
+
+      return this.sequelize.sync({force: true}).done(function() {
+        return Company.create();
+      }).then(function () {
+        return Company.find({
+          include: [CEO]
+        });
+      }).then(function (user) {
+        expect(user).to.be.ok;
       });
     });
 
@@ -77,6 +109,50 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         }).then(function(person) {
           expect(person).to.be.ok;
           expect(person.employer).to.be.ok;
+        });
+      });
+    });
+
+    it('should support a hasMany association reference', function () {
+      var User = this.sequelize.define('user', {})
+        , Task = this.sequelize.define('task', {})
+        , Tasks = User.hasMany(Task);
+
+      Task.belongsTo(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return User.create().then(function (user) {
+          return user.createTask();
+        }).then(function () {
+          return User.find({
+            include: [Tasks]
+          });
+        }).then(function (user) {
+          expect(user).to.be.ok;
+          expect(user.tasks).to.be.ok;
+        });
+      });
+    });
+
+    it('should support a belongsToMany association reference', function () {
+      var User = this.sequelize.define('user', {})
+        , Group = this.sequelize.define('group', {})
+        , Groups
+        , Users;
+
+      Groups = User.belongsToMany(Group);
+      Users = Group.belongsToMany(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return User.create().then(function (user) {
+          return user.createGroup();
+        });
+      }).then(function () {
+        return User.find({
+          include: [Groups]
+        }).then(function (user) {
+          expect(user).to.be.ok;
+          expect(user.groups).to.be.ok;
         });
       });
     });
