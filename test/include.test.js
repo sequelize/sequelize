@@ -43,14 +43,14 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , User = this.sequelize.define('User', {})
         , Employer = User.belongsTo(Company, {as: 'Employer'});
 
-      return this.sequelize.sync({force: true}).done(function() {
+      return this.sequelize.sync({force: true}).then(function() {
         return User.create();
       }).then(function () {
-        return User.find({
+        return User.findOne({
           include: [Employer]
+        }).then(function (user) {
+          expect(user).to.be.ok;
         });
-      }).then(function (user) {
-        expect(user).to.be.ok;
       });
     });
 
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Person = this.sequelize.define('Person', {})
         , CEO = Company.hasOne(Person, {as: 'CEO'});
 
-      return this.sequelize.sync({force: true}).done(function() {
+      return this.sequelize.sync({force: true}).then(function() {
         return Company.create();
       }).then(function () {
         return Company.find({
