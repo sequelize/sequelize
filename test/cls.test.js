@@ -13,8 +13,10 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser("Continuation local storage"), function () {
   before(function () {
-    this.sequelize = Support.createSequelizeInstance({
+    return Support.prepareTransactionTest(Support.createSequelizeInstance({
       namespace: cls.createNamespace('sequelize')
+    })).bind(this).then(function (sequelize) {
+      this.sequelize = sequelize;
     });
   });
 
@@ -91,7 +93,7 @@ describe(Support.getTestDialectTeaser("Continuation local storage"), function ()
             });
           });
 
-          // Wait for 500 ms - should be enough time to get everything set up
+          // Wait for 400 ms - should be enough time to get everything set up
           return Promise.delay(400).bind(this).then(function () {
             expect(transactionSetup).to.be.ok;
             expect(transactionEnded).not.to.be.ok;

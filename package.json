@@ -43,6 +43,7 @@
     "validator": "~3.22.1"
   },
   "devDependencies": {
+    "continuation-local-storage": "3.1.2",
     "chai-as-promised": "^4.1.1",
     "sqlite3": "~3.0.0",
     "mysql": "~2.5.0",
