@@ -4,6 +4,7 @@
 - [FEATURE] Adds `{save: false}` for belongsTo relationship setters. `user.setOrganization(organization, {save: false})` will then only set the foreign key value, but not trigger a save on `user`.
 - [FEATURE] When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
 - [BUG] Sequelize will no longer fail on a postgres constraint error not defined by Sequelize
+- [FEATURE] It's now possible to pass an association reference to include. `var Owner = Company.belongsTo(User, {as: 'owner'}; Company.findOne({include: [Owner]});`
 
 #### Backwards compatability changes
 - When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
