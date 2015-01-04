@@ -119,7 +119,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ## Read replication
 
-Sequelize supports read replication&comma; i&period;e&period; having multiple servers that you can connect to when you want to do a SELECT query&period; When you do read replication&comma; you specify one or more servers to act as read replicas&comma; and one server to act as the write master&comma; which handles all writes and updates and propagates them to the replicas &lpar;note that the actual replication process is**not **handled by Sequelize&comma; but should be set up in MySql&rpar;&period;
+Sequelize supports read replication&comma; i&period;e&period; having multiple servers that you can connect to when you want to do a SELECT query&period; When you do read replication&comma; you specify one or more servers to act as read replicas&comma; and one server to act as the write master&comma; which handles all writes and updates and propagates them to the replicas &lpar;note that the actual replication process is **not** handled by Sequelize&comma; but should be set up in MySql&rpar;&period;
     
 ```js
 var sequelize = new Sequelize('database', null, null, {
@@ -139,7 +139,7 @@ var sequelize = new Sequelize('database', null, null, {
 })
 ```
 
-If you have any general settings that apply to all replicas you do not need to provide them for each instance&period; In the code above&comma; database name and port is propagated to all replicas&period; The same will happen for user and password&comma; if you leave them out for any of the replicas&period; Each replica has the following options&colon;`host`&comma;`port`&comma;`username`&comma;`password`&comma;`database`
+If you have any general settings that apply to all replicas you do not need to provide them for each instance&period; In the code above&comma; database name and port is propagated to all replicas&period; The same will happen for user and password&comma; if you leave them out for any of the replicas&period; Each replica has the following options&colon;`host`&comma;`port`&comma;`username`&comma;`password`&comma;`database`.
 
 Sequelize uses a pool to manage connections to your replicas&period; The default options are&colon;
     
@@ -157,11 +157,11 @@ If you want to modify these&comma; you can pass pool as an options when instanti
 
 ## Dialects
 
-With the release of Sequelize`v1&period;6&period;0`&comma; the library got independent from specific dialects&period; This means&comma; that you'll have to add the respective connector library to your project yourself. Version 1.7.0 stable has been released in bundles with the connector libraries (sequelize-mysql, sequelize-postgres etc.) but these bundles are not maintained, and will not be released for 2.0.0 upwards.
+With the release of Sequelize`1.6.0`&comma; the library got independent from specific dialects&period; This means&comma; that you'll have to add the respective connector library to your project yourself. Version 1.7.0 stable has been released in bundles with the connector libraries (sequelize-mysql, sequelize-postgres etc.) but these bundles are not maintained, and will not be released for 2.0.0 upwards.
 
 ### MySQL
 
-In order to get Sequelize working nicely together with MySQL&comma; you'll need to install`mysql&commat;~2&period;0&period;0-alpha7`or higher&period; Once that's done you can use it like this&colon;
+In order to get Sequelize working nicely together with MySQL&comma; you'll need to install`mysql@~2.5.0`or higher. Once that's done you can use it like this&colon;
     
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -178,7 +178,7 @@ for examples (currently only mysql and mariadb are supported).
 
 ### MariaDB
 
-For MariaDB compatibility you have to install the package `mariasql@0.1.20`, or higher.
+For MariaDB compatibility you have to install the package `mariasql@~0.1.20`.
 The configuration needs to look like this:
   
 ```js  
@@ -189,7 +189,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ### SQLite
 
-For SQLite compatibility you'll need`sqlite3&commat;~2&period;1&period;5`&period; Configure Sequelize like this&colon;
+For SQLite compatibility you'll need`sqlite3@~3.0.0`. Configure Sequelize like this&colon;
 
 ```js    
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -204,7 +204,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ### PostgreSQL
 
-The library for PostgreSQL is`pg&commat;~2&period;0&period;0`&period; You'll just need to define the dialect&colon;
+The library for PostgreSQL is`pg@~3.6.0` You'll just need to define the dialect&colon;
  
 ```js   
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -213,9 +213,19 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
+### MSSQL
+
+The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect&colon;
+ 
+```js   
+var sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'mssql'
+})
+```
+
 ## Executing raw SQL queries
 
-As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries&comma; you can utilize the function`sequelize&period;query`&period;
+As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries&comma; you can utilize the function`sequelize.query`&period;
 
 Here is how it works&colon;
     
