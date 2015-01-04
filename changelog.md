@@ -1,3 +1,6 @@
+# 2.0.0-rc6
+- [BUG] Fixed issue with including by association reference and where
+
 # 2.0.0-rc5
 - [BUG] Fixed issue with subquery creating `include.where` and a paranoid main model.#2749/#2769
 - UniqueConstraintErrors will now extend from ValidationError making it possible to catch both with `.catch(ValidationError)`

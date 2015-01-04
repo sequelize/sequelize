@@ -54,6 +54,30 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should support a belongsTo association reference with a where', function () {
+      var Company = this.sequelize.define('Company', {name: DataTypes.STRING})
+        , User = this.sequelize.define('User', {})
+        , Employer = User.belongsTo(Company, {as: 'Employer', foreignKey: 'employerId'});
+
+      return this.sequelize.sync({force: true}).then(function() {
+        return Company.create({
+          name: 'CyberCorp'
+        }).then(function (company) {
+          return User.create({
+            employerId: company.get('id')
+          });
+        });
+      }).then(function () {
+        return User.findOne({
+          include: [
+            {association: Employer, where: {name: 'CyberCorp'}}
+          ]
+        }).then(function (user) {
+          expect(user).to.be.ok;
+        });
+      });
+    });
+
     it('should support a empty hasOne include', function(done) {
       var Company = this.sequelize.define('Company', {})
         , Person = this.sequelize.define('Person', {});
@@ -130,6 +154,37 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         }).then(function (user) {
           expect(user).to.be.ok;
           expect(user.tasks).to.be.ok;
+        });
+      });
+    });
+
+    it('should support a hasMany association reference with a where condition', function () {
+      var User = this.sequelize.define('user', {})
+        , Task = this.sequelize.define('task', {title: DataTypes.STRING})
+        , Tasks = User.hasMany(Task);
+
+      Task.belongsTo(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return User.create().then(function (user) {
+          return Promise.join(
+            user.createTask({
+              title: 'trivial'
+            }),
+            user.createTask({
+              title: 'pursuit'
+            })
+          );
+        }).then(function () {
+          return User.find({
+            include: [
+              {association: Tasks, where: {title: 'trivial'}}
+            ]
+          });
+        }).then(function (user) {
+          expect(user).to.be.ok;
+          expect(user.tasks).to.be.ok;
+          expect(user.tasks.length).to.equal(1);
         });
       });
     });
