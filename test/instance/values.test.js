@@ -48,7 +48,9 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           identifier: {type: DataTypes.STRING, primaryKey: true}
         });
 
-        var user = User.build();
+        var user = User.build({}, {
+          isNewRecord: false
+        });
 
         user.set({
           createdAt: new Date(2000, 1, 1),
@@ -66,7 +68,9 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           underscored: true
         });
 
-        var user = User.build();
+        var user = User.build({}, {
+          isNewRecord: false
+        });
 
         user.set({
           created_at: new Date(2000, 1, 1),
