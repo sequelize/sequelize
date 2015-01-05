@@ -355,6 +355,24 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           expect(product.get({plain: true}).user.$Model).not.to.be.ok;
         });
       });
+
+      describe('clone', function() {
+        it('should copy the values', function () {
+          var Product = this.sequelize.define('product', {
+            title: Sequelize.STRING
+          });
+
+          var product = Product.build({
+            id: 1,
+            title: 'Chair',
+          }, {raw: true});
+
+          var values = product.get({clone: true});
+          delete values.title;
+
+          expect(product.get({clone: true}).title).to.be.ok;
+        });
+      });
     });
 
     describe('changed', function() {
