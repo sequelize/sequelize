@@ -1,3 +1,6 @@
+# Next
+- [BUG] Fixed issue with `order: sequelize.literal('string')`
+
 # 2.0.0-rc6
 - [BUG] Fixed issue with including by association reference and where
 
