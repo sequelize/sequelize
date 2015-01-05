@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should work with order: literal()', function () {
           return this.User.findAll({
-            order: this.sequelize.literal('email IS NOT NULL') 
+            order: this.sequelize.literal("email = 'test@sequelizejs.com'") 
           }).then(function (users) {
             expect(users.length).to.equal(1);
             users.forEach(function (user) {
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should work with order: [literal()]', function () {
           return this.User.findAll({
-            order: [this.sequelize.literal('email IS NOT NULL')]
+            order: [this.sequelize.literal("email = 'test@sequelizejs.com'")]
           }).then(function (users) {
             expect(users.length).to.equal(1);
             users.forEach(function (user) {
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('should work with order: [[literal()]]', function () {
           return this.User.findAll({
             order: [
-              [this.sequelize.literal('email IS NOT NULL')]
+              [this.sequelize.literal("email = 'test@sequelizejs.com'")]
             ]
           }).then(function (users) {
             expect(users.length).to.equal(1);
