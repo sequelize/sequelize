@@ -294,6 +294,38 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should be able to set createdAt and updatedAt if using silent: true', function () {
+      var User = this.sequelize.define('user', {
+        name: DataTypes.STRING
+      }, {
+        timestamps: true
+      });
+
+      var createdAt = new Date(2012, 10, 10, 10, 10, 10);
+      var updatedAt = new Date(2011, 11, 11, 11, 11, 11);
+
+      return User.sync({force: true}).then(function () {
+        return User.create({
+          createdAt: createdAt,
+          updatedAt: updatedAt
+        }, {
+          silent: true
+        }).then(function (user) {
+          expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
+          expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
+
+          return User.findOne({
+            updatedAt: {
+              ne: null
+            }
+          }).then(function (user) {
+            expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
+            expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
+          });
+        });
+      });
+    });
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', function(done) {
         var self = this;
