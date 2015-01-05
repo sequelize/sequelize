@@ -1020,6 +1020,40 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     }
 
+    it('should be able to set createdAt and updatedAt if using silent: true', function () {
+      var User = this.sequelize.define('user', {
+        name: DataTypes.STRING
+      }, {
+        timestamps: true
+      });
+
+      var createdAt = new Date(2012, 10, 10, 10, 10, 10);
+      var updatedAt = new Date(2011, 11, 11, 11, 11, 11);
+      var values = _.map(new Array(10), function () {
+        return {
+          createdAt: createdAt,
+          updatedAt: updatedAt
+        };
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.bulkCreate(values, {
+          silent: true
+        }).then(function () {
+          return User.findAll({
+            updatedAt: {
+              ne: null
+            }
+          }).then(function (users) {
+            users.forEach(function (user) {
+              expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
+              expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
+            });
+          });
+        });
+      });
+    });
+
     it('properly handles disparate field lists', function(done) {
       var self = this
         , data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },
