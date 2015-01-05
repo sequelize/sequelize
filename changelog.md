@@ -3,6 +3,7 @@
 - [FEATURE] add `clone: true` support to `.get()`. Is needed when using `delete` on values from a `.get()` (`toJSON()`, `this.values`). (.get() is just a reference to the values for performance reasons when there's no custom getters or includes)
 - [FEATURE] add `sequelize.escape(value)` convenience method
 - [BUG] Fixes crash with `findAll({include: [Model], order: sequelize.literal()})`
+- [FEATURE] Now possible to pass createdAt and updatedAt values to Model.create when using silent: true (when importing datasets with existing timestamps)
 
 # 2.0.0-rc6
 - [BUG] Fixed issue with including by association reference and where
