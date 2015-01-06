@@ -4,6 +4,11 @@
 - [FEATURE] add `sequelize.escape(value)` convenience method
 - [BUG] Fixes crash with `findAll({include: [Model], order: sequelize.literal()})`
 - [FEATURE] Now possible to pass `createdAt` and `updatedAt` values to `Model.create`/`Model.bulkCreate` when using silent: true (when importing datasets with existing timestamps)
+- [FEATURE] `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
+
+#### Backwards compatability changes
+- `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
+
 
 # 2.0.0-rc6
 - [BUG] Fixed issue with including by association reference and where
