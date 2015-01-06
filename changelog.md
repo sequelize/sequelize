@@ -7,6 +7,7 @@
 - [FEATURE] `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
 - [BUG] Fixed bad SQL when updating a JSON attribute with a different `field`
 - [BUG] Fixed issue with creating and updating values of a `DataTypes.ARRAY(DataTypes.JSON)` attribute
+- [BUG] `Model.bulkCreate([{}], {returning: true})` will now correctly result in instances with primary key values.
 
 #### Backwards compatability changes
 - `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
