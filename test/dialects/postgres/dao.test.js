@@ -72,37 +72,35 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
-      it('should insert json using a custom field name', function(done) {
+      it('should insert json using a custom field name', function() {
         var self = this;
 
         this.UserFields = this.sequelize.define('UserFields', {
-          emergency_contact: { type: DataTypes.JSON, field: 'something_else' }
+          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
-        this.UserFields.sync({ force: true }).then(function() {
-          self.UserFields.create({
-            emergency_contact: { name: 'joe', phones: [1337, 42] }
+        return this.UserFields.sync({ force: true }).then(function() {
+          return self.UserFields.create({
+            emergencyContact: { name: 'joe', phones: [1337, 42] }
           }).then(function(user) {
-            expect(user.emergency_contact.name).to.equal('joe');
-            done();
+            expect(user.emergencyContact.name).to.equal('joe');
           });
         });
       });
 
-      it('should update json using a custom field name', function(done) {
+      it('should update json using a custom field name', function() {
         var self = this;
 
         this.UserFields = this.sequelize.define('UserFields', {
-          emergency_contact: { type: DataTypes.JSON, field: 'something_else' }
+          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
-        this.UserFields.sync({ force: true }).then(function() {
-          self.UserFields.create({
-            emergency_contact: { name: 'joe', phones: [1337, 42] }
+        return this.UserFields.sync({ force: true }).then(function() {
+          return self.UserFields.create({
+            emergencyContact: { name: 'joe', phones: [1337, 42] }
           }).then(function(user) {
-            user.emergency_contact = { name: 'larry' };
+            user.emergencyContact = { name: 'larry' };
             return user.save();
           }).then(function(user) {
-            expect(user.emergency_contact.name).to.equal('larry');
-            done();
+            expect(user.emergencyContact.name).to.equal('larry');
           });
         });
       });
