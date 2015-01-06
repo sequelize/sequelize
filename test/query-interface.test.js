@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           autoIncrement: true
         }
       }).bind(this).then(function() {
-        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true}).then(function(response) {
+        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(response) {
           expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
         });
       });
