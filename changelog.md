@@ -6,6 +6,7 @@
 - [FEATURE] Now possible to pass `createdAt` and `updatedAt` values to `Model.create`/`Model.bulkCreate` when using silent: true (when importing datasets with existing timestamps)
 - [FEATURE] `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
 - [BUG] Fixed bad SQL when updating a JSON attribute with a different `field`
+- [BUG] Fixed issue with creating and updating values of a `DataTypes.ARRAY(DataTypes.JSON)` attribute
 
 #### Backwards compatability changes
 - `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
