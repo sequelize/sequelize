@@ -20,7 +20,11 @@ if (dialect.match(/^postgres/)) {
         settings: DataTypes.HSTORE,
         document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
         phones: DataTypes.ARRAY(DataTypes.HSTORE),
-        emergency_contact: DataTypes.JSON
+        emergency_contact: DataTypes.JSON,
+        friends: {
+          type: DataTypes.ARRAY(DataTypes.JSON),
+          defaultValue: []
+        }
       });
       this.User.sync({ force: true }).success(function() {
         done();
@@ -34,8 +38,31 @@ if (dialect.match(/^postgres/)) {
 
     it('should be able to search within an array', function(done) {
       this.User.all({where: {email: ['hello', 'world']}}).on('sql', function(sql) {
-        expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
+        expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
         done();
+      });
+    });
+
+    it('should be able update a field with type ARRAY(JSON)', function(){
+      return this.User.create({
+        username: 'bob', email: ['myemail@email.com']
+      })
+      .then(function(userInstance){
+        expect(userInstance.friends).to.have.length(0);
+
+        return userInstance.updateAttributes({
+          friends: [{
+            name: 'John Smythe'
+          }],
+
+          //friends: [JSON.stringify({
+            //name: 'John Smythe'
+          //})]
+        });
+      })
+      .get('friends')
+      .tap(function(friends){
+        expect(friends).to.have.length(1);
       });
     });
 
