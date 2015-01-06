@@ -43,26 +43,27 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
-    it('should be able update a field with type ARRAY(JSON)', function(){
+    it('should be able to update a field with type ARRAY(JSON)', function(){
       return this.User.create({
-        username: 'bob', email: ['myemail@email.com']
-      })
-      .then(function(userInstance){
-        expect(userInstance.friends).to.have.length(0);
+        username: 'bob',
+        email: ['myemail@email.com'],
+        friends: [{
+          name: 'John Smith'
+        }]
+      }).then(function(userInstance){
+        expect(userInstance.friends).to.have.length(1);
+        expect(userInstance.friends[0].name).to.equal('John Smith');
 
-        return userInstance.updateAttributes({
+        return userInstance.update({
           friends: [{
             name: 'John Smythe'
-          }],
-
-          //friends: [JSON.stringify({
-            //name: 'John Smythe'
-          //})]
+          }]
         });
       })
       .get('friends')
       .tap(function(friends){
         expect(friends).to.have.length(1);
+        expect(friends[0].name).to.equal('John Smythe');
       });
     });
 
@@ -93,9 +94,11 @@ if (dialect.match(/^postgres/)) {
         return this.User.create({
           username: 'bob',
           emergency_contact: { name: 'joe', phones: [1337, 42] }
+        }, {
+          fields: ['id', 'username', 'document', 'emergency_contact']
         }).on('sql', function(sql) {
-          var expected = 'INSERT INTO "Users" ("id","username","document","emergency_contact","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',\'"default"=>"\'\'value\'\'"\',\'{"name":"joe","phones":[1337,42]}\'';
-          expect(sql.indexOf(expected)).to.equal(0);
+          var expected = '\'{"name":"joe","phones":[1337,42]}\'';
+          expect(sql.indexOf(expected)).not.to.equal(-1);
         });
       });
 
@@ -253,8 +256,8 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           settings: {mailing: false, push: 'facebook', frequency: 3}
         }).on('sql', function(sql) {
-          var expected = 'INSERT INTO "Users" ("id","username","email","settings","document","createdAt","updatedAt") VALUES (DEFAULT,\'bob\',ARRAY[\'myemail@email.com\']::TEXT[],\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
-          expect(sql.indexOf(expected)).to.equal(0);
+          var expected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
+          expect(sql.indexOf(expected)).not.to.equal(-1);
         });
       });
 
