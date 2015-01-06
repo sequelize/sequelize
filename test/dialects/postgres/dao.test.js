@@ -72,6 +72,41 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
+      it('should insert json using a custom field name', function(done) {
+        var self = this;
+
+        this.UserFields = this.sequelize.define('UserFields', {
+          emergency_contact: { type: DataTypes.JSON, field: 'something_else' }
+        });
+        this.UserFields.sync({ force: true }).then(function() {
+          self.UserFields.create({
+            emergency_contact: { name: 'joe', phones: [1337, 42] }
+          }).then(function(user) {
+            expect(user.emergency_contact.name).to.equal('joe');
+            done();
+          });
+        });
+      });
+
+      it('should update json using a custom field name', function(done) {
+        var self = this;
+
+        this.UserFields = this.sequelize.define('UserFields', {
+          emergency_contact: { type: DataTypes.JSON, field: 'something_else' }
+        });
+        this.UserFields.sync({ force: true }).then(function() {
+          self.UserFields.create({
+            emergency_contact: { name: 'joe', phones: [1337, 42] }
+          }).then(function(user) {
+            user.emergency_contact = { name: 'larry' };
+            return user.save();
+          }).then(function(user) {
+            expect(user.emergency_contact.name).to.equal('larry');
+            done();
+          });
+        });
+      });
+
       it('should be able retrieve json value as object', function() {
         var self = this;
         var emergencyContact = { name: 'kate', phone: 1337 };
