@@ -61,6 +61,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
     [Sequelize.TEXT, 'TEXT', 'TEXT'],
     [Sequelize.DATE, 'DATE', 'DATETIME'],
+    [Sequelize.TIME, 'TIME', 'TIME'],
     [Sequelize.NOW, 'NOW', 'NOW'],
     [Sequelize.UUID, 'UUID', 'UUID'],
     [Sequelize.BOOLEAN, 'BOOLEAN', 'TINYINT(1)'],
