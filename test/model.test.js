@@ -1081,6 +1081,37 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   describe('destroy', function() {
+    it('throws an error if no where clause is given', function() {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.destroy();
+      }).then(function() {
+        throw new Error('Destroy should throw an error if no where clause is given.');
+      }, function(err) {
+        expect(err.message).to.equal('Missing where attribute in the options parameter passed to destroy.');
+      });
+    });
+
+    it('deletes all instances when given an empty where object', function() {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING }),
+          data = [
+            { username: 'user1' },
+            { username: 'user2' }
+          ];
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.bulkCreate(data);
+      }).then(function() {
+        return User.destroy({ where: {} });
+      }).then(function(affectedRows) {
+        expect(affectedRows).to.equal(2);
+        return User.findAll();
+      }).then(function(users) {
+        expect(users).to.have.length(0);
+      });
+    });
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', function(done) {
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
@@ -1089,7 +1120,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           User.sync({ force: true }).success(function() {
             User.create({ username: 'foo' }).success(function() {
               sequelize.transaction().then(function(t) {
-                User.destroy({transaction: t }).success(function() {
+                User.destroy({
+                  where: {},
+                  transaction: t
+                }).success(function() {
                   User.count().success(function(count1) {
                     User.count({ transaction: t }).success(function(count2) {
                       expect(count1).to.equal(1);
