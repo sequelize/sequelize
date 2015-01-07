@@ -857,6 +857,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   describe('update', function() {
+    it('throws an error if no where clause is given', function() {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.update();
+      }).then(function() {
+        throw new Error('Update should throw an error if no where clause is given.');
+      }, function(err) {
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.equal('Missing where attribute in the options parameter passed to update.');
+      });
+    });
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', function(done) {
         Support.prepareTransactionTest(this.sequelize, function(sequelize) {
