@@ -111,33 +111,68 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it('should update attributes added in hooks when default fields are used', function () {
-      var User = this.sequelize.define('User' + config.rand(), {
-        name: DataTypes.STRING,
-        bio: DataTypes.TEXT,
-        email: DataTypes.STRING
-      });
+    describe('hooks', function () {
+      it('should update attributes added in hooks when default fields are used', function () {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING
+        });
 
-      User.beforeUpdate(function(instance, options) {
-        instance.set('email', 'B');
-      });
+        User.beforeUpdate(function(instance, options) {
+          instance.set('email', 'B');
+        });
 
-      return User.sync({force: true}).then(function() {
-        return User.create({
-          name: 'A',
-          bio: 'A',
-          email: 'A'
-        }).then(function (user) {
-          return user.update({
-            name: 'B',
-            bio: 'B'
+        return User.sync({force: true}).then(function() {
+          return User.create({
+            name: 'A',
+            bio: 'A',
+            email: 'A'
+          }).then(function (user) {
+            return user.update({
+              name: 'B',
+              bio: 'B'
+            });
+          }).then(function () {
+            return User.findOne({});
+          }).then(function (user) {
+            expect(user.get('name')).to.equal('B');
+            expect(user.get('bio')).to.equal('B');
+            expect(user.get('email')).to.equal('B');
           });
-        }).then(function () {
-          return User.findOne({});
-        }).then(function (user) {
-          expect(user.get('name')).to.equal('B');
-          expect(user.get('bio')).to.equal('B');
-          expect(user.get('email')).to.equal('B');
+        });
+      });
+
+      it('should validate attributes added in hooks when default fields are used', function () {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: {
+            type: DataTypes.STRING,
+            validate: {
+              isEmail: true
+            }
+          }
+        });
+
+        User.beforeUpdate(function(instance, options) {
+          instance.set('email', 'B');
+        });
+
+        return User.sync({force: true}).then(function () {
+          return User.create({
+            name: 'A',
+            bio: 'A',
+            email: 'valid.email@gmail.com'
+          }).then(function (user) {
+            return expect(user.update({
+              name: 'B'
+            })).to.be.rejectedWith(Sequelize.ValidationError);
+          }).then(function () {
+            return User.findOne({}).then(function (user) {
+              expect(user.get('email')).to.equal('valid.email@gmail.com');
+            });
+          });
         });
       });
     });

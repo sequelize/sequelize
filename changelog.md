@@ -4,13 +4,13 @@
 - [FEATURE] add `sequelize.escape(value)` convenience method
 - [BUG] Fixes crash with `findAll({include: [Model], order: sequelize.literal()})`
 - [FEATURE] Now possible to pass `createdAt` and `updatedAt` values to `Model.create`/`Model.bulkCreate` when using silent: true (when importing datasets with existing timestamps)
-- [FEATURE] `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
+- [FEATURE] `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
 - [BUG] Fixed bad SQL when updating a JSON attribute with a different `field`
 - [BUG] Fixed issue with creating and updating values of a `DataTypes.ARRAY(DataTypes.JSON)` attribute
 - [BUG] `Model.bulkCreate([{}], {returning: true})` will now correctly result in instances with primary key values.
 
 #### Backwards compatability changes
-- `instance.update()` using default fields will now automatically also save values provided via `beforeUpdate` hooks
+- `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
 
 
 # 2.0.0-rc6
