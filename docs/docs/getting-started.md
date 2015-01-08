@@ -29,7 +29,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
   },
 
   // SQLite only
-  storage: 'storage: 'path/to/database.sqlite'
+  storage: 'path/to/database.sqlite'
 });
 
 // Or you can simply use a connection uri
