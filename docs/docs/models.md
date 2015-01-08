@@ -589,8 +589,8 @@ Let's assume we have an empty database with a `User` model which has a `username
     
 ```js
 User
-  .findOrCreate({ username: 'sdepold' }, { job: 'Technical Lead JavaScript' })
-  .then(function(user, created) {
+  .findOrCreate({where: {username: 'sdepold'}, defaults: {job: 'Technical Lead JavaScript'}})
+  .spread(function(user, created) {
     console.log(user.values)
     console.log(created)
    
@@ -613,8 +613,8 @@ User
   .create({ username: 'fnord', job: 'omnomnom' })
   .then(function() {
     User
-      .findOrCreate({ username: 'fnord' }, { job: 'something else' })
-      .then(function(user, created) {
+      .findOrCreate({where: {username: 'fnord'}, defaults: {job: 'something else'}})
+      .spread(function(user, created) {
         console.log(user.values)
         console.log(created)
      
@@ -633,8 +633,6 @@ User
 ```
 
 &period;&period;&period; the existing entry will not be changed&period; See the `job` of the second user&comma; and the fact that created was false&period;
-
-Notice that the success callback has two arguments. When using [promises][5] you should call `spread` [(API ref)][6] instead of `then`, since `then` will only recieve the first argument (the DAO), while `spread` will recieve both the DAO, and the `created` boolean.
 
 ### findAndCountAll - Search for multiple elements in the database&comma; returns both data and total count
 
@@ -835,7 +833,7 @@ Project.count({ where: ["id > ?", 25] }).then(function(c) {
 
 ### max - Get the greatest value of a specific attribute within a specific table
 
-And here is a method for getting the max value of an attribute&colon;
+And here is a method for getting the max value of an attribute&colon;f
     
 ```js
 /*

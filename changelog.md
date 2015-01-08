@@ -1,4 +1,5 @@
 # Next
+- [FEATURE] Throw an error if no where clause is given to `Model.destroy()`.
 - [BUG] Fixed issue with `order: sequelize.literal('string')`
 - [FEATURE] add `clone: true` support to `.get()`. Is needed when using `delete` on values from a `.get()` (`toJSON()`, `this.values`). (.get() is just a reference to the values for performance reasons when there's no custom getters or includes)
 - [FEATURE] add `sequelize.escape(value)` convenience method
@@ -11,7 +12,7 @@
 
 #### Backwards compatability changes
 - `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
-
+- Sequelize no longer supports case insensitive mysql enums
 
 # 2.0.0-rc6
 - [BUG] Fixed issue with including by association reference and where

@@ -78,58 +78,6 @@ if (Support.dialectIsMySQL()) {
       });
     });
 
-    describe('validations', function() {
-      describe('enums', function() {
-        it('enum data type should be case insensitive if my collation allows it', function(done) {
-          var User = this.sequelize.define('User' + config.rand(), {
-            mood: {
-              type: DataTypes.ENUM,
-              values: ['HAPPY', 'sad', 'WhatEver']
-            }
-          }, {
-            collate: 'utf8_general_ci'
-          });
-
-          User.sync({ force: true }).success(function() {
-            User.create({mood: 'happy'}).success(function(user) {
-              expect(user).to.exist;
-              expect(user.mood).to.equal('HAPPY');
-              var u = User.build({mood: 'SAD'});
-              u.save().success(function(_user) {
-                expect(_user).to.exist;
-                expect(_user.mood).to.equal('sad');
-                done();
-              });
-            });
-          });
-        });
-
-        it('enum data type should be case sensitive if my collation enforces it', function(done) {
-          var User = this.sequelize.define('User' + config.rand(), {
-            mood: {
-              type: DataTypes.ENUM,
-              values: ['HAPPY', 'sad', 'WhatEver']
-            }
-          }, {
-            collate: 'latin1_bin'
-          });
-
-          User.sync({ force: true }).success(function() {
-            User.create({mood: 'happy'}).error(function(err) {
-              expect(err).to.be.instanceOf(Error);
-              expect(err.get('mood')[0].message).to.equal('Value "happy" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver');
-              var u = User.build({mood: 'SAD'});
-              u.save().error(function(err) {
-                expect(err).to.be.instanceOf(Error);
-                expect(err.get('mood')[0].message).to.equal('Value "SAD" for ENUM mood is out of allowed scope. Allowed values: HAPPY, sad, WhatEver');
-                done();
-              });
-            });
-          });
-        });
-      });
-    });
-
     describe('primaryKeys', function() {
       it('determines the correct primaryKeys', function(done) {
         var User = this.sequelize.define('User' + config.rand(), {
