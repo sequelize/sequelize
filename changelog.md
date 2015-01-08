@@ -12,7 +12,7 @@
 
 #### Backwards compatability changes
 - `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
-
+- Sequelize no longer supports case insensitive mysql enums
 
 # 2.0.0-rc6
 - [BUG] Fixed issue with including by association reference and where
