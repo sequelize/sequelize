@@ -2,6 +2,7 @@
 
 var chai = require('chai')
   , expect = chai.expect
+  , Sequelize = require('../index')
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../lib/data-types')
   , dialect = Support.getTestDialect()
@@ -810,6 +811,138 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         validateCustom: '1'
       }).save(['validateCustom']).success(function() {
         done();
+      });
+    });
+
+    describe('hooks', function () {
+      it('should update attributes added in hooks when default fields are used', function () {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING
+        });
+
+        User.beforeUpdate(function(instance, options) {
+          instance.set('email', 'B');
+        });
+
+        return User.sync({force: true}).then(function() {
+          return User.create({
+            name: 'A',
+            bio: 'A',
+            email: 'A'
+          }).then(function (user) {
+            return user.set({
+              name: 'B',
+              bio: 'B'
+            }).save();
+          }).then(function () {
+            return User.findOne({});
+          }).then(function (user) {
+            expect(user.get('name')).to.equal('B');
+            expect(user.get('bio')).to.equal('B');
+            expect(user.get('email')).to.equal('B');
+          });
+        });
+      });
+
+      it('should update attributes changed in hooks when default fields are used', function () {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING
+        });
+
+        User.beforeUpdate(function(instance, options) {
+          instance.set('email', 'C');
+        });
+
+        return User.sync({force: true}).then(function() {
+          return User.create({
+            name: 'A',
+            bio: 'A',
+            email: 'A'
+          }).then(function (user) {
+            return user.set({
+              name: 'B',
+              bio: 'B',
+              email: 'B'
+            }).save();
+          }).then(function () {
+            return User.findOne({});
+          }).then(function (user) {
+            expect(user.get('name')).to.equal('B');
+            expect(user.get('bio')).to.equal('B');
+            expect(user.get('email')).to.equal('C');
+          });
+        });
+      });
+
+      it('should validate attributes added in hooks when default fields are used', function () {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: {
+            type: DataTypes.STRING,
+            validate: {
+              isEmail: true
+            }
+          }
+        });
+
+        User.beforeUpdate(function(instance, options) {
+          instance.set('email', 'B');
+        });
+
+        return User.sync({force: true}).then(function () {
+          return User.create({
+            name: 'A',
+            bio: 'A',
+            email: 'valid.email@gmail.com'
+          }).then(function (user) {
+            return expect(user.set({
+              name: 'B'
+            }).save()).to.be.rejectedWith(Sequelize.ValidationError);
+          }).then(function () {
+            return User.findOne({}).then(function (user) {
+              expect(user.get('email')).to.equal('valid.email@gmail.com');
+            });
+          });
+        });
+      });
+
+      it('should validate attributes changed in hooks when default fields are used', function () {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: {
+            type: DataTypes.STRING,
+            validate: {
+              isEmail: true
+            }
+          }
+        });
+
+        User.beforeUpdate(function(instance, options) {
+          instance.set('email', 'B');
+        });
+
+        return User.sync({force: true}).then(function () {
+          return User.create({
+            name: 'A',
+            bio: 'A',
+            email: 'valid.email@gmail.com'
+          }).then(function (user) {
+            return expect(user.set({
+              name: 'B',
+              email: 'still.valid.email@gmail.com'
+            }).save()).to.be.rejectedWith(Sequelize.ValidationError);
+          }).then(function () {
+            return User.findOne({}).then(function (user) {
+              expect(user.get('email')).to.equal('valid.email@gmail.com');
+            });
+          });
+        });
       });
     });
 
