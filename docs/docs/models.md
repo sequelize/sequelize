@@ -590,7 +590,7 @@ Let's assume we have an empty database with a `User` model which has a `username
 ```js
 User
   .findOrCreate({ username: 'sdepold' }, { job: 'Technical Lead JavaScript' })
-  .then(function(user, created) {
+  .spread(function(user, created) {
     console.log(user.values)
     console.log(created)
    
@@ -614,7 +614,7 @@ User
   .then(function() {
     User
       .findOrCreate({ username: 'fnord' }, { job: 'something else' })
-      .then(function(user, created) {
+      .spread(function(user, created) {
         console.log(user.values)
         console.log(created)
      
@@ -835,7 +835,7 @@ Project.count({ where: ["id > ?", 25] }).then(function(c) {
 
 ### max - Get the greatest value of a specific attribute within a specific table
 
-And here is a method for getting the max value of an attribute&colon;
+And here is a method for getting the max value of an attribute&colon;f
     
 ```js
 /*
