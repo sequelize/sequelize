@@ -74,6 +74,34 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     }
 
+    it('should error correctly when defaults contain a unique key', function () {
+      var User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        }
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.create({
+          username: 'gottlieb'
+        });
+      }).then(function () {
+        return expect(User.findOrCreate({
+          where: {
+            objectId: 'asdasdasd'
+          },
+          defaults: {
+            username: 'gottlieb'
+          }
+        })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      });
+    });
+
     it('returns instance if already existent. Single find field.', function(done) {
       var self = this,
         data = {
