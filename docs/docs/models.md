@@ -634,8 +634,6 @@ User
 
 &period;&period;&period; the existing entry will not be changed&period; See the `job` of the second user&comma; and the fact that created was false&period;
 
-Notice that the success callback has two arguments. When using [promises][5] you should call `spread` [(API ref)][6] instead of `then`, since `then` will only recieve the first argument (the DAO), while `spread` will recieve both the DAO, and the `created` boolean.
-
 ### findAndCountAll - Search for multiple elements in the database&comma; returns both data and total count
 
 This is a convienience method that combines`findAll&lpar;&rpar;`and`count&lpar;&rpar;`&lpar;see below&rpar;&comma; this is useful when dealing with queries related to pagination where you want to retrieve data with a`limit`and`offset`but also need to know the total number of records that match the query&period;
