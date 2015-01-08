@@ -93,6 +93,35 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should succeed in updating when values are unchanged (without timestamps)', function() {
+      var User = this.sequelize.define('User' + config.rand(), {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        email: DataTypes.STRING
+      }, {
+        timestamps: false
+      });
+
+     return User.sync({force: true}).then(function() {
+        return User.create({
+          name: 'snafu',
+          email: 'email'
+        }, {
+          fields: ['name', 'email']
+        }).then(function(user) {
+          return user.update({
+            name: 'snafu',
+            email: 'email'
+          });
+        }).then(function(user) {
+          return user.reload();
+        }).then(function(user) {
+          expect(user.get('name')).to.equal('snafu');
+          expect(user.get('email')).to.equal('email');
+        });
+      });
+    });
+
     it('should only save passed attributes', function () {
       var user = this.User.build();
       return user.save().then(function () {

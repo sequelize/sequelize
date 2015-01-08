@@ -9,6 +9,7 @@
 - [BUG] Fixed bad SQL when updating a JSON attribute with a different `field`
 - [BUG] Fixed issue with creating and updating values of a `DataTypes.ARRAY(DataTypes.JSON)` attribute
 - [BUG] `Model.bulkCreate([{}], {returning: true})` will now correctly result in instances with primary key values.
+- [BUG] `instance.save()` with `fields: []` (as a result of `.changed()` being `[]`) will no result in a noop instead of an empty update query.
 
 #### Backwards compatability changes
 - `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
