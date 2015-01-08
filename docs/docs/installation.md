@@ -8,6 +8,7 @@ $ npm install --save pg
 $ npm install --save mysql
 $ npm install --save mariasql
 $ npm install --save sqlite3
+$ npm install --save tedious // MSSQL
 ```
 
 ## Setting up a connection
