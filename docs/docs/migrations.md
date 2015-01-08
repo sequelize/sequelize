@@ -8,6 +8,8 @@ In order to use the CLI you need to install the respective package:
 $ npm install --save sequelize-cli
 ```
 
+As with any npm package, you can use the global flag (`-g`) to install the CLI globally. If you have installed the CLI without the global flag, use `node_modules/.bin/sequelize [command]` instead of `sequelize [command]`.
+
 The CLI currently supports the following commands:
 
 ```bash
@@ -18,7 +20,7 @@ $ sequelize init              # Initializes the project.
 $ sequelize migration:create  # Generates a new migration file.
 $ sequelize version           # Prints the version number.
 ```
-    
+
 Further and more detailled information about the available commands
 can be obtained via the help command:
 
