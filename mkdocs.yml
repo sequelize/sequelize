@@ -10,9 +10,9 @@ extra_javascript:
 pages:
 - ['index.md', 'Home']
 
-- ['docs/installation.md', 'Documentation', 'Installation']
+- ['docs/getting-started.md', 'Documentation', 'Getting Started']
 - ['docs/schema.md', 'Documentation', 'Working with table schemas']
-- ['docs/usage.md', 'Documentation', 'Usage']
+#- ['docs/usage.md', 'Documentation', 'Usage']
 - ['docs/models.md', 'Documentation', 'Models']
 - ['docs/instances.md', 'Documentation', 'Instances']
 - ['docs/associations.md', 'Documentation', 'Relations/Associations']
