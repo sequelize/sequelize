@@ -91,14 +91,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           username: 'gottlieb'
         });
       }).then(function () {
-        return expect(User.findOrCreate({
+        return User.findOrCreate({
           where: {
             objectId: 'asdasdasd'
           },
           defaults: {
             username: 'gottlieb'
           }
-        })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+        }).then(function () {
+          throw new Error('I should have ben rejected');
+        }, function (err) {
+          expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
+          expect(err.fields).to.be.ok;
+        });
       });
     });
 
@@ -221,6 +226,54 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       }
+
+      it('should error correctly when defaults contain a unique key', function () {
+        var User = this.sequelize.define('user', {
+          objectId: {
+            type: DataTypes.STRING,
+            unique: true
+          },
+          username: {
+            type: DataTypes.STRING,
+            unique: true
+          }
+        });
+
+        return User.sync({force: true}).then(function () {
+          return User.create({
+            username: 'gottlieb'
+          });
+        }).then(function () {
+          return Promise.join(
+            User.findOrCreate({
+              where: {
+                objectId: 'asdasdasd'
+              },
+              defaults: {
+                username: 'gottlieb'
+              }
+            }).then(function () {
+              throw new Error('I should have ben rejected');
+            }, function (err) {
+              expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
+              expect(err.fields).to.be.ok;
+            }),
+            User.findOrCreate({
+              where: {
+                objectId: 'asdasdasd'
+              },
+              defaults: {
+                username: 'gottlieb'
+              }
+            }).then(function () {
+              throw new Error('I should have ben rejected');
+            }, function (err) {
+              expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
+              expect(err.fields).to.be.ok;
+            })
+          );
+        });
+      });
 
       // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
       (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', function() {
