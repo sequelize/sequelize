@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
-      it('should error correctly when defaults contain a unique key', function () {
+      (dialect !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', function () {
         var User = this.sequelize.define('user', {
           objectId: {
             type: DataTypes.STRING,
