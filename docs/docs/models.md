@@ -199,7 +199,7 @@ var Foo = sequelize.define('Foo', {
 
 ### Helper functions for use inside getter&sol;setter definitions
 
-* retrieving an underlying property value&quest; always use `this.getDataValu()`&comma; e&period;g&colon;
+* retrieving an underlying property value&quest; always use `this.getDataValue()`&comma; e&period;g&colon;
     
 ```js
 /* a getter for 'title' property */
