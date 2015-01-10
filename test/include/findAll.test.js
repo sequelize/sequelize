@@ -1999,6 +1999,29 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
       });
     });
+
+    it('should work on a non required hasMany relation requiring a belongsTo relation with limit', function () {
+      var Group = this.sequelize.define('group', {})
+        , User = this.sequelize.define('user', {})
+        , Company = this.sequelize.define('company', {});
+
+      Group.hasMany(User);
+      User.belongsTo(Group);
+
+      Company.hasMany(User);
+      User.belongsTo(Company);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Group.findAll({
+          include: [
+            {model: User, required: false, include: [
+              {model: Company, required: true}
+            ]}
+          ],
+          limit: 5
+        });
+      });
+    });
     
     it('should work on a nested set of required 1:1 relations', function () {
       var Person = this.sequelize.define("Person", {
