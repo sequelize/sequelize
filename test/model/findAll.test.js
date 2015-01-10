@@ -549,6 +549,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should not crash on an empty where array', function () {
+      return this.User.findAll({
+        where: []
+      });
+    });
+
     describe('eager loading', function() {
       describe('belongsTo', function() {
         beforeEach(function(done) {
