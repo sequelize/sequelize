@@ -499,6 +499,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(userB.get('id')).to.equal(userId);
         });
       });
+
+      it('should work with paranoid destroy', function () {
+        var User = this.sequelize.define('User', {
+          deletedAt: {
+            type: DataTypes.DATE,
+            field: 'deleted_at'
+          }
+        }, {
+          timestamps: true,
+          paranoid: true
+        });
+
+        return User.sync({force: true}).then(function () {
+          return User.create().then(function (user) {
+            return user.destroy();
+          }).then(function () {
+            return User.findAll().then(function (users) {
+              expect(users.length).to.equal(0);
+            });
+          });
+        });
+      });
     });
   });
 });
