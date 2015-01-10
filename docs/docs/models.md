@@ -894,7 +894,7 @@ Project.sum('age', { where: { age: { gt: 5 } } }).then(function(sum) {
 
 ## Eager loading
 
-When you are retrieving data from the database there is a fair chance that you also want to get their associations&period; This is possible since`v1&period;6&period;0`and is called eager loading&period; The basic idea behind that&comma; is the use of the attribute`include`when you are calling`find`or`findAll`&period; Lets assume the following setup&colon;
+When you are retrieving data from the database there is a fair chance that you also want to get their associations&period; This is possible since`v1.6.0`and is called eager loading&period; The basic idea behind that&comma; is the use of the attribute`include`when you are calling`find`or`findAll`&period; Lets assume the following setup&colon;
     
 ```js
 var User = sequelize.define('User', { name: Sequelize.STRING })
