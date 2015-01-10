@@ -2011,10 +2011,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       var UserPerson = this.sequelize.define("UserPerson", {
         PersonId: { 
           type          : Sequelize.INTEGER, 
-          primaryKey    : true, 
-          references    : Person, 
-          referencesKey : 'id', 
-          field         : 'id'
+          primaryKey    : true
         },
 
         rank: {
@@ -2025,10 +2022,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       var User = this.sequelize.define("User", {
         UserPersonId: { 
           type          : Sequelize.INTEGER, 
-          primaryKey    : true, 
-          references    : UserPerson, 
-          referencesKey : 'id', 
-          field         : 'id'
+          primaryKey    : true
         },
 
         login: {
@@ -2038,22 +2032,33 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         }
       });
 
-
-      Person.hasOne(UserPerson);
       UserPerson.belongsTo(Person, { 
         foreignKey: { 
-          allowNull: false 
-        } 
+          allowNull: false
+        },
+        onDelete: 'CASCADE'
       });
-
-      UserPerson.hasOne(User);
+      Person.hasOne(UserPerson, { 
+        foreignKey: { 
+          allowNull: false
+        },
+        onDelete: 'CASCADE'
+      });
+      
       User.belongsTo(UserPerson, { 
         foreignKey: {
           name: 'UserPersonId',
-          allowNull: false 
-        } 
+          allowNull: false
+        },
+        onDelete: 'CASCADE'
       });
-
+      UserPerson.hasOne(User, {
+        foreignKey: { 
+          name: 'UserPersonId',
+          allowNull: false
+        },
+        onDelete: 'CASCADE'
+      });
 
       return this.sequelize.sync({force: true}).then(function () {
         return Person.findAll({
