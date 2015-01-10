@@ -1,3 +1,6 @@
+# Next
+- [BUG] Fixed issue with paranoid deletes and `deletedAt` with a custom field.
+
 # 2.0.0-rc7
 - [FEATURE] Throw an error if no where clause is given to `Model.destroy()`.
 - [BUG] Fixed issue with `order: sequelize.literal('string')`
