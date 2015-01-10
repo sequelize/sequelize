@@ -1999,6 +1999,79 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
       });
     });
+    
+    it('should work on a nested set of required 1:1 relations', function () {
+      var Person = this.sequelize.define("Person", {
+        name: { 
+          type          : Sequelize.STRING,
+          allowNull     : false
+        }
+      });
 
+      var UserPerson = this.sequelize.define("UserPerson", {
+        PersonId: { 
+          type          : Sequelize.INTEGER, 
+          primaryKey    : true, 
+          references    : Person, 
+          referencesKey : 'id', 
+          field         : 'id'
+        },
+
+        rank: {
+          type          : Sequelize.STRING
+        }
+      });
+
+      var User = this.sequelize.define("User", {
+        UserPersonId: { 
+          type          : Sequelize.INTEGER, 
+          primaryKey    : true, 
+          references    : UserPerson, 
+          referencesKey : 'id', 
+          field         : 'id'
+        },
+
+        login: {
+          type          : Sequelize.STRING,
+          unique        : true,
+          allowNull     : false,
+        }
+      });
+
+
+      Person.hasOne(UserPerson);
+      UserPerson.belongsTo(Person, { 
+        foreignKey: { 
+          allowNull: false 
+        } 
+      });
+
+      UserPerson.hasOne(User);
+      User.belongsTo(UserPerson, { 
+        foreignKey: {
+          name: 'UserPersonId',
+          allowNull: false 
+        } 
+      });
+
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Person.findAll({
+          offset        : 0,
+          limit         : 20, 
+          attributes    : ['id', 'name'],
+          include       : [{
+            model         : UserPerson, 
+            required      : true, 
+            attributes    : ['rank'], 
+            include       : [{
+              model         : User,
+              required      : true,
+              attributes    : ['login']
+            }]
+          }]
+        });
+      });
+    });
   });
 });
