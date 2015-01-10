@@ -39,7 +39,6 @@
     "lodash": "~2.4.0",
     "moment": "~2.8.0",
     "node-uuid": "~1.4.1",
-    "pg-hstore": "^2.2.0",
     "toposort-class": "~0.3.0",
     "validator": "~3.22.1"
   },
@@ -48,6 +47,7 @@
     "sqlite3": "~3.0.0",
     "mysql": "~2.5.0",
     "pg": "~3.6.0",
+    "pg-hstore": "^2.3.1",
     "tedious": "^1.7.0",
     "watchr": "~2.4.11",
     "chai": "~1.9.2",
