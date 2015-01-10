@@ -805,6 +805,34 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should work on a model with an attribute named length', function () {
+      var Box = this.sequelize.define('box', {
+        length : DataTypes.INTEGER,
+        width : DataTypes.INTEGER,
+        height : DataTypes.INTEGER
+      });
+
+      return Box.sync({force: true}).then(function () {
+        return Box.create({
+          length: 1,
+          width: 2,
+          height: 3
+        }).then(function (box) {
+          return box.update({
+            length: 4,
+            width: 5,
+            height: 6
+          });
+        }).then(function () {
+          return Box.findOne({}).then(function (box) {
+            expect(box.get('length')).to.equal(4);
+            expect(box.get('width')).to.equal(5);
+            expect(box.get('height')).to.equal(6);
+          });
+        });
+      });
+    });
+
     it('only validates fields in passed array', function(done) {
       this.User.build({
         validateTest: 'cake', // invalid, but not saved
