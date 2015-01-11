@@ -6,7 +6,7 @@ Sequelize is available via NPM.
 $ npm install --save sequelize
 
 # And one of the following:
-$ npm install --save pg
+$ npm install --save pg pg-hstore
 $ npm install --save mysql
 $ npm install --save mariasql
 $ npm install --save sqlite3
