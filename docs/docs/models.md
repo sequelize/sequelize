@@ -134,7 +134,7 @@ Getters and Setters can be defined in 2 ways &lpar;you can mix and match these 2
  
 ```js   
 var Foo = sequelize.define('Foo', {
-  name: { Sequelize.STRING },
+  name: Sequelize.STRING,
   title: {
     type     : Sequelize.STRING,
     allowNull: false,
