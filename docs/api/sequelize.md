@@ -386,7 +386,7 @@ __Returns:__ An instance of Migrator.
 [View code](https://github.com/sequelize/sequelize/blob/cdd8c3be7961c58c1446cb4893939a2986db9876/lib/sequelize.js#L510)
 Define a new model, representing a table in the DB.
 
-The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
+The table columns are defined by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
 
 ```js
 sequelize.define('modelName', {
