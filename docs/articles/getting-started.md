@@ -1,6 +1,6 @@
 ## Introduction
 
-This article explains the basic concepts of Sequelize. You will learn how to use the supported dialects, which ways of database setup approaches are available and how common scenarios can be achieved.
+This article explains the basic concepts of Sequelize. You will learn how to use the supported dialects, which types of database setup approaches are available, and how common scenarios can be achieved.
 
 ## Premise
 
