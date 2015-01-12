@@ -19,7 +19,7 @@ TODO - a link to bluebird + general promise syntax + catch / error handling
 ## Setting up a project
 
 Now that your computer is prepared and your coffee sits next to your keyboard,
-we can finally get started. First things first: Create a directory and initializeit with NPM!
+we can finally get started. First things first: create a directory and initialize it with NPM!
 
 ```bash 
 $ mkdir my-project
