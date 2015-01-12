@@ -49,7 +49,7 @@ Team.hasOne(Game, {as: 'HomeTeam', foreignKey : 'homeTeamId'});
 Team.hasOne(Game, {as: 'AwayTeam', foreignKey : 'awayTeamId'});
 
 Game.belongsTo(Team);
- 
+```
 
 To get the association working the other way around &lpar;so from `User` to `Project`&rpar;&comma; it's necessary to do this&colon;
 
