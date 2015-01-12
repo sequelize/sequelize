@@ -70,7 +70,7 @@ As this article is for beginners, we will skip migrations for now and take a clo
 
 ### Defining a model
 
-In order to let Sequelize create a schemas in the database, you need to describe, what kind of data you want to store. This can be done with `sequelize.define`:
+In order to let Sequelize create schemas in the database, you need to describe what kind of data you want to store. This can be done with `sequelize.define`:
     
 ```js
 var User = sequelize.define('User', {
@@ -79,7 +79,7 @@ var User = sequelize.define('User', {
 });
 ```
 
-This will define a user model that has a username and password. Furthermore, Sequelize will automatically add the columns `id`, `createdAt` and `updatedAt`. `createdAt` and `updatedAt` are controlled by sequelize - when you `create` a model through sequelize `createdAt` will be set, and whenever you call `updateAttributes` / `save` on a model, `updatedAt` will be set. 
+This will define a user model that has a username and password. Furthermore, Sequelize will automatically add the columns `id`, `createdAt` and `updatedAt`. `createdAt` and `updatedAt` are controlled by Sequelize - when you `create` a model through Sequelize, `createdAt` will be set, and whenever you call `updateAttributes` / `save` on a model, `updatedAt` will be set. 
 
 ### Synchronizing the schema
 
