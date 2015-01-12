@@ -40,7 +40,7 @@ $ npm install --save mariasql # for mariasql
 
 ## Connecting to the database
 
-Open the created directory in your favorite text editor and add a new file called `app.js` with the following content.
+Open the created directory in your favorite text editor and add a new file called `app.js` with the following content:
 
 ```js
 var Sequelize = require('sequelize')
@@ -83,7 +83,7 @@ This will define a user model that has a username and password. Furthermore, Seq
 
 ### Synchronizing the schema
 
-As we want to store data in the database, we need to create a representation of the model.
+As we want to store data in the database, we need to create a representation of the model:
 
 ```js    
 sequelize
@@ -107,7 +107,7 @@ Please note, that `{ force: true }` will drop the `Users` table and re-create it
 
 ### Configuration
 
-You might not need the timestamps or you might not want the plural of the model's name as table name, right? Luckily there are configuration possibilities for that.
+You might not need the timestamps or you might not want the plural of the model's name as table name, right? Luckily there are configuration possibilities for that:
     
 ```js
 var User = sequelize.define('User', {
@@ -352,7 +352,7 @@ return sequelize.Promise.all([
 
 ## A combined example
 
-Now that you know the basics of Sequelize, you might want to see everything in a single program.
+Now that you know the basics of Sequelize, you might want to see everything in a single program:
     
 ```js
 var Sequelize = require('sequelize')
