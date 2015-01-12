@@ -1,8 +1,8 @@
-With Sequelize you can also specify associations between multiple classes&period; Doing so will help you to easily access and set those associated objects&period; The library therefore provides for each defined class different methods&comma; which are explained in the following chapters&period;
+With Sequelize you can also specify associations between multiple classes. Doing so will help you to easily access and set those associated objects. The library therefore provides for each defined class different methods, which are explained in the following chapters.
 
 ## One-To-One associations
 
-One-To-One associations are connecting one source with exactly one target&period; In order to define a proper database schema&comma; Sequelize utilizes the methods `belongsTo` and `hasOne`&period; You can use them as follows&colon;
+One-To-One associations are connecting one source with exactly one target. In order to define a proper database schema, Sequelize utilizes the methods `belongsTo` and `hasOne`. You can use them as follows:
 ```js
 var User = sequelize.define('User', {/* ... */})
 var Project = sequelize.define('Project', {/* ... */})
@@ -83,14 +83,16 @@ But we want more! Let's define it the other way around by creating a many to man
 
 ## Belongs-To-Many associations
 
-Belongs-To-Many associations are used to connect sources with multiple targets&period; Furthermore the targets can also have connections to multiple sources&period;
+Belongs-To-Many associations are used to connect sources with multiple targets. Furthermore the targets can also have connections to multiple sources.
     
 ```js
-Project.belongsToMany(User);
-User.belongsToMany(Project);
+Project.belongsToMany(User, {through: 'UserProject');
+User.belongsToMany(Project, {through: 'UserProject');
 ```
 
-This will remove the attribute `ProjectId` (or `project_id`) from User and create a new model called ProjectsUsers with the equivalent foreign keys `ProjectId`(or `project_id`) and `UserId` (or `user_id`). Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
+This will reate a new model called UserProject with with the equivalent foreign keys `ProjectId` and `UserId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
+
+Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
 This will add methods `getUsers`, `setUsers`, `addUsers` to `Project`, and `getProjects`, `setProjects` and `addProject` to `User`.
 
@@ -100,27 +102,14 @@ User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks' })
 Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks' })
 ```
 
-Notice how we used the `through` option together with the alias in the code above. This is needed to tell sequelize that the two `hasMany` calls are actually two sides of the same association. If you don't use an alias (as shown in the first example of this section) this matching happens
-automagically, but with aliassed assocations `through` is required.
-
 Of course you can also define self references with hasMany:
     
 ```js
-Person.belongsToMany(Person, { as: 'Children' })
-// This will create the table ChildrenPersons which stores the ids of the objects.
+Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
+// This will create the table PersonChildren which stores the ids of the objects.
 
 ```
-
-By default, sequelize will handle everything related to the join table for you. However, sometimes you might want some more control over the table. This is where th e`through` options comes in handy.
-
-If you just want to control the name of the join table, you can pass a string:
-    
-```js
-Project.belongsToMany(User, {through: 'project_has_users'})
-User.belongsToMany(Project, {through: 'project_has_users'})
-```
-
-If you want additional attributes in your join table&comma; you can define a model for the join table in sequelize&comma; before you define the association&comma; and then tell sequelize that it should use that model for joining&comma; instead of creating a new one&colon;
+If you want additional attributes in your join table, you can define a model for the join table in sequelize&comma; before you define the association, and then tell sequelize that it should use that model for joining&comma; instead of creating a new one:
 
 ```js
 User = sequelize.define('User', {})
