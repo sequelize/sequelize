@@ -449,27 +449,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     }
 
-    if (current.dialect.supports['RETURNING']) {
-      describe('Autoincrement values', function () {
+    if (current.dialect.supports.returnValues) {
+      describe('return values', function () {
         it('should make the autoincremented values available on the returned instances', function () {
           var User = this.sequelize.define('user', {});
 
           return User.sync({force: true}).then(function () {
-            return User.bulkCreate([
-              {},
-              {},
-              {}
-            ], {returning: true}).then(function (users) {
-              expect(users.length).to.be.ok;
-              users.forEach(function (user, i) {
-                expect(user.get('id')).to.be.ok;
-                expect(user.get('id')).to.equal(i+1);
-              });
+            return User.create({}, {returning: true}).then(function (user) {
+              expect(user.get('id')).to.be.ok;
+              expect(user.get('id')).to.equal(1);
             });
           });
         });
 
-        it('should make the autoincremented values available on the returned instances', function () {
+        it('should make the autoincremented values available on the returned instances with custom fields', function () {
           var User = this.sequelize.define('user', {
             maId: {
               type: DataTypes.INTEGER,
@@ -480,16 +473,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
 
           return User.sync({force: true}).then(function () {
-            return User.bulkCreate([
-              {},
-              {},
-              {}
-            ], {returning: true}).then(function (users) {
-              expect(users.length).to.be.ok;
-              users.forEach(function (user, i) {
-                expect(user.get('maId')).to.be.ok;
-                expect(user.get('maId')).to.equal(i+1);
-              });
+            return User.create({}, {returning: true}).then(function (user) {
+              expect(user.get('maId')).to.be.ok;
+              expect(user.get('maId')).to.equal(1);
             });
           });
         });
@@ -1501,6 +1487,53 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             }
 
             done();
+          });
+        });
+      });
+    }
+
+    if (current.dialect.supports.returnValues) {
+      describe('return values', function () {
+        it('should make the autoincremented values available on the returned instances', function () {
+          var User = this.sequelize.define('user', {});
+
+          return User.sync({force: true}).then(function () {
+            return User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {returning: true}).then(function (users) {
+              expect(users.length).to.be.ok;
+              users.forEach(function (user, i) {
+                expect(user.get('id')).to.be.ok;
+                expect(user.get('id')).to.equal(i+1);
+              });
+            });
+          });
+        });
+
+        it('should make the autoincremented values available on the returned instances with custom fields', function () {
+          var User = this.sequelize.define('user', {
+            maId: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+              field: 'yo_id'
+            }
+          });
+
+          return User.sync({force: true}).then(function () {
+            return User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {returning: true}).then(function (users) {
+              expect(users.length).to.be.ok;
+              users.forEach(function (user, i) {
+                expect(user.get('maId')).to.be.ok;
+                expect(user.get('maId')).to.equal(i+1);
+              });
+            });
           });
         });
       });
