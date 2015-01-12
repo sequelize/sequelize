@@ -920,6 +920,39 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         });
       });
 
+      it('should support including other models and ordering', function() {
+        var Serie = this.sequelize.define('Serie', {'title': DataTypes.STRING});
+        var Event =  this.sequelize.define('Event', {'title': DataTypes.STRING, 'start': DataTypes.DATE });
+        var User = this.User;
+        Serie.hasMany(Event);
+        Event.hasMany(User, {'as': 'Organisers', 'through': 'Event_Organisers'});
+        User.hasMany(Event, {'as': 'OrganisedEvents', 'through': 'Event_Organisers'});
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return Promise.all([
+            Serie.create({ title: 'A serie' }),
+            Event.create({ title: 'Alfa', start: '2015-01-01' }),
+            Event.create({ title: 'Echo', start: '2015-01-31' }),
+            Event.create({ title: 'Beta', start: '2015-01-05' })
+          ]).spread(function(serie, eventAlfa, eventEcho, eventBeta) {
+            return serie.setEvents([eventAlfa, eventEcho, eventBeta]).then(function() {
+
+              // Get the events and their organisers sorted on the events their start date
+              var options = {
+                'include': [{'model': User, 'as': 'Organisers'}],
+                'limit': 2,
+                'order': ['start']
+              };
+              return serie.getEvents(options);
+            });
+          }).then(function(events) {
+            expect(events.length, 2);
+            expect(events[0].title).to.equal('Alfa');
+            expect(events[1].title).to.equal('Beta');
+          });
+        });
+      });
+
       it('should support schemas', function() {
         var self = this
           , AcmeUser = self.sequelize.define('User', {
