@@ -499,7 +499,7 @@ sequelize.[sync|drop]().then(function() {
 
 ## Expansion of models
 
-Sequelize allows you to pass custom methods to a model and it's instances&period; Just do the following&colon;
+Sequelize allows you to pass custom methods to a model and its instances&period; Just do the following&colon;
 
 ```js
 var Foo = sequelize.define('Foo', { /* attributes */}, {
