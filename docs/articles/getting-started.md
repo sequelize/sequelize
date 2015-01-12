@@ -60,9 +60,9 @@ sequelize
 
 ## Managing the schema of your database
 
-Sequelize supports two way of schema management. You can either define so called migrations, which are programmatically changing your database's structure. Or you can let Sequelize create the tables for you.
+Sequelize supports two types of schema management. You can either define so-called migrations, which are programmatically changing your database's structure, or you can let Sequelize create the tables for you.
 
-While the first possibility of using `migrations` takes more time to setup, it's most likely the way to go, if you want to deploy your application on many different server environments. The reason for that is based on the fact, that migrations are consistently changing your database according to the current state of the schema.
+While the first possibility of using `migrations` takes more time to setup, it's most likely the way to go if you want to deploy your application on many different server environments. This is because migrations are consistently changing your database according to the current state of the schema.
 
 However, the automated way of using Sequelize's function `sequelize.sync` will probably be a good choice on your local machine or if you just want to quickly spin up a prototype.
 
