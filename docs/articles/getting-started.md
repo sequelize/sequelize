@@ -185,7 +185,7 @@ User
   });
 ```
 
-Please note that there won't be any error if no user with the name "john-doe" has been found. This is intended, as there is not internal or authentication error.
+Please note that, if no user with the name "john-doe" has been found, there won't be any errors. This is intended, as there are no internal or authentication errors.
 
 ## Defining associations
 
