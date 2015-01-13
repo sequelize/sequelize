@@ -589,6 +589,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         , Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       Photo.sync({ force: true }).success(function() {
         self.sequelize.getQueryInterface().showAllTables().success(function(tableNames) {
+          if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+            tableNames = _.pluck(tableNames, 'tableName');
+          }
+
           expect(tableNames).to.include('photos');
           done();
         });

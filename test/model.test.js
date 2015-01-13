@@ -313,8 +313,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       User.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
         if (dialect === 'mssql') {
-          expect(sql).to.match(/CONSTRAINT\s*([`"]?user_and_email[`"]?)?\s*UNIQUE\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
-          expect(sql).to.match(/CONSTRAINT\s*([`"]?a_and_b[`"]?)?\s*UNIQUE\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"\[]?username[`"\]]?, [`"\[]?email[`"\]]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"\[]?aCol[`"\]]?, [`"\[]?bCol[`"\]]?\)/);
         } else {
           expect(sql).to.match(/UNIQUE\s*([`"]?user_and_email[`"]?)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
           expect(sql).to.match(/UNIQUE\s*([`"]?a_and_b[`"]?)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
@@ -2046,7 +2046,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             if (dialect === 'postgres') {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
             } else if (dialect === 'mssql') {
-              expect(sql).to.match(/REFERENCES\s+"prefix.UserPubs" \("id"\)/);
+              expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
             } else {
               expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
             }
@@ -2084,9 +2084,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
             } else if (dialect === 'mssql') {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special.UserSpecials"');
-              expect(UserSpecial.indexOf('INSERT INTO "special.UserSpecials"')).to.be.above(-1);
-              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
+              expect(UserSpecial.indexOf('INSERT INTO [special].[UserSpecials]')).to.be.above(-1);
+              expect(UserPublic.indexOf('INSERT INTO [UserPublics]')).to.be.above(-1);
             } else {
               expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
@@ -2101,7 +2101,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               if (dialect === 'postgres') {
                 expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1);
               } else if (dialect === 'mssql') {
-                expect(user.indexOf('UPDATE "special.UserSpecials"')).to.be.above(-1);
+                expect(user.indexOf('UPDATE [special].[UserSpecials]')).to.be.above(-1);
               } else {
                 expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1);
               }
@@ -2151,7 +2151,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         } else if (Support.dialectIsMySQL()) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
-          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
+          expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
         } else {
@@ -2185,7 +2185,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
-          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
+          expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else {
           throw new Error('Undefined dialect!');
         }

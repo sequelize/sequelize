@@ -364,7 +364,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         }).success(function(user) {
           var emitter = user.update({name: 'foobar'});
           emitter.on('sql', function(sql) {
-            expect(sql).to.match(/WHERE [`"]identifier[`"]..identifier./);
+            expect(sql).to.match(/WHERE [`"\[]identifier[`"\]]..identifier./);
             done();
           });
         });
