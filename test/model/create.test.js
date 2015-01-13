@@ -107,6 +107,29 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should support special characters in defaults', function () {
+      var User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.INTEGER,
+          unique: true
+        },
+        description: {
+          type: DataTypes.TEXT
+        }
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.findOrCreate({
+          where: {
+            objectId: 1
+          },
+          defaults: {
+            description: '$$ and !! and :: and ? and ^ and * and \''
+          }
+        });
+      });
+    });
+
     it('returns instance if already existent. Single find field.', function(done) {
       var self = this,
         data = {

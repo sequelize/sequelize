@@ -74,8 +74,12 @@ $ sudo docker pull mhansen/sequelize-contribution
 
 Start the container and save references to container id and ip:
 ```console
+# Start mysql/postgres container
 $ CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
-$ CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
+# Or start postgres 9.4 container
+$ CONTAINER=$(sudo docker run --name sequelize-postgres -e POSTGRES_USER=sequelize_test -e POSTGRES_PASSWORD=sequelize_test -d postgres:9.4)
+
+$ CONTAINER_IP=$(sudo docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
 ```
 
 Run tests:
