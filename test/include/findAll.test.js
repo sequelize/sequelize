@@ -2078,5 +2078,55 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
       });
     });
+
+    it('should be able to order on the main table and a required belongsTo relation with custom tablenames and limit ', function () {
+      var User = this.sequelize.define('User', {
+        lastName: DataTypes.STRING
+      }, {tableName: 'dem_users'});
+      var Company = this.sequelize.define('Company', {
+        rank: DataTypes.INTEGER
+      }, {tableName: 'dem_companies'});
+
+      User.belongsTo(Company);
+      Company.hasMany(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          User.create({lastName: 'Albertsen'}),
+          User.create({lastName: 'Zenith'}),
+          User.create({lastName: 'Hansen'}),
+          Company.create({rank: 1}),
+          Company.create({rank: 2})
+        ).spread(function (albertsen, zenith, hansen, company1, company2) {
+          return Promise.join(
+            albertsen.setCompany(company1),
+            zenith.setCompany(company2),
+            hansen.setCompany(company2)
+          );
+        }).then(function () {
+          return User.findAll({
+            include: [
+              {model: Company, required: true}
+            ],
+            order: [
+              [Company, 'rank', 'ASC'],
+              ['lastName', 'DESC']
+            ],
+            limit: 5
+          }).on('sql', function (sql) {
+            console.log(sql);
+          }).then(function (users) {
+            expect(users[0].lastName).to.equal('Albertsen');
+            expect(users[0].Company.rank).to.equal(1);
+
+            expect(users[1].lastName).to.equal('Zenith');
+            expect(users[1].Company.rank).to.equal(2);
+
+            expect(users[2].lastName).to.equal('Hansen');
+            expect(users[2].Company.rank).to.equal(2);
+          });
+        });
+      });
+    });
   });
 });
