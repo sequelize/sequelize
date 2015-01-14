@@ -2113,8 +2113,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               ['lastName', 'DESC']
             ],
             limit: 5
-          }).on('sql', function (sql) {
-            console.log(sql);
           }).then(function (users) {
             expect(users[0].lastName).to.equal('Albertsen');
             expect(users[0].Company.rank).to.equal(1);
