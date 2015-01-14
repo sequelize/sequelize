@@ -1750,6 +1750,32 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+
+    it('should be possible to select on columns inside a through table', function(done) {
+      var self = this;
+      this.fixtureA(function() {
+        self.models.Product.findAll({
+          attributes: ['title'],
+          include: [
+            {
+              model: self.models.Tag,
+              through: {
+                where: {
+                  ProductId: 3
+                }
+              },
+              required: true
+            }
+          ]
+        }).done(function(err, products) {
+          expect(err).not.to.be.ok;
+          expect(products).have.length(1);
+
+          done();
+        });
+      });
+    });
+
     // Test case by @eshell
     it('should be possible not to include the main id in the attributes', function(done) {
       var Member = this.sequelize.define('Member', {
@@ -1999,18 +2025,18 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
       });
     });
-    
+
     it('should work on a nested set of required 1:1 relations', function () {
       var Person = this.sequelize.define("Person", {
-        name: { 
+        name: {
           type          : Sequelize.STRING,
           allowNull     : false
         }
       });
 
       var UserPerson = this.sequelize.define("UserPerson", {
-        PersonId: { 
-          type          : Sequelize.INTEGER, 
+        PersonId: {
+          type          : Sequelize.INTEGER,
           primaryKey    : true
         },
 
@@ -2020,8 +2046,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
 
       var User = this.sequelize.define("User", {
-        UserPersonId: { 
-          type          : Sequelize.INTEGER, 
+        UserPersonId: {
+          type          : Sequelize.INTEGER,
           primaryKey    : true
         },
 
@@ -2032,20 +2058,20 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         }
       });
 
-      UserPerson.belongsTo(Person, { 
-        foreignKey: { 
+      UserPerson.belongsTo(Person, {
+        foreignKey: {
           allowNull: false
         },
         onDelete: 'CASCADE'
       });
-      Person.hasOne(UserPerson, { 
-        foreignKey: { 
+      Person.hasOne(UserPerson, {
+        foreignKey: {
           allowNull: false
         },
         onDelete: 'CASCADE'
       });
-      
-      User.belongsTo(UserPerson, { 
+
+      User.belongsTo(UserPerson, {
         foreignKey: {
           name: 'UserPersonId',
           allowNull: false
@@ -2053,7 +2079,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         onDelete: 'CASCADE'
       });
       UserPerson.hasOne(User, {
-        foreignKey: { 
+        foreignKey: {
           name: 'UserPersonId',
           allowNull: false
         },
@@ -2063,12 +2089,12 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       return this.sequelize.sync({force: true}).then(function () {
         return Person.findAll({
           offset        : 0,
-          limit         : 20, 
+          limit         : 20,
           attributes    : ['id', 'name'],
           include       : [{
-            model         : UserPerson, 
-            required      : true, 
-            attributes    : ['rank'], 
+            model         : UserPerson,
+            required      : true,
+            attributes    : ['rank'],
             include       : [{
               model         : User,
               required      : true,
