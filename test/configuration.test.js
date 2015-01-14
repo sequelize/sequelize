@@ -84,6 +84,14 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
       done();
     });
 
+    it('should work with no authentication options and passing additional options', function() {
+      var sequelize = new Sequelize('mysql://example.com:9821/dbname', {});
+      var config = sequelize.config;
+
+      expect(config.username).to.not.be.ok;
+      expect(config.password).to.be.null;
+    });
+
     it('should use the default port when no other is specified', function() {
       var sequelize = new Sequelize('dbname', 'root', 'pass', {
           dialect: dialect
