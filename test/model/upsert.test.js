@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   if (current.dialect.supports.upserts) {
-    describe.only('upsert', function() {
+    describe('upsert', function() {
       it('works with upsert on id', function() {
         return this.User.upsert({ id: 42, username: 'john' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
