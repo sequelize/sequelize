@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   if (current.dialect.supports.upserts) {
-    describe('upsert', function() {
+    describe.only('upsert', function() {
       it('works with upsert on id', function() {
         return this.User.upsert({ id: 42, username: 'john' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
@@ -90,7 +90,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.updatedAt).to.be.afterTime(user.createdAt);
         });
       });
+
+      it('supports validations', function () {
+        var User = this.sequelize.define('user', {
+          email: {
+            type: Sequelize.STRING,
+            validate: {
+              isEmail: true
+            }
+          }
+        });
+
+        return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(this.sequelize.ValidationError);
+      });
     });
   }
-
 });
