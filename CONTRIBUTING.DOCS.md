@@ -19,7 +19,7 @@ To view the docs locally use `mkdocs serve`. This will start a local server at p
 Write markdown, and have fun :)
 
 ## API docs
-The API documentation is generated from source code comments by a custom script, which outputs markdown into the `docs/api` folder. To regenerate the documentation, run 
+The API documentation is generated from source code comments by a custom script, which outputs markdown into the `docs/api` folder. To regenerate the documentation, run: 
 ```bash
 $ npm run docs
 ```
