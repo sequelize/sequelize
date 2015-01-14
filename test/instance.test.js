@@ -1642,11 +1642,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             user.destroy().on('sql', function(sql) {
               if (dialect === 'postgres' || dialect === 'postgres-native') {
                 expect(sql).to.equal('DELETE FROM "UserDestroys" WHERE "newId" IN (SELECT "newId" FROM "UserDestroys" WHERE "newId"=\'123ABC\' LIMIT 1)');
-              }
-              else if (Support.dialectIsMySQL()) {
+              } else if (Support.dialectIsMySQL()) {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC' LIMIT 1");
               } else if (dialect === 'mssql') {
-                expect(sql).to.equal('DELETE TOP(1) FROM "UserDestroys" WHERE "newId"=\'123ABC\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;');
+                expect(sql).to.equal('DELETE TOP(1) FROM [UserDestroys] WHERE [newId]=\'123ABC\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;');
               }else {
                 expect(sql).to.equal("DELETE FROM `UserDestroys` WHERE `newId`='123ABC'");
               }

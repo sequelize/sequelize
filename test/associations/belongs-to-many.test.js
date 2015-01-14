@@ -9,7 +9,8 @@ var chai = require('chai')
   , moment = require('moment')
   , sinon = require('sinon')
   , Promise = Sequelize.Promise
-  , current = Support.sequelize;
+  , current = Support.sequelize
+  , dialect = Support.getTestDialect();
 
 chai.config.includeStack = true;
 
@@ -1424,6 +1425,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return this.sequelize.sync({force: true}).then(function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
+        if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+          result = _.pluck(result, 'tableName');
+        }
+
         expect(result.indexOf('group_user')).not.to.equal(-1);
       });
     });
@@ -1440,6 +1445,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return this.sequelize.sync({force: true}).then(function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
+        if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+          result = _.pluck(result, 'tableName');
+        }
+
         expect(result.indexOf('user_groups')).not.to.equal(-1);
       });
     });
