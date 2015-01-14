@@ -2,11 +2,11 @@
 
 The sequelize documentation is written in a combination of markdown (articles and example based documentation) and [JSDoc](http://usejsdoc.org) (API reference generated from source code comments).
 
-All documentation is located in `docs` folder. 
+All documentation is located in the `docs` folder. 
 
 The documentation is rendered using [mkdocs](http://mkdocs.org) and hosted at [Read the docs](http://sequelize.readthedocs.org).  Mkdocs generates static HTML from markdown files. The files in `articles` and `docs` should be edited directly, and the files in `api` are generated from source code comments (more on that later).
 
-All pages in the documentation are defined in `mkdocs.yml`, in the `pages` section. Each page is given as a separate line:
+All pages in the documentation are defined in the `pages` section of `mkdocs.yml`. Each page is given as a separate line:
 ```yml
 - ['index.md', 'Home', 'Welcome']
 ```
