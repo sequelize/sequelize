@@ -1999,6 +1999,47 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
       });
     });
+
+    it('should work on a non required hasMany relation requiring a belongsTo relation with limit', function () {
+      var Group = this.sequelize.define('group', {})
+        , User = this.sequelize.define('user', {})
+        , Company = this.sequelize.define('company', {});
+
+      Group.hasMany(User, foreignKey: 'group_id');
+      User.belongsTo(Group, foreignKey: 'group_id');
+
+      Company.hasMany(User, foreignKey: 'company_id');
+      User.belongsTo(Company, foreignKey: 'company_id');
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Group.create().then(function (group) {
+          return Promise.join(
+            Company.create().then(function (company) {
+              return User.create({
+                company_id: company.get('id'),
+                group_id: group.get('id')
+              })
+            }),
+            User.create({
+              group_id: group.get('id')
+            })
+          )
+        });
+      }).then(function () {
+        return Group.findAll({
+          include: [
+            {model: User, required: false, include: [
+              {model: Company, required: true}
+            ]}
+          ],
+          limit: 5 // actual amount is not relevant here, just need to trigger logic
+        }).then(function (groups) { 
+          expect(groups.length).to.equal(1);
+          expect(groups[0].users.length).to.equal(1);
+          expect(groups[0].users[0].company).to.be.ok;
+        });
+      });
+    });
     
     it('should work on a nested set of required 1:1 relations', function () {
       var Person = this.sequelize.define("Person", {
