@@ -525,7 +525,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             ],
             order: [
               User.rawAttributes.id,
-              [Product, 'id', 'ASC']
+              [Product, 'id']
             ]
           }).done(function(err, user) {
             expect(err).not.to.be.ok;

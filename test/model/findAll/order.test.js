@@ -69,6 +69,45 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         }
       });
+
+      describe.only('injections', function () {
+        beforeEach(function () {
+          this.User = this.sequelize.define('user', {
+
+          });
+          this.Group = this.sequelize.define('group', {
+
+          });
+          this.User.belongsTo(this.Group);
+          return this.sequelize.sync({force: true});
+        });
+
+        it('should throw when 2nd order argument is not ASC or DESC', function () {
+          return expect(this.User.findAll({
+            order: [
+              ['id', ';DELETE YOLO INJECTIONS']
+            ]
+          })).to.eventually.be.rejectedWith(Error, 'Order must be \'ASC\' or \'DESC\', \';DELETE YOLO INJECTIONS\' given');
+        });
+
+        it('should throw with include when last order argument is not ASC or DESC', function () {
+          return expect(this.User.findAll({
+            include: [this.Group],
+            order: [
+              [this.Group, 'id', ';DELETE YOLO INJECTIONS']
+            ]
+          })).to.eventually.be.rejectedWith(Error, 'Order must be \'ASC\' or \'DESC\', \';DELETE YOLO INJECTIONS\' given');
+        });
+
+        it('should not throw with include when last order argument is a field', function () {
+          return this.User.findAll({
+            include: [this.Group],
+            order: [
+              [this.Group, 'id']
+            ]
+          });
+        });
+      });
     });
   });
 });
