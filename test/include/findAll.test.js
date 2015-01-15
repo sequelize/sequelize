@@ -1776,6 +1776,32 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should be possible to select on columns inside a through table and a limit', function(done) {
+      var self = this;
+      this.fixtureA(function() {
+        self.models.Product.findAll({
+          attributes: ['title'],
+          include: [
+            {
+              model: self.models.Tag,
+              through: {
+                where: {
+                  ProductId: 3
+                }
+              },
+              required: true
+            }
+          ],
+          limit: 5
+        }).done(function(err, products) {
+          expect(err).not.to.be.ok;
+          expect(products).have.length(1);
+
+          done();
+        });
+      });
+    });
+
     // Test case by @eshell
     it('should be possible not to include the main id in the attributes', function(done) {
       var Member = this.sequelize.define('Member', {
