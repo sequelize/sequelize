@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      describe.only('injections', function () {
+      describe('injections', function () {
         beforeEach(function () {
           this.User = this.sequelize.define('user', {
 
