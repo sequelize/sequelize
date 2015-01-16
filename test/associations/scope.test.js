@@ -412,6 +412,37 @@ describe(Support.getTestDialectTeaser('associations'), function() {
                 expect(questionTags.map(function(tag) {
                   return tag.name;
                 }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
+              }).then(function () {
+                return Promise.join(
+                  self.Post.find({
+                    where: {},
+                    include: [self.Tag]
+                  }),
+                  self.Image.find({
+                    where: {},
+                    include: [self.Tag]
+                  }),
+                  self.Question.find({
+                    where: {},
+                    include: [self.Tag]
+                  })
+                ).spread(function (post, image, question) {
+                  expect(post.tags.length).to.equal(3);
+                  expect(image.tags.length).to.equal(3);
+                  expect(question.tags.length).to.equal(3);
+
+                  expect(post.tags.map(function(tag) {
+                    return tag.name;
+                  }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
+
+                  expect(image.tags.map(function(tag) {
+                    return tag.name;
+                  }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
+
+                  expect(question.tags.map(function(tag) {
+                    return tag.name;
+                  }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
+                });
               });
             });
           });

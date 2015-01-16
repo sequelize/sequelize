@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).on('sql', function(sql) {
           var expectation = ({
             mysql: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
-            mssql: 'WHERE ("User"."username"=\'foo\' AND "User"."intVal"=2 ' + word + ' "User"."secretValue"=\'bar\')',
+            mssql: 'WHERE ([User].[username]=\'foo\' AND [User].[intVal]=2 ' + word + ' [User].[secretValue]=\'bar\')',
             sqlite: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')",
             postgres: 'WHERE ("User"."username"=\'foo\' AND "User"."intVal"=2 ' + word + ' "User"."secretValue"=\'bar\')',
             mariadb: "WHERE (`User`.`username`='foo' AND `User`.`intVal`=2 " + word + " `User`.`secretValue`='bar')"
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             mysql: 'WHERE (`User`.`id`=1 ' + word + ' `User`.`id`=2)',
             sqlite: 'WHERE (`User`.`id`=1 ' + word + ' `User`.`id`=2)',
             postgres: 'WHERE ("User"."id"=1 ' + word + ' "User"."id"=2)',
-            mssql: 'WHERE ("User"."id"=1 ' + word + ' "User"."id"=2)',
+            mssql: 'WHERE ([User].[id]=1 ' + word + ' [User].[id]=2)',
             mariadb: 'WHERE (`User`.`id`=1 ' + word + ' `User`.`id`=2)'
           })[Support.getTestDialect()];
 
@@ -128,7 +128,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           mysql: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
           sqlite: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1",
           postgres: 'WHERE (("User"."username" = \'foo\' OR "User"."username" = \'bar\') AND ("User"."id" = 1 OR "User"."id" = 4)) LIMIT 1',
-          mssql: 'WHERE (("User"."username" = \'foo\' OR "User"."username" = \'bar\') AND ("User"."id" = 1 OR "User"."id" = 4))',
+          mssql: 'WHERE (([User].[username] = \'foo\' OR [User].[username] = \'bar\') AND ([User].[id] = 1 OR [User].[id] = 4))',
           mariadb: "WHERE ((`User`.`username` = 'foo' OR `User`.`username` = 'bar') AND (`User`.`id` = 1 OR `User`.`id` = 4)) LIMIT 1"
         })[Support.getTestDialect()];
 
@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           mysql: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
           sqlite: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1",
           postgres: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4)) LIMIT 1',
-          mssql: 'WHERE (("User"."username" = \'foo\' AND "User"."username" = \'bar\') OR ("User"."id" = 1 AND "User"."id" = 4))',
+          mssql: 'WHERE (([User].[username] = \'foo\' AND [User].[username] = \'bar\') OR ([User].[id] = 1 AND [User].[id] = 4))',
           mariadb: "WHERE ((`User`.`username` = 'foo' AND `User`.`username` = 'bar') OR (`User`.`id` = 1 AND `User`.`id` = 4)) LIMIT 1"
         })[Support.getTestDialect()];
 
@@ -206,7 +206,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             )
           ]
         }).on('sql', function(sql) {
-          if (Support.getTestDialect() === 'postgres' || dialect === 'mssql') {
+          if (dialect === 'postgres') {
             expect(sql).to.contain(
               'WHERE (' + [
                 '"User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\' AND ',
@@ -219,6 +219,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                     '"User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\' AND ',
                     '("User"."id"=42 OR 2=2 OR 1=1 OR "User"."username"=\'foo\') AND ',
                     '("User"."id"=42 AND 2=2 AND 1=1 AND "User"."username"=\'foo\')',
+                  ')'
+                ].join('') +
+              ')'
+            );
+          } else if (dialect === 'mssql') {
+            expect(sql).to.contain(
+              'WHERE (' + [
+                '[User].[id]=42 AND 2=2 AND 1=1 AND [User].[username]=\'foo\' AND ',
+                  '(',
+                    '[User].[id]=42 OR 2=2 OR 1=1 OR [User].[username]=\'foo\' OR ',
+                    '([User].[id]=42 AND 2=2 AND 1=1 AND [User].[username]=\'foo\') OR ',
+                    '([User].[id]=42 OR 2=2 OR 1=1 OR [User].[username]=\'foo\')',
+                  ') AND ',
+                  '(',
+                    '[User].[id]=42 AND 2=2 AND 1=1 AND [User].[username]=\'foo\' AND ',
+                    '([User].[id]=42 OR 2=2 OR 1=1 OR [User].[username]=\'foo\') AND ',
+                    '([User].[id]=42 AND 2=2 AND 1=1 AND [User].[username]=\'foo\')',
                   ')'
                 ].join('') +
               ')'

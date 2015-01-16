@@ -90,7 +90,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.updatedAt).to.be.afterTime(user.createdAt);
         });
       });
+
+      it('supports validations', function () {
+        var User = this.sequelize.define('user', {
+          email: {
+            type: Sequelize.STRING,
+            validate: {
+              isEmail: true
+            }
+          }
+        });
+
+        return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(this.sequelize.ValidationError);
+      });
     });
   }
-
 });

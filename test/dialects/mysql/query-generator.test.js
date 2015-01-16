@@ -543,7 +543,7 @@ if (Support.dialectIsMySQL()) {
         }
       ],
 
-      showIndexQuery: [
+      showIndexesQuery: [
         {
           arguments: ['User'],
           expectation: 'SHOW INDEX FROM `User`'

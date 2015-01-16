@@ -59,6 +59,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           self.queryInterface.showAllTables().complete(function(err, tableNames) {
             expect(err).to.be.null;
 
+            if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+              tableNames = _.pluck(tableNames, 'tableName');
+            }
+
             expect(tableNames).to.contain('skipme');
             done();
           });
@@ -421,7 +425,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('should get a list of foreign keys for the table', function(done) {
-      this.sequelize.query(this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database)).complete(function(err, fks) {
+      var sql =
+        this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
+      this.sequelize.query(sql).complete(function(err, fks) {
         expect(err).to.be.null;
         expect(fks).to.have.length(3);
         var keys = Object.keys(fks[0]),

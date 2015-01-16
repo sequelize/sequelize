@@ -1431,8 +1431,12 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           this.Task.create({ id: 15, title: 'task2' })
         ]).spread(function(user, task1, task2) {
           return user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function(sql) {
-            var tickChar = (Support.getTestDialect() === 'postgres' || dialect === 'mssql') ? '"' : '`';
-            expect(sql).to.have.string('INSERT INTO %TasksUsers% (%TaskId%,%UserId%) VALUES (12,1),(15,1)'.replace(/%/g, tickChar));
+            if (dialect === 'mssql') {
+              expect(sql).to.have.string('INSERT INTO [TasksUsers] ([TaskId],[UserId]) VALUES (12,1),(15,1)');
+            } else {
+              var tickChar = (Support.getTestDialect() === 'postgres') ? '"' : '`';
+              expect(sql).to.have.string('INSERT INTO %TasksUsers% (%TaskId%,%UserId%) VALUES (12,1),(15,1)'.replace(/%/g, tickChar));
+            }
           }));
         }).then(function() {
           expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
@@ -2169,6 +2173,10 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         return this.sequelize.sync({force: true}).then(function() {
           return self.sequelize.getQueryInterface().showAllTables();
         }).then(function(result) {
+          if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+            result = _.pluck(result, 'tableName');
+          }
+
           expect(result.indexOf('group_user')).not.to.equal(-1);
         });
       });
@@ -2185,6 +2193,10 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         return this.sequelize.sync({force: true}).then(function() {
           return self.sequelize.getQueryInterface().showAllTables();
         }).then(function(result) {
+          if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+            result = _.pluck(result, 'tableName');
+          }
+
           expect(result.indexOf('user_groups')).not.to.equal(-1);
         });
       });
