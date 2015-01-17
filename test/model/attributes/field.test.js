@@ -500,7 +500,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should work with paranoid destroy', function () {
+      it('should work with paranoid instance.destroy()', function () {
         var User = this.sequelize.define('User', {
           deletedAt: {
             type: DataTypes.DATE,
@@ -514,6 +514,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return User.sync({force: true}).then(function () {
           return User.create().then(function (user) {
             return user.destroy();
+          }).then(function () {
+            return User.findAll().then(function (users) {
+              expect(users.length).to.equal(0);
+            });
+          });
+        });
+      });
+
+      it('should work with paranoid Model.destroy()', function () {
+        var User = this.sequelize.define('User', {
+          deletedAt: {
+            type: DataTypes.DATE,
+            field: 'deleted_at'
+          }
+        }, {
+          timestamps: true,
+          paranoid: true
+        });
+
+        return User.sync({force: true}).then(function () {
+          return User.create().then(function (user) {
+            return User.destroy({where: {id: user.get('id')}});
           }).then(function () {
             return User.findAll().then(function (users) {
               expect(users.length).to.equal(0);
