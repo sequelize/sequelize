@@ -1121,6 +1121,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should fail a validation upon creating with hooks false', function(done) {
+      this.User.create({aNumber: 0, validateTest: 'hello'}, {hooks: false}).error(function(err) {
+        expect(err).to.exist;
+        expect(err).to.be.instanceof(Object);
+        expect(err.get('validateTest')).to.be.instanceof(Array);
+        expect(err.get('validateTest')[0]).to.exist;
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+        done();
+      });
+    });
+
     it('should fail a validation upon building', function(done) {
       this.User.build({aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'}).save()
       .error(function(err) {

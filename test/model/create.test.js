@@ -1191,6 +1191,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should not fail on validate: true and individualHooks: true', function () {
+      var User = this.sequelize.define('user', {
+        name: Sequelize.STRING
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.bulkCreate([
+          {name: 'James'}
+        ], {validate: true, individualHooks: true});
+      });
+    });
+
     it('properly handles disparate field lists', function(done) {
       var self = this
         , data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },
