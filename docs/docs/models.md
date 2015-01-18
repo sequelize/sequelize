@@ -15,7 +15,7 @@ var Task = sequelize.define('Task', {
 })
 ```
 
-You can also set some options on each column&colon;
+You can also set some options on each column:
     
 ```js
 var Foo = sequelize.define('Foo', {
@@ -51,11 +51,11 @@ var Foo = sequelize.define('Foo', {
 })
 ```
 
-The comment option can also be used on a table&comma; see [model configuration][0]
+The comment option can also be used on a table, see [model configuration][0]
 
 ## Data types
 
-Sequelize currently supports the following datatypes&colon;
+Sequelize currently supports the following datatypes:
 
 ```js 
 Sequelize.STRING                      // VARCHAR(255)
