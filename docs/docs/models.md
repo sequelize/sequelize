@@ -84,9 +84,9 @@ Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other o
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
 ```
 
-The BLOB data type allows you to insert data both as strings and as buffers&period; When you do a find or findAll on a model which has a BLOB column&comma; that data will always be returned as a buffer&period;
+The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column. that data will always be returned as a buffer.
  
-If you are working with the PostgreSQL TIMESTAMP WITHOUT TIME ZONE and you need to parse it to a different timezone&comma; please use the pg library's own parser&colon;
+If you are working with the PostgreSQL TIMESTAMP WITHOUT TIME ZONE and you need to parse it to a different timezone, please use the pg library's own parser:
 
 ```js
 require('pg').types.setTypeParser(1114, function(stringValue) {
@@ -95,7 +95,7 @@ require('pg').types.setTypeParser(1114, function(stringValue) {
 });
 ```
 
-In addition to the type mentioned above&comma; integer&comma; bigint and float also support unsigned and zerofill properties&comma; which can be combined in any order&colon;
+In addition to the type mentioned above, integer, bigint and float also support unsigned and zerofill properties, which can be combined in any order,
 
 ```js
 Sequelize.INTEGER.UNSIGNED              // INTEGER UNSIGNED
@@ -107,7 +107,7 @@ Sequelize.INTEGER(11).UNSIGNED.ZEROFILL // INTEGER(11) UNSIGNED ZEROFILL
 
 _The examples above only show integer&comma; but the same can be done with bigint and float_
 
-Usage in object notation&colon;
+Usage in object notation:
     
 ```js
 // for enums:
