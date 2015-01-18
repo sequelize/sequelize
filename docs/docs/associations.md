@@ -51,7 +51,7 @@ Team.hasOne(Game, {as: 'AwayTeam', foreignKey : 'awayTeamId'});
 Game.belongsTo(Team);
 ```
 
-To get the association working the other way around &lpar;so from `User` to `Project`&rpar;&comma; it's necessary to do this&colon;
+To get the association working the other way around (so from `User` to `Project`), it's necessary to do this:
 
 ```js
 var User = sequelize.define('User', {/* ... */})
@@ -68,7 +68,7 @@ Project.belongsTo(User)
 
 ## One-To-Many associations
 
-One-To-Many associations are connecting one source with multiple targets&period; The targets however are again connected to exactly one specific source&period;
+One-To-Many associations are connecting one source with multiple targets. The targets however are again connected to exactly one specific source.
 ```js
 var User = sequelize.define('User', {/* ... */})
 var Project = sequelize.define('Project', {/* ... */})
@@ -109,7 +109,7 @@ Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
 // This will create the table PersonChildren which stores the ids of the objects.
 
 ```
-If you want additional attributes in your join table, you can define a model for the join table in sequelize&comma; before you define the association, and then tell sequelize that it should use that model for joining&comma; instead of creating a new one:
+If you want additional attributes in your join table, you can define a model for the join table in sequelize, before you define the association, and then tell sequelize that it should use that model for joining, instead of creating a new one:
 
 ```js
 User = sequelize.define('User', {})
@@ -128,7 +128,7 @@ To add a new project to a user and set it's status, you pass an extra object to 
 user.addProject(project, { status: 'started' })
 ```
 
-By default the code above will add ProjectId and UserId to the UserProjects table&comma; and_remove any previsouly defined primary key attribute _- the table will be uniquely identified by the combination of the keys of the two tables&comma; and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
+By default the code above will add ProjectId and UserId to the UserProjects table, and_remove any previsouly defined primary key attribute _- the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
     
 ```js
 UserProjects = sequelize.define('UserProjects', {
@@ -169,7 +169,7 @@ This will add the functions `add/set/get Tasks` to user instances.
 
 ## Associating objects
 
-Because Sequelize is doing a lot of magic&comma; you have to call `Sequelize.sync` after setting the associations&excl; Doing so will allow you the following&colon;
+Because Sequelize is doing a lot of magic, you have to call `Sequelize.sync` after setting the associations! Doing so will allow you the following:
     
 ```js
 Project.belongsToMany(Task)
@@ -202,7 +202,7 @@ project.getTasks({attributes: ['title']}).then(function(tasks) {
 })
 ```
 
-To remove created associations you can just call the set method without a specific id&colon;
+To remove created associations you can just call the set method without a specific id:
     
 ```js
 // remove the association with task1
@@ -226,7 +226,7 @@ project.addTask(task1).then(function() {
 })
 ```
 
-You can of course also do it vice versa&colon;
+You can of course also do it vice versa:
 
 ```js
 // project is associated with task1 and task2
@@ -235,14 +235,14 @@ task2.setProject(null).then(function() {
 })
 ```
 
-For hasOne&sol;belongsTo its basically the same&colon;
+For hasOne/belongsTo its basically the same:
 
 ```js
 Task.hasOne(User, {as: "Author"})
 Task#setAuthor(anAuthor)
 ```
 
-Adding associations to a relation with a custom join table can be done in two ways &lpar;continuing with the associations defined in the previous chapter&rpar;&colon;
+Adding associations to a relation with a custom join table can be done in two ways (continuing with the associations defined in the previous chapter):
     
 ```js
 // Either by adding a property with the name of the join table model to the object, before creating the association
@@ -265,7 +265,7 @@ u.setProjects([project1, project2], { status: 'active' })
 // The code above will record inactive for project one, and active for project two in the join table
 ```
 
-When getting data on an association that has a custom join table&comma; the data from the join table will be returned as a DAO instance&colon;
+When getting data on an association that has a custom join table, the data from the join table will be returned as a DAO instance:
 
 ```js
 u.getProjects().then(function(projects) {
@@ -280,7 +280,7 @@ u.getProjects().then(function(projects) {
 })
 ```
 
-If you only need some of the attributes from the join table&comma; you can provide an array with the attributes you want&colon;
+If you only need some of the attributes from the join table, you can provide an array with the attributes you want:
     
 ```js
 // This will select only name from the Projects table, and only status from the UserProjects table
@@ -288,7 +288,7 @@ user.getProjects({ attributes: ['name'], joinTableAttributes: ['status']})
 ```
 
 ## Check associations
-You can also check if an object is already associated with another one &lpar;N&colon;M only&rpar;&period; Here is how you'd do it&colon;
+You can also check if an object is already associated with another one (N:M only). Here is how you'd do it:
     
 ```js
 // check if an object is one of associated ones:
