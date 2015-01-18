@@ -1,7 +1,7 @@
 ## Definition
 
 To define mappings between a model and a table&comma; use the `define` method&period; Sequelize will then automatically add the attributes `createdAt` and `updatedAt` to it&period; So you will be able to know when the database entry went into the db and when it was updated the last time&period; If you do not want timestamps on your models, only want some timestamps, or you are working with an existing database where the columns are named something else, jump straight on to [configuration ][0]to see how to do that.
-    
+
 ```js
 var Project = sequelize.define('Project', {
   title: Sequelize.STRING,
@@ -16,7 +16,7 @@ var Task = sequelize.define('Task', {
 ```
 
 You can also set some options on each column&colon;
-    
+
 ```js
 var Foo = sequelize.define('Foo', {
  // instantiating will automatically set the flag to true if not set
@@ -57,7 +57,7 @@ The comment option can also be used on a table&comma; see [model configuration][
 
 Sequelize currently supports the following datatypes&colon;
 
-```js 
+```js
 Sequelize.STRING                      // VARCHAR(255)
 Sequelize.STRING(1234)                // VARCHAR(1234)
 Sequelize.STRING.BINARY               // VARCHAR BINARY
@@ -85,12 +85,12 @@ Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite
 ```
 
 The BLOB data type allows you to insert data both as strings and as buffers&period; When you do a find or findAll on a model which has a BLOB column&comma; that data will always be returned as a buffer&period;
- 
+
 If you are working with the PostgreSQL TIMESTAMP WITHOUT TIME ZONE and you need to parse it to a different timezone&comma; please use the pg library's own parser&colon;
 
 ```js
 require('pg').types.setTypeParser(1114, function(stringValue) {
-  return new Date(stringValue + "+0000"); 
+  return new Date(stringValue + "+0000");
   // e.g., UTC offset. Use any offset that you would like.
 });
 ```
@@ -108,7 +108,7 @@ Sequelize.INTEGER(11).UNSIGNED.ZEROFILL // INTEGER(11) UNSIGNED ZEROFILL
 _The examples above only show integer&comma; but the same can be done with bigint and float_
 
 Usage in object notation&colon;
-    
+
 ```js
 // for enums:
 sequelize.define('model', {
@@ -131,8 +131,8 @@ Getters and Setters can be defined in 2 ways &lpar;you can mix and match these 2
 **N&period;B&period;&colon;**If a getter or setter is defined in both places then the function found in the relevant property definition will always take precedence&period;
 
 ### Defining as part of a property
- 
-```js   
+
+```js
 var Foo = sequelize.define('Foo', {
   name: Sequelize.STRING,
   title: {
@@ -154,7 +154,7 @@ var Foo = sequelize.define('Foo', {
 ### Defining as part of the model options
 
 Below is an example of defining the getters and setters in the model options&comma; notice the `title_slugslug` getter&comma; it shows how you can define `pseudo` properties on your models&excl; &lpar;the `slugify()` function was taken from the [Underscore&period;String module][1]&comma; it is slightly modified here so that the example remains self-contained&rpar;&comma; note that the `this.title` reference in the `title_slug` getter function will trigger a call to the `title` getter function&period; if you do not want that then use the `getDataValue()` method &lpar;[see below][2]&rpar;&period;
-    
+
 ```js
 var defaultToWhiteSpace = function(characters) {
     if (characters == null)
@@ -200,7 +200,7 @@ var Foo = sequelize.define('Foo', {
 ### Helper functions for use inside getter&sol;setter definitions
 
 * retrieving an underlying property value&quest; always use `this.getDataValue()`&comma; e&period;g&colon;
-    
+
 ```js
 /* a getter for 'title' property */
 function() {
@@ -209,7 +209,7 @@ function() {
 ```
 
 * setting an underlying property value&quest; always use `this.setDataValue()`&comma; e&period;g&period;&colon;
-    
+
 ```js
 /* a setter for 'title' property */
 function(title) {
@@ -228,7 +228,7 @@ function(title) {
 Model validations, allow you to specify format&sol;content&sol;inheritance validations for each attribute of the model&period; You can perform the validation by calling the `validate()` method on an instance before saving&period; The validations are implemented by [validator][3].
 
 **Note&colon; **In `v1.7.0` validations will now be called when executing the `build()` or `create()` functions.
-    
+
 ```js
 var ValidateMe = sequelize.define('Foo', {
   foo: {
@@ -263,11 +263,11 @@ var ValidateMe = sequelize.define('Foo', {
       isDate: true,             // only allow date strings
       isAfter: "2011-11-05",    // only allow date strings after a specific date
       isBefore: "2011-11-05",   // only allow date strings before a specific date
-      max: 23,                  // only allow values 
+      max: 23,                  // only allow values
       min: 23,                  // only allow values >= 23
       isArray: true,            // only allow arrays
       isCreditCard: true,       // check for valid credit card numbers
- 
+
       // custom validations are also possible:
       isEven: function(value) {
         if(parseInt(value) % 2 != 0) {
@@ -284,7 +284,7 @@ var ValidateMe = sequelize.define('Foo', {
 Note that where multiple arguments need to be passed to the built-in validation functions&comma; the arguments to be passed must be in an array&period; But if a single array argument is to be passed&comma; for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument&period; To work around this pass a single-length array of arguments&comma; such as `[['one', 'two']]` as shown above&period;
 
 To use a custom error message instead of that provided by node-validator&comma; use an object instead of the plain value or array of arguments&comma; for example a validator which needs no argument can be given a custom message with
-    
+
 ```js
 isInt: {
   msg: "Must be an integer number of pennies"
@@ -293,7 +293,7 @@ isInt: {
 
 or if arguments need to also be passed add an`args`property&colon;
 
-```js    
+```js
 isIn: {
   args: [['en', 'zh']],
   msg: "Must be English or Chinese"
@@ -319,7 +319,7 @@ Model validator methods are called with the model object's context and are deeme
 Any error messages collected are put in the validation result object alongside the field validation errors&comma; with keys named after the failed validation method's key in the `validate` option object&period; Even though there can only be one error message for each model validation method at any one time&comma; it is presented as a single string error in an array&comma; to maximize consistency with the field errors&period; &lpar;Note that the structure of `validate()`'s output is scheduled to change in `v2.0`to avoid this awkward situation&period; In the mean time&comma; an error is issued if a field exists with the same name as a custom model validation&period;&rpar;
 
 An example&colon;
-    
+
 ```js
 var Pub = Sequelize.define('Pub', {
   name: { type: Sequelize.STRING },
@@ -348,7 +348,7 @@ var Pub = Sequelize.define('Pub', {
 ```
 
 In this simple case an object fails validation if either latitude or longitude is given&comma; but not both&period; If we try to build one with an out-of-range latitude and nolongitude, `raging_bullock_arms.validate()` might return
-    
+
 ```js
 {
   'latitude': ['Invalid number: latitude'],
@@ -359,7 +359,7 @@ In this simple case an object fails validation if either latitude or longitude i
 ## Configuration
 
 You can also influence the way Sequelize handles your column names&colon;
-    
+
 ```js
 var Bar = sequelize.define('Bar', { /* bla */ }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
@@ -404,7 +404,7 @@ var Foo = sequelize.define('Foo',  { /* bla */ }, {
 ```
 
 You can also change the database engine&comma; e&period;g&period; to MyISAM&period; InnoDB is the default.
-    
+
 ```js
 var Person = sequelize.define('Person', { /* attributes */ }, {
   engine: 'MYISAM'
@@ -417,7 +417,7 @@ var sequelize = new Sequelize(db, user, pw, {
 ```
 
 Finaly you can specify a comment for the table in MySQL and PG
-    
+
 ```js
 var Person = sequelize.define('Person', { /* attributes */ }, {
   comment: "I'm a table comment!"
@@ -427,7 +427,7 @@ var Person = sequelize.define('Person', { /* attributes */ }, {
 ## Import
 
 You can also store your model definitions in a single file using the `import` method&period; The returned object is exactly the same as defined in the imported file's function&period; Since `v1:5.0` of Sequelize the import is cached&comma; so you won't run into troubles when calling the import of a file twice or more often&period;
-    
+
 ```js
 // in your server file - e.g. app.js
 var Project = sequelize.import(__dirname + "/path/to/models/project")
@@ -443,7 +443,7 @@ module.exports = function(sequelize, DataTypes) {
 ```
 
 Since `v1.7.0` the `import` method can now accept a callback as an argument&period;
-    
+
 ```js
 sequelize.import('Project', function(sequelize, DataTypes) {
   return sequelize.define("Project", {
@@ -478,7 +478,7 @@ Project.[sync|drop]().then(function() {
 ```
 
 Because synchronizing and dropping all of your tables might be a lot of lines to write&comma; you can also let Sequelize do the work for you&colon;
-    
+
 ```js
 // create all tables... now!
 sequelize.sync() // will emit success or failure
@@ -586,7 +586,7 @@ Project.find({
 The method `findOrCreate` can be used to check if a certain element is already existing in the database&period; If that is the case the method will result in a respective instance&period; If the element does not yet exist&comma; it will be created.
 
 Let's assume we have an empty database with a `User` model which has a `username` and a `job`.
-    
+
 ```js
 User
   .findOrCreate({where: {username: 'sdepold'}, defaults: {job: 'Technical Lead JavaScript'}})
@@ -702,7 +702,7 @@ Project.findAll({
       gt: 6,              // id > 6
       gte: 6,             // id >= 6
       lt: 10,             // id < 10
-      lte: 10,            // id 
+      lte: 10,            // id
       ne: 20,             // id != 20
       between: [6, 10],   // BETWEEN 6 AND 10
       nbetween: [11, 15], // NOT BETWEEN 11 AND 15
@@ -720,14 +720,14 @@ Project.findAll({
 ### Complex filtering / OR queries
 
 Since `v1.7.0-rc3`, it is possible to do complex where queries with multiple levels of nested AND and OR conditions. In order to do that you can use `Sequelize.or` and `Sequelize.and` and pass an arbitrary amount of arguments to it. Every argument will get transformed into a proper SQL condition and gets joined with the either `AND` or `OR`.
-    
+
 ```js
 Project.find({
   where: Sequelize.and(
     { name: 'a project' },
     Sequelize.or(
       { id: [1,2,3] },
-      { id: { lt: 10 } }
+      { id: { gt: 10 } }
     )
   )
 })
@@ -740,7 +740,7 @@ SELECT *
 FROM `Projects`
 WHERE (
   `Projects`.`name`='a project'
-   AND (`Projects`.`id` IN (1,2,3) OR `Projects`.`id` < 10)
+   AND (`Projects`.`id` IN (1,2,3) OR `Projects`.`id` > 10)
 )
 LIMIT 1
 ;
@@ -751,7 +751,7 @@ Notice, that instead of `Sequelize.and` you can also use a plain array which wil
 ### Manipulating the dataset with limit&comma; offset&comma; order and group
 
 To get more relevant data&comma; you can use limit&comma; offset&comma; order and grouping&colon;
-    
+
 ```js
 // limit the results of the query
 Project.findAll({ limit: 10 })
@@ -764,7 +764,7 @@ Project.findAll({ offset: 10, limit: 2 })
 ```
 
 The syntax for grouping and ordering are equal&comma; so below it is only explained with a single example for group&comma; and the rest for order&period; Everything you see below can also be done for group
-    
+
 ```js
 Project.findAll({order: 'title DESC'})
 // yields ORDER BY title DESC
@@ -774,7 +774,7 @@ Project.findAll({group: 'name'})
 ```
 
 Notice how in the two examples above&comma; the string provided is inserted verbatim into the query&comma; i&period;e&period; column names are not escaped&period; When you provide a string to order &sol; group&comma; this will always be the case as per v 1&period;7&period;0&period; If you want to escape column names&comma; you should provide an array of arguments&comma; even though you only want to order &sol; group by a single column
-    
+
 ```js
 something.find({
   order: [
@@ -810,7 +810,7 @@ To recap&comma; the elements of the order &sol; group array can be the following
 ### Raw queries
 
 Sometimes you might be expecting a massive dataset that you just want to display&comma; without manipulation&period; For each row you select&comma; Sequelize creates a_DAO_&comma; with functions for update&comma; delete&comma; get associations etc&period; If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
-    
+
 ```js
 // Are you expecting a masssive dataset from the DB, and don't want to spend the time building DAOs for each entry?
 // You can pass an extra query option to get the raw data instead:
@@ -820,7 +820,7 @@ Project.findAll({ where: ... }, { raw: true })
 ### count - Count the occurences of elements in the database
 
 There is also a method for counting database objects&colon;
-    
+
 ```js
 Project.count().then(function(c) {
   console.log("There are " + c + " projects!")
@@ -834,7 +834,7 @@ Project.count({ where: ["id > ?", 25] }).then(function(c) {
 ### max - Get the greatest value of a specific attribute within a specific table
 
 And here is a method for getting the max value of an attribute&colon;f
-    
+
 ```js
 /*
   Let's assume 3 person objects with an attribute age.
@@ -875,8 +875,8 @@ Project.min('age', { where: { age: { gt: 5 } } }).then(function(min) {
 
 In order to calculate the sum over a specific column of a table, you can
 use the `sum` method.
-  
-```js  
+
+```js
 /*
   Let's assume 3 person objects with an attribute age.
   The first one is 10 years old,
@@ -895,7 +895,7 @@ Project.sum('age', { where: { age: { gt: 5 } } }).then(function(sum) {
 ## Eager loading
 
 When you are retrieving data from the database there is a fair chance that you also want to get their associations&period; This is possible since`v1.6.0`and is called eager loading&period; The basic idea behind that&comma; is the use of the attribute`include`when you are calling`find`or`findAll`&period; Lets assume the following setup&colon;
-    
+
 ```js
 var User = sequelize.define('User', { name: Sequelize.STRING })
   , Task = sequelize.define('Task', { name: Sequelize.STRING })
@@ -937,7 +937,7 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
 Notice that the accessor of the associated data is the name of the model in camelcase with lowercased first character&period; Also the accessor is singular as the association is one-to-something&period;
 
 Next thing&colon; Loading of data with many-to-something associations&excl;
-    
+
 ```js
 User.findAll({ include: [ Task ] }).then(function(users) {
   console.log(JSON.stringify(users))
@@ -963,7 +963,7 @@ User.findAll({ include: [ Task ] }).then(function(users) {
 Notice that the accessor is plural&period; This is because the association is many-to-something&period;
 
 If an association is aliased &lpar;using the`as`option&rpar;&comma; you_must_specify this alias when including the model&period; Notice how the user's`Tool`s are aliased as`Instruments`above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
-    
+
 ```js
 User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(users) {
   console.log(JSON.stringify(users))
@@ -989,7 +989,7 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 ### Ordering Eager Loaded Associations
 
 In the case of a one-to-many relationship.
-    
+
 ```js
 Company.findAll({ include: [ Division ], order: [ [ Division, 'name' ] ] });
 Company.findAll({ include: [ Division ], order: [ [ Division, 'name', 'DESC' ] ] });
@@ -1004,7 +1004,7 @@ Company.findAll({
 ```
 
 In the case of many-to-many joins, you are also able to sort by attributes in the through table.
-    
+
 ```js
 Company.findAll({
   include: [ { model: Division, include: [ Department ] } ],
@@ -1045,7 +1045,7 @@ User.findAll({
 ```
 
 **Final note&colon;**If you include an object which is not associated&comma; Sequelize will throw an error&period;
-    
+
 ```js
 Tool.findAll({ include: [ User ] }).then(function(tools) {
   console.log(JSON.stringify(tools))
