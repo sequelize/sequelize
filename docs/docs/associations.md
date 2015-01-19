@@ -15,7 +15,9 @@ Project.hasOne(User)
   Furthermore, Project.prototype will gain the methods getUser and setUser according
   to the first parameter passed to define. If you have underscore style
   enabled, the added attribute will be project_id instead of ProjectId.
- 
+  
+  The foreign key will be placed on the users table.
+  
   You can also define the foreign key, e.g. if you already have an existing
   database and want to work on it:
 */
