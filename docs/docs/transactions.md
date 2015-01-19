@@ -6,6 +6,11 @@ Sequelize supports two ways of using transactions:
 The key difference is that the managed transaction uses a callback that expects a promise to be returned to it while the unmanaged transaction returns a promise.
 
 # Managed transaction (auto-callback)
+
+Managed transactions handle comitting or rolling back the transaction automagically. You start a managed transaction by passing a callback to `sequelize.transaction`.
+
+Notice how the callback passed to `transaction` returns a promise chain, and does not explicitly call `t.commit()` nor `t.rollback()`. If all promises in the returned chain are resolved successfully the transaction is comitted. If one or several of the promises are rejected, the transaction is rolled back.
+
 ```js
 return sequelize.transaction(function (t) {
   return User.create({
@@ -26,7 +31,21 @@ return sequelize.transaction(function (t) {
 });
 ```
 
-In the example above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
+When using the managed transaction you should _never_ commit or rollback the transaction manually. If all queries are successful, but you still want to rollback the transaction (for example because of a validation failure) you should throw an error to break and reject the chain:
+
+```js
+return sequelize.transaction(function (t) {
+  return User.create({
+    firstName: 'Abraham',
+    lastName: 'Lincoln'
+  }, {transaction: t}).then(function (user) {
+    // Woops, the query was successful but we still want to roll back!
+    throw new Error();
+  });
+});
+```
+
+In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
 
 ```js
 var cls = require('continuation-local-storage'),
@@ -78,6 +97,8 @@ sequelize.transaction(function (t1) {
 ```
 
 # Unmanaged transaction (then-callback)
+Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise.
+
 ```js    
 return sequelize.transaction().then(function (t) {
   return User.create({
