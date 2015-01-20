@@ -40,7 +40,8 @@
     "moment": "~2.8.0",
     "node-uuid": "~1.4.1",
     "toposort-class": "~0.3.0",
-    "validator": "~3.22.1"
+    "validator": "~3.22.1",
+    "pg-hstore": "~2.3.1"
   },
   "devDependencies": {
     "continuation-local-storage": "3.1.2",
