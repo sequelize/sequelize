@@ -2198,7 +2198,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 			}).spread(function(model2_1, model2_2) {
 				return Promise.join(
 					model2_1.createModel3({ name: 'z_instance1OfModel3' }),
-					model2_2.createModel3({ name: 'a_instance1OfModel3' }),
+					model2_2.createModel3({ name: 'a_instance2OfModel3' }),
 				);
 			}).then(function() {
 				return Model1.findAll({ 
