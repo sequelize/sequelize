@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       describe('injections', function () {
         beforeEach(function () {
           this.User = this.sequelize.define('user', {
-
+            name: DataTypes.STRING
           });
           this.Group = this.sequelize.define('group', {
 
@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('should not throw on a literal', function () {
           return this.User.findAll({
             order: [
-              ['id', this.sequelize.literal('ASC, id DESC')]
+              ['id', this.sequelize.literal('ASC, name DESC')]
             ]
           });
         });
