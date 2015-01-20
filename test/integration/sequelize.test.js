@@ -246,61 +246,46 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
-    it('executes select queries correctly', function(done) {
+    it('executes select queries correctly', function() {
       var self = this;
-      self.sequelize.query(this.insertQuery).success(function() {
-        self.sequelize
-          .query('select * from ' + qq(self.User.tableName) + '')
-          .complete(function(err, users) {
-            expect(err).to.be.null;
-            expect(users.map(function(u) { return u.username; })).to.include('john');
-            done();
-          });
+      return self.sequelize.query(this.insertQuery).then(function() {
+        return self.sequelize.query('select * from ' + qq(self.User.tableName) + '');
+      }).spread(function(users) {
+        expect(users.map(function(u) { return u.username; })).to.include('john');
       });
     });
 
-    it('executes select queries correctly when quoteIdentifiers is false', function(done) {
+    it('executes select queries correctly when quoteIdentifiers is false', function() {
       var self = this
-, seq = Object.create(self.sequelize);
+        , seq = Object.create(self.sequelize);
 
       seq.options.quoteIdentifiers = false;
-      seq.query(this.insertQuery).success(function() {
-        seq.query('select * from ' + qq(self.User.tableName) + '')
-          .complete(function(err, users) {
-            expect(err).to.be.null;
-            expect(users.map(function(u) { return u.username; })).to.include('john');
-            done();
-          });
+      return seq.query(this.insertQuery).then(function() {
+        return seq.query('select * from ' + qq(self.User.tableName) + '');
+      }).spread(function(users) {
+        expect(users.map(function(u) { return u.username; })).to.include('john');
       });
     });
 
-    it('executes select query with dot notation results', function(done) {
+    it('executes select query with dot notation results', function() {
       var self = this;
-      self.sequelize.query('DELETE FROM ' + qq(self.User.tableName)).complete(function() {
-        self.sequelize.query(self.insertQuery).success(function() {
-          self.sequelize
-            .query('select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + '')
-            .complete(function(err, users) {
-              expect(err).to.be.null;
-              expect(users).to.deep.equal([{'user.username': 'john'}]);
-              done();
-            });
-        });
+      return self.sequelize.query('DELETE FROM ' + qq(self.User.tableName)).then(function() {
+        return self.sequelize.query(self.insertQuery);
+      }).then(function() {
+        return self.sequelize.query('select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + '');
+      }).spread(function( users) {
+        expect(users).to.deep.equal([{'user.username': 'john'}]);
       });
     });
 
-    it('executes select query with dot notation results and nest it', function(done) {
+    it('executes select query with dot notation results and nest it', function() {
       var self = this;
-      self.sequelize.query('DELETE FROM ' + qq(self.User.tableName)).complete(function() {
-        self.sequelize.query(self.insertQuery).success(function() {
-          self.sequelize
-            .query('select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + '', null, { raw: true, nest: true })
-            .complete(function(err, users) {
-              expect(err).to.be.null;
-              expect(users.map(function(u) { return u.user; })).to.deep.equal([{'username': 'john'}]);
-              done();
-            });
-        });
+      return self.sequelize.query('DELETE FROM ' + qq(self.User.tableName)).then(function() {
+        return self.sequelize.query(self.insertQuery);
+      }).then(function() {
+        return self.sequelize.query('select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + '', null, { raw: true, nest: true });
+      }).spread(function(users) {
+        expect(users.map(function(u) { return u.user; })).to.deep.equal([{'username': 'john'}]);
       });
     });
 
@@ -334,14 +319,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
-    it('dot separated attributes when doing a raw query without nest', function(done) {
+    it('dot separated attributes when doing a raw query without nest', function() {
       var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql = 'select 1 as ' + Sequelize.Utils.addTicks('foo.bar.baz', tickChar);
 
-      this.sequelize.query(sql, null, { raw: true, nest: false }).success(function(result) {
-        expect(result).to.deep.equal([{ 'foo.bar.baz': 1 }]);
-        done();
-      });
+      return expect(this.sequelize.query(sql, null, { raw: true, nest: false }).get(0)).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', function(done) {
@@ -361,72 +343,59 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
-    it('replaces named parameters with the passed object', function(done) {
-      this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
-        expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-        done();
-      });
+    it('replaces named parameters with the passed object', function() {
+      return expect(this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: 2 }).get(0))
+        .to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
-    it('replaces named parameters with the passed object and ignore those which does not qualify', function(done) {
-      this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
-        expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
-        done();
-      });
+    it('replaces named parameters with the passed object and ignore those which does not qualify', function() {
+      return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', null, { raw: true }, { one: 1, two: 2 }).get(0))
+        .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
     });
 
-    it('replaces named parameters with the passed object using the same key twice', function(done) {
-      this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
-        expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
-        done();
-      });
+    it('replaces named parameters with the passed object using the same key twice', function() {
+      return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true }, { one: 1, two: 2 }).get(0))
+        .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
     });
 
-    it('replaces named parameters with the passed object having a null property', function(done) {
-      this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: null }).success(function(result) {
-        expect(result).to.deep.equal([{ foo: 1, bar: null }]);
-        done();
-      });
+    it('replaces named parameters with the passed object having a null property', function() {
+      return expect(this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: null }).get(0))
+        .to.eventually.deep.equal([{ foo: 1, bar: null }]);
     });
 
-    it('throw an exception when key is missing in the passed object', function(done) {
+    it('throw an exception when key is missing in the passed object', function() {
       var self = this;
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar, :three as baz', null, { raw: true }, { one: 1, two: 2 });
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
-      done();
     });
 
-    it('throw an exception with the passed number', function(done) {
+    it('throw an exception with the passed number', function() {
       var self = this;
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 2);
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
-      done();
     });
 
-    it('throw an exception with the passed empty object', function(done) {
+    it('throw an exception with the passed empty object', function() {
       var self = this;
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, {});
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
-      done();
     });
 
-    it('throw an exception with the passed string', function(done) {
+    it('throw an exception with the passed string', function() {
       var self = this;
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 'foobar');
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
-      done();
     });
 
-    it('throw an exception with the passed date', function(done) {
+    it('throw an exception with the passed date', function() {
       var self = this;
       expect(function() {
         self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, new Date());
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
-      done();
     });
 
     it('handles AS in conjunction with functions just fine', function(done) {
@@ -435,28 +404,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         datetime = 'GETDATE()';
       }
 
-      this.sequelize.query('SELECT ' + datetime + ' AS t').success(function(result) {
+      return this.sequelize.query('SELECT ' + datetime + ' AS t').spread(function(result) {
         expect(moment(result[0].t).isValid()).to.be.true;
-        done();
       });
     });
 
     if (Support.getTestDialect() === 'postgres') {
-      it('replaces named parameters with the passed object and ignores casts', function(done) {
-        this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', null, { raw: true }, { one: 1, two: 2 }).success(function(result) {
-          expect(result).to.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
-          done();
-        });
+      it('replaces named parameters with the passed object and ignores casts', function() {
+        return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', null, { raw: true }, { one: 1, two: 2 }).get(0))
+          .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
       });
 
-      it('supports WITH queries', function(done) {
-        this
-          .sequelize
-          .query('WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t')
-          .success(function(results) {
-            expect(results).to.deep.equal([{ 'sum': '5050' }]);
-            done();
-          });
+      it('supports WITH queries', function() {
+        return expect(this.sequelize.query('WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t').get(0))
+          .to.eventually.deep.equal([{ 'sum': '5050' }]);
       });
     }
   });
@@ -924,7 +885,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               self
                 .sequelizeWithTransaction
                 .query(sql, null, { plain: true, raw: true, transaction: transaction })
-                .success(function(result) { callback(result.cnt); });
+                .spread(function(result) { callback(result.cnt); });
             };
 
             TransactionTest.sync({ force: true }).success(function() {

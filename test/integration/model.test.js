@@ -18,7 +18,7 @@ chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  beforeEach(function(done) {
+  beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: DataTypes.STRING,
@@ -28,25 +28,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       aBool: DataTypes.BOOLEAN
     });
 
-    this.User.sync({ force: true }).success(function() {
-      done();
-    });
+    return this.User.sync({ force: true });
   });
 
   describe('constructor', function() {
-    it('uses the passed dao name as tablename if freezeTableName', function(done) {
+    it('uses the passed dao name as tablename if freezeTableName', function() {
       var User = this.sequelize.define('FrozenUser', {}, { freezeTableName: true });
       expect(User.tableName).to.equal('FrozenUser');
-      done();
     });
 
-    it('uses the pluralized dao name as tablename unless freezeTableName', function(done) {
+    it('uses the pluralized dao name as tablename unless freezeTableName', function() {
       var User = this.sequelize.define('SuperUser', {}, { freezeTableName: false });
       expect(User.tableName).to.equal('SuperUsers');
-      done();
     });
 
-    it('uses checks to make sure dao factory isnt leaking on multiple define', function(done) {
+    it('uses checks to make sure dao factory isnt leaking on multiple define', function() {
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
       var factorySize = this.sequelize.daoFactoryManager.all.length;
 
@@ -54,10 +50,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var factorySize2 = this.sequelize.daoFactoryManager.all.length;
 
       expect(factorySize).to.equal(factorySize2);
-      done();
     });
 
-    it('attaches class and instance methods', function(done) {
+    it('attaches class and instance methods', function() {
       var User = this.sequelize.define('UserWithClassAndInstanceMethods', {}, {
         classMethods: { doSmth: function() { return 1; } },
         instanceMethods: { makeItSo: function() { return 2; } }
@@ -70,10 +65,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(User.build().doSmth).not.to.exist;
       expect(User.build().makeItSo).to.exist;
       expect(User.build().makeItSo()).to.equal(2);
-      done();
     });
 
-    it('allows us us to predefine the ID column with our own specs', function(done) {
+    it('allows us us to predefine the ID column with our own specs', function() {
       var User = this.sequelize.define('UserCol', {
         id: {
           type: Sequelize.STRING,
@@ -82,15 +76,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      User.sync({ force: true }).success(function() {
-        User.create({id: 'My own ID!'}).success(function(user) {
-          expect(user.id).to.equal('My own ID!');
-          done();
-        });
+      return User.sync({ force: true }).then(function() {
+        return expect(User.create({id: 'My own ID!'})).to.eventually.have.property('id', 'My own ID!');
       });
     });
 
-    it('throws an error if 2 autoIncrements are passed', function(done) {
+    it('throws an error if 2 autoIncrements are passed', function() {
       var self = this;
       expect(function() {
         self.sequelize.define('UserWithTwoAutoIncrements', {
@@ -98,10 +89,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           userscore: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true }
         });
       }).to.throw(Error, 'Invalid Instance definition. Only one autoincrement field allowed.');
-      done();
     });
 
-    it('throws an error if a custom model-wide validation is not a function', function(done) {
+    it('throws an error if a custom model-wide validation is not a function', function() {
       var self = this;
       expect(function() {
         self.sequelize.define('Foo', {
@@ -112,10 +102,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }
         });
       }).to.throw(Error, 'Members of the validate option must be functions. Model: Foo, error with validate member notFunction');
-      done();
     });
 
-    it('throws an error if a custom model-wide validation has the same name as a field', function(done) {
+    it('throws an error if a custom model-wide validation has the same name as a field', function() {
       var self = this;
       expect(function() {
         self.sequelize.define('Foo', {
@@ -126,7 +115,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }
         });
       }).to.throw(Error, 'A model validator function must not have the same name as a field. Model: Foo, field/validation name: field');
-      done();
     });
 
     it('should allow me to set a default value for createdAt and updatedAt', function(done) {
@@ -1239,8 +1227,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('sets deletedAt to the current timestamp if paranoid is true', function(done) {
+    it('sets deletedAt to the current timestamp if paranoid is true', function() {
       var self = this
+        , qi = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
         , ParanoidUser = self.sequelize.define('ParanoidUser', {
           username: Sequelize.STRING,
           secretValue: Sequelize.STRING,
@@ -1253,26 +1242,25 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   { username: 'Paul', secretValue: '42' },
                   { username: 'Bob', secretValue: '43' }];
 
-      ParanoidUser.sync({ force: true }).success(function() {
-        ParanoidUser.bulkCreate(data).success(function() {
-          // since we save in UTC, let's format to UTC time
-          var date = moment().utc().format('YYYY-MM-DD h:mm');
-          ParanoidUser.destroy({where: {secretValue: '42'}}).success(function() {
-            ParanoidUser.findAll({order: 'id'}).success(function(users) {
-              expect(users.length).to.equal(1);
-              expect(users[0].username).to.equal('Bob');
+      return ParanoidUser.sync({ force: true }).then(function() {
+        return ParanoidUser.bulkCreate(data);
+      }).bind({}).then(function() {
+        // since we save in UTC, let's format to UTC time
+        this.date = moment().utc().format('YYYY-MM-DD h:mm');
+        return ParanoidUser.destroy({where: {secretValue: '42'}});
+      }).then(function() {
+        return ParanoidUser.findAll({order: 'id'});
+      }).then(function(users) {
+        expect(users.length).to.equal(1);
+        expect(users[0].username).to.equal('Bob');
 
-              self.sequelize.query('SELECT * FROM ' + self.sequelize.queryInterface.QueryGenerator.quoteIdentifier('ParanoidUsers') + ' WHERE ' + self.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL ORDER BY ' + self.sequelize.queryInterface.QueryGenerator.quoteIdentifier('id'), null, {raw: true}).success(function(users) {
-                expect(users[0].username).to.equal('Peter');
-                expect(users[1].username).to.equal('Paul');
+        return self.sequelize.query('SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL ORDER BY ' + qi('id'));
+      }).spread(function(users) {
+        expect(users[0].username).to.equal('Peter');
+        expect(users[1].username).to.equal('Paul');
 
-                expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(date);
-                expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(date);
-                done();
-              });
-            });
-          });
-        });
+        expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
+        expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
       });
     });
 
@@ -1381,46 +1369,44 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
     });
 
-    it('should delete a paranoid record if I set force to true', function(done) {
+    it('should delete a paranoid record if I set force to true', function() {
       var self = this;
       var User = this.sequelize.define('paranoiduser', {
         username: Sequelize.STRING
       }, { paranoid: true });
 
-      User.sync({ force: true }).success(function() {
-        User.bulkCreate([
+      return User.sync({ force: true }).then(function() {
+        return User.bulkCreate([
           {username: 'Bob'},
           {username: 'Tobi'},
           {username: 'Max'},
           {username: 'Tony'}
-        ]).success(function() {
-          User.find({where: {username: 'Bob'}}).success(function(user) {
-            user.destroy({force: true}).success(function() {
-              User.find({where: {username: 'Bob'}}).success(function(user) {
-                expect(user).to.be.null;
-                User.find({where: {username: 'Tobi'}}).success(function(tobi) {
-                  tobi.destroy().success(function() {
-                    self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', null, {raw: true, plain: true}).success(function(result) {
-                      expect(result.username).to.equal('Tobi');
-                      User.destroy({where: {username: 'Tony'}}).success(function() {
-                        self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', null, {raw: true, plain: true}).success(function(result) {
-                          expect(result.username).to.equal('Tony');
-                          User.destroy({where: {username: ['Tony', 'Max']}, force: true}).success(function() {
-                            self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true}).success(function(users) {
-                              expect(users).to.have.length(1);
-                              expect(users[0].username).to.equal('Tobi');
-                              done();
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
+        ]);
+      }).then(function() {
+        return User.find({where: {username: 'Bob'}});
+      }).then(function(user) {
+        return user.destroy({force: true});
+      }).then(function() {
+        return expect(User.find({where: {username: 'Bob'}})).to.eventually.be.null;
+      }).then(function(user) {
+        return User.find({where: {username: 'Tobi'}});
+      }).then(function(tobi) {
+        return tobi.destroy();
+      }).then(function() {
+        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'');
+      }).spread(function(result) {
+        expect(result[0].username).to.equal('Tobi');
+        return User.destroy({where: {username: 'Tony'}});
+      }).then(function() {
+        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'');
+      }).spread(function(result) {
+        expect(result[0].username).to.equal('Tony');
+        return User.destroy({where: {username: ['Tony', 'Max']}, force: true});
+      }).spread(function() {
+        return self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true});
+      }).then(function(users) {
+        expect(users).to.have.length(1);
+        expect(users[0].username).to.equal('Tobi');
       });
     });
 
