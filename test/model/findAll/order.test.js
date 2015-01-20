@@ -99,6 +99,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           })).to.eventually.be.rejectedWith(Error, 'Order must be \'ASC\' or \'DESC\', \';DELETE YOLO INJECTIONS\' given');
         });
 
+        if (current.dialect.supports['ORDER NULLS']) {
+          it('should not throw with on NULLS LAST/NULLS FIRST', function () {
+            return this.User.findAll({
+              include: [this.Group],
+              order: [
+                ['id', 'ASC NULLS LAST'],
+                [this.Group, 'id', 'DESC NULLS FIRST']
+              ]
+            });
+          });
+        }
+
+        it('should not throw on a literal', function () {
+          return this.User.findAll({
+            order: [
+              ['id', this.sequelize.literal('ASC, id DESC')]
+            ]
+          });
+        });
+
         it('should not throw with include when last order argument is a field', function () {
           return this.User.findAll({
             include: [this.Group],
