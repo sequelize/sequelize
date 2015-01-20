@@ -32,9 +32,9 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 				});
 
 				it('should be possible to order by attribute of nested model', function(done) {
-					Model1.findAll({ 
-						include: [{ model: Model2, include: [ Model3 ] }],
-						order: [ [ Model2, Model3, 'name' ] ] 
+					this.Model1.findAll({ 
+						include: [{ model: this.Model2, include: [ this.Model3 ] }],
+						order: [ [ this.Model2, this.Model3, 'name' ] ] 
 					})
 					.catch(function(err) {
 						done(err);
