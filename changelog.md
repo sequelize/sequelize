@@ -23,6 +23,7 @@
 #### Backwards compatability changes
 - `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
 - Sequelize no longer supports case insensitive mysql enums
+- `pg-hstore` has been moved to a devDependency, Postgres users will have to install `pg-hstore` manually alongside `pg`: `$ npm install pg pg-hstore`
 
 # 2.0.0-rc6
 - [BUG] Fixed issue with including by association reference and where
