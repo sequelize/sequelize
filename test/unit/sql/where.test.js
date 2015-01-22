@@ -1,6 +1,7 @@
 'use strict';
 
 var Support   = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../../lib/data-types')
   , util      = require('util')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
@@ -16,7 +17,7 @@ suite('SQL', function() {
         options = undefined;
       }
 
-      test(util.inspect(params)+(options && ', '+util.inspect(options) || ''), function () {
+      test(util.inspect(params, {depth: 10})+(options && ', '+util.inspect(options) || ''), function () {
         return expectsql(sql.whereQuery(params, options), expectation);
       });
     };
@@ -36,8 +37,32 @@ suite('SQL', function() {
 
     test("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", function () {
       expectsql(sql.whereQuery({id: 1}, {prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'}))}), {
-        default: 'WHERE [yolo.User].[id] = 1'
+        default: 'WHERE [yolo.User].[id] = 1',
+        postgres: 'WHERE "yolo"."User"."id" = 1',
+        mssql: 'WHERE [yolo].[User].[id] = 1',
       });
+    });
+
+    testsql({
+      name: 'a project',
+      $or: [
+        { id: [1,2,3] },
+        { id: { $gt: 10 } }
+      ]
+    }, {
+      default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)"
+    });
+
+    testsql({
+      name: 'a project',
+      id: {
+        $or: [
+          [1,2,3],
+          { $gt: 10 }
+        ]
+      }
+    }, {
+      default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)"
     });
   });
 
@@ -48,7 +73,7 @@ suite('SQL', function() {
         options = undefined;
       }
 
-      test(key+": "+util.inspect(value), function () {
+      test(key+": "+util.inspect(value, {depth: 10})+(options && ', '+util.inspect(options) || ''), function () {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
@@ -101,57 +126,59 @@ suite('SQL', function() {
       });
     });
 
-    suite('$or', function () {
-      testsql('email', {
-        $or: ['maker@mhansen.io', 'janzeh@gmail.com']
-      }, {
-        default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')'
-      });
+    suite('$and/$or', function () {
+      suite('$or', function () {
+        testsql('email', {
+          $or: ['maker@mhansen.io', 'janzeh@gmail.com']
+        }, {
+          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')'
+        });
 
-      testsql('$or', [
-        {email: 'maker@mhansen.io'},
-        {email: 'janzeh@gmail.com'}
-      ], {
-        default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')'
-      });
+        testsql('$or', [
+          {email: 'maker@mhansen.io'},
+          {email: 'janzeh@gmail.com'}
+        ], {
+          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')'
+        });
 
-      testsql('$or', {
-        email: 'maker@mhansen.io',
-        name: 'Mick Hansen'
-      }, {
-        default: '([email] = \'maker@mhansen.io\' OR [name] = \'Mick Hansen\')'
-      });
+        testsql('$or', {
+          email: 'maker@mhansen.io',
+          name: 'Mick Hansen'
+        }, {
+          default: '([email] = \'maker@mhansen.io\' OR [name] = \'Mick Hansen\')'
+        });
 
-      testsql('$or', {
-        equipment: [1, 3],
-        muscles: {
-          $in: [2, 4]
-        }
-      }, {
-        default: '([equipment] IN (1, 3) OR [muscles] IN (2, 4))'
-      });
+        testsql('$or', {
+          equipment: [1, 3],
+          muscles: {
+            $in: [2, 4]
+          }
+        }, {
+          default: '([equipment] IN (1, 3) OR [muscles] IN (2, 4))'
+        });
 
-      test("sequelize.or({group_id: 1}, {user_id: 2})", function () {
-        expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
-          default: "([group_id] = 1 OR [user_id] = 2)"
+        test("sequelize.or({group_id: 1}, {user_id: 2})", function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
+            default: "([group_id] = 1 OR [user_id] = 2)"
+          });
         });
       });
-    });
 
-    suite('$and', function () {
-      testsql('$and', {
-        shared: 1,
-        $or: {
-          group_id: 1,
-          user_id: 2
-        }
-      }, {
-        default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
-      });
-
-      test("sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))", function () {
-        expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
+      suite('$and', function () {
+        testsql('$and', {
+          shared: 1,
+          $or: {
+            group_id: 1,
+            user_id: 2
+          }
+        }, {
           default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
+        });
+
+        test("sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))", function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
+            default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
+          });
         });
       });
     });
@@ -194,5 +221,43 @@ suite('SQL', function() {
         default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'"
       });
     });
+
+    if (current.dialect.supports['ARRAY']) {
+      suite('ARRAY', function () {
+        testsql('muscles', {
+          $contains: [2, 3]
+        }, {
+          postgres: '"muscles" @> ARRAY[2,3]'
+        });
+
+        testsql('muscles', {
+          $contained: [6, 8]
+        }, {
+          postgres: '"muscles" <@ ARRAY[6,8]'
+        });
+
+        testsql('muscles', {
+          $overlap: [3, 11]
+        }, {
+          postgres: '"muscles" && ARRAY[3,11]'
+        });
+
+        testsql('muscles', {
+          $overlap: [3, 1]
+        }, {
+          postgres: '"muscles" && ARRAY[3,1]'
+        });
+
+        testsql('muscles', {
+          $contains: [2, 5]
+        }, {
+          field: {
+            type: DataTypes.ARRAY(DataTypes.INTEGER)
+          }
+        }, {
+          postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
+        });
+      });
+    }
   });
 });

@@ -196,11 +196,12 @@ var Support = {
   expectsql: function(query, expectations) {
     var expectation = expectations[Support.sequelize.dialect.name];
 
-    if (!expectation && Support.sequelize.dialect.name !== 'mssql') {
+    if (!expectation) {
       expectation = expectations['default']
                     .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
                     .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
     }
+
     expect(query).to.equal(expectation);
   }
 };
