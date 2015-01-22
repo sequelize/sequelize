@@ -106,7 +106,7 @@ suite('SQL', function() {
       testsql('field', new Buffer('Sequelize'), {
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
         sqlite: "`field` = X'53657175656c697a65'",
-        mysql: "`field` =  X'53657175656c697a65'",
+        mysql: "`field` = X'53657175656c697a65'",
         mssql: "[field] = 0x'53657175656c697a65'"
       });
     });
