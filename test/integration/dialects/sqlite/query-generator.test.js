@@ -299,12 +299,12 @@ if (dialect === 'sqlite') {
         }, {
           title: 'no where arguments (string)',
           arguments: ['myTable', {where: ''}],
-          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
+          expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',
           arguments: ['myTable', {where: null}],
-          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
+          expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator
         }, {
           title: 'buffer as where argument',

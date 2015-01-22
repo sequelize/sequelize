@@ -78,6 +78,10 @@ suite('SQL', function() {
       });
     };
 
+    testsql(undefined, 'lol=1', {
+      default: "lol=1"
+    });
+
     testsql('deleted', null, {
       default: "`deleted` IS NULL",
       postgres: '"deleted" IS NULL',
