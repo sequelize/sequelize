@@ -13,7 +13,6 @@
 #### Backwards compatability changes
 - The default query type for `sequelize.query` is now `RAW` - this means that two arguments (results and metadata) will be returned by default and you should use `.spread`
 - The 4th argument to `sequelize.query` has been deprecated in favor of `options.replacements`
->>>>>>> Clean up test and added docs for rewamped raw query handling
 
 # 2.0.0-rc7
 - [FEATURE] Throw an error if no where clause is given to `Model.destroy()`.
