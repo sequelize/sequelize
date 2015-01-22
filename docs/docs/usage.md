@@ -225,9 +225,9 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ## Executing raw SQL queries
 
-As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries&comma; you can utilize the function`sequelize.query`&period;
+As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries, you can utilize the function `sequelize.query`.
 
-Here is how it works&colon;
+Here is how it works:
     
 ```js
 // Arguments for raw queries

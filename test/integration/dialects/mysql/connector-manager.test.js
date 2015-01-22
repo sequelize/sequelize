@@ -44,7 +44,7 @@ if (Support.dialectIsMySQL()) {
           // After 100 ms the DB connection will be disconnected for inactivity
           setTimeout(function() {
             // This query will be queued just after the `client.end` is executed and before its callback is called
-            sequelize.query('SELECT COUNT(*) AS count FROM Users').on('success', function(count) {
+            sequelize.query('SELECT COUNT(*) AS count FROM Users', { type: sequelize.QueryTypes.SELECT }).on('success', function(count) {
               expect(count[0].count).to.equal(1);
               done();
             }).error(function(error) {

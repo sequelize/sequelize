@@ -28,8 +28,8 @@ if (dialect !== 'sqlite') {
 
       var query = 'SELECT ' + now + ' as now';
       return Promise.all([
-        this.sequelize.query(query),
-        this.sequelizeWithTimezone.query(query)
+        this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
+        this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
       ]).spread(function(now1, now2) {
         var elapsedQueryTime = (Date.now() - startQueryTime) + 20;
         expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);

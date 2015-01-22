@@ -19,6 +19,7 @@ pages:
 - ['docs/hooks.md', 'Documentation', 'Hooks']
 - ['docs/transactions.md', 'Documentation', 'Transactions']
 - ['docs/legacy.md', 'Documentation', 'Working with legacy tables']
+- ['docs/raw-queries.md', 'Documentation', 'Raw queries']
 - ['docs/migrations.md', 'Documentation', 'Migrations']
 
 - ['api/sequelize.md', 'API', 'Sequelize']

@@ -8,7 +8,12 @@
 - [FEATURE] Validations are now enabled by default for upsert.
 - [FEATURE] Preliminary support for `include.through.where`
 - [SECURITY/BUG] Fixed injection issue in direction param for order
-- [FEATURE/BUG] Raw queries always return all results (including affected rows etc). 
+- [FEATURE/BUG] Raw queries always return all results (including affected rows etc). This means you should change all promise listeners on `sequelize.query` to use `.spread` instead of `.then`, unless you are passing a query type.
+
+#### Backwards compatability changes
+- The default query type for `sequelize.query` is now `RAW` - this means that two arguments (results and metadata) will be returned by default and you should use `.spread`
+- The 4th argument to `sequelize.query` has been deprecated in favor of `options.replacements`
+>>>>>>> Clean up test and added docs for rewamped raw query handling
 
 # 2.0.0-rc7
 - [FEATURE] Throw an error if no where clause is given to `Model.destroy()`.

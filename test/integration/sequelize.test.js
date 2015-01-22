@@ -284,7 +284,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         return self.sequelize.query(self.insertQuery);
       }).then(function() {
         return self.sequelize.query('select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + '', null, { raw: true, nest: true });
-      }).spread(function(users) {
+      }).then(function(users) {
         expect(users.map(function(u) { return u.user; })).to.deep.equal([{'username': 'john'}]);
       });
     });
@@ -309,13 +309,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       console.log('FIXME: I want to be supported in this dialect as well :-(');
     }
 
-    it('uses the passed DAOFactory', function(done) {
-      var self = this;
-      self.sequelize.query(this.insertQuery).success(function() {
-        self.sequelize.query('SELECT * FROM ' + qq(self.User.tableName) + ';', self.User).success(function(users) {
-          expect(users[0].Model).to.equal(self.User);
-          done();
-        });
+    it('uses the passed model', function() {
+      return this.sequelize.query(this.insertQuery).bind(this).then(function() {
+        return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', this.User, { type: this.sequelize.QueryTypes.SELECT });
+      }).then(function(users) {
+        expect(users[0].Model).to.equal(this.User);
       });
     });
 
@@ -337,7 +335,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     });
 
     it('replaces token with the passed array', function(done) {
-      this.sequelize.query('select ? as foo, ? as bar', null, { raw: true }, [1, 2]).success(function(result) {
+      this.sequelize.query('select ? as foo, ? as bar', null, { type: this.sequelize.QueryTypes.SELECT }, [1, 2]).success(function(result) {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         done();
       });
@@ -398,7 +396,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
-    it('handles AS in conjunction with functions just fine', function(done) {
+    it('handles AS in conjunction with functions just fine', function() {
       var datetime = (dialect === 'sqlite' ? 'date(\'now\')' : 'NOW()');
       if (dialect === 'mssql') {
         datetime = 'GETDATE()';
@@ -435,10 +433,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           this.t = t;
           return this.sequelize.set({ foo: 'bar' }, { transaction: t });
         }).then(function() {
-          return this.sequelize.query('SELECT @foo as `foo`', null, { raw: true, plain: true, transaction: this.t });
+          return this.sequelize.query('SELECT @foo as `foo`', { transaction: this.t, type: this.sequelize.QueryTypes.SELECT });
         }).then(function(data) {
-          expect(data).to.be.ok;
-          expect(data.foo).to.be.equal('bar');
+          expect(data[0]).to.be.ok;
+          expect(data[0].foo).to.be.equal('bar');
           return this.t.commit();
         });
       });
@@ -451,11 +449,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             foos: 'bars'
           }, { transaction: t });
         }).then(function() {
-          return this.sequelize.query('SELECT @foo as `foo`, @foos as `foos`', null, { raw: true, plain: true, transaction: this.t });
+          return this.sequelize.query('SELECT @foo as `foo`, @foos as `foos`', { transaction: this.t, type: this.sequelize.QueryTypes.SELECT });
         }).then(function(data) {
-          expect(data).to.be.ok;
-          expect(data.foo).to.be.equal('bar');
-          expect(data.foos).to.be.equal('bars');
+          expect(data[0]).to.be.ok;
+          expect(data[0].foo).to.be.equal('bar');
+          expect(data[0].foos).to.be.equal('bars');
           return this.t.commit();
         });
       });
@@ -884,8 +882,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
               self
                 .sequelizeWithTransaction
-                .query(sql, null, { plain: true, raw: true, transaction: transaction })
-                .spread(function(result) { callback(result.cnt); });
+                .query(sql, null, { plain: true, raw: true, transaction: transaction, type: self.sequelize.QueryTypes.SELECT })
+                .then(function(result) { callback(result.cnt); });
             };
 
             TransactionTest.sync({ force: true }).success(function() {
@@ -919,8 +917,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
               self
                 .sequelizeWithTransaction
-                .query(sql, null, { plain: true, raw: true, transaction: transaction })
-                .success(function(result) { callback(parseInt(result.cnt, 10)); });
+                .query(sql, { transaction: transaction, type: self.sequelize.QueryTypes.SELECT })
+                .success(function(result) { callback(parseInt(result[0].cnt, 10)); });
             };
 
             TransactionTest.sync({ force: true }).success(function() {
