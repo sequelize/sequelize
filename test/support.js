@@ -108,7 +108,9 @@ var Support = {
       .getQueryInterface()
       .dropAllTables()
       .then(function() {
-        sequelize.daoFactoryManager.daos = [];
+        sequelize.modelManager.daos = [];
+        sequelize.models = {};
+
         return sequelize
           .getQueryInterface()
           .dropAllEnums()
@@ -189,27 +191,28 @@ var Support = {
       + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database;
     }
     return url;
+  },
+
+  expectsql: function(query, expectations) {
+    var expectation = expectations[Support.sequelize.dialect.name];
+
+    if (!expectation && Support.sequelize.dialect.name === 'mariadb') {
+      expectation = expectations['mysql'];
+    }
+
+    if (!expectation) {
+      expectation = expectations['default']
+                    .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+                    .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+    }
+
+    expect(query).to.equal(expectation);
   }
 };
 
-var sequelize = Support.sequelize = Support.createSequelizeInstance();
-
-//
-// For Postgres' HSTORE functionality and to properly execute it's commands we'll need this...
-before(function() {
-  var dialect = Support.getTestDialect();
-  if (dialect !== 'postgres' && dialect !== 'postgres-native') {
-    return;
-  }
-
-  return sequelize.query('CREATE EXTENSION IF NOT EXISTS hstore', null, {raw: true});
-});
-
 beforeEach(function() {
-  this.sequelize = sequelize;
-
-  return Support.clearDatabase(this.sequelize);
+  this.sequelize = Support.sequelize;
 });
 
-
+Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;

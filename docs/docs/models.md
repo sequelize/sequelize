@@ -647,7 +647,7 @@ Project
   .findAndCountAll({
      where: {
         title: {
-            like: 'foo%'
+          $like: 'foo%'
         }
      },
      offset: 10,
@@ -689,29 +689,25 @@ Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
   // this is actually doing an IN query
 })
  
-// or
-Project.findAll({ where: "name = 'A Project'" }).then(function(projects) {
-  // the difference between this and the usage of hashes (objects) is, that string usage
-  // is not sql injection safe. so make sure you know what you are doing!
-})
- 
-// since v1.7.0 we can now improve our where searches
 Project.findAll({
   where: {
     id: {
-      gt: 6,              // id > 6
-      gte: 6,             // id >= 6
-      lt: 10,             // id < 10
-      lte: 10,            // id
-      ne: 20,             // id != 20
-      between: [6, 10],   // BETWEEN 6 AND 10
-      nbetween: [11, 15], // NOT BETWEEN 11 AND 15
-      in: [1, 2],         // IN [1, 2]
-      like: '%hat',       // LIKE '%hat'
-      nlike: '%hat'       // NOT LIKE '%hat'
-      ilike: '%hat'       // ILIKE '%hat' (case insensitive)
-      nilike: '%hat'      // NOT ILIKE '%hat'
-      overlap: [1, 2]     // && [1, 2] (PG array overlap operator)
+      $gt: 6,                // id > 6
+      $gte: 6,               // id >= 6
+      $lt: 10,               // id < 10
+      $lte: 10,              // id
+      $ne: 20,               // id != 20
+      $not: 3,               // id NOT 3
+      $between: [6, 10],     // BETWEEN 6 AND 10
+      $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
+      $in: [1, 2],           // IN [1, 2]
+      $like: '%hat',         // LIKE '%hat'
+      $notLike: '%hat'       // NOT LIKE '%hat'
+      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
+      $notILike: '%hat'      // NOT ILIKE '%hat'
+      $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
+      $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
+      $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
     }
   }
 })
@@ -719,34 +715,43 @@ Project.findAll({
 
 ### Complex filtering / OR queries
 
-Since `v1.7.0-rc3`, it is possible to do complex where queries with multiple levels of nested AND and OR conditions. In order to do that you can use `Sequelize.or` and `Sequelize.and` and pass an arbitrary amount of arguments to it. Every argument will get transformed into a proper SQL condition and gets joined with the either `AND` or `OR`.
+It's possible to do complex where queries with multiple levels of nested AND and OR conditions. In order to do that you can use `$or` and `$and`:
 
 ```js
 Project.find({
-  where: Sequelize.and(
-    { name: 'a project' },
-    Sequelize.or(
+  where: {
+    name: 'a project',
+    $or: [
       { id: [1,2,3] },
-      { id: { gt: 10 } }
-    )
-  )
+      { id: { $gt: 10 } }
+    ]
+  }
+})
+
+Project.find({
+  where: {
+    name: 'a project',
+    id: {
+      $or: [
+        [1,2,3],
+        { $gt: 10 }
+      ]
+    }
+  }
 })
 ```
 
-This code will generate the following query:
+Both pieces of code code will generate the following:
 
 ```sql
 SELECT *
 FROM `Projects`
 WHERE (
-  `Projects`.`name`='a project'
+  `Projects`.`name` = 'a project'
    AND (`Projects`.`id` IN (1,2,3) OR `Projects`.`id` > 10)
 )
-LIMIT 1
-;
+LIMIT 1;
 ```
-
-Notice, that instead of `Sequelize.and` you can also use a plain array which will be treated as `Sequelize.and` if it contains objects or hashes or other complex data types. Furthermore you can use `Sequelize.or` as value for the where clause.
 
 ### Manipulating the dataset with limit&comma; offset&comma; order and group
 
