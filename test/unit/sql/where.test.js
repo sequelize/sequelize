@@ -6,6 +6,8 @@ var Support   = require(__dirname + '/../support')
   , current   = Support.sequelize
   , sql       = current.dialect.QueryGenerator;
 
+// Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
+
 suite('SQL', function() {
   suite('whereQuery', function () {
     var testsql = function (params, options, expectation) {
@@ -75,7 +77,8 @@ suite('SQL', function() {
       testsql('deleted', {
         $not: true
       }, {
-        default: "[deleted] NOT 'true'",
+        default: "[deleted] NOT true",
+        mssql: "[deleted] NOT 'true'",
         sqlite: "`deleted` NOT 1"
       });
 
