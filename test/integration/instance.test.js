@@ -1754,11 +1754,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         var query = { where: { username: 'fnord' }};
 
         self.User.find(query).success(function(user2) {
-          if (dialect === 'mssql') {
-            user1.dataValues.uuidv1 = user1.dataValues.uuidv1.toUpperCase();
-            user1.dataValues.uuidv4 = user1.dataValues.uuidv4.toUpperCase();
-          }
-
           expect(user1.equals(user2)).to.be.true;
           done();
         });
