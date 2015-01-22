@@ -197,6 +197,10 @@ var Support = {
     var expectation = expectations[Support.sequelize.dialect.name];
 
     if (!expectation) {
+      if (Support.sequelize.dialect.name === 'mariadb') {
+        expectation = expectations['mysql'];
+      }
+
       expectation = expectations['default']
                     .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
                     .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
