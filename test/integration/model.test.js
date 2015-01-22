@@ -1366,9 +1366,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           .then(function(pet) { return pet.destroy(); })
           .then(function() {
             return [
-              User.find({ where: user.id, include: Pet }),
+              User.find({ where: {id: user.id}, include: Pet }),
               User.find({
-                where: user.id,
+                where: {id: user.id},
                 include: [{ model: Pet, paranoid: false }]
               })
             ];
