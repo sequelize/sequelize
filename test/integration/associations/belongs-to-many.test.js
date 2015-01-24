@@ -813,7 +813,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
     it('should infer otherKey from paired BTM relationship with a through string defined', function () {
       var User = this.sequelize.define('User', {});
-      var Place = this.sequelize.define('User', {});
+      var Place = this.sequelize.define('Place', {});
 
       var Places = User.belongsToMany(Place, { through: 'user_places', foreignKey: 'user_id' });
       var Users = Place.belongsToMany(User, { through: 'user_places', foreignKey: 'place_id' });
