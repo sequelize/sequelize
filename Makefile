@@ -1,5 +1,5 @@
 REPORTER ?= spec
-TESTS = $(shell find ./test/* -name "*.test.js")
+TESTS = $(shell find ./test/integration/* -name "*.test.js")
 DIALECT ?= mysql
 
 # test commands
@@ -15,6 +15,7 @@ ifeq (true,$(COVERAGE))
 test: codeclimate
 else
 test:
+	make jshint && make teaser && make test-unit && make test-integration
 	@if [ "$$GREP" ]; then \
 		make jshint && make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
@@ -22,15 +23,51 @@ test:
 	fi
 endif
 
-test-only:
-	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
+# Unit tests
+test-unit:
+	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) ./test/unit/**/*.js
+
+test-unit-all: test-unit-sqlite test-unit-mysql test-unit-postgres test-unit-postgres-native test-unit-mariadb
+
+test-unit-mariadb:
+	@DIALECT=mariadb make test-unit
+test-unit-sqlite:
+	@DIALECT=sqlite make test-unit
+test-unit-mysql:
+	@DIALECT=mysql make test-unit
+test-unit-mssql:
+	@DIALECT=mssql make test-unit
+test-unit-postgres:
+	@DIALECT=postgres make test-unit
+test-unit-postgres-native:
+	@DIALECT=postgres-native make test-unit
+
+# Integration tests
+test-integration:
+	@if [ "$$GREP" ]; then \
+		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+	else \
+		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
+	fi
+
+test-integration-all: test-integration-sqlite test-integration-mysql test-integration-postgres test-integration-postgres-native test-integration-mariadb
+
+test-integration-mariadb:
+	@DIALECT=mariadb make test-integration
+test-integration-sqlite:
+	@DIALECT=sqlite make test-integration
+test-integration-mysql:
+	@DIALECT=mysql make test-integration
+test-integration-mssql:
+	@DIALECT=mssql make test-integration
+test-integration-postgres:
+	@DIALECT=postgres make test-integration
+test-integration-postgres-native:
+	@DIALECT=postgres-native make test-integration
+
 
 jshint:
 	./node_modules/.bin/jshint lib test
-
-cover:
-	rm -rf coverage \
-	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 10000 --ui tdd $(TESTS); \
 
 mariadb:
 	@DIALECT=mariadb make test
@@ -44,6 +81,11 @@ postgres:
 	@DIALECT=postgres make test
 postgres-native:
 	@DIALECT=postgres-native make test
+
+# Coverage
+cover:
+	rm -rf coverage \
+	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 10000 --ui tdd $(TESTS); \
 
 mariadb-cover:
 	rm -rf coverage

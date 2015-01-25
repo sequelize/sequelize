@@ -9,7 +9,7 @@ var Support   = require(__dirname + '/../support')
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite('SQL', function() {
+suite(Support.getTestDialectTeaser('SQL'), function() {
   suite('whereQuery', function () {
     var testsql = function (params, options, expectation) {
       if (expectation === undefined) {
