@@ -88,8 +88,8 @@ But we want more! Let's define it the other way around by creating a many to man
 Belongs-To-Many associations are used to connect sources with multiple targets. Furthermore the targets can also have connections to multiple sources.
     
 ```js
-Project.belongsToMany(User, {through: 'UserProject');
-User.belongsToMany(Project, {through: 'UserProject');
+Project.belongsToMany(User, {through: 'UserProject'});
+User.belongsToMany(Project, {through: 'UserProject'});
 ```
 
 This will reate a new model called UserProject with with the equivalent foreign keys `ProjectId` and `UserId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
