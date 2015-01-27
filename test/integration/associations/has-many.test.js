@@ -2607,7 +2607,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
 
         return Tasks[dataType].sync({ force: true }).then(function() {
-          expect(Tasks[dataType].rawAttributes.userId.type.toString()).to.equal(dataType.toString());
+          expect(Tasks[dataType].rawAttributes.userId.type instanceof dataType).to.be.ok;
         });
       });
     });
@@ -2624,7 +2624,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       User.hasMany(Task);
 
       return this.sequelize.sync({ force: true }).then(function() {
-        expect(Task.rawAttributes.UserId.type).to.equal(DataTypes.STRING);
+        expect(Task.rawAttributes.UserId.type instanceof DataTypes.STRING).to.be.ok;
       });
     });
 

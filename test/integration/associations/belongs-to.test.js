@@ -580,7 +580,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       User.belongsTo(Group);
 
       self.sequelize.sync({ force: true }).success(function() {
-        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(DataTypes.STRING.toString());
+        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(DataTypes.STRING().toString());
         done();
       });
     });
@@ -604,7 +604,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       .success(function() {
         dataTypes.forEach(function(dataType, i) {
           expect(Tasks[dataType].rawAttributes.userId.type.toString())
-            .to.equal(dataType.toString());
+            .to.equal(dataType().toString());
 
           if ((i + 1) === dataTypes.length) {
             done();

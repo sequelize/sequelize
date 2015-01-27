@@ -70,15 +70,16 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     [Sequelize.BLOB('tiny'), 'BLOB(\'tiny\')', 'TINYBLOB'],
     [Sequelize.BLOB('medium'), 'BLOB(\'medium\')', 'MEDIUMBLOB'],
     [Sequelize.BLOB('long'), 'BLOB(\'long\')', 'LONGBLOB'],
-
+   
     [Sequelize.INTEGER, 'INTEGER', 'INTEGER'],
     [Sequelize.INTEGER.UNSIGNED, 'INTEGER.UNSIGNED', 'INTEGER UNSIGNED'],
+    [Sequelize.INTEGER.UNSIGNED.ZEROFILL, 'INTEGER.UNSIGNED', 'INTEGER UNSIGNED ZEROFILL'],
     [Sequelize.INTEGER(11), 'INTEGER(11)', 'INTEGER(11)'],
     [Sequelize.INTEGER(11).UNSIGNED, 'INTEGER(11).UNSIGNED', 'INTEGER(11) UNSIGNED'],
     [Sequelize.INTEGER(11).UNSIGNED.ZEROFILL, 'INTEGER(11).UNSIGNED.ZEROFILL', 'INTEGER(11) UNSIGNED ZEROFILL'],
     [Sequelize.INTEGER(11).ZEROFILL, 'INTEGER(11).ZEROFILL', 'INTEGER(11) ZEROFILL'],
     [Sequelize.INTEGER(11).ZEROFILL.UNSIGNED, 'INTEGER(11).ZEROFILL.UNSIGNED', 'INTEGER(11) UNSIGNED ZEROFILL'],
-
+    
     [Sequelize.BIGINT, 'BIGINT', 'BIGINT'],
     [Sequelize.BIGINT.UNSIGNED, 'BIGINT.UNSIGNED', 'BIGINT UNSIGNED'],
     [Sequelize.BIGINT(11), 'BIGINT(11)', 'BIGINT(11)'],
@@ -124,7 +125,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         }
       }
 
-      expect(test[0].toString()).to.equal(test[2]);
+      if (typeof test[0] === "function") test[0] = new test[0]();
+      expect(test[0].toSql()).to.equal(test[2]);
       done();
     });
   });

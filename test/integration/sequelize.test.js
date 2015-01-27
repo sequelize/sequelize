@@ -834,7 +834,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             Object.keys(customAttributes).forEach(function(attribute) {
               Object.keys(customAttributes[attribute]).forEach(function(option) {
                 var optionValue = customAttributes[attribute][option];
-                expect(Picture.rawAttributes[attribute][option]).to.be.equal(optionValue);
+                if (typeof optionValue === "function" && optionValue() instanceof DataTypes.ABSTRACT) {
+                  expect(Picture.rawAttributes[attribute][option] instanceof optionValue).to.be.ok;
+                } else {
+                  expect(Picture.rawAttributes[attribute][option]).to.be.equal(optionValue);
+                }
               });
             });
             done();

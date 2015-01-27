@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
     User.hasMany(Group, { counterCache: true });
 
     expect(Object.keys(User.attributes)).to.contain('countGroups');
-    expect(User.attributes.countGroups.type).to.equal(DataTypes.INTEGER);
+    expect(User.attributes.countGroups.type instanceof DataTypes.INTEGER).to.be.ok;
   });
 
   it('supports `as`', function() {

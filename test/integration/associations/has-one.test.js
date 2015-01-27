@@ -515,7 +515,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       Group.hasOne(User);
 
       self.sequelize.sync({ force: true }).success(function() {
-        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(Sequelize.STRING.toString());
+        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(Sequelize.STRING().toString());
         done();
       });
     });
@@ -536,7 +536,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
         Tasks[dataType].sync({ force: true }).success(function() {
           expect(Tasks[dataType].rawAttributes.userId.type.toString())
-            .to.equal(dataType.toString());
+            .to.equal(dataType().toString());
 
           dataTypes.splice(dataTypes.indexOf(dataType), 1);
           if (!dataTypes.length) {
