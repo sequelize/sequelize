@@ -1,3 +1,6 @@
+# Next
+- [BUG] Fixed `field` support for `increment` and `decrement`.
+
 # 2.0.0-rc8
 - [FEATURE] CLS Support. CLS is also used to automatically pass the transaction to any calls within the callback chain when using `sequelize.transaction(function() ...`.
 - [BUG] Fixed issue with paranoid deletes and `deletedAt` with a custom field.
