@@ -727,7 +727,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       var Beacons = this.sequelize.define('Beacon', {
         id: {
           primaryKey: true,
-          type: DataTypes.UUID
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4
         },
         name: {
           type: DataTypes.STRING
