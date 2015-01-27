@@ -86,8 +86,41 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     ).to.eventually.be.rejected;
   });
 
-  if (current.dialect.supports.lock) {
-    describe('row locking', function() {
+  if (dialect === 'sqlite'){
+    it('provides persistent transactions', function () {
+      var sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
+          User = sequelize.define('user', {
+            username: Support.Sequelize.STRING,
+            awesome: Support.Sequelize.BOOLEAN
+          });
+
+      return sequelize.transaction()
+        .then(function(t) {
+          return sequelize.sync({transaction:t})
+            .then(function( ) {
+              return t;              
+            });
+        })
+        .then(function(t) {
+          return User.create({}, {transaction:t})
+            .then(function( ) {
+              t.commit();
+            });
+        })
+        .then(function( ) {
+          return sequelize.transaction();
+        })
+        .then(function(t) {
+          return User.findAll({}, {transaction:t});
+        })
+        .then(function(users) {
+          return expect(users.length).to.equal(1);
+        });
+    });  
+  }
+
+   if (current.dialect.supports.lock) {
+    describe('row locking', function () {
       this.timeout(10000);
       it('supports for update', function(done) {
         var User = this.sequelize.define('user', {
