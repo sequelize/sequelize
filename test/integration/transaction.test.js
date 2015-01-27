@@ -87,12 +87,13 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
   });
 
   if (dialect === 'sqlite'){
-    it('provides persistent transactions', function (done) {
+    it('provides persistent transactions', function () {
       var sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
           User = sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN
           });
+
       return sequelize.transaction()
         .then(function(t) {
           return sequelize.sync({transaction:t})
@@ -114,9 +115,6 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         })
         .then(function(users) {
           return expect(users.length).to.equal(1);
-        })
-        .then(function(object) {
-          done();
         });
     });  
   }
