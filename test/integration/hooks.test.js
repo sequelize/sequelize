@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
-          beforeEach(function(done) {
+          beforeEach(function() {
             this.User = this.sequelize.define('User', {
               username: DataTypes.STRING,
               mood: {
@@ -36,9 +36,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            this.User.sync({ force: true }).success(function() {
-              done();
-            });
+            return this.User.sync({ force: true });
           });
 
           describe('#bulkCreate', function() {

@@ -2601,7 +2601,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         , Tasks = {};
 
       return Promise.each(dataTypes, function(dataType) {
-        var tableName = 'TaskXYZ_' + dataType.toString();
+        var tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING });
 
         User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });

@@ -110,7 +110,7 @@ if (dialect.match(/^postgres/)) {
 
       createTableQuery: [
         {
-          arguments: ['myTable', {int: 'INTEGER(1)', bigint: 'BIGINT(12)'}],
+          arguments: ['myTable', {int: 'INTEGER', bigint: 'BIGINT'}],
           expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"int\" INTEGER, \"bigint\" BIGINT);'
         },
         {

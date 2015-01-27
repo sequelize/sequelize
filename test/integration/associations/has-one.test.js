@@ -497,7 +497,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   });
 
   describe('Association column', function() {
-    it('has correct type for non-id primary keys with non-integer type', function(done) {
+    it('has correct type for non-id primary keys with non-integer type', function() {
       var User = this.sequelize.define('UserPKBT', {
         username: {
           type: Sequelize.STRING
@@ -514,9 +514,8 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
       Group.hasOne(User);
 
-      self.sequelize.sync({ force: true }).success(function() {
-        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(Sequelize.STRING().toString());
-        done();
+      return this.sequelize.sync({ force: true }).then(function() {
+        expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(Sequelize.STRING);
       });
     });
   });
@@ -529,14 +528,13 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         , Tasks = {};
 
       dataTypes.forEach(function(dataType) {
-        var tableName = 'TaskXYZ_' + dataType.toString();
+        var tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING });
 
         User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
 
         Tasks[dataType].sync({ force: true }).success(function() {
-          expect(Tasks[dataType].rawAttributes.userId.type.toString())
-            .to.equal(dataType().toString());
+          expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
 
           dataTypes.splice(dataTypes.indexOf(dataType), 1);
           if (!dataTypes.length) {
