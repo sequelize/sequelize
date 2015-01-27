@@ -29,6 +29,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           name: {
             type: DataTypes.STRING,
             field: 'full_name'
+          },
+          taskCount: {
+            type: DataTypes.INTEGER,
+            field: 'task_count',
+            defaultValue: 0,
+            allowNull: false
           }
         }, {
           tableName: 'users',
@@ -96,6 +102,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             full_name: {
               type: DataTypes.STRING
+            },
+            task_count: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              defaultValue: 0
             }
           }),
           queryInterface.createTable('tasks', {
@@ -354,6 +365,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
             expect(user.get('tasks')[0].get('comments')).to.be.ok;
           });
+        });
+      });
+
+      it('should work with increment', function () {
+        return this.User.create().then(function (user) {
+          return user.increment('taskCount');
         });
       });
 
