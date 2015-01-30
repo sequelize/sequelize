@@ -1,5 +1,6 @@
 # Next
 - [BUG] Fixed `field` support for `increment` and `decrement`.
+- [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL.
 
 # 2.0.0-rc8
 - [FEATURE] CLS Support. CLS is also used to automatically pass the transaction to any calls within the callback chain when using `sequelize.transaction(function() ...`.
