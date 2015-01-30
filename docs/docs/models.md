@@ -584,7 +584,7 @@ Project.find({
 
 ### findOrCreate - Search for a specific element or create it if not available
 
-The method `findOrCreate` can be used to check if a certain element is already existing in the database&period; If that is the case the method will result in a respective instance&period; If the element does not yet exist&comma; it will be created.
+The method `findOrCreate` can be used to check if a certain element already exists in the database&period; If that is the case the method will result in a respective instance&period; If the element does not yet exist&comma; it will be created.
 
 Let's assume we have an empty database with a `User` model which has a `username` and a `job`.
 
@@ -637,7 +637,7 @@ User
 
 ### findAndCountAll - Search for multiple elements in the database&comma; returns both data and total count
 
-This is a convienience method that combines`findAll&lpar;&rpar;`and`count&lpar;&rpar;`&lpar;see below&rpar;&comma; this is useful when dealing with queries related to pagination where you want to retrieve data with a`limit`and`offset`but also need to know the total number of records that match the query&period;
+This is a convienience method that combines`findAll`&lpar;&rpar;and `count`&lpar;&rpar;&lpar;see below&rpar;&comma; this is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query&period;
 
 The success handler will always receive an object with two properties&colon;
 
@@ -660,7 +660,7 @@ Project
   });
 ```
 
-The options &lsqb;object&rsqb; that you pass to`findAndCountAll&lpar;&rpar;`is the same as for`findAll&lpar;&rpar;`&lpar;described below&rpar;&period;
+The options &lsqb;object&rsqb; that you pass to`findAndCountAll`&lpar;&rpar;is the same as for`findAll`&lpar;&rpar;&lpar;described below&rpar;&period;
 
 ### findAll - Search for multiple elements in the database
 ```js
@@ -900,7 +900,7 @@ Project.sum('age', { where: { age: { gt: 5 } } }).then(function(sum) {
 
 ## Eager loading
 
-When you are retrieving data from the database there is a fair chance that you also want to get their associations&period; This is possible since`v1.6.0`and is called eager loading&period; The basic idea behind that&comma; is the use of the attribute`include`when you are calling`find`or`findAll`&period; Lets assume the following setup&colon;
+When you are retrieving data from the database there is a fair chance that you also want to get their associations&period; This is possible since`v1.6.0`and is called eager loading&period; The basic idea behind that&comma; is the use of the attribute `include` when you are calling `find` or `findAll`&period; Lets assume the following setup&colon;
 
 ```js
 var User = sequelize.define('User', { name: Sequelize.STRING })
@@ -968,7 +968,7 @@ User.findAll({ include: [ Task ] }).then(function(users) {
 
 Notice that the accessor is plural&period; This is because the association is many-to-something&period;
 
-If an association is aliased &lpar;using the`as`option&rpar;&comma; you_must_specify this alias when including the model&period; Notice how the user's`Tool`s are aliased as`Instruments`above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
+If an association is aliased &lpar;using the`as`option&rpar;&comma; you must specify this alias when including the model&period; Notice how the user's `Tool`s are aliased as `Instruments` above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
 
 ```js
 User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(users) {
