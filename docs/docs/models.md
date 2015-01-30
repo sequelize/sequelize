@@ -474,7 +474,7 @@ Task.drop() // will emit success or failure event
 Project.[sync|drop]().then(function() {
   // ok ... everything is nice!
 }).catch(function(error) {
-  // oooh, did you entered wrong database credentials?
+  // oooh, did you enter wrong database credentials?
 })
 ```
 
