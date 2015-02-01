@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
       if (dialect === 'sqlite') {
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
-      } else if (dialect === 'mssql') {
+      } else if (dialect === 'mssql' || dialect === 'postgres') {
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith([seq.HostNotReachableError, seq.InvalidConnectionError]);
       } else {
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.InvalidConnectionError, 'connect EINVAL');
