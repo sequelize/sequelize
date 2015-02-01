@@ -18,8 +18,6 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
-    this.clock = sinon.useFakeTimers();
-
     this.User = this.sequelize.define('user', {
       username: DataTypes.STRING,
       foo: {
@@ -35,10 +33,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     return this.sequelize.sync({ force: true });
   });
 
-  afterEach(function() {
-    this.clock.restore();
-  });
-
   if (current.dialect.supports.upserts) {
     describe('upsert', function() {
       it('works with upsert on id', function() {
@@ -49,8 +43,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).to.be.ok;
           }
 
-          this.clock.tick(2000); // Make sure to pass some time so updatedAt != createdAt
-          return this.User.upsert({ id: 42, username: 'doe' });
+          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
+            return this.User.upsert({ id: 42, username: 'doe' });
+          });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).not.to.be.defined;
@@ -74,8 +69,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).to.be.ok;
           }
 
-          this.clock.tick(2000); // Make sure to pass some time so updatedAt != createdAt
-          return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
+          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
+            return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
+          });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).not.to.be.defined;
