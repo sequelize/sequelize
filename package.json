@@ -45,7 +45,7 @@
   "devDependencies": {
     "continuation-local-storage": "3.1.2",
     "chai-as-promised": "^4.1.1",
-    "sqlite3": "~3.0.0",
+    "sqlite3": "fengmk2/node-sqlite3#support-iojs-version",
     "mysql": "~2.5.0",
     "pg": "^4.2.0",
     "pg-native": "^1.8.0",
