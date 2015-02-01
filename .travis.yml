@@ -18,7 +18,7 @@ env:
   - DB=mysql DIALECT=mssql
 
 addons:
-  postgresql: "9.3"
+  postgresql: "9.4"
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"
