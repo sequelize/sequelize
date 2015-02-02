@@ -1229,7 +1229,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('sets deletedAt to the current timestamp if paranoid is true', function() {
       var self = this
-        , qi = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier
+        , qi = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier.bind(this.sequelize.queryInterface.QueryGenerator)
         , ParanoidUser = self.sequelize.define('ParanoidUser', {
           username: Sequelize.STRING,
           secretValue: Sequelize.STRING,

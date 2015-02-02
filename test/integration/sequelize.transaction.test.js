@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
         .success(function() { done(); });
     });
 
-    it('gets triggered once a transaction has been successfully rollbacked', function(done) {
+    it('gets triggered once a transaction has been successfully rolled back', function(done) {
       this
         .sequelize
         .transaction().then(function(t) { t.rollback(); })
@@ -28,16 +28,15 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
     });
 
     if (Support.getTestDialect() !== 'sqlite') {
-      it('works for long running transactions', function(done) {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+      it('works for long running transactions', function() {
+        return Support.prepareTransactionTest(this.sequelize, function(sequelize) {
           var User = sequelize.define('User', {
             name: Support.Sequelize.STRING
           }, { timestamps: false });
 
-          return sequelize.sync({ force: true }).success(function() {
+          return sequelize.sync({ force: true }).then(function() {
             return sequelize.transaction();
           }).then(function(t) {
-            expect(t).to.be.ok;
             var query = 'select sleep(2);';
 
             switch (Support.getTestDialect()) {
@@ -51,36 +50,23 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
               break;
             }
 
-            return sequelize.query(query, null, {
-              raw: true,
-              plain: true,
-              transaction: t
-            }).then(function() {
+            return sequelize.query(query, { transaction: t }).then(function() {
               var dao = User.build({ name: 'foo' });
 
-              // this.QueryGenerator.insertQuery(tableName, values, dao.daoFactory.rawAttributes)
-              return query = sequelize
-                .getQueryInterface()
-                .QueryGenerator
-                .insertQuery(User.tableName, dao.values, User.rawAttributes);
+              return sequelize.getQueryInterface().QueryGenerator.insertQuery(User.tableName, dao.values, User.rawAttributes);
             }).then(function() {
               return Promise.delay(1000);
             }).then(function() {
-              return sequelize.query(query, null, {
-                raw: true,
-                plain: true,
-                transaction: t
-              });
+              return sequelize.query(query, { transaction: t });
             }).then(function() {
               return t.commit();
             });
           }).then(function() {
-            return User.all().success(function(users) {
-              expect(users.length).to.equal(1);
-              expect(users[0].name).to.equal('foo');
-              done();
-            });
-          }).catch (done);
+            return User.all();
+          }).then(function(users) {
+            expect(users.length).to.equal(1);
+            expect(users[0].name).to.equal('foo');
+          });
         });
       });
     }

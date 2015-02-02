@@ -335,64 +335,64 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     });
 
     it('replaces token with the passed array', function(done) {
-      this.sequelize.query('select ? as foo, ? as bar', null, { type: this.sequelize.QueryTypes.SELECT }, [1, 2]).success(function(result) {
+      this.sequelize.query('select ? as foo, ? as bar', null, { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] }).success(function(result) {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         done();
       });
     });
 
     it('replaces named parameters with the passed object', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: 2 }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar', null, { raw: true, replacements: { one: 1, two: 2 }}).get(0))
         .to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', null, { raw: true }, { one: 1, two: 2 }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', null, { raw: true, replacements: { one: 1, two: 2 }}).get(0))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
     });
 
     it('replaces named parameters with the passed object using the same key twice', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true }, { one: 1, two: 2 }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', null, { raw: true, replacements: { one: 1, two: 2 }}).get(0))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
     });
 
     it('replaces named parameters with the passed object having a null property', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, { one: 1, two: null }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar', null, { raw: true, replacements: { one: 1, two: null }}).get(0))
         .to.eventually.deep.equal([{ foo: 1, bar: null }]);
     });
 
     it('throw an exception when key is missing in the passed object', function() {
       var self = this;
       expect(function() {
-        self.sequelize.query('select :one as foo, :two as bar, :three as baz', null, { raw: true }, { one: 1, two: 2 });
+        self.sequelize.query('select :one as foo, :two as bar, :three as baz', null, { raw: true, replacements: { one: 1, two: 2 }});
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
     it('throw an exception with the passed number', function() {
       var self = this;
       expect(function() {
-        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 2);
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true, replacements: 2 });
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
     it('throw an exception with the passed empty object', function() {
       var self = this;
       expect(function() {
-        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, {});
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true, replacements: {}});
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
     it('throw an exception with the passed string', function() {
       var self = this;
       expect(function() {
-        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, 'foobar');
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true, replacements: 'foobar'});
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
     it('throw an exception with the passed date', function() {
       var self = this;
       expect(function() {
-        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true }, new Date());
+        self.sequelize.query('select :one as foo, :two as bar', null, { raw: true, replacements: new Date()});
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
@@ -428,7 +428,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         }.bind(this)).to.throw(TypeError, 'options.transaction is required');
       });
 
-      it.only('one value', function() {
+      it('one value', function() {
         return this.sequelize.transaction().bind(this).then(function(t) {
           this.t = t;
           return this.sequelize.set({ foo: 'bar' }, { transaction: t });
@@ -873,87 +873,71 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         });
 
         if (dialect === 'sqlite') {
-          it('correctly scopes transaction from other connections', function(done) {
+          it('correctly scopes transaction from other connections', function() {
             var TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
               , self = this;
 
-            var count = function(transaction, callback) {
+            var count = function(transaction) {
               var sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
-              self
-                .sequelizeWithTransaction
-                .query(sql, null, { plain: true, raw: true, transaction: transaction, type: self.sequelize.QueryTypes.SELECT })
-                .then(function(result) { callback(result.cnt); });
+              return self.sequelizeWithTransaction.query(sql, { plain: true, transaction: transaction }).then(function(result) {
+                return result.cnt;
+              });
             };
 
-            TransactionTest.sync({ force: true }).success(function() {
-              self.sequelizeWithTransaction.transaction().then(function(t1) {
-                self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
-                  count(null, function(cnt) {
-                    expect(cnt).to.equal(0);
-
-                    count(t1, function(cnt) {
-                      expect(cnt).to.equal(1);
-
-                      t1.commit().success(function() {
-                        count(null, function(cnt) {
-                          expect(cnt).to.equal(1);
-                          done();
-                        });
-                      });
-                    });
-                  });
-                });
-              });
+            return TransactionTest.sync({ force: true }).bind(this).then(function() {
+              return self.sequelizeWithTransaction.transaction();
+            }).then(function(t1) {
+              this.t1 = t1;
+              return self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', { transaction: t1 });
+            }).then(function() {
+              return expect(count()).to.eventually.equal(0);
+            }).then(function(cnt) {
+              return expect(count(this.t1)).to.eventually.equal(1);
+            }).then(function () {
+              return this.t1.commit();
+            }).then(function() {
+              return expect(count()).to.eventually.equal(1);
             });
           });
         } else {
-          it('correctly handles multiple transactions', function(done) {
+          it('correctly handles multiple transactions', function() {
             var TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
               , self = this;
 
-            var count = function(transaction, callback) {
+            var count = function(transaction) {
               var sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
-              self
-                .sequelizeWithTransaction
-                .query(sql, { plain: true, transaction: transaction })
-                .success(function(result) { callback(parseInt(result.cnt, 10)); });
+              return self.sequelizeWithTransaction.query(sql, { plain: true, transaction: transaction }).then(function(result) {
+                return parseInt(result.cnt, 10);
+              });
             };
 
-            TransactionTest.sync({ force: true }).success(function() {
-              self.sequelizeWithTransaction.transaction().then(function(t1) {
-                self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { plain: true, raw: true, transaction: t1 }).success(function() {
-                  self.sequelizeWithTransaction.transaction().then(function(t2) {
-                    self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'bar\');', null, { plain: true, raw: true, transaction: t2 }).success(function() {
-                      count(null, function(cnt) {
-                        expect(cnt).to.equal(0);
+            return TransactionTest.sync({ force: true }).bind(this).then(function() {
+              return self.sequelizeWithTransaction.transaction();
+            }).then(function(t1) {
+              this.t1 = t1;
+              return self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', null, { transaction: t1 });
+            }).then(function() {
+              return self.sequelizeWithTransaction.transaction();
+            }).then(function(t2) {
+              this.t2 = t2;
+              return self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'bar\');', null, { transaction: t2 });
+            }).then(function() {
+              return expect(count()).to.eventually.equal(0);
+            }).then(function() {
+              return expect(count(this.t1)).to.eventually.equal(1);
+            }).then(function() {
+              return expect(count(this.t2)).to.eventually.equal(1);
+            }).then(function() {
 
-                        count(t1, function(cnt) {
-                          expect(cnt).to.equal(1);
-
-                          count(t2, function(cnt) {
-                            expect(cnt).to.equal(1);
-
-                            t2.rollback().success(function() {
-                              count(null, function(cnt) {
-                                expect(cnt).to.equal(0);
-
-                                t1.commit().success(function() {
-                                  count(null, function(cnt) {
-                                    expect(cnt).to.equal(1);
-                                    done();
-                                  });
-                                });
-                              });
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
+              return this.t2.rollback();
+            }).then(function() {
+              return expect(count()).to.eventually.equal(0);
+            }).then(function(cnt) {
+              return this.t1.commit();
+            }).then(function() {
+              return expect(count()).to.eventually.equal(1);
             });
           });
         }
