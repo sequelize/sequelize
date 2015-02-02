@@ -34,24 +34,21 @@ if (Support.dialectIsMySQL()) {
       });
     });
 
-    it('accepts new queries after shutting down a connection', function(done) {
+    it('accepts new queries after shutting down a connection', function() {
       // Create a sequelize instance with pooling disabled
       var sequelize = Support.createSequelizeInstance({ pool: false });
       var User = sequelize.define('User', { username: DataTypes.STRING });
 
-      User.sync({force: true}).on('success', function() {
-        User.create({username: 'user1'}).on('success', function() {
-          // After 100 ms the DB connection will be disconnected for inactivity
-          setTimeout(function() {
-            // This query will be queued just after the `client.end` is executed and before its callback is called
-            sequelize.query('SELECT COUNT(*) AS count FROM Users', { type: sequelize.QueryTypes.SELECT }).on('success', function(count) {
-              expect(count[0].count).to.equal(1);
-              done();
-            }).error(function(error) {
-              expect(error).to.not.exist;
-            });
-          }, 100);
-        });
+      return User.sync({force: true}).then(function() {
+        return User.create({username: 'user1'});
+      }).then(function() {
+        // After 100 ms the DB connection will be disconnected for inactivity
+        return sequelize.Promise.delay(100);
+      }).then(function () {
+        // This query will be queued just after the `client.end` is executed and before its callback is called
+        return sequelize.query('SELECT COUNT(*) AS count FROM Users', { type: sequelize.QueryTypes.SELECT });
+      }).then(function(count) {
+        expect(count[0].count).to.equal(1);
       });
     });
 

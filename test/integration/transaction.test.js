@@ -11,7 +11,7 @@ var chai = require('chai')
 
 if (current.dialect.supports.transactions) {
 
-describe.skip(Support.getTestDialectTeaser('Transaction'), function() {
+describe(Support.getTestDialectTeaser('Transaction'), function() {
   this.timeout(4000);
   describe('constructor', function() {
     it('stores options', function() {

@@ -29,44 +29,43 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
 
     if (Support.getTestDialect() !== 'sqlite') {
       it('works for long running transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize, function(sequelize) {
-          var User = sequelize.define('User', {
+        this.timeout(10000);
+        return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
+          this.sequelize = sequelize;
+
+          this.User = sequelize.define('User', {
             name: Support.Sequelize.STRING
           }, { timestamps: false });
 
-          return sequelize.sync({ force: true }).then(function() {
-            return sequelize.transaction();
-          }).then(function(t) {
-            var query = 'select sleep(2);';
+          return sequelize.sync({ force: true });
+        }).then(function() {
+          return this.sequelize.transaction();
+        }).then(function(t) {
+          var query = 'select sleep(2);';
 
-            switch (Support.getTestDialect()) {
-            case 'postgres':
-              query = 'select pg_sleep(2);';
-              break;
-            case 'sqlite':
-              query = 'select sqlite3_sleep(2000);';
-              break;
-            default:
-              break;
-            }
+          switch (Support.getTestDialect()) {
+          case 'postgres':
+            query = 'select pg_sleep(2);';
+            break;
+          case 'sqlite':
+            query = 'select sqlite3_sleep(2000);';
+            break;
+          default:
+            break;
+          }
 
-            return sequelize.query(query, { transaction: t }).then(function() {
-              var dao = User.build({ name: 'foo' });
-
-              return sequelize.getQueryInterface().QueryGenerator.insertQuery(User.tableName, dao.values, User.rawAttributes);
-            }).then(function() {
-              return Promise.delay(1000);
-            }).then(function() {
-              return sequelize.query(query, { transaction: t });
-            }).then(function() {
-              return t.commit();
-            });
+          return this.sequelize.query(query, { transaction: t }).bind(this).then(function() {
+            return this.User.create({ name: 'foo' });
           }).then(function() {
-            return User.all();
-          }).then(function(users) {
-            expect(users.length).to.equal(1);
-            expect(users[0].name).to.equal('foo');
+            return this.sequelize.query(query, { transaction: t });
+          }).then(function() {
+            return t.commit();
           });
+        }).then(function() {
+          return this.User.all();
+        }).then(function(users) {
+          expect(users.length).to.equal(1);
+          expect(users[0].name).to.equal('foo');
         });
       });
     }
