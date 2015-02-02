@@ -119,7 +119,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               } else if (dialect === 'postgres') {
                 expect(
                   err.message.match(/connect ECONNREFUSED/) ||
-                  err.message.match(/invalid port number/)
+                  err.message.match(/invalid port number/) ||
+                  err.message.match(/RangeError: Port should be > 0 and < 65536/)
                 ).to.be.ok;
               } else if (dialect === 'mssql') {
                 expect(

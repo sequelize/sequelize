@@ -999,8 +999,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   { username: 'Paul', secretValue: '42' },
                   { username: 'Bob', secretValue: '43' }];
 
-      this.clock = sinon.useFakeTimers();
-
       return this.User.bulkCreate(data).bind(this).then(function() {
         return this.User.findAll({order: 'id'});
       }).then(function(users) {
@@ -1010,9 +1008,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(this.updatedAt).to.equalTime(users[2].updatedAt); // All users should have the same updatedAt
 
         // Pass the time so we can actually see a change
-        this.clock.tick(1000);
-
-        return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
+        return this.sequelize.Promise.delay(1000).bind(this).then(function() {
+          return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
+        });
       }).then(function() {
         return this.User.findAll({order: 'id'});
       }).then(function(users) {
@@ -1022,8 +1020,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(users[0].updatedAt).to.be.afterTime(this.updatedAt);
         expect(users[2].updatedAt).to.equalTime(this.updatedAt);
-
-        this.clock.restore();
       });
     });
 
