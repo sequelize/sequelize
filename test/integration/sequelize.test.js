@@ -428,15 +428,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         }.bind(this)).to.throw(TypeError, 'options.transaction is required');
       });
 
-      it('one value', function() {
+      it.only('one value', function() {
         return this.sequelize.transaction().bind(this).then(function(t) {
           this.t = t;
           return this.sequelize.set({ foo: 'bar' }, { transaction: t });
         }).then(function() {
-          return this.sequelize.query('SELECT @foo as `foo`', { transaction: this.t, type: this.sequelize.QueryTypes.SELECT });
+          return this.sequelize.query('SELECT @foo as `foo`', { plain: true, transaction: this.t });
         }).then(function(data) {
-          expect(data[0]).to.be.ok;
-          expect(data[0].foo).to.be.equal('bar');
+          expect(data).to.be.ok;
+          expect(data.foo).to.be.equal('bar');
           return this.t.commit();
         });
       });
@@ -449,11 +449,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             foos: 'bars'
           }, { transaction: t });
         }).then(function() {
-          return this.sequelize.query('SELECT @foo as `foo`, @foos as `foos`', { transaction: this.t, type: this.sequelize.QueryTypes.SELECT });
+          return this.sequelize.query('SELECT @foo as `foo`, @foos as `foos`', { plain: true, transaction: this.t });
         }).then(function(data) {
-          expect(data[0]).to.be.ok;
-          expect(data[0].foo).to.be.equal('bar');
-          expect(data[0].foos).to.be.equal('bars');
+          expect(data).to.be.ok;
+          expect(data.foo).to.be.equal('bar');
+          expect(data.foos).to.be.equal('bars');
           return this.t.commit();
         });
       });
@@ -917,8 +917,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
               self
                 .sequelizeWithTransaction
-                .query(sql, { transaction: transaction, type: self.sequelize.QueryTypes.SELECT })
-                .success(function(result) { callback(parseInt(result[0].cnt, 10)); });
+                .query(sql, { plain: true, transaction: transaction })
+                .success(function(result) { callback(parseInt(result.cnt, 10)); });
             };
 
             TransactionTest.sync({ force: true }).success(function() {

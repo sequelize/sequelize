@@ -1393,14 +1393,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }).then(function(tobi) {
         return tobi.destroy();
       }).then(function() {
-        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'');
-      }).spread(function(result) {
-        expect(result[0].username).to.equal('Tobi');
+        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true});
+      }).then(function(result) {
+        expect(result.username).to.equal('Tobi');
         return User.destroy({where: {username: 'Tony'}});
       }).then(function() {
-        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'');
-      }).spread(function(result) {
-        expect(result[0].username).to.equal('Tony');
+        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true});
+      }).then(function(result) {
+        expect(result.username).to.equal('Tony');
         return User.destroy({where: {username: ['Tony', 'Max']}, force: true});
       }).then(function() {
         return self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true});
