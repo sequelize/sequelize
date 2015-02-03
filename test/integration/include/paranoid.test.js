@@ -101,4 +101,41 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
     });
 
   });
+
+  it('should not load paranoid, destroyed instances, with a non-paranoid parent', function () {
+    var X = this.sequelize.define('x', {
+      name: DataTypes.STRING
+    }, {
+      paranoid: false
+    });
+
+    var Y = this.sequelize.define('y', {
+      name: DataTypes.STRING
+    }, {
+      timestamps: true,
+      paranoid: true
+    });
+
+    X.hasMany(Y);
+
+    return this.sequelize.sync({ force: true}).bind(this).then(function () {
+      return this.sequelize.Promise.all([
+        X.create(),
+        Y.create()
+      ]);
+    }).spread(function (x, y) {
+      this.x = x;
+      this.y = y;
+
+      return x.addY(y);
+    }).then(function () {
+      return this.y.destroy();
+    }).then(function () {
+      return X.findAll({
+        include: [Y]
+      }).get(0);
+    }).then(function (x) {
+      expect(x.ys).to.have.length(0);
+    });
+  });
 });
