@@ -130,6 +130,27 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should support bools in defaults', function () {
+      var User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.INTEGER,
+          unique: true
+        },
+        bool: DataTypes.BOOLEAN
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.findOrCreate({
+          where: {
+            objectId: 1
+          },
+          defaults: {
+            bool: false
+          }
+        });
+      });
+    });
+
     it('returns instance if already existent. Single find field.', function(done) {
       var self = this,
         data = {
