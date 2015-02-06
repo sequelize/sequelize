@@ -1,6 +1,6 @@
 <a name="transaction"></a>
 # Class Transaction
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/transaction.js#L12)
+[View code](https://github.com/sequelize/sequelize/blob/e0f2979a94f3ff94e802ed4c9ebb4f1f55bbbef5/lib/transaction.js#L12)
 The transaction object is used to identify a running transaction. It is created by calling `Sequelize.transaction()`.
 
 To run a query under a transaction, you should pass the transaction in the options object.
@@ -9,7 +9,7 @@ To run a query under a transaction, you should pass the transaction in the optio
 
 <a name="isolation_levels"></a>
 ## `ISOLATION_LEVELS`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/transaction.js#L45)
+[View code](https://github.com/sequelize/sequelize/blob/e0f2979a94f3ff94e802ed4c9ebb4f1f55bbbef5/lib/transaction.js#L45)
 The possible isolations levels to use when starting a transaction
 
 ```js
@@ -26,7 +26,7 @@ The possible isolations levels to use when starting a transaction
 
 <a name="lock"></a>
 ## `LOCK`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/transaction.js#L67)
+[View code](https://github.com/sequelize/sequelize/blob/e0f2979a94f3ff94e802ed4c9ebb4f1f55bbbef5/lib/transaction.js#L67)
 Possible options for row locking. Used in conjuction with `find` calls:
 
 ```js
@@ -44,7 +44,7 @@ Model.findAll({
 
 <a name="commit"></a>
 ## `commit()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/transaction.js#L77)
+[View code](https://github.com/sequelize/sequelize/blob/e0f2979a94f3ff94e802ed4c9ebb4f1f55bbbef5/lib/transaction.js#L77)
 Commit the transaction
 
 
@@ -52,7 +52,7 @@ Commit the transaction
 
 <a name="rollback"></a>
 ## `rollback()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/transaction.js#L98)
+[View code](https://github.com/sequelize/sequelize/blob/e0f2979a94f3ff94e802ed4c9ebb4f1f55bbbef5/lib/transaction.js#L98)
 Rollback (abort) the transaction
 
 
