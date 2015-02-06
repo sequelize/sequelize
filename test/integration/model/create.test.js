@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             username: 'gottlieb'
           }
         }).then(function () {
-          throw new Error('I should have ben rejected');
+          throw new Error('I should have been rejected');
         }, function (err) {
           expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
           expect(err.fields).to.be.ok;
@@ -125,6 +125,27 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           },
           defaults: {
             description: '$$ and !! and :: and ? and ^ and * and \''
+          }
+        });
+      });
+    });
+
+    it('should support bools in defaults', function () {
+      var User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.INTEGER,
+          unique: true
+        },
+        bool: DataTypes.BOOLEAN
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.findOrCreate({
+          where: {
+            objectId: 1
+          },
+          defaults: {
+            bool: false
           }
         });
       });

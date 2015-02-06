@@ -37,7 +37,7 @@
     "generic-pool": "2.1.1",
     "inflection": "1.5.3",
     "lodash": "~2.4.0",
-    "moment": "~2.8.0",
+    "moment": "^2.9.0",
     "node-uuid": "~1.4.1",
     "toposort-class": "~0.3.0",
     "validator": "~3.22.1"
@@ -47,7 +47,8 @@
     "chai-as-promised": "^4.1.1",
     "sqlite3": "~3.0.0",
     "mysql": "~2.5.0",
-    "pg": "~3.6.0",
+    "pg": "^4.2.0",
+    "pg-native": "^1.8.0",
     "pg-hstore": "^2.3.1",
     "tedious": "^1.7.0",
     "watchr": "~2.4.11",

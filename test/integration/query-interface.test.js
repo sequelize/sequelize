@@ -424,15 +424,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
-    it('should get a list of foreign keys for the table', function(done) {
-      var sql =
-        this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
-      this.sequelize.query(sql).complete(function(err, fks) {
-        expect(err).to.be.null;
+    it('should get a list of foreign keys for the table', function() {
+      var sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
+
+      return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then(function(fks) {
         expect(fks).to.have.length(3);
         var keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
           keys3 = Object.keys(fks[2]);
+
         if (dialect === 'postgres' || dialect === 'postgres-native') {
           expect(keys).to.have.length(6);
           expect(keys2).to.have.length(7);
@@ -444,10 +444,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         } else {
           console.log("This test doesn't support " + dialect);
         }
-        done();
       });
-
     });
   });
-
 });
