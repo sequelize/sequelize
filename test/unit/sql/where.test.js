@@ -237,38 +237,80 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
     if (current.dialect.supports['ARRAY']) {
       suite('ARRAY', function () {
-        testsql('muscles', {
-          $contains: [2, 3]
-        }, {
-          postgres: '"muscles" @> ARRAY[2,3]'
+        suite('$contains', function () {
+          testsql('muscles', {
+            $contains: [2, 3]
+          }, {
+            postgres: '"muscles" @> ARRAY[2,3]'
+          });
+
+          testsql('muscles', {
+            $contained: [6, 8]
+          }, {
+            postgres: '"muscles" <@ ARRAY[6,8]'
+          });
+
+          testsql('muscles', {
+            $overlap: [3, 11]
+          }, {
+            postgres: '"muscles" && ARRAY[3,11]'
+          });
+
+          testsql('muscles', {
+            $overlap: [3, 1]
+          }, {
+            postgres: '"muscles" && ARRAY[3,1]'
+          });
+
+          testsql('muscles', {
+            $contains: [2, 5]
+          }, {
+            field: {
+              type: DataTypes.ARRAY(DataTypes.INTEGER)
+            }
+          }, {
+            postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
+          });
         });
 
-        testsql('muscles', {
-          $contained: [6, 8]
-        }, {
-          postgres: '"muscles" <@ ARRAY[6,8]'
-        });
+        suite('$any', function() {
+          testsql('userId', {
+            $any: [4, 5, 6]
+          }, {
+            postgres: '"userId" = ANY (ARRAY[4,5,6])'
+          });
 
-        testsql('muscles', {
-          $overlap: [3, 11]
-        }, {
-          postgres: '"muscles" && ARRAY[3,11]'
-        });
+          testsql('userId', {
+            $any: [2, 5]
+          }, {
+            field: {
+              type: DataTypes.ARRAY(DataTypes.INTEGER)
+            }
+          }, {
+            postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])'
+          });
 
-        testsql('muscles', {
-          $overlap: [3, 1]
-        }, {
-          postgres: '"muscles" && ARRAY[3,1]'
-        });
+          suite('$values', function () {
+            testsql('userId', {
+              $any: {
+                $values: [4, 5, 6]
+              }
+            }, {
+              postgres: '"userId" = ANY (VALUES (4), (5), (6))'
+            });
 
-        testsql('muscles', {
-          $contains: [2, 5]
-        }, {
-          field: {
-            type: DataTypes.ARRAY(DataTypes.INTEGER)
-          }
-        }, {
-          postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
+            testsql('userId', {
+              $any: {
+                $values: [2, 5]
+              }
+            }, {
+              field: {
+                type: DataTypes.ARRAY(DataTypes.INTEGER)
+              }
+            }, {
+              postgres: '"userId" = ANY (VALUES (2), (5))'
+            });
+          });
         });
       });
     }
