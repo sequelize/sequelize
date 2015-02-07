@@ -8,12 +8,15 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../config/config')
   , sinon = require('sinon')
+  , sinonChai = require('sinon-chai')
   , datetime = require('chai-datetime')
   , uuid = require('node-uuid')
   , _ = require('lodash')
   , current = Support.sequelize;
 
+chai.should();
 chai.use(datetime);
+chai.use(sinonChai);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
@@ -41,6 +44,11 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       dateAllowNullTrue: {
         type: DataTypes.DATE,
         allowNull: true
+      },
+
+      isSuperUser: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
       }
     });
     this.User.sync({ force: true }).success(function() {
@@ -735,6 +743,106 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
             done();
           });
+        });
+      });
+    });
+
+    describe('super user boolean', function() {
+      it('should default to false', function() {
+        return this.User.build({
+            username: 'a user'
+          })
+          .save()
+          .bind(this)
+          .then(function() {
+            return this.User.find({
+              where: {
+                username: 'a user'
+              }
+            })
+          .then(function(user) {
+            expect(user.isSuperUser).to.be.false;
+          });
+        });
+      });
+
+      it('should override default when given truthy boolean', function() {
+        return this.User.build({
+            username: 'a user',
+            isSuperUser: true
+          })
+          .save()
+          .bind(this)
+          .then(function() {
+            return this.User.find({
+              where: {
+                username: 'a user'
+              }
+            })
+          .then(function(user) {
+            expect(user.isSuperUser).to.be.true;
+          });
+        });
+      });
+
+      it('should override default when given truthy boolean-string ("true")', function() {
+        return this.User.build({
+            username: 'a user',
+            isSuperUser: "true"
+          })
+          .save()
+          .bind(this)
+          .then(function() {
+            return this.User.find({
+              where: {
+                username: 'a user'
+              }
+            })
+          .then(function(user) {
+            expect(user.isSuperUser).to.be.true;
+          });
+        });
+      });
+
+      it('should override default when given truthy boolean-int (1)', function() {
+        return this.User.build({
+          username: 'a user',
+          isSuperUser: 1
+        })
+        .save()
+        .bind(this)
+        .then(function() {
+          return this.User.find({
+            where: {
+              username: 'a user'
+            }
+          })
+        .then(function(user) {
+          expect(user.isSuperUser).to.be.true;
+        });
+        });
+      });
+
+      it('should throw error when given value of incorrect type', function() {
+        function didApplyValue(cb) {
+          cb();
+          throw new Error("Value incorrectly applied!!!");
+        }
+
+        var spy = sinon.spy();
+
+        return this.User.build({
+          username: 'a user',
+          isSuperUser: "INCORRECT_VALUE_TYPE"
+        })
+        .save()
+        .then(function () {
+          didApplyValue(spy);
+        })
+        .catch(function(err) {
+          spy.should.have.callCount(0);
+          expect(err).to.exist;
+          expect(err.message).to.exist;
         });
       });
     });
