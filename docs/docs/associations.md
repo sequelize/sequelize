@@ -104,7 +104,7 @@ User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks' })
 Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks' })
 ```
 
-Of course you can also define self references with hasMany:
+Of course you can also define self references with belongsToMany:
     
 ```js
 Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
