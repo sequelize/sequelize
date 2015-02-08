@@ -87,6 +87,60 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('works with upsert on a composite primary key', function() {
+        var User = this.sequelize.define('user', {
+          a: {
+            type: Sequelize.STRING,
+            primaryKey: true,
+          },
+          b: {
+            type: Sequelize.STRING,
+            primaryKey: true,
+          },
+          username: DataTypes.STRING,
+        });
+
+        return User.sync({ force: true }).bind(this).then(function  () {
+          return Promise.all([
+              // Create two users
+             User.upsert({ a: 'a', b: 'b', username: 'john' }),
+             User.upsert({ a: 'a', b: 'a', username: 'curt' }),
+          ]);
+        }).spread(function(created1, created2) {
+          if (dialect === 'sqlite') {
+            expect(created1).not.to.be.defined;
+            expect(created2).not.to.be.defined;
+          } else {
+            expect(created1).to.be.ok;
+            expect(created2).to.be.ok;
+          }
+
+          return Promise.delay(1000).bind(this).then(function() {
+            // Update the first one
+            return User.upsert({ a: 'a', b: 'b', username: 'doe' });
+          });
+        }).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).not.to.be.defined;
+          } else {
+            expect(created).not.to.be.ok;
+          }
+
+          return User.find({ where: { a: 'a', b: 'b' }});
+        }).then(function (user1) {
+          expect(user1.createdAt).to.be.defined;
+          expect(user1.username).to.equal('doe');
+          expect(user1.updatedAt).to.be.afterTime(user1.createdAt);
+
+          return User.find({ where: { a: 'a', b: 'a' }});
+        }).then(function (user2) {
+          // The second one should not be updated
+          expect(user2.createdAt).to.be.defined;
+          expect(user2.username).to.equal('curt');
+          expect(user2.updatedAt).to.equalTime(user2.createdAt);
+        });
+      });
+
       it('supports validations', function () {
         var User = this.sequelize.define('user', {
           email: {

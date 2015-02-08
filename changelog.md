@@ -1,6 +1,7 @@
 # Next
 - [BUG] Fixed `field` support for `increment` and `decrement`.
 - [FEATURE/BUG] Raw queries always return all results (including affected rows etc). This means you should change all promise listeners on `sequelize.query` to use `.spread` instead of `.then`, unless you are passing a query type.
+- [BUG] Support for composite primary keys in upsert [#3065](https://github.com/sequelize/sequelize/pull/3065)
 
 #### Backwards compatibility changes
 - The default query type for `sequelize.query` is now `RAW` - this means that two arguments (results and metadata) will be returned by default and you should use `.spread`
