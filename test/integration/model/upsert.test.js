@@ -27,7 +27,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       bar: {
         unique: 'foobar',
         type: DataTypes.INTEGER
-      }
+      },
+      blob: DataTypes.BLOB
     });
 
     return this.sequelize.sync({ force: true });
@@ -152,6 +153,33 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(this.sequelize.ValidationError);
+      });
+
+      it('works with BLOBs', function () {
+        return this.User.upsert({ id: 42, username: 'john', blob: new Buffer('kaj') }).bind(this).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).not.to.be.defined;
+          } else {
+            expect(created).to.be.ok;
+          }
+
+          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
+            return this.User.upsert({ id: 42, username: 'doe', blob: new Buffer('andrea') });
+          });
+        }).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).not.to.be.defined;
+          } else {
+            expect(created).not.to.be.ok;
+          }
+
+          return this.User.find(42);
+        }).then(function(user) {
+          expect(user.createdAt).to.be.defined;
+          expect(user.username).to.equal('doe');
+          expect(user.blob.toString()).to.equal('andrea');
+          expect(user.updatedAt).to.be.afterTime(user.createdAt);
+        });
       });
     });
   }
