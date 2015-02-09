@@ -35,7 +35,7 @@ describe('Connction Manager', function() {
     var options = {
       replication: null
     };
-    var sequelize = Support.getSequelizeInstance(baseConf.database, baseConf.username, baseConf.password, options);
+    var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
     var poolSpy = sandbox.spy(Pooling, "Pool");
@@ -50,7 +50,7 @@ describe('Connction Manager', function() {
         read: [_.clone(poolEntry), _.clone(poolEntry)]
       }
     };
-    var sequelize = Support.getSequelizeInstance(baseConf.database, baseConf.username, baseConf.password, options);
+    var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
     var poolSpy = sandbox.spy(Pooling, "Pool");
@@ -70,7 +70,7 @@ describe('Connction Manager', function() {
         read: [slave1, slave2]
       }
     };
-    var sequelize = Support.getSequelizeInstance(baseConf.database, baseConf.username, baseConf.password, options);
+    var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
     var resolvedPromise = new Promise(function(resolve) {
@@ -112,7 +112,7 @@ describe('Connction Manager', function() {
         read: [_.clone(poolEntry)]
       }
     };
-    var sequelize = Support.getSequelizeInstance(baseConf.database, baseConf.username, baseConf.password, options);
+    var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
     var resolvedPromise = new Promise(function(resolve) {
