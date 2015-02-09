@@ -482,7 +482,6 @@ For more about validation, see http://sequelizejs.com/docs/latest/models#validat
 | [options.charset] | String |  |
 | [options.comment] | String |  |
 | [options.collate] | String |  |
-| [options.initialAutoIncrement] | String | Set the initial AUTO_INCREMENT value for the table in MySQL. |
 | [options.hooks] | Object | An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, afterDestroy, afterUpdate, afterBulkCreate, afterBulkDestory and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions. |
 | [options.validate] | Object | An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is asumed to be async, and is called with a callback that accepts an optional error.  |
 
