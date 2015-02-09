@@ -109,7 +109,7 @@ if (Support.dialectIsMySQL()) {
         },
         {
           arguments: ['myTable', {id: 'INTEGER auto_increment PRIMARY KEY'}, {initialAutoIncrement: 1000001}],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB   AUTO_INCREMENT=1000001;'
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;'
         }
       ],
 
