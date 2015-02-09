@@ -3,6 +3,7 @@
 - [FEATURE/BUG] Raw queries always return all results (including affected rows etc). This means you should change all promise listeners on `sequelize.query` to use `.spread` instead of `.then`, unless you are passing a query type.
 - [BUG] Support for composite primary keys in upsert [#3065](https://github.com/sequelize/sequelize/pull/3065)
 - [BUG] Support for `field` in upsert
+- [FEATURE] Support for setting an initial autoincrement option in mysql [#3076](https://github.com/sequelize/sequelize/pull/3076)
 
 #### Backwards compatibility changes
 - The default query type for `sequelize.query` is now `RAW` - this means that two arguments (results and metadata) will be returned by default and you should use `.spread`
