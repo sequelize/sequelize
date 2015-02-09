@@ -28,6 +28,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         unique: 'foobar',
         type: DataTypes.INTEGER
       },
+      baz: {
+        type: DataTypes.STRING,
+        field: 'zab'
+      },
       blob: DataTypes.BLOB
     });
 
@@ -179,6 +183,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.username).to.equal('doe');
           expect(user.blob.toString()).to.equal('andrea');
           expect(user.updatedAt).to.be.afterTime(user.createdAt);
+        });
+      });
+
+      it('works with .field', function () {
+        return this.User.upsert({ id: 42, baz: 'foo' }).bind(this).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).not.to.be.defined;
+          } else {
+            expect(created).to.be.ok;
+          }
+
+          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
+            return this.User.upsert({ id: 42, baz: 'oof' });
+          });
+        }).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).not.to.be.defined;
+          } else {
+            expect(created).not.to.be.ok;
+          }
+
+          return this.User.find(42);
+        }).then(function(user) {
+          expect(user.baz).to.equal('oof');
         });
       });
     });
