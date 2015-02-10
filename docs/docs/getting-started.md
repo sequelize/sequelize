@@ -33,7 +33,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 });
 
 // Or you can simply use a connection uri
-var sequelize = new Sequelize('postgress://user:pass@example.com:5432/dbname');
+var sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
 The Sequelize constructor takes a whole slew of options that are available via the [API reference](http://sequelize.readthedocs.org/en/latest/api/sequelize/).
