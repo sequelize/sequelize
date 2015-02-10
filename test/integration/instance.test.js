@@ -8,7 +8,6 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../config/config')
   , sinon = require('sinon')
-  , sinonChai = require('sinon-chai')
   , datetime = require('chai-datetime')
   , uuid = require('node-uuid')
   , _ = require('lodash')
@@ -16,7 +15,6 @@ var chai = require('chai')
 
 chai.should();
 chai.use(datetime);
-chai.use(sinonChai);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
@@ -824,12 +822,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
 
       it('should throw error when given value of incorrect type', function() {
-        function didApplyValue(cb) {
-          cb();
-          throw new Error("Value incorrectly applied!!!");
-        }
-
-        var spy = sinon.spy();
+        var callCount = 0;
 
         return this.User.build({
           username: 'a user',
@@ -837,10 +830,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         })
         .save()
         .then(function () {
-          didApplyValue(spy);
+          callCount += 1;
         })
         .catch(function(err) {
-          spy.should.have.callCount(0);
+          expect(callCount).to.equal(0);
           expect(err).to.exist;
           expect(err.message).to.exist;
         });
