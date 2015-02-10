@@ -89,7 +89,7 @@ describe('Connction Manager', function() {
     var queryOptions = {
       priority: 0,
       type: 'SELECT',
-      forceWrite: false
+      useMaster: false
     };
 
     var _getConnection = _.bind(connectionManager.getConnection, connectionManager, queryOptions);
@@ -131,7 +131,7 @@ describe('Connction Manager', function() {
     var queryOptions = {
       priority: 0,
       type: 'SELECT',
-      forceWrite: true
+      useMaster: true
     };
 
     return connectionManager.getConnection(queryOptions)
