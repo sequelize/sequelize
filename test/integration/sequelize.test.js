@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('constructor', function() {
     if (dialect !== 'sqlite') {
       it('should work with minConnections', function() {
-        var ConnectionManager = require(__dirname + '/../../lib/dialects/' + dialect + '/connection-manager.js')
+        var ConnectionManager = current.dialect.connectionManager
           , connectionSpy = ConnectionManager.prototype.connect = chai.spy(ConnectionManager.prototype.connect);
 
         var sequelize = Support.createSequelizeInstance({
@@ -114,9 +114,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
-              if (dialect === 'mariadb') {
-                expect(err.message).to.match(/Access denied for user/);
-              } else if (dialect === 'postgres') {
+              if (dialect === 'postgres') {
                 expect(
                   err.message.match(/connect ECONNREFUSED/) ||
                   err.message.match(/invalid port number/) ||
