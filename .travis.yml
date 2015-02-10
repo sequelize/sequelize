@@ -39,8 +39,6 @@ matrix:
     - node_js: "0.10"
       env: COVERAGE=true
   allow_failures:
-    - node_js: "iojs"
-      env: DB=mysql DIALECT=mssql
     - node_js: "0.10"
       env: COVERAGE=true
 
