@@ -114,21 +114,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
-              if (dialect === 'postgres') {
-                expect(
-                  err.message.match(/connect ECONNREFUSED/) ||
-                  err.message.match(/invalid port number/) ||
-                  err.message.match(/RangeError: Port should be > 0 and < 65536/)
-                ).to.be.ok;
-              } else if (dialect === 'mssql') {
-                expect(
-                  err.message.match(/ConnectionError: Login failed for user/) ||
-                  err.message.match(/RangeError: Port should be > 0 and < 65536/)
-                ).to.be.ok;
-              } else {
-                expect(err.message).to.match(/connect ECONNREFUSED/);
-              }
-
+              expect(
+                err.message.match(/connect ECONNREFUSED/) ||
+                err.message.match(/invalid port number/) ||
+                err.message.match(/RangeError: Port should be > 0 and < 65536/) ||
+                err.message.match(/RangeError: port should be > 0 and < 65536/) ||
+                err.message.match(/ConnectionError: Login failed for user/)
+              ).to.be.ok;
               done();
 
             });

@@ -45,7 +45,7 @@
   "devDependencies": {
     "continuation-local-storage": "3.1.2",
     "chai-as-promised": "^4.1.1",
-    "sqlite3": "~3.0.0",
+    "sqlite3": "fengmk2/node-sqlite3#support-iojs-version",
     "mysql": "~2.5.0",
     "pg": "^4.2.0",
     "pg-native": "^1.8.0",
@@ -56,7 +56,6 @@
     "mocha": "~2.0.0",
     "chai-datetime": "~1.3.0",
     "sinon": "~1.11.0",
-    "mariasql": "~0.1.2",
     "chai-spies": "~0.5.1",
     "lcov-result-merger": "~1.0.0",
     "istanbul": "~0.3.0",
