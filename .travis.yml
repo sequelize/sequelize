@@ -38,8 +38,6 @@ matrix:
   include:
     - node_js: "0.10"
       env: COVERAGE=true
-    - node_js: iojs
-      env: COVERAGE=true
   allow_failures:
     - node_js: "iojs"
       env: DB=mysql DIALECT=mysql
