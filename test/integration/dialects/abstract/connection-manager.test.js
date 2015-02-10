@@ -59,6 +59,10 @@ describe('Connction Manager', function() {
   });
 
   it('should round robin calls to the read pool', function() {
+    if (Support.getTestDialect() === 'sqlite') {
+      return;
+    }
+
     var slave1 = _.clone(poolEntry);
     var slave2 = _.clone(poolEntry);
     slave1.host = 'slave1';
