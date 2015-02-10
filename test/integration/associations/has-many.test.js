@@ -2607,7 +2607,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
 
         return Tasks[dataType].sync({ force: true }).then(function() {
-          expect(Tasks[dataType].rawAttributes.userId.type instanceof dataType).to.be.ok;
+          expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });
       });
     });
