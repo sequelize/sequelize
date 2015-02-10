@@ -908,8 +908,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           results.forEach(function(book, index) {
             expect(book.title).to.equal(data.title);
             expect(book.author).to.equal(data.author);
-            expect(books[index].rawAttributes.id.type.toString())
-              .to.equal(dataTypes[index].toString());
+            expect(books[index].rawAttributes.id.type instanceof dataTypes[index]).to.be.ok;
           });
           done();
         });

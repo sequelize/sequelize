@@ -2601,13 +2601,13 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         , Tasks = {};
 
       return Promise.each(dataTypes, function(dataType) {
-        var tableName = 'TaskXYZ_' + dataType.toString();
+        var tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING });
 
         User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
 
         return Tasks[dataType].sync({ force: true }).then(function() {
-          expect(Tasks[dataType].rawAttributes.userId.type.toString()).to.equal(dataType.toString());
+          expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });
       });
     });
@@ -2624,7 +2624,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       User.hasMany(Task);
 
       return this.sequelize.sync({ force: true }).then(function() {
-        expect(Task.rawAttributes.UserId.type).to.equal(DataTypes.STRING);
+        expect(Task.rawAttributes.UserId.type instanceof DataTypes.STRING).to.be.ok;
       });
     });
 
