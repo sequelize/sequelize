@@ -2132,6 +2132,25 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should work with an empty include.where', function () {
+      var User = this.sequelize.define('User', {})
+        , Company = this.sequelize.define('Company', {})
+        , Group = this.sequelize.define('Group', {});
+
+      User.belongsTo(Company);
+      User.belongsToMany(Group);
+      Group.belongsToMany(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return User.findAll({
+          include: [
+            {model: Group, where: {}},
+            {model: Company, where: {}}
+          ]
+        });
+      });
+    });
+
     it('should be able to order on the main table and a required belongsTo relation with custom tablenames and limit ', function () {
       var User = this.sequelize.define('User', {
         lastName: DataTypes.STRING
