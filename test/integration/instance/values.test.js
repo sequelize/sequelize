@@ -449,6 +449,22 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
         expect(user.previous('name')).to.equal('Jan Meier');
       });
 
+      it('setting the same value twice should not impact the result (Date)', function() {
+        var User = this.sequelize.define('User', {
+          birthday: {type: DataTypes.DATE}
+        });
+
+        var user = User.build({
+          birthday: null
+        });
+        user.set('birthday', new Date(1990, 0));
+        user.set('birthday', new Date(1990, 0));
+        expect(user.changed('birthday')).to.be.true;
+        expect(user.changed()).to.be.ok;
+        expect(user.isDirty).to.be.true;
+        expect(user.previous('birthday')).to.equal(null);
+      });
+
       it('should be available to a afterUpdate hook', function () {
         var User = this.sequelize.define('User', {
           name: {type: DataTypes.STRING}
