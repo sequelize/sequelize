@@ -1,4 +1,4 @@
-# Next
+# 2.0.1
 - [BUG] Fixed issue with empty `include.where`
 - [BUG] Fixed issue with otherKey generation for self-association N:M
 
