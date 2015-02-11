@@ -1,5 +1,6 @@
 # Next
 - [BUG] Fixed issue with empty `include.where`
+- [BUG] Fixed issue with otherKey generation for self-association N:M
 
 # 2.0.0
 - [BUG] Fixed `field` support for `increment` and `decrement`.

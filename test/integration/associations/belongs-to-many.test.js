@@ -1707,4 +1707,30 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         .throw ("Naming collision between attribute 'user' and association 'user' on model user. To remedy this, change either foreignKey or as in your association definition");
     });
   });
+
+  describe('selfAssociations', function () {
+    it('should setup correct foreign keys', function () {
+      /* camcelCase */
+      var Person = this.sequelize.define('Person')
+        , PersonChildren = this.sequelize.define('PersonChildren')
+        , Children;
+
+      Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
+
+      expect(Children.foreignKey).to.equal('PersonId');
+      expect(Children.otherKey).to.equal('ChildId');
+      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+
+      /* underscored */
+      Person = this.sequelize.define('Person', {}, {underscored: true});
+      PersonChildren = this.sequelize.define('PersonChildren', {}, {underscored: true});
+      Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
+
+      expect(Children.foreignKey).to.equal('person_id');
+      expect(Children.otherKey).to.equal('child_id');
+      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+    });
+  });
 });
