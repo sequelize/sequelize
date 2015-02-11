@@ -2415,7 +2415,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.hook('afterDestory', function(user, options, fn) {
+              this.User.hook('afterDestroy', function(user, options, fn) {
                 afterHook = 'hi';
                 fn();
               });
