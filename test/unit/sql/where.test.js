@@ -186,6 +186,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             default: "([group_id] = 1 OR [user_id] = 2)"
           });
         });
+
+        test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
+            default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))"
+          });
+        });
       });
 
       suite('$and', function () {
