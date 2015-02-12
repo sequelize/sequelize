@@ -2363,7 +2363,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
             // `WHERE` clause
 
             var tableName = user.QueryInterface.QueryGenerator.addSchema(user.Model);
-            return user.QueryInterface.update(user, tableName, {id: 999}, user.id);
+            return user.QueryInterface.update(user, tableName, {id: 999}, {id: user.id});
           }).then(function() {
             return Task.findAll();
           }).then(function(tasks) {

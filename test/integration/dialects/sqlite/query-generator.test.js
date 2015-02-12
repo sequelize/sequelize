@@ -423,7 +423,7 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
           expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id` = 2"
         }, {
-          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, 2],
+          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
           expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id` = 2"
         }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],
