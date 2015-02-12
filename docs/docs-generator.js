@@ -144,9 +144,9 @@ Comment.concatTypes = function (types, convertEntities) {
   if (convertEntities) {
     // Convert a couple of things to their HTML-entities
     // The spacing around | is intentional, in order to introduce some linebreaks in the params table
-    type = type.replace('|', ' &#124; ')
-      .replace('>', '&gt;')
-      .replace('<', '&lt;');
+    type = type.replace(/\|/g, ' &#124; ')
+      .replace(/>/g, '&gt;')
+      .replace(/</g, '&lt;');
   }
 
   return type;
