@@ -1,5 +1,6 @@
 # Next
 - [BUG] Fixed regression with `DataTypes.ARRAY(DataTypes.STRING(length))` #3106
+- [BUG] Fixed regression where `.or([{key: value}, {key: value, key2: value}])` would result in 3 `A OR B OR C` rather than `A OR (B AND C)` #3107
 
 # 2.0.1
 - [BUG] Fixed issue with empty `include.where`
