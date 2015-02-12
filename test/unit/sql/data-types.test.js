@@ -254,6 +254,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: 'DECIMAL(10,2)'
       });
 
+      testsql('DECIMAL(10)', DataTypes.DECIMAL(10), {
+        default: 'DECIMAL(10)'
+      });
     });
 
     suite('BLOB', function () {
