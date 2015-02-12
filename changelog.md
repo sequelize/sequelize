@@ -1,3 +1,6 @@
+# Next
+- [BUG] Fixed regression with `DataTypes.ARRAY(DataTypes.STRING(length))` #3106
+
 # 2.0.1
 - [BUG] Fixed issue with empty `include.where`
 - [BUG] Fixed issue with otherKey generation for self-association N:M

@@ -281,5 +281,17 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: 'BYTEA'
       });
     });
+
+    if (current.dialect.supports.ARRAY) {
+      suite('ARRAY', function () {
+        testsql("ARRAY(VARCHAR)", DataTypes.ARRAY(DataTypes.STRING), {
+          postgres: 'VARCHAR(255)[]'
+        });
+
+        testsql("ARRAY(VARCHAR(100))", DataTypes.ARRAY(DataTypes.STRING(100)), {
+          postgres: 'VARCHAR(100)[]'
+        });
+      });
+    }
   });
 });
