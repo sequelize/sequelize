@@ -1,8 +1,66 @@
-With Sequelize you can also specify associations between multiple classes. Doing so will help you to easily access and set those associated objects. The library therefore provides for each defined class different methods, which are explained in the following chapters.
-
 ## One-To-One associations
+One-To-One associations are associations between exactly two models connected by a single foreign key.
 
-One-To-One associations are connecting one source with exactly one target. In order to define a proper database schema, Sequelize utilizes the methods `belongsTo` and `hasOne`. You can use them as follows:
+### BelongsTo
+
+BelongsTo associations are associations where the foreign key for the one-to-one relation exists on the **source model**.
+
+A simple example would be a **User** being part of a team **Team** with the foreign key on user.
+
+```js
+var Player = this.sequelize.define('Player', {/* attributes */})
+  , Team  = this.sequelize.define('Team', {/* attributes */});
+  
+Player.belongsTo(Team); // Will add a TeamId attribute to Player to hold the primary key value for Team
+```
+
+#### Foreign keys
+
+By default the foreign key for a belongsTo relation will be generated from the target model name and the target primary key name.
+
+The default casing is `camelCase` however if the source model is configured with `underscored: true` the foreignKey will be `snake_case`.
+
+```js
+var User = this.sequelize.define('User', {/* attributes */})
+  , Company  = this.sequelize.define('Company', {/* attributes */});
+  
+User.belongsTo(Company); // Will add CompanyId to user
+
+var User = this.sequelize.define('User', {/* attributes */}, {underscored: true})
+  , Company  = this.sequelize.define('Company', {
+    uuid: {
+      type: Sequelize.UUID,
+      primaryKey: true
+    }
+  });
+  
+User.belongsTo(Company); // Will add company_uuid to user
+```
+
+In cases wherè `as` has been defined it will be used in place of the target model nane.
+
+```js
+var User = this.sequelize.define('User', {/* attributes */})
+  , UserRole  = this.sequelize.define('UserRole', {/* attributes */});
+  
+User.belongsTo(UserRole, {as: 'Role'}); // Adds RoleId to user ratyer than UserRoleId
+```
+
+In all cases the default foreign key can be overwritten with the `foreignKey` option.
+When the foreign key option is used, Sequelize will use it as-is:
+
+```js
+var User = this.sequelize.define('User', {/* attributes */})
+  , Company  = this.sequelize.define('Company', {/* attributes */});
+  
+User.belongsTo(Company, {foreignKey: 'fk_company'}); // Adds fk_company to User
+```
+
+
+### HasOne
+
+HasOne associations are associations where the foreign key for the one-to-one relation exists on the **target model**.
+
 ```js
 var User = sequelize.define('User', {/* ... */})
 var Project = sequelize.define('Project', {/* ... */})
@@ -53,20 +111,7 @@ Team.hasOne(Game, {as: 'AwayTeam', foreignKey : 'awayTeamId'});
 Game.belongsTo(Team);
 ```
 
-To get the association working the other way around (so from `User` to `Project`), it's necessary to do this:
-
-```js
-var User = sequelize.define('User', {/* ... */})
-var Project = sequelize.define('Project', {/* ... */})
- 
-// One-way back associations
-Project.belongsTo(User)
- 
-/*
-  In this example belongsTo will add an attribute UserId to the Project model!
-  That's the only difference to hasMany. Self references are working the very same way!
-*/
-```
+Even though it is called a HasOne association, for most 1:1 relations you usually want the BelongsTo association since BelongsTo will add the foreignKey on the source where hasOne will add on the target.
 
 ## One-To-Many associations
 
