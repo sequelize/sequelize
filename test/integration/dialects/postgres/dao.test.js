@@ -227,7 +227,7 @@ if (dialect.match(/^postgres/)) {
           });
       });
 
-      it('should be ablo to query using dot syntax', function() {
+      it('should be able to query using dot syntax', function() {
         var self = this;
 
         return this.sequelize.Promise.all([
@@ -238,6 +238,44 @@ if (dialect.match(/^postgres/)) {
           })
           .then(function(user) {
             expect(user.emergency_contact.name).to.equal('joe');
+          });
+      });
+
+      it('should be able to store values that require JSON escaping', function() {
+        var self = this;
+        var text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
+
+        return this.User.create({ username: 'swen', emergency_contact: { value: text } })
+          .then(function(user) {
+            expect(user.isNewRecord).to.equal(false);
+          })
+          .then(function() {
+            return self.User.find({ where: { username: 'swen' } });
+          })
+          .then(function() {
+            return self.User.find({ where: sequelize.json('emergency_contact.value', text) });
+          })
+          .then(function(user) {
+            expect(user.username).to.equal('swen');
+          });
+      });
+
+      it('should be able to findOrCreate with values that require JSON escaping', function() {
+        var self = this;
+        var text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
+
+        return this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } })
+          .then(function(user) {
+            expect(!user.isNewRecord).to.equal(true);
+          })
+          .then(function() {
+            return self.User.find({ where: { username: 'swen' } });
+          })
+          .then(function() {
+            return self.User.find({ where: sequelize.json('emergency_contact.value', text) });
+          })
+          .then(function(user) {
+            expect(user.username).to.equal('swen');
           });
       });
     });
