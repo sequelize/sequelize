@@ -42,7 +42,7 @@ sequelize.query('SELECT * FROM projects WHERE status = ?',
 })
 
 sequelize.query('SELECT * FROM projects WHERE status = :status ', 
-  { replacements: { status: 'active', type: sequelize.QueryTypes.SELECT }}
+  { replacements: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
 ).then(function(projects) {
   console.log(projects)
 })
