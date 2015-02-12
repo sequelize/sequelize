@@ -220,15 +220,13 @@ function(title) {
 
 **N.B.: **It is important to stick to using the `setDataValue()` and `getDataValue()` functions &lpar;as opposed to accessing the underlying "data values" property directly&rpar; - doing so protects your custom getters and setters from changes in the underlying model implementations &lpar;i&period;e&period; how and where data values are stored in your model instances&rpar;
 
-### Setter methods and Object Initialization
-
-&excl;&excl;&excl;TODO&colon; write about how setters affect object initialization &lpar;both creating new objects with Model&period;build and retrieving existing objects from storage&rpar; &excl;&excl;&excl;&excl;&excl;
-
 ## Validations
 
-Model validations, allow you to specify format&sol;content&sol;inheritance validations for each attribute of the model&period; You can perform the validation by calling the `validate()` method on an instance before saving&period; The validations are implemented by [validator][3].
+Model validations, allow you to specify format&sol;content&sol;inheritance validations for each attribute of the model&period;
 
-**Note&colon; **In `v1.7.0` validations will now be called when executing the `build()` or `create()` functions.
+Validations are automatically run on `create`, `update` and `save`. You can also call `validate()` to manually validate an instance.
+
+The validations are implemented by [validator][3].
 
 ```js
 var ValidateMe = sequelize.define('Foo', {
@@ -309,11 +307,11 @@ See [the node-validator project][4]for more details on the built in validation m
 
 ### Validators and`allowNull`
 
-Since `v1.7.0` if a particular field of a model is set to allow null &lpar;with `allowNull: true`&rpar; and that value has been set to `null` &comma; its validators do not run&period; This means you can&comma; for instance&comma; have a string field which validates its length to be at least 5 characters&comma; but which also allows`null`&period;
+If a particular field of a model is set to allow null &lpar;with `allowNull: true`&rpar; and that value has been set to `null` &comma; its validators do not run&period; This means you can&comma; for instance&comma; have a string field which validates its length to be at least 5 characters&comma; but which also allows`null`&period;
 
 ### Model validations
 
-Since `v1.7.0` &comma; validations can also be defined to check the model after the field-specific validators&period; Using this you could&comma; for example&comma; ensure either neither of `latitude` and `longitude` are set or both&comma; and fail if one but not the other is set&period;
+Validations can also be defined to check the model after the field-specific validators&period; Using this you could&comma; for example&comma; ensure either neither of `latitude` and `longitude` are set or both&comma; and fail if one but not the other is set&period;
 
 Model validator methods are called with the model object's context and are deemed to fail if they throw an error&comma; otherwise pass&period; This is just the same as with custom field-specific validators&period;
 
@@ -443,7 +441,7 @@ module.exports = function(sequelize, DataTypes) {
 }
 ```
 
-Since `v1.7.0` the `import` method can now accept a callback as an argument&period;
+The `import` method can also accept a callback as an argument&period;
 
 ```js
 sequelize.import('Project', function(sequelize, DataTypes) {
@@ -460,15 +458,15 @@ When starting a new project you won't have a database structure and using Sequel
 
 ```js
 // Create the tables:
-Project.sync() // will emit success or failure event
-Task.sync() // will emit success or failure event
+Project.sync()
+Task.sync()
  
 // Force the creation!
 Project.sync({force: true}) // this will drop the table first and re-create it afterwards
  
 // drop the tables:
-Project.drop() // will emit success or failure event
-Task.drop() // will emit success or failure event
+Project.drop()
+Task.drop()
  
 // event handling:
 Project.[sync|drop]().then(function() {
@@ -481,14 +479,14 @@ Project.[sync|drop]().then(function() {
 Because synchronizing and dropping all of your tables might be a lot of lines to write&comma; you can also let Sequelize do the work for you&colon;
 
 ```js
-// create all tables... now!
-sequelize.sync() // will emit success or failure
+// Sync all models that aren't already in the database
+sequelize.sync()
  
-// force it!
-sequelize.sync({force: true}) // emit ... nomnomnom
+// Force sync all modes
+sequelize.sync({force: true})
  
-// want to drop 'em all?
-sequelize.drop() // I guess you've got it (emit)
+// Drop all tables
+sequelize.drop()
  
 // emit handling:
 sequelize.[sync|drop]().then(function() {
@@ -572,7 +570,7 @@ Project.find({ where: {title: 'aProject'} }).then(function(project) {
   // project will be the first entry of the Projects table with the title 'aProject' || null
 })
  
-// since v1.3.0: only select some attributes and rename one
+
 Project.find({
   where: {title: 'aProject'},
   attributes: ['id', ['name', 'title']]
@@ -872,7 +870,7 @@ Project.min('age').then(function(min) {
   // this will return 5
 })
  
-Project.min('age', { where: { age: { gt: 5 } } }).then(function(min) {
+Project.min('age', { where: { age: { $gt: 5 } } }).then(function(min) {
   // will be 10
 })
 ```
@@ -893,7 +891,7 @@ Project.sum('age').then(function(sum) {
   // this will return 55
 })
  
-Project.sum('age', { where: { age: { gt: 5 } } }).then(function(sum) {
+Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
   // wil be 50
 })
 ```
