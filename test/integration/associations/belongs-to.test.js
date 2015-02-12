@@ -1,6 +1,7 @@
 'use strict';
 
 var chai = require('chai')
+  , sinon = require('sinon')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
@@ -127,6 +128,25 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         expect(user).to.be.ok;
       });
     });
+
+    it('should support logging', function () {
+      var spy = sinon.spy();
+
+       var User = this.sequelize.define('user', {})
+        , Project = this.sequelize.define('project', {});
+
+      User.belongsTo(Project);
+
+      return this.sequelize.sync({ force: true }).bind(this).then(function() {
+        return User.create({});
+      }).then(function(user) {
+        return user.getProject({
+          logging: spy
+        });
+      }).then(function() {
+        expect(spy.called).to.be.ok;
+      });
+    });
   });
 
   describe('setAssociation', function() {
@@ -226,6 +246,24 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
               return task.getUserXYZ().then(function(user) {
                 expect(user.username).to.equal('jansemand');
               });
+            });
+          });
+        });
+      });
+    });
+
+    it('should support logging', function() {
+      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING })
+        , spy = sinon.spy();
+
+      Task.belongsTo(User);
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create().then(function(user) {
+          return Task.create({}).then(function(task) {
+            return task.setUserXYZ(user, {logging: spy}).then(function() {
+              expect(spy.called).to.be.ok;
             });
           });
         });
