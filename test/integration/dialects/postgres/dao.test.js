@@ -243,7 +243,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to store values that require JSON escaping', function() {
         var self = this;
-        var text = "Multi-line '$string' needing \"escaping\" for $$";
+        var text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
 
         return this.User.create({ username: 'swen', emergency_contact: { value: text } })
           .then(function(user) {
@@ -262,7 +262,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to findOrCreate with values that require JSON escaping', function() {
         var self = this;
-        var text = "Multi-line '$string' needing \"escaping\" for $$";
+        var text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
 
         return this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } })
           .then(function(user) {
