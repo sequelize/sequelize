@@ -95,6 +95,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: '[equipment] IN (1, 3)'
       });
 
+      testsql('equipment', {
+        $in: []
+      }, {
+        default: '[equipment] IN (NULL)'
+      });
+
       testsql('muscles', {
         in: [2, 4]
       }, {
@@ -136,6 +142,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $notIn: [2, 4]
       }, {
         default: '[muscles] NOT IN (2, 4)'
+      });
+    });
+
+    suite('$notIn', function () {
+      testsql('equipment', {
+        $notIn: []
+      }, {
+        default: '[equipment] NOT IN (NULL)'
       });
     });
 
