@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    if (current.dialect.name !== 'sequelize') {
+    if (['sqlite', 'mssql'].indexOf(current.dialect.name) > -1) {
       it('should not deadlock with no existing entries and no outer transaction', function () {
         var User = this.sequelize.define('User', {
           email: {
