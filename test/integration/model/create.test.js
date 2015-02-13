@@ -108,6 +108,89 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    if (current.dialect.name !== 'sequelize') {
+      it('should not deadlock with no existing entries and no outer transaction', function () {
+        var User = this.sequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email'
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email'
+          }
+        });
+
+        return User.sync({force: true}).then(function () {
+          return Promise.map(_.range(50), function (i) {
+            return User.findOrCreate({
+              where: {
+                email: 'unique.email.'+i+'@sequelizejs.com',
+                companyId: Math.floor(Math.random() * 5)
+              }
+            });
+          });
+        });
+      });
+
+      it('should not deadlock with existing entries and no outer transaction', function () {
+        var User = this.sequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email'
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email'
+          }
+        });
+
+        return User.sync({force: true}).then(function () {
+          return Promise.map(_.range(50), function (i) {
+            return User.findOrCreate({
+              where: {
+                email: 'unique.email.'+i+'@sequelizejs.com',
+                companyId: 2
+              }
+            });
+          }).then(function () {
+            return Promise.map(_.range(50), function (i) {
+              return User.findOrCreate({
+                where: {
+                  email: 'unique.email.'+i+'@sequelizejs.com',
+                  companyId: 2
+                }
+              });
+            });
+          });
+        });
+      });
+
+      it('should not deadlock with concurrency duplicate entries and no outer transaction', function () {
+        var User = this.sequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email'
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email'
+          }
+        });
+
+        return User.sync({force: true}).then(function () {
+          return Promise.map(_.range(50), function (i) {
+            return User.findOrCreate({
+              where: {
+                email: 'unique.email.1@sequelizejs.com',
+                companyId: 2
+              }
+            });
+          });
+        });
+      });
+    }
+
     it('should support special characters in defaults', function () {
       var User = this.sequelize.define('user', {
         objectId: {
