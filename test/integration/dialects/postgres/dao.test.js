@@ -793,10 +793,10 @@ if (dialect.match(/^postgres/)) {
           });
       });
 
-      it('should read range correctly from multiple rows', function(done) {
+      it('should read range correctly from multiple rows', function() {
         var self = this;
 
-        self.User
+        return self.User
           .create({ username: 'user1', email: ['foo@bar.com'], course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]})
           .then(function() {
             return self.User.create({ username: 'user2', email: ['foo2@bar.com'], course_period: [new Date(2016, 0, 1), new Date(2016, 11, 31)]});
@@ -812,8 +812,6 @@ if (dialect.match(/^postgres/)) {
             expect(users[1].course_period[0].toISOString()).to.equal('2016-01-01T00:00:00.000Z'); // lower bound
             expect(users[1].course_period[1].toISOString()).to.equal('2016-12-31T00:00:00.000Z'); // upper bound
             expect(users[1].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
-
-            done();
           })
           .error(console.log);
       });
