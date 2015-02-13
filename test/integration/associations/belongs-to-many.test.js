@@ -829,7 +829,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     it('should infer otherKey from paired BTM relationship with a through model defined', function () {
       var User = this.sequelize.define('User', {});
       var Place = this.sequelize.define('User', {});
-      var UserPlace = this.sequelize.define('UserPlace', {});
+      var UserPlace = this.sequelize.define('UserPlace', {id: {primaryKey: true, type: DataTypes.INTEGER, autoIncrement: true}}, {timestamps: false});
 
       var Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id' });
       var Users = Place.belongsToMany(User, { through: UserPlace, foreignKey: 'place_id' });
@@ -839,6 +839,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
       expect(Places.otherKey).to.equal('place_id');
       expect(Users.otherKey).to.equal('user_id');
+
+      expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
     });
   });
 
