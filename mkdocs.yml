@@ -1,4 +1,4 @@
-site_name: Sequelize - node.js ORM for Postgres, MySQl, MariaDB and SQLite
+site_name: Sequelize | The Node.js ORM
 theme_dir: docs/readthedocs_theme
 repo_url: https://github.com/sequelize/sequelize
 site_favicon: favicon.ico
