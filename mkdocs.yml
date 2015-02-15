@@ -1,4 +1,5 @@
 site_name: Sequelize | The Node.js ORM
+theme: ""
 theme_dir: docs/readthedocs_theme
 repo_url: https://github.com/sequelize/sequelize
 site_favicon: favicon.ico
