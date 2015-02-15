@@ -10,3 +10,4 @@ test/tmp/*
 test/dialects/sqlite/test.sqlite
 test/sqlite/test.sqlite
 coverage-*
+site
