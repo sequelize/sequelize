@@ -3,10 +3,14 @@
   <span>Sequelize</span>
 </div>
 
-[Installation](http://sequelize.readthedocs.org/en/latest/docs/getting-started/)
+Sequelize is a promise-based ORM for Node.js and io.js. It supports the dialects PostgreSQL, MySQL,
+MariaDB, SQLite and MSSQL and features solid transaction support, relations, read replication and
+more.
+
+[Installation](docs/getting-started/)
 
 ## Example usage
-```js    
+```js
 var Sequelize = require('sequelize')
   , sequelize = new Sequelize('database', 'username', 'password');
 
@@ -19,8 +23,8 @@ return sequelize.sync().then(function() {
   return User.create({
     username: 'sdepold',
     birthday: new Date(1986, 06, 28)
-  }).then(function(sdepold) {
-    console.log(sdepold.values)
   });
+}).then(function(sdepold) {
+  console.log(sdepold.values)
 });
 ```
