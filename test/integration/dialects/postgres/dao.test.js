@@ -8,6 +8,7 @@ var chai = require('chai')
   , _ = require('lodash')
   , sequelize = require(__dirname + '/../../../../lib/sequelize');
 
+chai.use(require('chai-datetime'));
 chai.config.includeStack = true;
 
 if (dialect.match(/^postgres/)) {
@@ -145,7 +146,8 @@ if (dialect.match(/^postgres/)) {
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(function(user) {
-            expect(user.emergency_contact).to.eql(emergencyContact); // .eql does deep value comparison instead of strict equal comparison
+            expect(user.emergency_contact).to.eql(emergencyContact); // .eql does deep value comparison instead of
+                                                                     // strict equal comparison
             return self.User.find({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
           })
           .then(function(user) {
@@ -310,17 +312,6 @@ if (dialect.match(/^postgres/)) {
         return this.sequelize.queryInterface.describeTable('Users').then(function(table) {
           expect(table.course_period.type).to.equal('TSTZRANGE');
           expect(table.available_amount.type).to.equal('INT4RANGE');
-        });
-      });
-
-      it('should stringify range with insert', function() {
-        return this.User.create({
-          username: 'bob',
-          email: ['myemail@email.com'],
-          course_period: [{value: new Date(2015,0,1), inclusive: true}, {value: new Date(2015,11,31), inclusive: true}]
-        }).on('sql', function(sql) {
-          var expected = '["2015-01-01T00:00:00.000Z","2015-12-31T00:00:00.000Z"]';
-          expect(sql.indexOf(expected)).not.to.equal(-1);
         });
       });
 
@@ -653,7 +644,8 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should save range correctly', function() {
-        return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]}).then(function(newUser) {
+        var period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
+        return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
           // Check to see if the default value for a range field works
           expect(newUser.acceptable_marks.length).to.equal(2);
           expect(newUser.acceptable_marks[0]).to.equal(0.65); // lower bound
@@ -661,8 +653,8 @@ if (dialect.match(/^postgres/)) {
           expect(newUser.acceptable_marks.inclusive).to.deep.equal([false, false]); // not inclusive
           expect(newUser.course_period[0] instanceof Date).to.be.ok; // lower bound
           expect(newUser.course_period[1] instanceof Date).to.be.ok; // upper bound
-          expect(newUser.course_period[0].toISOString()).to.equal('2015-01-01T00:00:00.000Z'); // lower bound
-          expect(newUser.course_period[1].toISOString()).to.equal('2015-12-31T00:00:00.000Z'); // upper bound
+          expect(newUser.course_period[0]).to.equalTime(period[0]); // lower bound
+          expect(newUser.course_period[1]).to.equalTime(period[1]); // upper bound
           expect(newUser.course_period.inclusive).to.deep.equal([false, false]); // not inclusive
 
           // Check to see if updating a range field works
@@ -675,51 +667,57 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should save range array correctly', function() {
-        var User = this.User;
+        var User = this.User,
+          holidays = [
+            [new Date(2015, 3, 1), new Date(2015, 3, 15)],
+            [new Date(2015, 8, 1), new Date(2015, 9, 15)]
+          ];
 
         return this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
-          holidays: [[new Date(2015, 3, 1), new Date(2015, 3, 15)], [new Date(2015, 8, 1), new Date(2015, 9, 15)]]
+          holidays: holidays
         }).then(function() {
           return User.find(1).then(function(user) {
             expect(user.holidays.length).to.equal(2);
             expect(user.holidays[0].length).to.equal(2);
             expect(user.holidays[0][0] instanceof Date).to.be.ok;
             expect(user.holidays[0][1] instanceof Date).to.be.ok;
-            expect(user.holidays[0][0].toISOString()).to.equal("2015-03-31T23:00:00.000Z");
-            expect(user.holidays[0][1].toISOString()).to.equal("2015-04-14T23:00:00.000Z");
+            expect(user.holidays[0][0]).to.equalTime(holidays[0][0]);
+            expect(user.holidays[0][1]).to.equalTime(holidays[0][1]);
             expect(user.holidays[1].length).to.equal(2);
             expect(user.holidays[1][0] instanceof Date).to.be.ok;
             expect(user.holidays[1][1] instanceof Date).to.be.ok;
-            expect(user.holidays[1][0].toISOString()).to.equal("2015-08-31T23:00:00.000Z");
-            expect(user.holidays[1][1].toISOString()).to.equal("2015-10-14T23:00:00.000Z");
+            expect(user.holidays[1][0]).to.equalTime(holidays[1][0]);
+            expect(user.holidays[1][1]).to.equalTime(holidays[1][1]);
           });
         });
       });
 
       it('should bulkCreate with range property', function() {
-        var User = this.User;
+        var User = this.User,
+          period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
         return this.User.bulkCreate([{
                                        username: 'bob',
                                        email: ['myemail@email.com'],
-                                       course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]
+                                       course_period: period
                                      }]).then(function() {
           return User.find(1).then(function(user) {
             expect(user.course_period[0] instanceof Date).to.be.ok;
             expect(user.course_period[1] instanceof Date).to.be.ok;
-            expect(user.course_period[0].toISOString()).to.equal('2015-01-01T00:00:00.000Z'); // lower bound
-            expect(user.course_period[1].toISOString()).to.equal('2015-12-31T00:00:00.000Z'); // upper bound
+            expect(user.course_period[0]).to.equalTime(period[0]); // lower bound
+            expect(user.course_period[1]).to.equalTime(period[1]); // upper bound
             expect(user.course_period.inclusive).to.deep.equal([false, false]); // not inclusive
           });
         });
       });
 
       it('should update range correctly', function() {
-        var self = this;
+        var self = this,
+          period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
-        return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]}).then(function(newUser) {
+        return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
           // Check to see if the default value for a range field works
           expect(newUser.acceptable_marks.length).to.equal(2);
           expect(newUser.acceptable_marks[0]).to.equal(0.65); // lower bound
@@ -727,17 +725,19 @@ if (dialect.match(/^postgres/)) {
           expect(newUser.acceptable_marks.inclusive).to.deep.equal([false, false]); // not inclusive
           expect(newUser.course_period[0] instanceof Date).to.be.ok;
           expect(newUser.course_period[1] instanceof Date).to.be.ok;
-          expect(newUser.course_period[0].toISOString()).to.equal('2015-01-01T00:00:00.000Z'); // lower bound
-          expect(newUser.course_period[1].toISOString()).to.equal('2015-12-31T00:00:00.000Z'); // upper bound
+          expect(newUser.course_period[0]).to.equalTime(period[0]); // lower bound
+          expect(newUser.course_period[1]).to.equalTime(period[1]); // upper bound
           expect(newUser.course_period.inclusive).to.deep.equal([false, false]); // not inclusive
 
+          period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
+
           // Check to see if updating a range field works
-          return self.User.update({course_period: [new Date(2015, 1, 1), new Date(2015, 10, 30)]}, {where: newUser.identifiers}).then(function() {
+          return self.User.update({course_period: period}, {where: newUser.identifiers}).then(function() {
             return newUser.reload().success(function() {
               expect(newUser.course_period[0] instanceof Date).to.be.ok;
               expect(newUser.course_period[1] instanceof Date).to.be.ok;
-              expect(newUser.course_period[0].toISOString()).to.equal('2015-02-01T00:00:00.000Z'); // lower bound
-              expect(newUser.course_period[1].toISOString()).to.equal('2015-11-30T00:00:00.000Z'); // upper bound
+              expect(newUser.course_period[0]).to.equalTime(period[0]); // lower bound
+              expect(newUser.course_period[1]).to.equalTime(period[1]); // upper bound
               expect(newUser.course_period.inclusive).to.deep.equal([false, false]); // not inclusive
             });
           });
@@ -745,16 +745,17 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should update range correctly and return the affected rows', function() {
-        var self = this;
+        var self = this,
+          period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
 
         return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]}).then(function(oldUser) {
           // Update the user and check that the returned object's fields have been parsed by the range parser
-          return self.User.update({course_period: [new Date(2015, 1, 1), new Date(2015, 10, 30)]}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
+          return self.User.update({course_period: period}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
             expect(count).to.equal(1);
             expect(users[0].course_period[0] instanceof Date).to.be.ok;
             expect(users[0].course_period[1] instanceof Date).to.be.ok;
-            expect(users[0].course_period[0].toISOString()).to.equal('2015-02-01T00:00:00.000Z'); // lower bound
-            expect(users[0].course_period[1].toISOString()).to.equal('2015-11-30T00:00:00.000Z'); // upper bound
+            expect(users[0].course_period[0]).to.equalTime(period[0]); // lower bound
+            expect(users[0].course_period[1]).to.equalTime(period[1]); // upper bound
             expect(users[0].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
           });
         });
@@ -777,8 +778,12 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should read range array correctly', function() {
-        var self = this;
-        var holidays = [[new Date(2015, 3, 1, 10), new Date(2015, 3, 15)],[new Date(2015, 8, 1), new Date(2015, 9, 15)]];
+        var self = this,
+            holidays = [
+              [new Date(2015, 3, 1, 10), new Date(2015, 3, 15)],
+              [new Date(2015, 8, 1), new Date(2015, 9, 15)]
+            ];
+
         holidays[0].inclusive = [true, true];
         holidays[1].inclusive = [true, true];
 
@@ -794,23 +799,27 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should read range correctly from multiple rows', function() {
-        var self = this;
+        var self = this,
+            periods = [
+              [new Date(2015, 0, 1), new Date(2015, 11, 31)],
+              [new Date(2016, 0, 1), new Date(2016, 11, 31)]
+            ];
 
         return self.User
-          .create({ username: 'user1', email: ['foo@bar.com'], course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]})
+          .create({ username: 'user1', email: ['foo@bar.com'], course_period: periods[0]})
           .then(function() {
-            return self.User.create({ username: 'user2', email: ['foo2@bar.com'], course_period: [new Date(2016, 0, 1), new Date(2016, 11, 31)]});
+            return self.User.create({ username: 'user2', email: ['foo2@bar.com'], course_period: periods[1]});
           })
           .then(function() {
             // Check that the range fields are the same when retrieving the user
             return self.User.findAll({ order: 'username' });
           })
           .then(function(users) {
-            expect(users[0].course_period[0].toISOString()).to.equal('2015-01-01T00:00:00.000Z'); // lower bound
-            expect(users[0].course_period[1].toISOString()).to.equal('2015-12-31T00:00:00.000Z'); // upper bound
+            expect(users[0].course_period[0]).to.equalTime(periods[0][0]); // lower bound
+            expect(users[0].course_period[1]).to.equalTime(periods[0][1]); // upper bound
             expect(users[0].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
-            expect(users[1].course_period[0].toISOString()).to.equal('2016-01-01T00:00:00.000Z'); // lower bound
-            expect(users[1].course_period[1].toISOString()).to.equal('2016-12-31T00:00:00.000Z'); // upper bound
+            expect(users[1].course_period[0]).to.equalTime(periods[1][0]); // lower bound
+            expect(users[1].course_period[1]).to.equalTime(periods[1][1]); // upper bound
             expect(users[1].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
           })
           .error(console.log);
