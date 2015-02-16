@@ -55,16 +55,12 @@ if (dialect.match(/^postgres/)) {
           period:    [new Date(2015, 0, 1), new Date(2015, 0, 3)]
         })
         .then(function () {
-          return Booking
+          return expect(Booking
             .create({
               roomNo:    1,
               guestName: 'Frequent Visitor',
               period:    [new Date(2015, 0, 2), new Date(2015, 0, 5)]
-            })
-            .done(function (err) {
-              expect(!!err).to.be.ok;
-              expect(err instanceof Sequelize.ExclusionConstraintError).to.be.ok;
-            });
+            })).to.eventually.be.rejectedWith(Sequelize.ExclusionConstraintError);
         });
     });
 

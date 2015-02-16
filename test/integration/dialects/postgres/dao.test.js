@@ -696,13 +696,13 @@ if (dialect.match(/^postgres/)) {
 
       it('should bulkCreate with range property', function() {
         var User = this.User,
-          period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
+            period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
         return this.User.bulkCreate([{
-                                       username: 'bob',
-                                       email: ['myemail@email.com'],
-                                       course_period: period
-                                     }]).then(function() {
+          username: 'bob',
+          email: ['myemail@email.com'],
+          course_period: period
+        }]).then(function() {
           return User.find(1).then(function(user) {
             expect(user.course_period[0] instanceof Date).to.be.ok;
             expect(user.course_period[1] instanceof Date).to.be.ok;
@@ -715,7 +715,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should update range correctly', function() {
         var self = this,
-          period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
+            period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
         return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
           // Check to see if the default value for a range field works
@@ -746,7 +746,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should update range correctly and return the affected rows', function() {
         var self = this,
-          period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
+            period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
 
         return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]}).then(function(oldUser) {
           // Update the user and check that the returned object's fields have been parsed by the range parser
