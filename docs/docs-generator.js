@@ -213,7 +213,7 @@ var parseComments = function (comments, file) {
           if (see.local) {
             link = see.local.match(/{(.*?(?:|#.*?))}/)[1];
 
-            comment.putLine('* [' + link + '](' + link.toLowerCase() + ')');
+            comment.putLine('* [' + link + '](api/' + link.toLowerCase() + ')');
           } else {
             comment.putLine('* [' + see.title | see.url + '](' + see.url + ')');
           }

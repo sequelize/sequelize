@@ -1,6 +1,6 @@
 <a name="datatypes"></a>
 # Class DataTypes
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L309)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L36)
 A convenience class holding commonly used data types. The datatypes are used when definining a new model using `Sequelize.define`, like this:
 ```js
 sequelize.define('model', {
@@ -31,8 +31,8 @@ sequelize.define('model', {
 ***
 
 <a name="string"></a>
-## `STRING`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L317)
+## `STRING()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L54)
 A variable length string. Default length 255
 
 Available properties: `BINARY`
@@ -41,8 +41,8 @@ Available properties: `BINARY`
 ***
 
 <a name="char"></a>
-## `CHAR`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L325)
+## `CHAR()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L87)
 A fixed length string. Default length 255
 
 Available properties: `BINARY`
@@ -51,15 +51,15 @@ Available properties: `BINARY`
 ***
 
 <a name="text"></a>
-## `TEXT`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L330)
+## `TEXT()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L108)
 An unlimited length text column
 
 ***
 
 <a name="integer"></a>
-## `INTEGER`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L338)
+## `INTEGER()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L168)
 A 32 bit integer.
 
 Available properties: `UNSIGNED`, `ZEROFILL`
@@ -68,8 +68,8 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 ***
 
 <a name="bigint"></a>
-## `BIGINT`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L346)
+## `BIGINT()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L187)
 A 64 bit integer.
 
 Available properties: `UNSIGNED`, `ZEROFILL`
@@ -77,37 +77,9 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 ***
 
-<a name="time"></a>
-## `TIME`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L351)
-A time column
-
-***
-
-<a name="date"></a>
-## `DATE`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L356)
-A datetime column
-
-***
-
-<a name="dateonly"></a>
-## `DATEONLY`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L361)
-A date only column
-
-***
-
-<a name="boolean"></a>
-## `BOOLEAN`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L366)
-A boolean / tinyint column, depending on dialect
-
-***
-
 <a name="float"></a>
-## `FLOAT`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L374)
+## `FLOAT()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L206)
 Floating point number. Accepts one or two arguments for precision
 
 Available properties: `UNSIGNED`, `ZEROFILL`
@@ -115,24 +87,9 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 ***
 
-<a name="now"></a>
-## `NOW`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L379)
-A default value of the current timestamp
-
-***
-
-<a name="blob"></a>
-## `BLOB`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L385)
-Binary storage. Available lengths: `tiny`, `medium`, `long`
-
-
-***
-
 <a name="decimal"></a>
-## `DECIMAL`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L393)
+## `DECIMAL()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L225)
 Decimal number. Accepts one or two arguments for precision
 
 Available properties: `UNSIGNED`, `ZEROFILL`
@@ -140,51 +97,94 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 ***
 
-<a name="uuid"></a>
-## `UUID`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L398)
-A column storing a unique univeral identifier. Use with `UUIDV1` or `UUIDV4` for default values.
+<a name="boolean"></a>
+## `BOOLEAN()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L248)
+A boolean / tinyint column, depending on dialect
 
 ***
 
-<a name="uuidv1"></a>
-## `UUIDV1`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L403)
-A default unique universal identifier generated following the UUID v1 standard
+<a name="time"></a>
+## `TIME()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L264)
+A time column
 
 ***
 
-<a name="uuidv4"></a>
-## `UUIDV4`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L408)
-A default unique universal identifier generated following the UUID v2 standard
+<a name="date"></a>
+## `DATE()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L279)
+A datetime column
+
+***
+
+<a name="dateonly"></a>
+## `DATEONLY()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L295)
+A date only column
 
 ***
 
 <a name="hstore"></a>
-## `HSTORE`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L414)
+## `HSTORE()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L311)
 A key / value column. Only available in postgres.
 
 ***
 
 <a name="json"></a>
-## `JSON`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L420)
+## `JSON()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L323)
 A JSON string column. Only available in postgres.
 
 ***
 
 <a name="jsonb"></a>
-## `JSONB`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L426)
+## `JSONB()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L335)
 A pre-processed JSON data column. Only available in postgres.
 
 ***
 
+<a name="now"></a>
+## `NOW()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L347)
+A default value of the current timestamp
+
+***
+
+<a name="blob"></a>
+## `BLOB()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L361)
+Binary storage. Available lengths: `tiny`, `medium`, `long`
+
+
+***
+
+<a name="uuid"></a>
+## `UUID()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L388)
+A column storing a unique univeral identifier. Use with `UUIDV1` or `UUIDV4` for default values.
+
+***
+
+<a name="uuidv1"></a>
+## `UUIDV1()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L401)
+A default unique universal identifier generated following the UUID v1 standard
+
+***
+
+<a name="uuidv4"></a>
+## `UUIDV4()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L414)
+A default unique universal identifier generated following the UUID v2 standard
+
+***
+
 <a name="virtual"></a>
-## `VIRTUAL`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L456)
+## `VIRTUAL()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L450)
 A virtual value that is not stored in the DB. This could for example be useful if you want to provide a default value in your model
 that is returned to the user but not stored in the DB.
 
@@ -214,8 +214,8 @@ __Aliases:__ NONE
 ***
 
 <a name="enum"></a>
-## `ENUM`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L464)
+## `ENUM()`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L463)
 An enumeration. `DataTypes.ENUM('value', 'another value')`.
 
 
@@ -223,7 +223,7 @@ An enumeration. `DataTypes.ENUM('value', 'another value')`.
 
 <a name="array"></a>
 ## `ARRAY()`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/data-types.js#L484)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/data-types.js#L480)
 An array of `type`, e.g. `DataTypes.ARRAY(DataTypes.DECIMAL)`. Only available in postgres.
 
 ***

@@ -1,6 +1,6 @@
 <a name="mixin"></a>
 # Mixin Mixin
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/associations/mixin.js#L95)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L95)
 Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions
 on a model (the source), and prodiving another model as the first argument to the function (the target).
 
@@ -89,7 +89,7 @@ you should either disable some constraints, or rethink your associations complet
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/associations/mixin.js#L145)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L145)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
@@ -121,7 +121,7 @@ All methods return a promise
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/associations/mixin.js#L170)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L170)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
@@ -153,7 +153,7 @@ All methods return a promise
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/associations/mixin.js#L245)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L245)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -220,7 +220,7 @@ user.getProjects().success(function (projects) {
 | target | Model |  |
 | [options] | object |  |
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
-| [options.through] | Model &#124; string|object | The name of the table that is used to join source and target in n:m associations. Can also be a sequelize model if you want to define the junction table yourself and add extra attributes to it. |
+| [options.through] | Model &#124; string &#124; object | The name of the table that is used to join source and target in n:m associations. Can also be a sequelize model if you want to define the junction table yourself and add extra attributes to it. |
 | [options.through.model] | Model | The model used to join both sides of the N:M association. |
 | [options.through.scope] | object | A key/value set that will be used for association create and find defaults on the through model. (Remember to add the attributes to the through model) |
 | [options.through.unique=true] | boolean | If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes) |
@@ -236,7 +236,7 @@ user.getProjects().success(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/associations/mixin.js#L339)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L339)
 Create an N:M association with a join table
 
 ```js
@@ -298,7 +298,7 @@ user.getProjects().then(function (projects) {
 | target | Model |  |
 | [options] | object |  |
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
-| [options.through] | Model &#124; string|object | The name of the table that is used to join source and target in n:m associations. Can also be a sequelize model if you want to define the junction table yourself and add extra attributes to it. |
+| [options.through] | Model &#124; string &#124; object | The name of the table that is used to join source and target in n:m associations. Can also be a sequelize model if you want to define the junction table yourself and add extra attributes to it. |
 | [options.through.model] | Model | The model used to join both sides of the N:M association. |
 | [options.through.scope] | object | A key/value set that will be used for association create and find defaults on the through model. (Remember to add the attributes to the through model) |
 | [options.through.unique=true] | boolean | If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes) |

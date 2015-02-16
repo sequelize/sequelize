@@ -1,6 +1,6 @@
 <a name="model"></a>
 # Class Model
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L25)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L25)
 A Model represents a table in the database. Sometimes you might also see it refererred to as model, or simply as factory. This class should _not_ be instantiated directly, it is created using `sequelize.define`, and already created models can be loaded using `sequelize.import`
 
 ### Mixes:
@@ -11,7 +11,7 @@ A Model represents a table in the database. Sometimes you might also see it refe
 
 <a name="removeattribute"></a>
 ## `removeAttribute([attribute])`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L371)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L375)
 Remove attribute from model definition
 
 **Params:**
@@ -25,19 +25,19 @@ Remove attribute from model definition
 
 <a name="sync"></a>
 ## `sync()` -> `Promise<this>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L381)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L385)
 Sync this Model to the DB, that is create the table. Upon success, the callback will be called with the model instance (this)
 
 **See:**
 
-* [Sequelize#sync](sequelize#sync)
+* [Sequelize#sync](api/sequelize#sync)
 
 
 ***
 
 <a name="drop"></a>
 ## `drop([options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L417)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L421)
 Drop the table represented by this Model
 
 **Params:**
@@ -52,7 +52,7 @@ Drop the table represented by this Model
 
 <a name="schema"></a>
 ## `schema(schema, [options])` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L434)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L438)
 Apply a schema to this model. For postgres, this will actually place the schema in front of the table name - `"schema"."tableName"`,
 while the schema will be prepended to the table name for mysql and sqlite - `'schema.tablename'`.
 
@@ -70,7 +70,7 @@ while the schema will be prepended to the table name for mysql and sqlite - `'sc
 
 <a name="gettablename"></a>
 ## `getTableName(options)` -> `String|Object`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L457)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L461)
 Get the tablename of the model, taking schema into account. The method will return The name as a string if the model has no schema,
 or an object with `tableName`, `schema` and `delimiter` properties.
 
@@ -86,7 +86,7 @@ or an object with `tableName`, `schema` and `delimiter` properties.
 
 <a name="scope"></a>
 ## `scope(options*)` -> `Model`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L500)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L504)
 Apply a scope created in `define` to the model. First let's look at how to create scopes:
 ```js
 var Model = sequelize.define('model', attributes, {
@@ -127,7 +127,7 @@ Model.scope({ method: ['complexFunction' 'dan@sequelize.com', 42]}).findAll()
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| options* | Array &#124; Object|String|null | The scope(s) to apply. Scopes can either be passed as consecutive arguments, or as an array of arguments. To apply simple scopes, pass them as strings. For scope function, pass an object, with a `method` property. The value can either be a string, if the method does not take any arguments, or an array, where the first element is the name of the method, and consecutive elements are arguments to that method. Pass null to remove all scopes, including the default. |
+| options* | Array &#124; Object &#124; String &#124; null | The scope(s) to apply. Scopes can either be passed as consecutive arguments, or as an array of arguments. To apply simple scopes, pass them as strings. For scope function, pass an object, with a `method` property. The value can either be a string, if the method does not take any arguments, or an array, where the first element is the name of the method, and consecutive elements are arguments to that method. Pass null to remove all scopes, including the default. |
 
 __Returns:__ A reference to the model, with the scope(s) applied. Calling scope again on the returned model will clear the previous scope.
 
@@ -135,7 +135,7 @@ __Returns:__ A reference to the model, with the scope(s) applied. Calling scope 
 
 <a name="findall"></a>
 ## `findAll([options], [queryOptions])` -> `Promise<Array<Instance>>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L675)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L679)
 Search for multiple instances.
 
 __Simple search using AND and =__
@@ -197,7 +197,7 @@ The success listener is called with an array of instances if the query succeeds.
 
 **See:**
 
-* [Sequelize#query](sequelize#query)
+* [Sequelize#query](api/sequelize#query)
 
 
 **Params:**
@@ -216,7 +216,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.include[].attributes] | Array&lt;String&gt; | A list of attributes to select from the child model |
 | [options.include[].required] | Boolean | If true, converts to an inner join, which means that the parent model will only be loaded if it has any matching children. True if `include.where` is set, false otherwise. |
 | [options.include[].include] | Array&lt;Object &#124; Model&gt; | Load further nested related models |
-| [options.order] | String &#124; Array|Sequelize.fn | Specifies an ordering. If a string is provided, it will be esacped. Using an array, you can provide several columns / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction. For example: `order: [['name', 'DESC']]`. In this way the column will be escaped, but the direction will not. |
+| [options.order] | String &#124; Array &#124; Sequelize.fn | Specifies an ordering. If a string is provided, it will be esacped. Using an array, you can provide several columns / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction. For example: `order: [['name', 'DESC']]`. In this way the column will be escaped, but the direction will not. |
 | [options.limit] | Number |  |
 | [options.offset] | Number |  |
 | [options.transaction] | Transaction |  |
@@ -229,13 +229,13 @@ __Aliases:__ all
 
 <a name="findone"></a>
 ## `findOne([options], [queryOptions])` -> `Promise<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L759)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L763)
 Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single instance.
 
 
 **See:**
 
-* [Model#findAll](model#findall)
+* [Model#findAll](api/model#findall)
 
 
 **Params:**
@@ -252,7 +252,7 @@ __Aliases:__ find
 
 <a name="aggregate"></a>
 ## `aggregate(field, aggregateFunction, [options])` -> `Promise<options.dataType>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L796)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L801)
 Run an aggregation method on the specified field
 
 
@@ -263,6 +263,7 @@ Run an aggregation method on the specified field
 | field | String | The field to aggregate over. Can be a field name or * |
 | aggregateFunction | String | The function to use for aggregation, e.g. sum, max etc. |
 | [options] | Object | Query options. See sequelize.query for full options |
+| [options.where] | Object | A hash of search attributes. |
 | [options.dataType] | DataType &#124; String | The type of the result. If `field` is a field in this Model, the default will be the type of that field, otherwise defaults to float. |
 | [options.distinct] | boolean | Applies DISTINCT to the field being aggregated over |
 | [options.transaction] | Transaction |  |
@@ -272,7 +273,7 @@ Run an aggregation method on the specified field
 
 <a name="count"></a>
 ## `count([options])` -> `Promise<Integer>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L830)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L838)
 Count the number of records matching the provided where clause.
 
 If you provide an `include` option, the number of matching associations will be counted instead.
@@ -283,6 +284,7 @@ If you provide an `include` option, the number of matching associations will be 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [options] | Object |  |
+| [options.where] | Object | A hash of search attributes. |
 | [options.include] | Object | Include options. See `find` for details |
 | [options.distinct] | boolean | Appliy COUNT(DISTINCT(col))  |
 
@@ -291,7 +293,7 @@ If you provide an `include` option, the number of matching associations will be 
 
 <a name="findandcount"></a>
 ## `findAndCount([findOptions], [queryOptions])` -> `Promise<Object>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L870)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L878)
 Find all the rows matching your query, within a specified offset / limit, and get the total number of rows matching your query. This is very usefull for paging
 
 ```js
@@ -307,7 +309,7 @@ In the above example, `result.rows` will contain rows 13 through 24, while `resu
 
 **See:**
 
-* [Model#findAll](model#findall)
+* [Model#findAll](api/model#findall)
 
 
 **Params:**
@@ -323,13 +325,13 @@ __Aliases:__ findAndCountAll
 
 <a name="max"></a>
 ## `max(field, [options])` -> `Promise<Any>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L926)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L934)
 Find the maximum value of field
 
 
 **See:**
 
-* [Model#aggregate](model#aggregate)
+* [Model#aggregate](api/model#aggregate)
 
 
 **Params:**
@@ -344,13 +346,13 @@ Find the maximum value of field
 
 <a name="min"></a>
 ## `min(field, [options])` -> `Promise<Any>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L939)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L947)
 Find the minimum value of field
 
 
 **See:**
 
-* [Model#aggregate](model#aggregate)
+* [Model#aggregate](api/model#aggregate)
 
 
 **Params:**
@@ -365,13 +367,13 @@ Find the minimum value of field
 
 <a name="sum"></a>
 ## `sum(field, [options])` -> `Promise<Number>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L952)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L960)
 Find the sum of field
 
 
 **See:**
 
-* [Model#aggregate](model#aggregate)
+* [Model#aggregate](api/model#aggregate)
 
 
 **Params:**
@@ -386,7 +388,7 @@ Find the sum of field
 
 <a name="build"></a>
 ## `build(values, [options])` -> `Instance`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L968)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L976)
 Builds a new model instance. Values is an object of key value pairs, must be defined but can be empty.
 
 
@@ -406,14 +408,14 @@ Builds a new model instance. Values is an object of key value pairs, must be def
 
 <a name="create"></a>
 ## `create(values, [options])` -> `Promise<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1038)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1046)
 Builds a new model instance and calls save on it.
 
 
 **See:**
 
-* [Instance#build](instance#build)
-* [Instance#save](instance#save)
+* [Instance#build](api/instance#build)
+* [Instance#save](api/instance#save)
 
 
 **Params:**
@@ -435,7 +437,7 @@ Builds a new model instance and calls save on it.
 
 <a name="findorinitialize"></a>
 ## `findOrInitialize` -> `Promise<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1068)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1076)
 Find a row that matches the query, or build (but don't save) the row if none is found.
 The successfull result of the promise will be (instance, initialized) - Make sure to use .spread()
 
@@ -455,7 +457,7 @@ __Aliases:__ findOrBuild
 
 <a name="findorcreate"></a>
 ## `findOrCreate(options, [queryOptions])` -> `Promise<Instance|created>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1113)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1121)
 Find a row that matches the query, or build and save the row if none is found
 The successfull result of the promise will be (instance, created) - Make sure to use .spread()
 
@@ -478,7 +480,7 @@ If a transaction is created, a savepoint will be created instead, and any unique
 
 <a name="upsert"></a>
 ## `upsert(values, [options])` -> `Promise<created>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1200)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1209)
 Insert or update a single row. An update will be executed if a row which matches the supplied values on either the primary key or a unique key is found. Note that the unique index must be defined in your sequelize model and not just in the table. Otherwise you may experience a unique constraint violation, because sequelize fails to identify the row that should be updated.
 
 **Implementation details:**
@@ -506,7 +508,7 @@ __Aliases:__ insertOrUpdate
 
 <a name="bulkcreate"></a>
 ## `bulkCreate(records, [options])` -> `Promise<Array<Instance>>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1256)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1263)
 Create and insert multiple instances in bulk.
 
 The success handler is passed an array of instances, but please notice that these may not completely represent the state of the rows in the DB. This is because MySQL
@@ -533,7 +535,7 @@ To obtain Instances for the newly created values, you will need to query for the
 
 <a name="destroy"></a>
 ## `destroy(options)` -> `Promise<undefined>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1432)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1437)
 Delete multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
 
 
@@ -556,7 +558,7 @@ Delete multiple instances, or set their deletedAt timestamp to the current time 
 
 <a name="restore"></a>
 ## `restore(options)` -> `Promise<undefined>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1507)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1512)
 Restore multiple instances if `paranoid` is enabled.
 
 
@@ -576,7 +578,7 @@ Restore multiple instances if `paranoid` is enabled.
 
 <a name="update"></a>
 ## `update(values, options)` -> `Promise<Array<affectedCount|affectedRows>>`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1577)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1582)
 Update multiple instances that match the where options. The promise returns an array with one or two elements. The first element is always the number
 of affected rows, while the second element is the actual affected rows (only supported in postgres with `options.returning` true.)
 
@@ -600,7 +602,7 @@ of affected rows, while the second element is the actual affected rows (only sup
 
 <a name="describe"></a>
 ## `describe()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/dbcbddd0f1bbdad7ff8b4f939616f51b610619a4/lib/model.js#L1742)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/model.js#L1747)
 Run a describe query on the table. The result will be return to the listener as a hash of attributes and their types.
 
 
