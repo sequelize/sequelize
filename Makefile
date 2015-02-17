@@ -25,7 +25,7 @@ endif
 
 # Unit tests
 test-unit:
-	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) ./test/unit/**/*.js
+	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) ./test/unit/*.js ./test/unit/**/*.js
 
 test-unit-all: test-unit-sqlite test-unit-mysql test-unit-postgres test-unit-postgres-native test-unit-mariadb test-unit-mssql
 

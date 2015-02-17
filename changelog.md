@@ -2,7 +2,8 @@
 - [BUG] Support for plain strings, ints and bools on JSON insert
 - [BUG] Fixed regression where `{$in: []}` would result in `IN ()` rather than `IN (NULL)` [#3105](https://github.com/sequelize/sequelize/issues/3105) [#3132](https://github.com/sequelize/sequelize/issues/3132)
 - [BUG] Fixed bug where 2 x `belongsToMany` with `foreignKey` but no `otherKey` defined would result in 3 keys instead of 2. [#2991](https://github.com/sequelize/sequelize/issues/2991)
-- [BUG] Fixed regression with `where: sequelize.json()`, [#3138](https://github.com/sequelize/sequelize/issues/3138)
+- [BUG] Fixed regression with `where: sequelize.json()` [#3138](https://github.com/sequelize/sequelize/issues/3138)
+- [BUG] Fixed support for `field` with `$or`/`$and` [#3153](https://github.com/sequelize/sequelize/issues/3153)
 
 # 2.0.2
 - [BUG] Fixed regression with `DataTypes.ARRAY(DataTypes.STRING(length))` [#3106](https://github.com/sequelize/sequelize/issues/3106)
