@@ -453,9 +453,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
   describe('define', function() {
     it('adds a new dao to the dao manager', function(done) {
-      expect(this.sequelize.daoFactoryManager.all.length).to.equal(0);
+      var count = this.sequelize.daoFactoryManager.all.length;
       this.sequelize.define('foo', { title: DataTypes.STRING });
-      expect(this.sequelize.daoFactoryManager.all.length).to.equal(1);
+      expect(this.sequelize.daoFactoryManager.all.length).to.equal(count+1);
       done();
     });
 
