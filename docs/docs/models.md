@@ -134,22 +134,30 @@ Getters and Setters can be defined in 2 ways &lpar;you can mix and match these 2
 ### Defining as part of a property
 
 ```js
-var Foo = sequelize.define('Foo', {
-  name: Sequelize.STRING,
-  title: {
+var Employee = sequelize.define('Employee', {
+  name:  {
     type     : Sequelize.STRING,
     allowNull: false,
     get      : function()  {
-       /*
-         do your magic here and return something!
-         'this' allows you to access attributes of the model.
-
-        example: this.getDataValue('name') works
-      */
+      var title = this.getDataValue('title'); // 'this' allows you to access attributes of the instance
+      return this.getDataValue('name') + ' (' + title + ')';
     },
-    set      : function(v) { /* do your magic with the input here! */ }
+  },
+  title: {
+    type     : Sequelize.STRING,
+    allowNull: false,
+    set      : function(val) {
+      this.setDataValue('title', val.toUpperCase());
+    }
   }
 });
+
+Employee
+  .create({ name: 'John Doe', title: 'senior engineer' })
+  .then(function(employee) {
+    console.log(employee.get('name')); // John Doe (SENIOR ENGINEER)
+    console.log(employee.get('title')); // SENIOR ENGINEER
+  })
 ```
 
 ### Defining as part of the model options
