@@ -10,6 +10,7 @@ more.
 [Installation](docs/getting-started/)
 
 ## Example usage
+
 ```js
 var Sequelize = require('sequelize');
 var sequelize = new Sequelize('database', 'username', 'password');
