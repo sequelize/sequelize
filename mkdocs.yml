@@ -1,4 +1,6 @@
-site_name: Sequelize - node.js ORM for Postgres, MySQl, MariaDB and SQLite
+site_name: Sequelize | The Node.js / io.js ORM for PostgreSQL, MySQL, SQLite and MSSQL
+site_description: Sequelize is an ORM for Node.js and io.js. It supports the dialects PostgreSQL, MySQL, MariaDB, SQLite and MSSQL.
+theme: ""
 theme_dir: docs/readthedocs_theme
 repo_url: https://github.com/sequelize/sequelize
 site_favicon: favicon.ico
@@ -7,6 +9,7 @@ extra_css:
 - css/custom.css
 extra_javascript:
 - //cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js
+- http://io.depold.com/code/3D2S0C0L362R/ga.js
 pages:
 - ['index.md', 'Home']
 

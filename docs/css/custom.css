@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Titillium+Web);
+
 table {
   width:100%;
 }
@@ -21,4 +23,27 @@ th {
 }
 tr:nth-child(2n) {
   background-color: #f8f8f8;
+}
+
+#teaser-home {
+  height: 250px;
+  position: relative;
+  margin-bottom: 24px;
+}
+
+#teaser-home img {
+  position: absolute;
+  top: 0;
+}
+
+#teaser-home span {
+  color: #2F406A;
+  position: absolute;
+  top: 0;
+  left: 250px;
+  font-size: 100px;
+  display: inline-block;
+  height: 250px;
+  line-height: 250px;
+  font-family: 'Titillium Web', sans-serif;
 }
