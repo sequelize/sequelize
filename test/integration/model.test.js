@@ -1583,6 +1583,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
     });
+    it('returns multiple rows when using group', function() {
+      var self = this;
+      return this.User.bulkCreate([
+        {username: 'user1', data: 'A'},
+        {username: 'user2', data: 'A'},
+        {username: 'user3', data: 'B'}
+      ]).then(function() {
+        return self.User.count({
+          attributes: ['data'],
+          group: ['data']
+        }).then(function(count) {
+          expect(count.length).to.equal(2);
+        });
+      });
+    });
 
     it('does not modify the passed arguments', function(done) {
       var options = { where: ['username = ?', 'user1']};
