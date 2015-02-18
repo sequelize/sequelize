@@ -1,14 +1,14 @@
 ## Definition
 
 To define mappings between a model and a table, use the `define` method. Sequelize will then automatically add the attributes `createdAt` and `updatedAt` to it. So you will be able to know when the database entry went into the db and when it was updated the last time. If you do not want timestamps on your models, only want some timestamps, or you are working with an existing database where the columns are named something else, jump straight on to [configuration ][0]to see how to do that.
-    
+
 
 ```js
 var Project = sequelize.define('Project', {
   title: Sequelize.STRING,
   description: Sequelize.TEXT
 })
- 
+
 var Task = sequelize.define('Task', {
   title: Sequelize.STRING,
   description: Sequelize.TEXT,
@@ -17,7 +17,7 @@ var Task = sequelize.define('Task', {
 ```
 
 You can also set some options on each column:
-    
+
 ```js
 var Foo = sequelize.define('Foo', {
  // instantiating will automatically set the flag to true if not set
@@ -63,30 +63,30 @@ Sequelize.STRING                      // VARCHAR(255)
 Sequelize.STRING(1234)                // VARCHAR(1234)
 Sequelize.STRING.BINARY               // VARCHAR BINARY
 Sequelize.TEXT                        // TEXT
- 
+
 Sequelize.INTEGER                     // INTEGER
 Sequelize.BIGINT                      // BIGINT
 Sequelize.BIGINT(11)                  // BIGINT(11)
 Sequelize.FLOAT                       // FLOAT
 Sequelize.FLOAT(11)                   // FLOAT(11)
 Sequelize.FLOAT(11, 12)               // FLOAT(11,12)
- 
+
 Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
- 
+
 Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
 Sequelize.BOOLEAN                     // TINYINT(1)
- 
+
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
 Sequelize.ARRAY(Sequelize.TEXT)       // Defines an array. PostgreSQL only.
- 
+
 Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
 Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other options are medium and long)
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
 ```
 
 The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column. that data will always be returned as a buffer.
- 
+
 If you are working with the PostgreSQL TIMESTAMP WITHOUT TIME ZONE and you need to parse it to a different timezone, please use the pg library's own parser:
 
 ```js
@@ -109,7 +109,7 @@ Sequelize.INTEGER(11).UNSIGNED.ZEROFILL // INTEGER(11) UNSIGNED ZEROFILL
 _The examples above only show integer&comma; but the same can be done with bigint and float_
 
 Usage in object notation:
-    
+
 ```js
 // for enums:
 sequelize.define('model', {
@@ -143,7 +143,7 @@ var Foo = sequelize.define('Foo', {
        /*
          do your magic here and return something!
          'this' allows you to access attributes of the model.
- 
+
         example: this.getDataValue('name') works
       */
     },
@@ -165,33 +165,33 @@ var defaultToWhiteSpace = function(characters) {
     else
       return ;
   };
- 
+
 var slugify = function(str) {
   var from  = "ąàáäâãåæćęèéëêìíïîłńòóöôõøśùúüûñçżź",
       to    = "aaaaaaaaceeeeeiiiilnoooooosuuuunczz",
       regex = new RegExp('[' + from.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1') + ']', 'g');
- 
+
   if (str == null) return '';
- 
+
   str = String(str).toLowerCase().replace(regex, function(c) {
     return to.charAt(from.indexOf(c)) || '-';
   });
- 
+
   return str.replace(/[^\w\s-]/g, '').replace(/([A-Z])/g, '-$1').replace(/[-_\s]+/g, '-').toLowerCase();
 }
- 
+
 var Foo = sequelize.define('Foo', {
   title: {
     type     : Sequelize.STRING,
     allowNull: false,
   }
 }, {
- 
+
   getterMethods   : {
     title       : function()  { /* do your magic here and return something! */ },
     title_slug  : function()  { return slugify(this.title); }
   },
- 
+
   setterMethods   : {
     title       : function(v) { /* do your magic with the input here! */ },
   }
@@ -363,21 +363,21 @@ You can also influence the way Sequelize handles your column names&colon;
 var Bar = sequelize.define('Bar', { /* bla */ }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
- 
+
   // don't delete database entries but set the newly added attribute deletedAt
   // to the current date (when deletion was done). paranoid will only work if
   // timestamps are enabled
   paranoid: true,
- 
+
   // don't use camelcase for automatically added attributes but underscore style
   // so updatedAt will be updated_at
   underscored: true,
- 
+
   // disable the modification of tablenames; By default, sequelize will automatically
   // transform all passed model names (first parameter of define) into plural.
   // if you don't want that, set the following
   freezeTableName: true,
- 
+
   // define the table's name
   tableName: 'my_very_custom_table_name'
 })
@@ -389,13 +389,13 @@ If you want sequelize to handle timestamps, but only want some of them, or want 
 var Foo = sequelize.define('Foo',  { /* bla */ }, {
   // don't forget to enable timestamps!
   timestamps: true,
- 
+
   // I don't want createdAt
   createdAt: false,
- 
+
   // I want updatedAt to actually be called updateTimestamp
   updatedAt: 'updateTimestamp'
- 
+
   // And deletedAt to be called destroyTime (remember to enable paranoid for this to work)
   deletedAt: 'destroyTime',
   paranoid: true
@@ -408,7 +408,7 @@ You can also change the database engine&comma; e&period;g&period; to MyISAM&peri
 var Person = sequelize.define('Person', { /* attributes */ }, {
   engine: 'MYISAM'
 })
- 
+
 // or globally
 var sequelize = new Sequelize(db, user, pw, {
   define: { engine: 'MYISAM' }
@@ -430,7 +430,7 @@ You can also store your model definitions in a single file using the `import` me
 ```js
 // in your server file - e.g. app.js
 var Project = sequelize.import(__dirname + "/path/to/models/project")
- 
+
 // The model definition is done in /path/to/models/project.js
 // As you might notice, the DataTypes are the very same as explained above
 module.exports = function(sequelize, DataTypes) {
@@ -460,14 +460,14 @@ When starting a new project you won't have a database structure and using Sequel
 // Create the tables:
 Project.sync()
 Task.sync()
- 
+
 // Force the creation!
 Project.sync({force: true}) // this will drop the table first and re-create it afterwards
- 
+
 // drop the tables:
 Project.drop()
 Task.drop()
- 
+
 // event handling:
 Project.[sync|drop]().then(function() {
   // ok ... everything is nice!
@@ -481,13 +481,13 @@ Because synchronizing and dropping all of your tables might be a lot of lines to
 ```js
 // Sync all models that aren't already in the database
 sequelize.sync()
- 
+
 // Force sync all modes
 sequelize.sync({force: true})
- 
+
 // Drop all tables
 sequelize.drop()
- 
+
 // emit handling:
 sequelize.[sync|drop]().then(function() {
   // woot woot
@@ -509,7 +509,7 @@ var Foo = sequelize.define('Foo', { /* attributes */}, {
     method2: function() { return 'foo' }
   }
 })
- 
+
 // Example:
 Foo.method1()
 Foo.build().method2()
@@ -525,7 +525,7 @@ var User = sequelize.define('User', { firstname: Sequelize.STRING, lastname: Seq
     }
   }
 })
- 
+
 // Example:
 User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
 ```
@@ -545,7 +545,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
     }
   }
 })
- 
+
 // Example:
 var Foo = sequelize.define('Foo', { /* attributes */});
 Foo.method1()
@@ -564,12 +564,12 @@ Project.find(123).then(function(project) {
   // project will be an instance of Project and stores the content of the table entry
   // with id 123. if such an entry is not defined you will get null
 })
- 
+
 // search for attributes
 Project.find({ where: {title: 'aProject'} }).then(function(project) {
   // project will be the first entry of the Projects table with the title 'aProject' || null
 })
- 
+
 
 Project.find({
   where: {title: 'aProject'},
@@ -592,7 +592,7 @@ User
   .spread(function(user, created) {
     console.log(user.values)
     console.log(created)
-   
+
     /*
       {
         username: 'sdepold',
@@ -616,7 +616,7 @@ User
       .spread(function(user, created) {
         console.log(user.values)
         console.log(created)
-     
+
         /*
           {
             username: 'fnord',
@@ -666,28 +666,28 @@ The options &lsqb;object&rsqb; that you pass to`findAndCountAll`&lpar;&rpar;is t
 Project.findAll().then(function(projects) {
   // projects will be an array of all Project instances
 })
- 
+
 // also possible:
 Project.all().then(function(projects) {
   // projects will be an array of all Project instances
 })
- 
+
 // search for specific attributes - hash usage
 Project.findAll({ where: { name: 'A Project' } }).then(function(projects) {
   // projects will be an array of Project instances with the specified name
 })
- 
+
 // search with string replacements
 Project.findAll({ where: ["id > ?", 25] }).then(function(projects) {
   // projects will be an array of Projects having a greater id than 25
 })
- 
+
 // search within a specific range
 Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
   // projects will be an array of Projects having the id 1, 2 or 3
   // this is actually doing an IN query
 })
- 
+
 Project.findAll({
   where: {
     id: {
@@ -759,10 +759,10 @@ To get more relevant data&comma; you can use limit&comma; offset&comma; order an
 ```js
 // limit the results of the query
 Project.findAll({ limit: 10 })
- 
+
 // step over the first 10 elements
 Project.findAll({ offset: 10 })
- 
+
 // step over the first 10 elements, and take 2
 Project.findAll({ offset: 10, limit: 2 })
 ```
@@ -772,7 +772,7 @@ The syntax for grouping and ordering are equal&comma; so below it is only explai
 ```js
 Project.findAll({order: 'title DESC'})
 // yields ORDER BY title DESC
- 
+
 Project.findAll({group: 'name'})
 // yields GROUP BY name
 ```
@@ -829,7 +829,7 @@ There is also a method for counting database objects&colon;
 Project.count().then(function(c) {
   console.log("There are " + c + " projects!")
 })
- 
+
 Project.count({ where: ["id > ?", 25] }).then(function(c) {
   console.log("There are " + c + " projects with an id greater than 25.")
 })
@@ -849,7 +849,7 @@ And here is a method for getting the max value of an attribute&colon;f
 Project.max('age').then(function(max) {
   // this will return 40
 })
- 
+
 Project.max('age', { where: { age: { lt: 20 } } }).then(function(max) {
   // will be 10
 })
@@ -869,7 +869,7 @@ And here is a method for getting the min value of an attribute&colon;
 Project.min('age').then(function(min) {
   // this will return 5
 })
- 
+
 Project.min('age', { where: { age: { $gt: 5 } } }).then(function(min) {
   // will be 10
 })
@@ -890,7 +890,7 @@ use the `sum` method.
 Project.sum('age').then(function(sum) {
   // this will return 55
 })
- 
+
 Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
   // wil be 50
 })
@@ -904,11 +904,11 @@ When you are retrieving data from the database there is a fair chance that you a
 var User = sequelize.define('User', { name: Sequelize.STRING })
   , Task = sequelize.define('Task', { name: Sequelize.STRING })
   , Tool = sequelize.define('Tool', { name: Sequelize.STRING })
- 
+
 Task.belongsTo(User)
 User.hasMany(Task)
 User.hasMany(Tool, { as: 'Instruments' })
- 
+
 sequelize.sync().done(function() {
   // this is where we continue ...
 })
@@ -919,7 +919,7 @@ OK&period; So&comma; first of all&comma; let's load all tasks with their associa
 ```js
 Task.findAll({ include: [ User ] }).then(function(tasks) {
   console.log(JSON.stringify(tasks))
- 
+
   /*
     [{
       "name": "A Task",
@@ -945,7 +945,7 @@ Next thing&colon; Loading of data with many-to-something associations&excl;
 ```js
 User.findAll({ include: [ Task ] }).then(function(users) {
   console.log(JSON.stringify(users))
- 
+
   /*
     [{
       "name": "John Doe",
@@ -971,7 +971,7 @@ If an association is aliased &lpar;using the`as`option&rpar;&comma; you must spe
 ```js
 User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(users) {
   console.log(JSON.stringify(users))
- 
+
   /*
     [{
       "name": "John Doe",
@@ -1026,7 +1026,7 @@ User.findAll({
   ]
 }).then(function(users) {
   console.log(JSON.stringify(users))
- 
+
   /*
     [{
       "name": "John Doe",
@@ -1054,7 +1054,7 @@ User.findAll({
 Tool.findAll({ include: [ User ] }).then(function(tools) {
   console.log(JSON.stringify(tools))
 })
- 
+
 // Error: User is not associated to Tool!
 ```
 
