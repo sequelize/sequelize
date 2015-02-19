@@ -1,6 +1,6 @@
 <a name="sequelize"></a>
 # Class Sequelize
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L34)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L34)
 This is the main class, the entry point to sequelize. To use it, you just need to import sequelize:
 
 ```js
@@ -14,7 +14,7 @@ In addition to sequelize, the connection library for the dialect you want to use
 
 <a name="sequelize"></a>
 ## `new Sequelize(database, [username=null], [password=null], [options={}])`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L91)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L91)
 Instantiate sequelize with name of database, username and password
 
 #### Example usage
@@ -75,7 +75,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 
 <a name="sequelize"></a>
 ## `new Sequelize(uri, [options={}])`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L100)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L100)
 Instantiate sequlize with an URI
 
 **Params:**
@@ -90,50 +90,57 @@ Instantiate sequlize with an URI
 
 <a name="models"></a>
 ## `models`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L198)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L199)
 Models are stored here under the name given to `sequelize.define`
 
 ***
 
 <a name="sequelize"></a>
 ## `Sequelize`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L214)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L215)
 A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
 
 **See:**
 
-* [Sequelize](sequelize)
+* [Sequelize](api/sequelize)
 
 
 ***
 
 <a name="utils"></a>
 ## `Utils`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L221)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L222)
 A reference to sequelize utilities. Most users will not need to use these utils directly. However, you might want to use `Sequelize.Utils._`, which is a reference to the lodash library, if you don't already have it imported in your project.
 
 **See:**
 
-* [Utils](utils)
+* [Utils](api/utils)
 
 
 ***
 
 <a name="promise"></a>
 ## `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L228)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L229)
 A modified version of bluebird promises, that allows listening for sql events
 
 **See:**
 
-* [Promise](promise)
+* [Promise](api/promise)
 
+
+***
+
+<a name="querytypes"></a>
+## `QueryTypes`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L235)
+Available query types for use with `sequelize.query`
 
 ***
 
 <a name="validator"></a>
 ## `Validator`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L237)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L242)
 Exposes the validator.js object, so you can extend it with custom validation functions. The validator is exposed both on the instance, and on the constructor.
 
 **See:**
@@ -145,200 +152,200 @@ Exposes the validator.js object, so you can extend it with custom validation fun
 
 <a name="transaction"></a>
 ## `Transaction`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L257)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L262)
 A reference to the sequelize transaction class. Use this to access isolationLevels when creating a transaction
 
 **See:**
 
-* [Transaction](transaction)
-* [Sequelize#transaction](sequelize#transaction)
+* [Transaction](api/transaction)
+* [Sequelize#transaction](api/sequelize#transaction)
 
 
 ***
 
 <a name="instance"></a>
 ## `Instance`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L264)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L269)
 A reference to the sequelize instance class.
 
 **See:**
 
-* [Instance](instance)
+* [Instance](api/instance)
 
 
 ***
 
 <a name="error"></a>
 ## `Error`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L278)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L283)
 A general error class
 
 **See:**
 
-* [Errors#BaseError](errors#baseerror)
+* [Errors#BaseError](api/errors#baseerror)
 
 
 ***
 
 <a name="validationerror"></a>
 ## `ValidationError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L286)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L291)
 Emitted when a validation fails
 
 **See:**
 
-* [Errors#ValidationError](errors#validationerror)
+* [Errors#ValidationError](api/errors#validationerror)
 
 
 ***
 
 <a name="validationerroritem"></a>
 ## `ValidationErrorItem`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L294)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L299)
 Describes a validation error on an instance path
 
 **See:**
 
-* [Errors#ValidationErrorItem](errors#validationerroritem)
+* [Errors#ValidationErrorItem](api/errors#validationerroritem)
 
 
 ***
 
 <a name="databaseerror"></a>
 ## `DatabaseError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L301)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L306)
 A base class for all database related errors.
 
 **See:**
 
-* [Errors#DatabaseError](errors#databaseerror)
+* [Errors#DatabaseError](api/errors#databaseerror)
 
 
 ***
 
 <a name="timeouterror"></a>
 ## `TimeoutError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L308)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L313)
 Thrown when a database query times out because of a deadlock
 
 **See:**
 
-* [Errors#TimeoutError](errors#timeouterror)
+* [Errors#TimeoutError](api/errors#timeouterror)
 
 
 ***
 
 <a name="uniqueconstrainterror"></a>
 ## `UniqueConstraintError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L315)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L320)
 Thrown when a unique constraint is violated in the database
 
 **See:**
 
-* [Errors#UniqueConstraintError](errors#uniqueconstrainterror)
+* [Errors#UniqueConstraintError](api/errors#uniqueconstrainterror)
 
 
 ***
 
 <a name="foreignkeyconstrainterror"></a>
 ## `ForeignKeyConstraintError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L322)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L327)
 Thrown when a foreign key constraint is violated in the database
 
 **See:**
 
-* [Errors#ForeignKeyConstraintError](errors#foreignkeyconstrainterror)
+* [Errors#ForeignKeyConstraintError](api/errors#foreignkeyconstrainterror)
 
 
 ***
 
 <a name="connectionerror"></a>
 ## `ConnectionError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L329)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L334)
 A base class for all connection related errors.
 
 **See:**
 
-* [Errors#ConnectionError](errors#connectionerror)
+* [Errors#ConnectionError](api/errors#connectionerror)
 
 
 ***
 
 <a name="connectionrefusederror"></a>
 ## `ConnectionRefusedError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L336)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L341)
 Thrown when a connection to a database is refused
 
 **See:**
 
-* [Errors#ConnectionRefusedError](errors#connectionrefusederror)
+* [Errors#ConnectionRefusedError](api/errors#connectionrefusederror)
 
 
 ***
 
 <a name="accessdeniederror"></a>
 ## `AccessDeniedError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L343)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L348)
 Thrown when a connection to a database is refused due to insufficient access
 
 **See:**
 
-* [Errors#AccessDeniedError](errors#accessdeniederror)
+* [Errors#AccessDeniedError](api/errors#accessdeniederror)
 
 
 ***
 
 <a name="hostnotfounderror"></a>
 ## `HostNotFoundError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L350)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L355)
 Thrown when a connection to a database has a hostname that was not found
 
 **See:**
 
-* [Errors#HostNotFoundError](errors#hostnotfounderror)
+* [Errors#HostNotFoundError](api/errors#hostnotfounderror)
 
 
 ***
 
 <a name="hostnotreachableerror"></a>
 ## `HostNotReachableError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L357)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L362)
 Thrown when a connection to a database has a hostname that was not reachable
 
 **See:**
 
-* [Errors#HostNotReachableError](errors#hostnotreachableerror)
+* [Errors#HostNotReachableError](api/errors#hostnotreachableerror)
 
 
 ***
 
 <a name="invalidconnectionerror"></a>
 ## `InvalidConnectionError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L364)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L369)
 Thrown when a connection to a database has invalid values for any of the connection parameters
 
 **See:**
 
-* [Errors#InvalidConnectionError](errors#invalidconnectionerror)
+* [Errors#InvalidConnectionError](api/errors#invalidconnectionerror)
 
 
 ***
 
 <a name="connectiontimedouterror"></a>
 ## `ConnectionTimedOutError`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L371)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L376)
 Thrown when a connection to a database times out
 
 **See:**
 
-* [Errors#ConnectionTimedOutError](errors#connectiontimedouterror)
+* [Errors#ConnectionTimedOutError](api/errors#connectiontimedouterror)
 
 
 ***
 
 <a name="getdialect"></a>
 ## `getDialect()` -> `String`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L379)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L384)
 Returns the specified dialect.
 
 __Returns:__ The specified dialect.
@@ -347,13 +354,13 @@ __Returns:__ The specified dialect.
 
 <a name="getqueryinterface"></a>
 ## `getQueryInterface()` -> `QueryInterface`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L391)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L396)
 Returns an instance of QueryInterface.
 
 
 **See:**
 
-* [QueryInterface](queryinterface)
+* [QueryInterface](api/queryinterface)
 
 __Returns:__ An instance (singleton) of QueryInterface. 
 
@@ -361,13 +368,13 @@ __Returns:__ An instance (singleton) of QueryInterface.
 
 <a name="getmigrator"></a>
 ## `getMigrator([options={}], [force=false])` -> `Migrator`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L405)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L410)
 Returns an instance (singleton) of Migrator.
 
 
 **See:**
 
-* [Migrator](migrator)
+* [Migrator](api/migrator)
 
 
 **Params:**
@@ -383,7 +390,7 @@ __Returns:__ An instance of Migrator.
 
 <a name="define"></a>
 ## `define(modelName, attributes, [options])` -> `Model`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L522)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L528)
 Define a new model, representing a table in the DB.
 
 The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
@@ -424,8 +431,8 @@ For more about validation, see http://sequelizejs.com/docs/latest/models#validat
 
 **See:**
 
-* [DataTypes](datatypes)
-* [Hooks](hooks)
+* [DataTypes](api/datatypes)
+* [Hooks](api/hooks)
 
 
 **Params:**
@@ -434,7 +441,7 @@ For more about validation, see http://sequelizejs.com/docs/latest/models#validat
 | ---- | ---- | ----------- |
 | modelName | String | The name of the model. The model will be stored in `sequelize.models` under this name |
 | attributes | Object | An object, where each attribute is a column of the table. Each column can be either a DataType, a string or a type-description object, with the properties described below: |
-| attributes.column | String &#124; DataType|Object | The description of a database column |
+| attributes.column | String &#124; DataType &#124; Object | The description of a database column |
 | attributes.column.type | String &#124; DataType | A string or a data type |
 | [attributes.column.allowNull=true] | Boolean | If false, the column will have a NOT NULL constraint, and a not null validation will be run before an instance is saved. |
 | [attributes.column.defaultValue=null] | Any | A literal default value, a javascript function, or an SQL function (see `sequelize.fn`) |
@@ -482,6 +489,7 @@ For more about validation, see http://sequelizejs.com/docs/latest/models#validat
 | [options.charset] | String |  |
 | [options.comment] | String |  |
 | [options.collate] | String |  |
+| [options.initialAutoIncrement] | String | Set the initial AUTO_INCREMENT value for the table in MySQL. |
 | [options.hooks] | Object | An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, afterDestroy, afterUpdate, afterBulkCreate, afterBulkDestory and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions. |
 | [options.validate] | Object | An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is asumed to be async, and is called with a callback that accepts an optional error.  |
 
@@ -490,7 +498,7 @@ For more about validation, see http://sequelizejs.com/docs/latest/models#validat
 
 <a name="model"></a>
 ## `model(modelName)` -> `Model`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L574)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L580)
 Fetch a DAO factory which is already defined
 
 
@@ -505,7 +513,7 @@ Fetch a DAO factory which is already defined
 
 <a name="isdefined"></a>
 ## `isDefined(modelName)` -> `Boolean`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L588)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L594)
 Checks whether a model with the given name is defined
 
 
@@ -520,7 +528,7 @@ Checks whether a model with the given name is defined
 
 <a name="import"></a>
 ## `import(path)` -> `Model`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L602)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L608)
 Imports a model defined in another file
 
 Imported models are cached, so multiple calls to import with the same path will not load the file multiple times
@@ -537,16 +545,28 @@ See https://github.com/sequelize/sequelize/blob/master/examples/using-multiple-m
 ***
 
 <a name="query"></a>
-## `query(sql, [callee], [options={}], [replacements])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L642)
+## `query(sql, [callee], [options={}])` -> `Promise`
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L663)
 Execute a query on the DB, with the posibility to bypass all the sequelize goodness.
 
-If you do not provide other arguments than the SQL, raw will be assumed to the true, and sequelize will not try to do any formatting to the results of the query.
+By default, the function will return two arguments: an array of results, and a metadata object, containing number of affected rows etc. Use `.spread` to access the results.
+
+If you are running a type of query where you don't need the metadata, for example a `SELECT` query, you can pass in a query type to make sequelize format the results:
+
+```js
+sequlize.query('SELECT...').spread(function (results, metadata) {
+  // Raw query - use spread
+});
+
+sequlize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(function (results) {
+  // SELECT query - use then
+})
+```
 
 
 **See:**
 
-* [Model#build](model#build)
+* [Model#build](api/model#build)
 
 
 **Params:**
@@ -554,20 +574,22 @@ If you do not provide other arguments than the SQL, raw will be assumed to the t
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | sql | String |  |
-| [callee] | Instance | If callee is provided, the returned data will be put into the callee |
+| [callee] | Instance &#124; Model | If callee is provided, the returned data will be put into the callee |
 | [options={}] | Object | Query options. |
 | [options.raw] | Boolean | If true, sequelize will not try to format the results of the query, or build an instance of a model from the result |
-| [options.transaction] | Transaction | The transaction that the query should be executed under |
-| [options.type='SELECT'] | String | The type of query you are executing. The query type affects how results are formatted before they are passed back. If no type is provided sequelize will try to guess the right type based on the sql, and fall back to SELECT. The type is a string, but `Sequelize.QueryTypes` is provided is convenience shortcuts. Current options are SELECT, BULKUPDATE and BULKDELETE |
-| [options.nest=false] | Boolean | If true, transforms objects with `.` separated property names into nested objects using [dottie.js](https://github.com/mickhansen/dottie.js). For example { 'user.username': 'john' } becomes { user: { username: 'john' }} |
-| [replacements] | Object &#124; Array | Either an object of named parameter replacements in the format `:param` or an array of unnamed replacements to replace `?` in your SQL. |
+| [options.transaction=null] | Transaction | The transaction that the query should be executed under |
+| [options.type='RAW'] | String | The type of query you are executing. The query type affects how results are formatted before they are passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts. |
+| [options.nest=false] | Boolean | If true, transforms objects with `.` separated property names into nested objects using [dottie.js](https://github.com/mickhansen/dottie.js). For example { 'user.username': 'john' } becomes { user: { username: 'john' }}. When `nest` is true, the query type is assumed to be `'SELECT'`, unless otherwise specified |
+| [options.plain=false] | Boolean | Sets the query type to `SELECT` and return a single row |
+| [options.replacements] | Object &#124; Array | Either an object of named parameter replacements in the format `:param` or an array of unnamed replacements to replace `?` in your SQL. |
+| [options.useMaster=false] | Boolean | Force the query to use the write pool, regardless of the query type.  |
 
 
 ***
 
 <a name="set"></a>
 ## `set(variables, options)` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L696)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L739)
 Execute a query which would set an environment or user variable. The variables are set per connection, so this function needs a transaction.
 Only works for MySQL.
 
@@ -585,7 +607,7 @@ Only works for MySQL.
 
 <a name="escape"></a>
 ## `escape(value)` -> `String`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L730)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L773)
 Escape value.
 
 
@@ -600,7 +622,7 @@ Escape value.
 
 <a name="createschema"></a>
 ## `createSchema(schema)` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L744)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L787)
 Create a new database schema.
 
 Note,that this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
@@ -609,7 +631,7 @@ not a database table. In mysql and sqlite, this command will do nothing.
 
 **See:**
 
-* [Model#schema](model#schema)
+* [Model#schema](api/model#schema)
 
 
 **Params:**
@@ -623,7 +645,7 @@ not a database table. In mysql and sqlite, this command will do nothing.
 
 <a name="showallschemas"></a>
 ## `showAllSchemas()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L755)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L798)
 Show all defined schemas
 
 Note,that this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
@@ -633,7 +655,7 @@ not a database table. In mysql and sqlite, this will show all tables.
 
 <a name="dropschema"></a>
 ## `dropSchema(schema)` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L767)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L810)
 Drop a single schema
 
 Note,that this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
@@ -650,7 +672,7 @@ not a database table. In mysql and sqlite, this drop a table matching the schema
 
 <a name="dropallschemas"></a>
 ## `dropAllSchemas()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L778)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L821)
 Drop all schemas
 
 Note,that this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
@@ -660,7 +682,7 @@ not a database table. In mysql and sqlite, this is the equivalent of drop all ta
 
 <a name="sync"></a>
 ## `sync([options={}])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L792)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L835)
 Sync all defined DAOs to the DB.
 
 
@@ -679,12 +701,12 @@ Sync all defined DAOs to the DB.
 
 <a name="drop"></a>
 ## `drop(options)` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L836)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L879)
 Drop all tables defined through this sequelize instance. This is done by calling Model.drop on each model
 
 **See:**
 
-* [Model#drop](model#drop)
+* [Model#drop](api/model#drop)
 
 
 **Params:**
@@ -698,7 +720,7 @@ Drop all tables defined through this sequelize instance. This is done by calling
 
 <a name="authenticate"></a>
 ## `authenticate()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L858)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L901)
 Test the connection by trying to authenticate
 
 __Aliases:__ validate
@@ -707,7 +729,7 @@ __Aliases:__ validate
 
 <a name="fn "></a>
 ## `fn (fn, args)` -> `Sequelize.fn`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L893)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L936)
 Creates a object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
 If you want to refer to columns in your function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and not a strings.
 
@@ -721,10 +743,10 @@ instance.updateAttributes({
 
 **See:**
 
-* [Model#find](model#find)
-* [Model#findAll](model#findall)
-* [Model#define](model#define)
-* [Sequelize#col](sequelize#col)
+* [Model#find](api/model#find)
+* [Model#findAll](api/model#findall)
+* [Model#define](api/model#define)
+* [Sequelize#col](api/sequelize#col)
 
 
 **Params:**
@@ -739,12 +761,12 @@ instance.updateAttributes({
 
 <a name="col"></a>
 ## `col(col)` -> `Sequelize.col`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L906)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L949)
 Creates a object representing a column in the DB. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
 
 **See:**
 
-* [Sequelize#fn](sequelize#fn)
+* [Sequelize#fn](api/sequelize#fn)
 
 
 **Params:**
@@ -758,7 +780,7 @@ Creates a object representing a column in the DB. This is often useful in conjun
 
 <a name="cast"></a>
 ## `cast(val, type)` -> `Sequelize.cast`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L920)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L963)
 Creates a object representing a call to the cast function.
 
 
@@ -774,7 +796,7 @@ Creates a object representing a call to the cast function.
 
 <a name="literal"></a>
 ## `literal(val)` -> `Sequelize.literal`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L933)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L976)
 Creates a object representing a literal, i.e. something that will not be escaped.
 
 
@@ -790,12 +812,12 @@ __Aliases:__ asIs
 
 <a name="and"></a>
 ## `and(args)` -> `Sequelize.and`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L946)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L989)
 An AND query
 
 **See:**
 
-* [Model#find](model#find)
+* [Model#find](api/model#find)
 
 
 **Params:**
@@ -809,12 +831,12 @@ An AND query
 
 <a name="or"></a>
 ## `or(args)` -> `Sequelize.or`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L959)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L1002)
 An OR query
 
 **See:**
 
-* [Model#find](model#find)
+* [Model#find](api/model#find)
 
 
 **Params:**
@@ -828,12 +850,12 @@ An OR query
 
 <a name="json"></a>
 ## `json(conditions, [value])` -> `Sequelize.json`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L972)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L1015)
 Creates an object representing nested where conditions for postgres's json data-type.
 
 **See:**
 
-* [Model#find](model#find)
+* [Model#find](api/model#find)
 
 
 **Params:**
@@ -841,14 +863,14 @@ Creates an object representing nested where conditions for postgres's json data-
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | conditions | String &#124; Object | A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres json syntax. |
-| [value] | String &#124; Number|Boolean | An optional value to compare against. Produces a string of the form "<json path> = '<value>'". |
+| [value] | String &#124; Number &#124; Boolean | An optional value to compare against. Produces a string of the form "<json path> = '<value>'". |
 
 
 ***
 
 <a name="where"></a>
 ## `where(attr, [comparator='='], logic)` -> `Sequelize.where`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L994)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L1037)
 A way of specifying attr = condition.
 
 The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id` or `Model.rawAttributes.name`). The
@@ -859,7 +881,7 @@ For string attributes, use the regular `{ where: { attr: something }}` syntax. I
 
 **See:**
 
-* [Model#find](model#find)
+* [Model#find](api/model#find)
 
 
 **Params:**
@@ -876,7 +898,7 @@ __Aliases:__ condition
 
 <a name="transaction"></a>
 ## `transaction([options={}])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/5be311997d5a07030ba62d9df1ab77ec52be415f/lib/sequelize.js#L1046)
+[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/sequelize.js#L1089)
 Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction
 
 ```js
@@ -918,7 +940,7 @@ Note, that CLS is enabled for all sequelize instances, and all instances will sh
 
 **See:**
 
-* [Transaction](transaction)
+* [Transaction](api/transaction)
 
 
 **Params:**

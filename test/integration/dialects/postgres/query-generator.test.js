@@ -8,6 +8,7 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , moment = require('moment')
   , util = require('util')
+  , current = Support.sequelize
   , _ = require('lodash');
 
 chai.config.includeStack = true;
@@ -110,7 +111,7 @@ if (dialect.match(/^postgres/)) {
 
       createTableQuery: [
         {
-          arguments: ['myTable', {int: 'INTEGER(1)', bigint: 'BIGINT(12)'}],
+          arguments: ['myTable', {int: 'INTEGER', bigint: 'BIGINT'}],
           expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"int\" INTEGER, \"bigint\" BIGINT);'
         },
         {
@@ -118,12 +119,12 @@ if (dialect.match(/^postgres/)) {
           expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {data: 'BLOB'}],
-          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" bytea);'
+          arguments: ['myTable', {data: current.normalizeDataType(DataTypes.BLOB).toSql()}],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" BYTEA);'
         },
         {
-          arguments: ['myTable', {data: 'LONGBLOB'}],
-          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" bytea);'
+          arguments: ['myTable', {data: current.normalizeDataType(DataTypes.BLOB('long')).toSql()}],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" BYTEA);'
         },
         {
           arguments: [{tableName: 'myTable', schema: 'mySchema'}, {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
@@ -686,7 +687,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
           expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\" = 2"
         }, {
-          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, 2],
+          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
           expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\" = 2"
         }, {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
@@ -745,7 +746,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id = 2",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, 2],
+          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
           expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id = 2",
           context: {options: {quoteIdentifiers: false}}
         }, {

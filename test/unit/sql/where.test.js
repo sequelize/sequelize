@@ -95,6 +95,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: '[equipment] IN (1, 3)'
       });
 
+      testsql('equipment', {
+        $in: []
+      }, {
+        default: '[equipment] IN (NULL)'
+      });
+
       testsql('muscles', {
         in: [2, 4]
       }, {
@@ -139,6 +145,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('$notIn', function () {
+      testsql('equipment', {
+        $notIn: []
+      }, {
+        default: '[equipment] NOT IN (NULL)'
+      });
+    });
+
     suite('$and/$or', function () {
       suite('$or', function () {
         testsql('email', {
@@ -170,9 +184,26 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: '([equipment] IN (1, 3) OR [muscles] IN (2, 4))'
         });
 
+        testsql('$or', [
+          {
+            roleName: 'NEW'
+          }, {
+            roleName: 'CLIENT',
+            type: 'CLIENT'
+          }
+        ], {
+          default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))"
+        });
+
         test("sequelize.or({group_id: 1}, {user_id: 2})", function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
             default: "([group_id] = 1 OR [user_id] = 2)"
+          });
+        });
+
+        test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
+            default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))"
           });
         });
       });
@@ -237,38 +268,90 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
     if (current.dialect.supports['ARRAY']) {
       suite('ARRAY', function () {
-        testsql('muscles', {
-          $contains: [2, 3]
-        }, {
-          postgres: '"muscles" @> ARRAY[2,3]'
+        suite('$contains', function () {
+          testsql('muscles', {
+            $contains: [2, 3]
+          }, {
+            postgres: '"muscles" @> ARRAY[2,3]'
+          });
+
+          testsql('muscles', {
+            $contained: [6, 8]
+          }, {
+            postgres: '"muscles" <@ ARRAY[6,8]'
+          });
+
+          testsql('muscles', {
+            $overlap: [3, 11]
+          }, {
+            postgres: '"muscles" && ARRAY[3,11]'
+          });
+
+          testsql('muscles', {
+            $overlap: [3, 1]
+          }, {
+            postgres: '"muscles" && ARRAY[3,1]'
+          });
+
+          testsql('muscles', {
+            $contains: [2, 5]
+          }, {
+            field: {
+              type: DataTypes.ARRAY(DataTypes.INTEGER)
+            }
+          }, {
+            postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
+          });
         });
 
-        testsql('muscles', {
-          $contained: [6, 8]
-        }, {
-          postgres: '"muscles" <@ ARRAY[6,8]'
-        });
+        suite('$any', function() {
+          testsql('userId', {
+            $any: [4, 5, 6]
+          }, {
+            postgres: '"userId" = ANY (ARRAY[4,5,6])'
+          });
 
-        testsql('muscles', {
-          $overlap: [3, 11]
-        }, {
-          postgres: '"muscles" && ARRAY[3,11]'
-        });
+          testsql('userId', {
+            $any: [2, 5]
+          }, {
+            field: {
+              type: DataTypes.ARRAY(DataTypes.INTEGER)
+            }
+          }, {
+            postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])'
+          });
 
-        testsql('muscles', {
-          $overlap: [3, 1]
-        }, {
-          postgres: '"muscles" && ARRAY[3,1]'
-        });
+          suite('$values', function () {
+            testsql('userId', {
+              $any: {
+                $values: [4, 5, 6]
+              }
+            }, {
+              postgres: '"userId" = ANY (VALUES (4), (5), (6))'
+            });
 
-        testsql('muscles', {
-          $contains: [2, 5]
-        }, {
-          field: {
-            type: DataTypes.ARRAY(DataTypes.INTEGER)
-          }
-        }, {
-          postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
+            testsql('userId', {
+              $any: {
+                $values: [2, 5]
+              }
+            }, {
+              field: {
+                type: DataTypes.ARRAY(DataTypes.INTEGER)
+              }
+            }, {
+              postgres: '"userId" = ANY (VALUES (2), (5))'
+            });
+          });
+        });
+      });
+    }
+
+    if (current.dialect.supports.JSON) {
+      suite('JSON', function () {
+        test('sequelize.json("profile->>\'id\', sequelize.cast(2, \'text\')")', function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile->>'id'", this.sequelize.cast('12346-78912', 'text'))), {
+            postgres: "profile->>'id' = CAST('12346-78912' AS TEXT)"
+          });
         });
       });
     }

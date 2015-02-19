@@ -20,21 +20,20 @@ var sortById = function(a, b) {
 
 describe(Support.getTestDialectTeaser('Include'), function() {
   describe('find', function() {
-    it('should support an empty belongsTo include', function(done) {
+    it('should support an empty belongsTo include', function() {
       var Company = this.sequelize.define('Company', {})
         , User = this.sequelize.define('User', {});
 
       User.belongsTo(Company, {as: 'Employer'});
-      this.sequelize.sync({force: true}).done(function() {
-        User.create().then(function() {
-          User.find({
-            include: [{model: Company, as: 'Employer'}]
-          }).done(function(err, user) {
-            expect(err).not.to.be.ok;
-            expect(user).to.be.ok;
-            done();
-          });
-        }, done);
+
+      return this.sequelize.sync({force: true}).then(function() {
+        return User.create();
+      }).then(function() {
+        return User.find({
+          include: [{model: Company, as: 'Employer'}]
+        }).then(function(user) {
+          expect(user).to.be.ok;
+        });
       });
     });
 
@@ -78,21 +77,20 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
-    it('should support a empty hasOne include', function(done) {
+    it('should support a empty hasOne include', function() {
       var Company = this.sequelize.define('Company', {})
         , Person = this.sequelize.define('Person', {});
 
       Company.hasOne(Person, {as: 'CEO'});
-      this.sequelize.sync({force: true}).done(function() {
-        Company.create().then(function() {
-          Company.find({
+      
+      return this.sequelize.sync({force: true}).then(function() {
+        return Company.create().then(function() {
+          return Company.find({
             include: [{model: Person, as: 'CEO'}]
-          }).done(function(err, company) {
-            expect(err).not.to.be.ok;
+          }).then(function(company) {
             expect(company).to.be.ok;
-            done();
           });
-        }, done);
+        });
       });
     });
 
@@ -212,7 +210,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
-    it('should support a simple nested belongsTo -> belongsTo include', function(done) {
+    it('should support a simple nested belongsTo -> belongsTo include', function() {
       var Task = this.sequelize.define('Task', {})
         , User = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {});
@@ -220,40 +218,29 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       Task.belongsTo(User);
       User.belongsTo(Group);
 
-      this.sequelize.sync({force: true}).done(function() {
-        async.auto({
-          task: function(callback) {
-            Task.create().done(callback);
-          },
-          user: function(callback) {
-            User.create().done(callback);
-          },
-          group: function(callback) {
-            Group.create().done(callback);
-          },
-          taskUser: ['task', 'user', function(callback, results) {
-            results.task.setUser(results.user).done(callback);
-          }],
-          userGroup: ['user', 'group', function(callback, results) {
-            results.user.setGroup(results.group).done(callback);
-          }]
-        }, function(err, results) {
-          expect(err).not.to.be.ok;
-
-          Task.find({
+      return this.sequelize.sync({force: true}).then(function() {
+        return Promise.props({
+          task: Task.create(),
+          user: User.create(),
+          group: Group.create()
+        }).then(function (props) {
+          return Promise.join(
+            props.task.setUser(props.user),
+            props.user.setGroup(props.group)
+          ).return(props);
+        }).then(function (props) {
+          return Task.findOne({
             where: {
-              id: results.task.id
+              id: props.task.id
             },
             include: [
               {model: User, include: [
                 {model: Group}
               ]}
             ]
-          }).done(function(err, task) {
-            expect(err).not.to.be.ok;
+          }).then(function(task) {
             expect(task.User).to.be.ok;
             expect(task.User.Group).to.be.ok;
-            done();
           });
         });
       });

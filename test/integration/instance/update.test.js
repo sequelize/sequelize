@@ -1,6 +1,7 @@
 'use strict';
 
 var chai = require('chai')
+  , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
@@ -383,6 +384,16 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
               });
             });
           });
+        });
+      });
+    });
+
+    it('should support logging', function () {
+      var spy = sinon.spy();
+
+      return this.User.create({}).then(function (user) {
+        return user.update({username: 'yolo'}, {logging: spy}).then(function () {
+          expect(spy.called).to.be.ok;
         });
       });
     });

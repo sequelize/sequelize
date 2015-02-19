@@ -829,7 +829,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     it('should infer otherKey from paired BTM relationship with a through model defined', function () {
       var User = this.sequelize.define('User', {});
       var Place = this.sequelize.define('User', {});
-      var UserPlace = this.sequelize.define('UserPlace', {});
+      var UserPlace = this.sequelize.define('UserPlace', {id: {primaryKey: true, type: DataTypes.INTEGER, autoIncrement: true}}, {timestamps: false});
 
       var Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id' });
       var Users = Place.belongsToMany(User, { through: UserPlace, foreignKey: 'place_id' });
@@ -839,6 +839,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
       expect(Places.otherKey).to.equal('place_id');
       expect(Users.otherKey).to.equal('user_id');
+
+      expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
     });
   });
 
@@ -1705,6 +1707,32 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
       expect(User.belongsToMany.bind(User, User, { as: 'user' })).to
         .throw ("Naming collision between attribute 'user' and association 'user' on model user. To remedy this, change either foreignKey or as in your association definition");
+    });
+  });
+
+  describe('selfAssociations', function () {
+    it('should setup correct foreign keys', function () {
+      /* camcelCase */
+      var Person = this.sequelize.define('Person')
+        , PersonChildren = this.sequelize.define('PersonChildren')
+        , Children;
+
+      Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
+
+      expect(Children.foreignKey).to.equal('PersonId');
+      expect(Children.otherKey).to.equal('ChildId');
+      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+
+      /* underscored */
+      Person = this.sequelize.define('Person', {}, {underscored: true});
+      PersonChildren = this.sequelize.define('PersonChildren', {}, {underscored: true});
+      Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
+
+      expect(Children.foreignKey).to.equal('person_id');
+      expect(Children.otherKey).to.equal('child_id');
+      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
     });
   });
 });

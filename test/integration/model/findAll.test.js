@@ -1,6 +1,7 @@
 'use strict';
 
 var chai = require('chai')
+  , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
@@ -1300,7 +1301,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('sorts the results via a date column', function(done) {
         var self = this;
-        self.User.create({username: 'user3', data: 'bar', theDate: moment().add('hours', 2).toDate()}).success(function() {
+        self.User.create({username: 'user3', data: 'bar', theDate: moment().add(2, 'hours').toDate()}).success(function() {
           self.User.findAll({ order: [['theDate', 'DESC']] }).success(function(users) {
             expect(users[0].id).to.be.above(users[2].id);
             done();
@@ -1540,6 +1541,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(users.length).to.equal(2);
         done();
       });
+    });
+  });
+
+  it('should support logging', function () {
+    var spy = sinon.spy();
+
+    return this.User.findAll({
+      where: {},
+      logging: spy
+    }).then(function () {
+      expect(spy.called).to.be.ok;
     });
   });
 });

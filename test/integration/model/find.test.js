@@ -1,6 +1,7 @@
 'use strict';
 
 var chai = require('chai')
+  , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -1034,6 +1035,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user).to.be.instanceOf(Object);
           done();
         });
+      });
+    });
+
+    it('should support logging', function () {
+      var spy = sinon.spy();
+
+      return this.User.findOne({
+        where: {},
+        logging: spy
+      }).then(function () {
+        expect(spy.called).to.be.ok;
       });
     });
   });

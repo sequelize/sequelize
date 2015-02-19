@@ -91,7 +91,7 @@ if (dialect === 'sqlite') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {title: 'VARCHAR(255) BINARY', number: 'INTEGER(5) UNSIGNED PRIMARY KEY '}], // length and unsigned are not allowed on primary key
+          arguments: ['myTable', {title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY '}], // length and unsigned are not allowed on primary key
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER PRIMARY KEY);'
         },
         {
@@ -423,7 +423,7 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
           expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id` = 2"
         }, {
-          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, 2],
+          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
           expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id` = 2"
         }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],

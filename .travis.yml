@@ -2,6 +2,8 @@ language: node_js
 
 node_js:
   - "0.10"
+  - "0.12"
+  - "iojs"
 
 sudo: false
 
@@ -18,7 +20,7 @@ env:
   - DB=mysql DIALECT=mssql
 
 addons:
-  postgresql: "9.3"
+  postgresql: "9.4"
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"

@@ -1,6 +1,7 @@
 'use strict';
 
 var chai = require('chai')
+  , sinon = require('sinon')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
@@ -127,6 +128,25 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         expect(user).to.be.ok;
       });
     });
+
+    it('should support logging', function () {
+      var spy = sinon.spy();
+
+       var User = this.sequelize.define('user', {})
+        , Project = this.sequelize.define('project', {});
+
+      User.belongsTo(Project);
+
+      return this.sequelize.sync({ force: true }).bind(this).then(function() {
+        return User.create({});
+      }).then(function(user) {
+        return user.getProject({
+          logging: spy
+        });
+      }).then(function() {
+        expect(spy.called).to.be.ok;
+      });
+    });
   });
 
   describe('setAssociation', function() {
@@ -226,6 +246,24 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
               return task.getUserXYZ().then(function(user) {
                 expect(user.username).to.equal('jansemand');
               });
+            });
+          });
+        });
+      });
+    });
+
+    it('should support logging', function() {
+      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING })
+        , spy = sinon.spy();
+
+      Task.belongsTo(User);
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create().then(function(user) {
+          return Task.create({}).then(function(task) {
+            return task.setUserXYZ(user, {logging: spy}).then(function() {
+              expect(spy.called).to.be.ok;
             });
           });
         });
@@ -562,7 +600,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
   });
 
   describe('Association column', function() {
-    it('has correct type and name for non-id primary keys with non-integer type', function(done) {
+    it('has correct type and name for non-id primary keys with non-integer type', function() {
       var User = this.sequelize.define('UserPKBT', {
         username: {
           type: DataTypes.STRING
@@ -579,9 +617,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
       User.belongsTo(Group);
 
-      self.sequelize.sync({ force: true }).success(function() {
-        expect(User.rawAttributes.GroupPKBTName.type.toString()).to.equal(DataTypes.STRING.toString());
-        done();
+      return self.sequelize.sync({ force: true }).then(function() {
+        expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
       });
     });
   });
@@ -594,7 +631,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         , Tasks = {};
 
       dataTypes.forEach(function(dataType) {
-        var tableName = 'TaskXYZ_' + dataType.toString();
+        var tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING });
 
         Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false });
@@ -603,8 +640,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       self.sequelize.sync({ force: true })
       .success(function() {
         dataTypes.forEach(function(dataType, i) {
-          expect(Tasks[dataType].rawAttributes.userId.type.toString())
-            .to.equal(dataType.toString());
+          expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
 
           if ((i + 1) === dataTypes.length) {
             done();

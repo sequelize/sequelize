@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         .then(function(t) {
           return sequelize.sync({transaction:t})
             .then(function( ) {
-              return t;              
+              return t;
             });
         })
         .then(function(t) {
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         .then(function(users) {
           return expect(users.length).to.equal(1);
         });
-    });  
+    });
   }
 
    if (current.dialect.supports.lock) {

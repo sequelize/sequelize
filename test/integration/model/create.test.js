@@ -1,6 +1,7 @@
 'use strict';
 
 var chai = require('chai')
+  , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -99,13 +100,96 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             username: 'gottlieb'
           }
         }).then(function () {
-          throw new Error('I should have ben rejected');
+          throw new Error('I should have been rejected');
         }, function (err) {
           expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
           expect(err.fields).to.be.ok;
         });
       });
     });
+
+    if (['sqlite', 'mssql'].indexOf(current.dialect.name) === -1) {
+      it('should not deadlock with no existing entries and no outer transaction', function () {
+        var User = this.sequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email'
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email'
+          }
+        });
+
+        return User.sync({force: true}).then(function () {
+          return Promise.map(_.range(50), function (i) {
+            return User.findOrCreate({
+              where: {
+                email: 'unique.email.'+i+'@sequelizejs.com',
+                companyId: Math.floor(Math.random() * 5)
+              }
+            });
+          });
+        });
+      });
+
+      it('should not deadlock with existing entries and no outer transaction', function () {
+        var User = this.sequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email'
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email'
+          }
+        });
+
+        return User.sync({force: true}).then(function () {
+          return Promise.map(_.range(50), function (i) {
+            return User.findOrCreate({
+              where: {
+                email: 'unique.email.'+i+'@sequelizejs.com',
+                companyId: 2
+              }
+            });
+          }).then(function () {
+            return Promise.map(_.range(50), function (i) {
+              return User.findOrCreate({
+                where: {
+                  email: 'unique.email.'+i+'@sequelizejs.com',
+                  companyId: 2
+                }
+              });
+            });
+          });
+        });
+      });
+
+      it('should not deadlock with concurrency duplicate entries and no outer transaction', function () {
+        var User = this.sequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email'
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email'
+          }
+        });
+
+        return User.sync({force: true}).then(function () {
+          return Promise.map(_.range(50), function (i) {
+            return User.findOrCreate({
+              where: {
+                email: 'unique.email.1@sequelizejs.com',
+                companyId: 2
+              }
+            });
+          });
+        });
+      });
+    }
 
     it('should support special characters in defaults', function () {
       var User = this.sequelize.define('user', {
@@ -125,6 +209,27 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           },
           defaults: {
             description: '$$ and !! and :: and ? and ^ and * and \''
+          }
+        });
+      });
+    });
+
+    it('should support bools in defaults', function () {
+      var User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.INTEGER,
+          unique: true
+        },
+        bool: DataTypes.BOOLEAN
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.findOrCreate({
+          where: {
+            objectId: 1
+          },
+          defaults: {
+            bool: false
           }
         });
       });
@@ -887,8 +992,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           results.forEach(function(book, index) {
             expect(book.title).to.equal(data.title);
             expect(book.author).to.equal(data.author);
-            expect(books[index].rawAttributes.id.type.toString())
-              .to.equal(dataTypes[index].toString());
+            expect(books[index].rawAttributes.id.type instanceof dataTypes[index]).to.be.ok;
           });
           done();
         });
@@ -1568,6 +1672,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       });
+    });
+  });
+
+  it('should support logging', function () {
+    var spy = sinon.spy();
+
+    return this.User.create({}, {
+      logging: spy
+    }).then(function () {
+      expect(spy.called).to.be.ok;
     });
   });
 });
