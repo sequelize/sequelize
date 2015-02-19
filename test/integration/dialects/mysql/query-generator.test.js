@@ -45,6 +45,10 @@ if (Support.dialectIsMySQL()) {
           expectation: {id: 'INTEGER UNIQUE'}
         },
         {
+          arguments: [{id: {type: 'INTEGER', after: 'Bar'}}],
+          expectation: {id: 'INTEGER AFTER `Bar`'}
+        },
+        {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
         },
