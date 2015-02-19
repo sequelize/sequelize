@@ -1,6 +1,6 @@
 <a name="mixin"></a>
 # Mixin Mixin
-[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L95)
+[View code](https://github.com/sequelize/sequelize/blob/56b47a6bdd60a9a1c5e43a35409dffa9ed5a4d93/lib/associations/mixin.js#L95)
 Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions
 on a model (the source), and prodiving another model as the first argument to the function (the target).
 
@@ -89,7 +89,7 @@ you should either disable some constraints, or rethink your associations complet
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L145)
+[View code](https://github.com/sequelize/sequelize/blob/56b47a6bdd60a9a1c5e43a35409dffa9ed5a4d93/lib/associations/mixin.js#L145)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
@@ -121,7 +121,7 @@ All methods return a promise
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L170)
+[View code](https://github.com/sequelize/sequelize/blob/56b47a6bdd60a9a1c5e43a35409dffa9ed5a4d93/lib/associations/mixin.js#L170)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
@@ -153,7 +153,7 @@ All methods return a promise
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L245)
+[View code](https://github.com/sequelize/sequelize/blob/56b47a6bdd60a9a1c5e43a35409dffa9ed5a4d93/lib/associations/mixin.js#L245)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -227,7 +227,7 @@ user.getProjects().success(function (projects) {
 | [options.as] | string &#124; object | The alias of this model. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the pluralized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the target table / join table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
-| [options.onDelete='SET&nbsp;NULL|CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
+| [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
 
@@ -236,7 +236,7 @@ user.getProjects().success(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/9817e58981f8536becdbe8e137debcc000cd56f9/lib/associations/mixin.js#L339)
+[View code](https://github.com/sequelize/sequelize/blob/56b47a6bdd60a9a1c5e43a35409dffa9ed5a4d93/lib/associations/mixin.js#L339)
 Create an N:M association with a join table
 
 ```js
@@ -306,7 +306,7 @@ user.getProjects().then(function (projects) {
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the join table (representing the source model) or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
 | [options.otherKey] | string &#124; object | The name of the foreign key in the join table (representing the target model) or an object representing the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of target |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
-| [options.onDelete='SET&nbsp;NULL|CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
+| [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
 

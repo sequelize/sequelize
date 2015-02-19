@@ -142,14 +142,18 @@ Comment.concatTypes = function (types, convertEntities) {
   }
 
   if (convertEntities) {
-    // Convert a couple of things to their HTML-entities
-    // The spacing around | is intentional, in order to introduce some linebreaks in the params table
-    type = type.replace(/\|/g, ' &#124; ')
-      .replace(/>/g, '&gt;')
-      .replace(/</g, '&lt;');
+    type = Comment.escapeForTable(type);
   }
 
   return type;
+};
+
+Comment.escapeForTable = function (text) {
+  // Convert a couple of things to their HTML-entities
+  // The spacing around | is intentional, in order to introduce some linebreaks in the params table
+  return text.replace(/\|/g, ' &#124; ')
+    .replace(/>/g, '&gt;')
+    .replace(/</g, '&lt;');
 };
 
 var parseComments = function (comments, file) {
@@ -237,7 +241,7 @@ var parseComments = function (comments, file) {
         params.forEach(function (param) {
           type = Comment.concatTypes(param.types);
 
-          comment.putLine('| ' + param.name + ' | ' + type + ' | ' + param.description + ' |');
+          comment.putLine('| ' + Comment.escapeForTable(param.name) + ' | ' + type + ' | ' + Comment.escapeForTable(param.description) + ' |');
         });
         comment.putLine();
       }
