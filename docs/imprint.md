@@ -10,6 +10,7 @@ Sascha Depold
 Uhlandstr. 122
 10717 Berlin
 sascha [at] depold [dot] com
+[plus] 49 152 [slash] 03878582
 ```
 
 ## INHALTLICHE VERANTWORTUNG
