@@ -51,9 +51,6 @@ var sequelize = new Sequelize('database', 'username', 'password', {
   // disable logging; default: console.log
   logging: false,
  
-  // max concurrent database requests; default: 50
-  maxConcurrentQueries: 100,
- 
   // the sql dialect of the database
   // - default is 'mysql'
   // - currently supported: 'mysql', 'sqlite', 'postgres', 'mariadb', 'mssql'
