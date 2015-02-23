@@ -888,7 +888,7 @@ Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
 
 ## Eager loading
 
-When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that&comma; is the use of the attribute `include` when you are calling `find` or `findAll`&period; Lets assume the following setup&colon;
+When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that, is the use of the attribute `include` when you are calling `find` or `findAll`. Lets assume the following setup:
 
 ```js
 var User = sequelize.define('User', { name: Sequelize.STRING })
@@ -980,6 +980,14 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 })
 ```
 
+### Including everything
+
+To include all attributes, you can pass a single object with `all: true`:
+
+```js
+User.findAll({ include: [{ all: true }]});
+```
+
 ### Ordering Eager Loaded Associations
 
 In the case of a one-to-many relationship.
@@ -1007,6 +1015,7 @@ Company.findAll({
 ```
 
 ### Nested eager loading
+You can used nested eager loading to load all related models of a related model: 
 ```js
 User.findAll({
   include: [
@@ -1038,6 +1047,11 @@ User.findAll({
 })
 ```
 
+Include all also supports nested loading: 
+
+```js
+User.findAll({ include: [{ all: true, nested: true }]});
+```
 
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
