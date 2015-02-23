@@ -56,7 +56,7 @@ The comment option can also be used on a table, see [model configuration][0]
 
 ## Data types
 
-Sequelize currently supports the following datatypes:
+Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](api/datatypes).
 
 ```js
 Sequelize.STRING                      // VARCHAR(255)
@@ -122,14 +122,14 @@ sequelize.define('model', {
 
 ## Getters & setters
 
-It is possible to define 'object-property' getters and setter functions on your models&comma; these can be used both for 'protecting' properties that map to database fields and for defining 'pseudo' properties&period;
+It is possible to define 'object-property' getters and setter functions on your models, these can be used both for 'protecting' properties that map to database fields and for defining 'pseudo' properties.
 
-Getters and Setters can be defined in 2 ways &lpar;you can mix and match these 2 approaches&excl;&rpar;&colon;
+Getters and Setters can be defined in 2 ways (you can mix and match these 2 approaches):
 
 * as part of a single property definition
 * as part of a model options
 
-**N.B.:**If a getter or setter is defined in both places then the function found in the relevant property definition will always take precedence&period;
+**N.B:** If a getter or setter is defined in both places then the function found in the relevant property definition will always take precedence.
 
 ### Defining as part of a property
 
@@ -139,7 +139,8 @@ var Employee = sequelize.define('Employee', {
     type     : Sequelize.STRING,
     allowNull: false,
     get      : function()  {
-      var title = this.getDataValue('title'); // 'this' allows you to access attributes of the instance
+      var title = this.getDataValue('title'); 
+      // 'this' allows you to access attributes of the instance
       return this.getDataValue('name') + ' (' + title + ')';
     },
   },
@@ -162,53 +163,33 @@ Employee
 
 ### Defining as part of the model options
 
-Below is an example of defining the getters and setters in the model options&comma; notice the `title_slugslug` getter&comma; it shows how you can define `pseudo` properties on your models&excl; &lpar;the `slugify()` function was taken from the [Underscore&period;String module][1]&comma; it is slightly modified here so that the example remains self-contained&rpar;&comma; note that the `this.title` reference in the `title_slug` getter function will trigger a call to the `title` getter function&period; if you do not want that then use the `getDataValue()` method &lpar;[see below][2]&rpar;&period;
+Below is an example of defining the getters and setters in the model options. The `fullName` getter,  is an example of how you can define pseudo properties on your models - attributes which are not actually part of your database schema. In fact, pseudo properties can be defined in two ways: using model getters, or by using a column with the [`VIRTUAL` datatype](api/datatypes#virtual). Virtual datatypes can have validations, while getters for virtual attributes cannot.
+
+Note that the `this.firstname` and `this.lastname` references in the `fullName` getter function will trigger a call to the respective getter functions. If you do not want that then use the `getDataValue()` method to access the raw value (see below).
 
 ```js
-var defaultToWhiteSpace = function(characters) {
-    if (characters == null)
-      return '\\s';
-    else if (characters.source)
-      return characters.source;
-    else
-      return ;
-  };
-
-var slugify = function(str) {
-  var from  = "ąàáäâãåæćęèéëêìíïîłńòóöôõøśùúüûñçżź",
-      to    = "aaaaaaaaceeeeeiiiilnoooooosuuuunczz",
-      regex = new RegExp('[' + from.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1') + ']', 'g');
-
-  if (str == null) return '';
-
-  str = String(str).toLowerCase().replace(regex, function(c) {
-    return to.charAt(from.indexOf(c)) || '-';
-  });
-
-  return str.replace(/[^\w\s-]/g, '').replace(/([A-Z])/g, '-$1').replace(/[-_\s]+/g, '-').toLowerCase();
-}
-
 var Foo = sequelize.define('Foo', {
-  title: {
-    type     : Sequelize.STRING,
-    allowNull: false,
-  }
+  firstname: Sequelize.STRING,
+  lastname: Sequelize.STRING
 }, {
-
   getterMethods   : {
-    title       : function()  { /* do your magic here and return something! */ },
-    title_slug  : function()  { return slugify(this.title); }
+    fullName       : function()  { return this.firstname + ' ' + this.lastname }
   },
 
   setterMethods   : {
-    title       : function(v) { /* do your magic with the input here! */ },
+    fullName       : function(value) { 
+        var names = value.split(' ');
+
+        this.setDataValue('firstname', names.slice(0, -1).join(' '));
+        this.setDataValue('lastname', names.slice(-1).join(' '));
+    },
   }
 });
 ```
 
-### Helper functions for use inside getter&sol;setter definitions
+### Helper functions for use inside getter and setter definitions
 
-* retrieving an underlying property value&quest; always use `this.getDataValue()`&comma; e&period;g&colon;
+* retrieving an underlying property value - always use `this.getDataValue()`
 
 ```js
 /* a getter for 'title' property */
@@ -217,7 +198,7 @@ function() {
 }
 ```
 
-* setting an underlying property value&quest; always use `this.setDataValue()`&comma; e&period;g&period;&colon;
+* setting an underlying property value - always use `this.setDataValue()`
 
 ```js
 /* a setter for 'title' property */
@@ -226,7 +207,7 @@ function(title) {
 }
 ```
 
-**N.B.: **It is important to stick to using the `setDataValue()` and `getDataValue()` functions &lpar;as opposed to accessing the underlying "data values" property directly&rpar; - doing so protects your custom getters and setters from changes in the underlying model implementations &lpar;i&period;e&period; how and where data values are stored in your model instances&rpar;
+**N.B:** It is important to stick to using the `setDataValue()` and `getDataValue()` functions (as opposed to accessing the underlying "data values" property directly) - doing so protects your custom getters and setters from changes in the underlying model implementations.
 
 ## Validations
 
@@ -785,7 +766,7 @@ Project.findAll({group: 'name'})
 // yields GROUP BY name
 ```
 
-Notice how in the two examples above&comma; the string provided is inserted verbatim into the query&comma; i&period;e&period; column names are not escaped&period; When you provide a string to order &sol; group&comma; this will always be the case as per v 1&period;7&period;0&period; If you want to escape column names&comma; you should provide an array of arguments&comma; even though you only want to order &sol; group by a single column
+Notice how in the two examples above&comma; the string provided is inserted verbatim into the query&comma; i&period;e&period; column names are not escaped&period; When you provide a string to order &sol; group&comma; this will always be the case. If you want to escape column names&comma; you should provide an array of arguments&comma; even though you only want to order &sol; group by a single column
 
 ```js
 something.find({
@@ -821,10 +802,11 @@ To recap&comma; the elements of the order &sol; group array can be the following
 
 ### Raw queries
 
-Sometimes you might be expecting a massive dataset that you just want to display&comma; without manipulation&period; For each row you select&comma; Sequelize creates a_DAO_&comma; with functions for update&comma; delete&comma; get associations etc&period; If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
+Sometimes you might be expecting a massive dataset that you just want to display, without manipulation. For each row you select, Sequelize creates an instance with functions for updat, delete, get associations etc. If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
 
 ```js
-// Are you expecting a masssive dataset from the DB, and don't want to spend the time building DAOs for each entry?
+// Are you expecting a masssive dataset from the DB,
+// and don't want to spend the time building DAOs for each entry?
 // You can pass an extra query option to get the raw data instead:
 Project.findAll({ where: ... }, { raw: true })
 ```
@@ -906,7 +888,7 @@ Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
 
 ## Eager loading
 
-When you are retrieving data from the database there is a fair chance that you also want to get their associations&period; This is possible since`v1.6.0`and is called eager loading&period; The basic idea behind that&comma; is the use of the attribute `include` when you are calling `find` or `findAll`&period; Lets assume the following setup&colon;
+When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that&comma; is the use of the attribute `include` when you are calling `find` or `findAll`&period; Lets assume the following setup&colon;
 
 ```js
 var User = sequelize.define('User', { name: Sequelize.STRING })
@@ -974,7 +956,7 @@ User.findAll({ include: [ Task ] }).then(function(users) {
 
 Notice that the accessor is plural&period; This is because the association is many-to-something&period;
 
-If an association is aliased &lpar;using the`as`option&rpar;&comma; you must specify this alias when including the model&period; Notice how the user's `Tool`s are aliased as `Instruments` above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
+If an association is aliased (using the `as` option), you must specify this alias when including the model&period; Notice how the user's `Tool`s are aliased as `Instruments` above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
 
 ```js
 User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(users) {
@@ -1056,21 +1038,8 @@ User.findAll({
 })
 ```
 
-**Final note&colon;**If you include an object which is not associated&comma; Sequelize will throw an error&period;
-
-```js
-Tool.findAll({ include: [ User ] }).then(function(tools) {
-  console.log(JSON.stringify(tools))
-})
-
-// Error: User is not associated to Tool!
-```
-
-
 
 [0]: #configuration
-[1]: https://github.com/epeli/underscore.string
-[2]: #get_and_set_helper_funcs
 [3]: https://github.com/chriso/validator.js
 [4]: https://github.com/chriso/node-validator
 [5]: /docs/latest/misc#asynchronicity
