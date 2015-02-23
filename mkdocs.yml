@@ -4,6 +4,7 @@ theme: ""
 theme_dir: docs/readthedocs_theme
 repo_url: https://github.com/sequelize/sequelize
 site_favicon: favicon.ico
+site_url: http://docs.sequelizejs.com
 markdown_extensions: [gfm]
 extra_css:
 - css/custom.css
