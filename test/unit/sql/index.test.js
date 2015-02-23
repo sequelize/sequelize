@@ -21,7 +21,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     test('POJO field', function () {
       expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC'}], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
-        mysql: 'CREATE INDEX `table_column` ON `table` (`column`(5) DESC)'
+        mysql: 'CREATE INDEX `table_column` ON `table` (`column`(5) DESC)',
+        mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)'
       });
     });
 
