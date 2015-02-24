@@ -39,6 +39,7 @@
     "lodash": "~2.4.0",
     "moment": "^2.9.0",
     "node-uuid": "~1.4.1",
+    "stack-queue": "0.0.6",
     "toposort-class": "~0.3.0",
     "validator": "~3.22.1"
   },
