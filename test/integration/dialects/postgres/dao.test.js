@@ -744,8 +744,8 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should update range correctly', function() {
-        var User = this.User,
-            period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
+        var User = this.User
+          , period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
         return User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
           // Check to see if the default value for a range field works
@@ -775,8 +775,8 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should update range correctly and return the affected rows', function () {
-        var User = this.User,
-            period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
+        var User = this.User
+          , period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
 
         return User.create({
           username:      'user',
@@ -863,9 +863,9 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should read range correctly from included models as well', function () {
-        var self = this,
-            period = [new Date(2016, 0, 1), new Date(2016, 11, 31)],
-            HolidayDate = this.sequelize.define('holidayDate', {
+        var self = this
+          , period = [new Date(2016, 0, 1), new Date(2016, 11, 31)]
+          , HolidayDate = this.sequelize.define('holidayDate', {
               period: DataTypes.RANGE(DataTypes.DATE)
             });
 
