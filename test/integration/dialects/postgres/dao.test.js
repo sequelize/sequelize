@@ -670,8 +670,7 @@ if (dialect.match(/^postgres/)) {
             expect(user.hasOwnProperty('hstoreSubmodels')).to.be.ok;
             expect(user.hstoreSubmodels.length).to.equal(1);
             expect(user.hstoreSubmodels[0].someValue).to.deep.equal(submodelValue);
-          })
-          .error(console.log);
+          });
       });
 
       it('should save range correctly', function() {
@@ -893,10 +892,6 @@ if (dialect.match(/^postgres/)) {
             expect(user.holidayDates[0].period.length).to.equal(2);
             expect(user.holidayDates[0].period[0]).to.equalTime(period[0]);
             expect(user.holidayDates[0].period[1]).to.equalTime(period[1]);
-          })
-          .error(function (err) {
-            console.log.apply(console, arguments);
-            throw err;
           });
       });
     });
