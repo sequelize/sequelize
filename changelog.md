@@ -1,5 +1,6 @@
 # Next
 - [BUG] Fixed support for 2 x belongsToMany without foreignKey defined and association getter/adder [#3185](https://github.com/sequelize/sequelize/issues/3185)
+- [BUG] No longer throws on `Model.hasHook()` if no hooks are defiend [#3181](https://github.com/sequelize/sequelize/issues/3181)
 
 # 2.0.3
 - [BUG] Support for plain strings, ints and bools on JSON insert
