@@ -680,19 +680,20 @@ Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
 Project.findAll({
   where: {
     id: {
-      $gt: 6,                // id > 6
-      $gte: 6,               // id >= 6
-      $lt: 10,               // id < 10
-      $lte: 10,              // id
-      $ne: 20,               // id != 20
-      $not: 3,               // id NOT 3
-      $between: [6, 10],     // BETWEEN 6 AND 10
-      $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
-      $in: [1, 2],           // IN [1, 2]
-      $like: '%hat',         // LIKE '%hat'
-      $notLike: '%hat'       // NOT LIKE '%hat'
-      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
-      $notILike: '%hat'      // NOT ILIKE '%hat'
+      gt: 6,                // id > 6
+      gte: 6,               // id >= 6
+      lt: 10,               // id < 10
+      lte: 10,              // id <= 10
+      eq: 20,               // id = 20
+      ne: 20,               // id != 20
+      not: 3,               // id NOT IN [3]
+      between: [6, 10],     // BETWEEN 6 AND 10
+      notbetween: [11, 15], // NOT BETWEEN 11 AND 15
+      in: [1, 2],           // IN [1, 2]
+      like: '%hat',         // LIKE '%hat'
+      notlike: '%hat'       // NOT LIKE '%hat'
+      ilike: '%hat'         // ILIKE '%hat' (case insensitive)
+      notilike: '%hat'      // NOT ILIKE '%hat'
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
