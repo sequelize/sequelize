@@ -5877,4 +5877,27 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
   });
+
+  describe('#addHook', function() {
+    it('should add additinoal hook when previous exists', function() {
+      var hook1 = sinon.spy()
+        , hook2 = sinon.spy()
+        , Model;
+
+      Model = this.sequelize.define('Model', { 
+        name: Sequelize.STRING 
+      }, {
+        hooks: { beforeCreate: hook1 }
+      });
+
+      Model.addHook('beforeCreate', hook2);
+
+      return Model.sync({ force: true }).then(function() {
+        return Model.create({ name: 'bob' });
+      }).then(function() {
+        expect(hook1.calledOnce).to.be.ok;
+        expect(hook2.calledOnce).to.be.ok;
+      });
+    });
+  });
 });
