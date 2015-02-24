@@ -308,6 +308,19 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
+    it('throw an exception if `values` and `options.replacements` are both passed', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, null, { raw: true, replacements: [1, 2] });
+      }).to.throw(Error, 'Both `sql.values` and `options.replacements` cannot be set at the same time');
+    });
+
+    it('uses properties `query` and `values` if query is tagged', function() {
+      return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, null, { type: this.sequelize.QueryTypes.SELECT }).success(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
+      });
+    });
+
     it('dot separated attributes when doing a raw query without nest', function() {
       var tickChar = (dialect === 'postgres' || dialect === 'mssql') ? '"' : '`'
         , sql = 'select 1 as ' + Sequelize.Utils.addTicks('foo.bar.baz', tickChar);
