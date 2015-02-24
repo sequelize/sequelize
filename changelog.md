@@ -1,3 +1,6 @@
+# Next
+- [BUG] Fixed support for 2 x belongsToMany without foreignKey defined and association getter/adder [#3185](https://github.com/sequelize/sequelize/issues/3185)
+
 # 2.0.3
 - [BUG] Support for plain strings, ints and bools on JSON insert
 - [BUG] Fixed regression where `{$in: []}` would result in `IN ()` rather than `IN (NULL)` [#3105](https://github.com/sequelize/sequelize/issues/3105) [#3132](https://github.com/sequelize/sequelize/issues/3132)
