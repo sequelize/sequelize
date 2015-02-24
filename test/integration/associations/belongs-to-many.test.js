@@ -224,12 +224,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
     it('supports custom primary keys and foreign keys', function () {
       var User = this.sequelize.define('User', {
-        'iduser': {
+        'id_user': {
           type: DataTypes.UUID,
           primaryKey: true,
           defaultValue: DataTypes.UUIDV4,
           allowNull: false
         }
+      }, {
+        tableName: 'tbl_user'
       });
 
       var Group = this.sequelize.define('Group', {
@@ -239,10 +241,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           primaryKey: true,
           defaultValue: DataTypes.UUIDV4
         }
+      }, {
+        tableName: 'tbl_group'
       });
 
       var User_has_Group = this.sequelize.define('User_has_Group', {
       
+      }, {
+        tableName: 'tbl_user_has_group'
       });
 
       User.belongsToMany(Group, {as: 'groups', through: User_has_Group, foreignKey: 'id_user'});
