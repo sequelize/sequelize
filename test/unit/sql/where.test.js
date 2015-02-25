@@ -241,7 +241,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')"
-        })
+        });
 
         test("sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))", function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
