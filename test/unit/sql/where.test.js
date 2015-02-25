@@ -219,6 +219,30 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
         });
 
+        testsql('$and', [
+          {
+            name: {
+              $like: '%hello'
+            }
+          },
+          {
+            name: {
+              $like: 'hello%'
+            }
+          }
+        ], {
+          default: "([name] LIKE '%hello' AND [name] LIKE 'hello%')"
+        });
+
+        testsql('name', {
+            $and: [
+              {like : '%someValue1%'},
+              {like : '%someValue2%'}
+            ]
+        }, {
+          default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')"
+        })
+
         test("sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))", function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
             default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
