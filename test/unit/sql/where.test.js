@@ -121,15 +121,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('deleted', {
         $not: true
       }, {
-        default: "[deleted] NOT true",
-        mssql: "[deleted] NOT 'true'",
-        sqlite: "`deleted` NOT 1"
+        default: "[deleted] IS NOT true",
+        mssql: "[deleted] IS NOT 'true'",
+        sqlite: "`deleted` IS NOT 1"
       });
 
       testsql('deleted', {
         $not: null
       }, {
-        default: "[deleted] NOT NULL"
+        default: "[deleted] IS NOT NULL"
+      });
+
+      testsql('muscles', {
+        $not: 3
+      }, {
+        default: '[muscles] != 3'
       });
 
       testsql('muscles', {
