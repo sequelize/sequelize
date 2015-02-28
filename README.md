@@ -31,7 +31,7 @@ Will install the latest version of sequelize (currently 2.0).
 
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
-- [Getting Started](http://sequelizejs.com/articles/getting-started)
+- [Getting Started](http://sequelize.readthedocs.org/en/latest/docs/getting-started/)
 - [Documentation](http://sequelize.readthedocs.org/en/latest/)
 - [API Reference](http://sequelize.readthedocs.org/en/latest/)
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
