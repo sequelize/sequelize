@@ -523,7 +523,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           return Article.create({ title: 'foo' });
         }).bind({}).then(function(article) {
           this.article = article;
-          return article.createLabel({ text: 'bar' }).on('sql', spy);
+          return article.createLabel({ text: 'bar' }, {logging: spy});
         }).then(function(label) {
           expect(spy.calledOnce).to.be.true;
           expect(label.ArticleId).to.equal(this.article.id);
@@ -689,11 +689,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           return self.Task.create({ title: 'task2' });
         }).then(function(task2) {
           this.task2 = task2;
-          return this.user.setTasks([this.task1, this.task2]).on('sql', spy).on('sql', _.after(2, function(sql) {
-            // We don't care about SELECT, only UPDATE
-            expect(sql).to.have.string('UPDATE');
-            expect(sql).to.have.string('IN (1, 2)');
-          }));
+          return this.user.setTasks([this.task1, this.task2], {logging: spy});
         }).then(function() {
           expect(spy).to.have.been.calledTwice; // Once for SELECT, once for UPDATE
         });
@@ -712,11 +708,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         }).then(function(task2) {
           return this.user.setTasks([this.task1, task2]);
         }).then(function() {
-          return this.user.setTasks(null).on('sql', spy).on('sql', _.after(2, function(sql) {
-            // We don't care about SELECT, only UPDATE
-            expect(sql).to.have.string('UPDATE');
-            expect(sql).to.have.string('IN (1, 2)');
-          }));
+          return this.user.setTasks(null, {logging: spy});
         }).then(function() {
           expect(spy).to.have.been.calledTwice; // Once for SELECT, once for UPDATE
         });
@@ -1430,14 +1422,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           this.Task.create({ id: 12, title: 'task1' }),
           this.Task.create({ id: 15, title: 'task2' })
         ]).spread(function(user, task1, task2) {
-          return user.setTasks([task1, task2]).on('sql', spy).on('sql', _.after(2, function(sql) {
-            if (dialect === 'mssql') {
-              expect(sql).to.have.string('INSERT INTO [TasksUsers] ([TaskId],[UserId]) VALUES (12,1),(15,1)');
-            } else {
-              var tickChar = (Support.getTestDialect() === 'postgres') ? '"' : '`';
-              expect(sql).to.have.string('INSERT INTO %TasksUsers% (%TaskId%,%UserId%) VALUES (12,1),(15,1)'.replace(/%/g, tickChar));
-            }
-          }));
+          return user.setTasks([task1, task2], {logging: spy});
         }).then(function() {
           expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
         });
@@ -1454,10 +1439,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         ]).spread(function(user, task1, task2) {
           return user.setTasks([task1, task2]).return (user);
         }).then(function(user) {
-          return user.setTasks(null).on('sql', spy).on('sql', _.after(2, function(sql) {
-            expect(sql).to.have.string('DELETE FROM');
-            expect(sql).to.match(/IN \(1, 2\)|IN \(2, 1\)/);
-          }));
+          return user.setTasks(null, {logging: spy});
         }).then(function() {
           expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for DELETE
         });
@@ -1663,8 +1645,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           var project = projects[0];
 
           expect(project).to.be.defined;
-          return self.user.removeProject(project).on('sql', function(sql) {
-          }).return (project);
+          return self.user.removeProject(project).return(project);
         }).then(function(project) {
           return self.user.setProjects([project]);
         });
