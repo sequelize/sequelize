@@ -11,7 +11,7 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Paranoid'), function() {
 
-  beforeEach(function(done ) {
+  beforeEach(function( ) {
     var S = this.sequelize,
         DT = DataTypes,
 
@@ -32,34 +32,24 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
 
     D.hasMany(A);
 
-    S.sync({ force: true }).done(function(err ) {
-      expect(err).not.to.be.ok;
-      done();
-    });
-
+    return S.sync({ force: true });
   });
 
-  it('paranoid with timestamps: false should be ignored / not crash', function(done) {
-
-    var S = this.sequelize,
-        Test = S.define('Test', {
+  it('paranoid with timestamps: false should be ignored / not crash', function() {
+    var S = this.sequelize
+      , Test = S.define('Test', {
           name: DataTypes.STRING
         },{
           timestamps: false,
           paranoid: true
         });
 
-    S.sync({ force: true }).done(function() {
-      Test.find(1).done(function(err ) {
-        expect(err).to.be.not.ok;
-        done();
-      });
+    return S.sync({ force: true }).then(function() {
+      return Test.find(1);
     });
-
   });
 
-  it('test if non required is marked as false', function(done ) {
-
+  it('test if non required is marked as false', function( ) {
     var A = this.A,
         B = this.B,
         options = {
@@ -71,17 +61,12 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
           ]
         };
 
-    A.find(options).done(function(err ) {
-      expect(err).not.to.be.ok;
+    return A.find(options).then(function() {
       expect(options.include[0].required).to.be.equal(false);
-
-      done();
     });
-
   });
 
-  it('test if required is marked as true', function(done ) {
-
+  it('test if required is marked as true', function( ) {
     var A = this.A,
         B = this.B,
         options = {
@@ -93,13 +78,9 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
           ]
         };
 
-    A.find(options).done(function(err ) {
-      expect(err).not.to.be.ok;
+    return A.find(options).then(function() {
       expect(options.include[0].required).to.be.equal(true);
-
-      done();
     });
-
   });
 
   it('should not load paranoid, destroyed instances, with a non-paranoid parent', function () {

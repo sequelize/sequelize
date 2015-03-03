@@ -12,19 +12,16 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Include'), function() {
   describe('findAndCountAll', function() {
-
-    it('Try to include a required model. Result rows should match count', function(done ) {
-      var DT = DataTypes,
-          S = this.sequelize,
-          User = S.define('User', { name: DT.STRING(40) }, { paranoid: true }),
-          SomeConnection = S.define('SomeConnection', {
-            m: DT.STRING(40),
-            fk: DT.INTEGER,
-            u: DT.INTEGER
+    it('should be able to include a required model. Result rows should match count', function() {
+      var User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
+          SomeConnection = this.sequelize.define('SomeConnection', {
+            m: DataTypes.STRING(40),
+            fk: DataTypes.INTEGER,
+            u: DataTypes.INTEGER
           }, { paranoid: true }),
-          A = S.define('A', { name: DT.STRING(40) }, { paranoid: true }),
-          B = S.define('B', { name: DT.STRING(40) }, { paranoid: true }),
-          C = S.define('C', { name: DT.STRING(40) }, { paranoid: true });
+          A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
+          B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
+          C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associate them
       User.hasMany(SomeConnection, { foreignKey: 'u' });
@@ -39,71 +36,67 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       C.hasMany(SomeConnection, { foreignKey: 'fk', constraints: false });
 
       // Sync them
-      S.sync({ force: true }).done(function(err ) { expect(err).not.to.be.ok;
-
+      return this.sequelize.sync({ force: true }).then(function () {
         // Create an enviroment
-        User.bulkCreate([
-          { name: 'Youtube' },
-          { name: 'Facebook' },
-          { name: 'Google' },
-          { name: 'Yahoo' },
-          { name: '404' }
-        ]).done(function(err, users ) { expect(err).not.to.be.ok; expect(users).to.be.length(5);
 
-        SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
-          { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
-          { u: 2, m: 'A', fk: 1 },
-          { u: 3, m: 'A', fk: 1 },
-          { u: 4, m: 'A', fk: 1 },
-          { u: 5, m: 'A', fk: 1 },
-          { u: 1, m: 'B', fk: 1 },
-          { u: 2, m: 'B', fk: 1 },
-          { u: 3, m: 'B', fk: 1 },
-          { u: 4, m: 'B', fk: 1 },
-          { u: 5, m: 'B', fk: 1 },
-          { u: 1, m: 'C', fk: 1 },
-          { u: 2, m: 'C', fk: 1 },
-          { u: 3, m: 'C', fk: 1 },
-          { u: 4, m: 'C', fk: 1 },
-          { u: 5, m: 'C', fk: 1 },
-          { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
-          { u: 4, m: 'A', fk: 2 },
-          { u: 2, m: 'A', fk: 2 },
-          { u: 1, m: 'A', fk: 3 }, // 3
-          { u: 2, m: 'A', fk: 3 },
-          { u: 3, m: 'A', fk: 3 },
-          { u: 2, m: 'B', fk: 2 },
-          { u: 1, m: 'A', fk: 4 }, // 4
-          { u: 4, m: 'A', fk: 2 }
-        ]).done(function(err, conns ) { expect(err).not.to.be.ok; expect(conns).to.be.length(24);
-
-        A.bulkCreate([
-          { name: 'Just' },
-          { name: 'for' },
-          { name: 'testing' },
-          { name: 'proposes' },
-          { name: 'only' }
-        ]).done(function(err, as ) { expect(err).not.to.be.ok; expect(as).to.be.length(5);
-
-        B.bulkCreate([
-          { name: 'this should not' },
-          { name: 'be loaded' }
-        ]).done(function(err, bs ) { expect(err).not.to.be.ok; expect(bs).to.be.length(2);
-
-        C.bulkCreate([
-          { name: 'because we only want A' }
-        ]).done(function(err, cs ) { expect(err).not.to.be.ok; expect(cs).to.be.length(1);
+        return Promise.join(
+          User.bulkCreate([
+            { name: 'Youtube' },
+            { name: 'Facebook' },
+            { name: 'Google' },
+            { name: 'Yahoo' },
+            { name: '404' }
+          ]),
+          SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
+            { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
+            { u: 2, m: 'A', fk: 1 },
+            { u: 3, m: 'A', fk: 1 },
+            { u: 4, m: 'A', fk: 1 },
+            { u: 5, m: 'A', fk: 1 },
+            { u: 1, m: 'B', fk: 1 },
+            { u: 2, m: 'B', fk: 1 },
+            { u: 3, m: 'B', fk: 1 },
+            { u: 4, m: 'B', fk: 1 },
+            { u: 5, m: 'B', fk: 1 },
+            { u: 1, m: 'C', fk: 1 },
+            { u: 2, m: 'C', fk: 1 },
+            { u: 3, m: 'C', fk: 1 },
+            { u: 4, m: 'C', fk: 1 },
+            { u: 5, m: 'C', fk: 1 },
+            { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
+            { u: 4, m: 'A', fk: 2 },
+            { u: 2, m: 'A', fk: 2 },
+            { u: 1, m: 'A', fk: 3 }, // 3
+            { u: 2, m: 'A', fk: 3 },
+            { u: 3, m: 'A', fk: 3 },
+            { u: 2, m: 'B', fk: 2 },
+            { u: 1, m: 'A', fk: 4 }, // 4
+            { u: 4, m: 'A', fk: 2 }
+          ]),
+          A.bulkCreate([
+            { name: 'Just' },
+            { name: 'for' },
+            { name: 'testing' },
+            { name: 'proposes' },
+            { name: 'only' }
+          ]),
+          B.bulkCreate([
+            { name: 'this should not' },
+            { name: 'be loaded' }
+          ]),
+          C.bulkCreate([
+            { name: 'because we only want A' }
+          ])
+        ).then(function () {
 
           // Delete some of conns to prove the concept
-          SomeConnection.destroy({where: {
+          return SomeConnection.destroy({where: {
             m: 'A',
             u: 1,
             fk: [1, 2]
-          }}).done(function(err ) { expect(err).not.to.be.ok;
-
+          }}).then(function() {
             // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
-            A.findAndCountAll({
-
+            return A.findAndCountAll({
               include: [{
                 model: SomeConnection, required: true,
                 where: {
@@ -111,35 +104,14 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                   u: 1
                 }
               }],
-
               limit: 5
-
-            })
-            .done(function(err, result ) {
-
-              // Test variables
-              expect(err).not.to.be.ok;
+            }).then(function(result ) {
               expect(result.count).to.be.equal(2);
               expect(result.rows.length).to.be.equal(2);
-
-              done();
-
-            // Last and most important queries - END
             });
-
-          // Delete some of conns to prove the concept - END
           });
-
-        // Create an enviroment - END
         });
-        });
-        });
-        });
-        });
-
-      // Sync them - END
       });
-
     });
 
     it('should count on a where and not use an uneeded include', function() {

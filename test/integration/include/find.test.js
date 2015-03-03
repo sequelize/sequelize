@@ -4,6 +4,7 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , Sequelize = require(__dirname + '/../../../index')
+  , Promise = Sequelize.Promise
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
   , async = require('async');
@@ -13,7 +14,7 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Include'), function() {
   describe('find', function() {
-    it('should include a non required model, with conditions and two includes N:M 1:M', function(done ) {
+    it('should include a non required model, with conditions and two includes N:M 1:M', function( ) {
       var A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true })
         , B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true })
         , C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true })
@@ -33,19 +34,14 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
       D.hasMany(B);
 
-      this.sequelize.sync({ force: true }).done(function(err ) {
-        expect(err).not.to.be.ok;
-
-        A.find({
+      return this.sequelize.sync({ force: true }).then(function() {
+        return A.find({
           include: [
             { model: B, required: false, include: [
               { model: C, required: false },
               { model: D }
             ]}
           ]
-        }).done(function(err ) {
-          expect(err).not.to.be.ok;
-          done();
         });
       });
     });
@@ -178,7 +174,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
     });
 
-    it('should support many levels of belongsTo (with a lower level having a where)', function(done) {
+    it('should support many levels of belongsTo (with a lower level having a where)', function() {
       var A = this.sequelize.define('a', {})
         , B = this.sequelize.define('b', {})
         , C = this.sequelize.define('c', {})
@@ -200,49 +196,44 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       F.belongsTo(G);
       G.belongsTo(H);
 
-      var b, singles = [
-        B,
-        C,
-        D,
-        E,
-        F,
-        G,
-        H
-      ];
+      return this.sequelize.sync({force: true}).then(function() {
+        return Promise.join(
+          A.create({}),
+          (function (singles) {
+            var promise = Promise.resolve()
+              , previousInstance
+              , b;
 
-      this.sequelize.sync().done(function() {
-        async.auto({
-          a: function(callback) {
-            A.create({}).done(callback);
-          },
-          singleChain: function(callback) {
-            var previousInstance;
-
-            async.eachSeries(singles, function(model, callback) {
+            singles.forEach(function (model) {
               var values = {};
 
               if (model.name === 'g') {
                 values.name = 'yolo';
               }
-              model.create(values).done(function(err, instance) {
-                if (previousInstance) {
-                  previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).done(function() {
-                    previousInstance = instance;
-                    callback();
-                  });
-                } else {
-                  previousInstance = b = instance;
-                  callback();
-                }
-              });
-            }, callback);
-          },
-          ab: ['a', 'singleChain', function(callback, results) {
-            results.a.setB(b).done(callback);
-          }]
-        }, function() {
 
-          A.find({
+              promise = promise.then(function () {
+                return model.create(values).then(function (instance) {
+                  if (previousInstance) {
+                    return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(function() {
+                      previousInstance = instance; 
+                    });
+                  } else {
+                    previousInstance = b = instance;
+                  }
+                });
+              });
+            });
+
+            promise = promise.then(function () {
+              return b;
+            });
+
+            return promise;
+          })([B, C, D, E, F, G, H])
+        ).spread(function (a, b) {
+          return a.setB(b);
+        }).then(function () {
+          return A.find({
             include: [
               {model: B, include: [
                 {model: C, include: [
@@ -260,10 +251,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 ]}
               ]}
             ]
-          }).done(function(err, a) {
-            expect(err).not.to.be.ok;
+          }).then(function(a) {
             expect(a.b.c.d.e.f.g.h).to.be.ok;
-            done();
           });
         });
       });
