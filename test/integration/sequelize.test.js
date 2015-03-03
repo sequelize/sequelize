@@ -440,12 +440,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           'overrideInstanceMethod': function() {}
         },
         'setterMethods': {
-          'default': function() {
-            this.defaultVal = 'default';
-          },
-          'override': function() {
-            this.overrideVal = 'default';
-          },
+          'default': function() {},
+          'override': function() {},
         },
         'getterMethods': {
           'default': function() {
@@ -456,11 +452,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           }
         }
       };
-      var testEntity = this.sequelize.define('TestEntity', {
-        'defaultVal': Sequelize.STRING(50),
-        'customVal': Sequelize.STRING(50),
-        'overrideVal': Sequelize.STRING(50)
-      }, {
+      var testEntity = this.sequelize.define('TestEntity', {}, {
         'classMethods': {
           'customClassMethod': function() {},
           'overrideClassMethod': overrideFunction
@@ -470,12 +462,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           'overrideInstanceMethod': overrideFunction
         },
         'setterMethods': {
-          'custom': function() {
-            this.customVal = 'custom';
-          },
-          'override': function() {
-            this.overrideVal = 'default';
-          },
+          'custom': function() {},
+          'override': function() {}
         },
         'getterMethods': {
           'custom': function() {
