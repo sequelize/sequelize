@@ -424,6 +424,87 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     }
   });
 
+  describe('set', function() {
+    it("should be configurable with global functions", function() {
+      var overrideFunction = function() {
+        return 'override';
+      };
+
+      this.sequelize.options.define = {
+        'classMethods': {
+          'defaultClassMethod': function() {},
+          'overrideClassMethod': function() {}
+        },
+        'instanceMethods': {
+          'defaultInstanceMethod': function() {},
+          'overrideInstanceMethod': function() {}
+        },
+        'setterMethods': {
+          'default': function() {
+            this.defaultVal = 'default';
+          },
+          'override': function() {
+            this.overrideVal = 'default';
+          },
+        },
+        'getterMethods': {
+          'default': function() {
+            return 'default';
+          },
+          'override': function() {
+            return 'default';
+          }
+        }
+      };
+      var testEntity = this.sequelize.define('TestEntity', {
+        'defaultVal': Sequelize.STRING(50),
+        'customVal': Sequelize.STRING(50),
+        'overrideVal': Sequelize.STRING(50)
+      }, {
+        'classMethods': {
+          'customClassMethod': function() {},
+          'overrideClassMethod': overrideFunction
+        },
+        'instanceMethods': {
+          'customInstanceMethod': function() {},
+          'overrideInstanceMethod': overrideFunction
+        },
+        'setterMethods': {
+          'custom': function() {
+            this.customVal = 'custom';
+          },
+          'override': function() {
+            this.overrideVal = 'default';
+          },
+        },
+        'getterMethods': {
+          'custom': function() {
+            return 'custom';
+          },
+          'override': function() {
+            return 'custom';
+          }
+        }
+      });
+
+      var instance = testEntity.build();
+
+      expect(testEntity).to.have.property('defaultClassMethod');
+      expect(testEntity).to.have.property('customClassMethod');
+      expect(testEntity).to.have.property('overrideClassMethod');
+      expect(testEntity.overrideClassMethod()).to.be.eql('override');
+      expect(instance).to.have.property('defaultInstanceMethod');
+      expect(instance).to.have.property('customInstanceMethod');
+      expect(instance).to.have.property('overrideInstanceMethod');
+      expect(instance.overrideInstanceMethod()).to.be.eql('override');
+      expect(instance.default).to.be.eql('default');
+      expect(instance.custom).to.be.eql('custom');
+      expect(instance.override).to.be.eql('custom');
+
+      // @TODO: How to Test Setters?
+    });
+  });
+
   if (Support.dialectIsMySQL()) {
     describe('set', function() {
       it("should return an promised error if transaction isn't defined", function() {
