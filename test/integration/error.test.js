@@ -3,6 +3,7 @@
 var chai      = require('chai')
   , sinon     = require('sinon')
   , expect    = chai.expect
+  , errors    = require('../../lib/errors')
   , Support   = require(__dirname + '/support')
   , Sequelize = Support.Sequelize
   , Promise   = Sequelize.Promise;
@@ -20,7 +21,10 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
     });
     it('Sequelize Errors instances should be instances of Error', function() {
       var error = new Sequelize.Error();
-      var validationError = new Sequelize.ValidationError();
+      var validationError = new Sequelize.ValidationError('Validation Error', [
+        new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null)
+      , new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
+      ]);
 
 
       var sequelize = new Sequelize();
@@ -34,6 +38,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(validationError).to.be.instanceOf(Sequelize.ValidationError);
       expect(validationError).to.be.instanceOf(Error);
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
+      expect(validationError.message).to.match(/notNull Violation: <field name> cannot be null,\nstring violation: <field name> cannot be an array or an object/);
 
       expect(instError).to.be.instanceOf(Sequelize.Error);
       expect(instError).to.be.instanceOf(Error);
