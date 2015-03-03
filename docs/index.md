@@ -26,6 +26,8 @@ return sequelize.sync().then(function() {
     birthday: new Date(1980, 06, 20)
   });
 }).then(function(jane) {
-  console.log(jane.values)
+  console.log(jane.get({
+    plain: true
+  }))
 });
 ```
