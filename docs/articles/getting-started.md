@@ -277,7 +277,9 @@ sequelize.Promise.all([
   // Get the association
   return source.getTarget();
 }).then(function(_target) {
-  console.log(_target.values)
+  console.log(_target.get({
+    plain: true
+  }))
   /*
     {
       id: 1,

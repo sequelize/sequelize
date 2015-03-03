@@ -68,7 +68,9 @@ It is also possible to define which attributes can be set via the create method&
 ```js
 User.create({ username: 'barfooz', isAdmin: true }, [ 'username' ]).then(function(user) {
   // let's assume the default of isAdmin is false:
-  console.log(user.values) // => { username: 'barfooz', isAdmin: false }
+  console.log(user.get({
+    plain: true
+  })) // => { username: 'barfooz', isAdmin: false }
 })
 ```
 
@@ -241,14 +243,16 @@ Tasks.bulkCreate([
 
 ## Values of an instance
 
-If you log an instance you will notice&comma; that there is a lot of additional stuff&period; In order to hide such stuff and reduce it to the very interesting information&comma; you can use the`values`-attribute&period; Calling it will return only the values of an instance&period;
+If you log an instance you will notice&comma; that there is a lot of additional stuff&period; In order to hide such stuff and reduce it to the very interesting information&comma; you can use the`get`-attribute&period; Calling it with the option `plain` = true will only return the values of an instance&period;
     
 ```js
 Person.create({
   name: 'Rambow',
   firstname: 'John'
 }).then(function(john) {
-  console.log(john.values)
+  console.log(john.get({
+    plain: true
+  }))
 })
  
 // result:
