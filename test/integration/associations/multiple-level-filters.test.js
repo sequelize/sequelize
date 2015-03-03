@@ -8,7 +8,7 @@ var chai = require('chai')
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
-  it('can filter through belongsTo', function(done) {
+  it('can filter through belongsTo', function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
@@ -19,20 +19,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     Task.belongsTo(Project);
     Project.hasMany(Task);
 
-    this.sequelize.sync({ force: true }).success(function() {
-      User.bulkCreate([{
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.bulkCreate([{
         username: 'leia'
       }, {
         username: 'vader'
-      }]).success(function() {
-        Project.bulkCreate([{
+      }]).then(function() {
+        return Project.bulkCreate([{
           UserId: 1,
           title: 'republic'
         },{
           UserId: 2,
           title: 'empire'
-        }]).success(function() {
-          Task.bulkCreate([{
+        }]).then(function() {
+          return Task.bulkCreate([{
             ProjectId: 1,
             title: 'fight empire'
           },{
@@ -44,24 +44,17 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
           },{
             ProjectId: 2,
             title: 'rule everything'
-          }]).success(function() {
-            Task.findAll({
+          }]).then(function() {
+            return Task.findAll({
               include: [
                 {model: Project, include: [
                   {model: User, where: {username: 'leia'}}
                 ]}
               ]
-            }).done(function(err, tasks) {
-              expect(err).not.to.be.ok;
-
-              try {
-                expect(tasks.length).to.be.equal(2);
-                expect(tasks[0].title).to.be.equal('fight empire');
-                expect(tasks[1].title).to.be.equal('stablish republic');
-                done();
-              }catch (e) {
-                done(e);
-              }
+            }).then(function(tasks) {
+              expect(tasks.length).to.be.equal(2);
+              expect(tasks[0].title).to.be.equal('fight empire');
+              expect(tasks[1].title).to.be.equal('stablish republic');
             });
           });
         });
@@ -69,7 +62,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     });
   });
 
-  it('avoids duplicated tables in query', function(done) {
+  it('avoids duplicated tables in query', function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
@@ -80,20 +73,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     Task.belongsTo(Project);
     Project.hasMany(Task);
 
-    this.sequelize.sync({ force: true }).success(function() {
-      User.bulkCreate([{
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.bulkCreate([{
         username: 'leia'
       }, {
         username: 'vader'
-      }]).success(function() {
-        Project.bulkCreate([{
+      }]).then(function() {
+        return Project.bulkCreate([{
           UserId: 1,
           title: 'republic'
         },{
           UserId: 2,
           title: 'empire'
-        }]).success(function() {
-          Task.bulkCreate([{
+        }]).then(function() {
+          return Task.bulkCreate([{
             ProjectId: 1,
             title: 'fight empire'
           },{
@@ -105,8 +98,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
           },{
             ProjectId: 2,
             title: 'rule everything'
-          }]).success(function() {
-            Task.findAll({
+          }]).then(function() {
+            return Task.findAll({
               include: [
                 {model: Project, include: [
                   {model: User, where: {
@@ -115,15 +108,10 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
                   }}
                 ]}
               ]
-            }).success(function(tasks) {
-              try {
-                expect(tasks.length).to.be.equal(2);
-                expect(tasks[0].title).to.be.equal('fight empire');
-                expect(tasks[1].title).to.be.equal('stablish republic');
-                done();
-              }catch (e) {
-                done(e);
-              }
+            }).then(function(tasks) {
+              expect(tasks.length).to.be.equal(2);
+              expect(tasks[0].title).to.be.equal('fight empire');
+              expect(tasks[1].title).to.be.equal('stablish republic');
             });
           });
         });
@@ -131,7 +119,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     });
   });
 
-  it('can filter through hasMany', function(done) {
+  it('can filter through hasMany', function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
@@ -142,20 +130,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     Task.belongsTo(Project);
     Project.hasMany(Task);
 
-    this.sequelize.sync({ force: true }).success(function() {
-      User.bulkCreate([{
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.bulkCreate([{
         username: 'leia'
       }, {
         username: 'vader'
-      }]).success(function() {
-        Project.bulkCreate([{
+      }]).then(function() {
+        return Project.bulkCreate([{
           UserId: 1,
           title: 'republic'
         },{
           UserId: 2,
           title: 'empire'
-        }]).success(function() {
-          Task.bulkCreate([{
+        }]).then(function() {
+          return Task.bulkCreate([{
             ProjectId: 1,
             title: 'fight empire'
           },{
@@ -167,21 +155,16 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
           },{
             ProjectId: 2,
             title: 'rule everything'
-          }]).success(function() {
-            User.findAll({
+          }]).then(function() {
+            return User.findAll({
               include: [
                 {model: Project, include: [
                   {model: Task, where: {title: 'fight empire'}}
                 ]}
               ]
-            }).done(function(err, users) {
-              try {
-                expect(users.length).to.be.equal(1);
-                expect(users[0].username).to.be.equal('leia');
-                done();
-              }catch (e) {
-                done(e);
-              }
+            }).then(function(users) {
+              expect(users.length).to.be.equal(1);
+              expect(users[0].username).to.be.equal('leia');
             });
           });
         });
@@ -189,47 +172,41 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     });
   });
 
-  it('can filter through hasMany connector', function(done) {
+  it('can filter through hasMany connector', function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.hasMany(User);
     User.hasMany(Project);
 
-    this.sequelize.sync({ force: true }).success(function() {
-      User.bulkCreate([{
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.bulkCreate([{
         username: 'leia'
       }, {
         username: 'vader'
-      }]).success(function() {
-        Project.bulkCreate([{
+      }]).then(function() {
+        return Project.bulkCreate([{
           title: 'republic'
         },{
           title: 'empire'
-        }]).success(function() {
-          User.find(1).success(function(user) {
-            Project.find(1).success(function(project) {
-              user.setProjects([project]).success(function() {
-                User.find(2).success(function(user) {
-                  Project.find(2).success(function(project) {
-                    user.setProjects([project]).success(function() {
-                      User.findAll({
+        }]).then(function() {
+          return User.find(1).then(function(user) {
+            return Project.find(1).then(function(project) {
+              return user.setProjects([project]).then(function() {
+                return User.find(2).then(function(user) {
+                  return Project.find(2).then(function(project) {
+                    return user.setProjects([project]).then(function() {
+                      return User.findAll({
                         include: [
                           {model: Project, where: {title: 'republic'}}
                         ]
-                      }).success(function(users) {
-                        try {
-                          expect(users.length).to.be.equal(1);
-                          expect(users[0].username).to.be.equal('leia');
-                          done();
-                        }catch (e) {
-                          done(e);
-                        }
+                      }).then(function(users) {
+                        expect(users.length).to.be.equal(1);
+                        expect(users[0].username).to.be.equal('leia');
                       });
                     });
                   });
                 });
-
               });
             });
           });
