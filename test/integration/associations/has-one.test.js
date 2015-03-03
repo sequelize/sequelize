@@ -25,28 +25,28 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
   describe('getAssocation', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function(done) {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+      it('supports transactions', function() {
+        return Support.prepareTransactionTest(this.sequelize).then(function (sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
           Group.hasOne(User);
 
-          sequelize.sync({ force: true }).success(function() {
-            User.create({ username: 'foo' }).success(function(fakeUser) {
-              User.create({ username: 'foo' }).success(function(user) {
-                Group.create({ name: 'bar' }).success(function(group) {
-                  sequelize.transaction().then(function(t) {
-                    group.setUser(user, { transaction: t }).success(function() {
-                      Group.all().success(function(groups) {
-                        groups[0].getUser().success(function(associatedUser) {
+          return sequelize.sync({ force: true }).then(function() {
+            return User.create({ username: 'foo' }).then(function(fakeUser) {
+              return User.create({ username: 'foo' }).then(function(user) {
+                return Group.create({ name: 'bar' }).then(function(group) {
+                  return sequelize.transaction().then(function(t) {
+                    return group.setUser(user, { transaction: t }).then(function() {
+                      return Group.all().then(function(groups) {
+                        return groups[0].getUser().then(function(associatedUser) {
                           expect(associatedUser).to.be.null;
-                          Group.all({ transaction: t }).success(function(groups) {
-                            groups[0].getUser({ transaction: t }).success(function(associatedUser) {
+                          return Group.all({ transaction: t }).then(function(groups) {
+                            return groups[0].getUser({ transaction: t }).then(function(associatedUser) {
                               expect(associatedUser).not.to.be.null;
                               expect(associatedUser.id).to.equal(user.id);
                               expect(associatedUser.id).not.to.equal(fakeUser.id);
-                              t.rollback().success(function() { done(); });
+                              return t.rollback();
                             });
                           });
                         });
@@ -78,19 +78,19 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
-    it('should be able to handle a where object that\'s a first class citizen.', function(done) {
+    it('should be able to handle a where object that\'s a first class citizen.', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
 
       User.hasOne(Task);
-      User.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Task.create({ title: 'task', status: 'inactive' }).success(function(task) {
-              user.setTaskXYZ(task).success(function() {
-                user.getTaskXYZ({where: ['status = ?', 'active']}).success(function(task) {
+
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return Task.create({ title: 'task', status: 'inactive' }).then(function(task) {
+              return user.setTaskXYZ(task).then(function() {
+                return user.getTaskXYZ({where: ['status = ?', 'active']}).then(function(task) {
                   expect(task).to.be.null;
-                  done();
                 });
               });
             });
@@ -102,30 +102,25 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
   describe('setAssociation', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function(done) {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+      it('supports transactions', function() {
+        return Support.prepareTransactionTest(this.sequelize).then(function(sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
           Group.hasOne(User);
 
-          sequelize.sync({ force: true }).success(function() {
-            User.create({ username: 'foo' }).success(function(user) {
-              Group.create({ name: 'bar' }).success(function(group) {
-                sequelize.transaction().then(function(t) {
-                  group
-                    .setUser(user, { transaction: t })
-                    .success(function() {
-                      Group.all().success(function(groups) {
-                        groups[0].getUser().success(function(associatedUser) {
-                          expect(associatedUser).to.be.null;
-                          t.rollback().success(function() { done(); });
-                        });
+          return sequelize.sync({ force: true }).then(function() {
+            return User.create({ username: 'foo' }).then(function(user) {
+              return Group.create({ name: 'bar' }).then(function(group) {
+                return sequelize.transaction().then(function(t) {
+                  return group.setUser(user, { transaction: t }).then(function() {
+                    return Group.all().then(function(groups) {
+                      return groups[0].getUser().then(function(associatedUser) {
+                        expect(associatedUser).to.be.null;
+                        return t.rollback();
                       });
-                    })
-                    .on('sql', function(sql, uuid) {
-                      expect(uuid).to.not.equal('default');
                     });
+                  });
                 });
               });
             });
@@ -134,24 +129,23 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     }
 
-    it('can set an association with predefined primary keys', function(done) {
+    it('can set an association with predefined primary keys', function() {
       var User = this.sequelize.define('UserXYZZ', { userCoolIdTag: { type: Sequelize.INTEGER, primaryKey: true }, username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZZ', { taskOrSomething: { type: Sequelize.INTEGER, primaryKey: true }, title: Sequelize.STRING });
 
       User.hasOne(Task, {foreignKey: 'userCoolIdTag'});
 
-      User.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          User.create({userCoolIdTag: 1, username: 'foo'}).success(function(user) {
-            Task.create({taskOrSomething: 1, title: 'bar'}).success(function(task) {
-              user.setTaskXYZZ(task).success(function() {
-                user.getTaskXYZZ().success(function(task) {
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({userCoolIdTag: 1, username: 'foo'}).then(function(user) {
+            return Task.create({taskOrSomething: 1, title: 'bar'}).then(function(task) {
+              return user.setTaskXYZZ(task).then(function() {
+                return user.getTaskXYZZ().then(function(task) {
                   expect(task).not.to.be.null;
 
-                  user.setTaskXYZZ(null).success(function() {
-                    user.getTaskXYZZ().success(function(_task) {
+                  return user.setTaskXYZZ(null).then(function() {
+                    return user.getTaskXYZZ().then(function(_task) {
                       expect(_task).to.be.null;
-                      done();
                     });
                   });
                 });
@@ -162,27 +156,25 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
-    it('clears the association if null is passed', function(done) {
+    it('clears the association if null is passed', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING });
 
       User.hasOne(Task);
 
-      User.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Task.create({ title: 'task' }).success(function(task) {
-              user.setTaskXYZ(task).success(function() {
-                user.getTaskXYZ().success(function(task) {
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return Task.create({ title: 'task' }).then(function(task) {
+              return user.setTaskXYZ(task).then(function() {
+                return user.getTaskXYZ().then(function(task) {
                   expect(task).not.to.equal(null);
 
-                  user.setTaskXYZ(null).success(function() {
-                    user.getTaskXYZ().success(function(task) {
+                  return user.setTaskXYZ(null).then(function() {
+                    return user.getTaskXYZ().then(function(task) {
                       expect(task).to.equal(null);
-                      done();
                     });
                   });
-
                 });
               });
             });
@@ -212,20 +204,18 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   });
 
   describe('createAssociation', function() {
-    it('creates an associated model instance', function(done) {
+    it('creates an associated model instance', function() {
       var User = this.sequelize.define('User', { username: Sequelize.STRING })
         , Task = this.sequelize.define('Task', { title: Sequelize.STRING });
 
       User.hasOne(Task);
 
-      this.sequelize.sync({ force: true }).success(function() {
-        User.create({ username: 'bob' }).success(function(user) {
-          user.createTask({ title: 'task' }).success(function() {
-            user.getTask().success(function(task) {
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'bob' }).then(function(user) {
+          return user.createTask({ title: 'task' }).then(function() {
+            return user.getTask().then(function(task) {
               expect(task).not.to.be.null;
               expect(task.title).to.equal('task');
-
-              done();
             });
           });
         });
@@ -233,24 +223,24 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function(done) {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+      it('supports transactions', function() {
+        return Support.prepareTransactionTest(this.sequelize).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Sequelize.STRING });
 
           User.hasOne(Group);
 
-          sequelize.sync({ force: true }).success(function() {
-            User.create({ username: 'bob' }).success(function(user) {
-              sequelize.transaction().then(function(t) {
-                user.createGroup({ name: 'testgroup' }, { transaction: t }).success(function() {
-                  User.all().success(function(users) {
-                    users[0].getGroup().success(function(group) {
+          return sequelize.sync({ force: true }).then(function() {
+            return User.create({ username: 'bob' }).then(function(user) {
+              return sequelize.transaction().then(function(t) {
+                return user.createGroup({ name: 'testgroup' }, { transaction: t }).then(function() {
+                  return User.all().then(function(users) {
+                    return users[0].getGroup().then(function(group) {
                       expect(group).to.be.null;
-                      User.all({ transaction: t }).success(function(users) {
-                        users[0].getGroup({ transaction: t }).success(function(group) {
+                      return User.all({ transaction: t }).then(function(users) {
+                        return users[0].getGroup({ transaction: t }).then(function(group) {
                           expect(group).to.be.not.null;
-                          t.rollback().success(function() { done(); });
+                          return t.rollback();
                         });
                       });
                     });
@@ -324,21 +314,20 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   });
 
   describe('foreign key constraints', function() {
-    it('are enabled by default', function(done) {
+    it('are enabled by default', function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
       User.hasOne(Task); // defaults to set NULL
 
-      User.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
-                user.destroy().success(function() {
-                  task.reload().success(function() {
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return Task.create({ title: 'task' }).then(function(task) {
+              return user.setTask(task).then(function() {
+                return user.destroy().then(function() {
+                  return task.reload().then(function() {
                     expect(task.UserId).to.equal(null);
-                    done();
                   });
                 });
               });
@@ -348,21 +337,20 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
-    it('should be possible to disable them', function(done) {
+    it('should be possible to disable them', function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
       User.hasOne(Task, { constraints: false });
 
-      User.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
-                user.destroy().success(function() {
-                  task.reload().success(function() {
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return Task.create({ title: 'task' }).then(function(task) {
+              return user.setTask(task).then(function() {
+                return user.destroy().then(function() {
+                  return task.reload().then(function() {
                     expect(task.UserId).to.equal(user.id);
-                    done();
                   });
                 });
               });
@@ -372,21 +360,20 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
-    it('can cascade deletes', function(done) {
+    it('can cascade deletes', function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
       User.hasOne(Task, {onDelete: 'cascade'});
 
-      User.sync({ force: true }).success(function() {
-        Task.sync({ force: true }).success(function() {
-          User.create({ username: 'foo' }).success(function(user) {
-            Task.create({ title: 'task' }).success(function(task) {
-              user.setTask(task).success(function() {
-                user.destroy().success(function() {
-                  Task.findAll().success(function(tasks) {
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return Task.create({ title: 'task' }).then(function(task) {
+              return user.setTask(task).then(function() {
+                return user.destroy().then(function() {
+                  return Task.findAll().then(function(tasks) {
                     expect(tasks).to.have.length(0);
-                    done();
                   });
                 });
               });
@@ -398,29 +385,27 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
     // NOTE: mssql does not support changing an autoincrement primary key
     if (Support.getTestDialect() !== 'mssql') {
-      it('can cascade updates', function(done) {
+      it('can cascade updates', function() {
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
         User.hasOne(Task, {onUpdate: 'cascade'});
 
-        User.sync({ force: true }).success(function() {
-          Task.sync({ force: true }).success(function() {
-            User.create({ username: 'foo' }).success(function(user) {
-              Task.create({ title: 'task' }).success(function(task) {
-                user.setTask(task).success(function() {
+        return User.sync({ force: true }).then(function() {
+          return Task.sync({ force: true }).then(function() {
+            return User.create({ username: 'foo' }).then(function(user) {
+              return Task.create({ title: 'task' }).then(function(task) {
+                return user.setTask(task).then(function() {
 
                   // Changing the id of a DAO requires a little dance since
                   // the `UPDATE` query generated by `save()` uses `id` in the
                   // `WHERE` clause
 
                   var tableName = user.QueryInterface.QueryGenerator.addSchema(user.Model);
-                  user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-                  .success(function() {
-                    Task.findAll().success(function(tasks) {
+                  return user.QueryInterface.update(user, tableName, {id: 999}, user.id).then(function() {
+                    return Task.findAll().then(function(tasks) {
                       expect(tasks).to.have.length(1);
                       expect(tasks[0].UserId).to.equal(999);
-                      done();
                     });
                   });
                 });
@@ -433,23 +418,21 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
     if (current.dialect.supports.constraints.restrict) {
 
-      it('can restrict deletes', function(done) {
+      it('can restrict deletes', function() {
         var self = this;
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
         User.hasOne(Task, {onDelete: 'restrict'});
 
-        User.sync({ force: true }).success(function() {
-          Task.sync({ force: true }).success(function() {
-            User.create({ username: 'foo' }).success(function(user) {
-              Task.create({ title: 'task' }).success(function(task) {
-                user.setTask(task).success(function() {
-                  user.destroy().catch (self.sequelize.ForeignKeyConstraintError, function() {
-                    // Should fail due to FK restriction
-                    Task.findAll().success(function(tasks) {
+        return User.sync({ force: true }).then(function() {
+          return Task.sync({ force: true }).then(function() {
+            return User.create({ username: 'foo' }).then(function(user) {
+              return Task.create({ title: 'task' }).then(function(task) {
+                return user.setTask(task).then(function() {
+                  return expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(function () {
+                    return Task.findAll().then(function(tasks) {
                       expect(tasks).to.have.length(1);
-                      done();
                     });
                   });
                 });
@@ -459,30 +442,30 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         });
       });
 
-      it('can restrict updates', function(done) {
+      it('can restrict updates', function() {
         var self = this;
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
         User.hasOne(Task, {onUpdate: 'restrict'});
 
-        User.sync({ force: true }).success(function() {
-          Task.sync({ force: true }).success(function() {
-            User.create({ username: 'foo' }).success(function(user) {
-              Task.create({ title: 'task' }).success(function(task) {
-                user.setTask(task).success(function() {
+        return User.sync({ force: true }).then(function() {
+          return Task.sync({ force: true }).then(function() {
+            return User.create({ username: 'foo' }).then(function(user) {
+              return Task.create({ title: 'task' }).then(function(task) {
+                return user.setTask(task).then(function() {
 
                   // Changing the id of a DAO requires a little dance since
                   // the `UPDATE` query generated by `save()` uses `id` in the
                   // `WHERE` clause
 
                   var tableName = user.QueryInterface.QueryGenerator.addSchema(user.Model);
-                  user.QueryInterface.update(user, tableName, {id: 999}, user.id)
-                  .catch (self.sequelize.ForeignKeyConstraintError, function() {
+                  return expect(
+                    user.QueryInterface.update(user, tableName, {id: 999}, user.id)
+                  ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(function () {
                     // Should fail due to FK restriction
-                    Task.findAll().success(function(tasks) {
+                    return Task.findAll().then(function(tasks) {
                       expect(tasks).to.have.length(1);
-                      done();
                     });
                   });
                 });
@@ -521,25 +504,20 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   });
 
   describe('Association options', function() {
-    it('can specify data type for autogenerated relational keys', function(done) {
+    it('can specify data type for autogenerated relational keys', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
         , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT, Sequelize.STRING]
         , self = this
         , Tasks = {};
 
-      dataTypes.forEach(function(dataType) {
+      return Promise.map(dataTypes, function(dataType) {
         var tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING });
 
         User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
 
-        Tasks[dataType].sync({ force: true }).success(function() {
+        return Tasks[dataType].sync({ force: true }).then(function() {
           expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
-
-          dataTypes.splice(dataTypes.indexOf(dataType), 1);
-          if (!dataTypes.length) {
-            done();
-          }
         });
       });
     });
