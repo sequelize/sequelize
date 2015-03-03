@@ -643,6 +643,36 @@ if (dialect.match(/^postgres/)) {
           .error(console.log);
       });
 
+      it('should read hstore correctly from included models as well', function() {
+        var self = this,
+          HstoreSubmodel = self.sequelize.define('hstoreSubmodel', {
+            someValue: DataTypes.HSTORE
+          }),
+          submodelValue = { testing: '"hstore"' };
+
+        self.User.hasMany(HstoreSubmodel);
+
+        return self.sequelize
+          .sync({ force: true })
+          .then(function() {
+            return self.User.create({ username: 'user1' })
+              .then(function (user) {
+                return HstoreSubmodel.create({ someValue: submodelValue})
+                  .then(function (submodel) {
+                    return user.setHstoreSubmodels([submodel]);
+                  });
+              });
+          })
+          .then(function() {
+            return self.User.find({ where: { username: 'user1' }, include: [HstoreSubmodel]});
+          })
+          .then(function(user) {
+            expect(user.hasOwnProperty('hstoreSubmodels')).to.be.ok;
+            expect(user.hstoreSubmodels.length).to.equal(1);
+            expect(user.hstoreSubmodels[0].someValue).to.deep.equal(submodelValue);
+          });
+      });
+
       it('should save range correctly', function() {
         var period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
         return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
@@ -673,7 +703,7 @@ if (dialect.match(/^postgres/)) {
             [new Date(2015, 8, 1), new Date(2015, 9, 15)]
           ];
 
-        return this.User.create({
+        return User.create({
           username: 'bob',
           email: ['myemail@email.com'],
           holidays: holidays
@@ -698,7 +728,7 @@ if (dialect.match(/^postgres/)) {
         var User = this.User,
             period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
-        return this.User.bulkCreate([{
+        return User.bulkCreate([{
           username: 'bob',
           email: ['myemail@email.com'],
           course_period: period
@@ -714,10 +744,10 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should update range correctly', function() {
-        var self = this,
-            period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
+        var User = this.User
+          , period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
-        return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
+        return User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
           // Check to see if the default value for a range field works
           expect(newUser.acceptable_marks.length).to.equal(2);
           expect(newUser.acceptable_marks[0]).to.equal(0.65); // lower bound
@@ -732,7 +762,7 @@ if (dialect.match(/^postgres/)) {
           period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
 
           // Check to see if updating a range field works
-          return self.User.update({course_period: period}, {where: newUser.identifiers}).then(function() {
+          return User.update({course_period: period}, {where: newUser.identifiers}).then(function() {
             return newUser.reload().success(function() {
               expect(newUser.course_period[0] instanceof Date).to.be.ok;
               expect(newUser.course_period[1] instanceof Date).to.be.ok;
@@ -744,32 +774,39 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
-      it('should update range correctly and return the affected rows', function() {
-        var self = this,
-            period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
+      it('should update range correctly and return the affected rows', function () {
+        var User = this.User
+          , period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
 
-        return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]}).then(function(oldUser) {
-          // Update the user and check that the returned object's fields have been parsed by the range parser
-          return self.User.update({course_period: period}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
-            expect(count).to.equal(1);
-            expect(users[0].course_period[0] instanceof Date).to.be.ok;
-            expect(users[0].course_period[1] instanceof Date).to.be.ok;
-            expect(users[0].course_period[0]).to.equalTime(period[0]); // lower bound
-            expect(users[0].course_period[1]).to.equalTime(period[1]); // upper bound
-            expect(users[0].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
+        return User.create({
+          username:      'user',
+          email:         ['foo@bar.com'],
+          course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]
+        }).then(function (oldUser) {
+            // Update the user and check that the returned object's fields have been parsed by the range parser
+            return User.update({ course_period: period }, { where: oldUser.identifiers, returning: true })
+              .spread(function (count, users) {
+                expect(count).to.equal(1);
+                expect(users[0].course_period[0] instanceof Date).to.be.ok;
+                expect(users[0].course_period[1] instanceof Date).to.be.ok;
+                expect(users[0].course_period[0]).to.equalTime(period[0]); // lower bound
+                expect(users[0].course_period[1]).to.equalTime(period[1]); // upper bound
+                expect(users[0].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
+              });
           });
-        });
       });
 
       it('should read range correctly', function() {
-        var self = this;
+        var User = this.User;
+
         var course_period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
         course_period.inclusive = [false, false];
+
         var data = { username: 'user', email: ['foo@bar.com'], course_period: course_period};
 
-        return this.User.create(data)
+        return User.create(data)
           .then(function() {
-            return self.User.find({ where: { username: 'user' }});
+            return User.find({ where: { username: 'user' }});
           })
           .then(function(user) {
             // Check that the range fields are the same when retrieving the user
@@ -778,7 +815,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should read range array correctly', function() {
-        var self = this,
+        var User = this.User,
             holidays = [
               [new Date(2015, 3, 1, 10), new Date(2015, 3, 15)],
               [new Date(2015, 8, 1), new Date(2015, 9, 15)]
@@ -789,30 +826,30 @@ if (dialect.match(/^postgres/)) {
 
         var data = { username: 'user', email: ['foo@bar.com'], holidays: holidays };
 
-        return this.User.create(data)
+        return User.create(data)
           .then(function() {
             // Check that the range fields are the same when retrieving the user
-            return self.User.find({ where: { username: 'user' }});
+            return User.find({ where: { username: 'user' }});
           }).then(function(user) {
             expect(user.holidays).to.deep.equal(data.holidays);
           });
       });
 
       it('should read range correctly from multiple rows', function() {
-        var self = this,
+        var User = this.User,
             periods = [
               [new Date(2015, 0, 1), new Date(2015, 11, 31)],
               [new Date(2016, 0, 1), new Date(2016, 11, 31)]
             ];
 
-        return self.User
+        return User
           .create({ username: 'user1', email: ['foo@bar.com'], course_period: periods[0]})
           .then(function() {
-            return self.User.create({ username: 'user2', email: ['foo2@bar.com'], course_period: periods[1]});
+            return User.create({ username: 'user2', email: ['foo2@bar.com'], course_period: periods[1]});
           })
           .then(function() {
             // Check that the range fields are the same when retrieving the user
-            return self.User.findAll({ order: 'username' });
+            return User.findAll({ order: 'username' });
           })
           .then(function(users) {
             expect(users[0].course_period[0]).to.equalTime(periods[0][0]); // lower bound
@@ -823,6 +860,39 @@ if (dialect.match(/^postgres/)) {
             expect(users[1].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
           })
           .error(console.log);
+      });
+
+      it('should read range correctly from included models as well', function () {
+        var self = this
+          , period = [new Date(2016, 0, 1), new Date(2016, 11, 31)]
+          , HolidayDate = this.sequelize.define('holidayDate', {
+              period: DataTypes.RANGE(DataTypes.DATE)
+            });
+
+        self.User.hasMany(HolidayDate);
+
+        return self.sequelize
+          .sync({ force: true })
+          .then(function () {
+            return self.User
+              .create({ username: 'user', email: ['foo@bar.com'] })
+              .then(function (user) {
+                return HolidayDate.create({ period: period })
+                  .then(function (holidayDate) {
+                    return user.setHolidayDates([holidayDate]);
+                  });
+              });
+          })
+          .then(function () {
+            return self.User.find({ where: { username: 'user' }, include: [HolidayDate] });
+          })
+          .then(function (user) {
+            expect(user.hasOwnProperty('holidayDates')).to.be.ok;
+            expect(user.holidayDates.length).to.equal(1);
+            expect(user.holidayDates[0].period.length).to.equal(2);
+            expect(user.holidayDates[0].period[0]).to.equalTime(period[0]);
+            expect(user.holidayDates[0].period[1]).to.equalTime(period[1]);
+          });
       });
     });
 

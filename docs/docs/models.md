@@ -579,7 +579,9 @@ Let's assume we have an empty database with a `User` model which has a `username
 User
   .findOrCreate({where: {username: 'sdepold'}, defaults: {job: 'Technical Lead JavaScript'}})
   .spread(function(user, created) {
-    console.log(user.values)
+    console.log(user.get({
+      plain: true
+    }))
     console.log(created)
 
     /*
@@ -603,7 +605,9 @@ User
     User
       .findOrCreate({where: {username: 'fnord'}, defaults: {job: 'something else'}})
       .spread(function(user, created) {
-        console.log(user.values)
+        console.log(user.get({
+          plain: true
+        }))
         console.log(created)
 
         /*
