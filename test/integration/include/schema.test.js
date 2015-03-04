@@ -6,7 +6,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
-  , async = require('async');
+  , async = require('async')
+  , Promise = Sequelize.Promise;
 
 chai.use(datetime);
 chai.config.includeStack = true;
@@ -20,9 +21,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
     this.timeout(30000);
     beforeEach(function() {
       var self = this;
-      this.fixtureA = function(done) {
-        self.sequelize.dropAllSchemas().success(function() {
-          self.sequelize.createSchema('account').success(function() {
+      this.fixtureA = function() {
+        return self.sequelize.dropAllSchemas().then(function() {
+          return self.sequelize.createSchema('account').then(function() {
             var AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'})
               , Company = self.sequelize.define('Company', {
                   name: DataTypes.STRING
@@ -90,58 +91,49 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             GroupMember.belongsTo(Group);
             Group.hasMany(GroupMember, {as: 'Memberships'});
 
-            self.sequelize.sync({force: true}).done(function() {
-              var count = 4
-                , i = -1;
+            return self.sequelize.sync({force: true}).then(function() {
+              return Promise.props({
+                groups: Group.bulkCreate([
+                  {name: 'Developers'},
+                  {name: 'Designers'},
+                  {name: 'Managers'}
+                ]).then(function() {
+                  return Group.findAll();
+                }),
+                companies: Company.bulkCreate([
+                  {name: 'Sequelize'},
+                  {name: 'Coca Cola'},
+                  {name: 'Bonanza'},
+                  {name: 'NYSE'},
+                  {name: 'Coshopr'}
+                ]).then(function() {
+                  return Company.findAll();
+                }),
+                ranks: Rank.bulkCreate([
+                  {name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1},
+                  {name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1},
+                  {name: 'Member', canInvite: 1, canRemove: 0, canPost: 0}
+                ]).then(function() {
+                  return Rank.findAll();
+                }),
+                tags: Tag.bulkCreate([
+                  {name: 'A'},
+                  {name: 'B'},
+                  {name: 'C'},
+                  {name: 'D'},
+                  {name: 'E'}
+                ]).then(function() {
+                  return Tag.findAll();
+                })
+              }).then(function (results) {
+                var count = 4
+                  , i = -1
+                  , groups = results.groups
+                  , ranks = results.ranks
+                  , tags = results.tags
+                  , companies = results.companies;
 
-              async.auto({
-                groups: function(callback) {
-                  Group.bulkCreate([
-                    {name: 'Developers'},
-                    {name: 'Designers'},
-                    {name: 'Managers'}
-                  ]).done(function() {
-                    Group.findAll().done(callback);
-                  });
-                },
-                companies: function(callback) {
-                  Company.bulkCreate([
-                    {name: 'Sequelize'},
-                    {name: 'Coca Cola'},
-                    {name: 'Bonanza'},
-                    {name: 'NYSE'},
-                    {name: 'Coshopr'}
-                  ]).done(function(err) {
-                    if (err) return callback(err);
-                    Company.findAll().done(callback);
-                  });
-                },
-                ranks: function(callback) {
-                  Rank.bulkCreate([
-                    {name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1},
-                    {name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1},
-                    {name: 'Member', canInvite: 1, canRemove: 0, canPost: 0}
-                  ]).done(function() {
-                    Rank.findAll().done(callback);
-                  });
-                },
-                tags: function(callback) {
-                  Tag.bulkCreate([
-                    {name: 'A'},
-                    {name: 'B'},
-                    {name: 'C'},
-                    {name: 'D'},
-                    {name: 'E'}
-                  ]).done(function() {
-                    Tag.findAll().done(callback);
-                  });
-                },
-                loop: ['groups', 'ranks', 'tags', 'companies', function(done, results) {
-                  var groups = results.groups
-                    , ranks = results.ranks
-                    , tags = results.tags
-                    , companies = results.companies;
-
+                return new Promise(function (resolve, reject) {
                   async.whilst(
                     function() { return i < count; },
                     function(callback) {
@@ -229,13 +221,13 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                       }, callback);
                     },
                     function(err) {
-                      expect(err).not.to.be.ok;
-                      done();
+                      if (err) return reject(err);
+                      resolve();
                     }
                   );
-                }]
-              }, done.bind(this));
-            }).error(done);
+                });
+              });
+            });
           });
         });
       };
@@ -1339,7 +1331,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       });
     });
 
-    it('should be possible to use limit and a where with a belongsTo include', function(done) {
+    it('should be possible to use limit and a where with a belongsTo include', function() {
       var User = this.sequelize.define('User', {}, {schema: 'account'})
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
@@ -1347,54 +1339,45 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
 
       User.belongsTo(Group);
 
-      this.sequelize.sync({force: true}).done(function() {
-        async.auto({
-          groups: function(callback) {
-            Group.bulkCreate([
-              {name: 'A'},
-              {name: 'B'}
-            ]).done(function() {
-              Group.findAll().done(callback);
-            });
-          },
-          users: function(callback) {
-            User.bulkCreate([{}, {}, {}, {}]).done(function() {
-              User.findAll().done(callback);
-            });
-          },
-          userGroups: ['users', 'groups', function(callback, results) {
-            var chainer = new Sequelize.Utils.QueryChainer();
-            chainer.add(results.users[0].setGroup(results.groups[0]));
-            chainer.add(results.users[1].setGroup(results.groups[0]));
-            chainer.add(results.users[2].setGroup(results.groups[0]));
-            chainer.add(results.users[3].setGroup(results.groups[1]));
-            chainer.run().done(callback);
-          }]
-        }, function(err) {
-          expect(err).not.to.be.ok;
-
-          User.findAll({
+      return this.sequelize.sync({force: true}).then(function() {
+        return Promise.props({
+          groups: Group.bulkCreate([
+            {name: 'A'},
+            {name: 'B'}
+          ]).then(function() {
+            return Group.findAll();
+          }),
+          users: User.bulkCreate([{}, {}, {}, {}]).then(function() {
+            return User.findAll();
+          })
+        }).then(function (results) {
+          return Promise.join(
+            results.users[1].setGroup(results.groups[0]),
+            results.users[2].setGroup(results.groups[0]),
+            results.users[3].setGroup(results.groups[1]),
+            results.users[0].setGroup(results.groups[0])
+          );
+        }).then(function () {
+          return User.findAll({
             include: [
               {model: Group, where: {name: 'A'}}
             ],
             limit: 2
-          }).done(function(err, users) {
-            expect(err).not.to.be.ok;
+          }).then(function(users) {
             expect(users.length).to.equal(2);
 
             users.forEach(function(user) {
               expect(user.Group.name).to.equal('A');
             });
-            done();
           });
         });
       });
     });
 
-    it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', function(done) {
+    it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', function() {
       var self = this;
-      this.fixtureA(function() {
-        self.models.Product.findAll({
+      return this.fixtureA().then(function () {
+        return self.models.Product.findAll({
           attributes: ['title'],
           include: [
             {model: self.models.Company, where: {name: 'NYSE'}},
@@ -1405,8 +1388,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           order: [
             ['id', 'ASC']
           ]
-        }).done(function(err, products) {
-          expect(err).not.to.be.ok;
+        }).then(function(products) {
           expect(products.length).to.equal(3);
 
           products.forEach(function(product) {
@@ -1414,15 +1396,14 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             expect(product.Tags.length).to.be.ok;
             expect(product.Prices.length).to.be.ok;
           });
-          done();
         });
       });
     });
 
-    it('should be possible to use limit and a where on a hasMany with additional includes', function(done) {
+    it('should be possible to use limit and a where on a hasMany with additional includes', function() {
       var self = this;
-      this.fixtureA(function() {
-        self.models.Product.findAll({
+      return this.fixtureA().then(function () {
+        return self.models.Product.findAll({
           include: [
             {model: self.models.Company},
             {model: self.models.Tag},
@@ -1434,8 +1415,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           order: [
             ['id', 'ASC']
           ]
-        }).done(function(err, products) {
-          expect(err).not.to.be.ok;
+        }).then(function(products) {
           expect(products.length).to.equal(6);
 
           products.forEach(function(product) {
@@ -1446,15 +1426,14 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
               expect(price.value).to.be.above(5);
             });
           });
-          done();
         });
       });
     });
 
-    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', function(done) {
+    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', function() {
       var self = this;
-      this.fixtureA(function() {
-        self.models.Product.findAll({
+      return this.fixtureA().then(function () {
+        return self.models.Product.findAll({
           include: [
             {model: self.models.Company},
             {model: self.models.Tag, where: {name: ['A', 'B', 'C']}},
@@ -1464,8 +1443,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           order: [
             ['id', 'ASC']
           ]
-        }).done(function(err, products) {
-          expect(err).not.to.be.ok;
+        }).then(function(products) {
           expect(products.length).to.equal(10);
 
           products.forEach(function(product) {
@@ -1476,12 +1454,11 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
               expect(['A', 'B', 'C']).to.include(tag.name);
             });
           });
-          done();
         });
       });
     });
 
-    it.skip('should support including date fields, with the correct timeszone', function(done) {
+    it.skip('should support including date fields, with the correct timeszone', function() {
       var User = this.sequelize.define('user', {
             dateField: Sequelize.DATE
           }, {timestamps: false, schema: 'account'})
@@ -1492,20 +1469,18 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       User.hasMany(Group);
       Group.hasMany(User);
 
-      this.sequelize.sync().success(function() {
-        User.create({ dateField: Date.UTC(2014, 1, 20) }).success(function(user) {
-          Group.create({ dateField: Date.UTC(2014, 1, 20) }).success(function(group) {
-            user.addGroup(group).success(function() {
-              User.findAll({
+      return this.sequelize.sync().then(function() {
+        return User.create({ dateField: Date.UTC(2014, 1, 20) }).then(function(user) {
+          return Group.create({ dateField: Date.UTC(2014, 1, 20) }).then(function(group) {
+            return user.addGroup(group).then(function() {
+              return User.findAll({
                 where: {
                   id: user.id
                 },
                 include: [Group]
-              }).success(function(users) {
+              }).then(function(users) {
                 expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
                 expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-
-                done();
               });
             });
           });
@@ -1583,8 +1558,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
               model: ResumeModel,
               as: 'Resume'
             }]
-          }).on('sql', function(sql) {
-            console.log(sql);
           });
         });
       });
