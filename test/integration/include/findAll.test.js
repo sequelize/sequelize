@@ -1341,7 +1341,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             , ranks = results.ranks
             , tags = results.tags;
 
-          return Promise.map([0, 1, 2, 3, 4], function (i) {
+          return Promise.reduce([0, 1, 2, 3, 4], function (memo, i) {
             return Promise.props({
               user: User.create({name: 'FooBarzz'}),
               products: Product.bulkCreate([
@@ -1380,7 +1380,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 ])
               );
             });
-          }, {concurrency: 1});
+          }, []);
         }).then(function () {
           return User.findAll({
             include: [
