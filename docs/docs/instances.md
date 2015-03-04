@@ -176,10 +176,12 @@ Task.bulkCreate([
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
 ]).then(function() {
-  Task.destroy(
-    { where: {subject: 'programming'}} /* where criteria */,
-    {truncate: true /* truncate the whole table, ignoring where criteria */} /* options */
-  ).then(function(affectedRows) {
+  Task.destroy({ 
+    where: {
+      subject: 'programming'
+    },
+    truncate: true /* this will ignore where and truncate the table instead */
+  }).then(function(affectedRows) {
     // affectedRows will be 2
     Task.findAll().then(function(tasks) {
       console.log(tasks) // no programming, just reading :(
