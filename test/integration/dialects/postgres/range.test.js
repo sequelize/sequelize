@@ -60,8 +60,8 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle date values', function () {
-        expect(range.stringify([new Date(2000, 1, 1),
-                                new Date(2000, 1, 2)])).to.equal('("2000-02-01T00:00:00.000Z","2000-02-02T00:00:00.000Z")');
+        expect(range.stringify([new Date(Date.UTC(2000, 1, 1)),
+                                new Date(Date.UTC(2000, 1, 2))])).to.equal('("2000-02-01T00:00:00.000Z","2000-02-02T00:00:00.000Z")');
       });
     });
 
