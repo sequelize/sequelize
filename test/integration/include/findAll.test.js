@@ -562,7 +562,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       F.belongsTo(G);
       G.belongsTo(H);
 
-      return this.sequelize.sync().then(function() {
+      return this.sequelize.sync({force: true}).then(function() {
         return Promise.join(
           A.bulkCreate([
             {},
@@ -602,7 +602,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             return promise;
           })([B, C, D, E, F, G, H])
         ).spread(function (as, b) {
-          return as.map(function (a) {
+          return Promise.map(as, function (a) {
             return a.setB(b);
           });
         }).then(function () {
@@ -655,7 +655,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       F.belongsTo(G);
       G.belongsTo(H);
 
-      return this.sequelize.sync().then(function() {
+      return this.sequelize.sync({force: true}).then(function() {
         return Promise.join(
           A.bulkCreate([
             {},
@@ -701,7 +701,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             return promise;
           })([B, C, D, E, F, G, H])
         ).spread(function (as, b) {
-          return as.map(function (a) {
+          return Promise.map(as, function (a) {
             return a.setB(b);
           });
         }).then(function () {
