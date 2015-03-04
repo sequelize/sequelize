@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        Support.prepareTransactionTest(this.sequelize).then(function (sequelize) {
+        return Support.prepareTransactionTest(this.sequelize).then(function (sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
@@ -151,7 +151,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        Support.prepareTransactionTest(this.sequelize).then(function (sequelize) {
+        return Support.prepareTransactionTest(this.sequelize).then(function (sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 

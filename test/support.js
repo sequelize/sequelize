@@ -113,13 +113,7 @@ var Support = {
 
         return sequelize
           .getQueryInterface()
-          .dropAllEnums()
-          .catch (function(err) {
-            console.log('Error in support.clearDatabase() dropAllEnums() :: ', err);
-          });
-      })
-      .catch (function(err) {
-        console.log('Error in support.clearDatabase() dropAllTables() :: ', err);
+          .dropAllEnums();
       });
   },
 
