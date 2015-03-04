@@ -129,7 +129,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('deleted', {
         $not: null
       }, {
-        default: "[deleted] NOT NULL"
+        default: "[deleted] IS NOT NULL"
       });
 
       testsql('muscles', {
