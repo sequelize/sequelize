@@ -1380,7 +1380,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 ])
               );
             });
-          });
+          }, {concurrency: 1});
         }).then(function () {
           return User.findAll({
             include: [
