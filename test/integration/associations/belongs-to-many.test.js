@@ -311,12 +311,104 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         ).spread(function (user, group) {
           return user.addGroup(group);
         }).then(function () {
-          return User.findOne({
-            where: {},
-            include: Group
-          }).then(function (user) {
-            return user;
-          });
+          return Promise.join(
+            User.findOne({
+              where: {},
+              include: [Group],
+              logging: console.log
+            }),
+            User.findAll({
+              include: [Group],
+              logging: console.log
+            })
+          );
+        });
+      });
+    });
+
+    it('supports primary key attributes with different field names where parent include is required', function () {
+      var User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'user_id'
+        }
+      }, {
+        tableName: 'tbl_user'
+      });
+
+      var Company = this.sequelize.define('Company', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'company_id'
+        }
+      }, {
+        tableName: 'tbl_company'
+      });
+
+      var Group = this.sequelize.define('Group', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'group_id'
+        }
+      }, {
+        tableName: 'tbl_group'
+      });
+
+      var Company_has_Group = this.sequelize.define('Company_has_Group', {
+
+      }, {
+        tableName: 'tbl_company_has_group'
+      });
+
+      User.belongsTo(Company);
+      Company.hasMany(User);
+      Company.belongsToMany(Group, {through: Company_has_Group});
+      Group.belongsToMany(Company, {through: Company_has_Group});
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          User.create(),
+          Group.create(),
+          Company.create()
+        ).spread(function (user, group, company) {
+          return Promise.join(
+            user.setCompany(company),
+            company.addGroup(group)
+          );
+        }).then(function () {
+          return Promise.join(
+            User.findOne({
+              where: {},
+              include: [
+                {model: Company, include: [Group]}
+              ]
+            }),
+            User.findAll({
+              include: [
+                {model: Company, include: [Group]}
+              ]
+            }),
+            User.findOne({
+              where: {},
+              include: [
+                {model: Company, required: true, include: [Group]}
+              ]
+            }),
+            User.findAll({
+              include: [
+                {model: Company, required: true, include: [Group]}
+              ]
+            })
+          );
         });
       });
     });
