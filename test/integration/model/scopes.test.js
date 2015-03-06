@@ -107,7 +107,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      return this.sequelize.sync({force: true}).then(function() {
+      this.Related = this.sequelize.define('Related', {
+        username: Sequelize.STRING
+      });
+
+      this.ScopeMe.hasMany(this.Related);
+      this.Related.belongsTo(this.ScopeMe);
+
+      return this.sequelize.sync({force: true}).bind(this).then(function() {
         var records = [
           {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10, parent_id: 1},
           {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, parent_id: 2},
@@ -115,7 +122,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7, parent_id: 1}
         ];
         return this.ScopeMe.bulkCreate(records);
-      }.bind(this));
+      }).then(function(records) {
+        var related = this.Related.build({username: 'dan'});
+        related.setScopeMe(records[0]);
+        return related.save();
+      });
     });
 
     it('should be able use where in scope', function() {
@@ -339,6 +350,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it("should emit an error for scopes that don't exist with silent: false", function() {
       expect(this.ScopeMe.scope.bind(this.ScopeMe, 'doesntexist', {silent: false})).to.throw('Invalid scope doesntexist called.');
+    });
+
+    it("should work when using find and including a relation", function() {
+      return this.ScopeMe.find({
+        where: { id: 1 },
+        include: this.Related
+      });
     });
   });
 });
