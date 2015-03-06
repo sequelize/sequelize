@@ -158,7 +158,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $ne: 'jack.bauer@gmail.com'
       }, {
         default: "[email] != 'jack.bauer@gmail.com'"
-      })
+      });
     });
 
     suite('$and/$or', function () {
