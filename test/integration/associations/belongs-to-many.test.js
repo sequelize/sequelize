@@ -314,12 +314,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           return Promise.join(
             User.findOne({
               where: {},
-              include: [Group],
-              logging: console.log
+              include: [Group]
             }),
             User.findAll({
-              include: [Group],
-              logging: console.log
+              include: [Group]
             })
           );
         });
