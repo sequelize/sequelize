@@ -37,7 +37,7 @@ var User = this.sequelize.define('User', {/* attributes */}, {underscored: true}
 User.belongsTo(Company); // Will add company_uuid to user
 ```
 
-In cases wherè `as` has been defined it will be used in place of the target model nane.
+In cases where `as` has been defined it will be used in place of the target model nane.
 
 ```js
 var User = this.sequelize.define('User', {/* attributes */})
@@ -175,7 +175,7 @@ To add a new project to a user and set it's status, you pass an extra object to 
 user.addProject(project, { status: 'started' })
 ```
 
-By default the code above will add ProjectId and UserId to the UserProjects table, and_remove any previsouly defined primary key attribute _- the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
+By default the code above will add ProjectId and UserId to the UserProjects table, and _remove any previsouly defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
     
 ```js
 UserProjects = sequelize.define('UserProjects', {
