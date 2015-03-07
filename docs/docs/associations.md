@@ -37,7 +37,7 @@ var User = this.sequelize.define('User', {/* attributes */}, {underscored: true}
 User.belongsTo(Company); // Will add company_uuid to user
 ```
 
-In cases wherè `as` has been defined it will be used in place of the target model nane.
+In cases where `as` has been defined it will be used in place of the target model nane.
 
 ```js
 var User = this.sequelize.define('User', {/* attributes */})
