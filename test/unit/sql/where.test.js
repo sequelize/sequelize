@@ -106,6 +106,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, {
         default: '[muscles] IN (2, 4)'
       });
+
+      testsql('equipment', {
+        $in: current.literal('(1, 2)')
+      }, {
+        default: '[equipment] IN (1, 2)'
+      });
     });
 
     suite('Buffer', function () {
@@ -150,6 +156,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $notIn: [4, 19]
       }, {
         default: '[equipment] NOT IN (4, 19)'
+      });
+
+      testsql('equipment', {
+        $notIn: current.literal('(1, 2)')
+      }, {
+        default: '[equipment] NOT IN (1, 2)'
       });
     });
 
