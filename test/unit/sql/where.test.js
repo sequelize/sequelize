@@ -108,9 +108,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
 
       testsql('equipment', {
-        $in: current.literal('(1, 2)')
+        $in: current.literal(
+          '(select order_id from product_orders where product_id = 3)'
+        )
       }, {
-        default: '[equipment] IN (1, 2)'
+        default: '[equipment] IN (select order_id from product_orders where product_id = 3)'
       });
     });
 
@@ -159,9 +161,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
 
       testsql('equipment', {
-        $notIn: current.literal('(1, 2)')
+        $notIn: current.literal(
+          '(select order_id from product_orders where product_id = 3)'
+        )
       }, {
-        default: '[equipment] NOT IN (1, 2)'
+        default: '[equipment] NOT IN (select order_id from product_orders where product_id = 3)'
       });
     });
 
