@@ -89,7 +89,7 @@ task.updateAttributes({
 }).then(function() {})
 ```
 
-It's also possible to define which attributes should be saved when calling`save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `updateAttributes`&period; This is how it looks like&colon;
+It's also possible to define which attributes should be saved when calling `save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `updateAttributes`&period; This is how it looks like&colon;
     
 ```js
 task.title = 'foooo'
