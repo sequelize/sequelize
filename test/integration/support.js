@@ -20,7 +20,12 @@ before(function() {
 });
 
 beforeEach(function() {
+  this.sequelize.test.trackRunningQueries();
   return Support.clearDatabase(this.sequelize);
+});
+
+afterEach(function () {
+  this.sequelize.test.verifyNoRunningQueries();
 });
 
 module.exports = Support;
