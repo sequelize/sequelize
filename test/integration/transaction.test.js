@@ -121,8 +121,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
 
    if (current.dialect.supports.lock) {
     describe('row locking', function () {
-      this.timeout(10000);
-      it('supports for update', function(done) {
+      it('supports for update', function() {
         var User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN
@@ -131,10 +130,10 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
           , t1Spy = sinon.spy()
           , t2Spy = sinon.spy();
 
-        this.sequelize.sync({ force: true }).then(function() {
+        return this.sequelize.sync({ force: true }).then(function() {
           return User.create({ username: 'jan'});
         }).then(function() {
-          self.sequelize.transaction().then(function(t1) {
+          return self.sequelize.transaction().then(function(t1) {
             return User.find({
               where: {
                 username: 'jan'
@@ -143,37 +142,40 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
               lock: t1.LOCK.UPDATE,
               transaction: t1
             }).then(function(t1Jan) {
-              self.sequelize.transaction({
+              return self.sequelize.transaction({
                 isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
               }).then(function(t2) {
-                User.find({
-                  where: {
-                    username: 'jan'
-                  }
-                }, {
-                  lock: t2.LOCK.UPDATE,
-                  transaction: t2
-                }).then(function() {
-                  t2Spy();
-                  t2.commit().then(function() {
-                    expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has comitted
-                    done();
-                  });
-                });
+                return Promise.join(
+                  User.find({
+                    where: {
+                      username: 'jan'
+                    }
+                  }, {
+                    lock: t2.LOCK.UPDATE,
+                    transaction: t2
+                  }).then(function() {
+                    t2Spy();
+                    return t2.commit().then(function() {
+                      expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has comitted
+                    });
+                  }),
 
-                t1Jan.updateAttributes({
-                  awesome: true
-                }, { transaction: t1}).then(function() {
-                  t1Spy();
-                  setTimeout(t1.commit.bind(t1), 2000);
-                });
+                  t1Jan.updateAttributes({
+                    awesome: true
+                  }, { transaction: t1}).then(function() {
+                    t1Spy();
+                    Promise.delay(2000).then(function () {
+                      return t1.commit();
+                    });
+                  })
+                );
               });
             });
           });
         });
       });
 
-      it('supports for share', function(done) {
+      it('supports for share', function() {
         var User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN
@@ -183,10 +185,10 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
           , t2FindSpy = sinon.spy()
           , t2UpdateSpy = sinon.spy();
 
-        this.sequelize.sync({ force: true }).then(function() {
+        return this.sequelize.sync({ force: true }).then(function() {
           return User.create({ username: 'jan'});
         }).then(function() {
-          self.sequelize.transaction().then(function(t1) {
+          return self.sequelize.transaction().then(function(t1) {
             return User.find({
               where: {
                 username: 'jan'
@@ -195,40 +197,41 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
               lock: t1.LOCK.SHARE,
               transaction: t1
             }).then(function(t1Jan) {
-              self.sequelize.transaction({
+              return self.sequelize.transaction({
                 isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
               }).then(function(t2) {
-                User.find({
-                  where: {
-                    username: 'jan'
-                  }
-                }, { transaction: t2}).then(function(t2Jan) {
-                  t2FindSpy();
+                return Promise.join(
+                  User.find({
+                    where: {
+                      username: 'jan'
+                    }
+                  }, { transaction: t2}).then(function(t2Jan) {
+                    t2FindSpy();
 
-                  t2Jan.updateAttributes({
-                    awesome: false
-                  }, {
-                    transaction: t2
-                  }).then(function() {
-                    t2UpdateSpy();
-                    t2.commit().then(function() {
-                      expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
-                      expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
-                      done();
+                    return t2Jan.updateAttributes({
+                      awesome: false
+                    }, {
+                      transaction: t2
+                    }).then(function() {
+                      t2UpdateSpy();
+                      return t2.commit().then(function() {
+                        expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
+                        expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
+                      });
                     });
-                  });
-                });
+                  }),
 
-                t1Jan.updateAttributes({
-                  awesome: true
-                }, {
-                  transaction: t1
-                }).then(function() {
-                  setTimeout(function() {
-                    t1Spy();
-                    t1.commit();
-                  }, 2000);
-                });
+                  t1Jan.updateAttributes({
+                    awesome: true
+                  }, {
+                    transaction: t1
+                  }).then(function() {
+                    return Promise.delay(2000).then(function () {
+                      t1Spy();
+                      return t1.commit();
+                    });
+                  })
+                );
               });
             });
           });
