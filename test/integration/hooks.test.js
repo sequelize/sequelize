@@ -5558,9 +5558,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, task, minitask) {
                 return this.sequelize.Promise.all([
-                          task.addMiniTask(minitask),
-                          project.addTask(task)
-                        ]).return(project);
+                  task.addMiniTask(minitask),
+                  project.addTask(task)
+                ]).return(project);
               }).then(function(project) {
                 return project.destroy();
               }).then(function() {
@@ -5596,7 +5596,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               this.Tasks.beforeDestroy(function(task, options, fn) {
                 beforeTask = true;
                 fn(new Error('Whoops!'));
-                fn();
               });
 
               this.Tasks.afterDestroy(function(task, options, fn) {
@@ -5606,6 +5605,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
               this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
                 beforeMiniTask = true;
+                fn();
               });
 
               this.MiniTasks.afterDestroy(function(minitask, options, fn) {
@@ -5619,9 +5619,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, task, minitask) {
                 return this.sequelize.Promise.all([
-                          task.addMiniTask(minitask),
-                          project.addTask(task)
-                        ]).return(project);
+                  task.addMiniTask(minitask),
+                  project.addTask(task)
+                ]).return(project);
               }).then(function(project) {
                 return project.destroy();
               }).catch(function() {
