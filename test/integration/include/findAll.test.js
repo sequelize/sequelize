@@ -1253,7 +1253,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             results.products[2].addTag(results.tags[2], {priority: 2})
           );
         }).then(function () {
-          Product.findAll({
+          return Product.findAll({
             include: [
               {model: Tag, where: {name: 'C'}}
             ]
