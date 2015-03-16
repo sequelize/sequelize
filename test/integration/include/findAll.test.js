@@ -1632,8 +1632,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
         return Member.bulkCreate(members).then(function () {
           return Album.bulkCreate(albums).then(function () {
-
-            Member.findAll({
+            return Member.findAll({
               attributes: ['email'],
               include: [
                 {
