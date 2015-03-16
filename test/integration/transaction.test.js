@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                     awesome: true
                   }, { transaction: t1}).then(function() {
                     t1Spy();
-                    Promise.delay(2000).then(function () {
+                    return Promise.delay(2000).then(function () {
                       return t1.commit();
                     });
                   })
