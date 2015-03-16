@@ -114,6 +114,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             .sequelizeWithInvalidConnection
             .authenticate()
             .complete(function(err, result) {
+              console.log(err.message);
               expect(
                 err.message.match(/connect ECONNREFUSED/) ||
                 err.message.match(/invalid port number/) ||
