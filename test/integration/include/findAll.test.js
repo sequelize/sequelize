@@ -1046,7 +1046,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
-            results.groups.map(function (group) {
+            Promise.map(results.groups, function (group) {
               return group.setCategories(results.categories);
             })
           );
@@ -1099,7 +1099,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Promise.join(
             results.users[0].setTeam(results.groups[1]),
             results.users[1].setTeam(results.groups[0]),
-            results.groups.map(function (group) {
+            Promise.map(results.groups, function (group) {
               return group.setTags(results.categories);
             })
           );
@@ -1152,7 +1152,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
-            results.groups.map(function (group) {
+            Promise.map(results.groups, function (group) {
               return group.setCategories(results.categories);
             })
           );
