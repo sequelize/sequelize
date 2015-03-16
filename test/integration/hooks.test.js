@@ -4676,12 +4676,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
               , beforeTask = false
-              , afterTask = false;
+              , afterTask = false
+              , VeryCustomError = function() {};
 
             this.Projects.beforeCreate(function(project, options, fn) {
               beforeProject = true;
@@ -4695,7 +4696,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeDestroy(function(task, options, fn) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              fn(new VeryCustomError('Whoops!'));
             });
 
             this.Tasks.afterDestroy(function(task, options, fn) {
@@ -4703,16 +4704,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.setTask(task).success(function() {
-                  project.destroy().error(function(err) {
-                    expect(err).to.be.instanceOf(Error);
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.setTask(task).then(function() {
+                  return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
                     expect(afterTask).to.be.false;
-                    done();
                   });
                 });
               });
