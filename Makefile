@@ -17,15 +17,15 @@ else
 test:
 	make jshint && make teaser && make test-unit && make test-integration
 	@if [ "$$GREP" ]; then \
-		make jshint && make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		make jshint && make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
-		make jshint && make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
+		make jshint && make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
 	fi
 endif
 
 # Unit tests
 test-unit:
-	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) ./test/unit/*.js ./test/unit/**/*.js
+	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) ./test/unit/*.js ./test/unit/**/*.js
 
 test-unit-all: test-unit-sqlite test-unit-mysql test-unit-postgres test-unit-postgres-native test-unit-mariadb test-unit-mssql
 
@@ -45,9 +45,9 @@ test-unit-postgres-native:
 # Integration tests
 test-integration:
 	@if [ "$$GREP" ]; then \
-		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
-		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 10000 --reporter $(REPORTER) $(TESTS); \
+		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
 	fi
 
 test-integration-all: test-integration-sqlite test-integration-mysql test-integration-postgres test-integration-postgres-native test-integration-mariadb test-integration-mssql
@@ -85,7 +85,7 @@ postgres-native:
 # Coverage
 cover:
 	rm -rf coverage \
-	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 10000 --ui tdd $(TESTS); \
+	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd $(TESTS); \
 
 mariadb-cover:
 	rm -rf coverage

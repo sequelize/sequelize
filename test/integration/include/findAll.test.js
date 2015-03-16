@@ -7,7 +7,8 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
   , async = require('async')
-  , Promise = Sequelize.Promise;
+  , Promise = Sequelize.Promise
+  , _ = require('lodash');
 
 chai.use(datetime);
 chai.config.includeStack = true;
@@ -122,106 +123,79 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               return Tag.findAll();
             })
           }).then(function (results) {
-            var count = 4
-              , i = -1
-              , groups = results.groups
+            var groups = results.groups
               , ranks = results.ranks
               , tags = results.tags
               , companies = results.companies;
 
-            return new Promise(function (resolve, reject) {
-              async.whilst(
-                function() { return i < count; },
-                function(callback) {
-                  i++;
-                  async.auto({
-                    user: function(callback) {
-                      User.create().nodeify(callback);
-                    },
-                    memberships: ['user', function(callback, results) {
-                      var groupMembers = [
-                        {AccUserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                        {AccUserId: results.user.id, GroupId: groups[1].id, RankId: ranks[2].id}
-                      ];
+            return Promise.reduce(_.range(5), function (memo, i) {
+              return Promise.props({
+                user: User.create(),
+                products: Product.bulkCreate([
+                  {title: 'Chair'},
+                  {title: 'Desk'},
+                  {title: 'Bed'},
+                  {title: 'Pen'},
+                  {title: 'Monitor'}
+                ]).then(function(err) {
+                  return Product.findAll();
+                })
+              }).then(function (results) {
+                var user = results.user
+                  , products = results.products
+                  , groupMembers;
 
-                      if (i < 3) {
-                        groupMembers.push({AccUserId: results.user.id, GroupId: groups[2].id, RankId: ranks[1].id});
-                      }
-
-                      GroupMember.bulkCreate(groupMembers).nodeify(callback);
-                    }],
-                    products: function(callback) {
-                      Product.bulkCreate([
-                        {title: 'Chair'},
-                        {title: 'Desk'},
-                        {title: 'Bed'},
-                        {title: 'Pen'},
-                        {title: 'Monitor'}
-                      ]).done(function(err) {
-                        if (err) return callback(err);
-                        Product.findAll().nodeify(callback);
-                      });
-                    },
-                    userProducts: ['user', 'products', function(callback, results) {
-                      results.user.setProducts([
-                        results.products[(i * 5) + 0],
-                        results.products[(i * 5) + 1],
-                        results.products[(i * 5) + 3]
-                      ]).nodeify(callback);
-                    }],
-                    productTags: ['products', function(callback, results) {
-                      var chainer = new Sequelize.Utils.QueryChainer();
-
-                      chainer.add(results.products[(i * 5) + 0].setTags([
-                        tags[0],
-                        tags[2]
-                      ]));
-                      chainer.add(results.products[(i * 5) + 1].setTags([
-                        tags[1]
-                      ]));
-                      chainer.add(results.products[(i * 5) + 0].setCategory(tags[1]));
-
-                      chainer.add(results.products[(i * 5) + 2].setTags([
-                        tags[0]
-                      ]));
-
-                      chainer.add(results.products[(i * 5) + 3].setTags([
-                        tags[0]
-                      ]));
-
-                      chainer.run().done(callback);
-                    }],
-                    companies: ['products', function(callback, results) {
-                      var chainer = new Sequelize.Utils.QueryChainer();
-
-                      results.products[(i * 5) + 0].setCompany(companies[4]);
-                      results.products[(i * 5) + 1].setCompany(companies[3]);
-                      results.products[(i * 5) + 2].setCompany(companies[2]);
-                      results.products[(i * 5) + 3].setCompany(companies[1]);
-                      results.products[(i * 5) + 4].setCompany(companies[0]);
-
-                      chainer.run().done(callback);
-                    }],
-                    prices: ['products', function(callback, results) {
-                      Price.bulkCreate([
-                        {ProductId: results.products[(i * 5) + 0].id, value: 5},
-                        {ProductId: results.products[(i * 5) + 0].id, value: 10},
-                        {ProductId: results.products[(i * 5) + 1].id, value: 5},
-                        {ProductId: results.products[(i * 5) + 1].id, value: 10},
-                        {ProductId: results.products[(i * 5) + 1].id, value: 15},
-                        {ProductId: results.products[(i * 5) + 1].id, value: 20},
-                        {ProductId: results.products[(i * 5) + 2].id, value: 20},
-                        {ProductId: results.products[(i * 5) + 3].id, value: 20}
-                      ]).nodeify(callback);
-                    }]
-                  }, callback);
-                },
-                function(err) {
-                  if (err) return reject(err);
-                  resolve();
+                groupMembers = [
+                  {AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                  {AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id}
+                ];
+                if (i < 3) {
+                  groupMembers.push({AccUserId: user.id, GroupId: groups[2].id, RankId: ranks[1].id});
                 }
-              );
-            });
+
+                return Promise.join(
+                  GroupMember.bulkCreate(groupMembers),
+                  user.setProducts([
+                    products[(i * 5) + 0],
+                    products[(i * 5) + 1],
+                    products[(i * 5) + 3]
+                  ]),
+                  Promise.join(
+                    products[(i * 5) + 0].setTags([
+                      tags[0],
+                      tags[2]
+                    ]),
+                    products[(i * 5) + 1].setTags([
+                      tags[1]
+                    ]),
+                    products[(i * 5) + 0].setCategory(tags[1]),
+                    products[(i * 5) + 2].setTags([
+                      tags[0]
+                    ]),
+                    products[(i * 5) + 3].setTags([
+                      tags[0]
+                    ])
+                  ),
+                  Promise.join(
+                    products[(i * 5) + 0].setCompany(companies[4]),
+                    products[(i * 5) + 1].setCompany(companies[3]),
+                    products[(i * 5) + 2].setCompany(companies[2]),
+                    products[(i * 5) + 3].setCompany(companies[1]),
+                    products[(i * 5) + 4].setCompany(companies[0])
+                  ),
+                  Price.bulkCreate([
+                    {ProductId: products[(i * 5) + 0].id, value: 5},
+                    {ProductId: products[(i * 5) + 0].id, value: 10},
+                    {ProductId: products[(i * 5) + 1].id, value: 5},
+                    {ProductId: products[(i * 5) + 1].id, value: 10},
+                    {ProductId: products[(i * 5) + 1].id, value: 15},
+                    {ProductId: products[(i * 5) + 1].id, value: 20},
+                    {ProductId: products[(i * 5) + 2].id, value: 20},
+                    {ProductId: products[(i * 5) + 3].id, value: 20}
+                  ])
+                );
+              });
+            }, []);
           });
         });
       };
@@ -1046,7 +1020,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
-            results.groups.map(function (group) {
+            Promise.map(results.groups, function (group) {
               return group.setCategories(results.categories);
             })
           );
@@ -1099,7 +1073,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Promise.join(
             results.users[0].setTeam(results.groups[1]),
             results.users[1].setTeam(results.groups[0]),
-            results.groups.map(function (group) {
+            Promise.map(results.groups, function (group) {
               return group.setTags(results.categories);
             })
           );
@@ -1152,7 +1126,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
-            results.groups.map(function (group) {
+            Promise.map(results.groups, function (group) {
               return group.setCategories(results.categories);
             })
           );
@@ -1253,7 +1227,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             results.products[2].addTag(results.tags[2], {priority: 2})
           );
         }).then(function () {
-          Product.findAll({
+          return Product.findAll({
             include: [
               {model: Tag, where: {name: 'C'}}
             ]
@@ -1632,8 +1606,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
         return Member.bulkCreate(members).then(function () {
           return Album.bulkCreate(albums).then(function () {
-
-            Member.findAll({
+            return Member.findAll({
               attributes: ['email'],
               include: [
                 {

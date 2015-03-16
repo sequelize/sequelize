@@ -4676,12 +4676,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
               , beforeTask = false
-              , afterTask = false;
+              , afterTask = false
+              , VeryCustomError = function() {};
 
             this.Projects.beforeCreate(function(project, options, fn) {
               beforeProject = true;
@@ -4695,7 +4696,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeDestroy(function(task, options, fn) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              fn(new VeryCustomError('Whoops!'));
             });
 
             this.Tasks.afterDestroy(function(task, options, fn) {
@@ -4703,16 +4704,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.setTask(task).success(function() {
-                  project.destroy().error(function(err) {
-                    expect(err).to.be.instanceOf(Error);
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.setTask(task).then(function() {
+                  return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
                     expect(afterTask).to.be.false;
-                    done();
                   });
                 });
               });
@@ -5558,9 +5557,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, task, minitask) {
                 return this.sequelize.Promise.all([
-                          task.addMiniTask(minitask),
-                          project.addTask(task)
-                        ]).return(project);
+                  task.addMiniTask(minitask),
+                  project.addTask(task)
+                ]).return(project);
               }).then(function(project) {
                 return project.destroy();
               }).then(function() {
@@ -5580,37 +5579,32 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , beforeTask = false
                 , afterTask = false
                 , beforeMiniTask = false
-                , afterMiniTask = false;
+                , afterMiniTask = false
+                , VeryCustomError = function() {};
 
-
-              this.Projects.beforeCreate(function(project, options, fn) {
+              this.Projects.beforeCreate(function(project, options) {
                 beforeProject = true;
-                fn();
               });
 
-              this.Projects.afterCreate(function(project, options, fn) {
+              this.Projects.afterCreate(function(project, options) {
                 afterProject = true;
-                fn();
               });
 
-              this.Tasks.beforeDestroy(function(task, options, fn) {
+              this.Tasks.beforeDestroy(function(task, options) {
                 beforeTask = true;
-                fn(new Error('Whoops!'));
-                fn();
+                throw new VeryCustomError('Whoops!');
               });
 
-              this.Tasks.afterDestroy(function(task, options, fn) {
+              this.Tasks.afterDestroy(function(task, options) {
                 afterTask = true;
-                fn();
               });
 
-              this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              this.MiniTasks.beforeDestroy(function(minitask, options) {
                 beforeMiniTask = true;
               });
 
-              this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              this.MiniTasks.afterDestroy(function(minitask, options) {
                 afterMiniTask = true;
-                fn();
               });
 
               return this.sequelize.Promise.all([
@@ -5619,18 +5613,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, task, minitask) {
                 return this.sequelize.Promise.all([
-                          task.addMiniTask(minitask),
-                          project.addTask(task)
-                        ]).return(project);
+                  task.addMiniTask(minitask),
+                  project.addTask(task)
+                ]).return(project);
               }).then(function(project) {
-                return project.destroy();
-              }).catch(function() {
-                expect(beforeProject).to.be.true;
-                expect(afterProject).to.be.true;
-                expect(beforeTask).to.be.true;
-                expect(afterTask).to.be.false;
-                expect(beforeMiniTask).to.be.false;
-                expect(afterMiniTask).to.be.false;
+                return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
+                  expect(beforeProject).to.be.true;
+                  expect(afterProject).to.be.true;
+                  expect(beforeTask).to.be.true;
+                  expect(afterTask).to.be.false;
+                  expect(beforeMiniTask).to.be.false;
+                  expect(afterMiniTask).to.be.false;
+                });
               });
             });
           });

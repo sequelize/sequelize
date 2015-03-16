@@ -10,21 +10,33 @@ var chai = require('chai')
 if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
-  this.timeout(4000);
-
-  describe('success', function() {
-    it('gets triggered once a transaction has been successfully committed', function(done) {
-      this
+  describe('then', function() {
+    it('gets triggered once a transaction has been successfully committed', function() {
+      var called = false;
+      return this
         .sequelize
-        .transaction().then(function(t) { t.commit(); })
-        .success(function() { done(); });
+        .transaction().then(function(t) {
+          return t.commit().then(function () {
+            called = 1;
+          });
+        })
+        .then(function() {
+          expect(called).to.be.ok;
+        });
     });
 
-    it('gets triggered once a transaction has been successfully rolled back', function(done) {
-      this
+    it('gets triggered once a transaction has been successfully rolled back', function() {
+      var called = false;
+      return this
         .sequelize
-        .transaction().then(function(t) { t.rollback(); })
-        .success(function() { done(); });
+        .transaction().then(function(t) {
+          return t.rollback().then(function () {
+            called = 1;
+          });
+        })
+        .then(function() {
+          expect(called).to.be.ok;
+        });
     });
 
     if (Support.getTestDialect() !== 'sqlite') {
@@ -71,65 +83,42 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
     }
   });
 
-  describe('error', function() {
-    if (Support.getTestDialect() === 'sqlite') {
-      // not sure if we can test this in sqlite ...
-      // how could we enforce an authentication error in sqlite?
-    } else {
-      it('gets triggered once an error occurs', function(done) {
-
-        // Supply bad config to force an error
-        var sequelize = Support.getSequelizeInstance('this', 'is', 'fake config');
-
-        sequelize
-          .transaction().then(function() {})
-          .catch (function(err) {
-            expect(err).to.not.be.undefined;
-            done();
-          });
-      });
-    }
-  });
-
   describe('complex long running example', function() {
-    it('works with promise syntax', function(done) {
-      Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+    it('works with promise syntax', function() {
+      return Support.prepareTransactionTest(this.sequelize).then(function(sequelize) {
         var Test = sequelize.define('Test', {
           id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
           name: { type: Support.Sequelize.STRING }
         });
 
-        sequelize
-          .sync({ force: true })
-          .then(function() {
-            sequelize.transaction().then(function(transaction) {
-              expect(transaction).to.be.instanceOf(Transaction);
+        return sequelize.sync({ force: true }).then(function() {
+          return sequelize.transaction().then(function(transaction) {
+            expect(transaction).to.be.instanceOf(Transaction);
 
-              Test
-                .create({ name: 'Peter' }, { transaction: transaction })
-                .then(function() {
-                  setTimeout(function() {
-                    transaction
-                      .commit()
-                      .then(function() { return Test.count(); })
-                      .then(function(count) {
-                        expect(count).to.equal(1);
-                        done();
-                      });
-                  }, 1000);
+            return Test
+              .create({ name: 'Peter' }, { transaction: transaction })
+              .then(function() {
+                return Promise.delay(1000).then(function () {
+                  return transaction
+                    .commit()
+                    .then(function() { return Test.count(); })
+                    .then(function(count) {
+                      expect(count).to.equal(1);
+                    });
                 });
-            });
+              });
           });
+        });
       });
     });
   });
 
   describe('concurrency', function() {
     describe('having tables with uniqueness constraints', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         var self = this;
 
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        return Support.prepareTransactionTest(this.sequelize).then(function(sequelize) {
           self.sequelize = sequelize;
 
           self.Model = sequelize.define('Model', {
@@ -138,9 +127,7 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
             timestamps: false
           });
 
-          self.Model
-            .sync({ force: true })
-            .success(function() { done(); });
+          return self.Model.sync({ force: true });
         });
       });
 
