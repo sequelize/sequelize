@@ -299,7 +299,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
       });
 
-      return User.sync({ force: true, loging: _.after(2, _.once(function(sql) {
+      return User.sync({ force: true, logging: _.after(2, _.once(function(sql) {
         if (dialect === 'mssql') {
           expect(sql).to.match(/CONSTRAINT\s*([`"\[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"\[]?username[`"\]]?, [`"\[]?email[`"\]]?\)/);
           expect(sql).to.match(/CONSTRAINT\s*([`"\[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"\[]?aCol[`"\]]?, [`"\[]?bCol[`"\]]?\)/);
@@ -1422,32 +1422,31 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('supports table schema/prefix', function(done) {
+    it('supports table schema/prefix', function() {
       var self = this
-        , data = [{ username: 'Peter', secretValue: '42' },
-                 { username: 'Paul', secretValue: '42' },
-                 { username: 'Bob', secretValue: '43' }]
-        , prefixUser = self.User.schema('prefix');
+      , data = [{ username: 'Peter', secretValue: '42' },
+           { username: 'Paul', secretValue: '42' },
+           { username: 'Bob', secretValue: '43' }]
+      , prefixUser = self.User.schema('prefix');
 
-     var run = function() {
-       prefixUser.sync({ force: true }).success(function() {
-         prefixUser.bulkCreate(data).success(function() {
-           prefixUser.destroy({where: {secretValue: '42'}})
-             .success(function() {
-               prefixUser.findAll({order: 'id'}).success(function(users) {
-                 expect(users.length).to.equal(1);
-                 expect(users[0].username).to.equal('Bob');
-                 done();
-               });
-             });
-         });
-       });
-     };
+      var run = function() {
+        return prefixUser.sync({ force: true }).then(function() {
+          return prefixUser.bulkCreate(data).then(function() {
+            return prefixUser.destroy({where: {secretValue: '42'}}).then(function() {
+              return prefixUser.findAll({order: 'id'}).then(function(users) {
+                expect(users.length).to.equal(1);
+                expect(users[0].username).to.equal('Bob');
+              });
+            });
+          });
+        });
+      };
 
-     this.sequelize.queryInterface.createSchema('prefix').success(function() {
-       run.call(self);
-     });
-
+      return this.sequelize.queryInterface.dropAllSchemas().then(function() {
+        return self.sequelize.queryInterface.createSchema('prefix').then(function() {
+          return run.call(self);
+        });
+      });
     });
   });
 
@@ -2021,7 +2020,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should be able to reference a table with a schema set', function(done) {
+    it('should be able to reference a table with a schema set', function() {
       var self = this;
 
       var UserPub = this.sequelize.define('UserPub', {
@@ -2037,8 +2036,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       var run = function() {
-        UserPub.sync({ force: true }).success(function() {
-          ItemPub.sync({ force: true }).on('sql', _.after(2, _.once(function(sql) {
+        return UserPub.sync({ force: true }).then(function() {
+          return ItemPub.sync({ force: true, logging: _.after(2, _.once(function(sql) {
             if (dialect === 'postgres') {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
             } else if (dialect === 'mssql') {
@@ -2046,17 +2045,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             } else {
               expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
             }
-            done();
-          })));
+
+          }))});
         });
       };
 
       if (dialect === 'postgres') {
-        this.sequelize.queryInterface.createSchema('prefix').success(function() {
-          run.call(self);
+        return this.sequelize.queryInterface.dropAllSchemas().then(function() {
+          return self.sequelize.queryInterface.createSchema('prefix').then(function() {
+            return run.call(self);
+          });
         });
       } else {
-        run.call(self);
+        return run.call(self);
       }
     });
 
@@ -2126,7 +2127,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('uses an existing dao factory and references the author table', function(done) {
+    it('uses an existing dao factory and references the author table', function() {
       var self = this
         , Post = this.sequelize.define('post', {
             title: Sequelize.STRING,
@@ -2141,7 +2142,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       Post.belongsTo(this.Author);
 
       // The posts table gets dropped in the before filter.
-      Post.sync().on('sql', _.once(function(sql) {
+      return Post.sync({logging: _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         } else if (Support.dialectIsMySQL()) {
@@ -2153,12 +2154,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         } else {
           throw new Error('Undefined dialect!');
         }
-
-        done();
-      }));
+      })});
     });
 
-    it('uses a table name as a string and references the author table', function(done) {
+    it('uses a table name as a string and references the author table', function() {
       var self = this
         , Post = self.sequelize.define('post', {
             title: Sequelize.STRING,
@@ -2173,7 +2172,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       Post.belongsTo(this.Author);
 
       // The posts table gets dropped in the before filter.
-      Post.sync().on('sql', _.once(function(sql) {
+      return Post.sync({logging: _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         } else if (Support.dialectIsMySQL()) {
@@ -2185,9 +2184,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         } else {
           throw new Error('Undefined dialect!');
         }
-
-        done();
-      }));
+      })});
     });
 
     it('emits an error event as the referenced table name is invalid', function(done) {
@@ -2237,7 +2234,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('works with comments', function(done) {
+    it('works with comments', function() {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
       var Member = this.sequelize.define('Member', {})
         , Profile = this.sequelize.define('Profile', {
@@ -2251,30 +2248,25 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      this.sequelize.sync({ force: true }).success(function() {
-        done();
-      });
+      return this.sequelize.sync({ force: true });
     });
   });
 
   describe('blob', function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       this.BlobUser = this.sequelize.define('blobUser', {
         data: Sequelize.BLOB
       });
 
-      this.BlobUser.sync({ force: true }).success(function() {
-        done();
-      });
+      return this.BlobUser.sync({ force: true });
     });
 
     describe('buffers', function() {
-      it('should be able to take a buffer as parameter to a BLOB field', function(done) {
-        this.BlobUser.create({
+      it('should be able to take a buffer as parameter to a BLOB field', function() {
+        return this.BlobUser.create({
           data: new Buffer('Sequelize')
-        }).success(function(user) {
+        }).then(function(user) {
           expect(user).to.be.ok;
-          done();
         });
       });
 
@@ -2510,40 +2502,37 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   }
 
   describe('Unique', function() {
-    it('should set unique when unique is true', function(done) {
+    it('should set unique when unique is true', function() {
       var self = this;
       var uniqueTrue = self.sequelize.define('uniqueTrue', {
         str: { type: Sequelize.STRING, unique: true }
       });
 
-      uniqueTrue.sync({force: true}).on('sql', _.after(2, _.once(function(s) {
+      return uniqueTrue.sync({force: true, logging: _.after(2, _.once(function(s) {
         expect(s).to.match(/UNIQUE/);
-        done();
-      })));
+      }))});
     });
 
-    it('should not set unique when unique is false', function(done) {
+    it('should not set unique when unique is false', function() {
       var self = this;
       var uniqueFalse = self.sequelize.define('uniqueFalse', {
         str: { type: Sequelize.STRING, unique: false }
       });
 
-      uniqueFalse.sync({force: true}).on('sql', _.after(2, _.once(function(s) {
+      return uniqueFalse.sync({force: true, logging: _.after(2, _.once(function(s) {
         expect(s).not.to.match(/UNIQUE/);
-        done();
-      })));
+      }))});
     });
 
-    it('should not set unique when unique is unset', function(done) {
+    it('should not set unique when unique is unset', function() {
       var self = this;
       var uniqueUnset = self.sequelize.define('uniqueUnset', {
         str: { type: Sequelize.STRING }
       });
 
-      uniqueUnset.sync({force: true}).on('sql', _.after(2, _.once(function(s) {
+      return uniqueUnset.sync({force: true, logging: _.after(2, _.once(function(s) {
         expect(s).not.to.match(/UNIQUE/);
-        done();
-      })));
+      }))});
     });
   });
 

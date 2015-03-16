@@ -25,7 +25,12 @@ beforeEach(function() {
 });
 
 afterEach(function () {
-  this.sequelize.test.verifyNoRunningQueries();
+  try {
+    this.sequelize.test.verifyNoRunningQueries();
+  } catch (err) {
+    err.message += " in "+this.currentTest.fullTitle();
+    throw err;
+  }
 });
 
 module.exports = Support;
