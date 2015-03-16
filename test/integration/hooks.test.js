@@ -5580,37 +5580,32 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , beforeTask = false
                 , afterTask = false
                 , beforeMiniTask = false
-                , afterMiniTask = false;
+                , afterMiniTask = false
+                , VeryCustomError = function() {};
 
-
-              this.Projects.beforeCreate(function(project, options, fn) {
+              this.Projects.beforeCreate(function(project, options) {
                 beforeProject = true;
-                fn();
               });
 
-              this.Projects.afterCreate(function(project, options, fn) {
+              this.Projects.afterCreate(function(project, options) {
                 afterProject = true;
-                fn();
               });
 
-              this.Tasks.beforeDestroy(function(task, options, fn) {
+              this.Tasks.beforeDestroy(function(task, options) {
                 beforeTask = true;
-                fn(new Error('Whoops!'));
+                throw new VeryCustomError('Whoops!');
               });
 
-              this.Tasks.afterDestroy(function(task, options, fn) {
+              this.Tasks.afterDestroy(function(task, options) {
                 afterTask = true;
-                fn();
               });
 
-              this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              this.MiniTasks.beforeDestroy(function(minitask, options) {
                 beforeMiniTask = true;
-                fn();
               });
 
-              this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              this.MiniTasks.afterDestroy(function(minitask, options) {
                 afterMiniTask = true;
-                fn();
               });
 
               return this.sequelize.Promise.all([
@@ -5623,14 +5618,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   project.addTask(task)
                 ]).return(project);
               }).then(function(project) {
-                return project.destroy();
-              }).catch(function() {
-                expect(beforeProject).to.be.true;
-                expect(afterProject).to.be.true;
-                expect(beforeTask).to.be.true;
-                expect(afterTask).to.be.false;
-                expect(beforeMiniTask).to.be.false;
-                expect(afterMiniTask).to.be.false;
+                return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
+                  expect(beforeProject).to.be.true;
+                  expect(afterProject).to.be.true;
+                  expect(beforeTask).to.be.true;
+                  expect(afterTask).to.be.false;
+                  expect(beforeMiniTask).to.be.false;
+                  expect(afterMiniTask).to.be.false;
+                });
               });
             });
           });
