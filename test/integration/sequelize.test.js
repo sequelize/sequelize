@@ -120,6 +120,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
                 err.message.match(/invalid port number/) ||
                 err.message.match(/RangeError: Port should be > 0 and < 65536/) ||
                 err.message.match(/RangeError: port should be > 0 and < 65536/) ||
+                err.message.match(/RangeError: port should be >= 0 and < 65536: 99999/) ||
                 err.message.match(/ConnectionError: Login failed for user/)
               ).to.be.ok;
               done();
