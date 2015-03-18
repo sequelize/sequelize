@@ -161,7 +161,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$and/$or', function () {
+    suite('$and/$or/$not', function () {
       suite('$or', function () {
         testsql('email', {
           $or: ['maker@mhansen.io', 'janzeh@gmail.com']
@@ -255,6 +255,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
             default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
           });
+        });
+      });
+
+      suite('$not', function () {
+        testsql('$not', {
+          shared: 1,
+          $or: {
+            group_id: 1,
+            user_id: 2
+          }
+        }, {
+          default: "NOT ([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
         });
       });
     });
