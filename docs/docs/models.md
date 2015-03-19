@@ -696,7 +696,6 @@ Project.findAll({
       $lt: 10,               // id < 10
       $lte: 10,              // id
       $ne: 20,               // id != 20
-      $not: 3,               // id NOT 3
       $between: [6, 10],     // BETWEEN 6 AND 10
       $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
       $in: [1, 2],           // IN [1, 2]
@@ -707,14 +706,17 @@ Project.findAll({
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+    },
+    status: {
+      $not: false,           // status NOT FALSE
     }
   }
 })
 ```
 
-### Complex filtering / OR queries
+### Complex filtering / OR / NOT queries
 
-It's possible to do complex where queries with multiple levels of nested AND and OR conditions. In order to do that you can use `$or` and `$and`:
+It's possible to do complex where queries with multiple levels of nested AND, OR and NOT conditions. In order to do that you can use `$or`, `$and` or `$not`:
 
 ```js
 Project.find({
@@ -748,6 +750,32 @@ FROM `Projects`
 WHERE (
   `Projects`.`name` = 'a project'
    AND (`Projects`.`id` IN (1,2,3) OR `Projects`.`id` > 10)
+)
+LIMIT 1;
+```
+
+`$not` example:
+
+```js
+Project.find({
+  where: {
+    name: 'a project',
+    $not: [
+      { id: [1,2,3] },
+      { array: { $contains: [3,4,5] } }
+    ]
+  }
+});
+```
+
+Will generate:
+
+```sql
+SELECT *
+FROM `Projects`
+WHERE (
+  `Projects`.`name` = 'a project'
+   AND NOT (`Projects`.`id` IN (1,2,3) OR `Projects`.`array` @> ARRAY[1,2,3]::INTEGER[])
 )
 LIMIT 1;
 ```
