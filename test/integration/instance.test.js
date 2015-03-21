@@ -1321,8 +1321,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                   user.age = user.age + 1; // happy birthday joe
 
                   user.save().done(function(err) {
-                    expect(err).not.to.be.ok;
-
                     expect(user.username).to.equal('joe');
                     expect(user.age).to.equal(2);
                     expect(user.Projects).to.exist;
