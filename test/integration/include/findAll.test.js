@@ -1529,6 +1529,28 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should be possible to select on columns inside a through table with a top-level where', function() {
+      var self = this;
+      return this.fixtureA().then(function() {
+        return self.models.Product.findAll({
+          attributes: ['title'],
+          where: {
+            ProductsTags: {
+              ProductId: 3
+            }
+          },
+          include: [
+            {
+              model: self.models.Tag,
+              required: true
+            }
+          ]
+        }).then(function(products) {
+          expect(products).have.length(1);
+        });
+      });
+    });
+
     it('should be possible to select on columns inside a through table and a limit', function() {
       var self = this;
       return this.fixtureA().then(function () {
@@ -1880,6 +1902,29 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           include: [
             {model: Group, where: {}},
             {model: Company, where: {}}
+          ]
+        });
+      });
+    });
+
+    it('should work with an empty top-level where for included models', function () {
+      var User = this.sequelize.define('User', {})
+        , Company = this.sequelize.define('Company', {})
+        , Group = this.sequelize.define('Group', {});
+
+      User.belongsTo(Company);
+      User.belongsToMany(Group);
+      Group.belongsToMany(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return User.findAll({
+          where: {
+            Groups: {},
+            Company: {}
+          },
+          include: [
+            { model: Group },
+            { model: Company }
           ]
         });
       });

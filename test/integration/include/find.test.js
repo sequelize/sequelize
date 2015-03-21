@@ -7,7 +7,8 @@ var chai = require('chai')
   , Promise = Sequelize.Promise
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
-  , async = require('async');
+  , async = require('async')
+  , Promise = require('bluebird');
 
 chai.use(datetime);
 chai.config.includeStack = true;
@@ -171,6 +172,180 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         })
         .then(function(a) {
           expect(a).to.not.exist;
+        });
+    });
+
+    it('should support a top-level where clause for an include', function() {
+      var A = this.sequelize.define('A', {
+        name: DataTypes.STRING
+      });
+
+      var B = this.sequelize.define('B', {
+        name: DataTypes.STRING
+      });
+
+      A.hasOne(B);
+      B.belongsTo(A);
+
+      var expectedAId = -1;
+      var expectedBName = 'bName';
+
+      return this.sequelize
+        .sync({ force: true })
+        .then(function() {
+          return A.create({ name: 'aNameOne'});
+        }).then(function(aInstance) {
+          return A.create({ name: 'aNameTwo' });
+        }).then(function(aInstance) {
+          expectedAId = aInstance.get('id');
+          return B.create({ name: expectedBName, AId: expectedAId });
+        }).then(function(bInstance) {
+          return A.find({
+            where: {
+              B: {
+                name: expectedBName
+              }
+            },
+            include: [{ model: B }]
+          });
+        }).then(function(aInstance) {
+          expect(aInstance).to.be.ok;
+          expect(aInstance.get('id')).to.equal(expectedAId);
+          expect(aInstance.get('B')).to.be.ok;
+          expect(aInstance.get('B').get('name')).to.equal(expectedBName);
+        });
+    });
+
+    it('should support top-level and include-level where clauses, with the include clause taking preference', function() {
+      var A = this.sequelize.define('A', {
+        name: DataTypes.STRING
+      });
+
+      var B = this.sequelize.define('B', {
+        name: DataTypes.STRING
+      });
+
+      A.hasOne(B);
+      B.belongsTo(A);
+
+      var expectedAId = -1;
+      var expectedBName = 'bName';
+
+      return this.sequelize
+        .sync({ force: true })
+        .then(function() {
+          return A.create({ name: 'aNameOne'});
+        }).then(function(aInstance) {
+          return A.create({ name: 'aNameTwo' });
+        }).then(function(aInstance) {
+          expectedAId = aInstance.get('id');
+          return B.create({ name: expectedBName, AId: expectedAId });
+        }).then(function(bInstance) {
+          return A.find({
+            where: {
+              B: {
+                name: expectedBName
+              }
+            },
+            include: [
+              { 
+                model: B,
+                where: { 
+                  name: 'notexistent name'
+                }
+              }
+            ]
+          });
+        }).then(function(aInstance) {
+          expect(aInstance).to.not.be.ok;
+          return A.find({
+            where: {
+              B: {
+                name: 'nonexistent name'
+              }
+            },
+            include: [
+              { 
+                model: B,
+                where: { 
+                  name: expectedBName
+                }
+              }
+            ]
+          });
+        }).then(function(aInstance) {
+          expect(aInstance).to.be.ok;
+          expect(aInstance.get('id')).to.equal(expectedAId);
+          expect(aInstance.get('B')).to.be.ok;
+          expect(aInstance.get('B').get('name')).to.equal(expectedBName);
+        });
+    });
+
+    it('should support a top-level where clause for a deeply nested include', function() {
+      var A = this.sequelize.define('A', {})
+        , B = this.sequelize.define('B', {})
+        , C = this.sequelize.define('C', {
+            name: DataTypes.STRING
+          })
+        , D = this.sequelize.define('D', {});
+
+      A.hasOne(B);
+      B.belongsTo(A);
+
+      B.hasOne(C);
+      C.belongsTo(B);
+
+      C.hasOne(D);
+      D.belongsTo(C);
+
+      var createChain = function(cName) {
+        var models = [A, B, C, D];
+        var createArray = [];
+         models.forEach(function(model, index) {
+          var data = {};
+          if (model.name === 'C') {
+            data.name = cName;
+          }
+          createArray.push(model.create(data));
+        });
+
+        return Promise.all(createArray)
+          .spread(function(a, b, c, d) {
+            return Promise.all([
+              b.setA(a),
+              c.setB(b),
+              d.setC(c)
+            ]);
+          });
+      };
+
+      return this.sequelize
+        .sync({ force: true })
+        .then(function() {
+          return createChain('cNameOne');
+        }).then(function() {
+          return createChain('cNameTwo');
+        }).then(function() {
+          return A.find({
+            where: {
+              B: {
+                C: {
+                  name: 'cNameTwo'
+                }
+              }
+            },
+            include: [
+              { model: B, include: [
+                { model: C, include: [
+                  { model: D }
+                ]}
+              ]}
+            ]
+          });
+        }).then(function(aInstance) {
+          expect(aInstance).to.be.ok;
+          expect(aInstance.B.C.D).to.be.ok;
+          expect(aInstance.get('B').get('C').get('name')).to.equal('cNameTwo');
         });
     });
 

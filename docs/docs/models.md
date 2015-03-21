@@ -1085,6 +1085,178 @@ Include all also supports nested loading:
 User.findAll({ include: [{ all: true, nested: true }]});
 ```
 
+### Searching Eagerly Loaded Associations
+
+Finding records with a specific related entry can be accomplished with a where clause. This can be implemented in two ways. The first way is by adding the where clause as part of the include attribute:
+
+```js
+User.findAll({
+  include: [
+    {
+      model: Tool,
+      as: 'Instruments',
+      where: {
+        name: 'Toothpick'
+      }
+    }
+  ]
+}).then(function(users) {
+  console.log(JSON.stringify(users));
+
+  /*
+    [{
+      "name": "John Doe",
+      "id": 1,
+      "createdAt": "2013-03-20T20:31:45.000Z",
+      "updatedAt": "2013-03-20T20:31:45.000Z",
+      "Instruments": [{
+        "name": "Toothpick",
+        "id": 1,
+        "createdAt": null,
+        "updatedAt": null,
+        "UserId": 1
+      }]
+    }]
+  */
+});
+```
+
+The fields to search can also be specified in the where attribute for the model:
+
+```js
+User.findAll({
+  where: {
+    Instruments: {
+      name: 'Toothpick'
+    }
+  },
+  include: [{ model: Tool, as: 'Instruments' }]
+}).then(function(users) {
+  console.log(JSON.stringify(users));
+
+  /*
+    [{
+      "name": "John Doe",
+      "id": 1,
+      "createdAt": "2013-03-20T20:31:45.000Z",
+      "updatedAt": "2013-03-20T20:31:45.000Z",
+      "Instruments": [{
+        "name": "Toothpick",
+        "id": 1,
+        "createdAt": null,
+        "updatedAt": null,
+        "UserId": 1
+      }]
+    }]
+  */
+});
+```
+
+Notice that when constructing a where attribute in this fashion, the foreign key must be used (not the associated model name). If a where attribute is provided for both the model and the include, the two will be combined with the attributes in the include object taking precedence.
+
+Through tables can also be searched in the following ways:
+
+```js
+User.findAll({
+  include: [{
+    model: Tool,
+    as: 'Instruments',
+    through: {
+      where: {
+        ToolId: 1
+      }
+    }
+  }]
+}).then(function(users) {
+  console.log(JSON.stringify(users));
+});
+
+User.findAll({
+  where: {
+    UsersTools: {
+      ToolId: 1
+    }
+  },
+  include: [{ model: Tool, as: 'Instruments' }]
+}).then(function(users) {
+  console.log(JSON.stringify(users));
+});
+
+/*
+  Both functions will produce:
+  [{
+    "name": "John Doe",
+    "id": 1,
+    "createdAt": "2013-03-20T20:31:45.000Z",
+    "updatedAt": "2013-03-20T20:31:45.000Z",
+    "Instruments": [{
+      "name": "Toothpick",
+      "id": 1,
+      "createdAt": null,
+      "updatedAt": null,
+      "UserId": 1
+    }]
+  }]
+*/
+```
+
+Searching nested eagerly loaded associations is also possible:
+
+```js
+User.findAll({
+  include: [{
+    model: Tool,
+    as: 'Instruments',
+    include: {[
+      model: Teacher,
+      where: {
+        name: 'Jimi Hendrix'
+      }
+    ]}
+  }]
+}).then(function(users) {
+  console.log(JSON.stringify(users));
+});
+
+User.findAll({
+  where: {
+    Instruments: {
+      Teacher: {
+        name: 'Jimi Hendrix'
+      }
+    }
+  },
+  include: [{
+    model: Tool,
+    as: 'Instruments',
+    include: [{ model: Teacher }]
+  }]
+}).then(function(users) {
+  console.log(JSON.stringify(users));
+});
+
+
+/*
+  Both functions will produce:
+  [{
+    "name": "John Doe",
+    "id": 1,
+    "createdAt": "2013-03-20T20:31:45.000Z",
+    "updatedAt": "2013-03-20T20:31:45.000Z",
+    "Instruments": [{ // 1:M and N:M association
+      "name": "Toothpick",
+      "id": 1,
+      "createdAt": null,
+      "updatedAt": null,
+      "UserId": 1,
+      "Teacher": { // 1:1 association
+        "name": "Jimi Hendrix"
+      }
+    }]
+  }]
+*/
+```
+
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
 [4]: https://github.com/chriso/node-validator

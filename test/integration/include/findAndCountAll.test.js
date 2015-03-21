@@ -108,6 +108,21 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             }).then(function(result ) {
               expect(result.count).to.be.equal(2);
               expect(result.rows.length).to.be.equal(2);
+
+              // Make sure it still works when the where clause is not part of the include
+              return A.findAndCountAll({
+                where: {
+                  SomeConnections: {
+                    m: 'A',
+                    u: 1
+                  }
+                },
+                include: [{ model: SomeConnection, required: true }],
+                limit: 5
+              });
+            }).then(function(result) {
+                expect(result.count).to.be.equal(2);
+                expect(result.rows.length).to.be.equal(2);
             });
           });
         });
