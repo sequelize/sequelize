@@ -1,4 +1,4 @@
-# Next
+# 2.0.5
 - [FEATURE] Highly experimental support for nested creation [#3386](https://github.com/sequelize/sequelize/pull/3386)
 
 # 2.0.4
