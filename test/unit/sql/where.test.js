@@ -106,6 +106,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, {
         default: '[muscles] IN (2, 4)'
       });
+
+      testsql('equipment', {
+        $in: current.literal(
+          '(select order_id from product_orders where product_id = 3)'
+        )
+      }, {
+        default: '[equipment] IN (select order_id from product_orders where product_id = 3)'
+      });
     });
 
     suite('Buffer', function () {
@@ -150,6 +158,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $notIn: [4, 19]
       }, {
         default: '[equipment] NOT IN (4, 19)'
+      });
+
+      testsql('equipment', {
+        $notIn: current.literal(
+          '(select order_id from product_orders where product_id = 3)'
+        )
+      }, {
+        default: '[equipment] NOT IN (select order_id from product_orders where product_id = 3)'
       });
     });
 
