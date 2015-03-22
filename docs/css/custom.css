@@ -47,3 +47,21 @@ tr:nth-child(2n) {
   line-height: 250px;
   font-family: 'Titillium Web', sans-serif;
 }
+
+@media screen and (max-width: 768px) {
+  #teaser-home {
+    height: auto;
+    text-align: center;
+  }
+
+  #teaser-home img {
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+    content:url(/images/logo.png);
+  }
+
+  #teaser-home span {
+    display: none;
+  }
+}
