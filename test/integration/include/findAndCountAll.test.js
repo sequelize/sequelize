@@ -24,9 +24,9 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associate them
-      User.hasMany(SomeConnection, { foreignKey: 'u' });
+      User.hasMany(SomeConnection, { foreignKey: 'u', constraints: false });
 
-      SomeConnection.belongsTo(User, { foreignKey: 'u' });
+      SomeConnection.belongsTo(User, { foreignKey: 'u', constraints: false });
       SomeConnection.belongsTo(A, { foreignKey: 'fk', constraints: false });
       SomeConnection.belongsTo(B, { foreignKey: 'fk', constraints: false });
       SomeConnection.belongsTo(C, { foreignKey: 'fk', constraints: false });

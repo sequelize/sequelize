@@ -1,3 +1,6 @@
+# Next
+- [BUG] Fix for newlines in hstore [#3383](https://github.com/sequelize/sequelize/issues/3383)
+
 # 2.0.5
 - [FEATURE] Highly experimental support for nested creation [#3386](https://github.com/sequelize/sequelize/pull/3386)
 

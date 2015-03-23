@@ -540,13 +540,13 @@ if (dialect.match(/^postgres/)) {
         return this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
-          phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }, { number: '8675309', type: "Jenny's"}, {number: '5555554321', type: '"home"' }]
+          phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }, { number: '8675309', type: "Jenny's"}, {number: '5555554321', type: '"home\n"' }]
         }).then(function() {
           return User.find(1).then(function(user) {
             expect(user.phones.length).to.equal(4);
             expect(user.phones[1].number).to.equal('987654321');
             expect(user.phones[2].type).to.equal("Jenny's");
-            expect(user.phones[3].type).to.equal('"home"');
+            expect(user.phones[3].type).to.equal('"home\n"');
           });
         });
       });
