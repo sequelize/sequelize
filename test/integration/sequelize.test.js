@@ -426,6 +426,115 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     }
   });
 
+  describe('set', function() {
+    it("should be configurable with global functions", function() {
+      var defaultClassMethod = sinon.spy()
+        , overrideClassMethod = sinon.spy()
+        , defaultInstanceMethod = sinon.spy()
+        , overrideInstanceMethod = sinon.spy()
+        , defaultSetterMethod = sinon.spy()
+        , overrideSetterMethod = sinon.spy()
+        , defaultGetterMethod = sinon.spy()
+        , overrideGetterMethod = sinon.spy()
+        , customClassMethod = sinon.spy()
+        , customOverrideClassMethod = sinon.spy()
+        , customInstanceMethod = sinon.spy()
+        , customOverrideInstanceMethod = sinon.spy()
+        , customSetterMethod = sinon.spy()
+        , customOverrideSetterMethod = sinon.spy()
+        , customGetterMethod = sinon.spy()
+        , customOverrideGetterMethod = sinon.spy();
+
+      this.sequelize.options.define = {
+        'classMethods': {
+          'defaultClassMethod': defaultClassMethod,
+          'overrideClassMethod': overrideClassMethod
+        },
+        'instanceMethods': {
+          'defaultInstanceMethod': defaultInstanceMethod,
+          'overrideInstanceMethod': overrideInstanceMethod
+        },
+        'setterMethods': {
+          'default': defaultSetterMethod,
+          'override': overrideSetterMethod
+        },
+        'getterMethods': {
+          'default': defaultGetterMethod,
+          'override': overrideGetterMethod
+        }
+      };
+      var testEntity = this.sequelize.define('TestEntity', {}, {
+        'classMethods': {
+          'customClassMethod': customClassMethod,
+          'overrideClassMethod': customOverrideClassMethod
+        },
+        'instanceMethods': {
+          'customInstanceMethod': customInstanceMethod,
+          'overrideInstanceMethod': customOverrideInstanceMethod
+        },
+        'setterMethods': {
+          'custom': customSetterMethod,
+          'override': customOverrideSetterMethod
+        },
+        'getterMethods': {
+          'custom': customGetterMethod,
+          'override': customOverrideGetterMethod
+        }
+      });
+
+      // Call all Class Methods
+      testEntity.defaultClassMethod();
+      testEntity.customClassMethod();
+      testEntity.overrideClassMethod();
+
+      expect(typeof testEntity.defaultClassMethod).to.equal('function');
+      expect(typeof testEntity.customClassMethod).to.equal('function');
+      expect(typeof testEntity.overrideClassMethod).to.equal('function');
+
+      expect(defaultClassMethod).to.have.been.calledOnce;
+      expect(customClassMethod).to.have.been.calledOnce;
+      expect(overrideClassMethod.callCount).to.be.eql(0);
+      expect(customOverrideClassMethod).to.have.been.calledOnce;
+
+      // Create Instance to test
+      var instance = testEntity.build();
+
+      // Call all Instance Methods
+      instance.defaultInstanceMethod();
+      instance.customInstanceMethod();
+      instance.overrideInstanceMethod();
+
+      expect(typeof instance.defaultInstanceMethod).to.equal('function');
+      expect(typeof instance.customInstanceMethod).to.equal('function');
+      expect(typeof instance.overrideInstanceMethod).to.equal('function');
+
+      expect(defaultInstanceMethod).to.have.been.calledOnce;
+      expect(customInstanceMethod).to.have.been.calledOnce;
+      expect(overrideInstanceMethod.callCount).to.be.eql(0);
+      expect(customOverrideInstanceMethod).to.have.been.calledOnce;
+
+      // Call Getters
+      var defaultVal = instance.default
+        , custom = instance.custom
+        , override = instance.override;
+
+      expect(defaultGetterMethod).to.have.been.calledOnce;
+      expect(customGetterMethod).to.have.been.calledOnce;
+      expect(overrideGetterMethod.callCount).to.be.eql(0);
+      expect(customOverrideGetterMethod).to.have.been.calledOnce;
+
+      // Call Setters
+      instance.default = 'test';
+      instance.custom = 'test';
+      instance.override = 'test';
+
+      expect(defaultSetterMethod).to.have.been.calledOnce;
+      expect(customSetterMethod).to.have.been.calledOnce;
+      expect(overrideSetterMethod.callCount).to.be.eql(0);
+      expect(customOverrideSetterMethod).to.have.been.calledOnce;
+    });
+  });
+
   if (Support.dialectIsMySQL()) {
     describe('set', function() {
       it("should return an promised error if transaction isn't defined", function() {
