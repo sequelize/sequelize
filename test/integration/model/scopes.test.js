@@ -340,5 +340,41 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it("should emit an error for scopes that don't exist with silent: false", function() {
       expect(this.ScopeMe.scope.bind(this.ScopeMe, 'doesntexist', {silent: false})).to.throw('Invalid scope doesntexist called.');
     });
+
+    describe("empty default scope", function () {
+      beforeEach(function () {
+        this.ModelWithEmptyDefaultScope = this.sequelize.define("ModelWithEmptyDefaultScope", {
+          thing: Sequelize.STRING
+        }, {
+          defaultScope: {
+            where: {}
+          }
+        });
+
+        return this.ModelWithEmptyDefaultScope.sync({ force: true }).bind(this).then(function () {
+          return this.ModelWithEmptyDefaultScope.create();
+        });
+      });
+
+      it("let me find all non empty models", function () {
+        return this.ModelWithEmptyDefaultScope.findAll({
+          where: {
+            $not: { thing: null }
+          }
+        }).then(function (models) {
+          expect(models).to.eql([]);
+        });
+      });
+
+      it("let me find all empty models", function () {
+        return this.ModelWithEmptyDefaultScope.findAll({
+          where: {
+            thing: null
+          }
+        }).then(function (models) {
+          expect(models.length).to.eql(1);
+        });
+      });
+    });
   });
 });
