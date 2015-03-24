@@ -1867,12 +1867,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
   describe('Association options', function() {
     describe('allows the user to provide an attribute definition object as foreignKey', function() {
       it('works when taking a column directly from the object', function() {
-        var Project = this.sequelize.define('project', {
-            user_id: {
-              type: Sequelize.INTEGER,
-              defaultValue: 42
-            }
-          })
+        var Project = this.sequelize.define('project', {})
         , User = this.sequelize.define('user', {
             uid: {
               type: Sequelize.INTEGER,
@@ -1880,12 +1875,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
             }
           });
 
-        User.belongsToMany(Project, { foreignKey: Project.rawAttributes.user_id});
+        var UserProjects = User.belongsToMany(Project, { foreignKey: { name: 'user_id', defaultValue: 42 }});
 
-        expect(Project.rawAttributes.user_id).to.be.defined;
-        expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName());
-        expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid');
-        expect(Project.rawAttributes.user_id.defaultValue).to.equal(42);
+        expect(UserProjects.through.model.rawAttributes.user_id).to.be.defined;
+        expect(UserProjects.through.model.rawAttributes.user_id.references).to.equal(User.getTableName());
+        expect(UserProjects.through.model.rawAttributes.user_id.referencesKey).to.equal('uid');
+        expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
       });
     });
 
