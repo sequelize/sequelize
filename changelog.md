@@ -1,5 +1,10 @@
 # Next
 - [BUG] Fix for newlines in hstore [#3383](https://github.com/sequelize/sequelize/issues/3383)
+- [INTERNALS] Updated dependencies. Most notably we are moving up one major version on lodash. If you are using `sequelize.Utils._`, notice that the semantics for many matching functions have changed to include a check for `hasOwnProperty`
+    + dottie@0.3.1
+    + inflection@1.6.0
+    + lodash@3.5.0
+    + validator@3.34
 
 # 2.0.5
 - [FEATURE] Highly experimental support for nested creation [#3386](https://github.com/sequelize/sequelize/pull/3386)
