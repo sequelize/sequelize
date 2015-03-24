@@ -2561,3 +2561,29 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     return this.sequelize.sync({force: true});
   });
 });
+
+  it('should return array of errors if validate and individualHooks are true in bulkCreate', function() {
+    var self = this
+      , data = [{ username: null },
+                { username: null },
+                { username: null }];
+
+    var user = this.sequelize.define('Users', {
+      username: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        validate: {
+          notNull: true,
+          notEmpty: true
+        }
+      }
+    });
+
+    user.bulkCreate(data, {
+      validate: true,
+      individualHooks: true
+    })
+    .catch(function(errors) {
+      expect(errors).to.be.instanceof(Array);
+    });
+  });
