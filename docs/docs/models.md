@@ -949,7 +949,7 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
       "createdAt": "2013-03-20T20:31:40.000Z",
       "updatedAt": "2013-03-20T20:31:40.000Z",
       "UserId": 1,
-      "user": {
+      "User": {
         "name": "John Doe",
         "id": 1,
         "createdAt": "2013-03-20T20:31:45.000Z",
@@ -960,7 +960,7 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
 })
 ```
 
-Notice that the accessor of the associated data is the name of the model in camelcase with lowercased first character&period; Also the accessor is singular as the association is one-to-something&period;
+Notice that the accessor is singular as the association is one-to-something&period;
 
 Next thing&colon; Loading of data with many-to-something associations&excl;
 
@@ -974,7 +974,7 @@ User.findAll({ include: [ Task ] }).then(function(users) {
       "id": 1,
       "createdAt": "2013-03-20T20:31:45.000Z",
       "updatedAt": "2013-03-20T20:31:45.000Z",
-      "tasks": [{
+      "Tasks": [{
         "name": "A Task",
         "id": 1,
         "createdAt": "2013-03-20T20:31:40.000Z",
@@ -1000,7 +1000,7 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
       "id": 1,
       "createdAt": "2013-03-20T20:31:45.000Z",
       "updatedAt": "2013-03-20T20:31:45.000Z",
-      "instruments": [{
+      "Instruments": [{
         "name": "Toothpick",
         "id": 1,
         "createdAt": null,
@@ -1064,7 +1064,7 @@ User.findAll({
       "id": 1,
       "createdAt": "2013-03-20T20:31:45.000Z",
       "updatedAt": "2013-03-20T20:31:45.000Z",
-      "instruments": [{ // 1:M and N:M association
+      "Instruments": [{ // 1:M and N:M association
         "name": "Toothpick",
         "id": 1,
         "createdAt": null,
