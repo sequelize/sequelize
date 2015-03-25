@@ -504,18 +504,20 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.all([
           Product.create({
+            id: 1,
             title: 'Chair',
             Prices: [{ value: 5 }, { value: 10 }  ]
           }, { include: [Price]}),
           Product.create({
+            id: 2,
             title: 'Desk',
             Prices: [{ value: 5 }, { value: 10 }, { value: 15 }, { value: 20 }]
           }, { include: [Price]}),
           User.create({
             id: 1,
             Memberships: [
-              { Group: {name: 'Developers'}, Rank: {name: 'Admin', canInvite: 1, canRemove: 1}},
-              { Group: {name: 'Designers'}, Rank: {name: 'Member', canInvite: 1, canRemove: 0}}
+              { id: 1, Group: {name: 'Developers'}, Rank: {name: 'Admin', canInvite: 1, canRemove: 1}},
+              { id: 2, Group: {name: 'Designers'}, Rank: {name: 'Member', canInvite: 1, canRemove: 0}}
             ]
           }, {
             include: { model: GroupMember, as: 'Memberships', include: [Group, Rank]}
