@@ -954,14 +954,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
 
-        it('is over-ruled by specified include', function(done) {
-          this.Country.findAll({ include: [{ all: true }, { model: this.Continent, attributes: ['id'] }] }).done(function(err, countries) {
-            expect(err).not.to.be.ok;
+        it('is over-ruled by specified include', function() {
+          return this.Country.findAll({ include: [{ all: true }, { model: this.Continent, attributes: ['id'] }] }).then(function(countries) {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
             expect(countries[0].continent).to.exist;
             expect(countries[0].continent.name).to.be.undefined;
-            done();
           });
         });
 
