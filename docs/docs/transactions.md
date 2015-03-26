@@ -61,7 +61,7 @@ Sequelize.cls = namespace;
 new Sequelize(....);
 ```
 
-Notice, that the `cls` property must be set on the *constructor*, not on an instance of sequelize. This means that all instances will share the same namespace, and that CLS is all-or-nothing - you cannot enable it only for some instances. 
+Notice, that the `cls` property must be set on the *constructor*, not on an instance of sequelize. This means that all instances will share the same namespace, and that CLS is all-or-nothing - you cannot enable it only for some instances.
 
 CLS works like a thread-local storage for callbacks. What this means in practice is, that different callback chains can access local variables by using the CLS namespace. When CLS is enabled sequelize will set the `transaction` property on the namespace when a new transaction is created. Since variables set within a callback chain are private to that chain several concurrent transactions can exist at the same time:
 
@@ -80,7 +80,7 @@ In most case you won't need to access `namespace.get('transaction')` directly, s
 ```js
 sequelize.transaction(function (t1) {
   // With CLS enabled, the user will be created inside the transaction
-  User.create({ name: 'Alice' });
+  return User.create({ name: 'Alice' });
 });
 ```
 
@@ -90,9 +90,11 @@ If you want to execute queries inside the callback without using the transaction
 sequelize.transaction(function (t1) {
   sequelize.transaction(function (t2) {
     // By default queries here will use t2
-    User.create({ name: 'Bob' }, { transaction: null });
-    User.create({ name: 'Mallory' }, { transaction: t1 });
-  });    
+    return Promise.all([
+        User.create({ name: 'Bob' }, { transaction: null });
+        User.create({ name: 'Mallory' }, { transaction: t1 });
+    ]);
+  });
 });
 ```
 
