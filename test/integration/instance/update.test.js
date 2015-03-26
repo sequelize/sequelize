@@ -36,6 +36,20 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           allowNull: true,
           validate: {len: {msg: 'Length failed.', args: [1, 20]}}
         },
+        validateSideEffect: {
+          type: DataTypes.VIRTUAL,
+          allowNull: true,
+          validate: {isInt: true},
+          set: function (val) {
+            this.setDataValue('validateSideEffect', val);
+            this.setDataValue('validateSideAffected', val*2);
+          }
+        },
+        validateSideAffected: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          validate: {isInt: true}
+        },
 
         dateAllowNullTrue: {
           type: DataTypes.DATE,
@@ -138,6 +152,18 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return user.reload();
       }).then(function () {
         expect(user.validateTest).to.not.be.equal(5);
+      });
+    });
+
+    it('should save attributes affected by setters', function () {
+      var user = this.User.build();
+      return user.update({validateSideEffect: 5}).then(function () {
+        expect(user.validateSideEffect).to.be.equal(5);
+      }).then(function () {
+        return user.reload();
+      }).then(function () {
+        expect(user.validateSideAffected).to.be.equal(10);
+        expect(user.validateSideEffect).not.to.be.ok;
       });
     });
 
