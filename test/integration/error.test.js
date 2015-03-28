@@ -12,6 +12,7 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
   describe('API Surface', function() {
+
     it('Should have the Error constructors exposed', function() {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
@@ -19,13 +20,14 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(sequelize).to.have.property('Error');
       expect(sequelize).to.have.property('ValidationError');
     });
+
     it('Sequelize Errors instances should be instances of Error', function() {
       var error = new Sequelize.Error();
-      var validationError = new Sequelize.ValidationError('Validation Error', [
+      var errorMessage = 'Validation Error';
+      var validationError = new Sequelize.ValidationError(errorMessage, [
         new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null)
       , new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
       ]);
-
 
       var sequelize = new Sequelize();
       var instError = new sequelize.Error();
@@ -38,13 +40,14 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(validationError).to.be.instanceOf(Sequelize.ValidationError);
       expect(validationError).to.be.instanceOf(Error);
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
-      expect(validationError.message).to.match(/notNull Violation: <field name> cannot be null,\nstring violation: <field name> cannot be an array or an object/);
+      expect(validationError.message).to.equal(errorMessage);
 
       expect(instError).to.be.instanceOf(Sequelize.Error);
       expect(instError).to.be.instanceOf(Error);
       expect(instValidationError).to.be.instanceOf(Sequelize.ValidationError);
       expect(instValidationError).to.be.instanceOf(Error);
     });
+
     it('SequelizeValidationError should find errors by path', function() {
       var errorItems = [
         new Sequelize.ValidationErrorItem('invalid', 'type', 'first_name', null),
@@ -59,6 +62,30 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(matches).to.have.lengthOf(1);
       expect(matches[0]).to.have.property('message', 'invalid');
     });
+
+    it('SequelizeValidationError should override message property when message parameter is specified', function() {
+      var errorItems = [
+            new Sequelize.ValidationErrorItem('invalid', 'type', 'first_name', null)
+          , new Sequelize.ValidationErrorItem('invalid', 'type', 'last_name', null)
+          ]
+        , customErrorMessage = 'Custom validation error message'
+        , validationError = new Sequelize.ValidationError(customErrorMessage, errorItems);
+
+      expect(validationError).to.have.property('name', 'SequelizeValidationError');
+      expect(validationError.message).to.equal(customErrorMessage);
+    });
+
+    it('SequelizeValidationError should concatenate an error messages from given errors if no explicit message is defined', function() {
+      var errorItems = [
+            new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null)
+          , new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
+          ]
+        , validationError = new Sequelize.ValidationError(null, errorItems);
+
+      expect(validationError).to.have.property('name', 'SequelizeValidationError');
+      expect(validationError.message).to.match(/notNull Violation: <field name> cannot be null,\nstring violation: <field name> cannot be an array or an object/);
+    });
+
     it('SequelizeDatabaseError should keep original message', function() {
       var orig = new Error('original database error message');
       var databaseError = new Sequelize.DatabaseError(orig);
@@ -68,6 +95,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(databaseError.name).to.equal('SequelizeDatabaseError');
       expect(databaseError.message).to.equal('original database error message');
     });
+
     it('ConnectionError should keep original message', function() {
       var orig = new Error('original connection error message');
       var connectionError = new Sequelize.ConnectionError(orig);
@@ -77,6 +105,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(connectionError.name).to.equal('SequelizeConnectionError');
       expect(connectionError.message).to.equal('original connection error message');
     });
+
     it('ConnectionRefusedError should keep original message', function() {
       var orig = new Error('original connection error message');
       var connectionError = new Sequelize.ConnectionRefusedError(orig);
@@ -86,6 +115,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(connectionError.name).to.equal('SequelizeConnectionRefusedError');
       expect(connectionError.message).to.equal('original connection error message');
     });
+
     it('AccessDeniedError should keep original message', function() {
       var orig = new Error('original connection error message');
       var connectionError = new Sequelize.AccessDeniedError(orig);
@@ -95,6 +125,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(connectionError.name).to.equal('SequelizeAccessDeniedError');
       expect(connectionError.message).to.equal('original connection error message');
     });
+
     it('HostNotFoundError should keep original message', function() {
       var orig = new Error('original connection error message');
       var connectionError = new Sequelize.HostNotFoundError(orig);
@@ -104,6 +135,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(connectionError.name).to.equal('SequelizeHostNotFoundError');
       expect(connectionError.message).to.equal('original connection error message');
     });
+
     it('HostNotReachableError should keep original message', function() {
       var orig = new Error('original connection error message');
       var connectionError = new Sequelize.HostNotReachableError(orig);
@@ -113,6 +145,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(connectionError.name).to.equal('SequelizeHostNotReachableError');
       expect(connectionError.message).to.equal('original connection error message');
     });
+
     it('InvalidConnectionError should keep original message', function() {
       var orig = new Error('original connection error message');
       var connectionError = new Sequelize.InvalidConnectionError(orig);
@@ -122,6 +155,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(connectionError.name).to.equal('SequelizeInvalidConnectionError');
       expect(connectionError.message).to.equal('original connection error message');
     });
+
     it('ConnectionTimedOutError should keep original message', function() {
       var orig = new Error('original connection error message');
       var connectionError = new Sequelize.ConnectionTimedOutError(orig);
