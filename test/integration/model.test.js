@@ -421,7 +421,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.sequelize.sync(); // The second call should not try to create the indices again
       }).then(function() {
         return this.sequelize.queryInterface.showIndex(Model.tableName);
-      }).then(function() {
+      }).spread(function() {
         var primary, idx1, idx2;
 
         if (dialect === 'sqlite') {
@@ -980,7 +980,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('returns the number of affected rows', function(_done) {
+    it('returns the number of affected rows', function() {
       var self = this
         , data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
@@ -998,7 +998,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     if (dialect === 'postgres') {
-      it('returns the affected rows if `options.returning` is true', function(_done) {
+      it('returns the affected rows if `options.returning` is true', function() {
         var self = this
           , data = [{ username: 'Peter', secretValue: '42' },
                     { username: 'Paul', secretValue: '42' },
