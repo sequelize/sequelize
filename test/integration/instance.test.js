@@ -167,12 +167,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it('returns true for bulk non-changed attribute + model with timestamps', function() {
+    it('returns false for bulk non-changed attribute + model with timestamps', function() {
       return this.User.create({ username: 'user' }).then(function(user) {
         user.setAttributes({
           username: 'user'
         });
-        expect(user.isDirty).to.be.true;
+        expect(user.isDirty).to.be.false;
       });
     });
 
@@ -289,7 +289,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with array', function() {
       var self = this;
-      return this.User.find(1).then(function(err, user1) {
+      return this.User.find(1).then(function(user1) {
         return user1.increment(['aNumber'], { by: 2 }).then(function() {
           return self.User.find(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(2);
@@ -500,7 +500,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return User.sync({ force: true }).then(function() {
         return User.create({aNumber: 1}).then(function(user) {
           var oldDate = user.updatedAt;
-          return this.sequelize.Promise.deplay(1000).then(function() {
+          return this.sequelize.Promise.delay(1000).then(function() {
             return user.decrement('aNumber', { by: 1 }).then(function() {
               return User.find(1).then(function(user) {
                 expect(user.updatedAt).to.be.afterTime(oldDate);
@@ -1039,7 +1039,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         , User = this.User;
 
       // timeout is needed, in order to check the update of the timestamp
-      return this.sequelize.Promise.deplay(1000).then(function() {
+      return this.sequelize.Promise.delay(1000).then(function() {
         user = User.build({ username: 'user' });
         return user.save().then(function() {
           expect(now).to.be.below(user.updatedAt.getTime());
@@ -1380,10 +1380,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it("dont return instance that isn't defined", function(done ) {
+    it("dont return instance that isn't defined", function() {
       var self = this;
       return self.Project.create({ lovelyUserId: null })
-        .then(function(project ) {
+        .then(function(project) {
           return self.Project.find({
             where: {
               id: project.id
@@ -1393,16 +1393,16 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             ]
           });
         })
-        .then(function(project ) {
+        .then(function(project) {
           var json = project.toJSON();
           expect(json.LovelyUser).to.be.equal(null);
         });
     });
 
-    it("dont return instances that aren't defined", function(done ) {
+    it("dont return instances that aren't defined", function() {
       var self = this;
       return self.User.create({ username: 'cuss' })
-        .then(function(user ) {
+        .then(function(user) {
           return self.User.find({
             where: {
               id: user.id
@@ -1412,7 +1412,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             ]
           });
         })
-        .then(function(user ) {
+        .then(function(user) {
           var json = user.toJSON();
           expect(user.Projects).to.be.instanceof(Array);
           expect(user.Projects).to.be.length(0);
@@ -1468,7 +1468,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return this.ParanoidUser.sync({ force: true });
     });
 
-    it('sql should have paranoid condition', function(done ) {
+    it('sql should have paranoid condition', function() {
       var self = this;
       return self.ParanoidUser.create({ username: 'cuss' })
         .then(function() {
@@ -1486,7 +1486,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
     });
 
-    it('sequelize.and as where should include paranoid condition', function(done ) {
+    it('sequelize.and as where should include paranoid condition', function() {
       var self = this;
       return self.ParanoidUser.create({ username: 'cuss' })
         .then(function() {
@@ -1512,7 +1512,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
     });
 
-    it('sequelize.or as where should include paranoid condition', function(done ) {
+    it('sequelize.or as where should include paranoid condition', function() {
       var self = this;
       return self.ParanoidUser.create({ username: 'cuss' })
         .then(function() {
