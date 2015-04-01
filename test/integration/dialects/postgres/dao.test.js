@@ -13,7 +13,7 @@ chai.config.includeStack = true;
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] DAO', function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       this.sequelize.options.quoteIdentifiers = true;
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
@@ -31,20 +31,16 @@ if (dialect.match(/^postgres/)) {
         available_amount: DataTypes.RANGE,
         holidays: DataTypes.ARRAY(DataTypes.RANGE(DataTypes.DATE))
       });
-      this.User.sync({ force: true }).success(function() {
-        done();
-      });
+      return this.User.sync({ force: true });
     });
 
-    afterEach(function(done) {
+    afterEach(function() {
       this.sequelize.options.quoteIdentifiers = true;
-      done();
     });
 
-    it('should be able to search within an array', function(done) {
-      this.User.all({where: {email: ['hello', 'world']}, attributes: ['id','username','email','settings','document','phones','emergency_contact','friends']}).on('sql', function(sql) {
+    it('should be able to search within an array', function() {
+      return this.User.findAll({where: {email: ['hello', 'world']}, attributes: ['id','username','email','settings','document','phones','emergency_contact','friends']}).on('sql', function(sql) {
         expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
-        done();
       });
     });
 
@@ -72,17 +68,16 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
-    it('should be able to find a record while searching in an array', function(done) {
+    it('should be able to find a record while searching in an array', function() {
       var self = this;
-      this.User.bulkCreate([
+      return this.User.bulkCreate([
         {username: 'bob', email: ['myemail@email.com']},
         {username: 'tony', email: ['wrongemail@email.com']}
-      ]).success(function() {
-        self.User.all({where: {email: ['myemail@email.com']}}).success(function(user) {
+      ]).then(function() {
+        return self.User.findAll({where: {email: ['myemail@email.com']}}).then(function(user) {
           expect(user).to.be.instanceof(Array);
           expect(user).to.have.length(1);
           expect(user[0].username).to.equal('bob');
-          done();
         });
       });
     });
@@ -318,31 +313,27 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('enums', function() {
-      it('should be able to ignore enum types that already exist', function(done) {
+      it('should be able to ignore enum types that already exist', function() {
         var User = this.sequelize.define('UserEnums', {
           mood: DataTypes.ENUM('happy', 'sad', 'meh')
         });
 
-        User.sync({ force: true }).success(function() {
-          User.sync().success(function() {
-            done();
-          });
+        return User.sync({ force: true }).then(function() {
+          return User.sync();
         });
       });
 
-      it('should be able to create/drop enums multiple times', function(done) {
+      it('should be able to create/drop enums multiple times', function() {
         var User = this.sequelize.define('UserEnums', {
           mood: DataTypes.ENUM('happy', 'sad', 'meh')
         });
 
-        User.sync({ force: true }).success(function() {
-          User.sync({ force: true }).success(function() {
-            done();
-          });
+        return User.sync({ force: true }).then(function() {
+          return User.sync({ force: true });
         });
       });
 
-      it('should be able to create/drop multiple enums multiple times', function(done) {
+      it('should be able to create/drop multiple enums multiple times', function() {
         var DummyModel = this.sequelize.define('Dummy-pg', {
           username: DataTypes.STRING,
           theEnumOne: {
@@ -363,16 +354,11 @@ if (dialect.match(/^postgres/)) {
           }
         });
 
-        DummyModel.sync({ force: true }).done(function(err) {
-          expect(err).not.to.be.ok;
+        return DummyModel.sync({ force: true }).then(function() {
           // now sync one more time:
-          DummyModel.sync({force: true}).done(function(err) {
-            expect(err).not.to.be.ok;
+          return DummyModel.sync({force: true}).then(function() {
             // sync without dropping
-            DummyModel.sync().done(function(err) {
-              expect(err).not.to.be.ok;
-              done();
-            });
+            return DummyModel.sync();
           });
         });
       });
@@ -387,12 +373,12 @@ if (dialect.match(/^postgres/)) {
           done();
         });
 
-        User.sync({ force: true }).success(function() {
+        User.sync({ force: true }).then(function() {
           User = self.sequelize.define('UserEnums', {
             mood: DataTypes.ENUM('neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful')
           });
 
-          User.sync().success(function() {
+          User.sync().then(function() {
             expect(User.rawAttributes.mood.values).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
             _done();
           }).on('sql', function(sql) {
@@ -415,72 +401,64 @@ if (dialect.match(/^postgres/)) {
 
     describe('integers', function() {
       describe('integer', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           this.User = this.sequelize.define('User', {
             aNumber: DataTypes.INTEGER
           });
 
-          this.User.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.User.sync({ force: true });
         });
 
-        it('positive', function(done) {
+        it('positive', function() {
           var User = this.User;
 
-          User.create({aNumber: 2147483647}).success(function(user) {
+          return User.create({aNumber: 2147483647}).then(function(user) {
             expect(user.aNumber).to.equal(2147483647);
-            User.find({where: {aNumber: 2147483647}}).success(function(_user) {
+            return User.find({where: {aNumber: 2147483647}}).then(function(_user) {
               expect(_user.aNumber).to.equal(2147483647);
-              done();
             });
           });
         });
 
-        it('negative', function(done) {
+        it('negative', function() {
           var User = this.User;
 
-          User.create({aNumber: -2147483647}).success(function(user) {
+          return User.create({aNumber: -2147483647}).then(function(user) {
             expect(user.aNumber).to.equal(-2147483647);
-            User.find({where: {aNumber: -2147483647}}).success(function(_user) {
+            return User.find({where: {aNumber: -2147483647}}).then(function(_user) {
               expect(_user.aNumber).to.equal(-2147483647);
-              done();
             });
           });
         });
       });
 
       describe('bigint', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           this.User = this.sequelize.define('User', {
             aNumber: DataTypes.BIGINT
           });
 
-          this.User.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.User.sync({ force: true });
         });
 
-        it('positive', function(done) {
+        it('positive', function() {
           var User = this.User;
 
-          User.create({aNumber: '9223372036854775807'}).success(function(user) {
+          return User.create({aNumber: '9223372036854775807'}).then(function(user) {
             expect(user.aNumber).to.equal('9223372036854775807');
-            User.find({where: {aNumber: '9223372036854775807'}}).success(function(_user) {
+            return User.find({where: {aNumber: '9223372036854775807'}}).then(function(_user) {
               expect(_user.aNumber).to.equal('9223372036854775807');
-              done();
             });
           });
         });
 
-        it('negative', function(done) {
+        it('negative', function() {
           var User = this.User;
 
-          User.create({aNumber: '-9223372036854775807'}).success(function(user) {
+          return User.create({aNumber: '-9223372036854775807'}).then(function(user) {
             expect(user.aNumber).to.equal('-9223372036854775807');
-            User.find({where: {aNumber: '-9223372036854775807'}}).success(function(_user) {
+            return User.find({where: {aNumber: '-9223372036854775807'}}).then(function(_user) {
               expect(_user.aNumber).to.equal('-9223372036854775807');
-              done();
             });
           });
         });
@@ -488,34 +466,30 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('timestamps', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           dates: DataTypes.ARRAY(DataTypes.DATE)
         });
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
-      it('should use postgres "TIMESTAMP WITH TIME ZONE" instead of "DATETIME"', function(done) {
-        this.User.create({
+      it('should use postgres "TIMESTAMP WITH TIME ZONE" instead of "DATETIME"', function() {
+        return this.User.create({
           dates: []
         }).on('sql', function(sql) {
           expect(sql.indexOf('TIMESTAMP WITH TIME ZONE')).to.be.greaterThan(0);
-          done();
         });
       });
     });
 
     describe('model', function() {
-      it('create handles array correctly', function(done) {
-        this.User
+      it('create handles array correctly', function() {
+        return this.User
           .create({ username: 'user', email: ['foo@bar.com', 'bar@baz.com'] })
-          .success(function(oldUser) {
+          .then(function(oldUser) {
             expect(oldUser.email).to.contain.members(['foo@bar.com', 'bar@baz.com']);
-            done();
           })
-          .error(function(err) {
+          .catch(function(err) {
             console.log(err);
           });
       });
@@ -575,7 +549,7 @@ if (dialect.match(/^postgres/)) {
 
             // Check to see if updating an hstore field works
             return self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: newUser.identifiers}).then(function() {
-              return newUser.reload().success(function() {
+              return newUser.reload().then(function() {
                 // Postgres always returns keys in alphabetical order (ascending)
                 expect(newUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'});
               });
@@ -622,10 +596,10 @@ if (dialect.match(/^postgres/)) {
           });
       });
 
-      it('should read hstore correctly from multiple rows', function(done) {
+      it('should read hstore correctly from multiple rows', function() {
         var self = this;
 
-        self.User
+        return self.User
           .create({ username: 'user1', email: ['foo@bar.com'], settings: { test: '"value"' }})
           .then(function() {
             return self.User.create({ username: 'user2', email: ['foo2@bar.com'], settings: { another: '"example"' }});
@@ -637,10 +611,8 @@ if (dialect.match(/^postgres/)) {
           .then(function(users) {
             expect(users[0].settings).to.deep.equal({ test: '"value"' });
             expect(users[1].settings).to.deep.equal({ another: '"example"' });
-
-            done();
           })
-          .error(console.log);
+          .catch(console.log);
       });
 
       it('should read hstore correctly from included models as well', function() {
@@ -763,7 +735,7 @@ if (dialect.match(/^postgres/)) {
 
           // Check to see if updating a range field works
           return User.update({course_period: period}, {where: newUser.identifiers}).then(function() {
-            return newUser.reload().success(function() {
+            return newUser.reload().then(function() {
               expect(newUser.course_period[0] instanceof Date).to.be.ok;
               expect(newUser.course_period[1] instanceof Date).to.be.ok;
               expect(newUser.course_period[0]).to.equalTime(period[0]); // lower bound
@@ -859,7 +831,7 @@ if (dialect.match(/^postgres/)) {
             expect(users[1].course_period[1]).to.equalTime(periods[1][1]); // upper bound
             expect(users[1].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
           })
-          .error(console.log);
+          .catch(console.log);
       });
 
       it('should read range correctly from included models as well', function () {
@@ -897,7 +869,7 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('[POSTGRES] Unquoted identifiers', function() {
-      it('can insert and select', function(done) {
+      it('can insert and select', function() {
         var self = this;
         this.sequelize.options.quoteIdentifiers = false;
         this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = false;
@@ -909,10 +881,10 @@ if (dialect.match(/^postgres/)) {
           quoteIdentifiers: false
         });
 
-        this.User.sync({ force: true }).success(function() {
+        return this.User.sync({ force: true }).then(function() {
           self.User
             .create({ username: 'user', fullName: 'John Smith' })
-            .success(function(user) {
+            .then(function(user) {
               // We can insert into a table with non-quoted identifiers
               expect(user.id).to.exist;
               expect(user.id).not.to.be.null;
@@ -920,27 +892,25 @@ if (dialect.match(/^postgres/)) {
               expect(user.fullName).to.equal('John Smith');
 
               // We can query by non-quoted identifiers
-              self.User.find({
+              return self.User.find({
                 where: {fullName: 'John Smith'}
               })
-              .success(function(user2) {
+              .then(function(user2) {
                 // We can map values back to non-quoted identifiers
                 expect(user2.id).to.equal(user.id);
                 expect(user2.username).to.equal('user');
                 expect(user2.fullName).to.equal('John Smith');
 
                 // We can query and aggregate by non-quoted identifiers
-                self.User
+                return self.User
                   .count({
                     where: {fullName: 'John Smith'}
                   })
-                  .success(function(count) {
+                  .then(function(count) {
                     self.sequelize.options.quoteIndentifiers = true;
                     self.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true;
                     self.sequelize.options.logging = false;
-
                     expect(count).to.equal(1);
-                    done();
                   });
               });
             });

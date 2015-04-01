@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             , oldUpdatedAt = user.updatedAt
             , oldIdentifier = user.identifier;
 
-          return Promise.delay(1000).then(function() {
+          return this.sequelize.Promise.delay(1000).then(function() {
             return user.update({
               name: 'foobar',
               createdAt: new Date(2000, 1, 1),
