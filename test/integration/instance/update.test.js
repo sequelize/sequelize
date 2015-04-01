@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+        return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
           return User.sync({ force: true }).then(function() {
@@ -351,7 +351,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
 
       return User.sync({ force: true }).then(function() {
-        User.create({
+        return User.create({
           name: 'snafu',
           identifier: 'identifier'
         }).then(function(user) {
@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             , oldUpdatedAt = user.updatedAt
             , oldIdentifier = user.identifier;
 
-          setTimeout(function() {
+          return Promise.delay(1000).then(function() {
             return user.update({
               name: 'foobar',
               createdAt: new Date(2000, 1, 1),
@@ -369,7 +369,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
               expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt));
               expect(user.identifier).to.equal(oldIdentifier);
             });
-          }, 1000);
+          });
         });
       });
     });

@@ -21,7 +21,7 @@ if (Support.dialectIsMySQL()) {
             spy();
 
             setTimeout(function() {
-              User.count().on('success', function(count) {
+              User.count().then(function(count) {
                 expect(count).to.equal(1);
                 spy();
                 if (spy.calledTwice) {

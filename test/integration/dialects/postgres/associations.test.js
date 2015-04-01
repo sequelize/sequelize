@@ -56,7 +56,7 @@ if (dialect.match(/^postgres/)) {
 
     describe('HasMany', function() {
       describe('addDAO / getDAO', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
@@ -79,14 +79,13 @@ if (dialect.match(/^postgres/)) {
             tasks[tasks.length] = {name: 'Task' + Math.random()};
           }
 
-          this.sequelize.sync({ force: true }).success(function() {
-            self.User.bulkCreate(users).success(function() {
-              self.Task.bulkCreate(tasks).success(function() {
-                self.User.all().success(function(_users) {
-                  self.Task.all().success(function(_tasks) {
+          return this.sequelize.sync({ force: true }).then(function() {
+            return self.User.bulkCreate(users).then(function() {
+              return self.Task.bulkCreate(tasks).then(function() {
+                return self.User.findAll().then(function(_users) {
+                  return self.Task.findAll().then(function(_tasks) {
                     self.user = _users[0];
                     self.task = _tasks[0];
-                    done();
                   });
                 });
               });
@@ -94,15 +93,14 @@ if (dialect.match(/^postgres/)) {
           });
         });
 
-        it('should correctly add an association to the dao', function(done) {
+        it('should correctly add an association to the dao', function() {
           var self = this;
 
-          self.user.getTasks().on('success', function(_tasks) {
+          return self.user.getTasks().then(function(_tasks) {
             expect(_tasks).to.have.length(0);
-            self.user.addTask(self.task).on('success', function() {
-              self.user.getTasks().on('success', function(_tasks) {
+            return self.user.addTask(self.task).then(function() {
+              return self.user.getTasks().then(function(_tasks) {
                 expect(_tasks).to.have.length(1);
-                done();
               });
             });
           });
@@ -110,7 +108,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       describe('removeDAO', function() {
-        it('should correctly remove associated objects', function(done) {
+        it('should correctly remove associated objects', function() {
           var self = this
             , users = []
             , tasks = [];
@@ -132,30 +130,29 @@ if (dialect.match(/^postgres/)) {
             tasks[tasks.length] = {id: x + 1, name: 'Task' + Math.random()};
           }
 
-          this.sequelize.sync({ force: true }).success(function() {
-            self.User.bulkCreate(users).done(function(err) {
+          return this.sequelize.sync({ force: true }).then(function() {
+            return self.User.bulkCreate(users).finally(function(err) {
               expect(err).not.to.be.ok;
-              self.Task.bulkCreate(tasks).done(function(err) {
+              return self.Task.bulkCreate(tasks).finally(function(err) {
                 expect(err).not.to.be.ok;
-                self.User.all().success(function(_users) {
-                  self.Task.all().success(function(_tasks) {
+                return self.User.findAll().then(function(_users) {
+                  return self.Task.findAll().then(function(_tasks) {
                     self.user = _users[0];
                     self.task = _tasks[0];
                     self.users = _users;
                     self.tasks = _tasks;
 
-                    self.user.getTasks().on('success', function(__tasks) {
+                    return self.user.getTasks().then(function(__tasks) {
                       expect(__tasks).to.have.length(0);
-                      self.user.setTasks(self.tasks).on('success', function() {
-                        self.user.getTasks().on('success', function(_tasks) {
+                      return self.user.setTasks(self.tasks).then(function() {
+                        return self.user.getTasks().then(function(_tasks) {
                           expect(_tasks).to.have.length(self.tasks.length);
-                          self.user.removeTask(self.tasks[0]).on('success', function() {
-                            self.user.getTasks().on('success', function(_tasks) {
+                          return self.user.removeTask(self.tasks[0]).then(function() {
+                            return self.user.getTasks().then(function(_tasks) {
                               expect(_tasks).to.have.length(self.tasks.length - 1);
-                              self.user.removeTasks([self.tasks[1], self.tasks[2]]).on('success', function() {
-                                self.user.getTasks().on('success', function(_tasks) {
+                              return self.user.removeTasks([self.tasks[1], self.tasks[2]]).then(function() {
+                                return self.user.getTasks().then(function(_tasks) {
                                   expect(_tasks).to.have.length(self.tasks.length - 3);
-                                  done();
                                 });
                               });
                             });
