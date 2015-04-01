@@ -882,7 +882,7 @@ if (dialect.match(/^postgres/)) {
         });
 
         return this.User.sync({ force: true }).then(function() {
-          self.User
+          return self.User
             .create({ username: 'user', fullName: 'John Smith' })
             .then(function(user) {
               // We can insert into a table with non-quoted identifiers
