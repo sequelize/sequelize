@@ -210,8 +210,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
     it('should support an include with multiple different association types', function(done) {
       var self = this;
 
-      self.sequelize.dropAllSchemas().success(function() {
-        self.sequelize.createSchema('account').success(function() {
+      self.sequelize.dropAllSchemas().then(function() {
+        self.sequelize.createSchema('account').then(function() {
           var AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'})
             , Product = self.sequelize.define('Product', {
                 title: DataTypes.STRING

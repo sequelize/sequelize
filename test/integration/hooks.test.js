@@ -490,7 +490,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops! Changed user.mood!'));
               });
 
-              return this.User.create({mood: 'happy'});
+              return this.User.create({mood: 'happy'}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -1155,10 +1157,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       A.hasMany(B);
 
       return this.sequelize.sync({force: true}).then(function() {
-        return [
+        return this.sequelize.Promise.all([
           A.create({name: 'a'}),
           B.create({name: 'b'})
-        ].spread(function(a, b) {
+        ]).spread(function(a, b) {
           return a.addB(b).then(function() {
             expect(hookCalled).to.equal(1);
           });
