@@ -762,7 +762,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       User.sync({force: true}).success(function() {
-        User.create({myvals: [1, 2, 3, 4], mystr: ['One', 'Two', 'Three', 'Four']}).on('success', function(user) {
+        User.create({myvals: [1, 2, 3, 4], mystr: ['One', 'Two', 'Three', 'Four']}).then(function(user) {
          user.myvals = [];
           user.mystr = [];
           user.save().on('sql', function(sql) {
@@ -879,7 +879,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       User.sync({ force: true }).success(function() {
-        User.create({ big: '9223372036854775807' }).on('success', function(user) {
+        User.create({ big: '9223372036854775807' }).then(function(user) {
           expect(user.big).to.be.equal('9223372036854775807');
           done();
         });
@@ -892,10 +892,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       User.sync({ force: true }).success(function() {
-        User.create({}).on('success', function(user) {
+        User.create({}).then(function(user) {
           expect(user.userid).to.equal(1);
 
-          User.create({}).on('success', function(user) {
+          User.create({}).then(function(user) {
             expect(user.userid).to.equal(2);
             done();
           });

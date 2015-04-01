@@ -383,7 +383,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
           resolve('yoohoo');
         });
 
-      promise.on('success', spy);
+      promise.then(spy);
       promise.then(function() {
         expect(spy.calledOnce).to.be.true;
         expect(spy.firstCall.args).to.deep.equal(['yoohoo']);

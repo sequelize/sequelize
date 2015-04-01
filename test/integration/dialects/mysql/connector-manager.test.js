@@ -14,9 +14,9 @@ if (Support.dialectIsMySQL()) {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
         , spy = sinon.spy();
 
-      User.sync({force: true}).on('success', function() {
-        User.create({username: 'user1'}).on('success', function() {
-          User.count().on('success', function(count) {
+      User.sync({force: true}).then(function() {
+        User.create({username: 'user1'}).then(function() {
+          User.count().then(function(count) {
             expect(count).to.equal(1);
             spy();
 

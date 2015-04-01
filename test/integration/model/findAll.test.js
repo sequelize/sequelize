@@ -1251,7 +1251,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('finds all entries', function(done) {
-        this.User.all().on('success', function(users) {
+        this.User.all().then(function(users) {
           expect(users.length).to.equal(2);
           done();
         });
@@ -1535,7 +1535,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     }
 
     it('should return all users', function(done) {
-      this.User.all().on('success', function(users) {
+      this.User.all().then(function(users) {
         expect(users.length).to.equal(2);
         done();
       });
