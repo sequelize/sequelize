@@ -1156,7 +1156,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       B.hasMany(A);
       A.hasMany(B);
 
-      return this.sequelize.sync({force: true}).then(function() {
+      return this.sequelize.sync({force: true}).bind(this).then(function() {
         return this.sequelize.Promise.all([
           A.create({name: 'a'}),
           B.create({name: 'b'})
@@ -2610,7 +2610,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -2621,7 +2623,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -2671,7 +2675,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -2686,7 +2692,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -2729,7 +2737,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -2740,7 +2750,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -2790,7 +2802,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -2805,7 +2819,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]);
+              ]).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -3694,7 +3710,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -3702,7 +3720,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -3746,7 +3766,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -3758,7 +3780,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -3795,7 +3819,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -3803,7 +3829,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -3847,7 +3875,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
 
             it('should return an error from after', function() {
@@ -3859,7 +3889,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}});
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -4370,7 +4402,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           return this.Projects.create({title: 'New Project'}).then(function(project) {
             return self.Tasks.create({title: 'New Task'}).then(function(task) {
-              return project.setTask(task);
+              return project.setTask(task).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -4537,7 +4571,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           return this.Projects.create({title: 'New Project'}).then(function(project) {
             return self.Tasks.create({title: 'New Task'}).then(function(task) {
-              return project.setTask(task);
+              return project.setTask(task).catch(function(err) {
+                expect(err).to.be.instanceOf(Error);
+              });
             });
           });
         });
@@ -5135,7 +5171,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              return this.sequelize.Promise.findAll([
+              return this.sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, minitask) {
@@ -5193,7 +5229,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              return this.sequelize.Promise.findAll([
+              return this.sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, minitask) {
@@ -5284,12 +5320,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               });
 
 
-              return this.sequelize.Promise.findAll([
+              return this.sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.Tasks.create({title: 'New Task'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, task, minitask) {
-                return this.sequelize.Promise.findAll([
+                return this.sequelize.Promise.all([
                   task.addMiniTask(minitask),
                   project.addTask(task)
                 ]).return(project);
@@ -5340,12 +5376,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 afterMiniTask = true;
               });
 
-              return this.sequelize.Promise.findAll([
+              return this.sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.Tasks.create({title: 'New Task'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread(function(project, task, minitask) {
-                return this.sequelize.Promise.findAll([
+                return this.sequelize.Promise.all([
                   task.addMiniTask(minitask),
                   project.addTask(task)
                 ]).return(project);
