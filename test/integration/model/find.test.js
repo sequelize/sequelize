@@ -260,7 +260,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           , count = 0;
 
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(function() {
-          return this.sequelize.Promise.map(permutations, function(perm) {
+          return self.sequelize.Promise.map(permutations, function(perm) {
             return self.User.find(perm).then(function(user) {
               expect(user).to.be.null;
               count++;
@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         self.Task = self.sequelize.define('Task', { title: Sequelize.STRING });
         self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
 
-        return this.init = function(callback) {
+        this.init = function(callback) {
           return self.sequelize.sync({ force: true }).then(function() {
             return self.Worker.create({ name: 'worker' }).then(function(worker) {
               return self.Task.create({ title: 'homework' }).then(function(task) {
