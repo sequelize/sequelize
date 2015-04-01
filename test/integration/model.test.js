@@ -1813,7 +1813,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should allow decimals in sum', function() {
       var self = this;
       return this.UserWithDec.bulkCreate([{value: 3.5}, {value: 5.25}]).then(function() {
-        self.UserWithDec.sum('value').then(function(sum) {
+        return self.UserWithDec.sum('value').then(function(sum) {
           expect(sum).to.equal(8.75);
         });
       });

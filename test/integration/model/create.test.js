@@ -737,7 +737,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return User.create({myvals: [1, 2, 3, 4], mystr: ['One', 'Two', 'Three', 'Four']}).then(function(user) {
          user.myvals = [];
           user.mystr = [];
-          user.save().on('sql', function(sql) {
+          return user.save().on('sql', function(sql) {
             expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
             expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
           });
@@ -1444,7 +1444,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           {id: 5},
           {id: 10}
         ]).then(function() {
-          Worker.findAll({order: 'id ASC'}).then(function(workers) {
+          return Worker.findAll({order: 'id ASC'}).then(function(workers) {
             expect(workers[0].id).to.equal(5);
             expect(workers[1].id).to.equal(10);
           });
