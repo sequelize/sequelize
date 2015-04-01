@@ -2001,7 +2001,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
           }
         })
-        .then(function(UserSpecial) {
+        .then(function(UserPublic) {
           return self.UserSpecialSync.schema('special').create({age: 3})
           .on('sql', function(UserSpecial) {
             expect(UserSpecial).to.exist;
