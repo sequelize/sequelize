@@ -637,7 +637,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   return self.PhoneNumber.create({ phone: '111111' }).then(function(somePhone2) {
                     return someContact.setPhotos([somePhoto]).then(function() {
                       return someContact.setPhoneNumbers([somePhone1, somePhone2]).then(function() {
-                        self.Contact.find({
+                        return self.Contact.find({
                           where: {
                             name: 'Boris'
                           },
