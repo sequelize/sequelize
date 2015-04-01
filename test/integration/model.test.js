@@ -1886,9 +1886,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserSpecialUnderscore.sync({force: true}).then(function(User) {
           return UserSpecialDblUnderscore.schema('hello', '__').sync({force: true}).then(function(DblUser) {
             return DblUser.create({age: 3}).on('sql', function(dblSql) {
+              expect(dblSql).to.exist;
+              expect(dblSql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).to.be.above(-1);
+            }).then(function() {
               return User.create({age: 3}).on('sql', function(sql) {
-                expect(dblSql).to.exist;
-                expect(dblSql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).to.be.above(-1);
                 expect(sql).to.exist;
                 expect(sql.indexOf('INSERT INTO `hello_UserSpecialUnderscores`')).to.be.above(-1);
               });
@@ -1983,30 +1984,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('should be able to create and update records under any valid schematic', function() {
       var self = this;
-
       return self.UserPublic.sync({ force: true }).then(function(UserPublicSync) {
         return UserPublicSync.create({age: 3}).on('sql', function(UserPublic) {
+          expect(UserPublic).to.exist;
+          if (dialect === 'postgres') {
+            expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
+            expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
+          } else if (dialect === 'sqlite') {
+            expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+            expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
+          } else if (dialect === 'mssql') {
+            expect(self.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
+            expect(UserPublic.indexOf('INSERT INTO [UserPublics]')).to.be.above(-1);
+          } else {
+            expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+            expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
+          }
+        })
+        .then(function(UserSpecial) {
           return self.UserSpecialSync.schema('special').create({age: 3})
           .on('sql', function(UserSpecial) {
             expect(UserSpecial).to.exist;
-            expect(UserPublic).to.exist;
-
             if (dialect === 'postgres') {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
               expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1);
-              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
             } else if (dialect === 'sqlite') {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
-              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
             } else if (dialect === 'mssql') {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
               expect(UserSpecial.indexOf('INSERT INTO [special].[UserSpecials]')).to.be.above(-1);
-              expect(UserPublic.indexOf('INSERT INTO [UserPublics]')).to.be.above(-1);
             } else {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
-              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
             }
           })
           .then(function(UserSpecial) {
