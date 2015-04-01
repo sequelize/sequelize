@@ -924,38 +924,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    it('can omit autoincremental columns', function() {
+    it('can omit autoincremental columns', function(done) {
       var self = this
         , data = { title: 'Iliad' }
         , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT]
@@ -984,6 +953,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(book.author).to.equal(data.author);
             expect(books[index].rawAttributes.id.type instanceof dataTypes[index]).to.be.ok;
           });
+          done();
         });
       });
     });
