@@ -11,33 +11,30 @@ if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Associations', function() {
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {
-        it('should create a table wp_table1wp_table2s', function(done) {
+        it('should create a table wp_table1wp_table2s', function() {
           var Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING})
             , self = this;
 
           Table1.hasMany(Table2);
           Table2.hasMany(Table1);
-          Table1.sync({ force: true }).success(function() {
-            Table2.sync({ force: true }).success(function() {
+          return Table1.sync({ force: true }).then(function() {
+            return Table2.sync({ force: true }).then(function() {
               expect(self.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).to.exist;
-              done();
             });
           });
         });
       });
 
       describe('when join table name is specified', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
           Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'});
           Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'});
-          Table1.sync({ force: true }).success(function() {
-            Table2.sync({ force: true }).success(function() {
-              done();
-            });
+          return Table1.sync({ force: true }).then(function() {
+            return Table2.sync({ force: true });
           });
         });
 
@@ -50,7 +47,7 @@ if (Support.dialectIsMySQL()) {
 
 
     describe('HasMany', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         //prevent periods from occurring in the table name since they are used to delimit (table.column)
         this.User = this.sequelize.define('User' + Math.ceil(Math.random() * 10000000), { name: DataTypes.STRING });
         this.Task = this.sequelize.define('Task' + Math.ceil(Math.random() * 10000000), { name: DataTypes.STRING });
@@ -72,40 +69,36 @@ if (Support.dialectIsMySQL()) {
           tasks[tasks.length] = {name: 'Task' + Math.random()};
         }
 
-        this.sequelize.sync({ force: true }).success(function() {
-          self.User.bulkCreate(users).success(function() {
-            self.Task.bulkCreate(tasks).success(function() {
-              done();
-            });
+        return this.sequelize.sync({ force: true }).then(function() {
+          return self.User.bulkCreate(users).then(function() {
+            return self.Task.bulkCreate(tasks);
           });
         });
       });
 
       describe('addDAO / getDAO', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           self.user = null;
           self.task = null;
 
-          self.User.all().success(function(_users) {
-            self.Task.all().success(function(_tasks) {
+          return self.User.findAll().then(function(_users) {
+            return self.Task.findAll().then(function(_tasks) {
               self.user = _users[0];
               self.task = _tasks[0];
-              done();
             });
           });
         });
 
-        it('should correctly add an association to the dao', function(done) {
+        it('should correctly add an association to the dao', function() {
           var self = this;
 
-          self.user.getTasks().on('success', function(_tasks) {
+          return self.user.getTasks().then(function(_tasks) {
             expect(_tasks.length).to.equal(0);
-            self.user.addTask(self.task).on('success', function() {
-              self.user.getTasks().on('success', function(_tasks) {
+            return self.user.addTask(self.task).then(function() {
+              return self.user.getTasks().then(function(_tasks) {
                 expect(_tasks.length).to.equal(1);
-                done();
               });
             });
           });
@@ -113,36 +106,34 @@ if (Support.dialectIsMySQL()) {
       });
 
       describe('removeDAO', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           self.user = null;
           self.tasks = null;
 
-          self.User.all().success(function(_users) {
-            self.Task.all().success(function(_tasks) {
+          return self.User.findAll().then(function(_users) {
+            return self.Task.findAll().then(function(_tasks) {
               self.user = _users[0];
               self.tasks = _tasks;
-              done();
             });
           });
         });
 
-        it('should correctly remove associated objects', function(done) {
+        it('should correctly remove associated objects', function() {
           var self = this;
 
-          self.user.getTasks().on('success', function(__tasks) {
+          return self.user.getTasks().then(function(__tasks) {
             expect(__tasks.length).to.equal(0);
-            self.user.setTasks(self.tasks).on('success', function() {
-              self.user.getTasks().on('success', function(_tasks) {
+            return self.user.setTasks(self.tasks).then(function() {
+              return self.user.getTasks().then(function(_tasks) {
                 expect(_tasks.length).to.equal(self.tasks.length);
-                self.user.removeTask(self.tasks[0]).on('success', function() {
-                  self.user.getTasks().on('success', function(_tasks) {
+                return self.user.removeTask(self.tasks[0]).then(function() {
+                  return self.user.getTasks().then(function(_tasks) {
                     expect(_tasks.length).to.equal(self.tasks.length - 1);
-                    self.user.removeTasks([self.tasks[1], self.tasks[2]]).on('success', function() {
-                      self.user.getTasks().on('success', function(_tasks) {
+                    return self.user.removeTasks([self.tasks[1], self.tasks[2]]).then(function() {
+                      return self.user.getTasks().then(function(_tasks) {
                         expect(_tasks).to.have.length(self.tasks.length - 3);
-                        done();
                       });
                     });
                   });

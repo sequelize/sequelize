@@ -52,11 +52,10 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
       }
     });
 
-    it('when we don\'t have a valid dialect.', function(done) {
+    it('when we don\'t have a valid dialect.', function() {
       expect(function() {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: undefined});
       }).to.throw(Error, 'The dialect undefined is not supported.');
-      done();
     });
   });
 
@@ -75,13 +74,12 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
       expect(config.port).to.equal('9821');
     });
 
-    it('should work with no authentication options', function(done) {
+    it('should work with no authentication options', function() {
       var sequelize = new Sequelize('mysql://example.com:9821/dbname');
       var config = sequelize.config;
 
       expect(config.username).to.not.be.ok;
       expect(config.password).to.be.null;
-      done();
     });
 
     it('should work with no authentication options and passing additional options', function() {
@@ -113,26 +111,24 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
   });
 
   describe('Intantiation with arguments', function() {
-    it('should accept two parameters (database, username)', function(done) {
+    it('should accept two parameters (database, username)', function() {
       var sequelize = new Sequelize('dbname', 'root');
       var config = sequelize.config;
 
       expect(config.database).to.equal('dbname');
       expect(config.username).to.equal('root');
-      done();
     });
 
-    it('should accept three parameters (database, username, password)', function(done) {
+    it('should accept three parameters (database, username, password)', function() {
       var sequelize = new Sequelize('dbname', 'root', 'pass');
       var config = sequelize.config;
 
       expect(config.database).to.equal('dbname');
       expect(config.username).to.equal('root');
       expect(config.password).to.equal('pass');
-      done();
     });
 
-    it('should accept four parameters (database, username, password, options)', function(done) {
+    it('should accept four parameters (database, username, password, options)', function() {
       var sequelize = new Sequelize('dbname', 'root', 'pass', {
         port: 999,
         dialectOptions: {
@@ -148,7 +144,6 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
       expect(config.port).to.equal(999);
       expect(config.dialectOptions.supportBigNumbers).to.be.true;
       expect(config.dialectOptions.bigNumberStrings).to.be.true;
-      done();
     });
   });
 
