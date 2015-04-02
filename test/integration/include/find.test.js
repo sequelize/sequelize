@@ -6,8 +6,7 @@ var chai = require('chai')
   , Sequelize = require(__dirname + '/../../../index')
   , Promise = Sequelize.Promise
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , datetime = require('chai-datetime')
-  , async = require('async');
+  , datetime = require('chai-datetime');
 
 chai.use(datetime);
 chai.config.includeStack = true;
@@ -215,7 +214,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 return model.create(values).then(function (instance) {
                   if (previousInstance) {
                     return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(function() {
-                      previousInstance = instance; 
+                      previousInstance = instance;
                     });
                   } else {
                     previousInstance = b = instance;
@@ -275,7 +274,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', constraints: false });
 
       return this.sequelize.sync({force: true}).then(function () {
-        return User.find({ 
+        return User.find({
           where: { id: 2 },
           include: [
             { model: Post, as: 'UserPosts', where: {"private": true} }

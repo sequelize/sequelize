@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
         expect(product.toJSON()).to.deep.equal({withTaxes: 1250, price: 1000, id: null});
       });
 
-      it('should work with save', function(done) {
+      it('should work with save', function() {
         var Contact = this.sequelize.define('Contact', {
           first: { type: Sequelize.STRING },
           last: { type: Sequelize.STRING },
@@ -311,7 +311,7 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           }
         });
 
-        this.sequelize.sync().done(function() {
+        return this.sequelize.sync().then(function() {
           var contact = Contact.build({
             first: 'My',
             last: 'Name',
@@ -319,10 +319,8 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           });
           expect(contact.get('tags')).to.deep.equal(['yes', 'no']);
 
-          contact.save().done(function(err, me) {
-            expect(err).not.to.be.ok;
+          return contact.save().then(function(me) {
             expect(me.get('tags')).to.deep.equal(['yes', 'no']);
-            done();
           });
         });
       });
@@ -380,18 +378,16 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
     });
 
     describe('changed', function() {
-      it('should return false if object was built from database', function(done) {
+      it('should return false if object was built from database', function() {
         var User = this.sequelize.define('User', {
           name: {type: DataTypes.STRING}
         });
 
-        User.sync().done(function() {
-          User.create({name: 'Jan Meier'}).done(function(err, user) {
-            expect(err).not.to.be.ok;
+        return User.sync().then(function() {
+          return User.create({name: 'Jan Meier'}).then(function(user) {
             expect(user.changed('name')).to.be.false;
             expect(user.changed()).not.to.be.ok;
             expect(user.isDirty).to.be.false;
-            done();
           });
         });
       });
@@ -410,12 +406,12 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
         expect(user.isDirty).to.be.true;
       });
 
-      it('should return false immediately after saving', function(done) {
+      it('should return false immediately after saving', function() {
         var User = this.sequelize.define('User', {
           name: {type: DataTypes.STRING}
         });
 
-        User.sync().done(function() {
+        return User.sync().then(function() {
           var user = User.build({
             name: 'Jan Meier'
           });
@@ -424,12 +420,10 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           expect(user.changed()).to.be.ok;
           expect(user.isDirty).to.be.true;
 
-          user.save().done(function(err) {
-            expect(err).not.to.be.ok;
+          return user.save().then(function() {
             expect(user.changed('name')).to.be.false;
             expect(user.changed()).not.to.be.ok;
             expect(user.isDirty).to.be.false;
-            done();
           });
         });
       });
@@ -472,7 +466,6 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           expect(changed).to.be.ok;
           expect(changed.length).to.be.ok;
           expect(changed.indexOf('name') > -1).to.be.ok;
-
           expect(user.changed()).not.to.be.ok;
         });
       });

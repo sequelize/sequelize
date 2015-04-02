@@ -10,7 +10,6 @@ var chai = require('chai')
   , datetime = require('chai-datetime')
   , _ = require('lodash')
   , moment = require('moment')
-  , async = require('async')
   , current = Support.sequelize;
 
 chai.use(datetime);

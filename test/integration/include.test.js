@@ -7,7 +7,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
   , datetime = require('chai-datetime')
-  , async = require('async')
   , _ = require('lodash')
   , dialect = Support.getTestDialect();
 

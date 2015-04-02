@@ -10,36 +10,23 @@ var chai = require('chai')
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('QueryInterface'), function() {
-  beforeEach(function(done) {
+  beforeEach(function() {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
-    done();
   });
 
   describe('dropAllTables', function() {
-    it('should drop all tables', function(done) {
+    it('should drop all tables', function() {
       var self = this;
-      this.queryInterface.dropAllTables().complete(function(err) {
-        expect(err).to.be.null;
-
-        self.queryInterface.showAllTables().complete(function(err, tableNames) {
-          expect(err).to.be.null;
+      return this.queryInterface.dropAllTables().then(function() {
+        return self.queryInterface.showAllTables().then(function(tableNames) {
           expect(tableNames).to.be.empty;
-
-          self.queryInterface.createTable('table', { name: DataTypes.STRING }).complete(function(err) {
-            expect(err).to.be.null;
-
-            self.queryInterface.showAllTables().complete(function(err, tableNames) {
-              expect(err).to.be.null;
+          return self.queryInterface.createTable('table', { name: DataTypes.STRING }).then(function() {
+            return self.queryInterface.showAllTables().then(function(tableNames) {
               expect(tableNames).to.have.length(1);
-
-              self.queryInterface.dropAllTables().complete(function(err) {
-                expect(err).to.be.null;
-
-                self.queryInterface.showAllTables().complete(function(err, tableNames) {
-                  expect(err).to.be.null;
+              return self.queryInterface.dropAllTables().then(function() {
+                return self.queryInterface.showAllTables().then(function(tableNames) {
                   expect(tableNames).to.be.empty;
-                  done();
                 });
               });
             });
@@ -48,23 +35,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
-    it('should be able to skip given tables', function(done) {
+    it('should be able to skip given tables', function() {
       var self = this;
-      self.queryInterface.createTable('skipme', {
+      return self.queryInterface.createTable('skipme', {
         name: DataTypes.STRING
-      }).success(function() {
-        self.queryInterface.dropAllTables({skip: ['skipme']}).complete(function(err) {
-          expect(err).to.be.null;
-
-          self.queryInterface.showAllTables().complete(function(err, tableNames) {
-            expect(err).to.be.null;
-
+      }).then(function() {
+        return self.queryInterface.dropAllTables({skip: ['skipme']}).then(function() {
+          return self.queryInterface.showAllTables().then(function(tableNames) {
             if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
               tableNames = _.pluck(tableNames, 'tableName');
             }
-
             expect(tableNames).to.contain('skipme');
-            done();
           });
         });
       });
@@ -72,41 +53,27 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   });
 
   describe('indexes', function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       var self = this;
-      this.queryInterface.dropTable('Group').success(function() {
-        self.queryInterface.createTable('Group', {
+      return this.queryInterface.dropTable('Group').then(function() {
+        return self.queryInterface.createTable('Group', {
           username: DataTypes.STRING,
           isAdmin: DataTypes.BOOLEAN,
           from: DataTypes.STRING
-        }).success(function() {
-          done();
         });
       });
     });
 
-    it('adds, reads and removes an index to the table', function(done) {
+    it('adds, reads and removes an index to the table', function() {
       var self = this;
-
-      this.queryInterface.addIndex('Group', ['username', 'isAdmin']).complete(function(err) {
-        expect(err).to.be.null;
-
-        self.queryInterface.showIndex('Group').complete(function(err, indexes) {
-          expect(err).to.be.null;
-
+      return this.queryInterface.addIndex('Group', ['username', 'isAdmin']).then(function() {
+        return self.queryInterface.showIndex('Group').then(function(indexes) {
           var indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
-
           expect(indexColumns).to.include('group_username_is_admin');
-
-          self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).complete(function(err) {
-            expect(err).to.be.null;
-
-            self.queryInterface.showIndex('Group').complete(function(err, indexes) {
-              expect(err).to.be.null;
+          return self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).then(function() {
+            return self.queryInterface.showIndex('Group').then(function(indexes) {
               indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
               expect(indexColumns).to.be.empty;
-
-              done();
             });
           });
         });
@@ -119,7 +86,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   });
 
   describe('describeTable', function() {
-    it('reads the metadata of the table', function(done) {
+    it('reads the metadata of the table', function() {
       var self = this;
       var Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING,
@@ -127,9 +94,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         enumVals: DataTypes.ENUM('hello', 'world')
       }, { freezeTableName: true });
 
-      Users.sync({ force: true }).success(function() {
-        self.queryInterface.describeTable('_Users').complete(function(err, metadata) {
-          expect(err).to.be.null;
+      return Users.sync({ force: true }).then(function() {
+        return self.queryInterface.describeTable('_Users').then(function(metadata) {
           var username = metadata.username;
           var isAdmin = metadata.isAdmin;
           var enumVals = metadata.enumVals;
@@ -164,7 +130,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
             expect(enumVals.special).to.be.instanceof(Array);
             expect(enumVals.special).to.have.length(2);
           }
-          done();
         });
       });
     });

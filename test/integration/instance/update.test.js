@@ -60,19 +60,19 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function(done) {
-        Support.prepareTransactionTest(this.sequelize, function(sequelize) {
+      it('supports transactions', function() {
+        return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
-          User.sync({ force: true }).success(function() {
-            User.create({ username: 'foo' }).success(function(user) {
-              sequelize.transaction().then(function(t) {
-                user.update({ username: 'bar' }, { transaction: t }).success(function() {
-                  User.all().success(function(users1) {
-                    User.all({ transaction: t }).success(function(users2) {
+          return User.sync({ force: true }).then(function() {
+            return User.create({ username: 'foo' }).then(function(user) {
+              return sequelize.transaction().then(function(t) {
+                return user.update({ username: 'bar' }, { transaction: t }).then(function() {
+                  return User.findAll().then(function(users1) {
+                    return User.findAll({ transaction: t }).then(function(users2) {
                       expect(users1[0].username).to.equal('foo');
                       expect(users2[0].username).to.equal('bar');
-                      t.rollback().success(function() { done(); });
+                      return t.rollback();
                     });
                   });
                 });
@@ -325,88 +325,84 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it('updates attributes in the database', function(done) {
-      this.User.create({ username: 'user' }).success(function(user) {
+    it('updates attributes in the database', function() {
+      return this.User.create({ username: 'user' }).then(function(user) {
         expect(user.username).to.equal('user');
-        user.update({ username: 'person' }).success(function(user) {
+        return user.update({ username: 'person' }).then(function(user) {
           expect(user.username).to.equal('person');
-          done();
         });
       });
     });
 
-    it('ignores unknown attributes', function(done) {
-      this.User.create({ username: 'user' }).success(function(user) {
-        user.update({ username: 'person', foo: 'bar'}).success(function(user) {
+    it('ignores unknown attributes', function() {
+      return this.User.create({ username: 'user' }).then(function(user) {
+        return user.update({ username: 'person', foo: 'bar'}).then(function(user) {
           expect(user.username).to.equal('person');
           expect(user.foo).not.to.exist;
-          done();
         });
       });
     });
 
-    it("doesn't update primary keys or timestamps", function(done) {
+    it("doesn't update primary keys or timestamps", function() {
       var User = this.sequelize.define('User' + config.rand(), {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         identifier: {type: DataTypes.STRING, primaryKey: true}
       });
 
-      User.sync({ force: true }).success(function() {
-        User.create({
+      return User.sync({ force: true }).then(function() {
+        return User.create({
           name: 'snafu',
           identifier: 'identifier'
-        }).success(function(user) {
+        }).then(function(user) {
           var oldCreatedAt = user.createdAt
             , oldUpdatedAt = user.updatedAt
             , oldIdentifier = user.identifier;
 
-          setTimeout(function() {
-            user.update({
+          return this.sequelize.Promise.delay(1000).then(function() {
+            return user.update({
               name: 'foobar',
               createdAt: new Date(2000, 1, 1),
               identifier: 'another identifier'
-            }).success(function(user) {
+            }).then(function(user) {
               expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt));
               expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt));
               expect(user.identifier).to.equal(oldIdentifier);
-              done();
             });
-          }, 1000);
+          });
         });
       });
     });
 
-    it('stores and restores null values', function(done) {
+    it('stores and restores null values', function() {
       var Download = this.sequelize.define('download', {
         startedAt: DataTypes.DATE,
         canceledAt: DataTypes.DATE,
         finishedAt: DataTypes.DATE
       });
 
-      Download.sync().success(function() {
-        Download.create({
+      return Download.sync().then(function() {
+        return Download.create({
           startedAt: new Date()
-        }).success(function(download) {
+        }).then(function(download) {
           expect(download.startedAt instanceof Date).to.be.true;
           expect(download.canceledAt).to.not.be.ok;
           expect(download.finishedAt).to.not.be.ok;
 
-          download.update({
+          return download.update({
             canceledAt: new Date()
-          }).success(function(download) {
+          }).then(function(download) {
             expect(download.startedAt instanceof Date).to.be.true;
             expect(download.canceledAt instanceof Date).to.be.true;
             expect(download.finishedAt).to.not.be.ok;
 
-            Download.all({
+            return Download.findAll({
               where: (dialect === 'postgres' || dialect === 'mssql' ? '"finishedAt" IS NULL' : '`finishedAt` IS NULL')
-            }).success(function(downloads) {
+            }).then(function(downloads) {
               downloads.forEach(function(download) {
                 expect(download.startedAt instanceof Date).to.be.true;
                 expect(download.canceledAt instanceof Date).to.be.true;
                 expect(download.finishedAt).to.not.be.ok;
-                done();
               });
             });
           });

@@ -23,9 +23,8 @@ if (dialect.match(/^postgres/)) {
         expect(hstore.stringify({ foo: null })).to.equal('"foo"=>NULL');
       });
 
-      it('should handle empty string correctly', function(done) {
+      it('should handle empty string correctly', function() {
         expect(hstore.stringify({foo: ''})).to.equal('"foo"=>\"\"');
-        done();
       });
 
       it('should handle a string with backslashes correctly', function() {

@@ -26,11 +26,10 @@ if (dialect.match(/^postgres/)) {
         expect(range.stringify([1, 2, 3])).to.equal('');
       });
 
-      it('should return empty string when non-array parameter is passed', function (done) {
+      it('should return empty string when non-array parameter is passed', function () {
         expect(range.stringify({})).to.equal('');
         expect(range.stringify('test')).to.equal('');
         expect(range.stringify(undefined)).to.equal('');
-        done();
       });
 
       it('should handle array of objects with `inclusive` and `value` properties', function () {

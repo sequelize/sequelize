@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('#bulkCreate', function() {
             describe('with no specific DAO hooks', function() {
-              it('should return without a defined callback', function(done) {
+              it('should return without a defined callback', function() {
                 var self = this
                   , beforeBulkCreate = false
                   , afterBulkCreate = false;
@@ -61,23 +61,22 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   fn();
                 });
 
-                this.User.bulkCreate([
+                return this.User.bulkCreate([
                   {username: 'Bob', mood: 'cold'},
                   {username: 'Tobi', mood: 'hot'}
-                ]).success(function() {
-                  self.User.all().success(function(users) {
+                ]).then(function() {
+                  return self.User.findAll().then(function(users) {
                     expect(beforeBulkCreate).to.be.true;
                     expect(afterBulkCreate).to.be.true;
                     expect(users[0].mood).to.equal('happy');
                     expect(users[0].mood).to.equal('happy');
-                    done();
                   });
                 });
               });
             });
 
             describe('with specific DAO hooks', function() {
-              it('should return without a defined callback', function(done) {
+              it('should return without a defined callback', function() {
                 var self = this
                   , beforeBulkCreate = false
                   , afterBulkCreate = false;
@@ -97,55 +96,50 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   fn();
                 });
 
-                this.User.bulkCreate([
+                return this.User.bulkCreate([
                   {username: 'Bob', mood: 'cold'},
                   {username: 'Tobi', mood: 'hot'}
-                ], { individualHooks: true }).success(function(bulkUsers) {
+                ], { individualHooks: true }).then(function(bulkUsers) {
                   expect(beforeBulkCreate).to.be.true;
                   expect(afterBulkCreate).to.be.true;
                   expect(bulkUsers).to.be.instanceof(Array);
                   expect(bulkUsers).to.have.length(2);
-
-                  self.User.all().success(function(users) {
+                  return self.User.findAll().then(function(users) {
                     expect(users[0].mood).to.equal('happy');
                     expect(users[1].mood).to.equal('happy');
-                    done();
                   });
                 });
               });
             });
           });
 
-          it('#create', function(done) {
-            this.User.create({mood: 'ecstatic'}).success(function(user) {
+          it('#create', function() {
+            return this.User.create({mood: 'ecstatic'}).then(function(user) {
               expect(user.mood).to.equal('happy');
               expect(user.username).to.equal('Toni');
-              done();
             });
           });
 
-          it('#save', function(done) {
-            this.User.create({mood: 'sad'}).success(function(user) {
+          it('#save', function() {
+            return this.User.create({mood: 'sad'}).then(function(user) {
               user.mood = 'ecstatic';
-              user.save().success(function(user) {
+              return user.save().then(function(user) {
                 expect(user.mood).to.equal('happy');
                 expect(user.username).to.equal('Toni');
-                done();
               });
             });
           });
 
-          it('#updateAttributes / update', function(done) {
-            this.User.create({mood: 'sad'}).success(function(user) {
-              user.updateAttributes({mood: 'ecstatic'}).success(function(user) {
+          it('#updateAttributes / update', function() {
+            return this.User.create({mood: 'sad'}).then(function(user) {
+              return user.updateAttributes({mood: 'ecstatic'}).then(function(user) {
                 expect(user.mood).to.equal('happy');
                 expect(user.username).to.equal('Toni');
-                done();
               });
             });
           });
 
-          it('#update / bulkUpdate', function(done) {
+          it('#update / bulkUpdate', function() {
             var self = this
               , beforeBulkUpdate = false
               , afterBulkUpdate = false;
@@ -162,14 +156,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.User.create({mood: 'sad'}).success(function() {
-              self.User.update({mood: 'ecstatic'}, {where: {username: 'Toni'}, validate: true}).success(function() {
-                self.User.find({where: {username: 'Toni'}}).success(function(user) {
+            return this.User.create({mood: 'sad'}).then(function() {
+              return self.User.update({mood: 'ecstatic'}, {where: {username: 'Toni'}, validate: true}).then(function() {
+                return self.User.find({where: {username: 'Toni'}}).then(function(user) {
                   expect(beforeBulkUpdate).to.be.true;
                   expect(afterBulkUpdate).to.be.true;
                   expect(user.mood).to.equal('happy');
                   expect(user.username).to.equal('Toni');
-                  done();
                 });
               });
             });
@@ -177,7 +170,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         describe('with multiple hooks', function() {
-          beforeEach(function(done) {
+          beforeEach(function() {
             this.User = this.sequelize.define('User', {
               username: DataTypes.STRING,
               mood: {
@@ -209,17 +202,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            this.User.sync({ force: true }).success(function() {
-              done();
-            });
+            return this.User.sync({ force: true });
           });
 
           describe('#create', function() {
-            it('should return the user with a defined callback', function(done) {
-              this.User.create({mood: 'ecstatic'}).success(function(user) {
+            it('should return the user with a defined callback', function() {
+              return this.User.create({mood: 'ecstatic'}).then(function(user) {
                 expect(user.mood).to.equal('happy');
                 expect(user.username).to.equal('Toni');
-                done();
               });
             });
           });
@@ -228,7 +218,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('on error', function() {
         describe('with a single hook', function() {
-          beforeEach(function(done) {
+          beforeEach(function() {
             this.User = this.sequelize.define('User', {
               username: DataTypes.STRING,
               mood: {
@@ -248,24 +238,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            this.User.sync({ force: true }).success(function() {
-              done();
-            });
+            return this.User.sync({ force: true });
           });
 
           describe('#create', function() {
-            it('should return an error based on the hook', function(done) {
-              this.User.create({mood: 'happy'}).error(function(err) {
+            it('should return an error based on the hook', function() {
+              return this.User.create({mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(err.get('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral');
-                done();
               });
             });
           });
         });
 
         describe('with multiple hooks', function() {
-          beforeEach(function(done) {
+          beforeEach(function() {
             this.User = this.sequelize.define('User', {
               username: DataTypes.STRING,
               mood: {
@@ -297,17 +284,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            this.User.sync({ force: true }).success(function() {
-              done();
-            });
+            return this.User.sync({ force: true });
           });
 
           describe('#create', function() {
-            it('should return an error based on the hook', function(done) {
-              this.User.create({mood: 'happy'}).error(function(err) {
+            it('should return an error based on the hook', function() {
+              return this.User.create({mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(err.get('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral');
-                done();
               });
             });
           });
@@ -316,7 +300,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('via DAOFactory', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           mood: {
@@ -325,15 +309,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
       describe('direct method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            beforeEach(function(done) {
+            beforeEach(function() {
               this.User.beforeValidate(function(user, options, fn) {
                 user.mood = 'happy';
                 fn();
@@ -343,16 +325,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 user.username = 'Toni';
                 fn();
               });
-
-              done();
             });
 
             describe('#create', function() {
-              it('should return the user', function(done) {
-                this.User.create({mood: 'ecstatic'}).success(function(user) {
+              it('should return the user', function() {
+                return this.User.create({mood: 'ecstatic'}).then(function(user) {
                   expect(user.mood).to.equal('happy');
                   expect(user.username).to.equal('Toni');
-                  done();
                 });
               });
             });
@@ -360,41 +339,35 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('on error', function() {
             describe('should run hooks', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.beforeValidate(function(user, options, fn) {
                   user.username = 'Toni';
                   user.mood = 'ecstatic';
                   fn();
                 });
-
-                done();
               });
 
               describe('#create', function() {
-                it('should return the error without the user within callback', function(done) {
-                  this.User.create({mood: 'happy'}).error(function(err) {
+                it('should return the error without the user within callback', function() {
+                  return this.User.create({mood: 'happy'}).catch(function(err) {
                     expect(err).to.be.instanceOf(Error);
                     expect(err.get('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral');
-                    done();
                   });
                 });
               });
             });
 
             describe('should emit an error from after hook', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.afterValidate(function(user, options, fn) {
                   user.mood = 'ecstatic';
                   fn(new Error('Whoops! Changed user.mood!'));
                 });
-
-                done();
               });
 
-              it('#create', function(done) {
-                this.User.create({mood: 'happy'}).error(function(err) {
+              it('#create', function() {
+                return this.User.create({mood: 'happy'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
@@ -404,7 +377,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with multiple hooks', function() {
           describe('on success', function() {
             describe('should run hooks', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.beforeValidate(function(user, options, fn) {
                   user.mood = 'joyful';
                   fn();
@@ -421,15 +394,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   user.username = 'Toni';
                   fn();
                 });
-
-                done();
               });
 
-              it('#create', function(done) {
-                this.User.create({mood: 'ecstatic'}).success(function(user) {
+              it('#create', function() {
+                return this.User.create({mood: 'ecstatic'}).then(function(user) {
                   expect(user.mood).to.equal('happy');
                   expect(user.username).to.equal('Toni');
-                  done();
                 });
               });
             });
@@ -437,7 +407,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('on error', function() {
             describe('should run hooks', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.beforeValidate(function(user, options, fn) {
                   user.username = 'Toni';
                   fn();
@@ -447,21 +417,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   user.mood = 'ecstatic';
                   fn();
                 });
-
-                done();
               });
 
-              it('#create', function(done) {
-                this.User.create({mood: 'happy'}).error(function(err) {
+              it('#create', function() {
+                return this.User.create({mood: 'happy'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(err.get('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral');
-                  done();
                 });
               });
             });
 
             describe('should emit an error from after hook', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.afterValidate(function(user, options, fn) {
                   user.mood = 'ecstatic';
                   fn();
@@ -470,14 +437,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 this.User.afterValidate(function(user, options, fn) {
                   fn(new Error('Whoops! Changed user.mood!'));
                 });
-
-                done();
               });
 
-              it('#create', function(done) {
-                this.User.create({mood: 'happy'}).error(function(err) {
+              it('#create', function() {
+                return this.User.create({mood: 'happy'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
@@ -488,7 +452,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('hook() method', function() {
         describe('with a single hook', function() {
           describe('success', function() {
-            it('should run hooks on #create', function(done) {
+            it('should run hooks on #create', function() {
               this.User.hook('beforeValidate', function(user, options, fn) {
                 user.mood = 'happy';
                 fn();
@@ -499,38 +463,35 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({mood: 'ecstatic'}).success(function(user) {
+              return this.User.create({mood: 'ecstatic'}).then(function(user) {
                 expect(user.mood).to.equal('happy');
                 expect(user.username).to.equal('Toni');
-                done();
               });
             });
           });
 
           describe('error', function() {
-            it('should emit an error from before hook', function(done) {
+            it('should emit an error from before hook', function() {
               this.User.hook('beforeValidate', function(user, options, fn) {
                 user.username = 'Toni';
                 user.mood = 'ecstatic';
                 fn();
               });
 
-              this.User.create({mood: 'happy'}).error(function(err) {
+              return this.User.create({mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(err.get('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral');
-                done();
               });
             });
 
-            it('should emit an error from after hook', function(done) {
+            it('should emit an error from after hook', function() {
               this.User.hook('afterValidate', function(user, options, fn) {
                 user.mood = 'ecstatic';
                 fn(new Error('Whoops! Changed user.mood!'));
               });
 
-              this.User.create({mood: 'happy'}).error(function(err) {
+              return this.User.create({mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -539,7 +500,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('multiple hooks', function() {
           describe('on success', function() {
             describe('should run hooks', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.hook('beforeValidate', function(user, options, fn) {
                   user.mood = 'joyful';
                   fn();
@@ -556,15 +517,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   user.username = 'Toni';
                   fn();
                 });
-
-                done();
               });
 
-              it('#create', function(done) {
-                this.User.create({mood: 'ecstatic'}).success(function(user) {
+              it('#create', function() {
+                return this.User.create({mood: 'ecstatic'}).then(function(user) {
                   expect(user.mood).to.equal('happy');
                   expect(user.username).to.equal('Toni');
-                  done();
                 });
               });
             });
@@ -572,7 +530,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('on error', function() {
             describe('should emit an error from before hook', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.hook('beforeValidate', function(user, options, fn) {
                   user.username = 'Toni';
                   fn();
@@ -582,21 +540,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   user.mood = 'ecstatic';
                   fn();
                 });
-
-                done();
               });
 
-              it('#create', function(done) {
-                this.User.create({mood: 'happy'}).error(function(err) {
+              it('#create', function() {
+                return this.User.create({mood: 'happy'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(err.get('mood')[0].message).to.equal('Value "ecstatic" for ENUM mood is out of allowed scope. Allowed values: happy, sad, neutral');
-                  done();
                 });
               });
             });
 
             describe('should emit an error from after hook', function() {
-              beforeEach(function(done) {
+              beforeEach(function() {
                 this.User.hook('afterValidate', function(user, options, fn) {
                   user.mood = 'ecstatic';
                   fn();
@@ -605,14 +560,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 this.User.hook('afterValidate', function(user, options, fn) {
                   fn(new Error('Whoops! Changed user.mood!'));
                 });
-
-                done();
               });
 
-              it('#create', function(done) {
-                this.User.create({mood: 'happy'}).error(function(err) {
+              it('#create', function() {
+                return this.User.create({mood: 'happy'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
@@ -626,7 +578,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -650,19 +602,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
                 expect(user.mood).to.equal('happy');
-                done();
               });
             });
           });
         });
 
         describe('with multiple hooks', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -695,12 +646,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
                 expect(user.mood).to.equal('happy');
-                done();
               });
             });
           });
@@ -709,7 +659,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('on error', function() {
         describe('with a single hook', function() {
-          it('from before', function(done) {
+          it('from before', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -732,17 +682,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.false;
-                done();
               });
             });
           });
 
-          it('from after', function(done) {
+          it('from after', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -765,19 +714,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
         });
 
         describe('with multiple hooks', function() {
-          it('from before', function(done) {
+          it('from before', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -808,17 +756,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.false;
-                done();
               });
             });
           });
 
-          it('from after', function(done) {
+          it('from after', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -849,12 +796,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -863,7 +809,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('via DAOFactory', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           mood: {
@@ -872,15 +818,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({force: true}).success(function() {
-          done();
-        });
+        return this.User.sync({force: true});
       });
 
       describe('direct method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -894,16 +838,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function() {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -917,15 +860,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(null);
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.false;
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -939,11 +881,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -951,7 +892,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -975,16 +916,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function() {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1003,15 +943,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.false;
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1030,11 +969,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -1044,7 +982,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('.hook() method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1058,16 +996,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function() {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1081,15 +1018,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.false;
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1103,11 +1039,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -1115,7 +1050,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1139,16 +1074,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function() {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1167,15 +1101,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.false;
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1194,11 +1127,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -1206,7 +1138,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    it('should not trigger hooks on parent when using N:M association setters', function(done) {
+    it('should not trigger hooks on parent when using N:M association setters', function() {
       var A = this.sequelize.define('A', {
         name: Sequelize.STRING
       });
@@ -1224,20 +1156,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       B.hasMany(A);
       A.hasMany(B);
 
-      this.sequelize.sync({force: true}).done(function(err) {
-        expect(err).not.to.be.ok;
-
-        var chainer = new Sequelize.Utils.QueryChainer([
+      return this.sequelize.sync({force: true}).bind(this).then(function() {
+        return this.sequelize.Promise.all([
           A.create({name: 'a'}),
           B.create({name: 'b'})
-        ]);
-
-        chainer.run().done(function(err, res, a, b) {
-          expect(err).not.to.be.ok;
-          a.addB(b).done(function(err) {
-            expect(err).not.to.be.ok;
+        ]).spread(function(a, b) {
+          return a.addB(b).then(function() {
             expect(hookCalled).to.equal(1);
-            done();
           });
         });
       });
@@ -1248,7 +1173,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1273,14 +1198,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                   expect(user.username).to.equal('Chong');
                   expect(user.mood).to.equal('happy');
-                  done();
                 });
               });
             });
@@ -1288,7 +1212,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         describe('with multiple hooks', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1326,14 +1250,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                   expect(user.username).to.equal('Chong');
                   expect(user.mood).to.equal('happy');
-                  done();
                 });
               });
             });
@@ -1343,7 +1266,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('on error', function() {
         describe('with a single hook', function() {
-          it('from before', function(done) {
+          it('from before', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1366,19 +1289,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
           });
 
-          it('from after', function(done) {
+          it('from after', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1401,13 +1323,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1415,7 +1336,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         describe('with multiple hooks', function() {
-          it('from before', function(done) {
+          it('from before', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1446,19 +1367,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
           });
 
-          it('from after', function(done) {
+          it('from after', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1489,13 +1409,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1505,7 +1424,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('via DAOFactory', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           mood: {
@@ -1514,15 +1433,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({force: true}).success(function() {
-          done();
-        });
+        return this.User.sync({force: true});
       });
 
       describe('direct method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1536,19 +1453,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                   expect(user.username).to.equal('Chong');
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1562,17 +1478,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1586,12 +1501,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1600,7 +1514,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1624,19 +1538,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                   expect(user.username).to.equal('Chong');
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1655,17 +1568,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(null, user);
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1684,12 +1596,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1700,7 +1611,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('.hook() method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1714,19 +1625,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                   expect(user.username).to.equal('Chong');
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1740,17 +1650,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1764,12 +1673,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1778,7 +1686,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1802,19 +1710,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                   expect(user.username).to.equal('Chong');
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1833,17 +1740,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -1862,12 +1768,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.updateAttributes({username: 'Chong'}).error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.updateAttributes({username: 'Chong'}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1881,7 +1786,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('via deifne', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1904,12 +1809,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.destroy().success(function(user) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.destroy().then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1917,7 +1821,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         describe('with multiple hooks', function() {
-          it('should run all hooks', function(done) {
+          it('should run all hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1954,12 +1858,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.destroy().success(function(user) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.destroy().then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -1969,7 +1872,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('on error', function() {
         describe('with a single hook', function() {
-          it('from before', function(done) {
+          it('from before', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -1992,19 +1895,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.destroy().error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
           });
 
-          it('from after', function(done) {
+          it('from after', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -2027,13 +1929,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.destroy().error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -2041,7 +1942,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         describe('with multiple hooks', function() {
-          it('from before', function(done) {
+          it('from before', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -2072,19 +1973,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.destroy().error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
           });
 
-          it('from after', function(done) {
+          it('from after', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -2115,13 +2015,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.create({username: 'Cheech', mood: 'sad'}).success(function(user) {
-                user.destroy().error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.create({username: 'Cheech', mood: 'sad'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -2131,7 +2030,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('via DAOFactory', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           mood: {
@@ -2140,15 +2039,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({force: true}).success(function() {
-          done();
-        });
+        return this.User.sync({force: true});
       });
 
       describe('direct method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2162,18 +2059,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2187,17 +2083,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2211,12 +2106,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -2225,7 +2119,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2249,18 +2143,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2279,17 +2172,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2308,12 +2200,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -2324,7 +2215,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('.hook() method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2338,18 +2229,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2363,17 +2253,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2387,12 +2276,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -2401,7 +2289,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2425,18 +2313,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().success(function(user) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().then(function(user) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2455,16 +2342,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.false;
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var beforeHook = false
                 , afterHook = false;
 
@@ -2483,12 +2369,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.create({username: 'Toni', mood: 'happy'}).success(function(user) {
-                user.destroy().error(function(err) {
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+                return user.destroy().catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -2502,7 +2387,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -2525,21 +2410,20 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
+              ]).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
         });
 
         describe('with multiple hooks', function() {
-          it('should run all hooks', function(done) {
+          it('should run all hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -2574,14 +2458,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
+              ]).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -2590,7 +2473,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('on error', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -2613,22 +2496,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
         });
 
         describe('with multiple hooks', function() {
-          it('should run all hooks', function(done) {
+          it('should run all hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -2663,15 +2545,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -2680,7 +2561,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('via DAOFactory', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           mood: {
@@ -2689,15 +2570,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
       describe('direct method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -2712,43 +2591,40 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
+              ]).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.beforeBulkCreate(function(daos, options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.afterBulkCreate(function(daos, options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -2756,7 +2632,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -2776,19 +2652,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
+              ]).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.beforeBulkCreate(function(daos, options, fn) {
                 fn();
               });
@@ -2797,16 +2672,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.afterBulkCreate(function(daos, options, fn) {
                 fn();
               });
@@ -2815,12 +2689,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -2830,7 +2703,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('hook() method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -2845,43 +2718,40 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
+              ]).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.hook('beforeBulkCreate', function(daos, fields, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.hook('afterBulkCreate', function(daos, options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -2889,7 +2759,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -2909,19 +2779,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
+              ]).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.hook('beforeBulkCreate', function(daos, options, fn) {
                 fn();
               });
@@ -2930,16 +2799,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.hook('afterBulkCreate', function(daos, options, fn) {
                 fn();
               });
@@ -2948,12 +2816,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).error(function(err) {
+              ]).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -2962,7 +2829,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('with the {individualHooks: true} option', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
@@ -2978,12 +2845,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
-      it('should run the afterCreate/beforeCreate functions for each item created successfully', function(done) {
+      it('should run the afterCreate/beforeCreate functions for each item created successfully', function() {
         var beforeBulkCreate = false
           , afterBulkCreate = false;
 
@@ -3007,18 +2872,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           fn();
         });
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).success(function(records) {
+        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).then(function(records) {
           records.forEach(function(record) {
             expect(record.username).to.equal('User' + record.id);
             expect(record.beforeHookTest).to.be.true;
           });
           expect(beforeBulkCreate).to.be.true;
           expect(afterBulkCreate).to.be.true;
-          done();
         });
       });
 
-      it('should run the afterCreate/beforeCreate functions for each item created with an error', function(done) {
+      it('should run the afterCreate/beforeCreate functions for each item created with an error', function() {
         var beforeBulkCreate = false
           , afterBulkCreate = false;
 
@@ -3041,11 +2905,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           fn();
         });
 
-        this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).error(function(err) {
+        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).catch(function(err) {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulkCreate).to.be.true;
           expect(afterBulkCreate).to.be.false;
-          done();
         });
       });
     });
@@ -3055,7 +2918,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3078,15 +2941,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
+              ]).then(function() {
+                return User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(function() {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -3094,7 +2956,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         describe('with multiple hooks', function() {
-          it('should run all hooks', function(done) {
+          it('should run all hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3129,15 +2991,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
+              ]).then(function() {
+                return User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(function() {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -3147,7 +3008,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('on error', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3170,16 +3031,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -3187,7 +3047,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         describe('with multiple hooks', function() {
-          it('should run all hooks', function(done) {
+          it('should run all hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3222,16 +3082,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.bulkCreate([
+            return User.sync({ force: true }).then(function() {
+              return User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
@@ -3241,7 +3100,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('via DAOFactory', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           mood: {
@@ -3250,15 +3109,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
       describe('direct method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -3273,52 +3130,49 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(function() {
                   expect(beforeBulk).to.be.true;
                   expect(afterBulk).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var self = this;
 
               this.User.beforeBulkUpdate(function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var self = this;
 
               this.User.afterBulkUpdate(function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
@@ -3327,7 +3181,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -3347,21 +3201,20 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(function() {
                   expect(beforeBulk).to.be.true;
                   expect(afterBulk).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var self = this;
 
               this.User.beforeBulkUpdate(function(options, fn) {
@@ -3372,18 +3225,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var self = this;
 
               this.User.afterBulkUpdate(function(options, fn) {
@@ -3394,13 +3246,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
@@ -3411,7 +3262,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('hook() method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -3426,52 +3277,49 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(function() {
                   expect(beforeBulk).to.be.true;
                   expect(afterBulk).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var self = this;
 
               this.User.hook('beforeBulkUpdate', function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var self = this;
 
               this.User.hook('afterBulkUpdate', function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
@@ -3480,7 +3328,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -3500,21 +3348,20 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).success(function() {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(function() {
                   expect(beforeBulk).to.be.true;
                   expect(afterBulk).to.be.true;
-                  done();
                 });
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               var self = this;
 
               this.User.hook('beforeBulkUpdate', function(options, fn) {
@@ -3525,18 +3372,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               var self = this;
 
               this.User.hook('afterBulkUpdate', function(options, fn) {
@@ -3547,13 +3393,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.bulkCreate([
+              return this.User.bulkCreate([
                 {username: 'Cheech', mood: 'sad'},
                 {username: 'Chong', mood: 'sad'}
-              ]).success(function() {
-                self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).error(function(err) {
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
-                  done();
                 });
               });
             });
@@ -3563,7 +3408,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('with the {individualHooks: true} option', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
@@ -3579,12 +3424,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item created successfully', function(done) {
+      it('should run the after/before functions for each item created successfully', function() {
         var self = this
           , beforeBulk = false
           , afterBulk = false;
@@ -3609,22 +3452,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           fn();
         });
 
-        this.User.bulkCreate([
+        return this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
-        ]).success(function() {
-          self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread(function(affectedRows, records) {
+        ]).then(function() {
+          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread(function(affectedRows, records) {
             records.forEach(function(record) {
               expect(record.username).to.equal('User' + record.id);
               expect(record.beforeHookTest).to.be.true;
             });
             expect(beforeBulk).to.be.true;
             expect(afterBulk).to.be.true;
-            done();
           });
         });
       });
 
-      it('should run the after/before functions for each item created with an error', function(done) {
+      it('should run the after/before functions for each item created with an error', function() {
         var self = this
           , beforeBulk = false
           , afterBulk = false;
@@ -3648,12 +3490,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           fn();
         });
 
-        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
-          self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).error(function(err) {
+        return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(function() {
+          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).catch(function(err) {
             expect(err).to.be.instanceOf(Error);
             expect(beforeBulk).to.be.true;
             expect(afterBulk).to.be.false;
-            done();
           });
         });
       });
@@ -3664,7 +3505,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('via define', function() {
       describe('on success', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3687,18 +3528,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
+            return User.sync({ force: true }).then(function() {
+              return User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
         });
 
         describe('with multiple hooks', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3733,11 +3573,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
+            return User.sync({ force: true }).then(function() {
+              return User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -3746,7 +3585,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('on error', function() {
         describe('with a single hook', function() {
-          it('should run hooks', function(done) {
+          it('should run hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3769,19 +3608,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
         });
 
         describe('with multiple hooks', function() {
-          it('should run all hooks', function(done) {
+          it('should run all hooks', function() {
             var beforeHook = false
               , afterHook = false;
 
@@ -3816,12 +3654,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               }
             });
 
-            User.sync({ force: true }).success(function() {
-              User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+            return User.sync({ force: true }).then(function() {
+              return User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
-                done();
               });
             });
           });
@@ -3830,7 +3667,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('via DAOFactory', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           mood: {
@@ -3839,15 +3676,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
       describe('direct method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -3862,34 +3697,31 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.beforeBulkDestroy(function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.afterBulkDestroy(function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -3897,7 +3729,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run all hooks', function(done) {
+            it('should run all hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -3917,16 +3749,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.beforeBulkDestroy(function(options, fn) {
                 fn();
               });
@@ -3935,13 +3766,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.afterBulkDestroy(function(options, fn) {
                 fn();
               });
@@ -3950,9 +3780,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -3962,7 +3791,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('hook() method', function() {
         describe('with a single hook', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -3977,34 +3806,31 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.hook('beforeBulkDestroy', function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.hook('afterBulkDestroy', function(options, fn) {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -4012,7 +3838,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('with multiple hooks', function() {
           describe('on success', function() {
-            it('should run hooks', function(done) {
+            it('should run hooks', function() {
               var self = this
                 , beforeBulk = false
                 , afterBulk = false;
@@ -4032,16 +3858,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn();
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).success(function() {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(function() {
                 expect(beforeBulk).to.be.true;
                 expect(afterBulk).to.be.true;
-                done();
               });
             });
           });
 
           describe('on error', function() {
-            it('should return an error from before', function(done) {
+            it('should return an error from before', function() {
               this.User.hook('beforeBulkDestroy', function(options, fn) {
                 fn();
               });
@@ -4050,13 +3875,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
 
-            it('should return an error from after', function(done) {
+            it('should return an error from after', function() {
               this.User.hook('afterBulkDestroy', function(options, fn) {
                 fn();
               });
@@ -4065,9 +3889,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 fn(new Error('Whoops!'));
               });
 
-              this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).error(function(err) {
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -4076,7 +3899,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('with the {individualHooks: true} option', function() {
-      beforeEach(function(done) {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
@@ -4092,12 +3915,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        this.User.sync({ force: true }).success(function() {
-          done();
-        });
+        return this.User.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item created successfully', function(done) {
+      it('should run the after/before functions for each item created successfully', function() {
         var self = this
           , beforeBulk = false
           , afterBulk = false
@@ -4125,20 +3946,19 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
 
-        this.User.bulkCreate([
+        return this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
-        ]).success(function() {
-          self.User.destroy({where: {aNumber: 1}, individualHooks: true}).success(function() {
+        ]).then(function() {
+          return self.User.destroy({where: {aNumber: 1}, individualHooks: true}).then(function() {
             expect(beforeBulk).to.be.true;
             expect(afterBulk).to.be.true;
             expect(beforeHook).to.be.true;
             expect(afterHook).to.be.true;
-            done();
           });
         });
       });
 
-      it('should run the after/before functions for each item created with an error', function(done) {
+      it('should run the after/before functions for each item created with an error', function() {
         var self = this
           , beforeBulk = false
           , afterBulk = false
@@ -4165,14 +3985,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           fn();
         });
 
-        this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).success(function() {
-          self.User.destroy({where: {aNumber: 1}, individualHooks: true}).error(function(err) {
+        return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(function() {
+          return self.User.destroy({where: {aNumber: 1}, individualHooks: true}).catch(function(err) {
             expect(err).to.be.instanceOf(Error);
             expect(beforeBulk).to.be.true;
             expect(beforeHook).to.be.true;
             expect(afterBulk).to.be.false;
             expect(afterHook).to.be.false;
-            done();
           });
         });
       });
@@ -4180,7 +3999,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   });
 
   describe('#find', function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         mood: {
@@ -4189,18 +4008,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }
       });
 
-      this.User.sync({ force: true }).bind(this).then(function() {
+      return this.User.sync({ force: true }).bind(this).then(function() {
         return this.User.bulkCreate([
           {username: 'adam', mood: 'happy'},
           {username: 'joe', mood: 'sad'}
         ]);
-      }).then(function() {
-        done();
       });
     });
 
     describe('on success', function() {
-      it('all hooks run', function(done) {
+      it('all hooks run', function() {
         var beforeHook = false
           , beforeHook2 = false
           , beforeHook3 = false
@@ -4222,103 +4039,94 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           afterHook = true;
         });
 
-        this.User.find({where: {username: 'adam'}}).then(function(user) {
+        return this.User.find({where: {username: 'adam'}}).then(function(user) {
           expect(user.mood).to.equal('happy');
           expect(beforeHook).to.be.true;
           expect(beforeHook2).to.be.true;
           expect(beforeHook3).to.be.true;
           expect(afterHook).to.be.true;
-          done();
         });
       });
 
-      it('beforeFind hook can change options', function(done) {
+      it('beforeFind hook can change options', function() {
         this.User.beforeFind(function(options) {
           options.where.username = 'joe';
         });
 
-        this.User.find({where: {username: 'adam'}}).then(function(user) {
+        return this.User.find({where: {username: 'adam'}}).then(function(user) {
           expect(user.mood).to.equal('sad');
-          done();
         });
       });
 
-      it('beforeFindAfterExpandIncludeAll hook can change options', function(done) {
+      it('beforeFindAfterExpandIncludeAll hook can change options', function() {
         this.User.beforeFindAfterExpandIncludeAll(function(options) {
           options.where.username = 'joe';
         });
 
-        this.User.find({where: {username: 'adam'}}).then(function(user) {
+        return this.User.find({where: {username: 'adam'}}).then(function(user) {
           expect(user.mood).to.equal('sad');
-          done();
         });
       });
 
-      it('beforeFindAfterOptions hook can change options', function(done) {
+      it('beforeFindAfterOptions hook can change options', function() {
         this.User.beforeFindAfterOptions(function(options) {
           options.where.username = 'joe';
         });
 
-        this.User.find({where: {username: 'adam'}}).then(function(user) {
+        return this.User.find({where: {username: 'adam'}}).then(function(user) {
           expect(user.mood).to.equal('sad');
-          done();
         });
       });
 
-      it('afterFind hook can change results', function(done) {
+      it('afterFind hook can change results', function() {
         this.User.afterFind(function(user, options) {
           user.mood = 'sad';
         });
 
-        this.User.find({where: {username: 'adam'}}).then(function(user) {
+        return this.User.find({where: {username: 'adam'}}).then(function(user) {
           expect(user.mood).to.equal('sad');
-          done();
         });
       });
     });
 
     describe('on error', function() {
-      it('in beforeFind hook returns error', function(done) {
+      it('in beforeFind hook returns error', function() {
         this.User.beforeFind(function(options) {
           throw new Error('Oops!');
         });
 
-        this.User.find({where: {username: 'adam'}}).catch (function(err) {
+        return this.User.find({where: {username: 'adam'}}).catch (function(err) {
           expect(err.message).to.equal('Oops!');
-          done();
         });
       });
 
-      it('in beforeFindAfterExpandIncludeAll hook returns error', function(done) {
+      it('in beforeFindAfterExpandIncludeAll hook returns error', function() {
         this.User.beforeFindAfterExpandIncludeAll(function(options) {
           throw new Error('Oops!');
         });
 
-        this.User.find({where: {username: 'adam'}}).catch (function(err) {
+        return this.User.find({where: {username: 'adam'}}).catch (function(err) {
           expect(err.message).to.equal('Oops!');
-          done();
         });
       });
 
-      it('in beforeFindAfterOptions hook returns error', function(done) {
+      it('in beforeFindAfterOptions hook returns error', function() {
         this.User.beforeFindAfterOptions(function(options) {
           throw new Error('Oops!');
         });
 
-        this.User.find({where: {username: 'adam'}}).catch (function(err) {
+        return this.User.find({where: {username: 'adam'}}).catch (function(err) {
           expect(err.message).to.equal('Oops!');
-          done();
         });
       });
 
-      it('in afterFind hook returns error', function(done) {
+      it('in afterFind hook returns error', function() {
         this.User.afterFind(function(options) {
           throw new Error('Oops!');
         });
 
-        this.User.find({where: {username: 'adam'}}).catch (function(err) {
+        return this.User.find({where: {username: 'adam'}}).catch (function(err) {
           expect(err.message).to.equal('Oops!');
-          done();
         });
       });
     });
@@ -4421,17 +4229,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('aliases', function() {
     describe('direct method', function() {
       describe('#delete', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           this.User = this.sequelize.define('User', {
             username: DataTypes.STRING
           });
 
-          this.User.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.User.sync({ force: true });
         });
 
-        it('on success', function(done) {
+        it('on success', function() {
           var beforeHook
             , afterHook;
 
@@ -4445,16 +4251,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn();
           });
 
-          this.User.create({username: 'Toni'}).success(function(user) {
-            user.destroy().success(function() {
+          return this.User.create({username: 'Toni'}).then(function(user) {
+            return user.destroy().then(function() {
               expect(beforeHook).to.be.true;
               expect(afterHook).to.be.true;
-              done();
             });
           });
         });
 
-        it('on error', function(done) {
+        it('on error', function() {
           var beforeHook
             , afterHook;
 
@@ -4468,12 +4273,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn(new Error('Whoops!'));
           });
 
-          this.User.create({username: 'Toni'}).success(function(user) {
-            user.destroy().error(function(err) {
+          return this.User.create({username: 'Toni'}).then(function(user) {
+            return user.destroy().catch(function(err) {
               expect(beforeHook).to.be.true;
               expect(afterHook).to.be.true;
               expect(err).to.be.instanceOf(Error);
-              done();
             });
           });
         });
@@ -4482,17 +4286,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('.hook() method', function() {
       describe('#delete', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           this.User = this.sequelize.define('User', {
             username: DataTypes.STRING
           });
 
-          this.User.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.User.sync({ force: true });
         });
 
-        it('on success', function(done) {
+        it('on success', function() {
           var beforeHook
             , afterHook;
 
@@ -4506,16 +4308,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn();
           });
 
-          this.User.create({username: 'Toni'}).success(function(user) {
-            user.destroy().success(function() {
+          return this.User.create({username: 'Toni'}).then(function(user) {
+            return user.destroy().then(function() {
               expect(beforeHook).to.be.true;
               expect(afterHook).to.be.true;
-              done();
             });
           });
         });
 
-        it('on error', function(done) {
+        it('on error', function() {
           var beforeHook
             , afterHook;
 
@@ -4529,12 +4330,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn(new Error('Whoops!'));
           });
 
-          this.User.create({username: 'Toni'}).success(function(user) {
-            user.destroy().error(function(err) {
+          return this.User.create({username: 'Toni'}).then(function(user) {
+            return user.destroy().catch(function(err) {
               expect(beforeHook).to.be.true;
               expect(afterHook).to.be.true;
               expect(err).to.be.instanceOf(Error);
-              done();
             });
           });
         });
@@ -4545,7 +4345,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('associations', function() {
     describe('1:1', function() {
       describe('cascade onUpdate', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           this.Projects = this.sequelize.define('Project', {
@@ -4559,14 +4359,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasOne(this.Tasks, {onUpdate: 'cascade', hooks: true});
           this.Tasks.belongsTo(this.Projects);
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done();
-            });
+          return this.Projects.sync({ force: true }).then(function() {
+            return self.Tasks.sync({ force: true });
           });
         });
 
-        it('on success', function(done) {
+        it('on success', function() {
           var self = this
             , beforeHook = false
             , afterHook = false;
@@ -4581,20 +4379,19 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn();
           });
 
-          this.Projects.create({title: 'New Project'}).success(function(project) {
-            self.Tasks.create({title: 'New Task'}).success(function(task) {
-              project.setTask(task).success(function() {
-                project.updateAttributes({id: 2}).success(function() {
+          return this.Projects.create({title: 'New Project'}).then(function(project) {
+            return self.Tasks.create({title: 'New Task'}).then(function(task) {
+              return project.setTask(task).then(function() {
+                return project.updateAttributes({id: 2}).then(function() {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
           });
         });
 
-        it('on error', function(done) {
+        it('on error', function() {
           var self = this
             , beforeHook = false
             , afterHook = false;
@@ -4603,11 +4400,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn(new Error('Whoops!'));
           });
 
-          this.Projects.create({title: 'New Project'}).success(function(project) {
-            self.Tasks.create({title: 'New Task'}).success(function(task) {
-              project.setTask(task).error(function(err) {
+          return this.Projects.create({title: 'New Project'}).then(function(project) {
+            return self.Tasks.create({title: 'New Task'}).then(function(task) {
+              return project.setTask(task).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -4615,7 +4411,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       describe('cascade onDelete', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -4628,13 +4424,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasOne(this.Tasks, {onDelete: 'cascade', hooks: true});
           this.Tasks.belongsTo(this.Projects);
 
-          this.sequelize.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.sequelize.sync({ force: true });
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -4661,15 +4455,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.setTask(task).success(function() {
-                  project.destroy().success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.setTask(task).then(function() {
+                  return project.destroy().then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
                     expect(afterTask).to.be.true;
-                    done();
                   });
                 });
               });
@@ -4721,7 +4514,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       describe('no cascade update', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           this.Projects = this.sequelize.define('Project', {
@@ -4735,14 +4528,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasOne(this.Tasks);
           this.Tasks.belongsTo(this.Projects);
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done();
-            });
+          return this.Projects.sync({ force: true }).then(function() {
+            return self.Tasks.sync({ force: true });
           });
         });
 
-        it('on success', function(done) {
+        it('on success', function() {
           var self = this
             , beforeHook = false
             , afterHook = false;
@@ -4757,20 +4548,19 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn();
           });
 
-          this.Projects.create({title: 'New Project'}).success(function(project) {
-            self.Tasks.create({title: 'New Task'}).success(function(task) {
-              project.setTask(task).success(function() {
-                project.updateAttributes({id: 2}).success(function() {
+          return this.Projects.create({title: 'New Project'}).then(function(project) {
+            return self.Tasks.create({title: 'New Task'}).then(function(task) {
+              return project.setTask(task).then(function() {
+                return project.updateAttributes({id: 2}).then(function() {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
-                  done();
                 });
               });
             });
           });
         });
 
-        it('on error', function(done) {
+        it('on error', function() {
           var self = this
             , beforeHook = false
             , afterHook = false;
@@ -4779,11 +4569,10 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             fn(new Error('Whoops!'));
           });
 
-          this.Projects.create({title: 'New Project'}).success(function(project) {
-            self.Tasks.create({title: 'New Task'}).success(function(task) {
-              project.setTask(task).error(function(err) {
+          return this.Projects.create({title: 'New Project'}).then(function(project) {
+            return self.Tasks.create({title: 'New Task'}).then(function(task) {
+              return project.setTask(task).catch(function(err) {
                 expect(err).to.be.instanceOf(Error);
-                done();
               });
             });
           });
@@ -4791,7 +4580,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       describe('no cascade delete', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           this.Projects = this.sequelize.define('Project', {
@@ -4805,15 +4594,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasMany(this.Tasks);
           this.Tasks.belongsTo(this.Projects);
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done();
-            });
+          return this.Projects.sync({ force: true }).then(function() {
+            return self.Tasks.sync({ force: true });
           });
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -4840,22 +4627,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
-                  project.removeTask(task).success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
+                  return project.removeTask(task).then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
                     expect(afterTask).to.be.true;
-                    done();
                   });
                 });
               });
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -4882,15 +4668,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).error(function(err) {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
                   expect(beforeTask).to.be.true;
                   expect(afterTask).to.be.false;
-                  done();
                 });
               });
             });
@@ -4901,7 +4686,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('1:M', function() {
       describe('cascade', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -4914,15 +4699,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
           this.Tasks.belongsTo(this.Projects, {hooks: true});
 
-          this.Projects.sync({ force: true }).success(function() {
-            self.Tasks.sync({ force: true }).success(function() {
-              done();
-            });
+          return this.Projects.sync({ force: true }).then(function() {
+            return self.Tasks.sync({ force: true });
           });
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -4949,22 +4732,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
-                  project.destroy().success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
+                  return project.destroy().then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
                     expect(afterTask).to.be.true;
-                    done();
                   });
                 });
               });
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -4991,16 +4773,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
-                  project.destroy().error(function(err) {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
+                  return project.destroy().catch(function(err) {
                     expect(err).to.be.instanceOf(Error);
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
                     expect(afterTask).to.be.false;
-                    done();
                   });
                 });
               });
@@ -5010,7 +4791,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       describe('no cascade', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           this.Projects = this.sequelize.define('Project', {
@@ -5024,13 +4805,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasMany(this.Tasks);
           this.Tasks.belongsTo(this.Projects);
 
-          this.sequelize.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.sequelize.sync({ force: true });
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5057,22 +4836,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
-                  project.removeTask(task).success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
+                  return project.removeTask(task).then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
                     expect(afterTask).to.be.true;
-                    done();
                   });
                 });
               });
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5099,15 +4877,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).error(function(err) {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).catch(function(err) {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
                   expect(beforeTask).to.be.true;
                   expect(afterTask).to.be.false;
-                  done();
                 });
               });
             });
@@ -5118,7 +4895,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('M:M', function() {
       describe('cascade', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -5131,13 +4908,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasMany(this.Tasks, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true});
           this.Tasks.hasMany(this.Projects, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true});
 
-          this.sequelize.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.sequelize.sync({ force: true });
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5164,23 +4939,22 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
-                  project.destroy().success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
+                  return project.destroy().then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     // Since Sequelize does not cascade M:M, these should be false
                     expect(beforeTask).to.be.false;
                     expect(afterTask).to.be.false;
-                    done();
                   });
                 });
               });
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5207,15 +4981,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
-                  project.destroy().success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
+                  return project.destroy().then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.false;
                     expect(afterTask).to.be.false;
-                    done();
                   });
                 });
               });
@@ -5225,7 +4998,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       describe('no cascade', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           this.Projects = this.sequelize.define('Project', {
@@ -5239,13 +5012,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           this.Projects.hasMany(this.Tasks, {hooks: true});
           this.Tasks.hasMany(this.Projects, {hooks: true});
 
-          this.sequelize.sync({ force: true }).success(function() {
-            done();
-          });
+          return this.sequelize.sync({ force: true });
         });
 
         describe('#remove', function() {
-          it('with no errors', function(done) {
+          it('with no errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5272,22 +5043,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
-                  project.removeTask(task).success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
+                  return project.removeTask(task).then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.false;
                     expect(afterTask).to.be.false;
-                    done();
                   });
                 });
               });
             });
           });
 
-          it('with errors', function(done) {
+          it('with errors', function() {
             var self = this
               , beforeProject = false
               , afterProject = false
@@ -5314,14 +5084,13 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               fn();
             });
 
-            this.Projects.create({title: 'New Project'}).success(function(project) {
-              self.Tasks.create({title: 'New Task'}).success(function(task) {
-                project.addTask(task).success(function() {
+            return this.Projects.create({title: 'New Project'}).then(function(project) {
+              return self.Tasks.create({title: 'New Task'}).then(function(task) {
+                return project.addTask(task).then(function() {
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
                   expect(beforeTask).to.be.false;
                   expect(afterTask).to.be.false;
-                  done();
                 });
               });
             });
@@ -5636,7 +5405,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
   describe('passing DAO instances', function() {
     describe('beforeValidate / afterValidate', function() {
-      it('should pass a DAO instance to the hook', function(done) {
+      it('should pass a DAO instance to the hook', function() {
         var beforeHooked = false;
         var afterHooked = false;
         var User = this.sequelize.define('User', {
@@ -5656,18 +5425,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'bob' }).success(function(user) {
+        return User.sync({ force: true }).then(function() {
+          return User.create({ username: 'bob' }).then(function(user) {
             expect(beforeHooked).to.be.true;
             expect(afterHooked).to.be.true;
-            done();
           });
         });
       });
     });
 
     describe('beforeCreate / afterCreate', function() {
-      it('should pass a DAO instance to the hook', function(done) {
+      it('should pass a DAO instance to the hook', function() {
         var beforeHooked = false;
         var afterHooked = false;
         var User = this.sequelize.define('User', {
@@ -5687,18 +5455,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'bob' }).success(function(user) {
+        return User.sync({ force: true }).then(function() {
+          return User.create({ username: 'bob' }).then(function(user) {
             expect(beforeHooked).to.be.true;
             expect(afterHooked).to.be.true;
-            done();
           });
         });
       });
     });
 
     describe('beforeDestroy / afterDestroy', function() {
-      it('should pass a DAO instance to the hook', function(done) {
+      it('should pass a DAO instance to the hook', function() {
         var beforeHooked = false;
         var afterHooked = false;
         var User = this.sequelize.define('User', {
@@ -5718,12 +5485,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'bob' }).success(function(user) {
-            user.destroy().success(function() {
+        return User.sync({ force: true }).then(function() {
+          return User.create({ username: 'bob' }).then(function(user) {
+            return user.destroy().then(function() {
               expect(beforeHooked).to.be.true;
               expect(afterHooked).to.be.true;
-              done();
             });
           });
         });
@@ -5731,7 +5497,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('beforeDelete / afterDelete', function() {
-      it('should pass a DAO instance to the hook', function(done) {
+      it('should pass a DAO instance to the hook', function() {
         var beforeHooked = false;
         var afterHooked = false;
         var User = this.sequelize.define('User', {
@@ -5751,12 +5517,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'bob' }).success(function(user) {
-            user.destroy().success(function() {
+        return User.sync({ force: true }).then(function() {
+          return User.create({ username: 'bob' }).then(function(user) {
+            return user.destroy().then(function() {
               expect(beforeHooked).to.be.true;
               expect(afterHooked).to.be.true;
-              done();
             });
           });
         });
@@ -5764,7 +5529,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     describe('beforeUpdate / afterUpdate', function() {
-      it('should pass a DAO instance to the hook', function(done) {
+      it('should pass a DAO instance to the hook', function() {
         var beforeHooked = false;
         var afterHooked = false;
         var User = this.sequelize.define('User', {
@@ -5784,12 +5549,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           }
         });
 
-        User.sync({ force: true }).success(function() {
-          User.create({ username: 'bob' }).success(function(user) {
-            user.save({ username: 'bawb' }).success(function() {
+        return User.sync({ force: true }).then(function() {
+          return User.create({ username: 'bob' }).then(function(user) {
+            return user.save({ username: 'bawb' }).then(function() {
               expect(beforeHooked).to.be.true;
               expect(afterHooked).to.be.true;
-              done();
             });
           });
         });
@@ -5822,8 +5586,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       return this.User.bulkCreate([
         {username: 'Bob', mood: 'happy'},
         {username: 'Tobi', mood: 'sad'}
-      ], { individualHooks: false }).success(function(bulkUsers) {
-        return self.User.all().success(function(users) {
+      ], { individualHooks: false }).then(function(bulkUsers) {
+        return self.User.findAll().then(function(users) {
           expect(hookRun).to.equal(true);
         });
       });
@@ -5840,8 +5604,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       return this.User.bulkCreate([
         {username: 'Bob', mood: 'happy'},
         {username: 'Tobi', mood: 'sad'}
-      ], { individualHooks: false }).success(function(bulkUsers) {
-        return self.User.all().success(function(users) {
+      ], { individualHooks: false }).then(function(bulkUsers) {
+        return self.User.findAll().then(function(users) {
           expect(hookRun).to.equal(true);
         });
       });
@@ -5878,8 +5642,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         , hook2 = sinon.spy()
         , Model;
 
-      Model = this.sequelize.define('Model', { 
-        name: Sequelize.STRING 
+      Model = this.sequelize.define('Model', {
+        name: Sequelize.STRING
       }, {
         hooks: { beforeCreate: hook1 }
       });
