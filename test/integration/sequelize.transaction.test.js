@@ -21,13 +21,13 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
           t = _t;
         });
     });
-    it('should be fulfilled only after commit', function () {
+    it('should be fulfilled after commit', function () {
       t.commit();
-      return t;
+      return t.promise;
     });
-    it('should be fulfilled only after commit', function () {
+    it('shouldn be rejected after rollback', function () {
       t.rollback();
-      return t
+      return t.promise
       .then(function () {
         throw Error("shouldn't be fulfilled on rollback");
       },function ( err ) {
