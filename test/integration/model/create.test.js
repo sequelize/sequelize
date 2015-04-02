@@ -924,12 +924,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('can omit autoincremental columns', function(done) {
+    it('can omit autoincremental columns', function() {
       var self = this
         , data = { title: 'Iliad' }
         , dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT]
-        , chain = new Sequelize.Utils.QueryChainer()
-        , chain2 = new Sequelize.Utils.QueryChainer()
+        , sync = []
+        , promises = []
         , books = [];
 
       dataTypes.forEach(function(dataType, index) {
@@ -940,21 +940,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       books.forEach(function(b) {
-        chain.add(b.sync({ force: true }));
+        sync.push(b.sync({ force: true }));
       });
 
-      chain.run().then(function() {
-        books.forEach(function(b) {
-          chain2.add(b.create(data));
-        });
-        chain2.run().then(function(results) {
-          results.forEach(function(book, index) {
+      return Promise.all(sync).then(function() {
+        books.forEach(function(b, index) {
+          promises.push(b.create(data).then(function(book) {
             expect(book.title).to.equal(data.title);
             expect(book.author).to.equal(data.author);
             expect(books[index].rawAttributes.id.type instanceof dataTypes[index]).to.be.ok;
-          });
-          done();
+          }));
         });
+        return Promise.all(promises);
       });
     });
 

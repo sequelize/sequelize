@@ -13,7 +13,7 @@ if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {
-        it('should create a table wp_table1wp_table2s', function(done) {
+        it('should create a table wp_table1wp_table2s', function() {
           var Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING});
 
@@ -21,35 +21,24 @@ if (dialect.match(/^postgres/)) {
           Table2.hasMany(Table1);
 
           expect(this.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).to.exist;
-          done();
         });
       });
 
       describe('when join table name is specified', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
           Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'});
           Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'});
-
-          setTimeout(function() {
-            done();
-          }, 50);
         });
 
-        it('should not use a combined name', function(done) {
+        it('should not use a combined name', function() {
           expect(this.sequelize.daoFactoryManager.getDAO('ms_table1sms_table2s')).not.to.exist;
-          setTimeout(function() {
-            done();
-          }, 50);
         });
 
-        it('should use the specified name', function(done) {
+        it('should use the specified name', function() {
           expect(this.sequelize.daoFactoryManager.getDAO('table1_to_table2')).to.exist;
-          setTimeout(function() {
-            done();
-          }, 50);
         });
       });
     });

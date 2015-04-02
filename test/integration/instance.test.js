@@ -341,11 +341,11 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('should still work right with other concurrent increments', function() {
       var self = this;
       return this.User.find(1).then(function(user1) {
-        return user1.increment(['aNumber'], { by: 2 }).then(function() {
-          return user1.increment(['aNumber'], { by: 2 });
-        }).then(function() {
-          return user1.increment(['aNumber'], { by: 2 });
-        }).then(function() {
+        return this.sequelize.Promise.all([
+          user1.increment(['aNumber'], { by: 2 }),
+          user1.increment(['aNumber'], { by: 2 }),
+          user1.increment(['aNumber'], { by: 2 })
+        ]).then(function() {
           return self.User.find(1).then(function(user2) {
             expect(user2.aNumber).to.equal(6);
           });
@@ -468,11 +468,11 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('should still work right with other concurrent increments', function() {
       var self = this;
       return this.User.find(1).then(function(user1) {
-        return user1.decrement(['aNumber'], { by: 2 }).then(function() {
-          return user1.decrement(['aNumber'], { by: 2 });
-        }).then(function() {
-          return user1.decrement(['aNumber'], { by: 2 });
-        }).then(function() {
+        return this.sequelize.Promise.all([
+          user1.decrement(['aNumber'], { by: 2 }),
+          user1.decrement(['aNumber'], { by: 2 }),
+          user1.decrement(['aNumber'], { by: 2 })
+        ]).then(function() {
           return self.User.find(1).then(function(user2) {
             expect(user2.aNumber).to.equal(-6);
           });
