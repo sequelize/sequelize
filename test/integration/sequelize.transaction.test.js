@@ -11,6 +11,31 @@ var chai = require('chai')
 if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
+  describe('promise', function () {
+    var t;
+    beforeEach(function () {
+      return this
+        .sequelize
+        .transaction()
+        .then(function (_t) {
+          t = _t;
+        });
+    });
+    it('should be fulfilled only after commit', function () {
+      t.commit();
+      return t;
+    });
+    it('should be fulfilled only after commit', function () {
+      t.rollback();
+      return t
+      .then(function () {
+        throw Error("shouldn't be fulfilled on rollback");
+      },function ( err ) {
+        // expected
+      });
+    });
+  });
+
   describe('then', function() {
     it('gets triggered once a transaction has been successfully committed', function() {
       var called = false;
