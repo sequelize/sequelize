@@ -11,7 +11,6 @@ var chai = require('chai')
   , datetime = require('chai-datetime')
   , _ = require('lodash')
   , moment = require('moment')
-  , async = require('async')
   , current = Support.sequelize;
 
 chai.use(datetime);
@@ -789,7 +788,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       describe('include all', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
@@ -806,28 +805,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
-          this.sequelize.sync({ force: true }).then(function() {
-            async.parallel({
-              europe: function(callback) { self.Continent.create({ name: 'Europe' }).done(callback); },
-              england: function(callback) { self.Country.create({ name: 'England' }).done(callback); },
-              coal: function(callback) { self.Industry.create({ name: 'Coal' }).done(callback); },
-              bob: function(callback) { self.Person.create({ name: 'Bob', lastName: 'Becket' }).done(callback); }
-            }, function(err, r) {
-              if (err) throw err;
-
+          return this.sequelize.sync({ force: true }).then(function() {
+            return self.sequelize.Promise.props({
+              europe: self.Continent.create({ name: 'Europe' }),
+              england: self.Country.create({ name: 'England' }),
+              coal: self.Industry.create({ name: 'Coal' }),
+              bob: self.Person.create({ name: 'Bob', lastName: 'Becket' })
+            }).then(function(r) {
               _.forEach(r, function(item, itemName) {
                 self[itemName] = item;
               });
-
-              async.parallel([
-                function(callback) { self.england.setContinent(self.europe).done(callback); },
-                function(callback) { self.england.addIndustry(self.coal).done(callback); },
-                function(callback) { self.bob.setCountry(self.england).done(callback); },
-                function(callback) { self.bob.setCountryResident(self.england).done(callback); }
-              ], function(err) {
-                if (err) throw err;
-                done();
-              });
+              return self.sequelize.Promise.all([
+                self.england.setContinent(self.europe),
+                self.england.addIndustry(self.coal),
+                self.bob.setCountry(self.england),
+                self.bob.setCountryResident(self.england)
+              ]);
             });
           });
         });
@@ -896,7 +889,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     describe('order by eager loaded tables', function() {
       describe('HasMany', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
@@ -910,88 +903,78 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
-          this.sequelize.sync({ force: true }).then(function() {
-            async.parallel({
-              europe: function(callback) { self.Continent.create({ name: 'Europe' }).done(callback); },
-              asia: function(callback) { self.Continent.create({ name: 'Asia' }).done(callback); },
-              england: function(callback) { self.Country.create({ name: 'England' }).done(callback); },
-              france: function(callback) { self.Country.create({ name: 'France' }).done(callback); },
-              korea: function(callback) { self.Country.create({ name: 'Korea' }).done(callback); },
-              bob: function(callback) { self.Person.create({ name: 'Bob', lastName: 'Becket' }).done(callback); },
-              fred: function(callback) { self.Person.create({ name: 'Fred', lastName: 'Able' }).done(callback); },
-              pierre: function(callback) { self.Person.create({ name: 'Pierre', lastName: 'Paris' }).done(callback); },
-              kim: function(callback) { self.Person.create({ name: 'Kim', lastName: 'Z' }).done(callback); }
-            }, function(err, r) {
-              if (err) throw err;
-
+          return this.sequelize.sync({ force: true }).then(function() {
+            return self.sequelize.Promise.props({
+              europe: self.Continent.create({ name: 'Europe' }),
+              asia: self.Continent.create({ name: 'Asia' }),
+              england: self.Country.create({ name: 'England' }),
+              france: self.Country.create({ name: 'France' }),
+              korea: self.Country.create({ name: 'Korea' }),
+              bob: self.Person.create({ name: 'Bob', lastName: 'Becket' }),
+              fred: self.Person.create({ name: 'Fred', lastName: 'Able' }),
+              pierre: self.Person.create({ name: 'Pierre', lastName: 'Paris' }),
+              kim: self.Person.create({ name: 'Kim', lastName: 'Z' })
+            }).then(function(r) {
               _.forEach(r, function(item, itemName) {
                 self[itemName] = item;
               });
 
-              async.parallel([
-                function(callback) { self.england.setContinent(self.europe).done(callback); },
-                function(callback) { self.france.setContinent(self.europe).done(callback); },
-                function(callback) { self.korea.setContinent(self.asia).done(callback); },
+              return self.sequelize.Promise.all([
+                self.england.setContinent(self.europe),
+                self.france.setContinent(self.europe),
+                self.korea.setContinent(self.asia),
 
-                function(callback) { self.bob.setCountry(self.england).done(callback); },
-                function(callback) { self.fred.setCountry(self.england).done(callback); },
-                function(callback) { self.pierre.setCountry(self.france).done(callback); },
-                function(callback) { self.kim.setCountry(self.korea).done(callback); },
+                self.bob.setCountry(self.england),
+                self.fred.setCountry(self.england),
+                self.pierre.setCountry(self.france),
+                self.kim.setCountry(self.korea),
 
-                function(callback) { self.bob.setCountryResident(self.england).done(callback); },
-                function(callback) { self.fred.setCountryResident(self.france).done(callback); },
-                function(callback) { self.pierre.setCountryResident(self.korea).done(callback); },
-                function(callback) { self.kim.setCountryResident(self.england).done(callback); }
-              ], function(err) {
-                if (err) throw err;
-                done();
-              });
+                self.bob.setCountryResident(self.england),
+                self.fred.setCountryResident(self.france),
+                self.pierre.setCountryResident(self.korea),
+                self.kim.setCountryResident(self.england)
+              ]);
             });
           });
         });
 
-        it('sorts simply', function(done) {
+        it('sorts simply', function() {
           var self = this;
-          async.eachSeries([['ASC', 'Asia'], ['DESC', 'Europe']], function(params, callback) {
-            self.Continent.findAll({
+          return this.sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], function(params) {
+            return self.Continent.findAll({
               order: [['name', params[0]]]
-            }).done(function(err, continents) {
-              expect(err).not.to.be.ok;
+            }).then(function(continents) {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
-              callback();
             });
-          }, function() { done(); });
+          });
         });
 
-        it('sorts by 1st degree association', function(done) {
+        it('sorts by 1st degree association', function() {
           var self = this;
-          async.forEach([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], function(params, callback) {
-            self.Continent.findAll({
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], function(params) {
+            return self.Continent.findAll({
               include: [self.Country],
               order: [[self.Country, 'name', params[0]]]
-            }).done(function(err, continents) {
-              expect(err).not.to.be.ok;
+            }).then(function(continents) {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
               expect(continents[0].countries).to.exist;
               expect(continents[0].countries[0]).to.exist;
               expect(continents[0].countries[0].name).to.equal(params[2]);
-              callback();
             });
-          }, function() { done(); });
+          });
         });
 
-        it('sorts by 2nd degree association', function(done) {
+        it('sorts by 2nd degree association', function() {
           var self = this;
-          async.forEach([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], function(params, callback) {
-            self.Continent.findAll({
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], function(params) {
+            return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person] }],
               order: [[self.Country, self.Person, 'lastName', params[0]]]
-            }).done(function(err, continents) {
-              expect(err).not.to.be.ok;
+            }).then(function(continents) {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1001,19 +984,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(continents[0].countries[0].people).to.exist;
               expect(continents[0].countries[0].people[0]).to.exist;
               expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
-              callback();
             });
-          }, function() { done(); });
+          });
         }),
 
-        it('sorts by 2nd degree association with alias', function(done) {
+        it('sorts by 2nd degree association with alias', function() {
           var self = this;
-          async.forEach([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], function(params, callback) {
-            self.Continent.findAll({
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], function(params) {
+            return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
               order: [[self.Country, {model: self.Person, as: 'residents' }, 'lastName', params[0]]]
-            }).done(function(err, continents) {
-              expect(err).not.to.be.ok;
+            }).then(function(continents) {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1023,20 +1004,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(continents[0].countries[0].residents).to.exist;
               expect(continents[0].countries[0].residents[0]).to.exist;
               expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
-              callback();
             });
-          }, function() { done(); });
+          });
         });
 
-        it('sorts by 2nd degree association with alias while using limit', function(done) {
+        it('sorts by 2nd degree association with alias while using limit', function() {
           var self = this;
-          async.forEach([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], function(params, callback) {
-            self.Continent.findAll({
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], function(params) {
+            return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
               order: [[{ model: self.Country }, {model: self.Person, as: 'residents' }, 'lastName', params[0]]],
               limit: 3
-            }).done(function(err, continents) {
-              expect(err).not.to.be.ok;
+            }).then(function(continents) {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1046,14 +1025,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(continents[0].countries[0].residents).to.exist;
               expect(continents[0].countries[0].residents[0]).to.exist;
               expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
-              callback();
             });
-          }, function() { done(); });
+          });
         });
       }),
 
       describe('ManyToMany', function() {
-        beforeEach(function(done) {
+        beforeEach(function() {
           var self = this;
 
           self.Country = this.sequelize.define('country', { name: Sequelize.STRING });
@@ -1063,38 +1041,33 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           self.Country.hasMany(self.Industry, {through: self.IndustryCountry});
           self.Industry.hasMany(self.Country, {through: self.IndustryCountry});
 
-          this.sequelize.sync({ force: true }).then(function() {
-            async.parallel({
-              england: function(callback) { self.Country.create({ name: 'England' }).done(callback); },
-              france: function(callback) { self.Country.create({ name: 'France' }).done(callback); },
-              korea: function(callback) { self.Country.create({ name: 'Korea' }).done(callback); },
-              energy: function(callback) { self.Industry.create({ name: 'Energy' }).done(callback); },
-              media: function(callback) { self.Industry.create({ name: 'Media' }).done(callback); },
-              tech: function(callback) { self.Industry.create({ name: 'Tech' }).done(callback); }
-            }, function(err, r) {
-              if (err) throw err;
-
+          return this.sequelize.sync({ force: true }).then(function() {
+            return self.sequelize.Promise.props({
+              england: self.Country.create({ name: 'England' }),
+              france: self.Country.create({ name: 'France' }),
+              korea: self.Country.create({ name: 'Korea' }),
+              energy: self.Industry.create({ name: 'Energy' }),
+              media: self.Industry.create({ name: 'Media' }),
+              tech: self.Industry.create({ name: 'Tech' })
+            }).then(function(r) {
               _.forEach(r, function(item, itemName) {
                 self[itemName] = item;
               });
 
-              async.parallel([
-                function(callback) { self.england.addIndustry(self.energy, {numYears: 20}).done(callback); },
-                function(callback) { self.england.addIndustry(self.media, {numYears: 40}).done(callback); },
-                function(callback) { self.france.addIndustry(self.media, {numYears: 80}).done(callback); },
-                function(callback) { self.korea.addIndustry(self.tech, {numYears: 30}).done(callback); }
-              ], function(err) {
-                if (err) throw err;
-                done();
-              });
+              return self.sequelize.Promise.all([
+                self.england.addIndustry(self.energy, {numYears: 20}),
+                self.england.addIndustry(self.media, {numYears: 40}),
+                self.france.addIndustry(self.media, {numYears: 80}),
+                self.korea.addIndustry(self.tech, {numYears: 30})
+              ]);
             });
           });
         });
 
-        it('sorts by 1st degree association', function(done) {
+        it('sorts by 1st degree association', function() {
           var self = this;
-          async.forEach([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], function(params, callback) {
-            self.Country.findAll({
+          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], function(params) {
+            return self.Country.findAll({
               include: [self.Industry],
               order: [[self.Industry, 'name', params[0]]]
             }).then(function(countries) {
@@ -1104,15 +1077,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(countries[0].industries).to.exist;
               expect(countries[0].industries[0]).to.exist;
               expect(countries[0].industries[0].name).to.equal(params[2]);
-              callback();
             });
-          }, function() { done(); });
+          });
         });
 
-        it('sorts by 1st degree association while using limit', function(done) {
+        it('sorts by 1st degree association while using limit', function() {
           var self = this;
-          async.forEach([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], function(params, callback) {
-            self.Country.findAll({
+          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], function(params) {
+            return self.Country.findAll({
               include: [self.Industry],
               order: [
                 [self.Industry, 'name', params[0]]
@@ -1125,15 +1097,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(countries[0].industries).to.exist;
               expect(countries[0].industries[0]).to.exist;
               expect(countries[0].industries[0].name).to.equal(params[2]);
-              callback();
             });
-          }, function() { done(); });
+          });
         });
 
-        it('sorts by through table attribute', function(done) {
+        it('sorts by through table attribute', function() {
           var self = this;
-          async.forEach([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], function(params, callback) {
-            self.Country.findAll({
+          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], function(params) {
+            return self.Country.findAll({
               include: [self.Industry],
               order: [[self.Industry, self.IndustryCountry, 'numYears', params[0]]]
             }).then(function(countries) {
@@ -1143,9 +1114,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(countries[0].industries).to.exist;
               expect(countries[0].industries[0]).to.exist;
               expect(countries[0].industries[0].name).to.equal(params[2]);
-              callback();
             });
-          }, function() { done(); });
+          });
         });
       });
     });
