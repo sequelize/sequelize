@@ -131,10 +131,8 @@ if (dialect.match(/^postgres/)) {
           }
 
           return this.sequelize.sync({ force: true }).then(function() {
-            return self.User.bulkCreate(users).finally(function(err) {
-              expect(err).not.to.be.ok;
-              return self.Task.bulkCreate(tasks).finally(function(err) {
-                expect(err).not.to.be.ok;
+            return self.User.bulkCreate(users).then(function() {
+              return self.Task.bulkCreate(tasks).then(function() {
                 return self.User.findAll().then(function(_users) {
                   return self.Task.findAll().then(function(_tasks) {
                     self.user = _users[0];
