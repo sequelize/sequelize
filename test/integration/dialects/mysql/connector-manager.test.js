@@ -12,14 +12,15 @@ if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Connector Manager', function() {
     it('works correctly after being idle', function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
-        , spy = sinon.spy();
+        , spy = sinon.spy()
+        , self = this;
 
       return User.sync({force: true}).then(function() {
         return User.create({username: 'user1'}).then(function() {
           return User.count().then(function(count) {
             expect(count).to.equal(1);
             spy();
-            return this.sequelize.Promise.delay(1000).then(function() {
+            return self.sequelize.Promise.delay(1000).then(function() {
               return User.count().then(function(count) {
                 expect(count).to.equal(1);
                 spy();

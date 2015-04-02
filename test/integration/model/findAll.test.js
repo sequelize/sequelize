@@ -1052,8 +1052,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }),
 
-      describe('ManyToMany', function(done) {
-        beforeEach(function() {
+      describe('ManyToMany', function() {
+        beforeEach(function(done) {
           var self = this;
 
           self.Country = this.sequelize.define('country', { name: Sequelize.STRING });
