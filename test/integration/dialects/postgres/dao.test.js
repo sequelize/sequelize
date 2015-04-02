@@ -488,9 +488,6 @@ if (dialect.match(/^postgres/)) {
           .create({ username: 'user', email: ['foo@bar.com', 'bar@baz.com'] })
           .then(function(oldUser) {
             expect(oldUser.email).to.contain.members(['foo@bar.com', 'bar@baz.com']);
-          })
-          .catch(function(err) {
-            console.log(err);
           });
       });
 
@@ -611,8 +608,7 @@ if (dialect.match(/^postgres/)) {
           .then(function(users) {
             expect(users[0].settings).to.deep.equal({ test: '"value"' });
             expect(users[1].settings).to.deep.equal({ another: '"example"' });
-          })
-          .catch(console.log);
+          });
       });
 
       it('should read hstore correctly from included models as well', function() {
@@ -830,8 +826,7 @@ if (dialect.match(/^postgres/)) {
             expect(users[1].course_period[0]).to.equalTime(periods[1][0]); // lower bound
             expect(users[1].course_period[1]).to.equalTime(periods[1][1]); // upper bound
             expect(users[1].course_period.inclusive).to.deep.equal([false, false]); // not inclusive
-          })
-          .catch(console.log);
+          });
       });
 
       it('should read range correctly from included models as well', function () {
