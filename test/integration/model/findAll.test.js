@@ -761,7 +761,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should return a DAO when queryOptions are not set', function() {
           var self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}}).done(function(err, users) {
+          return this.User.findAll({ where: { username: 'barfooz'}}).then(function(users) {
             users.forEach(function(user) {
               expect(user).to.be.instanceOf(self.User.DAO);
             });
@@ -770,7 +770,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should return a DAO when raw is false', function() {
           var self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}}, { raw: false }).done(function(err, users) {
+          return this.User.findAll({ where: { username: 'barfooz'}}, { raw: false }).then(function(users) {
             users.forEach(function(user) {
               expect(user).to.be.instanceOf(self.User.DAO);
             });
@@ -779,7 +779,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should return raw data when raw is true', function() {
           var self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}}, { raw: true }).done(function(err, users) {
+          return this.User.findAll({ where: { username: 'barfooz'}}, { raw: true }).then(function(users) {
             users.forEach(function(user) {
               expect(user).to.not.be.instanceOf(self.User.DAO);
               expect(users[0]).to.be.instanceOf(Object);
@@ -880,7 +880,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('includes all nested associations', function() {
-          return this.Continent.findAll({ include: [{ all: true, nested: true }] }).done(function(err, continents) {
+          return this.Continent.findAll({ include: [{ all: true, nested: true }] }).then(function(continents) {
             expect(continents).to.exist;
             expect(continents[0]).to.exist;
             expect(continents[0].countries).to.exist;
@@ -1241,7 +1241,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           name: Sequelize.STRING
         });
 
-        return Company.sync().done(function() {
+        return Company.sync().then(function() {
           return Company.findAll({
             order: [self.sequelize.col('name')]
           });
