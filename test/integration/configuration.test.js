@@ -152,4 +152,10 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     });
   });
 
+  describe('In production certain functionality should be disabled', function() {
+    it('should throw an error when calling .sync({ force: true })', function() {
+      var sequelize = new Sequelize('dbname', 'root', 'pass', { environment: 'production' });
+      expect(sequelize.sync.bind(sequelize, { force: true },p)).to.throw();
+    });
+  });
 });
