@@ -485,6 +485,15 @@ sequelize.[sync|drop]().then(function() {
 })
 ```
 
+Because `.sync({ force: true })` is destructive operation, you can use `match` option as an additional safety check.
+`match` option tells sequelize to match a regex against the database name before syncing - a safety check for cases
+where `force: true` is used in tests but not live code.
+
+```js
+// This will run .sync() only if database name ends with '_test'
+sequelize.sync({ force: true, match: /_test$/ });
+```
+
 ## Expansion of models
 
 Sequelize allows you to pass custom methods to a model and its instances&period; Just do the following&colon;
