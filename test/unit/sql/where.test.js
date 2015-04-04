@@ -463,5 +463,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
     }
+
+    suite('fn', function () {
+      test('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function () {
+        expectsql(sql.whereQuery({name: this.sequelize.fn('LOWER', 'DERP')}), {
+          default: "WHERE [name] = LOWER('DERP')"
+        });
+      });
+    });
   });
 });
