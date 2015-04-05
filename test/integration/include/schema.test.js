@@ -7,7 +7,7 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
   , Promise = Sequelize.Promise
-  , async = require('async')
+  , dialect = Support.getTestDialect()
   , _ = require('lodash');
 
 chai.use(datetime);
@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                   Tag.findAll()
                 ]);
               }).spread(function (groups, companies, ranks, tags) {
-                return Promise.reduce(_.range(5), function (memo, i) {
+                return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
                   return Promise.all([
                     AccUser.create(),
                     Product.bulkCreate([
@@ -189,7 +189,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                       ])
                     );
                   });
-                }, []);
+                });
               });
             });
           });
@@ -197,11 +197,11 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       };
     });
 
-    it('should support an include with multiple different association types', function(done) {
+    it('should support an include with multiple different association types', function() {
       var self = this;
 
-      self.sequelize.dropAllSchemas().then(function() {
-        self.sequelize.createSchema('account').then(function() {
+      return self.sequelize.dropAllSchemas().then(function() {
+        return self.sequelize.createSchema('account').then(function() {
           var AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'})
             , Product = self.sequelize.define('Product', {
                 title: DataTypes.STRING
@@ -249,143 +249,105 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           GroupMember.belongsTo(Group);
           Group.hasMany(GroupMember, {as: 'Memberships'});
 
-          self.sequelize.sync({force: true}).done(function() {
-            var count = 4
-              , i = -1;
-
-            async.auto({
-              groups: function(callback) {
-                Group.bulkCreate([
-                  {name: 'Developers'},
-                  {name: 'Designers'}
-                ]).done(function() {
-                  Group.findAll().done(callback);
+          return self.sequelize.sync({force: true}).then(function() {
+            return Promise.all([
+              Group.bulkCreate([
+                {name: 'Developers'},
+                {name: 'Designers'}
+              ]).then(function() {
+                return Group.findAll();
+              }),
+              Rank.bulkCreate([
+                {name: 'Admin', canInvite: 1, canRemove: 1},
+                {name: 'Member', canInvite: 1, canRemove: 0}
+              ]).then(function() {
+                return Rank.findAll();
+              }),
+              Tag.bulkCreate([
+                {name: 'A'},
+                {name: 'B'},
+                {name: 'C'}
+              ]).then(function() {
+                return Tag.findAll();
+              })
+            ]).spread(function(groups, ranks, tags) {
+              return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
+                return Promise.all([
+                  AccUser.create(),
+                  Product.bulkCreate([
+                    {title: 'Chair'},
+                    {title: 'Desk'}
+                  ]).then(function() {
+                    return Product.findAll();
+                  })
+                ]).spread(function(user, products) {
+                  return Promise.all([
+                    GroupMember.bulkCreate([
+                      {AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                      {AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id}
+                    ]),
+                    user.setProducts([
+                      products[(i * 2) + 0],
+                      products[(i * 2) + 1]
+                    ]),
+                    products[(i * 2) + 0].setTags([
+                      tags[0],
+                      tags[2]
+                    ]),
+                    products[(i * 2) + 1].setTags([
+                      tags[1]
+                    ]),
+                    products[(i * 2) + 0].setCategory(tags[1]),
+                    Price.bulkCreate([
+                      {ProductId: products[(i * 2) + 0].id, value: 5},
+                      {ProductId: products[(i * 2) + 0].id, value: 10},
+                      {ProductId: products[(i * 2) + 1].id, value: 5},
+                      {ProductId: products[(i * 2) + 1].id, value: 10},
+                      {ProductId: products[(i * 2) + 1].id, value: 15},
+                      {ProductId: products[(i * 2) + 1].id, value: 20}
+                    ])
+                  ]);
                 });
-              },
-              ranks: function(callback) {
-                Rank.bulkCreate([
-                  {name: 'Admin', canInvite: 1, canRemove: 1},
-                  {name: 'Member', canInvite: 1, canRemove: 0}
-                ]).done(function() {
-                  Rank.findAll().done(callback);
+              });
+            }).then(function() {
+              return AccUser.findAll({
+                include: [
+                  {model: GroupMember, as: 'Memberships', include: [
+                    Group,
+                    Rank
+                  ]},
+                  {model: Product, include: [
+                    Tag,
+                    {model: Tag, as: 'Category'},
+                    Price
+                  ]}
+                ],
+                order: [
+                  [AccUser.rawAttributes.id, 'ASC']
+                ]
+              }).then(function(users) {
+                users.forEach(function(user, a) {
+                  expect(user.Memberships).to.be.ok;
+                  user.Memberships.sort(sortById);
+
+                  expect(user.Memberships.length).to.equal(2);
+                  expect(user.Memberships[0].Group.name).to.equal('Developers');
+                  expect(user.Memberships[0].Rank.canRemove).to.equal(1);
+                  expect(user.Memberships[1].Group.name).to.equal('Designers');
+                  expect(user.Memberships[1].Rank.canRemove).to.equal(0);
+
+                  user.Products.sort(sortById);
+                  expect(user.Products.length).to.equal(2);
+                  expect(user.Products[0].Tags.length).to.equal(2);
+                  expect(user.Products[1].Tags.length).to.equal(1);
+                  expect(user.Products[0].Category).to.be.ok;
+                  expect(user.Products[1].Category).not.to.be.ok;
+
+                  expect(user.Products[0].Prices.length).to.equal(2);
+                  expect(user.Products[1].Prices.length).to.equal(4);
                 });
-              },
-              tags: function(callback) {
-                Tag.bulkCreate([
-                  {name: 'A'},
-                  {name: 'B'},
-                  {name: 'C'}
-                ]).done(function() {
-                  Tag.findAll().done(callback);
-                });
-              },
-              loop: ['groups', 'ranks', 'tags', function(done, results) {
-                var groups = results.groups
-                  , ranks = results.ranks
-                  , tags = results.tags;
-
-                async.whilst(
-                  function() { return i < count; },
-                  function(callback) {
-                    i++;
-
-                    async.auto({
-                      user: function(callback) {
-                        AccUser.create().done(callback);
-                      },
-                      memberships: ['user', function(callback, results) {
-                        GroupMember.bulkCreate([
-                          {AccUserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                          {AccUserId: results.user.id, GroupId: groups[1].id, RankId: ranks[1].id}
-                        ]).done(callback);
-                      }],
-                      products: function(callback) {
-                        Product.bulkCreate([
-                          {title: 'Chair'},
-                          {title: 'Desk'}
-                        ]).done(function() {
-                          Product.findAll().done(callback);
-                        });
-                      },
-                      userProducts: ['user', 'products', function(callback, results) {
-                        results.user.setProducts([
-                          results.products[(i * 2) + 0],
-                          results.products[(i * 2) + 1]
-                        ]).done(callback);
-                      }],
-                      productTags: ['products', function(callback, results) {
-                        var chainer = new Sequelize.Utils.QueryChainer();
-
-                        chainer.add(results.products[(i * 2) + 0].setTags([
-                          tags[0],
-                          tags[2]
-                        ]));
-                        chainer.add(results.products[(i * 2) + 1].setTags([
-                          tags[1]
-                        ]));
-                        chainer.add(results.products[(i * 2) + 0].setCategory(tags[1]));
-
-                        chainer.run().done(callback);
-                      }],
-                      prices: ['products', function(callback, results) {
-                        Price.bulkCreate([
-                          {ProductId: results.products[(i * 2) + 0].id, value: 5},
-                          {ProductId: results.products[(i * 2) + 0].id, value: 10},
-                          {ProductId: results.products[(i * 2) + 1].id, value: 5},
-                          {ProductId: results.products[(i * 2) + 1].id, value: 10},
-                          {ProductId: results.products[(i * 2) + 1].id, value: 15},
-                          {ProductId: results.products[(i * 2) + 1].id, value: 20}
-                        ]).done(callback);
-                      }]
-                    }, callback);
-                  },
-                  function(err) {
-                    expect(err).not.to.be.ok;
-
-                    AccUser.findAll({
-                      include: [
-                        {model: GroupMember, as: 'Memberships', include: [
-                          Group,
-                          Rank
-                        ]},
-                        {model: Product, include: [
-                          Tag,
-                          {model: Tag, as: 'Category'},
-                          Price
-                        ]}
-                      ],
-                      order: [
-                        [AccUser.rawAttributes.id, 'ASC']
-                      ]
-                    }).done(function(err, users) {
-                      expect(err).not.to.be.ok;
-                      users.forEach(function(user) {
-                        expect(user.Memberships).to.be.ok;
-                        user.Memberships.sort(sortById);
-
-                        expect(user.Memberships.length).to.equal(2);
-                        expect(user.Memberships[0].Group.name).to.equal('Developers');
-                        expect(user.Memberships[0].Rank.canRemove).to.equal(1);
-                        expect(user.Memberships[1].Group.name).to.equal('Designers');
-                        expect(user.Memberships[1].Rank.canRemove).to.equal(0);
-
-                        user.Products.sort(sortById);
-                        expect(user.Products.length).to.equal(2);
-                        expect(user.Products[0].Tags.length).to.equal(2);
-                        expect(user.Products[1].Tags.length).to.equal(1);
-                        expect(user.Products[0].Category).to.be.ok;
-                        expect(user.Products[1].Category).not.to.be.ok;
-
-                        expect(user.Products[0].Prices.length).to.equal(2);
-                        expect(user.Products[1].Prices.length).to.equal(4);
-
-                        done();
-                      });
-                    });
-                  }
-                );
-              }]
-            }, done);
+              });
+            });
           });
         });
       });
@@ -953,7 +915,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       });
     });
 
-    it('should be possible to extend the on clause with a where option on nested includes', function(done) {
+    it('should be possible to extend the on clause with a where option on nested includes', function() {
       var User = this.sequelize.define('User', {
             name: DataTypes.STRING
           }, {schema: 'account'})
@@ -1003,134 +965,95 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       GroupMember.belongsTo(Group);
       Group.hasMany(GroupMember, {as: 'Memberships'});
 
-      this.sequelize.sync({force: true}).done(function() {
-        var count = 4
-          , i = -1;
-
-        async.auto({
-          groups: function(callback) {
-            Group.bulkCreate([
-              {name: 'Developers'},
-              {name: 'Designers'}
-            ]).done(function() {
-              Group.findAll().done(callback);
+      return this.sequelize.sync({force: true}).then(function() {
+        return Promise.all([
+          Group.bulkCreate([
+            {name: 'Developers'},
+            {name: 'Designers'}
+          ]),
+          Rank.bulkCreate([
+            {name: 'Admin', canInvite: 1, canRemove: 1},
+            {name: 'Member', canInvite: 1, canRemove: 0}
+          ]),
+          Tag.bulkCreate([
+            {name: 'A'},
+            {name: 'B'},
+            {name: 'C'}
+          ])
+        ]).then(function() {
+          return Promise.all([
+            Group.findAll(),
+            Rank.findAll(),
+            Tag.findAll()
+          ]);
+        }).spread(function(groups, ranks, tags) {
+          return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
+            return Promise.all([
+              User.create({name: 'FooBarzz'}),
+              Product.bulkCreate([
+                {title: 'Chair'},
+                {title: 'Desk'}
+              ]).then(function() {
+                return Product.findAll();
+              })
+            ]).spread(function(user, products) {
+              return Promise.all([
+                GroupMember.bulkCreate([
+                  {UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                  {UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id}
+                ]),
+                user.setProducts([
+                  products[(i * 2) + 0],
+                  products[(i * 2) + 1]
+                ]),
+                products[(i * 2) + 0].setTags([
+                  tags[0],
+                  tags[2]
+                ]),
+                products[(i * 2) + 1].setTags([
+                  tags[1]
+                ]),
+                products[(i * 2) + 0].setCategory(tags[1]),
+                Price.bulkCreate([
+                  {ProductId: products[(i * 2) + 0].id, value: 5},
+                  {ProductId: products[(i * 2) + 0].id, value: 10},
+                  {ProductId: products[(i * 2) + 1].id, value: 5},
+                  {ProductId: products[(i * 2) + 1].id, value: 10},
+                  {ProductId: products[(i * 2) + 1].id, value: 15},
+                  {ProductId: products[(i * 2) + 1].id, value: 20}
+                ])
+              ]);
             });
-          },
-          ranks: function(callback) {
-            Rank.bulkCreate([
-              {name: 'Admin', canInvite: 1, canRemove: 1},
-              {name: 'Member', canInvite: 1, canRemove: 0}
-            ]).done(function() {
-              Rank.findAll().done(callback);
+          });
+        }).then(function(){
+          return User.findAll({
+            include: [
+              {model: GroupMember, as: 'Memberships', include: [
+                Group,
+                {model: Rank, where: {name: 'Admin'}}
+              ]},
+              {model: Product, include: [
+                Tag,
+                {model: Tag, as: 'Category'},
+                {model: Price, where: {
+                  value: {
+                    gt: 15
+                  }
+                }}
+              ]}
+            ],
+            order: [
+              ['id', 'ASC']
+            ]
+          }).then(function(users) {
+            users.forEach(function(user) {
+              expect(user.Memberships.length).to.equal(1);
+              expect(user.Memberships[0].Rank.name).to.equal('Admin');
+              expect(user.Products.length).to.equal(1);
+              expect(user.Products[0].Prices.length).to.equal(1);
             });
-          },
-          tags: function(callback) {
-            Tag.bulkCreate([
-              {name: 'A'},
-              {name: 'B'},
-              {name: 'C'}
-            ]).done(function() {
-              Tag.findAll().done(callback);
-            });
-          },
-          loop: ['groups', 'ranks', 'tags', function(done, results) {
-            var groups = results.groups
-              , ranks = results.ranks
-              , tags = results.tags;
-
-            async.whilst(
-              function() { return i < count; },
-              function(callback) {
-                i++;
-
-                async.auto({
-                  user: function(callback) {
-                    User.create({name: 'FooBarzz'}).done(callback);
-                  },
-                  memberships: ['user', function(callback, results) {
-                    GroupMember.bulkCreate([
-                      {UserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                      {UserId: results.user.id, GroupId: groups[1].id, RankId: ranks[1].id}
-                    ]).done(callback);
-                  }],
-                  products: function(callback) {
-                    Product.bulkCreate([
-                      {title: 'Chair'},
-                      {title: 'Desk'}
-                    ]).done(function() {
-                      Product.findAll().done(callback);
-                    });
-                  },
-                  userProducts: ['user', 'products', function(callback, results) {
-                    results.user.setProducts([
-                      results.products[(i * 2) + 0],
-                      results.products[(i * 2) + 1]
-                    ]).done(callback);
-                  }],
-                  productTags: ['products', function(callback, results) {
-                    var chainer = new Sequelize.Utils.QueryChainer();
-
-                    chainer.add(results.products[(i * 2) + 0].setTags([
-                      tags[0],
-                      tags[2]
-                    ]));
-                    chainer.add(results.products[(i * 2) + 1].setTags([
-                      tags[1]
-                    ]));
-                    chainer.add(results.products[(i * 2) + 0].setCategory(tags[1]));
-
-                    chainer.run().done(callback);
-                  }],
-                  prices: ['products', function(callback, results) {
-                    Price.bulkCreate([
-                      {ProductId: results.products[(i * 2) + 0].id, value: 5},
-                      {ProductId: results.products[(i * 2) + 0].id, value: 10},
-                      {ProductId: results.products[(i * 2) + 1].id, value: 5},
-                      {ProductId: results.products[(i * 2) + 1].id, value: 10},
-                      {ProductId: results.products[(i * 2) + 1].id, value: 15},
-                      {ProductId: results.products[(i * 2) + 1].id, value: 20}
-                    ]).done(callback);
-                  }]
-                }, callback);
-              },
-              function(err) {
-                expect(err).not.to.be.ok;
-
-                User.findAll({
-                  include: [
-                    {model: GroupMember, as: 'Memberships', include: [
-                      Group,
-                      {model: Rank, where: {name: 'Admin'}}
-                    ]},
-                    {model: Product, include: [
-                      Tag,
-                      {model: Tag, as: 'Category'},
-                      {model: Price, where: {
-                        value: {
-                          gt: 15
-                        }
-                      }}
-                    ]}
-                  ],
-                  order: [
-                    ['id', 'ASC']
-                  ]
-                }).done(function(err, users) {
-                  expect(err).not.to.be.ok;
-
-                  users.forEach(function(user) {
-                    expect(user.Memberships.length).to.equal(1);
-                    expect(user.Memberships[0].Rank.name).to.equal('Admin');
-                    expect(user.Products.length).to.equal(1);
-                    expect(user.Products[0].Prices.length).to.equal(1);
-                  });
-
-                  done();
-                });
-              }
-            );
-          }]
-        }, done);
+          });
+        });
       });
     });
 
@@ -1261,7 +1184,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       });
     });
 
-    it.skip('should support including date fields, with the correct timeszone', function() {
+    it('should support including date fields, with the correct timeszone', function() {
       var User = this.sequelize.define('user', {
             dateField: Sequelize.DATE
           }, {timestamps: false, schema: 'account'})
@@ -1282,8 +1205,13 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                 },
                 include: [Group]
               }).then(function(users) {
-                expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-                expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+                if (dialect === 'sqlite') {
+                  expect(new Date(users[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
+                  expect(new Date(users[0].groups[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
+                } else {
+                  expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+                  expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+                }
               });
             });
           });

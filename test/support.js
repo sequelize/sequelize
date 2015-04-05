@@ -57,7 +57,7 @@ var Support = {
           , _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
         if (callback) {
-          _sequelize.sync({ force: true }).success(function() { callback(_sequelize); });
+          _sequelize.sync({ force: true }).then(function() { callback(_sequelize); });
         } else {
           return _sequelize.sync({ force: true }).return (_sequelize);
         }

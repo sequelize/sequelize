@@ -43,7 +43,6 @@
     "validator": "^3.34.0"
   },
   "devDependencies": {
-    "async": "~0.9.0",
     "chai": "^2.1.2",
     "chai-as-promised": "^4.3.0",
     "chai-datetime": "~1.3.0",

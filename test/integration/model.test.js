@@ -11,7 +11,6 @@ var chai = require('chai')
   , datetime = require('chai-datetime')
   , _ = require('lodash')
   , moment = require('moment')
-  , async = require('async')
   , current = Support.sequelize;
 
 chai.use(datetime);
@@ -2348,12 +2347,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
-    it('supports multiple async transactions', function(done) {
+    it('supports multiple async transactions', function() {
       this.timeout(25000);
+      var self = this;
       return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
         var User = sequelize.define('User', { username: Sequelize.STRING });
-        var testAsync = function(i, done) {
-          sequelize.transaction().then(function(t) {
+        var testAsync = function() {
+          return sequelize.transaction().then(function(t) {
             return User.create({
               username: 'foo'
             }, {
@@ -2380,14 +2380,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
           }).then(function(t) {
             return t.rollback();
-          }).nodeify(done);
+          });
         };
-        User.sync({ force: true }).then(function() {
+        return User.sync({ force: true }).then(function() {
           var tasks = [];
           for (var i = 0; i < 1000; i++) {
-            tasks.push(testAsync.bind(this, i));
+            tasks.push(testAsync.bind(this));
           }
-          async.parallelLimit(tasks, (sequelize.config.pool && sequelize.config.pool.max || 5) - 1, done); // Needs to be one less than 1 else the non transaction query won't ever get a connection
+          return self.sequelize.Promise.resolve(tasks).map(function(entry) {
+            return entry();
+          }, {
+            // Needs to be one less than ??? else the non transaction query won't ever get a connection
+            concurrency: (sequelize.config.pool && sequelize.config.pool.max || 5) - 1
+          });
         });
       });
     });

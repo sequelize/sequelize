@@ -6,7 +6,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
-  , async = require('async')
   , Promise = Sequelize.Promise
   , _ = require('lodash');
 
@@ -128,7 +127,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               , tags = results.tags
               , companies = results.companies;
 
-            return Promise.reduce(_.range(5), function (memo, i) {
+            return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
               return Promise.props({
                 user: User.create(),
                 products: Product.bulkCreate([
@@ -195,7 +194,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                   ])
                 );
               });
-            }, []);
+            });
           });
         });
       };
@@ -380,139 +379,101 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       Group.hasMany(GroupMember, {as: 'Memberships'});
 
       return this.sequelize.sync({force: true}).then(function() {
-        return new Promise(function (resolve, reject) {
-          var count = 4
-            , i = -1;
-
-          async.auto({
-            groups: function(callback) {
-              Group.bulkCreate([
-                {name: 'Developers'},
-                {name: 'Designers'}
+        return Promise.all([
+          Group.bulkCreate([
+            {name: 'Developers'},
+            {name: 'Designers'}
+          ]).then(function() {
+            return Group.findAll();
+          }),
+          Rank.bulkCreate([
+            {name: 'Admin', canInvite: 1, canRemove: 1},
+            {name: 'Member', canInvite: 1, canRemove: 0}
+          ]).then(function() {
+            return Rank.findAll();
+          }),
+          Tag.bulkCreate([
+            {name: 'A'},
+            {name: 'B'},
+            {name: 'C'}
+          ]).then(function() {
+            return Tag.findAll();
+          })
+        ]).spread(function(groups, ranks, tags) {
+          return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
+            return Promise.all([
+              User.create(),
+              Product.bulkCreate([
+                {title: 'Chair'},
+                {title: 'Desk'}
               ]).then(function() {
-                return Group.findAll();
-              }).nodeify(callback);
-            },
-            ranks: function(callback) {
-              Rank.bulkCreate([
-                {name: 'Admin', canInvite: 1, canRemove: 1},
-                {name: 'Member', canInvite: 1, canRemove: 0}
-              ]).then(function() {
-                return Rank.findAll();
-              }).nodeify(callback);
-            },
-            tags: function(callback) {
-              Tag.bulkCreate([
-                {name: 'A'},
-                {name: 'B'},
-                {name: 'C'}
-              ]).then(function() {
-                return Tag.findAll();
-              }).nodeify(callback);
-            },
-            loop: ['groups', 'ranks', 'tags', function(done, results) {
-              var groups = results.groups
-                , ranks = results.ranks
-                , tags = results.tags;
+                return Product.findAll();
+              })
+            ]).spread(function(user, products) {
+              return Promise.all([
+                GroupMember.bulkCreate([
+                  {UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                  {UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id}
+                ]),
+                user.setProducts([
+                  products[(i * 2) + 0],
+                  products[(i * 2) + 1]
+                ]),
+                products[(i * 2) + 0].setTags([
+                  tags[0],
+                  tags[2]
+                ]),
+                products[(i * 2) + 1].setTags([
+                  tags[1]
+                ]),
+                products[(i * 2) + 0].setCategory(tags[1]),
+                Price.bulkCreate([
+                  {ProductId: products[(i * 2) + 0].id, value: 5},
+                  {ProductId: products[(i * 2) + 0].id, value: 10},
+                  {ProductId: products[(i * 2) + 1].id, value: 5},
+                  {ProductId: products[(i * 2) + 1].id, value: 10},
+                  {ProductId: products[(i * 2) + 1].id, value: 15},
+                  {ProductId: products[(i * 2) + 1].id, value: 20}
+                ])
+              ]);
+            });
+          }).then(function() {
+            return User.findAll({
+              include: [
+                {model: GroupMember, as: 'Memberships', include: [
+                  Group,
+                  Rank
+                ]},
+                {model: Product, include: [
+                  Tag,
+                  {model: Tag, as: 'Category'},
+                  Price
+                ]}
+              ],
+              order: [
+                ['id', 'ASC']
+              ]
+            }).then(function(users) {
+              users.forEach(function(user) {
+                user.Memberships.sort(sortById);
 
-              async.whilst(
-                function() { return i < count; },
-                function(callback) {
-                  i++;
+                expect(user.Memberships.length).to.equal(2);
+                expect(user.Memberships[0].Group.name).to.equal('Developers');
+                expect(user.Memberships[0].Rank.canRemove).to.equal(1);
+                expect(user.Memberships[1].Group.name).to.equal('Designers');
+                expect(user.Memberships[1].Rank.canRemove).to.equal(0);
 
-                  async.auto({
-                    user: function(callback) {
-                      User.create().nodeify(callback);
-                    },
-                    memberships: ['user', function(callback, results) {
-                      GroupMember.bulkCreate([
-                        {UserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                        {UserId: results.user.id, GroupId: groups[1].id, RankId: ranks[1].id}
-                      ]).nodeify(callback);
-                    }],
-                    products: function(callback) {
-                      Product.bulkCreate([
-                        {title: 'Chair'},
-                        {title: 'Desk'}
-                      ]).then(function() {
-                        return Product.findAll();
-                      }).nodeify(callback);
-                    },
-                    userProducts: ['user', 'products', function(callback, results) {
-                      results.user.setProducts([
-                        results.products[(i * 2) + 0],
-                        results.products[(i * 2) + 1]
-                      ]).nodeify(callback);
-                    }],
-                    productTags: ['products', function(callback, results) {
-                      return Promise.join(
-                        results.products[(i * 2) + 0].setTags([
-                          tags[0],
-                          tags[2]
-                        ]),
-                        results.products[(i * 2) + 1].setTags([
-                          tags[1]
-                        ]),
-                        results.products[(i * 2) + 0].setCategory(tags[1])
-                      ).nodeify(callback);
-                    }],
-                    prices: ['products', function(callback, results) {
-                      Price.bulkCreate([
-                        {ProductId: results.products[(i * 2) + 0].id, value: 5},
-                        {ProductId: results.products[(i * 2) + 0].id, value: 10},
-                        {ProductId: results.products[(i * 2) + 1].id, value: 5},
-                        {ProductId: results.products[(i * 2) + 1].id, value: 10},
-                        {ProductId: results.products[(i * 2) + 1].id, value: 15},
-                        {ProductId: results.products[(i * 2) + 1].id, value: 20}
-                      ]).nodeify(callback);
-                    }]
-                  }, callback);
-                },
-                function(err) {
-                  
+                user.Products.sort(sortById);
+                expect(user.Products.length).to.equal(2);
+                expect(user.Products[0].Tags.length).to.equal(2);
+                expect(user.Products[1].Tags.length).to.equal(1);
+                expect(user.Products[0].Category).to.be.ok;
+                expect(user.Products[1].Category).not.to.be.ok;
 
-                  User.findAll({
-                    include: [
-                      {model: GroupMember, as: 'Memberships', include: [
-                        Group,
-                        Rank
-                      ]},
-                      {model: Product, include: [
-                        Tag,
-                        {model: Tag, as: 'Category'},
-                        Price
-                      ]}
-                    ],
-                    order: [
-                      ['id', 'ASC']
-                    ]
-                  }).then(function(users) {
-                    users.forEach(function(user) {
-                      user.Memberships.sort(sortById);
-
-                      expect(user.Memberships.length).to.equal(2);
-                      expect(user.Memberships[0].Group.name).to.equal('Developers');
-                      expect(user.Memberships[0].Rank.canRemove).to.equal(1);
-                      expect(user.Memberships[1].Group.name).to.equal('Designers');
-                      expect(user.Memberships[1].Rank.canRemove).to.equal(0);
-
-                      user.Products.sort(sortById);
-                      expect(user.Products.length).to.equal(2);
-                      expect(user.Products[0].Tags.length).to.equal(2);
-                      expect(user.Products[1].Tags.length).to.equal(1);
-                      expect(user.Products[0].Category).to.be.ok;
-                      expect(user.Products[1].Category).not.to.be.ok;
-
-                      expect(user.Products[0].Prices.length).to.equal(2);
-                      expect(user.Products[1].Prices.length).to.equal(4);
-                    });
-                  }).nodeify(done);
-                }
-              );
-            }]
-          }, function (err) {
-            if (err) return reject(err);
-            resolve();
+                expect(user.Products[0].Prices.length).to.equal(2);
+                expect(user.Products[1].Prices.length).to.equal(4);
+              });
+            });
           });
         });
       });
@@ -560,7 +521,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 return model.create({}).then(function (instance) {
                   if (previousInstance) {
                     return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(function() {
-                      previousInstance = instance; 
+                      previousInstance = instance;
                     });
                   } else {
                     previousInstance = b = instance;
@@ -659,7 +620,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 return model.create(values).then(function (instance) {
                   if (previousInstance) {
                     return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(function() {
-                      previousInstance = instance; 
+                      previousInstance = instance;
                     });
                   } else {
                     previousInstance = b = instance;
@@ -1290,32 +1251,28 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       Group.hasMany(GroupMember, {as: 'Memberships'});
 
       return this.sequelize.sync({force: true}).then(function() {
-        return Promise.props({
-          groups: Group.bulkCreate([
+        return Promise.all([
+          Group.bulkCreate([
             {name: 'Developers'},
             {name: 'Designers'}
           ]).then(function() {
             return Group.findAll();
           }),
-          ranks: Rank.bulkCreate([
+          Rank.bulkCreate([
             {name: 'Admin', canInvite: 1, canRemove: 1},
             {name: 'Member', canInvite: 1, canRemove: 0}
           ]).then(function() {
             return Rank.findAll();
           }),
-          tags: Tag.bulkCreate([
+          Tag.bulkCreate([
             {name: 'A'},
             {name: 'B'},
             {name: 'C'}
           ]).then(function() {
             return Tag.findAll();
           })
-        }).then(function (results) {
-          var groups = results.groups
-            , ranks = results.ranks
-            , tags = results.tags;
-
-          return Promise.reduce([0, 1, 2, 3, 4], function (memo, i) {
+        ]).spread(function (groups, ranks, tags) {
+          return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
             return Promise.props({
               user: User.create({name: 'FooBarzz'}),
               products: Product.bulkCreate([
@@ -1354,7 +1311,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 ])
               );
             });
-          }, []);
+          });
         }).then(function () {
           return User.findAll({
             include: [
@@ -1383,7 +1340,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               expect(user.Products[0].Prices.length).to.equal(1);
             });
           });
-        });    
+        });
       });
     });
 
@@ -1523,7 +1480,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               required: true
             }
           ]
-        }).then(function(products) {          
+        }).then(function(products) {
           expect(products).have.length(1);
         });
       });
