@@ -165,6 +165,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
+    it('should work with enums (3)', function() {
+      return this.queryInterface.createTable('SomeTable', {
+        someEnum: {
+          type: DataTypes.ENUM,
+          values: ['value1', 'value2', 'value3'],
+          field: "otherName"
+        }
+      });
+    });
+
+
     it('should work with schemas', function() {
       var self = this;
       return self.sequelize.dropAllSchemas().then(function() {
