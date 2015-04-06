@@ -317,6 +317,31 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           });
         });
       });
+
+      it('should enforce a unque constraint', function() {
+        var Model = this.sequelize.define('model', {
+          uniqueName: { type: Sequelize.STRING, unique: true }
+        });
+        var records = [
+          { uniqueName: 'unique name one' },
+          { uniqueName: 'unique name two' }
+        ];
+        return Model.sync({ force: true })
+          .then(function() {
+            return Model.create(records[0]);
+          }).then(function(instance) {
+            expect(instance).to.be.ok;
+            return Model.create(records[1]);
+          }).then(function(instance) {
+            expect(instance).to.be.ok;
+            return expect(Model.update(records[0], { where: { id: instance.id } })).to.be.rejected;
+          }).then(function(err) {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.errors).to.have.length(1);
+            expect(err.errors[0].path).to.include('uniqueName');
+            expect(err.errors[0].message).to.include('must be unique');
+          });
+      });
     });
 
     describe('#create', function() {
