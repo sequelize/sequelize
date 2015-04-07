@@ -16,11 +16,6 @@ test: codeclimate
 else
 test:
 	make jshint && make teaser && make test-unit && make test-integration
-	@if [ "$$GREP" ]; then \
-		make jshint && make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
-	else \
-		make jshint && make teaser && ./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
-	fi
 endif
 
 # Unit tests
