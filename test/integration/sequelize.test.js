@@ -284,7 +284,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     it('uses the passed model', function() {
       return this.sequelize.query(this.insertQuery).bind(this).then(function() {
-        return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', this.User, { type: this.sequelize.QueryTypes.SELECT });
+        return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', this.User);
       }).then(function(users) {
         expect(users[0].Model).to.equal(this.User);
       });
