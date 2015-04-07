@@ -318,20 +318,19 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       Task.belongsTo(Project);
 
       return this.sequelize.sync({force: true}).then(function() {
-        return Promise.all([
-          Project.bulkCreate([{ id: 1 }, { id: 2 }]),
-          User.create({
-            Tasks: [
-              {ProjectId: 1},
-              {ProjectId: 2},
-              {ProjectId: 1},
-              {ProjectId: 2}
-            ]
-          }, {
-            include: [Task]
-          })
-        ]);
-      }).spread(function (projects, user) {
+        return Project.bulkCreate([{ id: 1 }, { id: 2 }]);
+      }).then(function (projects) {
+        return User.create({
+          Tasks: [
+            {ProjectId: 1},
+            {ProjectId: 2},
+            {ProjectId: 1},
+            {ProjectId: 2}
+          ]
+        }, {
+          include: [Task]
+        });
+      }).then(function (user) {
         return User.find({
           where: {
             id: user.id
