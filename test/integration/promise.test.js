@@ -250,10 +250,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
 
   describe('complete', function() {
     it('gets triggered if an error occurs', function() {
-      return this.User.find({ where: 'asdasdasd' }).catch(function(err) {
-        expect(err).to.be.ok;
-        expect(err.message).to.be.ok;
-      });
+      return expect( this.User.find({ where: 'asdasdasd' })).to.be.rejected;
     });
 
     it('gets triggered if everything was ok', function() {
