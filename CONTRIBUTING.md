@@ -1,3 +1,5 @@
+_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js) or [Google groups](https://groups.google.com/forum/#!forum/sequelize).
+
 # Issues
 Issues are always very welcome - after all, they are a big part of making sequelize better. However, there are a couple of things you can do to make the lives of the developers _much, much_ easier:
 
@@ -7,7 +9,7 @@ Issues are always very welcome - after all, they are a big part of making sequel
   * Post a _minimal_ code sample that reproduces the issue, including models and associations
   * What do you expect to happen?
   * What is actually happening?
-* Which dialect you are using?
+* Which dialect you are using (postgres, mysql etc)?
 * Which sequelize version you are using?
 
 When you post code, please use [Github flavored markdown](https://help.github.com/articles/github-flavored-markdown), in order to get proper syntax highlighting!
