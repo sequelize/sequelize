@@ -27,12 +27,7 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
     });
     it('shouldn be rejected after rollback', function () {
       t.rollback();
-      return t.promise
-      .then(function () {
-        throw Error("shouldn't be fulfilled on rollback");
-      },function ( err ) {
-        // expected
-      });
+      expect(t.promise).to.have.been.rejected;
     });
   });
 
