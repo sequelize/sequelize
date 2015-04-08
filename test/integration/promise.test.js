@@ -43,14 +43,14 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
   });
 
   describe('increment', function() {
-    beforeEach(function(done) {
-      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done);
+    beforeEach(function() {
+      return this.User.create({ id: 1, aNumber: 0, bNumber: 0 });
     });
 
-    it('with array', function(done) {
+    it('with array', function() {
       var self = this;
 
-      this.User
+      return this.User
         .find(1)
         .then(function(user) {
           expect(user.id).to.equal(1);
@@ -63,15 +63,14 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         })
         .then(function(user) {
           expect(user.aNumber).to.equal(2);
-          done();
         });
     });
 
-    it('should still work right with other concurrent updates', function(done) {
+    it('should still work right with other concurrent updates', function() {
       var self = this;
 
       // Select something
-      this.User
+      return this.User
         .find(1)
         .then(function(user1) {
         // Select the user again (simulating a concurrent query)
@@ -83,16 +82,15 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
                 .then(function() { return self.User.find(1); })
                 .then(function(user5) {
                   expect(user5.aNumber).to.equal(3);
-                  done();
                 });
             });
         });
     });
 
-    it('with key value pair', function(done) {
+    it('with key value pair', function() {
       var self = this;
 
-      this.User
+      return this.User
         .find(1)
         .then(function(user1) {
           return user1.increment({ 'aNumber': 1, 'bNumber': 2});
@@ -103,20 +101,19 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         .then(function(user3) {
           expect(user3.aNumber).to.equal(1);
           expect(user3.bNumber).to.equal(2);
-          done();
         });
     });
   });
 
   describe('decrement', function() {
-    beforeEach(function(done) {
-      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done);
+    beforeEach(function() {
+      return this.User.create({ id: 1, aNumber: 0, bNumber: 0 });
     });
 
-    it('with array', function(done) {
+    it('with array', function() {
       var self = this;
 
-      this.User
+      return this.User
         .find(1)
         .then(function(user1) {
           return user1.decrement(['aNumber'], { by: 2 });
@@ -126,14 +123,12 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         })
         .then(function(user3) {
           expect(user3.aNumber).to.equal(-2);
-          done();
         });
     });
 
-    it('with single field', function(done) {
+    it('with single field', function() {
       var self = this;
-
-      this.User
+      return this.User
         .find(1)
         .then(function(user1) {
           return user1.decrement(['aNumber'], { by: 2 });
@@ -143,35 +138,32 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         })
         .then(function(user3) {
           expect(user3.aNumber).to.equal(-2);
-          done();
         });
     });
 
-    it('should still work right with other concurrent decrements', function(done) {
+    it('should still work right with other concurrent decrements', function() {
       var self = this;
-
-      this.User
+      return this.User
         .find(1)
         .then(function(user1) {
-          var _done = _.after(3, function() {
-            self.User
+          return this.sequelize.Promise.all([
+            user1.decrement(['aNumber'], { by: 2 }),
+            user1.decrement(['aNumber'], { by: 2 }),
+            user1.decrement(['aNumber'], { by: 2 })
+          ]).then(function() {
+            return self.User
               .find(1)
               .then(function(user2) {
                 expect(user2.aNumber).to.equal(-6);
-                done();
               });
           });
-
-          user1.decrement(['aNumber'], { by: 2 }).done(_done);
-          user1.decrement(['aNumber'], { by: 2 }).done(_done);
-          user1.decrement(['aNumber'], { by: 2 }).done(_done);
         });
       });
   });
 
   describe('reload', function() {
-    it('should return a reference to the same DAO instead of creating a new one', function(done) {
-      this.User
+    it('should return a reference to the same DAO instead of creating a new one', function() {
+      return this.User
         .create({ username: 'John Doe' })
         .then(function(originalUser) {
           return originalUser
@@ -181,15 +173,13 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
             })
             .then(function(updatedUser) {
               expect(originalUser === updatedUser).to.be.true;
-              done();
             });
         });
     });
 
-    it('should update the values on all references to the DAO', function(done) {
+    it('should update the values on all references to the DAO', function() {
       var self = this;
-
-      this.User
+      return this.User
         .create({ username: 'John Doe' })
         .then(function(originalUser) {
           return self.User
@@ -204,23 +194,22 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
             }).then(function(updatedUser) {
               expect(originalUser.username).to.equal('Doe John');
               expect(updatedUser.username).to.equal('Doe John');
-              done();
             });
         });
     });
 
 
-    it('should update the associations as well', function(done) {
+    it('should update the associations as well', function() {
       var Book = this.sequelize.define('Book', { title: DataTypes.STRING })
         , Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
 
       Book.hasMany(Page);
       Page.belongsTo(Book);
 
-      Book
+      return Book
         .sync({ force: true })
         .then(function() {
-          Page
+          return Page
             .sync({ force: true })
             .then(function() {
               return Book.create({ title: 'A very old book' });
@@ -249,49 +238,42 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
                                 .then(function(leBook) {
                                   expect(leBook.Pages[0].content).to.equal('something totally different');
                                   expect(page.content).to.equal('something totally different');
-                                  done();
                                 });
                             });
                         });
                     });
                 });
-            }, done);
+            });
         });
     });
   });
 
   describe('complete', function() {
-    it('gets triggered if an error occurs', function(done) {
-      this.User.find({ where: 'asdasdasd' }).then(null, function(err) {
-        expect(err).to.be.ok;
-        expect(err.message).to.be.ok;
-        done();
-      });
+    it('gets triggered if an error occurs', function() {
+      return expect( this.User.find({ where: 'asdasdasd' })).to.be.rejected;
     });
 
-    it('gets triggered if everything was ok', function(done) {
-      this.User.count().then(function(result) {
+    it('gets triggered if everything was ok', function() {
+      return this.User.count().then(function(result) {
         expect(result).to.not.be.undefined;
-        done();
       });
     });
   });
 
   describe('save', function() {
-    it('should fail a validation upon creating', function(done) {
-      this.User.create({aNumber: 0, validateTest: 'hello'})
+    it('should fail a validation upon creating', function() {
+      return this.User.create({aNumber: 0, validateTest: 'hello'})
         .catch (function(err) {
           expect(err).to.be.ok;
           expect(err).to.be.an('object');
           expect(err.get('validateTest')).to.be.an('array');
           expect(err.get('validateTest')[0]).to.be.ok;
           expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
-          done();
         });
     });
 
-    it('should fail a validation upon building', function(done) {
-      this.User.build({aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'}).save()
+    it('should fail a validation upon building', function() {
+      return this.User.build({aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'}).save()
         .catch (function(err) {
           expect(err).to.be.ok;
           expect(err).to.be.an('object');
@@ -299,12 +281,11 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
           expect(err.get('validateCustom')).to.be.an('array');
           expect(err.get('validateCustom')[0]).to.be.ok;
           expect(err.get('validateCustom')[0].message).to.equal('Length failed.');
-          done();
         });
     });
 
-    it('should fail a validation when updating', function(done) {
-      this.User.create({aNumber: 0}).then(function(user) {
+    it('should fail a validation when updating', function() {
+      return this.User.create({aNumber: 0}).then(function(user) {
         return user.updateAttributes({validateTest: 'hello'});
       }).catch (function(err) {
         expect(err).to.be.ok;
@@ -313,36 +294,33 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         expect(err.get('validateTest')).to.be.an('array');
         expect(err.get('validateTest')[0]).to.be.ok;
         expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
-        done();
       });
     });
   });
 
   describe('findOrCreate', function() {
-    beforeEach(function(done) {
-      this.User.create({ id: 1, aNumber: 0, bNumber: 0 }).done(done);
+    beforeEach(function() {
+      return this.User.create({ id: 1, aNumber: 0, bNumber: 0 });
     });
 
     describe('with spread', function() {
-      it('user not created', function(done) {
-        this.User
+      it('user not created', function() {
+        return this.User
           .findOrCreate({ where: { id: 1}})
           .spread(function(user, created) {
             expect(user.id).to.equal(1);
             expect(created).to.equal(false);
             expect(arguments.length).to.equal(2);
-            done();
           });
       });
 
-      it('user created', function(done) {
-        this.User
+      it('user created', function() {
+        return this.User
           .findOrCreate({ where: { id: 2}})
           .spread(function(user, created) {
             expect(user.id).to.equal(2);
             expect(created).to.equal(true);
             expect(arguments.length).to.equal(2);
-            done();
           });
       });
     });
@@ -377,7 +355,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
       });
     });
 
-    it('should still work with .on(\'success\') when resolving', function(done) {
+    it('should still work with then when resolving', function(done) {
       var spy = sinon.spy()
         , promise = new SequelizePromise(function(resolve, reject) {
           resolve('yoohoo');
@@ -407,18 +385,17 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
       });
     });
 
-    it('should still work with .complete() after chaining', function(done) {
+    it('should still work with .complete() after chaining', function() {
       var spy = sinon.spy()
         , promise = new SequelizePromise(function(resolve, reject) {
           resolve('Heyo');
         });
 
-      promise.then(function(result) {
+      return promise.then(function(result) {
         return result + '123';
       }).complete(function(err, result) {
         expect(err).not.to.be.ok;
         expect(result).to.equal('Heyo123');
-        done();
       });
     });
 
@@ -496,7 +473,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
       promise.emit('error', new Error('noway'));
     });
 
-    it('should still support sql events', function(done) {
+    it('should still support sql events', function() {
       var spy = sinon.spy()
         , promise = new SequelizePromise(function(resolve, reject) {
           resolve('yay');
@@ -507,9 +484,8 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
       promise.emit('sql', 'SQL STATEMENT 1');
       promise.emit('sql', 'SQL STATEMENT 2');
 
-      promise.then(function() {
+      return promise.then(function() {
         expect(spy.calledTwice).to.be.true;
-        done();
       });
     });
 

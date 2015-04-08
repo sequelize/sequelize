@@ -1793,7 +1793,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         self.User.belongsToMany(self.Task, { onDelete: 'RESTRICT'});
         self.Task.belongsToMany(self.User, { onDelete: 'CASCADE'});
 
-        return this.sequelize.sync({ force: true, logging: true }).bind({}).then(function() {
+        return this.sequelize.sync({ force: true }).bind({}).then(function() {
           return Sequelize.Promise.join(
             self.User.create({ id: 67, username: 'foo' }),
             self.Task.create({ id: 52, title: 'task' }),

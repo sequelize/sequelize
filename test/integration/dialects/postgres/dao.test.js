@@ -363,38 +363,37 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
-      it('should be able to add enum types', function(done) {
+      it('should be able to add enum types', function() {
         var self = this
           , User = this.sequelize.define('UserEnums', {
               mood: DataTypes.ENUM('happy', 'sad', 'meh')
-            });
+            })
+          , count = 0;
 
-        var _done = _.after(4, function() {
-          done();
-        });
-
-        User.sync({ force: true }).then(function() {
+        return User.sync({ force: true }).then(function() {
           User = self.sequelize.define('UserEnums', {
             mood: DataTypes.ENUM('neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful')
           });
 
-          User.sync().then(function() {
+          return User.sync().then(function() {
             expect(User.rawAttributes.mood.values).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
-            _done();
+            count++;
           }).on('sql', function(sql) {
             if (sql.indexOf('neutral') > -1) {
               expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'");
-              _done();
+              count++;
             }
             else if (sql.indexOf('ecstatic') > -1) {
               expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'");
-              _done();
+              count++;
             }
             else if (sql.indexOf('joyful') > -1) {
               expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'");
-              _done();
+              count++;
             }
           });
+        }).then(function() {
+          expect(count).to.equal(4);
         });
       });
     });

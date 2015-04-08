@@ -9,24 +9,21 @@ var chai = require('chai')
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('QueryChainer'), function() {
-  beforeEach(function(done) {
+  beforeEach(function() {
     this.queryChainer = new QueryChainer();
-    done();
   });
 
   describe('add', function() {
-    it('adds a new serial item if method is passed', function(done) {
+    it('adds a new serial item if method is passed', function() {
       expect(this.queryChainer.serials.length).to.equal(0);
       this.queryChainer.add({}, 'foo');
       expect(this.queryChainer.serials.length).to.equal(1);
-      done();
     });
 
-    it('adds a new emitter if no method is passed', function(done) {
+    it('adds a new emitter if no method is passed', function() {
       expect(this.queryChainer.emitters.length).to.equal(0);
       this.queryChainer.add(new CustomEventEmitter());
       expect(this.queryChainer.emitters.length).to.equal(1);
-      done();
     });
   });
 

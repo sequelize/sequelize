@@ -131,27 +131,22 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
         });
       });
 
-      it('triggers the error event for the second transactions', function(done) {
+      it('triggers the error event for the second transactions', function() {
         var self = this;
 
-        this.sequelize.transaction().then(function(t1) {
-          self.sequelize.transaction().then(function(t2) {
-            self
-              .Model
-              .create({ name: 'omnom' }, { transaction: t1 })
-              .success(function(m1) {
-                self
-                  .Model
-                  .create({ name: 'omnom' }, { transaction: t2 })
-                  .error(function(err) {
-                    t2.rollback().success(function() {
-                      expect(err).to.be.defined;
-                      done();
-                    });
-                  });
-
-                setTimeout(function() { t1.commit(); }, 100);
-              });
+        return this.sequelize.transaction().then(function(t1) {
+          return self.sequelize.transaction().then(function(t2) {
+            return self.Model.create({ name: 'omnom' }, { transaction: t1 }).then(function(m1) {
+              return Promise.all([
+                self.Model.create({ name: 'omnom' }, { transaction: t2 }).catch(function(err) {
+                  expect(err).to.be.defined;
+                  return t2.rollback();
+                }),
+                Promise.delay(100).then(function() {
+                  return t1.commit();
+                })
+              ]);
+            });
           });
         });
       });

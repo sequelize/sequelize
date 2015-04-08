@@ -11,7 +11,6 @@ var chai = require('chai')
   , datetime = require('chai-datetime')
   , promised = require('chai-as-promised')
   , _ = require('lodash')
-  , async = require('async')
   , current = Support.sequelize;
 
 chai.use(promised);
@@ -760,104 +759,71 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           this.Tag = this.sequelize.define('Tag', { name: Sequelize.STRING });
         });
 
-        it('returns the associated models when using through as string and alias', function(done) {
+        it('returns the associated models when using through as string and alias', function() {
           var self = this;
 
           this.Product.hasMany(this.Tag, {as: 'tags', through: 'product_tag'});
           this.Tag.hasMany(this.Product, {as: 'products', through: 'product_tag'});
 
-          this.sequelize.sync().done(function() {
-            async.auto({
-              createProducts: function(callback) {
-                self.Product.bulkCreate([
-                  {title: 'Chair'},
-                  {title: 'Desk'},
-                  {title: 'Handbag'},
-                  {title: 'Dress'},
-                  {title: 'Jan'}
-                ]).done(callback);
-              },
-              // bulkCreate doesn't include id for some reason, not going to fix tis now
-              products: ['createProducts', function(callback) {
-                self.Product.findAll().done(callback);
-              }],
-              createTags: function(callback) {
-                self.Tag.bulkCreate([
-                  {name: 'Furniture'},
-                  {name: 'Clothing'},
-                  {name: 'People'}
-                ]).done(callback);
-              },
-              tags: ['createTags', function(callback) {
-                self.Tag.findAll().done(callback);
-              }]
-            }, function(err, results) {
-              expect(err).not.to.exist;
-
-              var products = results.products
-                , tags = results.tags;
-
-              async.parallel([
-                function(callback) {
-                  products[0].setTags([tags[0], tags[1]]).done(callback);
-                },
-                function(callback) {
-                  products[1].addTag(tags[0]).done(callback);
-                },
-                function(callback) {
-                  products[2].addTag(tags[1]).done(callback);
-                },
-                function(callback) {
-                  products[3].setTags([tags[1]]).done(callback);
-                },
-                function(callback) {
-                  products[4].setTags([tags[2]]).done(callback);
-                }
-              ], function(err) {
-                expect(err).not.to.exist;
-
-                async.parallel([
-                  function(callback) {
-                    self.Tag.find({
-                      where: {
-                        id: tags[0].id
-                      },
-                      include: [
-                        {model: self.Product, as: 'products'}
-                      ]
-                    }).done(function(err, tag) {
-                      expect(tag).to.exist;
-                      expect(tag.products.length).to.equal(2);
-                      callback();
-                    });
-                  },
-                  function(callback) {
-                    tags[1].getProducts().done(function(err, products) {
-                      expect(products.length).to.equal(3);
-                      callback();
-                    });
-                  },
-                  function(callback) {
-                    self.Product.find({
-                      where: {
-                        id: products[0].id
-                      },
-                      include: [
-                        {model: self.Tag, as: 'tags'}
-                      ]
-                    }).done(function(err, product) {
-                      expect(product).to.exist;
-                      expect(product.tags.length).to.equal(2);
-                      callback();
-                    });
-                  },
-                  function(callback) {
-                    products[1].getTags().done(function(err, tags) {
-                      expect(tags.length).to.equal(1);
-                      callback();
-                    });
-                  }
-                ], done);
+          return this.sequelize.sync().then(function() {
+            return Promise.all([
+              self.Product.bulkCreate([
+                {title: 'Chair'},
+                {title: 'Desk'},
+                {title: 'Handbag'},
+                {title: 'Dress'},
+                {title: 'Jan'}
+              ]),
+              self.Tag.bulkCreate([
+                {name: 'Furniture'},
+                {name: 'Clothing'},
+                {name: 'People'}
+              ])
+            ]).then(function() {
+              return Promise.all([
+                self.Product.findAll(),
+                self.Tag.findAll()
+              ]);
+            }).spread(function(products, tags) {
+              self.products = products;
+              self.tags = tags;
+              return Promise.all([
+                  products[0].setTags([tags[0], tags[1]]),
+                  products[1].addTag(tags[0]),
+                  products[2].addTag(tags[1]),
+                  products[3].setTags([tags[1]]),
+                  products[4].setTags([tags[2]])
+              ]).then(function() {
+                return Promise.all([
+                  self.Tag.find({
+                    where: {
+                      id: tags[0].id
+                    },
+                    include: [
+                      {model: self.Product, as: 'products'}
+                    ]
+                  }).then(function(tag) {
+                    expect(tag).to.exist;
+                    expect(tag.products.length).to.equal(2);
+                  }),
+                  tags[1].getProducts().then(function(products) {
+                    expect(products.length).to.equal(3);
+                  }),
+                  self.Product.find({
+                    where: {
+                      id: products[0].id
+                    },
+                    include: [
+                      {model: self.Tag, as: 'tags'}
+                    ]
+                  }).then(function(product) {
+                    expect(product).to.exist;
+                    expect(product.tags.length).to.equal(2);
+                  }),
+                  products[1].getTags().then(function(tags) {
+                    expect(tags.length).to.equal(1);
+                  })
+                ]);
               });
             });
           });
