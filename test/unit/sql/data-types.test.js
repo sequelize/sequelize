@@ -2,10 +2,8 @@
 
 var Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , util      = require('util')
   , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator;
+  , current   = Support.sequelize;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -260,25 +258,25 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
 
     suite('BLOB', function () {
-      testsql("BLOB", DataTypes.BLOB, {
+      testsql('BLOB', DataTypes.BLOB, {
         default: 'BLOB',
         mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
       });
 
-      testsql("BLOB('tiny')", DataTypes.BLOB('tiny'), {
+      testsql('BLOB(\'tiny\')', DataTypes.BLOB('tiny'), {
         default: 'TINYBLOB',
         mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
       });
 
-      testsql("BLOB('medium')", DataTypes.BLOB('medium'), {
+      testsql('BLOB(\'medium\')', DataTypes.BLOB('medium'), {
         default: 'MEDIUMBLOB',
         mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
       });
 
-      testsql("BLOB('long')", DataTypes.BLOB('long'), {
+      testsql('BLOB(\'long\')', DataTypes.BLOB('long'), {
         default: 'LONGBLOB',
         mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
@@ -287,11 +285,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
     if (current.dialect.supports.ARRAY) {
       suite('ARRAY', function () {
-        testsql("ARRAY(VARCHAR)", DataTypes.ARRAY(DataTypes.STRING), {
+        testsql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
           postgres: 'VARCHAR(255)[]'
         });
 
-        testsql("ARRAY(VARCHAR(100))", DataTypes.ARRAY(DataTypes.STRING(100)), {
+        testsql('ARRAY(VARCHAR(100))', DataTypes.ARRAY(DataTypes.STRING(100)), {
           postgres: 'VARCHAR(100)[]'
         });
       });

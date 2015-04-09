@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , Sequelize = require('../../../../index')
   , Promise = Sequelize.Promise
@@ -302,7 +303,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should make the aliased auto incremented primary key available after create', function() {
-        var self = this;
         return this.User.create({
           name: 'Barfoo'
         }).then(function(user) {

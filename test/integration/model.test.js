@@ -1,12 +1,12 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , Sequelize = require('../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
   , dialect = Support.getTestDialect()
-  , config = require(__dirname + '/../config/config')
   , sinon = require('sinon')
   , datetime = require('chai-datetime')
   , _ = require('lodash')
@@ -2064,8 +2064,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('uses an existing dao factory and references the author table', function() {
-      var self = this
-        , Post = this.sequelize.define('post', {
+      var Post = this.sequelize.define('post', {
             title: Sequelize.STRING,
             authorId: {
               type: Sequelize.INTEGER,
@@ -2124,8 +2123,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('emits an error event as the referenced table name is invalid', function() {
-      var self = this
-        , Post = this.sequelize.define('post', {
+      var Post = this.sequelize.define('post', {
             title: Sequelize.STRING,
             authorId: {
               type: Sequelize.INTEGER,
@@ -2168,6 +2166,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('works with comments', function() {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
+      // jshint ignore:start
       var Member = this.sequelize.define('Member', {})
         , Profile = this.sequelize.define('Profile', {
         id: {
@@ -2179,6 +2178,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           comment: 'asdf'
         }
       });
+      // jshint ignore:end
 
       return this.sequelize.sync({ force: true });
     });
@@ -2452,6 +2452,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   it('should be possible to use a key named UUID as foreign key', function() {
+    // jshint ignore:start
     var project = this.sequelize.define('project', {
       UserId: {
         type: Sequelize.STRING,
@@ -2472,14 +2473,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       }
     });
+    // jshint ignore:end
 
     return this.sequelize.sync({force: true});
   });
 
   describe('bulkCreate errors', function() {
     it('should return array of errors if validate and individualHooks are true', function() {
-      var self = this
-        , data = [{ username: null },
+      var data = [{ username: null },
                   { username: null },
                   { username: null }];
 

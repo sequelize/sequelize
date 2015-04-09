@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , assert = chai.assert
@@ -11,7 +12,6 @@ var chai = require('chai')
   , config = require(__dirname + '/../config/config')
   , moment = require('moment')
   , Transaction = require(__dirname + '/../../lib/transaction')
-  , path = require('path')
   , sinon = require('sinon')
   , current = Support.sequelize;
 
@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         var ConnectionManager = current.dialect.connectionManager
           , connectionSpy = ConnectionManager.connect = chai.spy(ConnectionManager.connect);
 
-        var sequelize = Support.createSequelizeInstance({
+        Support.createSequelizeInstance({
           pool: {
             minConnections: 2
           }
@@ -59,13 +59,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     if (dialect === 'sqlite') {
       it('should work with connection strings (1)', function() {
-        var sequelize = new Sequelize('sqlite://test.sqlite');
+        var sequelize = new Sequelize('sqlite://test.sqlite'); // jshint ignore:line
       });
       it('should work with connection strings (2)', function() {
-        var sequelize = new Sequelize('sqlite://test.sqlite/');
+        var sequelize = new Sequelize('sqlite://test.sqlite/'); // jshint ignore:line
       });
       it('should work with connection strings (3)', function() {
-        var sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true');
+        var sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true'); // jshint ignore:line
       });
     }
 
@@ -73,11 +73,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       var getConnectionUri = _.template('<%= protocol %>://<%= username %>:<%= password %>@<%= host %><% if(port) { %>:<%= port %><% } %>/<%= database %>');
       it('should work with connection strings (postgres protocol)', function() {
         var connectionUri = getConnectionUri(_.extend(config[dialect], {protocol: 'postgres'}));
-        var sequelize = new Sequelize(connectionUri); // postgres://...
+        // postgres://...
+        var sequelize = new Sequelize(connectionUri); // jshint ignore:line
       });
       it('should work with connection strings (postgresql protocol)', function() {
         var connectionUri = getConnectionUri(_.extend(config[dialect], {protocol: 'postgresql'}));
-        var sequelize = new Sequelize(connectionUri); // postgresql://...
+        // postgresql://...
+        var sequelize = new Sequelize(connectionUri); // jshint ignore:line
       });
     }
   });
@@ -168,7 +170,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
   });
 
   describe('isDefined', function() {
-    it("returns false if the dao wasn't defined before", function() {
+    it('returns false if the dao wasn\'t defined before', function() {
       expect(this.sequelize.isDefined('Project')).to.be.false;
     });
 
@@ -207,7 +209,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         username: DataTypes.STRING
       });
 
-      this.insertQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, ' + qq('createdAt') + ', ' + qq('updatedAt') + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')";
+      this.insertQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, ' + qq('createdAt') + ', ' +
+        qq('updatedAt') + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')";
 
       return this.User.sync({ force: true });
     });
@@ -492,9 +495,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       expect(customOverrideInstanceMethod).to.have.been.calledOnce;
 
       // Call Getters
-      var defaultVal = instance.default
-        , custom = instance.custom
-        , override = instance.override;
+      instance.default;
+      instance.custom;
+      instance.override;
 
       expect(defaultGetterMethod).to.have.been.calledOnce;
       expect(customGetterMethod).to.have.been.calledOnce;
@@ -696,8 +699,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           dialect: this.sequelize.options.dialect
         });
 
-        var Project = sequelize.define('Project', {title: Sequelize.STRING});
-        var Task = sequelize.define('Task', {title: Sequelize.STRING});
+        sequelize.define('Project', {title: Sequelize.STRING});
+        sequelize.define('Task', {title: Sequelize.STRING});
 
         return sequelize.sync({force: true}).catch(function(err) {
           expect(err).to.be.ok;
@@ -710,8 +713,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           port: 99999
         });
 
-        var Project = sequelize.define('Project', {title: Sequelize.STRING});
-        var Task = sequelize.define('Task', {title: Sequelize.STRING});
+        sequelize.define('Project', {title: Sequelize.STRING});
+        sequelize.define('Task', {title: Sequelize.STRING});
 
         return sequelize.sync({force: true}).catch(function(err) {
           expect(err).to.be.ok;
@@ -725,8 +728,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           pool: {}
         });
 
-        var Project = sequelize.define('Project', {title: Sequelize.STRING});
-        var Task = sequelize.define('Task', {title: Sequelize.STRING});
+        sequelize.define('Project', {title: Sequelize.STRING});
+        sequelize.define('Task', {title: Sequelize.STRING});
 
         return sequelize.sync({force: true}).catch(function(err) {
           expect(err).to.be.ok;
@@ -734,7 +737,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
 
       it('returns an error correctly if unable to sync a foreign key referenced model', function() {
-        var Application = this.sequelize.define('Application', {
+        this.sequelize.define('Application', {
           authorID: { type: Sequelize.BIGINT, allowNull: false, references: 'User', referencesKey: 'id' }
         });
 

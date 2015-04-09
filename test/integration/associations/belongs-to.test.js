@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , sinon = require('sinon')
   , expect = chai.expect
@@ -7,7 +8,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
-  , assert = require('assert')
   , current = Support.sequelize;
 
 chai.config.includeStack = true;
@@ -494,7 +494,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
     if (current.dialect.supports.constraints.restrict) {
       it('can restrict deletes', function() {
-        var self = this;
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -516,7 +515,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
 
       it('can restrict updates', function() {
-        var self = this;
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });
 

@@ -1,12 +1,11 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
   , SequelizePromise = require(__dirname + '/../../lib/promise')
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash')
   , sinon = require('sinon');
 
 chai.config.includeStack = true;
@@ -386,8 +385,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
     });
 
     it('should still work with .complete() after chaining', function() {
-      var spy = sinon.spy()
-        , promise = new SequelizePromise(function(resolve, reject) {
+      var promise = new SequelizePromise(function(resolve, reject) {
           resolve('Heyo');
         });
 

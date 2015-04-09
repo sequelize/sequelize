@@ -1,8 +1,8 @@
 "use strict";
 
 /* jshint camelcase: false */
+/* jshint -W030 */
 var chai      = require('chai')
-  , sinon     = require('sinon')
   , expect    = chai.expect
   , Support   = require(__dirname + '/support')
   , Sequelize = Support.Sequelize

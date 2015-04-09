@@ -7,7 +7,6 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , moment = require('moment')
-  , util = require('util')
   , current = Support.sequelize
   , _ = require('lodash');
 

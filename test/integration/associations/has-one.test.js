@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
@@ -276,8 +277,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
     it('should support specifying the field of a foreign key', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
-        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING })
-        , self = this;
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
 
       Task.hasOne(User, {
         foreignKey: {
@@ -419,7 +419,6 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     if (current.dialect.supports.constraints.restrict) {
 
       it('can restrict deletes', function() {
-        var self = this;
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
@@ -443,7 +442,6 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
 
       it('can restrict updates', function() {
-        var self = this;
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING });
 
@@ -485,8 +483,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         username: {
           type: Sequelize.STRING
         }
-      })
-        , self = this;
+      });
 
       var Group = this.sequelize.define('GroupPKBT', {
         name: {

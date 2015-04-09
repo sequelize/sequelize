@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')

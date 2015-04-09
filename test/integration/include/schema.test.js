@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , Sequelize = require('../../../index')
   , expect = chai.expect
@@ -7,8 +8,7 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
   , Promise = Sequelize.Promise
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash');
+  , dialect = Support.getTestDialect();
 
 chai.use(datetime);
 chai.config.includeStack = true;
@@ -212,9 +212,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             , Price = self.sequelize.define('Price', {
                 value: DataTypes.FLOAT
               }, {schema: 'account'})
-            , Customer = self.sequelize.define('Customer', {
-                name: DataTypes.STRING
-            }, {schema: 'account'})
             , Group = self.sequelize.define('Group', {
                 name: DataTypes.STRING
               }, {schema: 'account'})
@@ -928,9 +925,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
         , Price = this.sequelize.define('Price', {
             value: DataTypes.FLOAT
           }, {schema: 'account'})
-        , Customer = this.sequelize.define('Customer', {
-            name: DataTypes.STRING
-        }, {schema: 'account'})
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
           }, {schema: 'account'})

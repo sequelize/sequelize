@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , Sequelize = require('../../index')
   , Promise = Sequelize.Promise
@@ -462,9 +463,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Price = this.sequelize.define('Price', {
             value: DataTypes.FLOAT
           })
-        , Customer = this.sequelize.define('Customer', {
-            name: DataTypes.STRING
-        })
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
           })

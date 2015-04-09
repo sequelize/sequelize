@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Sequelize = require('../../index')
@@ -10,7 +11,6 @@ var chai = require('chai')
   , sinon = require('sinon')
   , datetime = require('chai-datetime')
   , uuid = require('node-uuid')
-  , _ = require('lodash')
   , current = Support.sequelize;
 
 chai.should();
@@ -823,7 +823,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('only updates fields in passed array', function() {
       var self = this
-      , userId = null
       , date = new Date(1990, 1, 1);
 
       return this.User.create({
@@ -1035,7 +1034,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('updates the timestamps', function() {
       var now = Date.now()
         , user = null
-        , updatedAt = null
         , User = this.User;
 
       // timeout is needed, in order to check the update of the timestamp
@@ -1048,7 +1046,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     it('does not update timestamps when passing silent=true', function() {
-      var self = this;
       return this.User.create({ username: 'user' }).then(function(user) {
         var updatedAt = user.updatedAt;
         return this.sequelize.Promise.delay(2000).then(function() {
@@ -1352,7 +1349,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it.skip('Should assign a property to the instance', function() {
       // @thanpolas rethink this test, it doesn't make sense, a relation has
       // to be created first in the beforeEach().
-      var self = this;
       return this.User.find({id: udo.id})
         .then(function(user) {
           user.NiceProjectId = 1;
@@ -1413,7 +1409,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           });
         })
         .then(function(user) {
-          var json = user.toJSON();
           expect(user.Projects).to.be.instanceof(Array);
           expect(user.Projects).to.be.length(0);
         });
@@ -1785,10 +1780,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
   describe('restore', function() {
     it('returns an error if the model is not paranoid', function() {
-      var self = this;
-
-      return this.User.create({username: 'Peter', secretValue: '42'})
-      .then(function(user) {
+      return this.User.create({username: 'Peter', secretValue: '42'}).then(function(user) {
         expect(function() {user.restore();}).to.throw(Error, 'Model is not paranoid');
       });
     });

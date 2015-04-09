@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
@@ -10,7 +11,6 @@ var chai = require('chai')
   , config = require(__dirname + '/../../config/config')
   , datetime = require('chai-datetime')
   , promised = require('chai-as-promised')
-  , _ = require('lodash')
   , current = Support.sequelize;
 
 chai.use(promised);

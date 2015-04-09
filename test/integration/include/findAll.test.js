@@ -1,13 +1,13 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , Sequelize = require('../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , datetime = require('chai-datetime')
-  , Promise = Sequelize.Promise
-  , _ = require('lodash');
+  , Promise = Sequelize.Promise;
 
 chai.use(datetime);
 chai.config.includeStack = true;
@@ -341,9 +341,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Price = this.sequelize.define('Price', {
             value: DataTypes.FLOAT
           })
-        , Customer = this.sequelize.define('Customer', {
-            name: DataTypes.STRING
-        })
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
           })
@@ -1213,9 +1210,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Price = this.sequelize.define('Price', {
             value: DataTypes.FLOAT
           })
-        , Customer = this.sequelize.define('Customer', {
-            name: DataTypes.STRING
-        })
         , Group = this.sequelize.define('Group', {
             name: DataTypes.STRING
           })
@@ -1671,8 +1665,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
     });
 
     it('should still pull the main record(s) when an included model is not required and has where restrictions without matches', function() {
-      var self = this
-        , A = this.sequelize.define('a', {name: DataTypes.STRING(40)})
+      var A = this.sequelize.define('a', {name: DataTypes.STRING(40)})
         , B = this.sequelize.define('b', {name: DataTypes.STRING(40)});
 
       A.hasMany(B);

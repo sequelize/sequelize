@@ -1,12 +1,12 @@
 'use strict';
 
+/* jshint -W030 */
 var chai      = require('chai')
   , sinon     = require('sinon')
   , expect    = chai.expect
   , errors    = require('../../lib/errors')
   , Support   = require(__dirname + '/support')
-  , Sequelize = Support.Sequelize
-  , Promise   = Sequelize.Promise;
+  , Sequelize = Support.Sequelize;
 
 chai.config.includeStack = true;
 

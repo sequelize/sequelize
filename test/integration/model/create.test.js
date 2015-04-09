@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
@@ -1247,14 +1248,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('through sequelize', function() {
-          var self = this
-            , Enum = this.sequelize.define('Enum', {
-                state: {
-                  type: Sequelize.ENUM,
-                  values: ['happy', 'sad'],
-                  allowNull: true
-                }
-              });
+          var self = this;
+          /* jshint ignore:start */
+          var Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          });
+          /* jshint ignore:end */
 
           return this.sequelize.sync({ force: true }).then(function() {
             return self.sequelize.sync().then(function() {

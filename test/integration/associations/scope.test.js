@@ -1,12 +1,12 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
-  , Promise = Sequelize.Promise
-  , assert = require('assert');
+  , Promise = Sequelize.Promise;
 
 chai.config.includeStack = true;
 

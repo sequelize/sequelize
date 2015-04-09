@@ -1,10 +1,10 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
-  , _ = require('lodash')
   , Sequelize = Support.Sequelize
   , sinon = require('sinon')
   , dialect   = Support.getTestDialect();
@@ -2577,8 +2577,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with a single hook', function() {
           describe('on success', function() {
             it('should run hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.beforeBulkCreate(function(daos, options, fn) {
@@ -2633,8 +2632,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with multiple hooks', function() {
           describe('on success', function() {
             it('should run all hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.beforeBulkCreate(function(daos, options, fn) {
@@ -2704,8 +2702,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with a single hook', function() {
           describe('on success', function() {
             it('should run hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.hook('beforeBulkCreate', function(daos, options, fn) {
@@ -2760,8 +2757,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with multiple hooks', function() {
           describe('on success', function() {
             it('should run all hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.hook('beforeBulkCreate', function(daos, options, fn) {
@@ -3683,8 +3679,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with a single hook', function() {
           describe('on success', function() {
             it('should run hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.beforeBulkDestroy(function(options, fn) {
@@ -3730,8 +3725,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with multiple hooks', function() {
           describe('on success', function() {
             it('should run all hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.beforeBulkDestroy(function(options, fn) {
@@ -3792,8 +3786,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with a single hook', function() {
           describe('on success', function() {
             it('should run hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.hook('beforeBulkDestroy', function(options, fn) {
@@ -3839,8 +3832,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('with multiple hooks', function() {
           describe('on success', function() {
             it('should run hooks', function() {
-              var self = this
-                , beforeBulk = false
+              var beforeBulk = false
                 , afterBulk = false;
 
               this.User.hook('beforeBulkDestroy', function(options, fn) {
@@ -4392,9 +4384,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         it('on error', function() {
-          var self = this
-            , beforeHook = false
-            , afterHook = false;
+          var self = this;
 
           this.Tasks.afterUpdate(function(task, options, fn) {
             fn(new Error('Whoops!'));
@@ -4412,7 +4402,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('cascade onDelete', function() {
         beforeEach(function() {
-          var self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
           });
@@ -4561,9 +4550,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         it('on error', function() {
-          var self = this
-            , beforeHook = false
-            , afterHook = false;
+          var self = this;
 
           this.Tasks.afterUpdate(function(task, options, fn) {
             fn(new Error('Whoops!'));
@@ -4792,8 +4779,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('no cascade', function() {
         beforeEach(function() {
-          var self = this;
-
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
           });
@@ -4896,7 +4881,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('M:M', function() {
       describe('cascade', function() {
         beforeEach(function() {
-          var self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
           });
@@ -4999,8 +4983,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('no cascade', function() {
         beforeEach(function() {
-          var self = this;
-
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
           });
@@ -5105,7 +5087,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('cascade', function() {
           beforeEach(function() {
-            var self = this;
             this.Projects = this.sequelize.define('Project', {
               title: DataTypes.STRING
             });
@@ -5132,8 +5113,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('#remove', function() {
             it('with no errors', function() {
-              var self = this
-                , beforeProject = false
+              var beforeProject = false
                 , afterProject = false
                 , beforeTask = false
                 , afterTask = false
@@ -5190,8 +5170,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             });
 
             it('with errors', function() {
-              var self = this
-                , beforeProject = false
+              var beforeProject = false
                 , afterProject = false
                 , beforeTask = false
                 , afterTask = false
@@ -5253,7 +5232,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       describe('multiple 1:M sequential hooks', function () {
         describe('cascade', function() {
           beforeEach(function() {
-            var self = this;
             this.Projects = this.sequelize.define('Project', {
               title: DataTypes.STRING
             });
@@ -5280,8 +5258,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('#remove', function() {
             it('with no errors', function() {
-              var self = this
-                , beforeProject = false
+              var beforeProject = false
                 , afterProject = false
                 , beforeTask = false
                 , afterTask = false
@@ -5342,8 +5319,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             });
 
             it('with errors', function() {
-              var self = this
-                , beforeProject = false
+              var beforeProject = false
                 , afterProject = false
                 , beforeTask = false
                 , afterTask = false
@@ -5624,8 +5600,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     it('can return an error by throwing', function() {
-      var self = this;
-
       this.User.beforeCreate(function() {
         throw (new Error("I'm afraid I can't let you do that"));
       });

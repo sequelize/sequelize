@@ -1,12 +1,12 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
   , _ = require('lodash')
-  , moment = require('moment')
   , sinon = require('sinon')
   , Promise = Sequelize.Promise
   , current = Support.sequelize
@@ -863,8 +863,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('uses one insert into statement', function() {
-      var self = this
-        , spy = sinon.spy();
+      var spy = sinon.spy();
 
       return Promise.all([
         this.User.create({ username: 'foo' }),
@@ -878,8 +877,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('uses one delete from statement', function() {
-      var self = this
-        , spy = sinon.spy();
+      var spy = sinon.spy();
 
       return Promise.all([
         this.User.create({ username: 'foo' }),
@@ -1067,9 +1065,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('should correctly get associations even after a child instance is deleted', function() {
-      var self = this
-        , user
-        , projects;
+      var self = this;
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.join(
@@ -1690,8 +1686,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
 
       it('correctly sets user and owner', function() {
-        var self = this;
-
         var p1 = this.Project.build({ projectName: 'p1' })
           , u1 = this.User.build({ name: 'u1' })
           , u2 = this.User.build({ name: 'u2' });
