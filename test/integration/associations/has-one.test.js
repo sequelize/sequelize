@@ -534,7 +534,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
           }
         });
 
-        expect(Profile.rawAttributes.uid).to.be.defined;
+        expect(Profile.rawAttributes.uid).to.be.ok;
         expect(Profile.rawAttributes.uid.references).to.equal(User.getTableName());
         expect(Profile.rawAttributes.uid.referencesKey).to.equal('id');
         expect(Profile.rawAttributes.uid.allowNull).to.be.false;
@@ -548,7 +548,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
           }
         });
 
-        expect(Profile.rawAttributes.uid).to.be.defined;
+        expect(Profile.rawAttributes.uid).to.be.ok;
         expect(Profile.rawAttributes.uid.references).to.equal(User.getTableName());
         expect(Profile.rawAttributes.uid.referencesKey).to.equal('id');
         expect(Profile.rawAttributes.uid.allowNull).to.be.false;
@@ -570,7 +570,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
         User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id});
 
-        expect(Profile.rawAttributes.user_id).to.be.defined;
+        expect(Profile.rawAttributes.user_id).to.be.ok;
         expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName());
         expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid');
         expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
@@ -592,7 +592,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
         User.hasOne(Project, { foreignKey: { allowNull: false }});
 
-        expect(Project.rawAttributes.userUid).to.be.defined;
+        expect(Project.rawAttributes.userUid).to.be.ok;
         expect(Project.rawAttributes.userUid.allowNull).to.be.false;
         expect(Project.rawAttributes.userUid.references).to.equal(User.getTableName());
         expect(Project.rawAttributes.userUid.referencesKey).to.equal('uid');

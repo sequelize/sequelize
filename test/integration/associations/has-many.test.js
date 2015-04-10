@@ -945,7 +945,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         }).then(function(projects) {
           expect(projects).to.have.length(1);
           var project = projects[0];
-          expect(project.ProjectUsers).to.be.defined;
+          expect(project.ProjectUsers).to.be.ok;
           expect(project.status).not.to.exist;
           expect(project.ProjectUsers.status).to.equal('active');
         });
@@ -1613,7 +1613,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           );
         }).spread(function(user, projects) {
           var project = projects[0];
-          expect(project).to.be.defined;
+          expect(project).to.be.ok;
           return project.destroy().return (user);
         }).then(function(user) {
           return self.User.find({
@@ -1624,7 +1624,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           var projects = user.Projects
             , project = projects[0];
 
-          expect(project).to.be.defined;
+          expect(project).to.be.ok;
         });
       });
 
@@ -1644,7 +1644,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         }).then(function(projects) {
           var project = projects[0];
 
-          expect(project).to.be.defined;
+          expect(project).to.be.ok;
           return self.user.removeProject(project).return(project);
         }).then(function(project) {
           return self.user.setProjects([project]);
@@ -1664,7 +1664,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           return user.getPuppies().then(function(puppies) {
             var puppy = puppies[0];
 
-            expect(puppy).to.be.defined;
+            expect(puppy).to.be.ok;
             expect(puppy.rawAttributes.userId).to.be.ok;
             expect(puppy.userId).to.equal(user.id);
           });
@@ -1718,13 +1718,13 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           });
         }).then(function(groups) {
           var group = groups[0];
-          expect(group).to.be.defined;
+          expect(group).to.be.ok;
 
           var user = group.Users[0];
-          expect(user).to.be.defined;
+          expect(user).to.be.ok;
 
           var project = user.Projects[0];
-          expect(project).to.be.defined;
+          expect(project).to.be.ok;
           expect(project.name).to.equal('Good Will Hunting');
         });
       });
@@ -1845,7 +1845,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           }).then(function(projects) {
             var project = projects[0];
 
-            expect(project.UserProjects).to.be.defined;
+            expect(project.UserProjects).to.be.ok;
             expect(project.status).not.to.exist;
             expect(project.UserProjects.status).to.equal('active');
             expect(project.UserProjects.data).to.equal(42);
@@ -1863,7 +1863,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           }).then(function(projects) {
             var project = projects[0];
 
-            expect(project.UserProjects).to.be.defined;
+            expect(project.UserProjects).to.be.ok;
             expect(project.status).not.to.exist;
             expect(project.UserProjects.status).to.equal('active');
             expect(project.UserProjects.data).not.to.exist;
@@ -2621,7 +2621,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           }
         });
 
-        expect(Task.rawAttributes.uid).to.be.defined;
+        expect(Task.rawAttributes.uid).to.be.ok;
         expect(Task.rawAttributes.uid.allowNull).to.be.false;
         expect(Task.rawAttributes.uid.references).to.equal(User.getTableName());
         expect(Task.rawAttributes.uid.referencesKey).to.equal('id');
@@ -2632,14 +2632,14 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           }
         });
 
-        expect(Task.rawAttributes.uid).not.to.be.defined;
+        expect(Task.rawAttributes.uid).to.be.undefined;
 
-        expect(Task.associations.tasksusers.through.model.rawAttributes.taskId).to.be.defined;
+        expect(Task.associations.tasksusers.through.model.rawAttributes.taskId).to.be.ok;
         expect(Task.associations.tasksusers.through.model.rawAttributes.taskId.allowNull).to.be.false;
         expect(Task.associations.tasksusers.through.model.rawAttributes.taskId.references).to.equal(Task.getTableName());
         expect(Task.associations.tasksusers.through.model.rawAttributes.taskId.referencesKey).to.equal('id');
 
-        expect(Task.associations.tasksusers.through.model.rawAttributes.uid).to.be.defined;
+        expect(Task.associations.tasksusers.through.model.rawAttributes.uid).to.be.ok;
         expect(Task.associations.tasksusers.through.model.rawAttributes.uid.allowNull).to.be.false;
         expect(Task.associations.tasksusers.through.model.rawAttributes.uid.references).to.equal(User.getTableName());
         expect(Task.associations.tasksusers.through.model.rawAttributes.uid.referencesKey).to.equal('id');
@@ -2661,7 +2661,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
         User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id});
 
-        expect(Project.rawAttributes.user_id).to.be.defined;
+        expect(Project.rawAttributes.user_id).to.be.ok;
         expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName());
         expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid');
         expect(Project.rawAttributes.user_id.defaultValue).to.equal(42);
@@ -2678,7 +2678,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
         User.hasMany(Task, { foreignKey: { allowNull: true }});
 
-        expect(Task.rawAttributes.userId).to.be.defined;
+        expect(Task.rawAttributes.userId).to.be.ok;
         expect(Task.rawAttributes.userId.defaultValue).to.equal(42);
         expect(Task.rawAttributes.userId.allowNull).to.be.ok;
       });

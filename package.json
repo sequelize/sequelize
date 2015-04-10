@@ -46,6 +46,7 @@
     "chai": "^2.1.2",
     "chai-as-promised": "^4.3.0",
     "chai-datetime": "~1.3.0",
+    "chai-missing-assertions": "^1.0.0",
     "chai-spies": "~0.5.1",
     "coffee-script": "~1.7.1",
     "commander": "^2.6.0",

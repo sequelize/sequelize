@@ -8,9 +8,10 @@ var fs = require('fs')
   , Config = require(__dirname + '/config/config')
   , chai = require('chai')
   , expect = chai.expect
-  , chaiAsPromised = require('chai-as-promised');
+  , chaiAsPromised = require('chai-as-promised')
+  , missingAssertions = require('chai-missing-assertions');
 
-chai.use(chaiAsPromised);
+chai.use(missingAssertions);
 
 // Make sure errors get thrown when testing
 Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {

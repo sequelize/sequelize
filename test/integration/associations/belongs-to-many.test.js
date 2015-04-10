@@ -216,7 +216,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).then(function(projects) {
         expect(projects).to.have.length(1);
         var project = projects[0];
-        expect(project.ProjectUsers).to.be.defined;
+        expect(project.ProjectUsers).to.be.ok;
         expect(project.status).not.to.exist;
         expect(project.ProjectUsers.status).to.equal('active');
       });
@@ -1086,7 +1086,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         );
       }).spread(function(user, projects) {
         var project = projects[0];
-        expect(project).to.be.defined;
+        expect(project).to.be.ok;
         return project.destroy().return (user);
       }).then(function(user) {
         return self.User.find({
@@ -1097,7 +1097,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         var projects = user.Projects
           , project = projects[0];
 
-        expect(project).to.be.defined;
+        expect(project).to.be.ok;
       });
     });
 
@@ -1117,7 +1117,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).then(function(projects) {
         var project = projects[0];
 
-        expect(project).to.be.defined;
+        expect(project).to.be.ok;
         return self.user.removeProject(project).on('sql', function(sql) {
         }).return (project);
       }).then(function(project) {
@@ -1180,13 +1180,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         });
       }).then(function(groups) {
         var group = groups[0];
-        expect(group).to.be.defined;
+        expect(group).to.be.ok;
 
         var user = group.Users[0];
-        expect(user).to.be.defined;
+        expect(user).to.be.ok;
 
         var project = user.Projects[0];
-        expect(project).to.be.defined;
+        expect(project).to.be.ok;
         expect(project.name).to.equal('Good Will Hunting');
       });
     });
@@ -1307,7 +1307,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }).then(function(projects) {
           var project = projects[0];
 
-          expect(project.UserProjects).to.be.defined;
+          expect(project.UserProjects).to.be.ok;
           expect(project.status).not.to.exist;
           expect(project.UserProjects.status).to.equal('active');
           expect(project.UserProjects.data).to.equal(42);
@@ -1325,7 +1325,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }).then(function(projects) {
           var project = projects[0];
 
-          expect(project.UserProjects).to.be.defined;
+          expect(project.UserProjects).to.be.ok;
           expect(project.status).not.to.exist;
           expect(project.UserProjects.status).to.equal('active');
           expect(project.UserProjects.data).not.to.exist;
@@ -1877,7 +1877,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
         var UserProjects = User.belongsToMany(Project, { foreignKey: { name: 'user_id', defaultValue: 42 }});
 
-        expect(UserProjects.through.model.rawAttributes.user_id).to.be.defined;
+        expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
         expect(UserProjects.through.model.rawAttributes.user_id.references).to.equal(User.getTableName());
         expect(UserProjects.through.model.rawAttributes.user_id.referencesKey).to.equal('uid');
         expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);

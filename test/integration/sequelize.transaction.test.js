@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
             return self.Model.create({ name: 'omnom' }, { transaction: t1 }).then(function(m1) {
               return Promise.all([
                 self.Model.create({ name: 'omnom' }, { transaction: t2 }).catch(function(err) {
-                  expect(err).to.be.defined;
+                  expect(err).to.be.ok;
                   return t2.rollback();
                 }),
                 Promise.delay(100).then(function() {

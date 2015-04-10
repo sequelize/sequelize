@@ -639,7 +639,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
           }
         });
 
-        expect(Task.rawAttributes.uid).to.be.defined;
+        expect(Task.rawAttributes.uid).to.be.ok;
         expect(Task.rawAttributes.uid.allowNull).to.be.false;
         expect(Task.rawAttributes.uid.references).to.equal(User.getTableName());
         expect(Task.rawAttributes.uid.referencesKey).to.equal('id');
@@ -661,7 +661,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
         Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id});
 
-        expect(Profile.rawAttributes.user_id).to.be.defined;
+        expect(Profile.rawAttributes.user_id).to.be.ok;
         expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName());
         expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid');
         expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
@@ -678,7 +678,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
         Task.belongsTo(Project, { foreignKey: { allowNull: true }});
 
-        expect(Task.rawAttributes.projectId).to.be.defined;
+        expect(Task.rawAttributes.projectId).to.be.ok;
         expect(Task.rawAttributes.projectId.defaultValue).to.equal(42);
         expect(Task.rawAttributes.projectId.allowNull).to.be.ok;
       });

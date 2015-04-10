@@ -547,7 +547,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
         var successfulUser = User.build({ name: '2' });
         return successfulUser.validate().then(function(err) {
-          expect(err).not.to.be.defined;
+          expect(err).to.be.undefined;
         });
       });
     });
@@ -576,7 +576,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           expect(error.get('name')[0].message).to.equal('Invalid username');
 
           return User.build({ name: 'no error' }).validate().then(function(errors) {
-            expect(errors).not.to.be.defined;
+            expect(errors).to.be.undefined;
           });
         });
       });
