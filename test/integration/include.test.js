@@ -320,7 +320,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
       return this.sequelize.sync({force: true}).then(function() {
         return Project.bulkCreate([{ id: 1 }, { id: 2 }]);
-      }).then(function (projects) {
+      }).then(function () {
         return User.create({
           Tasks: [
             {ProjectId: 1},

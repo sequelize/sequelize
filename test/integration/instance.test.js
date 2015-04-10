@@ -1,6 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , expect = chai.expect
   , Sequelize = require('../../index')
@@ -886,7 +887,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'B');
         });
 
@@ -917,7 +918,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'C');
         });
 
@@ -954,7 +955,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           }
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'B');
         });
 
@@ -987,7 +988,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           }
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'B');
         });
 

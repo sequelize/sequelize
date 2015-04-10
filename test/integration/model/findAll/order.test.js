@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         if (current.dialect.name !== 'mssql') {
           it('should work with order: literal()', function () {
             return this.User.findAll({
-              order: this.sequelize.literal("email = "+this.sequelize.escape('test@sequelizejs.com')) 
+              order: this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))
             }).then(function (users) {
               expect(users.length).to.equal(1);
               users.forEach(function (user) {
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           it('should work with order: [literal()]', function () {
             return this.User.findAll({
-              order: [this.sequelize.literal("email = "+this.sequelize.escape('test@sequelizejs.com'))]
+              order: [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
             }).then(function (users) {
               expect(users.length).to.equal(1);
               users.forEach(function (user) {
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           it('should work with order: [[literal()]]', function () {
             return this.User.findAll({
               order: [
-                [this.sequelize.literal("email = "+this.sequelize.escape('test@sequelizejs.com'))]
+                [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
               ]
             }).then(function (users) {
               expect(users.length).to.equal(1);

@@ -1273,7 +1273,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
             return task.addUser(user, { status: 'pending' }); // Create without transaction, so the old value is accesible from outside the transaction
           }).then(function() {
             return this.task.addUser(this.user, { transaction: this.t, status: 'completed' }); // Add an already exisiting user in a transaction, updating a value in the join table
-          }).then(function(hasUser) {
+          }).then(function() {
             return Promise.all([
               this.user.getTasks(),
               this.user.getTasks({ transaction: this.t })
@@ -1915,7 +1915,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
             }).then(function(worker) {
               this.worker = worker;
               return Task.create({id: 7331});
-            }).then(function(task) {
+            }).then(function() {
               return this.worker.addTask(this.task);
             }).then(function() {
               return this.worker.addTask(this.task);
@@ -2684,7 +2684,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           });
 
       expect(User.hasMany.bind(User, User, { as: 'user' })).to
-        .throw ("Naming collision between attribute 'user' and association 'user' on model user. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change either foreignKey or as in your association definition');
     });
   });
 });

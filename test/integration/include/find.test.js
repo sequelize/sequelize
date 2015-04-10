@@ -47,9 +47,9 @@ describe(Support.getTestDialectTeaser('Include'), function() {
     });
 
     it('should work with a 1:M to M:1 relation with a where on the last include', function ()  {
-      var Model = this.sequelize.define("Model", {});
-      var Model2 = this.sequelize.define("Model2", {});
-      var Model4 = this.sequelize.define("Model4", {something: { type: DataTypes.INTEGER }});
+      var Model = this.sequelize.define('Model', {});
+      var Model2 = this.sequelize.define('Model2', {});
+      var Model4 = this.sequelize.define('Model4', {something: { type: DataTypes.INTEGER }});
 
       Model.belongsTo(Model2);
       Model2.hasMany(Model);
@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, unique: true },
         owner_id: { type: DataTypes.INTEGER, unique: 'combiIndex' },
         owner_type: { type: DataTypes.ENUM, values: ['user', 'org'], defaultValue: 'user', unique: 'combiIndex' },
-        "private": { type: DataTypes.BOOLEAN, defaultValue: false }
+        'private': { type: DataTypes.BOOLEAN, defaultValue: false }
       }, { underscored: true });
 
       User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', constraints: false });
@@ -278,7 +278,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         return User.find({
           where: { id: 2 },
           include: [
-            { model: Post, as: 'UserPosts', where: {"private": true} }
+            { model: Post, as: 'UserPosts', where: {'private': true} }
           ]
         });
       });

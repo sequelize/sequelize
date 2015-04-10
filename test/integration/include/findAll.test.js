@@ -1,6 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , Sequelize = require('../../../index')
   , expect = chai.expect
@@ -136,7 +137,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                   {title: 'Bed'},
                   {title: 'Pen'},
                   {title: 'Monitor'}
-                ]).then(function(err) {
+                ]).then(function() {
                   return Product.findAll();
                 })
               }).then(function (results) {
@@ -925,7 +926,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       return this.sequelize.sync({ force: true }).then(function() {
         return Street.create({ active: true }).then(function(street) {
           return Address.create({ active: true, streetId: street.id }).then(function(address ) {
-            return User.create({ username: 'John', addressId: address.id }).then(function(john ) {
+            return User.create({ username: 'John', addressId: address.id }).then(function() {
               return User.find({
                 where: { username: 'John'},
                 include: [{

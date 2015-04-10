@@ -1,6 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , expect = chai.expect
   , assert = chai.assert
@@ -804,14 +805,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     describe('match', function() {
       it('will return an error not matching', function() {
-        return this.sequelize.sync({
-          force: true,
-          match: /alibabaizshaek/
-        }).then(function() {
-          throw new Error('I should not have succeeded!');
-        }).catch(function(err) {
-          assert(true);
-        });
+        expect(
+          this.sequelize.sync({
+            force: true,
+            match: /alibabaizshaek/
+          })
+        ).to.be.rejected;
       });
     });
   });
@@ -959,7 +958,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               return self.sequelizeWithTransaction.query('INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ') VALUES (\'foo\');', { transaction: t1 });
             }).then(function() {
               return expect(count()).to.eventually.equal(0);
-            }).then(function(cnt) {
+            }).then(function() {
               return expect(count(this.t1)).to.eventually.equal(1);
             }).then(function () {
               return this.t1.commit();
@@ -1001,7 +1000,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               return this.t2.rollback();
             }).then(function() {
               return expect(count()).to.eventually.equal(0);
-            }).then(function(cnt) {
+            }).then(function() {
               return this.t1.commit();
             }).then(function() {
               return expect(count()).to.eventually.equal(1);

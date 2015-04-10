@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W110 */
 var Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , util      = require('util')

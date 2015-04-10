@@ -92,7 +92,7 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
       }).then(function(tmpUser) {
         user = tmpUser;
         return user.createGroup();
-      }).tap(function(group) {
+      }).tap(function() {
         return user.reload();
       }).tap(function() {
         expect(user.countGroups).to.equal(1);

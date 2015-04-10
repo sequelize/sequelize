@@ -39,7 +39,7 @@ describe('Connction Manager', function() {
     var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    var poolSpy = sandbox.spy(Pooling, "Pool");
+    var poolSpy = sandbox.spy(Pooling, 'Pool');
     connectionManager.initPools();
     expect(poolSpy.calledOnce).to.be.true;
   });
@@ -54,7 +54,7 @@ describe('Connction Manager', function() {
     var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    var poolSpy = sandbox.spy(Pooling, "Pool");
+    var poolSpy = sandbox.spy(Pooling, 'Pool');
     connectionManager.initPools();
     expect(poolSpy.calledTwice).to.be.true;
   });

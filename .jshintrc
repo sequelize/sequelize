@@ -16,8 +16,7 @@
   "unused": "vars",
   "nonbsp": true,
   "maxdepth": 8,
-  "quotmark": false, // deprecated
-  // "maxlen": 200, // depcreated
+  "quotmark": true, // deprecated
 
   /* relaxing options */
   "laxbreak":true,

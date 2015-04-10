@@ -12,7 +12,7 @@ chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Connections problems should fail with a nice message', function() {
-    it("when we don't have the correct server details", function() {
+    it('when we don\'t have the correct server details', function() {
       if (dialect === 'mariadb') {
         console.log('This dialect doesn\'t support me :(');
         expect(true).to.be.true; // Silence Buster

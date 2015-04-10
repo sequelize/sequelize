@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /* jshint camelcase: false */
 /* jshint -W030 */
@@ -13,7 +13,7 @@ var chai      = require('chai')
 chai.config.includeStack = true;
 
 if (current.dialect.supports.transactions) {
-  describe(Support.getTestDialectTeaser("Continuation local storage"), function () {
+  describe(Support.getTestDialectTeaser('Continuation local storage'), function () {
     before(function () {
       Sequelize.cls = cls.createNamespace('sequelize');
     });

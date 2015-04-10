@@ -1,16 +1,15 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('define', function () {
     it('should allow custom timestamps with underscored: true', function () {
-      var Model
-        , instance;
+      var Model;
 
       Model = current.define('User', {}, {
         createdAt   : 'createdAt',

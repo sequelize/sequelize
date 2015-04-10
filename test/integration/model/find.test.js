@@ -1,6 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
@@ -186,7 +187,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it("doesn't find a user if conditions are not matching", function() {
+      it('doesn\'t find a user if conditions are not matching', function() {
         return this.User.find({ where: { username: 'foo' } }).then(function(user) {
           expect(user).to.be.null;
         });

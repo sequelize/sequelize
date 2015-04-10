@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
           expect(user.id).to.equal(1);
           return user.increment(['aNumber'], { by: 2 });
         })
-        .then(function(user) {
+        .then(function() {
           // The following assertion would rock hard, but it's not implemented :(
           // expect(user.aNumber).to.equal(2)
           return self.User.find(1);
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         .then(function(user1) {
           return user1.decrement(['aNumber'], { by: 2 });
         })
-        .then(function(user2) {
+        .then(function() {
           return self.User.find(1);
         })
         .then(function(user3) {
@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         .then(function(user1) {
           return user1.decrement(['aNumber'], { by: 2 });
         })
-        .then(function(user3) {
+        .then(function() {
           return self.User.find(1);
         })
         .then(function(user3) {

@@ -1,6 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , spies = require('chai-spies')
   , expect = chai.expect

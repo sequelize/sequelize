@@ -619,7 +619,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
 
       return self.sequelize.sync({ force: true }).then(function() {
-        dataTypes.forEach(function(dataType, i) {
+        dataTypes.forEach(function(dataType) {
           expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });
       });
@@ -687,7 +687,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         , Car = this.sequelize.define('car', {});
 
       expect(Car.belongsTo.bind(Car, Person, {foreignKey: 'person'})).to
-        .throw ("Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
     });
 
     it('should throw an error if an association clashes with the name of an already define attribute', function() {
@@ -697,7 +697,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
           });
 
         expect(Car.belongsTo.bind(Car, Person, {as: 'person'})).to
-        .throw ("Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
     });
   });
 });

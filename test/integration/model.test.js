@@ -1,6 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , Sequelize = require('../../index')
   , expect = chai.expect
@@ -251,7 +252,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       return UserTable.sync({force: true}).then(function() {
-        return UserTable.create({aNumber: 30}).then(function(user) {
+        return UserTable.create({aNumber: 30}).then(function() {
           return UserTable.count().then(function(c) {
             expect(c).to.equal(1);
           });
@@ -698,7 +699,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         .then(function() {
           return User.create({ username: 'A fancy name' });
         })
-        .then(function(u) {
+        .then(function() {
           return User.find({ where: [] });
         })
         .then(function(u) {
@@ -921,7 +922,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var self = this;
       return this.User.create({
         username: 'John'
-      }).then(function(user) {
+      }).then(function() {
         return self.User.update({username: self.sequelize.cast('1', dialect === 'mssql' ? 'nvarchar' : 'char')}, {where: {username: 'John'}}).then(function() {
           return self.User.findAll().then(function(users) {
             expect(users[0].username).to.equal('1');
@@ -935,7 +936,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return this.User.create({
         username: 'John'
-      }).then(function(user) {
+      }).then(function() {
         return self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {where: {username: 'John'}}).then(function() {
           return self.User.findAll().then(function(users) {
             expect(users[0].username).to.equal('JOHN');
@@ -1184,7 +1185,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserProject.create({
           userId: 10
         });
-      }).then(function(userProject) {
+      }).then(function() {
         return UserProject.destroy({
           where: {
             userId: 10
@@ -1357,7 +1358,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return user.destroy({force: true});
       }).then(function() {
         return expect(User.find({where: {username: 'Bob'}})).to.eventually.be.null;
-      }).then(function(user) {
+      }).then(function() {
         return User.find({where: {username: 'Tobi'}});
       }).then(function(tobi) {
         return tobi.destroy();
@@ -1429,7 +1430,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var self = this;
 
       return this.User.create({username: 'Peter', secretValue: '42'})
-      .then(function(user) {
+      .then(function() {
         expect(function() {self.User.restore({where: {secretValue: '42'}});}).to.throw(Error, 'Model is not paranoid');
       });
     });
@@ -1567,7 +1568,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('does not modify the passed arguments', function() {
       var options = { where: ['username = ?', 'user1']};
 
-      return this.User.count(options).then(function(count) {
+      return this.User.count(options).then(function() {
         expect(options).to.deep.equal({ where: ['username = ?', 'user1']});
       });
     });
@@ -2018,7 +2019,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
           }
         })
-        .then(function(UserPublic) {
+        .then(function() {
           return self.UserSpecialSync.schema('special').create({age: 3})
           .on('sql', function(UserSpecial) {
             expect(UserSpecial).to.exist;

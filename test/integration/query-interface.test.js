@@ -171,7 +171,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         someEnum: {
           type: DataTypes.ENUM,
           values: ['value1', 'value2', 'value3'],
-          field: "otherName"
+          field: 'otherName'
         }
       });
     });
@@ -419,7 +419,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         } else if (dialect === 'mysql' || dialect === 'mssql') {
           expect(keys).to.have.length(1);
         } else {
-          console.log("This test doesn't support " + dialect);
+          console.log('This test doesn\'t support ' + dialect);
         }
       });
     });

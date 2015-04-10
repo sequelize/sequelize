@@ -604,7 +604,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         , Attribute = this.sequelize.define('attribute', {});
 
         expect(User.hasOne.bind(User, Attribute)).to
-        .throw ("Naming collision between attribute 'attribute' and association 'attribute' on model user. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'attribute\' and association \'attribute\' on model user. To remedy this, change either foreignKey or as in your association definition');
     });
   });
 

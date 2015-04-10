@@ -323,7 +323,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                   [AccUser.rawAttributes.id, 'ASC']
                 ]
               }).then(function(users) {
-                users.forEach(function(user, a) {
+                users.forEach(function(user) {
                   expect(user.Memberships).to.be.ok;
                   user.Memberships.sort(sortById);
 

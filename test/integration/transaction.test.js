@@ -40,22 +40,22 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
 
   describe('autoCallback', function() {
     it('supports automatically committing', function() {
-      return this.sequelize.transaction(function(t) {
+      return this.sequelize.transaction(function() {
         return Promise.resolve();
       });
     });
     it('supports automatically rolling back with a thrown error', function() {
-      return expect(this.sequelize.transaction(function(t) {
+      return expect(this.sequelize.transaction(function() {
         throw new Error('Yolo');
       })).to.eventually.be.rejected;
     });
     it('supports automatically rolling back with a rejection', function() {
-      return expect(this.sequelize.transaction(function(t) {
+      return expect(this.sequelize.transaction(function() {
         return Promise.reject('Swag');
       })).to.eventually.be.rejected;
     });
     it('errors when no promise chain is returned', function() {
-      return expect(this.sequelize.transaction(function(t) {
+      return expect(this.sequelize.transaction(function() {
 
       })).to.eventually.be.rejected;
     });

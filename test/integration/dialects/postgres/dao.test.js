@@ -1,6 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
@@ -655,7 +656,7 @@ if (dialect.match(/^postgres/)) {
           expect(newUser.course_period.inclusive).to.deep.equal([false, false]); // not inclusive
 
           // Check to see if updating a range field works
-          return newUser.updateAttributes({acceptable_marks: [0.8, 0.9]}).then(function(oldUser) {
+          return newUser.updateAttributes({acceptable_marks: [0.8, 0.9]}).then(function() {
             expect(newUser.acceptable_marks.length).to.equal(2);
             expect(newUser.acceptable_marks[0]).to.equal(0.8); // lower bound
             expect(newUser.acceptable_marks[1]).to.equal(0.9); // upper bound
