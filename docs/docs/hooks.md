@@ -143,10 +143,10 @@ afterBulkCreate / afterBulkUpdate / afterBulkDestroy
 If you want to emit hooks for each individual record, along with the bulk hooks you can pass `individualHooks: true` to the call.
     
 ```js
-Model.destroy({ where: {accessLevel: 0}}, {individualHooks: true}) 
+Model.destroy({ where: {accessLevel: 0}, individualHooks: true}) 
 // Will select all records that are about to be deleted and emit before- + after- Destroy on each instance
  
-Model.update({username: 'Toni'}, { where: {accessLevel: 0}}, {individualHooks: true})
+Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: true})
 // Will select all records that are about to be updated and emit before- + after- Update on each instance
 ```
 
