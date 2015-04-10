@@ -48,6 +48,10 @@ tr:nth-child(2n) {
   font-family: 'Titillium Web', sans-serif;
 }
 
+a.toctree-l3 {
+  margin-left: 0.8em;
+}
+
 @media screen and (max-width: 768px) {
   #teaser-home {
     height: auto;
