@@ -546,6 +546,40 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('works with custom timestamps with a default value', function() {
+      var User = this.sequelize.define('User', {
+        username: DataTypes.STRING, 
+        date_of_birth: DataTypes.DATE,
+        email: DataTypes.STRING,
+        password: DataTypes.STRING,
+        created_time: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: DataTypes.NOW
+        },
+        updated_time: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: DataTypes.NOW
+        }
+      }, {    
+        createdAt: 'created_time',
+        updatedAt: 'updated_time',
+        tableName: 'users',
+        underscored: true,
+        freezeTableName: true,
+        force: false
+      });
+
+      return this.sequelize.sync({force: true}).then(function() {
+        return User.create({}, {logging: console.log}).then(function(user) {
+          expect(user).to.be.ok;
+          expect(user.created_time).to.be.ok;
+          expect(user.updated_time).to.be.ok;
+        });
+      });
+    });
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         var self = this;
