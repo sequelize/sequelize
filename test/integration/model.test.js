@@ -219,29 +219,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should allow me to override updatedAt, createdAt, and deletedAt fields with underscored being true', function() {
-      var UserTable = this.sequelize.define('UserCol', {
-        aNumber: Sequelize.INTEGER
-      }, {
-        timestamps: true,
-        updatedAt: 'updatedOn',
-        createdAt: 'dateCreated',
-        deletedAt: 'deletedAtThisTime',
-        paranoid: true,
-        underscored: true
-      });
-
-      return UserTable.sync({force: true}).then(function() {
-        return UserTable.create({aNumber: 4}).then(function(user) {
-          expect(user.updated_on).to.exist;
-          expect(user.date_created).to.exist;
-          return user.destroy().then(function(user) {
-            expect(user.deleted_at_this_time).to.exist;
-          });
-        });
-      });
-    });
-
     it('returns proper defaultValues after save when setter is set', function() {
       var titleSetter = sinon.spy()
         , Task = this.sequelize.define('TaskBuild', {
