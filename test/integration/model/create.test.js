@@ -588,10 +588,31 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       return this.sequelize.sync({force: true}).then(function() {
-        return User.create({}, {logging: console.log}).then(function(user) {
+        return User.create({}).then(function(user) {
           expect(user).to.be.ok;
           expect(user.created_time).to.be.ok;
           expect(user.updated_time).to.be.ok;
+        });
+      });
+    });
+
+    it('works with custom timestamps and underscored', function() {
+      var User = this.sequelize.define('User', {
+
+      }, {    
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt',
+        underscored: true
+      });
+
+      return this.sequelize.sync({force: true}).then(function() {
+        return User.create({}).then(function(user) {
+          expect(user).to.be.ok;
+          expect(user.createdAt).to.be.ok;
+          expect(user.updatedAt).to.be.ok;
+
+          expect(user.created_at).not.to.be.ok;
+          expect(user.updated_at).not.to.be.ok;
         });
       });
     });
