@@ -440,6 +440,32 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('works with non-integer primary keys with fields excluding the primary key', function () {
+      var User = this.sequelize.define('User', {
+        'id': {
+          primaryKey: true,
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
+          allowNull: false
+        },
+        'email': {
+          type: DataTypes.STRING
+        }
+      });
+
+      return this.sequelize.sync({force: true}).then(function() {
+        return User.create({
+          email: Math.random().toString()
+        }, {
+          fields: ['email'],
+          logging: console.log
+        }).then(function(user) {
+          expect(user).to.be.ok;
+          expect(user.get('id')).to.be.ok;
+        });
+      });
+    });
+
     it('should return an error for a unique constraint error', function() {
       var User = this.sequelize.define('User', {
         'email': {

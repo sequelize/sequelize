@@ -1,6 +1,7 @@
 # Next
 - [BUG] Fix for newlines in hstore [#3383](https://github.com/sequelize/sequelize/issues/3383)
 - [BUG] Fix unique key handling in Model.update [#3474](https://github.com/sequelize/sequelize/issues/3474)
+- [BUG] Fix issue with Model.create() using fields not specifying and non-incremental primary key [#3458](https://github.com/sequelize/sequelize/issues/3458)
 - [FEATURE] `field` support for Model.update [#3498](https://github.com/sequelize/sequelize/pull/3498)
 - [INTERNALS] Updated dependencies. Most notably we are moving up one major version on lodash. If you are using `sequelize.Utils._`, notice that the semantics for many matching functions have changed to include a check for `hasOwnProperty`
     + dottie@0.3.1
