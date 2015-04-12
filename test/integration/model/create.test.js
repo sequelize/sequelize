@@ -100,6 +100,31 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should work with undefined uuid primary key in where', function () {
+      var User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.UUID,
+          primaryKey: true,
+          allowNull: false,
+          defaultValue: DataTypes.UUIDV4
+        },
+        name: {
+          type: DataTypes.STRING
+        }
+      });
+
+      return User.sync({force: true}).then(function () {
+        return User.findOrCreate({
+          where: {
+            id: undefined
+          },
+          defaults: {
+            name: Math.random().toString()
+          }
+        });
+      });
+    });
+
     if (['sqlite', 'mssql'].indexOf(current.dialect.name) === -1) {
       it('should not deadlock with no existing entries and no outer transaction', function () {
         var User = this.sequelize.define('User', {
@@ -453,32 +478,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return User.create({}).then(function(user) {
           expect(user).to.be.ok;
           expect(user.id).to.be.ok;
-        });
-      });
-    });
-
-    it('works with non-integer primary keys with fields excluding the primary key', function () {
-      var User = this.sequelize.define('User', {
-        'id': {
-          primaryKey: true,
-          type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
-          allowNull: false
-        },
-        'email': {
-          type: DataTypes.STRING
-        }
-      });
-
-      return this.sequelize.sync({force: true}).then(function() {
-        return User.create({
-          email: Math.random().toString()
-        }, {
-          fields: ['email'],
-          logging: console.log
-        }).then(function(user) {
-          expect(user).to.be.ok;
-          expect(user.get('id')).to.be.ok;
         });
       });
     });
