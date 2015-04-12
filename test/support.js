@@ -7,8 +7,9 @@ var fs = require('fs')
   , DataTypes = require(__dirname + '/../lib/data-types')
   , Config = require(__dirname + '/config/config')
   , chai = require('chai')
-  , expect = chai.expect
-  , chaiAsPromised = require('chai-as-promised');
+  , expect = chai.expect;
+
+chai.use(require('chai-as-promised'));
 
 // Make sure errors get thrown when testing
 Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {

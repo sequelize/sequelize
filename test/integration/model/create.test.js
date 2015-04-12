@@ -89,19 +89,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           username: 'gottlieb'
         });
       }).then(function () {
-        return User.findOrCreate({
+        return expect(User.findOrCreate({
           where: {
             objectId: 'asdasdasd'
           },
           defaults: {
             username: 'gottlieb'
           }
-        }).then(function () {
-          throw new Error('I should have been rejected');
-        }).catch(function (err) {
-          expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
-          expect(err.fields).to.be.ok;
-        });
+        })).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
       });
     });
 
@@ -262,6 +257,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(_user.username).to.equal('Username');
           expect(_user.data).to.equal('ThisIsData');
           expect(created).to.be.false;
+        });
+      });
+    });
+
+    it('does not include exception catcher in response', function() {
+      var self = this
+        , data = {
+            username: 'Username',
+            data: 'ThisIsData'
+          };
+
+      return self.User.findOrCreate({
+        where: data,
+        defaults: {}
+      }).spread(function(user, created) {
+        expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
+      }).then(function () {
+        return self.User.findOrCreate({
+          where: data,
+          defaults: {}
+        }).spread(function(user, created) {
+          expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
         });
       });
     });
