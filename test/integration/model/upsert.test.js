@@ -92,6 +92,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('should work with UUIDs wth default values', function () {
+        var User = this.sequelize.define('User', {
+          id: {
+            primaryKey: true,
+            allowNull: false,
+            unique: true,
+            type: Sequelize.UUID,
+            defaultValue: Sequelize.UUIDV4
+          },
+
+          name: {
+            type: Sequelize.STRING,
+          }
+        });
+
+        return User.sync({ force: true }).then(function () {
+          return User.upsert({ name: 'John Doe' });
+        });
+      });
+
       it('works with upsert on a composite primary key', function() {
         var User = this.sequelize.define('user', {
           a: {
