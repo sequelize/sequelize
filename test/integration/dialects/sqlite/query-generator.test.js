@@ -105,6 +105,10 @@ if (dialect === 'sqlite') {
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);'
+        },
+        {
+          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)'}],
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         }
       ],
 
