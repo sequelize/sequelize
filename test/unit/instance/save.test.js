@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       instance = Model.build({}, {isNewRecord: false});
 
       expect(function () {
-        instance.save()
+        instance.save();
       }).to.throw();
     });
   });
