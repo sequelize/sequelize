@@ -91,8 +91,8 @@ sequelize.transaction(function (t1) {
   sequelize.transaction(function (t2) {
     // By default queries here will use t2
     return Promise.all([
-        User.create({ name: 'Bob' }, { transaction: null });
-        User.create({ name: 'Mallory' }, { transaction: t1 });
+        User.create({ name: 'Bob' }, { transaction: null }),
+        User.create({ name: 'Mallory' }, { transaction: t1 })
     ]);
   });
 });
