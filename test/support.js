@@ -74,7 +74,7 @@ var Support = {
     options = options || {};
     options.dialect = this.getTestDialect();
 
-    var config = Config[options.dialect];
+    var config = _.merge(Config, Config[options.dialect]);
 
     var sequelizeOptions = _.defaults(options, {
       host: options.host || config.host,
