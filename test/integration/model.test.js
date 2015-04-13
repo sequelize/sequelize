@@ -944,6 +944,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('does not update virtual attributes', function () {
+      var User = this.sequelize.define('User', {
+        username: Sequelize.STRING,
+        virtual: Sequelize.VIRTUAL
+      });
+
+      return User.create({
+        username: 'jan'
+      }).then(function () {
+        return User.update({
+          username: 'kurt',
+          virtual: 'test'
+        }, {
+          where: {
+            username: 'jan'
+          }
+        });
+      }).then(function () {
+        return User.findAll();
+      }).spread(function (user) {
+        expect(user.username).to.equal('kurt');
+      });
+    });
+
     it('sets updatedAt to the current timestamp', function() {
       var data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
