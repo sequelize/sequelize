@@ -35,11 +35,10 @@ describe('Connction Manager', function() {
     var options = {
       replication: null
     };
-    var sequelize = Support.createSequelizeInstance(options);
-    var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
-
     var poolSpy = sandbox.spy(Pooling, "Pool");
-    connectionManager.initPools();
+
+    var sequelize = Support.createSequelizeInstance(options);
+
     expect(poolSpy.calledOnce).to.be.true;
   });
 
@@ -50,11 +49,10 @@ describe('Connction Manager', function() {
         read: [_.clone(poolEntry), _.clone(poolEntry)]
       }
     };
-    var sequelize = Support.createSequelizeInstance(options);
-    var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
-
     var poolSpy = sandbox.spy(Pooling, "Pool");
-    connectionManager.initPools();
+
+    var sequelize = Support.createSequelizeInstance(options);
+
     expect(poolSpy.calledTwice).to.be.true;
   });
 
@@ -75,16 +73,13 @@ describe('Connction Manager', function() {
       }
     };
     var sequelize = Support.createSequelizeInstance(options);
-    var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    var connectionManager = sequelize.connectionManager;
 
-    var resolvedPromise = new Promise(function(resolve) {
-      resolve({
-        queryType: 'read'
-      });
+    var resolvedPromise = Promise.resolve({
+      queryType: 'read'
     });
 
     var connectStub = sandbox.stub(connectionManager, '$connect').returns(resolvedPromise);
-    connectionManager.initPools();
 
     var queryOptions = {
       priority: 0,
@@ -117,7 +112,7 @@ describe('Connction Manager', function() {
       }
     };
     var sequelize = Support.createSequelizeInstance(options);
-    var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    var connectionManager = sequelize.connectionManager;
 
     var resolvedPromise = new Promise(function(resolve) {
       resolve({
@@ -126,7 +121,6 @@ describe('Connction Manager', function() {
     });
 
     var connectStub = sandbox.stub(connectionManager, '$connect').returns(resolvedPromise);
-    connectionManager.initPools();
 
     var queryOptions = {
       priority: 0,
