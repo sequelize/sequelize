@@ -1,14 +1,16 @@
 'use strict';
 
 module.exports = {
-  username: process.env.SEQ_USER || "root",
-  password: process.env.SEQ_PW   || null,
-  database: process.env.SEQ_DB   || 'sequelize_test',
-  host:     process.env.SEQ_HOST || '127.0.0.1',
-  pool:     {
-    max: process.env.SEQ_POOL_MAX  || 10,
-    min: process.env.SEQ_POOL_MIX || 3,
-    maxIdleTime:    process.env.SEQ_POOL_IDLE || 30000
+  default: {
+    username: process.env.SEQ_USER || "root",
+    password: process.env.SEQ_PW   || null,
+    database: process.env.SEQ_DB   || 'sequelize_test',
+    host:     process.env.SEQ_HOST || '127.0.0.1',
+    pool:     {
+      max: process.env.SEQ_POOL_MAX  || 10,
+      min: process.env.SEQ_POOL_MIX || 3,
+      maxIdleTime:    process.env.SEQ_POOL_IDLE || 30000
+    },
   },
 
   rand: function() {
