@@ -1,11 +1,11 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , Sequelize = require('../../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
-  , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , dialect = Support.getTestDialect()
   , datetime = require('chai-datetime');
 

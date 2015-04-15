@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
@@ -38,7 +39,7 @@ describe('Connction Manager', function() {
     var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    var poolSpy = sandbox.spy(Pooling, "Pool");
+    var poolSpy = sandbox.spy(Pooling, 'Pool');
     connectionManager.initPools();
     expect(poolSpy.calledOnce).to.be.true;
   });
@@ -53,7 +54,7 @@ describe('Connction Manager', function() {
     var sequelize = Support.createSequelizeInstance(options);
     var connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    var poolSpy = sandbox.spy(Pooling, "Pool");
+    var poolSpy = sandbox.spy(Pooling, 'Pool');
     connectionManager.initPools();
     expect(poolSpy.calledTwice).to.be.true;
   });

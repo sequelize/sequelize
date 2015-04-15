@@ -1,24 +1,26 @@
 {
   "bitwise":false,
   "boss":true,
-  "expr":true,
-  "camelcase":false,
   "curly":false,
   "eqeqeq":true,
   "freeze":true,
-  "immed":true,
-  "indent":2,
-  "latedef":"nofunc",
-  "laxbreak":true,
-  "laxcomma":true,
-  "newcap":true,
+  "immed":true, // deprecated
+  "indent":2, // deprecated
+  "latedef":"true",
+  "newcap":true, // deprecated
   "noarg":true,
   "node":true,
   "strict":true,
-  "trailing":true,
   "undef":true,
   "esnext":false,
-  "sub":true,
+  "unused": "vars",
+  "nonbsp": true,
+  "maxdepth": 8,
+  "quotmark": true, // deprecated
+
+  /* relaxing options */
+  "laxbreak":true,
+  "laxcomma":true,
 
   /* questionable */
   "loopfunc":true,

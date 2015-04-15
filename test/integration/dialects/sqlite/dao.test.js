@@ -22,7 +22,7 @@ if (dialect === 'sqlite') {
         var self = this
           , user = this.User.build({ username: 'user' });
 
-        user.dataValues['createdAt'] = new Date(2011, 4, 4);
+        user.dataValues.createdAt = new Date(2011, 4, 4);
 
         return user.save().then(function() {
           return self.User.create({ username: 'new user' }).then(function() {

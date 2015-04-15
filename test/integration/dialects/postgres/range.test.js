@@ -17,7 +17,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should return empty string when either of boundaries is null', function () {
-        expect(range.stringify([null, "test"])).to.equal('');
+        expect(range.stringify([null, 'test'])).to.equal('');
         expect(range.stringify([123, null])).to.equal('');
       });
 

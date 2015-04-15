@@ -2,7 +2,7 @@
 
 The sequelize documentation is written in a combination of markdown (articles and example based documentation) and [JSDoc](http://usejsdoc.org) (API reference generated from source code comments).
 
-All documentation is located in the `docs` folder. 
+All documentation is located in the `docs` folder.
 
 The documentation is rendered using [mkdocs](http://mkdocs.org) and hosted at [Read the docs](http://sequelize.readthedocs.org).  Mkdocs generates static HTML from markdown files. The files in `articles` and `docs` should be edited directly, and the files in `api` are generated from source code comments (more on that later).
 
@@ -19,8 +19,8 @@ To view the docs locally use `mkdocs serve`. This will start a local server at p
 Write markdown, and have fun :)
 
 ## API docs
-The API documentation is generated from source code comments by a custom script, which outputs markdown into the `docs/api` folder. To regenerate the documentation, run: 
+The API documentation is generated from source code comments by a custom script, which outputs markdown into the `docs/api` folder. To regenerate the documentation, run:
 ```bash
 $ npm run docs
 ```
-By default all generation will be regenerated, but you can run the generation for a single file by specifying `--file`. 
+By default all generation will be regenerated, but you can run the generation for a single file by specifying `--file`.

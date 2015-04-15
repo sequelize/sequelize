@@ -34,7 +34,7 @@ pages:
 - ['api/transaction.md', 'API', 'Transaction']
 - ['api/datatypes.md', 'API', 'Datatypes']
 - ['api/errors.md', 'API', 'Errors']
- 
+
 - ['changelog.md', 'Misc', 'Changelog']
 - ['imprint.md', 'Misc', 'Imprint']
 

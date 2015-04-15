@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , sinon = require('sinon')
   , expect = chai.expect
@@ -7,7 +8,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
-  , assert = require('assert')
   , current = Support.sequelize;
 
 chai.config.includeStack = true;
@@ -494,7 +494,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
     if (current.dialect.supports.constraints.restrict) {
       it('can restrict deletes', function() {
-        var self = this;
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -516,7 +515,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
 
       it('can restrict updates', function() {
-        var self = this;
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -621,7 +619,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
 
       return self.sequelize.sync({ force: true }).then(function() {
-        dataTypes.forEach(function(dataType, i) {
+        dataTypes.forEach(function(dataType) {
           expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });
       });
@@ -689,7 +687,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         , Car = this.sequelize.define('car', {});
 
       expect(Car.belongsTo.bind(Car, Person, {foreignKey: 'person'})).to
-        .throw ("Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
     });
 
     it('should throw an error if an association clashes with the name of an already define attribute', function() {
@@ -699,7 +697,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
           });
 
         expect(Car.belongsTo.bind(Car, Person, {as: 'person'})).to
-        .throw ("Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
     });
   });
 });

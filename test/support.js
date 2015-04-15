@@ -190,7 +190,7 @@ var Support = {
     var expectation = expectations[Support.sequelize.dialect.name];
 
     if (!expectation && Support.sequelize.dialect.name === 'mariadb') {
-      expectation = expectations['mysql'];
+      expectation = expectations.mysql;
     }
 
     if (!expectation) {

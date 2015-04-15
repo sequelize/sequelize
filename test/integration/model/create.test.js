@@ -1,5 +1,7 @@
 'use strict';
 
+/* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
@@ -196,7 +198,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         return User.sync({force: true}).then(function () {
-          return Promise.map(_.range(50), function (i) {
+          return Promise.map(_.range(50), function () {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.1@sequelizejs.com',
@@ -351,7 +353,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               .catch (Promise.TimeoutError, function(e) {
                   throw new Error(e);
               })
-              .catch (Sequelize.ValidationError, function(err) {
+              .catch (Sequelize.ValidationError, function() {
                   return test(times + 1);
               });
           };
@@ -564,7 +566,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('works with custom timestamps with a default value', function() {
       var User = this.sequelize.define('User', {
-        username: DataTypes.STRING, 
+        username: DataTypes.STRING,
         date_of_birth: DataTypes.DATE,
         email: DataTypes.STRING,
         password: DataTypes.STRING,
@@ -578,7 +580,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           allowNull: true,
           defaultValue: DataTypes.NOW
         }
-      }, {    
+      }, {
         createdAt: 'created_time',
         updatedAt: 'updated_time',
         tableName: 'users',
@@ -599,7 +601,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('works with custom timestamps and underscored', function() {
       var User = this.sequelize.define('User', {
 
-      }, {    
+      }, {
         createdAt: 'createdAt',
         updatedAt: 'updatedAt',
         underscored: true
@@ -1247,14 +1249,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('through sequelize', function() {
-          var self = this
-            , Enum = this.sequelize.define('Enum', {
-                state: {
-                  type: Sequelize.ENUM,
-                  values: ['happy', 'sad'],
-                  allowNull: true
-                }
-              });
+          var self = this;
+          /* jshint ignore:start */
+          var Enum = this.sequelize.define('Enum', {
+            state: {
+              type: Sequelize.ENUM,
+              values: ['happy', 'sad'],
+              allowNull: true
+            }
+          });
+          /* jshint ignore:end */
 
           return this.sequelize.sync({ force: true }).then(function() {
             return self.sequelize.sync().then(function() {

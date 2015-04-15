@@ -1,5 +1,7 @@
 'use strict';
 
+/* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , expect = chai.expect
   , Sequelize = require(__dirname + '/../../index')
@@ -435,7 +437,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           });
         });
 
-        describe("primaryKey with the name as id with arguments for it's validation", function() {
+        describe('primaryKey with the name as id with arguments for it\'s validatio', function() {
           beforeEach(function() {
             this.User = this.sequelize.define('UserId', {
               id: {
