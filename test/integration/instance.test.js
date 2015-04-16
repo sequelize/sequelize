@@ -10,12 +10,10 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../config/config')
   , sinon = require('sinon')
-  , datetime = require('chai-datetime')
   , uuid = require('node-uuid')
   , current = Support.sequelize;
 
 chai.should();
-chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {

@@ -6,10 +6,8 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , datetime = require('chai-datetime');
+  , DataTypes = require(__dirname + '/../../../lib/data-types');
 
-chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Model'), function() {

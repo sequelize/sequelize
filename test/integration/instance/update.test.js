@@ -8,11 +8,9 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , datetime = require('chai-datetime')
   , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
 
-chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {

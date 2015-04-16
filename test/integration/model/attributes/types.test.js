@@ -6,10 +6,8 @@ var chai = require('chai')
   , Promise = Sequelize.Promise
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , datetime = require('chai-datetime');
+  , dialect = Support.getTestDialect();
 
-chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Model'), function() {

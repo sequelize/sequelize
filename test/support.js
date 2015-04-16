@@ -9,6 +9,7 @@ var fs = require('fs')
   , chai = require('chai')
   , expect = chai.expect;
 
+chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 
 // Make sure errors get thrown when testing

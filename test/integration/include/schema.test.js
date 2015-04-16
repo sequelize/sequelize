@@ -6,11 +6,9 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , datetime = require('chai-datetime')
   , Promise = Sequelize.Promise
   , dialect = Support.getTestDialect();
 
-chai.use(datetime);
 chai.config.includeStack = true;
 
 var sortById = function(a, b) {
