@@ -10,7 +10,7 @@ var chai = require('chai')
 
 chai.config.includeStack = true;
 
-describe(Support.getTestDialectTeaser('Promise'), function() {
+describe.skip(Support.getTestDialectTeaser('Promise'), function() {
   beforeEach(function() {
     return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
       this.sequelize = sequelize;

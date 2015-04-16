@@ -39,8 +39,10 @@ if (dialect.match(/^postgres/)) {
     });
 
     it('should be able to search within an array', function() {
-      return this.User.findAll({where: {email: ['hello', 'world']}, attributes: ['id','username','email','settings','document','phones','emergency_contact','friends']}).on('sql', function(sql) {
-        expect(sql).to.equal('SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
+      return this.User.findAll({where: {email: ['hello', 'world']}, attributes: ['id','username','email','settings','document','phones','emergency_contact','friends']}, {
+        logging: function (sql) {
+          expect(sql).to.equal('Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
+        }
       });
     });
 
@@ -95,10 +97,11 @@ if (dialect.match(/^postgres/)) {
           username: 'bob',
           emergency_contact: { name: 'joe', phones: [1337, 42] }
         }, {
-          fields: ['id', 'username', 'document', 'emergency_contact']
-        }).on('sql', function(sql) {
-          var expected = '\'{"name":"joe","phones":[1337,42]}\'';
-          expect(sql.indexOf(expected)).not.to.equal(-1);
+          fields: ['id', 'username', 'document', 'emergency_contact'],
+          logging: function(sql) {
+            var expected = '\'{"name":"joe","phones":[1337,42]}\'';
+            expect(sql.indexOf(expected)).not.to.equal(-1);
+          }
         });
       });
 
@@ -294,9 +297,11 @@ if (dialect.match(/^postgres/)) {
           username: 'bob',
           email: ['myemail@email.com'],
           settings: {mailing: false, push: 'facebook', frequency: 3}
-        }).on('sql', function(sql) {
-          var expected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
-          expect(sql.indexOf(expected)).not.to.equal(-1);
+        }, {
+          logging: function (sql) {
+            var expected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
+            expect(sql.indexOf(expected)).not.to.equal(-1);
+          }
         });
       });
 
@@ -375,25 +380,26 @@ if (dialect.match(/^postgres/)) {
             mood: DataTypes.ENUM('neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful')
           });
 
-          return User.sync().then(function() {
+          return User.sync({
+            logging: function (sql) {
+              console.log(sql);
+              if (sql.indexOf('neutral') > -1) {
+                expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'");
+                count++;
+              }
+              else if (sql.indexOf('ecstatic') > -1) {
+                expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'");
+                count++;
+              }
+              else if (sql.indexOf('joyful') > -1) {
+                expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'");
+                count++;
+              }
+            }
+          }).then(function() {
             expect(User.rawAttributes.mood.values).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
-            count++;
-          }).on('sql', function(sql) {
-            if (sql.indexOf('neutral') > -1) {
-              expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'");
-              count++;
-            }
-            else if (sql.indexOf('ecstatic') > -1) {
-              expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'");
-              count++;
-            }
-            else if (sql.indexOf('joyful') > -1) {
-              expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'");
-              count++;
-            }
+            expect(count).to.equal(3);
           });
-        }).then(function() {
-          expect(count).to.equal(4);
         });
       });
     });
@@ -475,8 +481,10 @@ if (dialect.match(/^postgres/)) {
       it('should use postgres "TIMESTAMP WITH TIME ZONE" instead of "DATETIME"', function() {
         return this.User.create({
           dates: []
-        }).on('sql', function(sql) {
-          expect(sql.indexOf('TIMESTAMP WITH TIME ZONE')).to.be.greaterThan(0);
+        }, {
+          logging: function(sql) {
+            expect(sql.indexOf('TIMESTAMP WITH TIME ZONE')).to.be.greaterThan(0);
+          }
         });
       });
     });

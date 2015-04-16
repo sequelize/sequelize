@@ -870,9 +870,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.Task.create({ id: 12, title: 'task1' }),
         this.Task.create({ id: 15, title: 'task2' })
       ]).spread(function(user, task1, task2) {
-        return user.setTasks([task1, task2]).on('sql', spy);
+        return user.setTasks([task1, task2], {
+          logging: spy
+        });
       }).then(function() {
-        expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
+        expect(spy.calledOnce).to.be.ok;
       });
     });
 
@@ -886,9 +888,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       ]).spread(function(user, task1, task2) {
         return user.setTasks([task1, task2]).return (user);
       }).then(function(user) {
-        return user.setTasks(null).on('sql', spy);
+        return user.setTasks(null, {
+          logging: spy
+        });
       }).then(function() {
-        expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for DELETE
+        expect(spy.calledOnce).to.be.ok;
       });
     });
   }); // end optimization using bulk create, destroy and update
@@ -1099,6 +1103,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
     it('should correctly get associations when doubly linked', function() {
       var self = this;
+      var spy = sinon.spy();
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.all([
           self.User.create({name: 'Matt'}),
@@ -1114,10 +1119,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         var project = projects[0];
 
         expect(project).to.be.ok;
-        return self.user.removeProject(project).on('sql', function(sql) {
-          // TODO: rewrite this to use logging and check the generated sql
+        return self.user.removeProject(project, {
+          logging: spy
         }).return (project);
       }).then(function(project) {
+        expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for REMOVE
         return self.user.setProjects([project]);
       });
     });

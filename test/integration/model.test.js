@@ -842,16 +842,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           paranoid: true
         });
 
+      var test = false;
       return User.sync({ force: true }).then(function() {
         return User.create({username: 'Peter', secretValue: '42'}).then(function(user) {
-          return user.updateAttributes({ secretValue: '43' }, ['secretValue']).on('sql', function(sql) {
-            if (dialect === 'mssql') {
-              expect(sql).to.not.contain('createdAt');
-            } else {
-              expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+\s=\s1/);
+          return user.updateAttributes({ secretValue: '43' }, {
+            fields: ['secretValue'], logging: function (sql) {
+              test = true;
+              if (dialect === 'mssql') {
+                expect(sql).to.not.contain('createdAt');
+              } else {
+                expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+\s=\s1/);
+              }
             }
           });
         });
+      }).then(function() {
+        expect(test).to.be.true;
       });
     });
 
@@ -862,16 +868,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }, {
           paranoid: true
         });
-
+      var test = false;
       return User.sync({ force: true }).then(function() {
         return User.create({ name: 'meg', bio: 'none' }).then(function(u) {
           expect(u).to.exist;
-          expect(u).not.to.be.null;
-          return u.updateAttributes({name: 'brian'}).on('sql', function(sql) {
-            expect(sql).to.exist;
-            expect(sql.toUpperCase().indexOf('UPDATE')).to.be.above(-1);
+          return u.updateAttributes({name: 'brian'}, {
+            logging: function (sql) {
+              test = true;
+              expect(sql).to.exist;
+              expect(sql.toUpperCase().indexOf('UPDATE')).to.be.above(-1);
+            }
           });
         });
+      }).then(function() {
+        expect(test).to.be.true;
       });
     });
 
@@ -1572,9 +1582,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('allows sql logging', function() {
-      return this.User.count().on('sql', function(sql) {
-        expect(sql).to.exist;
-        expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+      var test = false;
+      return this.User.count({
+        logging: function (sql) {
+          test = true;
+          expect(sql).not.to.exist;
+          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+        }
+      }).then(function() {
+        expect(test).to.be.true;
       });
     });
 
@@ -1659,9 +1675,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('allows sql logging', function() {
-      return this.UserWithAge.min('age').on('sql', function(sql) {
-        expect(sql).to.exist;
-        expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+      var test = false;
+      return this.UserWithAge.min('age', {
+        logging: function (sql) {
+          test = true;
+          expect(sql).not.to.exist;
+          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+        }
+      }).then(function() {
+        expect(test).to.be.true;
       });
     });
 
@@ -1783,9 +1805,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('allows sql logging', function() {
-      return this.UserWithAge.max('age').on('sql', function(sql) {
-        expect(sql).to.exist;
-        expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+      var logged = false;
+      return this.UserWithAge.max('age', {
+        logging: function (sql) {
+          expect(sql).to.exist;
+          logged = true;
+          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+        }
+      }).then(function() {
+        expect(logged).to.true;
       });
     });
   });
@@ -1847,9 +1875,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('allows sql logging', function() {
-      return this.UserWithAge.sum('age').on('sql', function(sql) {
-        expect(sql).to.exist;
-        expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+      var logged = false;
+      return this.UserWithAge.sum('age', {
+        logging: function (sql) {
+          expect(sql).to.exist;
+          logged = true;
+          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+        }
+      }).then(function() {
+        expect(logged).to.true;
       });
     });
   });
@@ -1897,19 +1931,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     if (Support.dialectIsMySQL() || dialect === 'sqlite') {
       it('should take schemaDelimiter into account if applicable', function() {
+        var test = 0;
         var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'});
         var UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {age: Sequelize.INTEGER});
         return UserSpecialUnderscore.sync({force: true}).then(function(User) {
           return UserSpecialDblUnderscore.schema('hello', '__').sync({force: true}).then(function(DblUser) {
-            return DblUser.create({age: 3}).on('sql', function(dblSql) {
-              expect(dblSql).to.exist;
-              expect(dblSql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).to.be.above(-1);
-            }).then(function() {
-              return User.create({age: 3}).on('sql', function(sql) {
+            return DblUser.create({age: 3}, {
+              logging: function (sql) {
                 expect(sql).to.exist;
-                expect(sql.indexOf('INSERT INTO `hello_UserSpecialUnderscores`')).to.be.above(-1);
+                test++;
+                expect(sql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).to.be.above(-1);
+              }
+            }).then(function() {
+              return User.create({age: 3}, {
+                logging: function (sql) {
+                  expect(sql).to.exist;
+                  test++;
+                  expect(sql.indexOf('INSERT INTO `hello_UserSpecialUnderscores`')).to.be.above(-1);
+                }
               });
             });
+          }).then(function() {
+            expect(test).to.equal(2);
           });
         });
       });
@@ -1924,27 +1967,27 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return UserPublic.sync({ force: true }).then(function() {
         return UserPublic.schema('special').sync({ force: true }).then(function() {
-          return self.sequelize.queryInterface.describeTable('Publics')
-          .on('sql', function(sql) {
-            if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
-              expect(sql).to.not.contain('special');
-              count++;
+          return self.sequelize.queryInterface.describeTable('Publics', {
+            logging: function(sql) {
+              if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
+                expect(sql).to.not.contain('special');
+                count++;
+              }
             }
-          })
-          .then(function(table) {
+          }).then(function(table) {
             if (dialect === 'postgres') {
               expect(table.id.defaultValue).to.not.contain('special');
               count++;
             }
-
-            return self.sequelize.queryInterface.describeTable('Publics', 'special')
-            .on('sql', function(sql) {
-              if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
-                expect(sql).to.contain('special');
-                count++;
+            return self.sequelize.queryInterface.describeTable('Publics', {
+              schema: 'special',
+              logging: function(sql) {
+                if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
+                  expect(sql).to.contain('special');
+                  count++;
+                }
               }
-            })
-            .then(function(table) {
+            }).then(function(table) {
               if (dialect === 'postgres') {
                 expect(table.id.defaultValue).to.contain('special');
                 count++;
@@ -2000,50 +2043,55 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('should be able to create and update records under any valid schematic', function() {
       var self = this;
+      var logged = 0;
       return self.UserPublic.sync({ force: true }).then(function(UserPublicSync) {
-        return UserPublicSync.create({age: 3}).on('sql', function(UserPublic) {
-          expect(UserPublic).to.exist;
-          if (dialect === 'postgres') {
-            expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
-            expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
-          } else if (dialect === 'sqlite') {
-            expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-            expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
-          } else if (dialect === 'mssql') {
-            expect(self.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
-            expect(UserPublic.indexOf('INSERT INTO [UserPublics]')).to.be.above(-1);
-          } else {
-            expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-            expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
-          }
-        })
-        .then(function() {
-          return self.UserSpecialSync.schema('special').create({age: 3})
-          .on('sql', function(UserSpecial) {
-            expect(UserSpecial).to.exist;
+        return UserPublicSync.create({age: 3}, {
+          logging: function(UserPublic) {
+            logged++;
             if (dialect === 'postgres') {
-              expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1);
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
+              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
             } else if (dialect === 'sqlite') {
-              expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
             } else if (dialect === 'mssql') {
-              expect(UserSpecial.indexOf('INSERT INTO [special].[UserSpecials]')).to.be.above(-1);
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
+              expect(UserPublic.indexOf('INSERT INTO [UserPublics]')).to.be.above(-1);
             } else {
-              expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
             }
-          })
-          .then(function(UserSpecial) {
-            return UserSpecial.updateAttributes({age: 5})
-            .on('sql', function(user) {
-              expect(user).to.exist;
+          }
+        }).then(function(UserPublic) {
+          return self.UserSpecialSync.schema('special').create({age: 3}, {
+            logging: function(UserSpecial) {
+              logged++;
               if (dialect === 'postgres') {
-                expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1);
+                expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1);
+              } else if (dialect === 'sqlite') {
+                expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
               } else if (dialect === 'mssql') {
-                expect(user.indexOf('UPDATE [special].[UserSpecials]')).to.be.above(-1);
+                expect(UserSpecial.indexOf('INSERT INTO [special].[UserSpecials]')).to.be.above(-1);
               } else {
-                expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1);
+                expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
+              }
+            }
+          }).then(function(UserSpecial) {
+            return UserSpecial.updateAttributes({age: 5}, {
+              logging: function(user) {
+                logged++;
+                if (dialect === 'postgres') {
+                  expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1);
+                } else if (dialect === 'mssql') {
+                  expect(user.indexOf('UPDATE [special].[UserSpecials]')).to.be.above(-1);
+                } else {
+                  expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1);
+                }
               }
             });
           });
+        }).then(function() {
+          expect(logged).to.equal(3);
         });
       });
     });

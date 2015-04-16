@@ -675,11 +675,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return this.User.create({
         intVal: this.sequelize.cast('1', type)
-      }).on('sql', function(sql) {
-        expect(sql).to.match(new RegExp("CAST\\('1' AS " + type.toUpperCase() + '\\)'));
-        match = true;
-      })
-      .then(function(user) {
+      }, {
+        logging: function(sql) {
+          expect(sql).to.match(new RegExp("CAST\\('1' AS " + type.toUpperCase() + '\\)'));
+          match = true;
+        }
+      }).then(function(user) {
         return self.User.find(user.id).then(function(user) {
           expect(user.intVal).to.equal(1);
           expect(match).to.equal(true);
@@ -698,14 +699,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return this.User.create({
         intVal: type
-      }).on('sql', function(sql) {
-        if (Support.dialectIsMySQL()) {
-          expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
-        } else {
-          expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');
+      }, {
+        logging: function(sql) {
+          if (Support.dialectIsMySQL()) {
+            expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
+          } else {
+            expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');
+          }
+          match = true;
         }
-
-        match = true;
       }).then(function(user) {
         return self.User.find(user.id).then(function(user) {
           expect(user.intVal).to.equal(-1);
@@ -811,11 +813,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
       });
 
+      var test = false;
       return User.sync({force: true}).then(function() {
-        return User.create({myvals: [], mystr: []}).on('sql', function(sql) {
-          expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-          expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+        return User.create({myvals: [], mystr: []}, {
+          logging: function(sql) {
+            test = true;
+            expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
+            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+          }
         });
+      }).then(function() {
+        expect(test).to.be.true;
       });
     });
 
@@ -829,16 +837,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
         mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
       });
+      var test = false;
 
       return User.sync({force: true}).then(function() {
         return User.create({myvals: [1, 2, 3, 4], mystr: ['One', 'Two', 'Three', 'Four']}).then(function(user) {
          user.myvals = [];
           user.mystr = [];
-          return user.save().on('sql', function(sql) {
-            expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+          return user.save(undefined, {
+            logging: function(sql) {
+              test = true;
+              expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
+              expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+            }
           });
         });
+      }).then(function() {
+        expect(test).to.be.true;
       });
     });
 
@@ -986,13 +1000,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         smth: {type: Sequelize.STRING, allowNull: false}
       });
 
+      var test = false;
       return User.sync({ force: true }).then(function() {
         return User
-          .create({ name: 'Fluffy Bunny', smth: 'else' })
-          .on('sql', function(sql) {
-            expect(sql).to.exist;
-            expect(sql.toUpperCase().indexOf('INSERT')).to.be.above(-1);
+          .create({ name: 'Fluffy Bunny', smth: 'else' }, {
+            logging: function(sql) {
+              expect(sql).to.exist;
+              test = true;
+              expect(sql.toUpperCase().indexOf('INSERT')).to.be.above(-1);
+            }
           });
+      }).then(function() {
+        expect(test).to.be.true;
       });
     });
 
