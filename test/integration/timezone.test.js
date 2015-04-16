@@ -5,8 +5,7 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , dialect = Support.getTestDialect()
   , Sequelize = require(__dirname + '/../../index')
-  , Promise = Sequelize.Promise
-  , sinon = require('sinon');
+  , Promise = Sequelize.Promise;
 
 if (dialect !== 'sqlite') {
   // Sqlite does not support setting timezone

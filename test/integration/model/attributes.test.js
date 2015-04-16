@@ -5,8 +5,6 @@ var chai = require('chai')
   , Promise = Sequelize.Promise
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , dialect = Support.getTestDialect()
   , datetime = require('chai-datetime');
 
 chai.use(datetime);

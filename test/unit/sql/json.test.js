@@ -2,7 +2,6 @@
 
 var Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , util      = require('util')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
   , sql       = current.dialect.QueryGenerator
@@ -22,13 +21,13 @@ if (current.dialect.supports.JSON) {
 
         test('plain int', function () {
           expectsql(sql.escape(123, { type: new DataTypes.JSON() }), {
-            default: "'123'"
+            default: '\'123\''
           });
         });
 
         test('nested object', function () {
           expectsql(sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
-            default: "'{\"some\":\"nested\",\"more\":{\"nested\":true},\"answer\":42}'"
+            default: '\'{"some":"nested","more":{"nested":true},"answer":42}\''
           });
         });
 

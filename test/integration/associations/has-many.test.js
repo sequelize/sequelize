@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
@@ -668,7 +669,6 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
     describe('optimizations using bulk create, destroy and update', function() {
       beforeEach(function() {
-        var self = this;
         this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false});
         this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, {timestamps: false});
 
@@ -1273,7 +1273,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
             return task.addUser(user, { status: 'pending' }); // Create without transaction, so the old value is accesible from outside the transaction
           }).then(function() {
             return this.task.addUser(this.user, { transaction: this.t, status: 'completed' }); // Add an already exisiting user in a transaction, updating a value in the join table
-          }).then(function(hasUser) {
+          }).then(function() {
             return Promise.all([
               this.user.getTasks(),
               this.user.getTasks({ transaction: this.t })
@@ -1414,8 +1414,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       it('uses one insert into statement', function() {
-        var self = this
-          , spy = sinon.spy();
+        var spy = sinon.spy();
 
         return Promise.all([
           this.User.create({ username: 'foo' }),
@@ -1429,8 +1428,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       it('uses one delete from statement', function() {
-        var self = this
-          , spy = sinon.spy();
+        var spy = sinon.spy();
 
         return Promise.all([
           this.User.create({ username: 'foo' }),
@@ -1594,9 +1592,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       it('should correctly get associations even after a child instance is deleted', function() {
-        var self = this
-          , user
-          , projects;
+        var self = this;
 
         return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
@@ -1919,7 +1915,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
             }).then(function(worker) {
               this.worker = worker;
               return Task.create({id: 7331});
-            }).then(function(task) {
+            }).then(function() {
               return this.worker.addTask(this.task);
             }).then(function() {
               return this.worker.addTask(this.task);
@@ -2233,8 +2229,6 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         });
 
         it('correctly sets user and owner', function() {
-          var self = this;
-
           var p1 = this.Project.build({ projectName: 'p1' })
             , u1 = this.User.build({ name: 'u1' })
             , u2 = this.User.build({ name: 'u2' });
@@ -2690,7 +2684,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           });
 
       expect(User.hasMany.bind(User, User, { as: 'user' })).to
-        .throw ("Naming collision between attribute 'user' and association 'user' on model user. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change either foreignKey or as in your association definition');
     });
   });
 });

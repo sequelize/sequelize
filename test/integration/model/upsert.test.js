@@ -1,7 +1,7 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
-  , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -9,8 +9,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , dialect = Support.getTestDialect()
   , datetime = require('chai-datetime')
-  , _ = require('lodash')
-  , assert = require('assert')
   , current = Support.sequelize;
 
 chai.use(datetime);

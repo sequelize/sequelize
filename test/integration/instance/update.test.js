@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
@@ -175,7 +176,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'B');
         });
 
@@ -206,7 +207,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'C');
         });
 
@@ -243,7 +244,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           }
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'B');
         });
 
@@ -276,7 +277,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           }
         });
 
-        User.beforeUpdate(function(instance, options) {
+        User.beforeUpdate(function(instance) {
           instance.set('email', 'B');
         });
 
@@ -343,7 +344,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it("doesn't update primary keys or timestamps", function() {
+    it('doesn\'t update primary keys or timestamps', function() {
       var User = this.sequelize.define('User' + config.rand(), {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,

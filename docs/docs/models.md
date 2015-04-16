@@ -294,7 +294,7 @@ See [the node-validator project][4]for more details on the built in validation m
 
 **Hint&colon; **You can also define a custom function for the logging part&period; Just pass a function&period; The first parameter will be the string that is logged&period;
 
-### Validators and`allowNull`
+### Validators and `allowNull`
 
 If a particular field of a model is set to allow null &lpar;with `allowNull: true`&rpar; and that value has been set to `null` &comma; its validators do not run&period; This means you can&comma; for instance&comma; have a string field which validates its length to be at least 5 characters&comma; but which also allows`null`&period;
 

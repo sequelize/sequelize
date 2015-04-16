@@ -1,12 +1,12 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
   , _ = require('lodash')
-  , moment = require('moment')
   , sinon = require('sinon')
   , Promise = Sequelize.Promise
   , current = Support.sequelize
@@ -722,7 +722,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           return task.addUser(user, { status: 'pending' }); // Create without transaction, so the old value is accesible from outside the transaction
         }).then(function() {
           return this.task.addUser(this.user, { transaction: this.t, status: 'completed' }); // Add an already exisiting user in a transaction, updating a value in the join table
-        }).then(function(hasUser) {
+        }).then(function() {
           return Promise.all([
             this.user.getTasks(),
             this.user.getTasks({ transaction: this.t })
@@ -863,8 +863,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('uses one insert into statement', function() {
-      var self = this
-        , spy = sinon.spy();
+      var spy = sinon.spy();
 
       return Promise.all([
         this.User.create({ username: 'foo' }),
@@ -878,8 +877,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('uses one delete from statement', function() {
-      var self = this
-        , spy = sinon.spy();
+      var spy = sinon.spy();
 
       return Promise.all([
         this.User.create({ username: 'foo' }),
@@ -1067,9 +1065,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('should correctly get associations even after a child instance is deleted', function() {
-      var self = this
-        , user
-        , projects;
+      var self = this;
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.join(
@@ -1119,6 +1115,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
         expect(project).to.be.ok;
         return self.user.removeProject(project).on('sql', function(sql) {
+          // TODO: rewrite this to use logging and check the generated sql
         }).return (project);
       }).then(function(project) {
         return self.user.setProjects([project]);
@@ -1381,7 +1378,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           }).then(function(worker) {
             this.worker = worker;
             return Task.create({id: 7331});
-          }).then(function(task) {
+          }).then(function() {
             return this.worker.addTask(this.task);
           }).then(function() {
             return this.worker.addTask(this.task);
@@ -1690,8 +1687,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
 
       it('correctly sets user and owner', function() {
-        var self = this;
-
         var p1 = this.Project.build({ projectName: 'p1' })
           , u1 = this.User.build({ name: 'u1' })
           , u2 = this.User.build({ name: 'u2' });
@@ -1890,7 +1885,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           });
 
       expect(User.belongsToMany.bind(User, User, { as: 'user' })).to
-        .throw ("Naming collision between attribute 'user' and association 'user' on model user. To remedy this, change either foreignKey or as in your association definition");
+        .throw ('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change either foreignKey or as in your association definition');
     });
   });
 

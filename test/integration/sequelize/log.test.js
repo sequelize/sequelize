@@ -1,12 +1,10 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , sinonChai = require('sinon-chai')
   , sinon = require('sinon')
-  , fs = require('fs')
-  , path = require('path')
   , expect = chai.expect
-  , assert = chai.assert
   , Support = require(__dirname + '/../support');
 
 chai.use(sinonChai);

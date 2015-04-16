@@ -4,10 +4,6 @@ var chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
-  , util      = require('util')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator
   , Utils     = require(__dirname + '/../../lib/utils');
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation

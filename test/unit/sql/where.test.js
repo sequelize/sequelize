@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W110 */
 var Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , util      = require('util')
@@ -73,17 +74,17 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         options = undefined;
       }
 
-      test(key+": "+util.inspect(value, {depth: 10})+(options && ', '+util.inspect(options) || ''), function () {
+      test(key+': '+util.inspect(value, {depth: 10})+(options && ', '+util.inspect(options) || ''), function () {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
 
     testsql(undefined, 'lol=1', {
-      default: "lol=1"
+      default: 'lol=1'
     });
 
     testsql('deleted', null, {
-      default: "`deleted` IS NULL",
+      default: '`deleted` IS NULL',
       postgres: '"deleted" IS NULL',
       mssql: '[deleted] IS NULL'
     });
@@ -121,7 +122,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
         sqlite: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",
-        mssql: "[field] = 0x53657175656c697a65"
+        mssql: '[field] = 0x53657175656c697a65'
       });
     });
 
@@ -129,15 +130,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('deleted', {
         $not: true
       }, {
-        default: "[deleted] IS NOT true",
+        default: '[deleted] IS NOT true',
         mssql: "[deleted] IS NOT 'true'",
-        sqlite: "`deleted` IS NOT 1"
+        sqlite: '`deleted` IS NOT 1'
       });
 
       testsql('deleted', {
         $not: null
       }, {
-        default: "[deleted] IS NOT NULL"
+        default: '[deleted] IS NOT NULL'
       });
 
       testsql('muscles', {
@@ -219,9 +220,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))"
         });
 
-        test("sequelize.or({group_id: 1}, {user_id: 2})", function () {
+        test('sequelize.or({group_id: 1}, {user_id: 2})', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
-            default: "([group_id] = 1 OR [user_id] = 2)"
+            default: '([group_id] = 1 OR [user_id] = 2)'
           });
         });
 
@@ -267,9 +268,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')"
         });
 
-        test("sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))", function () {
+        test('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
-            default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
+            default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
       });
@@ -282,7 +283,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             user_id: 2
           }
         }, {
-          default: "NOT ([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
+          default: 'NOT ([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
         });
       });
     });
@@ -291,7 +292,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('rank', {
         $gt: 2
       }, {
-        default: "[rank] > 2"
+        default: '[rank] > 2'
       });
     });
 
@@ -326,7 +327,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    if (current.dialect.supports['ARRAY']) {
+    if (current.dialect.supports.ARRAY) {
       suite('ARRAY', function () {
         suite('$contains', function () {
           testsql('muscles', {
@@ -366,7 +367,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           });
 
           testsql('muscles', {
-            "&&": [9, 182]
+            '&&': [9, 182]
           }, {
             postgres: '"muscles" && ARRAY[9,182]'
           });

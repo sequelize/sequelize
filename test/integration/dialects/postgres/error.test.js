@@ -1,13 +1,11 @@
 'use strict';
 
 var chai      = require('chai')
-  , sinon     = require('sinon')
   , expect    = chai.expect
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , Support   = require(__dirname + '/../../support')
   , Sequelize = Support.Sequelize
   , dialect   = Support.getTestDialect()
-  , Promise   = Sequelize.Promise
   , _ = require('lodash');
 
 chai.config.includeStack = true;

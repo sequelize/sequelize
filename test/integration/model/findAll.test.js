@@ -1,5 +1,7 @@
 'use strict';
 
+/* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
@@ -1314,7 +1316,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         // Add some data
         return Citizen.create({ name: 'Alice' }).then(function(alice) {
           return Citizen.create({ name: 'Bob' }).then(function(bob) {
-            return Election.create({ name: 'Some election' }).then(function(election) {
+            return Election.create({ name: 'Some election' }).then(function() {
               return Election.create({ name: 'Some other election' }).then(function(election) {
                 return election.setCitizen(alice).then(function() {
                   return election.setVoters([alice, bob]).then(function() {

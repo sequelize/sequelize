@@ -1,5 +1,7 @@
 'use strict';
 
+/* jshint -W030 */
+/* jshint -W110 */
 var chai = require('chai')
   , spies = require('chai-spies')
   , expect = chai.expect
@@ -52,11 +54,11 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
   });
 
   describe('argsArePrimaryKeys', function() {
-    it("doesn't detect primary keys if primareyKeys and values have different lengths", function() {
+    it('doesn\'t detect primary keys if primareyKeys and values have different lengths', function() {
       expect(Utils.argsArePrimaryKeys([1, 2, 3], [1])).to.be.false;
     });
 
-    it("doesn't detect primary keys if primary keys are hashes or arrays", function() {
+    it('doesn\'t detect primary keys if primary keys are hashes or arrays', function() {
       expect(Utils.argsArePrimaryKeys([[]], [1])).to.be.false;
     });
 
@@ -79,7 +81,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
         expect(Utils._.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
 
-      it("doesn't underscore if second param is false", function() {
+      it('doesn\'t underscore if second param is false', function() {
         expect(Utils._.underscoredIf('fooBar', false)).to.equal('fooBar');
       });
     });
@@ -93,7 +95,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
         expect(Utils._.camelizeIf('foo_bar', true)).to.equal('fooBar');
       });
 
-      it("doesn't camelize if second param is false", function() {
+      it('doesn\'t camelize if second param is false', function() {
         expect(Utils._.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
     });

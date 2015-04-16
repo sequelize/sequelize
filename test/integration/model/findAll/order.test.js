@@ -1,15 +1,11 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
-  , Sequelize = require('../../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , config = require(__dirname + '/../../../config/config')
   , datetime = require('chai-datetime')
-  , _ = require('lodash')
-  , moment = require('moment')
   , current = Support.sequelize;
 
 chai.use(datetime);
@@ -34,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         if (current.dialect.name !== 'mssql') {
           it('should work with order: literal()', function () {
             return this.User.findAll({
-              order: this.sequelize.literal("email = "+this.sequelize.escape('test@sequelizejs.com')) 
+              order: this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))
             }).then(function (users) {
               expect(users.length).to.equal(1);
               users.forEach(function (user) {
@@ -45,7 +41,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           it('should work with order: [literal()]', function () {
             return this.User.findAll({
-              order: [this.sequelize.literal("email = "+this.sequelize.escape('test@sequelizejs.com'))]
+              order: [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
             }).then(function (users) {
               expect(users.length).to.equal(1);
               users.forEach(function (user) {
@@ -57,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           it('should work with order: [[literal()]]', function () {
             return this.User.findAll({
               order: [
-                [this.sequelize.literal("email = "+this.sequelize.escape('test@sequelizejs.com'))]
+                [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
               ]
             }).then(function (users) {
               expect(users.length).to.equal(1);

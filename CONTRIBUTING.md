@@ -53,7 +53,7 @@ For MySQL this would look like this:
 $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 ```
 
-**CLEVER NOTE:** by default, your local MySQL install must be with username `root` without password. If you want to customize that, you can set the environment variables `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT`. 
+**CLEVER NOTE:** by default, your local MySQL install must be with username `root` without password. If you want to customize that, you can set the environment variables `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT`.
 
 For Postgres, creating the database and (optionally) adding the test user this would look like:
 

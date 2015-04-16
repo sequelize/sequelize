@@ -1,4 +1,5 @@
 # 2.0.6
+- [BUG] Don't update virtual attributes in Model.update. Fixes [#2860](https://github.com/sequelize/sequelize/issues/2860)
 - [BUG] Fix for newlines in hstore [#3383](https://github.com/sequelize/sequelize/issues/3383)
 - [BUG] Fix unique key handling in Model.update [#3474](https://github.com/sequelize/sequelize/issues/3474)
 - [BUG] Fix issue with Model.create() using fields not specifying and non-incremental primary key [#3458](https://github.com/sequelize/sequelize/issues/3458)
@@ -180,7 +181,7 @@ We are working our way to the first 2.0.0 release candidate.
 #### Backwards compatibility changes
 - We are using a new inflection library, which should make pluralization and singularization in general more robust. However, a couple of pluralizations have changed as a result:
     + Person is now pluralized as people instead of persons
-- Accesors for models with underscored names are no longer camel cased automatically. For example, if you have a model with name `my_model`, and `my_other_model.hasMany(my_model)`, the getter will now be `instance_of_my_model.getMy_model` instead of `.getMyModel`. 
+- Accesors for models with underscored names are no longer camel cased automatically. For example, if you have a model with name `my_model`, and `my_other_model.hasMany(my_model)`, the getter will now be `instance_of_my_model.getMy_model` instead of `.getMyModel`.
 - Removed support for setting sequelize.language. If your model names are not in english, use the name option provided by `sequelize.name` to defined singular and plural forms for your model.
 - Model names are now used more verbatim in associations. This means that if you have a model named `Task` (plural T), or an association specifying `{ as: 'Task' }`, the tasks will be returned as `relatedModel.Tasks` instead of `relatedModel.tasks`. For more information and how to mitigate this, see https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0#inflection-replaces-lingo-and-changes-to-naming-conventions
 - Removed the freezeAssociations option - use model and assocation names instead to provide the plural form yourself
@@ -189,11 +190,11 @@ We are working our way to the first 2.0.0 release candidate.
     + All Error classes properly inherit from Error and a common SequelizeBaseError base
     + Instance Validator returns a single instance of a ValidationError which contains an errors array property. This property contains individual error items for each failed validation.
     + ValidationError includes a `get(path)` method to find all broken validations for a path on an instance. To migrate existing error handling, switch from array indexing to using the get method:
-        
-        Old: `err.validateCustom[0]` 
-        New: `err.get('validateCustom')[0]` 
+
+        Old: `err.validateCustom[0]`
+        New: `err.get('validateCustom')[0]`
 - The syntax for findOrCreate has changed, to be more in line with the rest of the library. `Model.findOrCreate(where, defaults);` becomes `Model.findOrCreate({ where: where, defaults: defaults });`.
-       
+
 
 # v2.0.0-dev12
 - [FEATURE] You can now return a promise to a hook rather than use a callback

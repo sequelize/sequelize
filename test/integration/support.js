@@ -28,7 +28,7 @@ afterEach(function () {
   try {
     this.sequelize.test.verifyNoRunningQueries();
   } catch (err) {
-    err.message += " in "+this.currentTest.fullTitle();
+    err.message += ' in '+this.currentTest.fullTitle();
     throw err;
   }
 });

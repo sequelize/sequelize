@@ -1,12 +1,12 @@
 'use strict';
 
+/* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
-  , Promise = Sequelize.Promise
-  , assert = require('assert');
+  , Promise = Sequelize.Promise;
 
 chai.config.includeStack = true;
 
@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
     var User = this.sequelize.define('User', {})
       , Group = this.sequelize.define('Group', {});
 
-    User.hasMany(Group, { counterCache: true });
+    User.hasMany(Group, { counterCache: true });
 
     expect(Object.keys(User.attributes)).to.contain('countGroups');
     expect(User.attributes.countGroups.type instanceof DataTypes.INTEGER).to.be.ok;
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
     var User = this.sequelize.define('User', {})
       , Group = this.sequelize.define('Group', {});
 
-    User.hasMany(Group, { counterCache: { as: 'countDemGroups' } });
+    User.hasMany(Group, { counterCache: { as: 'countDemGroups' } });
 
     expect(Object.keys(User.attributes)).to.contain('countDemGroups');
   });
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
     var User = this.sequelize.define('User', {})
       , Group = this.sequelize.define('Group', {});
 
-    User.hasMany(Group, { counterCache: true });
+    User.hasMany(Group, { counterCache: true });
 
     return this.sequelize.sync({ force: true }).then(function() {
       return User.create();
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
       User = this.sequelize.define('User', {});
       Group = this.sequelize.define('Group', {});
 
-      User.hasMany(Group, { counterCache: true });
+      User.hasMany(Group, { counterCache: true });
 
       return this.sequelize.sync({ force: true });
     });
@@ -92,9 +92,9 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
       }).then(function(tmpUser) {
         user = tmpUser;
         return user.createGroup();
-      }).tap(function(group) {
+      }).tap(function() {
         return user.reload();
-      }).tap(function() {
+      }).tap(function() {
         expect(user.countGroups).to.equal(1);
       }).then(function(group) {
         group.UserId = otherUser.id;

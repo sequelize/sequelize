@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint -W110 */
 var chai = require('chai')
   , Sequelize = require('../../../index')
   , expect = chai.expect
