@@ -774,6 +774,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
         return this.sequelize.sync();
       });
+
+      it('return the sequelize instance after syncing', function() {
+        var self = this;
+        return this.sequelize.sync().then(function(sequelize) {
+          expect(sequelize).to.deep.equal(self.sequelize);
+        });
+      });
+
+      it('return the single dao after syncing', function() {
+        var block = this.sequelize.define('block', {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          name: DataTypes.STRING
+        }, {
+          tableName: 'block',
+          timestamps: false,
+          paranoid: false
+        });
+
+        return block.sync().then(function(result) {
+          expect(result).to.deep.equal(block);
+        });
+      });
     }
 
     describe("doesn't emit logging when explicitly saying not to", function() {

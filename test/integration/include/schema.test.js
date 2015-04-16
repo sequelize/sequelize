@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                   Tag.findAll()
                 ]);
               }).spread(function (groups, companies, ranks, tags) {
-                return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
+                return Promise.each([0, 1, 2, 3, 4], function (i) {
                   return Promise.all([
                     AccUser.create(),
                     Product.bulkCreate([
@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                 return Tag.findAll();
               })
             ]).spread(function(groups, ranks, tags) {
-              return Promise.resolve([0, 1, 2, 3, 4]).each(function (i) {
+              return Promise.each([0, 1, 2, 3, 4], function (i) {
                 return Promise.all([
                   AccUser.create(),
                   Product.bulkCreate([
@@ -383,7 +383,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           {}, {}, {}, {}, {}, {}, {}, {}
         ]).then(function() {
           var previousInstance;
-          return Promise.resolve(singles).each(function(model) {
+          return Promise.each(singles, function(model) {
             return model.create({}).then(function(instance) {
               if (previousInstance) {
                 return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(function() {
