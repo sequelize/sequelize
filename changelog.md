@@ -1,4 +1,4 @@
-# Next
+# 2.0.6
 - [BUG] Fix for newlines in hstore [#3383](https://github.com/sequelize/sequelize/issues/3383)
 - [BUG] Fix unique key handling in Model.update [#3474](https://github.com/sequelize/sequelize/issues/3474)
 - [BUG] Fix issue with Model.create() using fields not specifying and non-incremental primary key [#3458](https://github.com/sequelize/sequelize/issues/3458)
