@@ -10,12 +10,10 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../../config/config')
-  , datetime = require('chai-datetime')
   , _ = require('lodash')
   , moment = require('moment')
   , current = Support.sequelize;
 
-chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Model'), function() {

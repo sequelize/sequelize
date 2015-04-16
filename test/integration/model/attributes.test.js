@@ -4,10 +4,8 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , datetime = require('chai-datetime');
+  , Support = require(__dirname + '/../support');
 
-chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Model'), function() {

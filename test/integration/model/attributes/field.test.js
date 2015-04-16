@@ -7,10 +7,8 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , datetime = require('chai-datetime');
+  , dialect = Support.getTestDialect();
 
-chai.use(datetime);
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
