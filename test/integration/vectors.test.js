@@ -5,18 +5,9 @@
 var chai = require('chai')
   , expect = chai.expect
   , Sequelize = require('../../index')
-  , Support = require(__dirname + '/support')
-  , DataTypes = require(__dirname + '/../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , config = require(__dirname + '/../config/config')
-  , sinon = require('sinon')
-  , datetime = require('chai-datetime')
-  , uuid = require('node-uuid')
-  , current = Support.sequelize;
+  , Support = require(__dirname + '/support');
 
 chai.should();
-chai.use(datetime);
-chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Vectors'), function() {
   it('should not allow insert backslash', function () {
