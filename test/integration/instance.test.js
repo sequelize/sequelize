@@ -1707,7 +1707,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
       return User.sync().then(function() {
         var user = User.build({ username: 'foo' });
-        expect(user.values).to.deep.equal({ username: 'foo', id: null });
+        expect(user.get({ plain: true })).to.deep.equal({ username: 'foo', id: null });
       });
     });
   });

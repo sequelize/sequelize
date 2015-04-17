@@ -397,7 +397,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     if (Support.getTestDialect() === 'postgres') {
       it('replaces named parameters with the passed object and ignores casts', function() {
-        return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', null, { raw: true }, { one: 1, two: 2 }).get(0))
+        return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', null, { raw: true, replacements: { one: 1, two: 2 } }).get(0))
           .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
       });
 

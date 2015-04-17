@@ -55,8 +55,8 @@ if (dialect.match(/^postgres/)) {
           this.users = null;
           this.tasks = null;
 
-          this.User.hasMany(this.Task, {as: 'Tasks', through: 'usertasks'});
-          this.Task.hasMany(this.User, {as: 'Users', through: 'usertasks'});
+          this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'usertasks'});
+          this.Task.belongsToMany(this.User, {as: 'Users', through: 'usertasks'});
 
           var users = []
             , tasks = [];
