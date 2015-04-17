@@ -1,5 +1,10 @@
 # Next
 - [BUG] Enable standards conforming strings on connection in postgres. Adresses [#3545](https://github.com/sequelize/sequelize/issues/3545)
+- [BUG] instance.removeAssociation(s) do not fire the select query twice anymore
+- [BUG] Error messages thrown by the db in languages other than english do not crash the app anymore (mysql, mariadb and postgres only) [#3567](https://github.com/sequelize/sequelize/pull/3567)
+- [FEATURE] All querys can be logged individually by inserting `logging: fn` in the query option.
+
+- The query-chainer is deprecated and will be removed in version 2.2. Please use promises instead.
 
 # 2.0.6
 - [BUG] Don't update virtual attributes in Model.update. Fixes [#2860](https://github.com/sequelize/sequelize/issues/2860)
