@@ -20,8 +20,6 @@ describe(Support.getTestDialectTeaser('Vectors'), function() {
     return Student.sync({force: true}).then(function () {
       return Student.create({
         name: 'Robert\\\'); DROP TABLE "students"; --'
-      }, {
-        logging: console.log
       }).then(function(result) {
         expect(result.get('name')).to.equal('Robert\\\'); DROP TABLE "students"; --');
         return Student.findAll();

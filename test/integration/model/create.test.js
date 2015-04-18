@@ -1620,9 +1620,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
 
           return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).catch(function(err) {
-            expect(err).to.exist;
             if (dialect === 'mssql') {
-              console.log(err.message);
               expect(err.message).to.match(/mssql does not support the \'ignoreDuplicates\' option./);
             } else {
               expect(err.message).to.match(/postgres does not support the \'ignoreDuplicates\' option./);

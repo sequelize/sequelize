@@ -70,7 +70,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             })[Support.getTestDialect()];
 
             if (!expectation) {
-              console.log(sql);
               throw new Error('Undefined expectation for ' + Support.getTestDialect());
             }
             expect(sql).to.contain(expectation);
@@ -92,7 +91,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             })[Support.getTestDialect()];
 
             if (!expectation) {
-              console.log(sql);
               throw new Error('Undefined expectation for ' + Support.getTestDialect());
             }
             expect(sql).to.contain(expectation);
@@ -132,7 +130,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           })[Support.getTestDialect()];
 
           if (!expectation) {
-            console.log(sql);
             throw new Error('Undefined expectation for ' + Support.getTestDialect());
           }
 
@@ -170,7 +167,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           })[Support.getTestDialect()];
 
           if (!expectation) {
-            console.log(sql);
             throw new Error('Undefined expectation for ' + Support.getTestDialect());
           }
 
