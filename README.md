@@ -39,4 +39,4 @@ Will install the latest version of sequelize (currently 2.0).
 - [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS
 - [IRC](http://webchat.freenode.net?channels=sequelizejs): sequelizejs on Freenode
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
-- [Plugins](https://github.com/sequelize/sequelize/wiki/Plugins)
+- [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)
