@@ -382,17 +382,16 @@ if (dialect.match(/^postgres/)) {
 
           return User.sync({
             logging: function (sql) {
-              console.log(sql);
               if (sql.indexOf('neutral') > -1) {
-                expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'");
+                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'")).to.not.be.equal(-1);
                 count++;
               }
               else if (sql.indexOf('ecstatic') > -1) {
-                expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'");
+                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'")).to.not.be.equal(-1);
                 count++;
               }
               else if (sql.indexOf('joyful') > -1) {
-                expect(sql).to.equal("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'");
+                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'")).to.not.be.equal(-1);
                 count++;
               }
             }

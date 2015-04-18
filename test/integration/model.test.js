@@ -1586,7 +1586,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.User.count({
         logging: function (sql) {
           test = true;
-          expect(sql).not.to.exist;
+          expect(sql).to.exist;
           expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
         }
       }).then(function() {
@@ -1679,7 +1679,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.UserWithAge.min('age', {
         logging: function (sql) {
           test = true;
-          expect(sql).not.to.exist;
+          expect(sql).to.exist;
           expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
         }
       }).then(function() {
