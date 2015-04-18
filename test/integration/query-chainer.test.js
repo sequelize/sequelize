@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('QueryChainer'), function() {
         expect(true).to.be.true;
         done();
       }).error(function(err) {
-        console.log(err);
+        done(err);
       });
 
       emitter1.run();
