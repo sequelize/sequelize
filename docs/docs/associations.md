@@ -37,7 +37,7 @@ var User = this.sequelize.define('User', {/* attributes */}, {underscored: true}
 User.belongsTo(Company); // Will add company_uuid to user
 ```
 
-In cases where `as` has been defined it will be used in place of the target model nane.
+In cases where `as` has been defined it will be used in place of the target model name.
 
 ```js
 var User = this.sequelize.define('User', {/* attributes */})
@@ -126,7 +126,7 @@ Project.hasMany(User, {as: 'Workers'})
 ```
 
 This will add the attribute ProjectId or `project_id` to User. Instances of Project will get the accessors getWorkers and setWorkers.  We could just leave it the way it is and let it be a one-way association.
-But we want more! Let's define it the other way around by creating a many to many assocation in the next section:
+But we want more! Let's define it the other way around by creating a many to many association in the next section:
 
 ## Belongs-To-Many associations
 
@@ -137,7 +137,7 @@ Project.belongsToMany(User, {through: 'UserProject'});
 User.belongsToMany(Project, {through: 'UserProject'});
 ```
 
-This will reate a new model called UserProject with with the equivalent foreign keys `ProjectId` and `UserId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
+This will create a new model called UserProject with with the equivalent foreign keys `ProjectId` and `UserId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
 
 Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
@@ -175,7 +175,7 @@ To add a new project to a user and set it's status, you pass an extra object to 
 user.addProject(project, { status: 'started' })
 ```
 
-By default the code above will add ProjectId and UserId to the UserProjects table, and _remove any previsouly defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
+By default the code above will add ProjectId and UserId to the UserProjects table, and _remove any previously defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
     
 ```js
 UserProjects = sequelize.define('UserProjects', {
@@ -192,7 +192,7 @@ UserProjects = sequelize.define('UserProjects', {
 
 By default sequelize will use the model name (the name passed to `sequelize.define`) to figure out the name of the model when used in associations. For example, a model named `user` will add the functions `get/set/add User` to instances of the associated model, and a property named `.user` in eager loading, while a model named `User` will add the same functions, but a property named `.User` (notice the upper case U) in eager loading.
 
-As we've already seen, you can alias models in associations using `as`. In single assocations (has one and belongs to), the alias should be singular, while for many associations (has many) it should be plural. Sequelize then uses the [inflection ][0]library to convert the alias to its singular form. However, this might not always work for irregular or non-english words. In this case, you can provide both the plural and the singular form of the alias:
+As we've already seen, you can alias models in associations using `as`. In single associations (has one and belongs to), the alias should be singular, while for many associations (has many) it should be plural. Sequelize then uses the [inflection ][0]library to convert the alias to its singular form. However, this might not always work for irregular or non-english words. In this case, you can provide both the plural and the singular form of the alias:
    
 ```js 
 User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks' }}) 
@@ -243,7 +243,7 @@ project.getTasks({ where: 'id > 10' }).then(function(tasks) {
 })
  
 // You can also only retrieve certain fields of a associated object.
-// This example will retrieve the attibutes "title" and "id"
+// This example will retrieve the attributes "title" and "id"
 project.getTasks({attributes: ['title']}).then(function(tasks) {
   // tasks with an id greater than 10 :)
 })
@@ -391,9 +391,9 @@ CREATE TABLE IF NOT EXISTS `Task` (
 );
 ```
 
-The relation between task and user injects the `user_id` foreign key on tasks, and marks it as a reference to the `User` table. By default `user_id` will be set to `NULL` if the referenced user is deleted, and updated if the id of the user id updated. These options can be overriden by passing `onUpdate` and `onDelete` options to the association calls. The validation options are `RESTRICT, CASCADE, NO ACTION, SET DEFAULT, SET NULL`. 
+The relation between task and user injects the `user_id` foreign key on tasks, and marks it as a reference to the `User` table. By default `user_id` will be set to `NULL` if the referenced user is deleted, and updated if the id of the user id updated. These options can be overridden by passing `onUpdate` and `onDelete` options to the association calls. The validation options are `RESTRICT, CASCADE, NO ACTION, SET DEFAULT, SET NULL`. 
 
-For 1:1 and 1:m associations the default option is `SET NULL` for deletion, and `CASCADE` for updates. For n:m, the default for both is `CASCADE`. This means, that if you delete or update a row from one side of an n:m association, all the rows in the join table refrencing that row will also be deleted or updated.
+For 1:1 and 1:m associations the default option is `SET NULL` for deletion, and `CASCADE` for updates. For n:m, the default for both is `CASCADE`. This means, that if you delete or update a row from one side of an n:m association, all the rows in the join table referencing that row will also be deleted or updated.
 
 Adding constraints between tables means that tables must be created in the database in a certain order, when using `sequelize.sync`. If Task has a reference to User, the User table must be created before the Task table can be created. This can sometimes lead to circular references, where sequelize cannot find an order in which to sync. Imagine a scenario of documents and versions. A document can have multiple versions, and for convenience, a document has an reference to it's current version.
     
