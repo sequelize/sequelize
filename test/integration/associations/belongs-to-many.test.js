@@ -1134,10 +1134,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
         expect(project).to.be.ok;
         return self.user.removeProject(project, {
-          logging: function(sql) {
-            console.error(sql);
-            spy();
-          }
+          logging: spy
         }).return (project);
       }).then(function(project) {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for REMOVE

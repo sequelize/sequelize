@@ -17,6 +17,11 @@
     + inflection@1.6.0
     + lodash@3.5.0
     + validator@3.34
+    + generic-pool@2.2.0
+- [INTERNALS] Updated devDependencies.
+    + coffee-script@1.9.1
+    + dox@0.7.1
+    + mysql@2.6.2
 
 # 2.0.5
 - [FEATURE] Highly experimental support for nested creation [#3386](https://github.com/sequelize/sequelize/pull/3386)
