@@ -126,7 +126,7 @@ migration.createTable(
 )
 ```
 
-### dropTable&lpar;tableName&rpar;
+### dropTable&lpar;tableName&comma; options&rpar;
 
 This method allows deletion of an existing table&period;
 
@@ -134,7 +134,7 @@ This method allows deletion of an existing table&period;
 migration.dropTable('nameOfTheExistingTable')
 ```
 
-### dropAllTables&lpar;&rpar;
+### dropAllTables&lpar;options&rpar;
 
 This method allows deletion of all existing tables in the database&period;
 
@@ -142,7 +142,7 @@ This method allows deletion of all existing tables in the database&period;
 migration.dropAllTables()
 ```
 
-### renameTable&lpar;before&comma; after&rpar;
+### renameTable&lpar;before&comma; after&comma; options&rpar;
 
 This method allows renaming of an existing table&period;
 
@@ -150,7 +150,7 @@ This method allows renaming of an existing table&period;
 migration.renameTable('Person', 'User')
 ```
 
-### showAllTables&lpar;&rpar;
+### showAllTables&lpar;options&rpar;
 
 This method returns the name of all existing tables in the database&period;
 
@@ -158,7 +158,7 @@ This method returns the name of all existing tables in the database&period;
 migration.showAllTables().success(function(tableNames) {})
 ```
 
-### describeTable&lpar;tableName&rpar;
+### describeTable&lpar;tableName&comma; options&rpar;
 
 This method returns an array of hashes containing information about all attributes in the table&period;
 
@@ -183,7 +183,7 @@ migration.describeTable('Person').success(function(attributes) {
 })
 ```
 
-### addColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&rpar;
+### addColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&comma; options&rpar;
 
 This method allows adding columns to an existing table&period; The data type can be simple or complex&period;
 
@@ -206,7 +206,7 @@ migration.addColumn(
 )
 ```
 
-### removeColumn&lpar;tableName&comma; attributeName&rpar;
+### removeColumn&lpar;tableName&comma; attributeName&comma; options&rpar;
 
 This method allows deletion of a specific column of an existing table&period;
 
@@ -214,7 +214,7 @@ This method allows deletion of a specific column of an existing table&period;
 migration.removeColumn('Person', 'signature')
 ```
 
-### changeColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&rpar;
+### changeColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&comma; options&rpar;
 
 This method changes the meta data of an attribute&period; It is possible to change the default value&comma; allowance of null or the data type&period; Please make sure&comma; that you are completely describing the new data type&period; Missing information are expected to be defaults&period;
 
@@ -238,7 +238,7 @@ migration.changeColumn(
 )
 ```
 
-### renameColumn&lpar;tableName&comma; attrNameBefore&comma; attrNameAfter&rpar;
+### renameColumn&lpar;tableName&comma; attrNameBefore&comma; attrNameAfter&comma; options&rpar;
 
 This methods allows renaming attributes&period;
 
@@ -260,6 +260,7 @@ migration.addIndex('Person', ['firstname', 'lastname'])
 // - indexName: The name of the index. Default is __
 // - parser: For FULLTEXT columns set your parser
 // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
+// - logging: A function that receives the sql query, e.g. console.log
 migration.addIndex(
   'Person',
   ['firstname', 'lastname'],
@@ -270,7 +271,7 @@ migration.addIndex(
 )
 ```
 
-### removeIndex&lpar;tableName&comma; indexNameOrAttributes&rpar;
+### removeIndex&lpar;tableName&comma; indexNameOrAttributes&comma; options&rpar;
 
 This method deletes an existing index of a table&period;
 

@@ -874,7 +874,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           logging: spy
         });
       }).then(function() {
-        expect(spy.calledOnce).to.be.ok;
+        expect(spy.calledTwice).to.be.ok;
       });
     });
 
@@ -892,7 +892,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           logging: spy
         });
       }).then(function() {
-        expect(spy.calledOnce).to.be.ok;
+        expect(spy.calledTwice).to.be.ok;
       });
     });
   }); // end optimization using bulk create, destroy and update
@@ -1070,6 +1070,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
     it('should correctly get associations even after a child instance is deleted', function() {
       var self = this;
+      var spy = sinon.spy();
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.join(
@@ -1078,13 +1079,20 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           self.Project.create({name: 'The Departed'})
         );
       }).spread(function(user, project1, project2) {
-        return user.addProjects([project1, project2]).return (user);
+        return user.addProjects([project1, project2], {
+          logging: spy
+        }).return (user);
       }).then(function(user) {
+        expect(spy.calledOnce).to.be.ok;
+        spy.reset();
         return Promise.join(
           user,
-          user.getProjects()
+          user.getProjects({
+            logging: spy
+          })
         );
       }).spread(function(user, projects) {
+        expect(spy.calledOnce).to.be.ok;
         var project = projects[0];
         expect(project).to.be.ok;
         return project.destroy().return (user);
@@ -1112,15 +1120,24 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).spread(function(user, project) {
         self.user = user;
         self.project = project;
-        return user.addProject(project).return (user);
+        return user.addProject(project, { logging: spy }).return (user);
       }).then(function(user) {
-        return user.getProjects();
+        expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
+        spy.reset();
+        return user.getProjects({
+          logging: spy
+        });
       }).then(function(projects) {
         var project = projects[0];
+        expect(spy.calledOnce).to.be.ok;
+        spy.reset();
 
         expect(project).to.be.ok;
         return self.user.removeProject(project, {
-          logging: spy
+          logging: function(sql) {
+            console.error(sql);
+            spy();
+          }
         }).return (project);
       }).then(function(project) {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for REMOVE
