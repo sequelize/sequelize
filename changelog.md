@@ -1,3 +1,6 @@
+# Next
+- [BUG] Enable standards conforming strings on connection in postgres. Adresses [#3545](https://github.com/sequelize/sequelize/issues/3545)
+
 # 2.0.6
 - [BUG] Don't update virtual attributes in Model.update. Fixes [#2860](https://github.com/sequelize/sequelize/issues/2860)
 - [BUG] Fix for newlines in hstore [#3383](https://github.com/sequelize/sequelize/issues/3383)
