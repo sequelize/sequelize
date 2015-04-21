@@ -51,6 +51,40 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('should update an instance with JSONB data', function () {
+        return this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson'
+            },
+            employment: 'Nuclear Safety Inspector'
+          }
+        }).bind(this).then(function (event) {
+          return event.update({
+            data: {
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: null
+            }
+          });
+        }).then(function () {
+          return this.Event.findAll().then(function (events) {
+            var event = events[0];
+
+            expect(event.get('data')).to.eql({
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: null
+            });
+          });
+        });
+      });
+
       it('should be possible to query a nested value', function () {
         return Promise.join(
           this.Event.create({
