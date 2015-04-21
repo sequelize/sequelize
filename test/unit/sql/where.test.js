@@ -462,6 +462,72 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: "profile->>'id' = CAST('12346-78912' AS TEXT)"
           });
         });
+
+        testsql('data', {
+          nested: {
+            attribute: 'value'
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          },
+          prefix: 'User'
+        }, {
+          default: "[User].[data]#>>'{nested, attribute}' = 'value'"
+        });
+
+        testsql('data.nested.attribute', 'value', {
+          model: {
+            rawAttributes: {
+              data: {
+                type: new DataTypes.JSONB()
+              }
+            }
+          }
+        }, {
+          default: "[data]#>>'{nested, attribute}' = 'value'"
+        });
+
+        testsql('data.nested.attribute', {
+          $in: [3, 7]
+        }, {
+          model: {
+            rawAttributes: {
+              data: {
+                type: new DataTypes.JSONB()
+              }
+            }
+          }
+        }, {
+          default: "[data]#>>'{nested, attribute}' IN (3, 7)"
+        });
+
+        testsql('data', {
+          nested: {
+            attribute: {
+              $gt: 2
+            }
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: "[data]#>>'{nested, attribute}' > 2"
+        });
+
+
+        testsql('data', {
+          $contains: {
+            company: 'Magnafone'
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: '[data] @> \'{"company":"Magnafone"}\''
+        });
       });
     }
 
