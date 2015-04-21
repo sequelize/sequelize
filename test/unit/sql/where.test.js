@@ -476,6 +476,38 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "[User].[data]#>>'{nested, attribute}' = 'value'"
         });
 
+        testsql('data', {
+          nested: {
+            attribute: 'value',
+            prop: {
+              $ne: 'None'
+            }
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          },
+          prefix: 'User'
+        }, {
+          default: "([User].[data]#>>'{nested, attribute}' = 'value' AND [User].[data]#>>'{nested, prop}' != 'None')"
+        });
+
+        testsql('data', {
+          name: {
+            last: 'Simpson'
+          },
+          employment: {
+            $ne: 'None'
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          },
+          prefix: 'User'
+        }, {
+          default: "([User].[data]#>>'{name, last}' = 'Simpson' AND [User].[data]#>>'{employment}' != 'None')"
+        });
+
         testsql('data.nested.attribute', 'value', {
           model: {
             rawAttributes: {
