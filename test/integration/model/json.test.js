@@ -3,13 +3,11 @@
 /* jshint -W030 */
 /* jshint -W110 */
 var chai = require('chai')
-  , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
 
 chai.config.includeStack = true;
@@ -161,5 +159,5 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
     });
-  };
+  }
 });
