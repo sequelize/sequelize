@@ -14,6 +14,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
         default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])'
       });
+
+      expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
+        default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
+      });
+
+      expectsql(sql.addIndexQuery('"schema"."table"', ['column1', 'column2'], {}), {
+        default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
+      });
     });
 
     test('POJO field', function () {
@@ -30,5 +38,28 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))'
       });
     });
+
+    if (current.dialect.supports.index.using === 2) {
+      test('USING', function () {
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['event'],
+          using: 'gin'
+        }), {
+          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event")'
+        });
+      });
+    }
+
+    if (current.dialect.supports.JSON) {
+      test('operator', function () {
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['event'],
+          using: 'gin',
+          operator: 'jsonb_path_ops'
+        }), {
+          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)'
+        });
+      });
+    }
   });
 });
