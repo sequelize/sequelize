@@ -93,6 +93,92 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('should be possible to query a nested integer value', function () {
+        return Promise.join(
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              age: 40
+            }
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Marge',
+                last: 'Simpson'
+              },
+              age: 37
+            }
+          })
+        ).bind(this).then(function () {
+          return this.Event.findAll({
+            where: {
+              data: {
+                age: {
+                  $gt: 38
+                }
+              }
+            }
+          }).then(function (events) {
+            var event = events[0];
+
+            expect(events.length).to.equal(1);
+            expect(event.get('data')).to.eql({
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              age: 40
+            });
+          });
+        });
+      });
+
+      it('should be possible to query a nested null value', function () {
+        return Promise.join(
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: 'Nuclear Safety Inspector'
+            }
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Marge',
+                last: 'Simpson'
+              },
+              employment: null
+            }
+          })
+        ).bind(this).then(function () {
+          return this.Event.findAll({
+            where: {
+              data: {
+                employment: null
+              }
+            }
+          }).then(function (events) {
+            var event = events[0];
+
+            expect(events.length).to.equal(1);
+            expect(event.get('data')).to.eql({
+              name: {
+                first: 'Marge',
+                last: 'Simpson'
+              },
+              employment: null
+            });
+          });
+        });
+      });
+
       it('should be possible to query multiple nested values', function () {
         return Promise.join(
           this.Event.create({

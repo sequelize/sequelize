@@ -473,7 +473,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "[User].[data]#>>'{nested, attribute}' = 'value'"
+          default: "([User].[data]#>>'{nested, attribute}') = 'value'"
         });
 
         testsql('data', {
@@ -489,7 +489,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "([User].[data]#>>'{nested, attribute}' = 'value' AND [User].[data]#>>'{nested, prop}' != 'None')"
+          default: "(([User].[data]#>>'{nested, attribute}') = 'value' AND ([User].[data]#>>'{nested, prop}') != 'None')"
         });
 
         testsql('data', {
@@ -505,7 +505,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "([User].[data]#>>'{name, last}' = 'Simpson' AND [User].[data]#>>'{employment}' != 'None')"
+          default: "(([User].[data]#>>'{name, last}') = 'Simpson' AND ([User].[data]#>>'{employment}') != 'None')"
         });
 
         testsql('data.nested.attribute', 'value', {
@@ -517,7 +517,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "[data]#>>'{nested, attribute}' = 'value'"
+          default: "([data]#>>'{nested, attribute}') = 'value'"
         });
 
         testsql('data.nested.attribute', {
@@ -531,7 +531,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "[data]#>>'{nested, attribute}' IN (3, 7)"
+          default: "([data]#>>'{nested, attribute}') IN (3, 7)"
         });
 
         testsql('data', {
@@ -545,7 +545,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "[data]#>>'{nested, attribute}' > 2"
+          default: "([data]#>>'{nested, attribute}')::integer > 2"
         });
 
 
