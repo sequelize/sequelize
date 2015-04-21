@@ -510,7 +510,7 @@ if (dialect === 'sqlite') {
           ],
           expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username` ASC, `isAdmin`)'
         }, {
-          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, {}, 'User'],
+          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, 'User'],
           expectation: 'CREATE INDEX `bar` ON `User` (`username`, `isAdmin`)'
         }, {
           arguments: ['User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
