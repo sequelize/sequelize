@@ -15,13 +15,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])'
       });
 
-      expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
-        default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
-      });
+      if (current.dialect.supports.schemas) {
+        expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
+        });
 
-      expectsql(sql.addIndexQuery('"schema"."table"', ['column1', 'column2'], {}), {
-        default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
-      });
+        expectsql(sql.addIndexQuery('"schema"."table"', ['column1', 'column2'], {}), {
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
+        });
+      }
     });
 
     test('POJO field', function () {
