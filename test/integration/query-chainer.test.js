@@ -5,11 +5,16 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , QueryChainer = require('../../lib/query-chainer')
-  , CustomEventEmitter = require('../../lib/emitters/custom-event-emitter');
+  , CustomEventEmitter;
 
 chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('QueryChainer'), function() {
+
+  before(function() {
+    CustomEventEmitter = require('../../lib/emitters/custom-event-emitter');
+  });
+
   beforeEach(function() {
     this.queryChainer = new QueryChainer();
   });
@@ -40,7 +45,7 @@ describe(Support.getTestDialectTeaser('QueryChainer'), function() {
         expect(true).to.be.true;
         done();
       }).error(function(err) {
-        console.log(err);
+        done(err);
       });
 
       emitter1.run();

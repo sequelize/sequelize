@@ -71,18 +71,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should be ignored in find, findAll and includes', function() {
           return Promise.all([
-            this.User.find().on('sql', this.sqlAssert),
-            this.User.findAll().on('sql', this.sqlAssert),
+            this.User.find(null, {
+              logging: this.sqlAssert
+            }),
+            this.User.findAll(null, {
+              logging: this.sqlAssert
+            }),
             this.Task.findAll({
               include: [
                 this.User
               ]
-            }).on('sql', this.sqlAssert),
+            }, {
+              logging: this.sqlAssert
+            }),
             this.Project.findAll({
               include: [
                 this.User
               ]
-            }).on('sql', this.sqlAssert)
+            }, {
+              logging: this.sqlAssert
+            })
           ]);
         });
 
@@ -132,7 +140,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           var self = this;
           return this.User.bulkCreate([{
             field1: 'something'
-          }]).on('sql', this.sqlAssert).then(function() {
+          }], {
+            logging: this.sqlAssert
+          }).then(function() {
             return self.User.findAll();
           }).then(function(users) {
             expect(users[0].storage).to.equal('something');

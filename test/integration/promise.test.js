@@ -397,22 +397,6 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
       });
     });
 
-    it('should still work with .success() when emitting', function(done) {
-      var spy = sinon.spy()
-        , promise = new SequelizePromise(function(resolve, reject) {
-          // no-op
-        });
-
-      promise.success(spy);
-      promise.then(function() {
-        expect(spy.calledOnce).to.be.true;
-        expect(spy.firstCall.args).to.deep.equal(['yay']);
-        done();
-      });
-
-      promise.emit('success', 'yay');
-    });
-
     it('should still work with .done() when rejecting', function(done) {
       var spy = sinon.spy()
         , promise = new SequelizePromise(function(resolve, reject) {
@@ -438,111 +422,6 @@ describe(Support.getTestDialectTeaser('Promise'), function() {
         expect(spy.calledOnce).to.be.true;
         expect(spy.firstCall.args[0]).to.be.an.instanceof(Error);
         done();
-      });
-    });
-
-    it('should still work with .on(\'error\') when throwing', function(done) {
-      var spy = sinon.spy()
-        , promise = new SequelizePromise(function(resolve, reject) {
-          throw new Error('noway');
-        });
-
-      promise.on('error', spy);
-      promise.catch(function() {
-        expect(spy.calledOnce).to.be.true;
-        expect(spy.firstCall.args[0]).to.be.an.instanceof(Error);
-        done();
-      });
-    });
-
-    it('should still work with .error() when emitting', function(done) {
-      var spy = sinon.spy()
-        , promise = new SequelizePromise(function(resolve, reject) {
-          // no-op
-        });
-
-      promise.on('error', spy);
-      promise.catch(function() {
-        expect(spy.calledOnce).to.be.true;
-        expect(spy.firstCall.args[0]).to.be.an.instanceof(Error);
-        done();
-      });
-
-      promise.emit('error', new Error('noway'));
-    });
-
-    it('should still support sql events', function() {
-      var spy = sinon.spy()
-        , promise = new SequelizePromise(function(resolve, reject) {
-          resolve('yay');
-        });
-
-      promise.on('sql', spy);
-
-      promise.emit('sql', 'SQL STATEMENT 1');
-      promise.emit('sql', 'SQL STATEMENT 2');
-
-      return promise.then(function() {
-        expect(spy.calledTwice).to.be.true;
-      });
-    });
-
-    describe('proxy', function() {
-      it('should correctly work with success listeners', function(done) {
-        var emitter = new SequelizePromise(function() {})
-          , proxy = new SequelizePromise(function() {})
-          , success = sinon.spy();
-
-        emitter.success(success);
-        proxy.success(function() {
-          process.nextTick(function() {
-            expect(success.called).to.be.true;
-            done();
-          });
-        });
-
-        proxy.proxy(emitter);
-        proxy.emit('success');
-      });
-
-      it('should correctly work with complete/done listeners', function(done) {
-        var promise = new SequelizePromise(function() {})
-          , proxy = new SequelizePromise(function() {})
-          , complete = sinon.spy();
-
-        promise.complete(complete);
-        proxy.complete(function() {
-          process.nextTick(function() {
-            expect(complete.called).to.be.true;
-            done();
-          });
-        });
-
-        proxy.proxy(promise);
-        proxy.emit('success');
-      });
-    });
-
-    describe('when emitting an error event with an array of errors', function() {
-      describe('if an error handler is given', function() {
-        it('should return the whole array', function(done) {
-          var emitter = new SequelizePromise(function() {});
-          var errors = [
-            [
-              new Error('First error'),
-              new Error('Second error')
-            ], [
-              new Error('Third error')
-            ]
-          ];
-
-          emitter.error(function(err) {
-            expect(err).to.equal(errors);
-
-            done();
-          });
-          emitter.emit('error', errors);
-        });
       });
     });
   });

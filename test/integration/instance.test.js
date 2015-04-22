@@ -1707,7 +1707,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
       return User.sync().then(function() {
         var user = User.build({ username: 'foo' });
-        expect(user.values).to.deep.equal({ username: 'foo', id: null });
+        expect(user.get({ plain: true })).to.deep.equal({ username: 'foo', id: null });
       });
     });
   });
@@ -1767,9 +1767,11 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return UserDelete.create({name: 'hallo', bio: 'welt'}).then(function(u) {
           return UserDelete.findAll().then(function(users) {
             expect(users.length).to.equal(1);
-            return u.destroy().on('sql', function(sql) {
-              expect(sql).to.exist;
-              expect(sql.toUpperCase().indexOf('DELETE')).to.be.above(-1);
+            return u.destroy({
+              logging: function (sql) {
+                expect(sql).to.exist;
+                expect(sql.toUpperCase().indexOf('DELETE')).to.be.above(-1);
+              }
             });
           });
         });

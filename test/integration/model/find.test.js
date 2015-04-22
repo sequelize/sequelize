@@ -117,10 +117,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('treats questionmarks in an array', function() {
+        var test = false;
         return this.UserPrimary.find({
           where: ['specialkey = ?', 'awesome']
-        }).on('sql', function(sql) {
-          expect(sql).to.contain("WHERE specialkey = 'awesome'");
+        }, {
+          logging: function(sql) {
+            test = true;
+            expect(sql).to.contain("WHERE specialkey = 'awesome'");
+          }
+        }).then(function() {
+          expect(test).to.be.true;
         });
       });
 
@@ -190,9 +196,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('allows sql logging', function() {
-        return this.User.find({ where: { username: 'foo' } }).on('sql', function(sql) {
-          expect(sql).to.exist;
-          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+        var test = false;
+        return this.User.find({ where: { username: 'foo' } }, {
+          logging: function(sql) {
+            test = true;
+            expect(sql).to.exist;
+            expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+          }
+        }).then(function() {
+          expect(test).to.be.true;
         });
       });
 
@@ -257,16 +269,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(function() {
           return self.sequelize.Promise.map(permutations, function(perm) {
-            return self.User.find(perm).then(function(user) {
+            return self.User.find(perm, {
+              logging: function(s) {
+                expect(s.indexOf(0)).not.to.equal(-1);
+                count++;
+              }
+            }).then(function(user) {
               expect(user).to.be.null;
-              count++;
-            }).on('sql', function(s) {
-              expect(s.indexOf(0)).not.to.equal(-1);
-              count++;
             });
           });
         }).then(function() {
-          expect(count).to.be.equal(2 * permutations.length);
+          expect(count).to.be.equal(permutations.length);
         });
       });
 

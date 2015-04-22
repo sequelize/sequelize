@@ -6,7 +6,14 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
   , dialect = Support.getTestDialect()
-  , _ = require('lodash');
+  , _ = require('lodash')
+  , count = 0
+  , log = function (sql) {
+    // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
+    if (dialect !== 'sqlite' || count === 0) {
+      count++;
+    }
+  };
 
 chai.config.includeStack = true;
 
@@ -20,12 +27,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     it('should drop all tables', function() {
       var self = this;
       return this.queryInterface.dropAllTables().then(function() {
-        return self.queryInterface.showAllTables().then(function(tableNames) {
+        return self.queryInterface.showAllTables({logging: log}).then(function(tableNames) {
+          expect(count).to.be.equal(1);
+          count = 0;
           expect(tableNames).to.be.empty;
-          return self.queryInterface.createTable('table', { name: DataTypes.STRING }).then(function() {
-            return self.queryInterface.showAllTables().then(function(tableNames) {
+          return self.queryInterface.createTable('table', { name: DataTypes.STRING }, {
+            logging: log
+          }).then(function() {
+            expect(count).to.be.equal(1);
+            count = 0;
+            return self.queryInterface.showAllTables({logging: log}).then(function(tableNames) {
+              expect(count).to.be.equal(1);
+              count = 0;
               expect(tableNames).to.have.length(1);
-              return self.queryInterface.dropAllTables().then(function() {
+              return self.queryInterface.dropAllTables({logging: log}).then(function() {
+                expect(count).to.be.equal(1);
+                count = 0;
                 return self.queryInterface.showAllTables().then(function(tableNames) {
                   expect(tableNames).to.be.empty;
                 });
@@ -56,7 +73,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   describe('indexes', function() {
     beforeEach(function() {
       var self = this;
-      return this.queryInterface.dropTable('Group').then(function() {
+      return this.queryInterface.dropTable('Group', {logging: log}).then(function() {
+        expect(count).to.be.equal(1);
+        count = 0;
         return self.queryInterface.createTable('Group', {
           username: DataTypes.STRING,
           isAdmin: DataTypes.BOOLEAN,
@@ -67,11 +86,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
     it('adds, reads and removes an index to the table', function() {
       var self = this;
-      return this.queryInterface.addIndex('Group', ['username', 'isAdmin']).then(function() {
-        return self.queryInterface.showIndex('Group').then(function(indexes) {
+      return this.queryInterface.addIndex('Group', ['username', 'isAdmin'], {
+        logging: log
+      }).then(function() {
+        expect(count).to.be.equal(1);
+        count = 0;
+        return self.queryInterface.showIndex('Group', {logging: log}).then(function(indexes) {
+          expect(count).to.be.equal(1);
+          count = 0;
+
           var indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
           expect(indexColumns).to.include('group_username_is_admin');
-          return self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).then(function() {
+          return self.queryInterface.removeIndex('Group', ['username', 'isAdmin'], {logging: log}).then(function() {
+            expect(count).to.be.equal(1);
+            count = 0;
             return self.queryInterface.showIndex('Group').then(function(indexes) {
               indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
               expect(indexColumns).to.be.empty;
@@ -96,7 +124,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       }, { freezeTableName: true });
 
       return Users.sync({ force: true }).then(function() {
-        return self.queryInterface.describeTable('_Users').then(function(metadata) {
+        return self.queryInterface.describeTable('_Users', {logging: log}).then(function(metadata) {
+          expect(count).to.be.equal(1);
+          count = 0;
+
           var username = metadata.username;
           var isAdmin = metadata.isAdmin;
           var enumVals = metadata.enumVals;
@@ -179,9 +210,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
     it('should work with schemas', function() {
       var self = this;
-      return self.sequelize.dropAllSchemas().then(function() {
-        return self.sequelize.createSchema('hero');
+      return self.sequelize.dropAllSchemas({logging: log}).then(function() {
+        // TODO: FIXME: somehow these do not fire the logging function
+        if (dialect !== 'mysql' && dialect !== 'sqlite' && dialect !== 'mariadb') {
+          expect(count).to.be.above(0);
+        }
+        count = 0;
+        return self.sequelize.createSchema('hero', {logging: log});
       }).then(function() {
+        expect(count).to.be.equal(1);
+        count = 0;
         return self.queryInterface.createTable('User', {
           name: {
             type: DataTypes.STRING
@@ -191,8 +229,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         });
       }).then(function() {
         return self.queryInterface.rawSelect('User', {
-          schema: 'hero'
+          schema: 'hero',
+          logging: log
         }, 'name');
+      }).then(function() {
+        expect(count).to.be.equal(1);
+        count = 0;
       });
     });
   });
@@ -205,7 +247,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       }, { freezeTableName: true });
 
       return Users.sync({ force: true }).then(function() {
-        return self.queryInterface.renameColumn('_Users', 'username', 'pseudo');
+        return self.queryInterface.renameColumn('_Users', 'username', 'pseudo', {logging: log}).then(function() {
+          if (dialect === 'sqlite')
+            count++;
+          expect(count).to.be.equal(2);
+          count = 0;
+        });
       });
     });
 
@@ -297,6 +344,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
             schema: 'archive'
           }, 'currency', {
             type: DataTypes.FLOAT
+          }, {
+            logging: log
+          }).then(function() {
+            expect(count).to.be.equal(1);
+            count = 0;
           });
         });
       });
@@ -328,7 +380,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           referenceKey: 'id',
           onUpdate: 'cascade',
           onDelete: 'set null'
-        });
+        }, {logging: log});
+      }).then(function() {
+        expect(count).to.be.equal(1);
+        count = 0;
       });
     });
 
@@ -404,8 +459,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     it('should get a list of foreign keys for the table', function() {
       var sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
 
-      return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then(function(fks) {
+      return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS, logging: log}).then(function(fks) {
+        expect(count).to.be.equal(1);
         expect(fks).to.have.length(3);
+        count = 0;
         var keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
           keys3 = Object.keys(fks[2]);

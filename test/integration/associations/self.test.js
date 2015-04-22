@@ -108,6 +108,7 @@ describe(Support.getTestDialectTeaser('Self'), function() {
     expect(foreignIdentifiers).to.have.members(['preexisting_parent', 'preexisting_child']);
     expect(rawAttributes).to.have.members(['preexisting_parent', 'preexisting_child']);
 
+    var count = 0;
     return this.sequelize.sync({ force: true }).bind(this).then(function() {
       return Promise.all([
         Person.create({ name: 'Mary' }),
@@ -118,26 +119,36 @@ describe(Support.getTestDialectTeaser('Self'), function() {
       this.mary = mary;
       this.chris = chris;
       this.john = john;
-      return mary.setParents([john]).on('sql', function(sql) {
-        if (sql.match(/INSERT/)) {
-          expect(sql).to.have.string('preexisting_child');
-          expect(sql).to.have.string('preexisting_parent');
-        }
-      });
-    }).then(function() {
-      return this.mary.addParent(this.chris).on('sql', function(sql) {
-        if (sql.match(/INSERT/)) {
+      return mary.setParents([john], {
+        logging: function(sql) {
+          if (sql.match(/INSERT/)) {
+            count++;
             expect(sql).to.have.string('preexisting_child');
             expect(sql).to.have.string('preexisting_parent');
+          }
         }
       });
     }).then(function() {
-      return this.john.getChildren().on('sql', function(sql) {
-        var whereClause = sql.split('FROM')[1]; // look only in the whereClause
-        expect(whereClause).to.have.string('preexisting_child');
-        expect(whereClause).to.have.string('preexisting_parent');
+      return this.mary.addParent(this.chris, {
+        logging: function(sql) {
+          if (sql.match(/INSERT/)) {
+              count++;
+              expect(sql).to.have.string('preexisting_child');
+              expect(sql).to.have.string('preexisting_parent');
+          }
+        }
+      });
+    }).then(function() {
+      return this.john.getChildren(undefined, {
+        logging: function(sql) {
+          count++;
+          var whereClause = sql.split('FROM')[1]; // look only in the whereClause
+          expect(whereClause).to.have.string('preexisting_child');
+          expect(whereClause).to.have.string('preexisting_parent');
+        }
       });
     }).then(function(children) {
+      expect(count).to.be.equal(3);
       expect(_.map(children, 'id')).to.have.members([this.mary.id]);
     });
   });
