@@ -80,6 +80,9 @@ Sequelize.BOOLEAN                     // TINYINT(1)
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
 Sequelize.ARRAY(Sequelize.TEXT)       // Defines an array. PostgreSQL only.
 
+Sequelize.JSON                        // JSON column. PostgreSQL only.
+Sequelize.JSONB                       // JSONB column. PostgreSQL only.
+
 Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
 Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other options are medium and long)
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)

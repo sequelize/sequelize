@@ -23,6 +23,7 @@ if (program.file) {
     {file:'lib/sequelize.js', output: 'sequelize'},
     {file:'lib/instance.js', output: 'instance'},
     {file:'lib/model.js', output: 'model'},
+    {file:'lib/querying.js', output: 'querying'},
     {file:'lib/hooks.js', output: 'hooks'},
     {file:'lib/associations/mixin.js', output: 'associations'},
     {file:'lib/promise.js', output: 'promise'},
