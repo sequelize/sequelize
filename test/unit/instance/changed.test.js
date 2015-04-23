@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
 
       user.set('name', 'a');
-      expect(user.changed('name')).not.to.be.ok;
+      expect(user.changed('name')).to.equal(false);
     });
 
     it('should return true for multiple changed values', function () {
