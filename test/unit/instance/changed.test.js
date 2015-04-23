@@ -8,7 +8,7 @@ var chai = require('chai')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe.only('changed', function () {
+  describe('changed', function () {
     beforeEach(function () {
       this.User = this.sequelize.define('User', {
         name: DataTypes.STRING,
