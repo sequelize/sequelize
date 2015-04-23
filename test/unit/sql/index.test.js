@@ -55,6 +55,33 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
 
+    if (current.dialect.supports.index.using === 2) {
+      test('WHERE', function () {
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['type'],
+          where: {
+            type: 'public'
+          }
+        }), {
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\''
+        });
+
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['type'],
+          where: {
+            type: {
+              $or: [
+                'group',
+                'private'
+              ]
+            }
+          }
+        }), {
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')'
+        });
+      });
+    }
+
     if (current.dialect.supports.JSON) {
       test('operator', function () {
         expectsql(sql.addIndexQuery('table', {
