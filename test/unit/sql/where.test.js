@@ -550,6 +550,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
         testsql('data', {
           nested: {
+            "attribute::integer": {
+              $gt: 2
+            }
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::integer > 2"
+        });
+
+        testsql('data', {
+          nested: {
             attribute: {
               $gt: new Date()
             }
