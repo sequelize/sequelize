@@ -113,6 +113,18 @@ if (current.dialect.supports.transactions) {
           expect(this.ns.get('transaction')).not.to.be.ok;
         });
       });
+
+      it('does not leak outside findOrCreate', function () {
+        var self = this;
+
+        return this.User.findOrCreate({
+          where: {
+            name: 'Kafka'
+          }
+        }).then(function () {
+          return self.User.findAll();
+        });
+      });
     });
 
     describe('sequelize.query integration', function () {
