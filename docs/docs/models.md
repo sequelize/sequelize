@@ -844,6 +844,38 @@ To recap&comma; the elements of the order &sol; group array can be the following
   * Everything else is ignored&comma; and if raw is not set&comma; the query will fail
 * Sequelize&period;fn and Sequelize&period;col returns functions and quoted cools
 
+### Indexes
+Sequelize supports adding indexes to the model definition which will be created during `Model.sync()` or `sequelize.sync`.
+
+```js
+sequelize.define('User', {}, {
+  indexes: [
+    // Create a unique index on email
+    {
+      unique: true,
+      fields: ['email']
+    },
+
+    // Creates a gin index on data with the jsonb_path_ops operator
+    {
+      fields: ['data'],
+      using: 'gin',
+      operator: 'jsonb_path_ops'
+    },
+
+    // By default index name will be [table]_[fields]
+    // Creates a multi column partial index
+    {
+      name: 'public_by_author',
+      fields: ['author', 'status'],
+      where: {
+        status: 'public'
+      }
+    }
+  ]
+})
+```
+
 ### Raw queries
 
 Sometimes you might be expecting a massive dataset that you just want to display, without manipulation. For each row you select, Sequelize creates an instance with functions for updat, delete, get associations etc. If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
