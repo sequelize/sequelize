@@ -1,5 +1,8 @@
 ## Where
+
 Whether you are querying with findAll/find or doing bulk updates/destroys you can pass a `where` object to filter the query.
+`where` generally takes an object from attribute:value pairs, where value can be primitives for equality matches or keyed objects for other operators.
+It's also possible to generate complex AND/OR conditions by nesting sets of `$or` and `$and`.
 
 ### Basics
 ```
@@ -52,12 +55,7 @@ $like: '%hat',         // LIKE '%hat'
 $notLike: '%hat'       // NOT LIKE '%hat'
 $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
 $notILike: '%hat'      // NOT ILIKE '%hat'
-$overlap: [1, 2]       // && [1, 2]Post.findAll({
-  where: {
-    authorId: 2
-  }
-});
-// SELECT * FROM post WHERE authorId = 2 (PG array overlap operator)
+$overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
 $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
 $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
 $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER
@@ -82,6 +80,22 @@ $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER
   }
 }
 // createdAt < [timestamp] AND createdAt > [timestamp]
+
+{
+  $or: [
+    {
+      title: {
+        $like: 'Boat%'
+      }
+    },
+    {
+      description: {
+        $like: '%boat%'
+      }
+    }
+  ]
+}
+// title LIKE 'Boat%' OR description LIKE '%boat%'
 ```
 
 ### JSONB
@@ -125,12 +139,38 @@ JSONB can be queried in three different ways.
 
 ## Pagination / Limiting
 ```js
-// limit the results of the query
+// Fetch 10 instances/rows
 Project.findAll({ limit: 10 })
 
-// step over the first 10 elements
-Project.findAll({ offset: 10 })
+// Skip 8 instances/rows
+Project.findAll({ offset: 8 })
 
-// step over the first 10 elements, and take 2
-Project.findAll({ offset: 10, limit: 2 })
+// Skip 5 instances and fetch the 5 after that
+Project.findAll({ offset: 5, limit: 5 })
+```
+
+## Ordering
+
+`order` takes an array of items to order the query by. 
+
+```js
+something.find({
+  order: [
+    // Will escape username and validate DESC against a list of valid direction parameters
+    ['username', 'DESC'],
+
+    // Will order by max(age)
+    sequelize.fn('max', sequelize.col('age')),
+
+    // Will order by max(age) DESC
+    [sequelize.fn('max', sequelize.col('age')), 'DESC'],
+
+    // Will order by  otherfunction(`col1`, 12, 'lalala') DESC    
+    [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
+
+    // Both the following statements will be treated literally so should be treated with care
+    'name',
+    'username DESC'
+  ]
+})
 ```
