@@ -1,7 +1,9 @@
 ## Where
 
 Whether you are querying with findAll/find or doing bulk updates/destroys you can pass a `where` object to filter the query.
+
 `where` generally takes an object from attribute:value pairs, where value can be primitives for equality matches or keyed objects for other operators.
+
 It's also possible to generate complex AND/OR conditions by nesting sets of `$or` and `$and`.
 
 ### Basics
@@ -151,7 +153,7 @@ Project.findAll({ offset: 5, limit: 5 })
 
 ## Ordering
 
-`order` takes an array of items to order the query by. 
+`order` takes an array of items to order the query by. Generally you will want to use a tuple/array of either attribute, direction or just direction to ensure proper escaping.
 
 ```js
 something.find({
