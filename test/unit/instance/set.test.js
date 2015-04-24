@@ -10,7 +10,7 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Instance'), function() {
   describe('set', function () {
     it('sets nested keys in JSON objects', function () {
-      var User = this.sequelize.define('User', {
+      var User = current.define('User', {
         meta: DataTypes.JSONB
       });
       var user = User.build({

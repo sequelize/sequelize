@@ -10,7 +10,7 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Instance'), function() {
   describe('changed', function () {
     beforeEach(function () {
-      this.User = this.sequelize.define('User', {
+      this.User = current.define('User', {
         name: DataTypes.STRING,
         birthdate: DataTypes.DATE,
         meta: DataTypes.JSON
