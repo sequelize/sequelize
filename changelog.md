@@ -6,6 +6,7 @@
 - [FEATURE] Partial index support for Postgres with `index.where`
 - [DEPRECATED] The query-chainer is deprecated and will be removed in version 2.2. Please use promises instead.
 - [REMOVED] Events are no longer supported.
+- [FEATURE] The default transaction level has been changed from `REPEATABLE READ` to `SERIALIZABLE` as it is the safest possibility.
 
 #### Backwards compatibility changes
 - Events support have been removed so using `.on('succes')` or `.succes()` is no longer supported.
