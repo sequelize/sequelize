@@ -141,21 +141,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it('returns false for non-changed date attribute', function() {
-      return this.User.create({ aDate: new Date(2013, 6, 31, 14, 25, 21) }).then(function(user) {
-        user.aDate = '2013-07-31 14:25:21';
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
-    // In my opinion this is bad logic, null is different from an empty string
-    it.skip('returns false for two empty attributes', function() {
-      return this.User.create({ username: null }).then(function(user) {
-        user.username = '';
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
     it('returns true for bulk changed attribute', function() {
       return this.User.create({ username: 'user' }).then(function(user) {
         user.setAttributes({
@@ -1805,8 +1790,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       }).then(function() {
         return ParanoidUser.find({where: {secretValue: '42'}});
       }).then(function(user) {
-        return user.destroy()
-        .then(function() {
+        return user.destroy().then(function() {
           return user.restore();
         });
       }).then(function() {
