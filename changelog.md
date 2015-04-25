@@ -17,6 +17,7 @@
 
 #### Backwards compatibility changes
 - Events support have been removed so using `.on('succes')` or `.succes()` is no longer supported.
+- Trying to apply a scope that does not exist will always throw an error
 
 # 2.0.6
 - [BUG] Don't update virtual attributes in Model.update. Fixes [#2860](https://github.com/sequelize/sequelize/issues/2860)

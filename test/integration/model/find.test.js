@@ -368,8 +368,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                         return self.Environment.find({
                           where: { name: 'environment' },
                           include: [
-                            { daoFactory: self.Domain, as: 'PrivateDomain' },
-                            { daoFactory: self.Domain, as: 'PublicDomain' }
+                            { model: self.Domain, as: 'PrivateDomain' },
+                            { model: self.Domain, as: 'PublicDomain' }
                           ]
                         }).then(function(environment) {
                           expect(environment).to.exist;
@@ -559,7 +559,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           it('throws an error if alias is not associated', function() {
             var self = this;
-            return self.Worker.find({ include: [{ daoFactory: self.Task, as: 'Work' }] }).catch (function(err) {
+            return self.Worker.find({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
               expect(err.message).to.equal('Task (Work) is not associated to Worker!');
             });
           });
@@ -567,7 +567,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           it('returns the associated task via worker.task', function() {
             return this.Worker.find({
               where: { name: 'worker' },
-              include: [{ daoFactory: this.Task, as: 'ToDo' }]
+              include: [{ model: this.Task, as: 'ToDo' }]
             }).then(function(worker) {
               expect(worker).to.exist;
               expect(worker.ToDo).to.exist;
@@ -648,7 +648,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                           where: {
                             name: 'Boris'
                           },
-                          include: [self.PhoneNumber, { daoFactory: self.Photo, as: 'Photos' }]
+                          include: [self.PhoneNumber, { model: self.Photo, as: 'Photos' }]
                         }).then(function(fetchedContact) {
                           expect(fetchedContact).to.exist;
                           expect(fetchedContact.Photos.length).to.equal(1);
@@ -720,7 +720,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           it('throws an error if alias is not associated', function() {
             var self = this;
-            return self.Worker.find({ include: [{ daoFactory: self.Task, as: 'Work' }] }).catch (function(err) {
+            return self.Worker.find({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
               expect(err.message).to.equal('Task (Work) is not associated to Worker!');
             });
           });
@@ -728,7 +728,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           it('returns the associated task via worker.task', function() {
             return this.Worker.find({
               where: { name: 'worker' },
-              include: [{ daoFactory: this.Task, as: 'ToDos' }]
+              include: [{ model: this.Task, as: 'ToDos' }]
             }).then(function(worker) {
               expect(worker).to.exist;
               expect(worker.ToDos).to.exist;
