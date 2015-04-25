@@ -4,7 +4,7 @@
 - [BUG] Error messages thrown by the db in languages other than english do not crash the app anymore (mysql, mariadb and postgres only) [#3567](https://github.com/sequelize/sequelize/pull/3567)
 - [FEATURE] All querys can be logged individually by inserting `logging: fn` in the query option.
 - [FEATURE] Partial index support for Postgres with `index.where`
-- [REFACTOR] `.changed()` now works proactively by setting a flag on `set` instead of matching reactively. Not that objects and arrays will not be checked for equality on set and will always result in a change if they are `set`.
+- [REFACTOR] `.changed()` now works proactively by setting a flag on `set` instead of matching reactively. Note that objects and arrays will not be checked for equality on set and will always result in a change if they are `set`.
 - [DEPRECATED] The query-chainer is deprecated and will be removed in version 2.2. Please use promises instead.
 - [REMOVED] Events are no longer supported.
 
