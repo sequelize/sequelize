@@ -871,6 +871,13 @@ sequelize.define('User', {}, {
       where: {
         status: 'public'
       }
+    },
+
+    // A BTREE index with a ordered field
+    {
+      name: 'title_index',
+      method: 'BTREE',
+      fields: ['author', {attribute: 'title', collate: 'en_US', order: 'DESC', length: 5}]
     }
   ]
 })
