@@ -315,7 +315,7 @@ if (dialect.match(/^postgres/)) {
               )
             };
           }],
-          expectation: 'SELECT * FROM "myTable" WHERE ("myTable"."archived" IS NULL AND COALESCE("place_type_codename", "announcement_type_codename") IN (\'Lost\',\'Found\'));',
+          expectation: 'SELECT * FROM "myTable" WHERE ("myTable"."archived" IS NULL AND COALESCE("place_type_codename", "announcement_type_codename") IN (\'Lost\', \'Found\'));',
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -937,47 +937,6 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['User', 'mySchema.user_foo_bar'],
           expectation: 'DROP INDEX IF EXISTS mySchema.user_foo_bar',
-          context: {options: {quoteIdentifiers: false}}
-        }
-      ],
-
-      hashToWhereConditions: [
-        {
-          arguments: [{ id: [1, 2, 3] }],
-          expectation: '\"id\" IN (1,2,3)'
-        },
-        {
-          arguments: [{ id: [] }],
-          expectation: '\"id\" IN (NULL)'
-        },
-        {
-          arguments: [{id: {not: [1, 2, 3] }}],
-          expectation: '\"id\" NOT IN (1,2,3)'
-        },
-        {
-          arguments: [{id: {not: [] }}],
-          expectation: '\"id\" NOT IN (NULL)'
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: [{ id: [1, 2, 3] }],
-          expectation: 'id IN (1,2,3)',
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{ id: [] }],
-          expectation: 'id IN (NULL)',
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{ id: {not: [1, 2, 3] }}],
-          expectation: 'id NOT IN (1,2,3)',
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{ id: {not: [] }}],
-          expectation: 'id NOT IN (NULL)',
           context: {options: {quoteIdentifiers: false}}
         }
       ]
