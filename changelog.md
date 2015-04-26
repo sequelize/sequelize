@@ -1,4 +1,4 @@
-# Next
+# 2.1.0
 - [BUG] Enable standards conforming strings on connection in postgres. Adresses [#3545](https://github.com/sequelize/sequelize/issues/3545)
 - [BUG] instance.removeAssociation(s) do not fire the select query twice anymore
 - [BUG] Error messages thrown by the db in languages other than english do not crash the app anymore (mysql, mariadb and postgres only) [#3567](https://github.com/sequelize/sequelize/pull/3567)
