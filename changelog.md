@@ -1,6 +1,7 @@
 # Next
 - [FEATURE] Lock modes in Postgres now support `OF table`
 - [FEATURE] New transaction lock modes `FOR KEY SHARE` and `NO KEY UPDATE` for Postgres 9.3+
+- [FEATURE/REFACTOR] Rewritten scopes with complete support for includes and scopes across associations
 
 # 2.1.0
 - [BUG] Enable standards conforming strings on connection in postgres. Adresses [#3545](https://github.com/sequelize/sequelize/issues/3545)

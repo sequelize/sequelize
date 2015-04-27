@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).spread(function (u1, u2, u3, u4, c1, c2, u5, proj1, prof1) {
           return Promise.all([
             c1.setUsers([u1, u2, u3, u4]),
-            c2.setUsers([u5])
+            c2.setUsers([u5]),
           ]);
         });
       });
