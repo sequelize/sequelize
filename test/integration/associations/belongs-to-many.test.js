@@ -851,6 +851,49 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
   });
 
+  describe('Eager loading paranoid with where clause', function() {
+    beforeEach(function() {
+      this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false});
+      this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, {timestamps: false, paranoid: true});
+
+      this.User.hasMany(this.Task);
+      this.Task.belongsTo(this.User);
+
+      return this.sequelize.sync({force: true});
+    });
+
+    it('Should not eager load deleted objects when eager loading with where clause', function() {
+      var self = this;
+
+      return Promise.all([
+        this.User.create({ username: 'foo' }),
+        this.Task.create({ id: 12, title: 'task1' }),
+        this.Task.create({ id: 15, title: 'task2' })
+      ]).spread(function(user, task1, task2) {
+        return user.setTasks([
+          task1,
+          task2
+        ]).return(user);
+      }).then(function(user) {
+        return [user, user.getTasks()];
+      }).spread(function(user, tasks) {
+        expect(tasks.length).to.equal(2);
+        return tasks[0].destroy().return(user);
+      }).then(function(user) {
+        return self.User.findOne(
+          { where: { id: user.id }}, // Note that this is required for this bug to surface
+          { include: [{ model: self.Task, where: { UserId: user.id }}] }
+        );
+      }).then(function(users) {
+        expect(users).to.be.defined;
+        expect(users.length).to.equal(1);
+        var user = users[0];
+        expect(user.Tasks).to.be.defined;
+        expect(user.Tasks.length).to.equal(1);
+      });
+    });
+  });
+
   describe('optimizations using bulk create, destroy and update', function() {
     beforeEach(function() {
       this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false});
