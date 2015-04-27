@@ -8,8 +8,6 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , Sequelize = require(__dirname + '/../../index');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Connections problems should fail with a nice message', function() {
     it('when we don\'t have the correct server details', function() {

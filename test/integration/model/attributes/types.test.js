@@ -8,8 +8,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../../support')
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('attributes', function() {
     describe('types', function() {

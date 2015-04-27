@@ -15,8 +15,6 @@ var chai = require('chai')
     }
   };
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   beforeEach(function() {
     this.sequelize.options.quoteIdenifiers = true;
@@ -206,7 +204,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         }
       });
     });
-
 
     it('should work with schemas', function() {
       var self = this;

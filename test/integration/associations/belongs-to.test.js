@@ -10,8 +10,6 @@ var chai = require('chai')
   , Promise = Sequelize.Promise
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('BelongsTo'), function() {
   describe('Model.associations', function() {
     it('should store all assocations when associting to the same table multiple times', function() {

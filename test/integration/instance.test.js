@@ -13,9 +13,6 @@ var chai = require('chai')
   , uuid = require('node-uuid')
   , current = Support.sequelize;
 
-chai.should();
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Instance'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {

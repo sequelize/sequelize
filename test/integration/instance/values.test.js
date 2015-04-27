@@ -8,8 +8,6 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('DAO'), function() {
   describe('Values', function() {
     describe('set', function() {

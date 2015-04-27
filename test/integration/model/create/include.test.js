@@ -7,8 +7,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../../support')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('create', function() {
     describe('include', function() {
@@ -182,7 +180,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         var Job = User.hasOne(Task, {as: 'job'});
-
 
 
         return this.sequelize.sync({ force: true }).then(function() {

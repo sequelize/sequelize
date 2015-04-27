@@ -8,8 +8,6 @@ var chai = require('chai')
   , config = require(__dirname + '/../../../config/config')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {
     describe('many-to-many', function() {

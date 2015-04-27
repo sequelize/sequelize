@@ -37,7 +37,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-
     test('function', function () {
       expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex'}), {
         default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))'

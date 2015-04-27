@@ -9,8 +9,12 @@ var fs = require('fs')
   , chai = require('chai')
   , expect = chai.expect;
 
+chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
+chai.config.includeStack = true;
+chai.should();
 
 // Make sure errors get thrown when testing
 Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {

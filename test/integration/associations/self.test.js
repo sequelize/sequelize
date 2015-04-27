@@ -9,8 +9,6 @@ var chai = require('chai')
   , Promise = Sequelize.Promise
   , _ = require('lodash');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Self'), function() {
   it('supports freezeTableName', function() {
     var Group = this.sequelize.define('Group', {}, {

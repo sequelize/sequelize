@@ -9,8 +9,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Promise = Sequelize.Promise;
 
-chai.config.includeStack = true;
-
 var sortById = function(a, b) {
   return a.id < b.id ? -1 : 1;
 };
@@ -221,7 +219,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
       Category.hasMany(SubCategory, {foreignKey: 'boundCategory'});
       SubCategory.belongsTo(Category, {foreignKey: 'boundCategory'});
-
 
       return this.sequelize.sync({force: true}).then(function() {
         return User.find({
@@ -1455,7 +1452,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
       });
     });
-
 
     it('should be possible to select on columns inside a through table', function() {
       var self = this;

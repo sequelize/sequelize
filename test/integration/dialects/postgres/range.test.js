@@ -7,8 +7,6 @@ var chai    = require('chai')
   , dialect = Support.getTestDialect()
   , range   = require('../../../../lib/dialects/postgres/range');
 
-chai.config.includeStack = true;
-
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] range datatype', function () {
     describe('stringify', function () {

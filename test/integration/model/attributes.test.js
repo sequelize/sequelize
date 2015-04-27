@@ -6,8 +6,6 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('attributes', function() {
     describe('set', function() {

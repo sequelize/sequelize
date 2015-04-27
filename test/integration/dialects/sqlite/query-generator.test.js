@@ -10,8 +10,6 @@ var chai = require('chai')
   , moment = require('moment')
   , QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
 
-chai.config.includeStack = true;
-
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', function() {
     beforeEach(function() {

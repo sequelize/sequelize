@@ -8,8 +8,6 @@ var chai      = require('chai')
   , Support   = require(__dirname + '/support')
   , Sequelize = Support.Sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
   describe('API Surface', function() {
 

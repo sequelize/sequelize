@@ -6,8 +6,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Promise = require('bluebird');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Include'), function() {
   describe('findAndCountAll', function() {
     it('should be able to include a required model. Result rows should match count', function() {

@@ -11,8 +11,6 @@ var chai = require('chai')
   , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Instance'), function() {
   describe('update', function() {
     beforeEach(function () {

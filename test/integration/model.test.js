@@ -13,8 +13,6 @@ var chai = require('chai')
   , moment = require('moment')
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
