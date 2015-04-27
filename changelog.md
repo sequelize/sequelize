@@ -8,6 +8,7 @@
 - [REFACTOR] `.changed()` now works proactively by setting a flag on `set` instead of matching reactively. Note that objects and arrays will not be checked for equality on set and will always result in a change if they are `set`.
 - [DEPRECATED] The query-chainer is deprecated and will be removed in version 2.2. Please use promises instead.
 - [REMOVED] Events are no longer supported.
+- [FEATURE] The default transaction level has been changed from `REPEATABLE READ` to `SERIALIZABLE` as it is the safest possibility.
 
 #### Backwards compatibility changes
 - Events support have been removed so using `.on('succes')` or `.succes()` is no longer supported.
