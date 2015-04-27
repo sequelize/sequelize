@@ -36,9 +36,27 @@ Model.findAll({
 }, {
   transaction: t1,
   lock: t1.LOCK.UPDATE,
-  lock: t1.LOCK.SHARE
+  lock: t1.LOCK.SHARE,
+  lock: t1.LOCK.KEY_SHARE, // Postgres 9.3+ only
+  lock: t1.LOCK.NO_KEY_SHARE // Postgres 9.3+ only
 })
 ```
+
+Postgres also supports specific locks while eager loading by using `OF`.
+
+```js
+UserModel.findAll({
+  where: ...,
+  include: [TaskModel, ...]
+}, {
+  transaction: t1,
+  lock: {
+    level: t1.LOCK...,
+    of: UserModel
+  }
+})
+```
+UserModel will be locked but TaskModel won't!
 
 ***
 
