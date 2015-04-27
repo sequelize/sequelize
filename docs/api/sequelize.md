@@ -74,7 +74,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 <a name="sequelize"></a>
 ## `new Sequelize(uri, [options={}])`
 [View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/sequelize.js#L98)
-Instantiate sequlize with an URI
+Instantiate sequelize with an URI
 
 **Params:**
 
@@ -564,11 +564,11 @@ By default, the function will return two arguments: an array of results, and a m
 If you are running a type of query where you don't need the metadata, for example a `SELECT` query, you can pass in a query type to make sequelize format the results:
 
 ```js
-sequlize.query('SELECT...').spread(function (results, metadata) {
+sequelize.query('SELECT...').spread(function (results, metadata) {
   // Raw query - use spread
 });
 
-sequlize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(function (results) {
+sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(function (results) {
   // SELECT query - use then
 })
 ```
