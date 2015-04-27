@@ -10,8 +10,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   if (current.dialect.supports.JSONB) {
     describe('JSONB', function () {

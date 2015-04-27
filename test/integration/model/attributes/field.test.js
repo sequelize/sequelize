@@ -9,8 +9,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('attributes', function() {
     describe('field', function() {
@@ -495,7 +493,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(comment.get('notes')).to.equal('Barfoo');
         });
       });
-
 
       it('should work with with an belongsTo association getter', function() {
         var userId = Math.floor(Math.random() * 100000);

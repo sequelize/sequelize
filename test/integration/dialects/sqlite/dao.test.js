@@ -6,8 +6,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', function() {
     beforeEach(function() {

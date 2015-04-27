@@ -8,8 +8,6 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('associations'), function() {
   describe('scope', function() {
     beforeEach(function() {

@@ -6,8 +6,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../../support')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Associations', function() {
     describe('many-to-many', function() {
@@ -45,7 +43,6 @@ if (Support.dialectIsMySQL()) {
         });
       });
     });
-
 
     describe('HasMany', function() {
       beforeEach(function() {

@@ -9,8 +9,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , sequelize = require(__dirname + '/../../../../lib/sequelize');
 
-chai.config.includeStack = true;
-
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] DAO', function() {
     beforeEach(function() {

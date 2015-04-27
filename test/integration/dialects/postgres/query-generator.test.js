@@ -11,8 +11,6 @@ var chai = require('chai')
   , current = Support.sequelize
   , _ = require('lodash');
 
-chai.config.includeStack = true;
-
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
     beforeEach(function() {

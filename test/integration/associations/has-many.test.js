@@ -13,8 +13,6 @@ var chai = require('chai')
   , current = Support.sequelize
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('HasMany'), function() {
   describe('Model.associations', function() {
     it('should store all assocations when associting to the same table multiple times', function() {

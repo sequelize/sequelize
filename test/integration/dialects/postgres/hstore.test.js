@@ -7,8 +7,6 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , hstore = require('../../../../lib/dialects/postgres/hstore');
 
-chai.config.includeStack = true;
-
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] hstore', function() {
     describe('stringify', function() {

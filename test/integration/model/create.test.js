@@ -14,8 +14,6 @@ var chai = require('chai')
   , assert = require('assert')
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
     return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
@@ -1575,7 +1573,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         schema: 'space1',
         tableName: 'Dummy'
       });
-
 
       return this.sequelize.dropAllSchemas().bind(this).then(function() {
         return this.sequelize.createSchema('space1');

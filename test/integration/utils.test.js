@@ -3,13 +3,9 @@
 /* jshint -W030 */
 /* jshint -W110 */
 var chai = require('chai')
-  , spies = require('chai-spies')
   , expect = chai.expect
   , Utils = require(__dirname + '/../../lib/utils')
   , Support = require(__dirname + '/support');
-
-chai.use(spies);
-chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('removeCommentsFromFunctionString', function() {

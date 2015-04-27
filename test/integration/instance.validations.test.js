@@ -8,8 +8,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , config = require(__dirname + '/../config/config');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   describe('validations', function() {
     var checks = {

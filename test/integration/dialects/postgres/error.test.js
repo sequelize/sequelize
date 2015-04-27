@@ -8,8 +8,6 @@ var chai      = require('chai')
   , dialect   = Support.getTestDialect()
   , _ = require('lodash');
 
-chai.config.includeStack = true;
-
 if (dialect.match(/^postgres/)) {
   var constraintName = 'overlap_period';
   beforeEach(function () {

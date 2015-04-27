@@ -216,7 +216,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11)'
       });
 
-
       testsql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
         default: 'FLOAT(11,12)'
       });

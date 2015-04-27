@@ -8,8 +8,6 @@ var chai = require('chai')
   , Promise = Sequelize.Promise
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Include'), function() {
   describe('find', function() {
     it('should include a non required model, with conditions and two includes N:M 1:M', function( ) {

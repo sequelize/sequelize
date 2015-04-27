@@ -9,8 +9,6 @@ var chai = require('chai')
   , Promise = Sequelize.Promise
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 var sortById = function(a, b) {
   return a.id < b.id ? -1 : 1;
 };

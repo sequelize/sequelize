@@ -8,8 +8,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {

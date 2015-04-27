@@ -12,8 +12,6 @@ var chai = require('chai')
   , current = Support.sequelize
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
   describe('getAssociations', function() {
     beforeEach(function() {

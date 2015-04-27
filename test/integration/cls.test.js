@@ -10,8 +10,6 @@ var chai      = require('chai')
   , cls       = require('continuation-local-storage')
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), function () {
     before(function () {

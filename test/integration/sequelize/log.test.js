@@ -2,13 +2,9 @@
 
 /* jshint -W030 */
 var chai = require('chai')
-  , sinonChai = require('sinon-chai')
   , sinon = require('sinon')
   , expect = chai.expect
   , Support = require(__dirname + '/../support');
-
-chai.use(sinonChai);
-chai.config.includeStack = true;
 
 describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('log', function() {

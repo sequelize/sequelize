@@ -8,8 +8,6 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('CounterCache'), function() {
   it('adds an integer column', function() {
     var User = this.sequelize.define('User', {})

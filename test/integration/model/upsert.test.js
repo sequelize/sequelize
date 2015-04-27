@@ -10,8 +10,6 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('user', {

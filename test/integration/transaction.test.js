@@ -176,6 +176,157 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         });
       });
 
+      it('fail locking with outer joins', function() {
+        var User = this.sequelize.define('User', { username: Support.Sequelize.STRING })
+          , Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN })
+          , self = this;
+
+        User.belongsToMany(Task, { through: 'UserTasks' });
+        Task.belongsToMany(User, { through: 'UserTasks' });
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return Promise.join(
+            User.create({ username: 'John'}),
+            Task.create({ title: 'Get rich', active: false}),
+          function (john, task1) {
+            return john.setTasks([task1]);
+          }).then(function() {
+            return self.sequelize.transaction(function(t1) {
+
+              if (current.dialect.supports.lockOuterJoinFailure) {
+
+                return expect(User.find({
+                  where: {
+                    username: 'John'
+                  },
+                  include: [Task]
+                }, {
+                  lock: t1.LOCK.UPDATE,
+                  transaction: t1
+                })).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
+
+              } else {
+
+                return User.find({
+                  where: {
+                    username: 'John'
+                  },
+                  include: [Task]
+                }, {
+                  lock: t1.LOCK.UPDATE,
+                  transaction: t1
+                });
+
+              }
+            });
+          });
+        });
+      });
+
+      if (current.dialect.supports.lockOf) {
+        it('supports for update of table', function() {
+          var User = this.sequelize.define('User', { username: Support.Sequelize.STRING }, { tableName: 'Person' })
+            , Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN })
+            , self = this;
+
+          User.belongsToMany(Task, { through: 'UserTasks' });
+          Task.belongsToMany(User, { through: 'UserTasks' });
+
+          return this.sequelize.sync({ force: true }).then(function() {
+            return Promise.join(
+              User.create({ username: 'John'}),
+              Task.create({ title: 'Get rich', active: false}),
+              Task.create({ title: 'Die trying', active: false}),
+            function (john, task1) {
+              return john.setTasks([task1]);
+            }).then(function() {
+              return self.sequelize.transaction(function(t1) {
+                return User.find({
+                  where: {
+                    username: 'John'
+                  },
+                  include: [Task]
+                }, {
+                  lock: {
+                    level: t1.LOCK.UPDATE,
+                    of: User
+                  },
+                  transaction: t1
+                }).then(function(t1John) {
+                  // should not be blocked by the lock of the other transaction
+                  return self.sequelize.transaction(function(t2) {
+                    return Task.update({
+                      active: true
+                    }, {
+                      where: {
+                        active: false
+                      },
+                      transaction: t2
+                    });
+                  }).then(function() {
+                    return t1John.save({
+                      transaction: t1
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      }
+
+      if (current.dialect.supports.lockKey) {
+        it('supports for key share', function() {
+          var User = this.sequelize.define('user', {
+              username: Support.Sequelize.STRING,
+              awesome: Support.Sequelize.BOOLEAN
+            })
+            , self = this
+            , t1Spy = sinon.spy()
+            , t2Spy = sinon.spy();
+
+          return this.sequelize.sync({ force: true }).then(function() {
+            return User.create({ username: 'jan'});
+          }).then(function() {
+            return self.sequelize.transaction().then(function(t1) {
+              return User.find({
+                where: {
+                  username: 'jan'
+                }
+              }, {
+                lock: t1.LOCK.NO_KEY_UPDATE,
+                transaction: t1
+              }).then(function(t1Jan) {
+                return self.sequelize.transaction().then(function(t2) {
+                  return Promise.join(
+                    User.find({
+                      where: {
+                        username: 'jan'
+                      }
+                    }, {
+                      lock: t2.LOCK.KEY_SHARE,
+                      transaction: t2
+                    }).then(function() {
+                      t2Spy();
+                      return t2.commit();
+                    }),
+                    t1Jan.update({
+                      awesome: true
+                    }, { transaction: t1}).then(function() {
+                      return Promise.delay(2000).then(function () {
+                        t1Spy();
+                        expect(t1Spy).to.have.been.calledAfter(t2Spy);
+                        return t1.commit();
+                      });
+                    })
+                  );
+                });
+              });
+            });
+          });
+        });
+      }
+
       it('supports for share', function() {
         var User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,

@@ -221,7 +221,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.offset] | Number |  |
 | [options.transaction] | Transaction |  |
 | [queryOptions] | Object | Set the query options, e.g. raw, specifying that you want raw data instead of built Instances. See sequelize.query for options |
-| [queryOptions.lock] | String | Lock the selected rows in either share or update mode. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE. See [transaction.LOCK for an example](https://github.com/sequelize/sequelize/wiki/API-Reference-Transaction#LOCK)  |
+| [queryOptions.lock] | String|Object | Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE. Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model locks with joins. See [transaction.LOCK for an example](api/transaction#lock)  |
 
 __Aliases:__ all
 

@@ -7,8 +7,6 @@ var chai = require('chai')
   , sinon = require('sinon')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] Connector Manager', function() {
     it('works correctly after being idle', function() {

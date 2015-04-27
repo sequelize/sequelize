@@ -17,8 +17,6 @@ var chai = require('chai')
   , current = Support.sequelize;
 
 
-chai.config.includeStack = true;
-
 var qq = function(str) {
   if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
     return '"' + str + '"';
@@ -611,7 +609,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       // This DAO inherits the global methods
       DAO.overrideMe();
       DAO.build().overrideMe();
-
 
       DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
         classMethods: {
