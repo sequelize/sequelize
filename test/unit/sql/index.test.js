@@ -37,7 +37,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-
     test('function', function () {
       expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex'}), {
         default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))'
@@ -51,6 +50,33 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           using: 'gin'
         }), {
           postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event")'
+        });
+      });
+    }
+
+    if (current.dialect.supports.index.using === 2) {
+      test('WHERE', function () {
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['type'],
+          where: {
+            type: 'public'
+          }
+        }), {
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\''
+        });
+
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['type'],
+          where: {
+            type: {
+              $or: [
+                'group',
+                'private'
+              ]
+            }
+          }
+        }), {
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')'
         });
       });
     }

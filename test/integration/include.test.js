@@ -10,8 +10,6 @@ var chai = require('chai')
   , _ = require('lodash')
   , dialect = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 var sortById = function(a, b) {
   return a.id < b.id ? -1 : 1;
 };
@@ -191,8 +189,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Groups
         , Users;
 
-      Groups = User.belongsToMany(Group);
-      Users = Group.belongsToMany(User);
+      Groups = User.belongsToMany(Group, { through: 'UserGroup' });
+      Users = Group.belongsToMany(User), { through: 'UserGroup' };
 
       return this.sequelize.sync({force: true}).then(function () {
         return User.create().then(function (user) {

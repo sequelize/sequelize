@@ -8,8 +8,6 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('DAO'), function() {
   describe('Values', function() {
     describe('set', function() {
@@ -425,21 +423,6 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
             expect(user.isDirty).to.be.false;
           });
         });
-      });
-
-      it('setting the same value twice should not impact the result', function() {
-        var User = this.sequelize.define('User', {
-          name: {type: DataTypes.STRING}
-        });
-        var user = User.build({
-          name: 'Jan Meier'
-        });
-        user.set('name', 'Mick Hansen');
-        user.set('name', 'Mick Hansen');
-        expect(user.changed('name')).to.be.true;
-        expect(user.changed()).to.be.ok;
-        expect(user.isDirty).to.be.true;
-        expect(user.previous('name')).to.equal('Jan Meier');
       });
 
       it('should be available to a afterUpdate hook', function () {

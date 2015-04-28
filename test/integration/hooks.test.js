@@ -9,8 +9,6 @@ var chai = require('chai')
   , sinon = require('sinon')
   , dialect   = Support.getTestDialect();
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('#validate', function() {
     describe('via define', function() {
@@ -3937,7 +3935,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           fn();
         });
 
-
         return this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(function() {
@@ -5120,7 +5117,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , beforeMiniTask = false
                 , afterMiniTask = false;
 
-
               this.Projects.beforeCreate(function(project, options, fn) {
                 beforeProject = true;
                 fn();
@@ -5177,7 +5173,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , beforeMiniTask = false
                 , afterMiniTask = false;
 
-
               this.Projects.beforeCreate(function(project, options, fn) {
                 beforeProject = true;
                 fn();
@@ -5228,7 +5223,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
 
-
       describe('multiple 1:M sequential hooks', function () {
         describe('cascade', function() {
           beforeEach(function() {
@@ -5265,7 +5259,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , beforeMiniTask = false
                 , afterMiniTask = false;
 
-
               this.Projects.beforeCreate(function(project, options, fn) {
                 beforeProject = true;
                 fn();
@@ -5295,7 +5288,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 afterMiniTask = true;
                 fn();
               });
-
 
               return this.sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),

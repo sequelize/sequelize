@@ -545,9 +545,36 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
+          default: "([data]#>>'{nested, attribute}')::double precision > 2"
+        });
+
+        testsql('data', {
+          nested: {
+            "attribute::integer": {
+              $gt: 2
+            }
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
           default: "([data]#>>'{nested, attribute}')::integer > 2"
         });
 
+        testsql('data', {
+          nested: {
+            attribute: {
+              $gt: new Date()
+            }
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(new Date())
+        });
 
         testsql('data', {
           $contains: {

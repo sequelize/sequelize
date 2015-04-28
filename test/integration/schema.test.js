@@ -6,8 +6,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Schema'), function() {
   beforeEach(function() {
     return this.sequelize.createSchema('testschema');

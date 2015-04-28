@@ -11,8 +11,6 @@ var chai = require('chai')
   , _ = require('lodash')
   , Promise = require(__dirname + '/../../../../lib/promise');
 
-chai.config.includeStack = true;
-
 var baseConf = Config[Support.getTestDialect()];
 var poolEntry = {
   host: baseConf.host,

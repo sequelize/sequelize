@@ -12,12 +12,12 @@ cache:
     - node_modules
 
 env:
-  - DB=mysql DIALECT=mysql
-  - DB=mysql DIALECT=postgres
-  - DB=mysql DIALECT=postgres-native
-  - DB=mysql DIALECT=sqlite
-  - DB=mysql DIALECT=mariadb
-  - DB=mysql DIALECT=mssql
+  - DIALECT=mysql
+  - DIALECT=postgres
+  - DIALECT=postgres-native
+  - DIALECT=sqlite
+  - DIALECT=mariadb
+  - DIALECT=mssql
 
 addons:
   postgresql: "9.4"

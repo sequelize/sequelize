@@ -5,8 +5,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
   it('can filter through belongsTo', function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })

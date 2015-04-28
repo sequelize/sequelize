@@ -7,8 +7,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , config = require(__dirname + '/../../../config/config');
 
-chai.config.includeStack = true;
-
 if (Support.dialectIsMySQL()) {
   describe('[MYSQL Specific] DAOFactory', function() {
     describe('constructor', function() {

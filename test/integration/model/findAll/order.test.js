@@ -7,8 +7,6 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('findAll', function () {
     describe('order', function () {

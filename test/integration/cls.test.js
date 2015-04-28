@@ -10,8 +10,6 @@ var chai      = require('chai')
   , cls       = require('continuation-local-storage')
   , current = Support.sequelize;
 
-chai.config.includeStack = true;
-
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), function () {
     before(function () {
@@ -111,6 +109,18 @@ if (current.dialect.supports.transactions) {
           return Promise.resolve();
         }).bind(this).then(function () {
           expect(this.ns.get('transaction')).not.to.be.ok;
+        });
+      });
+
+      it('does not leak outside findOrCreate', function () {
+        var self = this;
+
+        return this.User.findOrCreate({
+          where: {
+            name: 'Kafka'
+          }
+        }).then(function () {
+          return self.User.findAll();
         });
       });
     });

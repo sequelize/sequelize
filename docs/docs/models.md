@@ -80,6 +80,9 @@ Sequelize.BOOLEAN                     // TINYINT(1)
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
 Sequelize.ARRAY(Sequelize.TEXT)       // Defines an array. PostgreSQL only.
 
+Sequelize.JSON                        // JSON column. PostgreSQL only.
+Sequelize.JSONB                       // JSONB column. PostgreSQL only.
+
 Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
 Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other options are medium and long)
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
@@ -840,6 +843,45 @@ To recap&comma; the elements of the order &sol; group array can be the following
   * Raw will be added verbatim without quoting
   * Everything else is ignored&comma; and if raw is not set&comma; the query will fail
 * Sequelize&period;fn and Sequelize&period;col returns functions and quoted cools
+
+### Indexes
+Sequelize supports adding indexes to the model definition which will be created during `Model.sync()` or `sequelize.sync`.
+
+```js
+sequelize.define('User', {}, {
+  indexes: [
+    // Create a unique index on email
+    {
+      unique: true,
+      fields: ['email']
+    },
+
+    // Creates a gin index on data with the jsonb_path_ops operator
+    {
+      fields: ['data'],
+      using: 'gin',
+      operator: 'jsonb_path_ops'
+    },
+
+    // By default index name will be [table]_[fields]
+    // Creates a multi column partial index
+    {
+      name: 'public_by_author',
+      fields: ['author', 'status'],
+      where: {
+        status: 'public'
+      }
+    },
+
+    // A BTREE index with a ordered field
+    {
+      name: 'title_index',
+      method: 'BTREE',
+      fields: ['author', {attribute: 'title', collate: 'en_US', order: 'DESC', length: 5}]
+    }
+  ]
+})
+```
 
 ### Raw queries
 

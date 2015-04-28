@@ -8,8 +8,6 @@ var chai = require('chai')
   , config = require(__dirname + '/../../../config/config')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-chai.config.includeStack = true;
-
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {
     describe('many-to-many', function() {
@@ -55,8 +53,8 @@ if (dialect.match(/^postgres/)) {
           this.users = null;
           this.tasks = null;
 
-          this.User.hasMany(this.Task, {as: 'Tasks', through: 'usertasks'});
-          this.Task.hasMany(this.User, {as: 'Users', through: 'usertasks'});
+          this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'usertasks'});
+          this.Task.belongsToMany(this.User, {as: 'Users', through: 'usertasks'});
 
           var users = []
             , tasks = [];

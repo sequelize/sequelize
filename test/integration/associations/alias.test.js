@@ -7,8 +7,6 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise;
 
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Alias'), function() {
   it('should uppercase the first letter in alias getter, but not in eager loading', function() {
     var User = this.sequelize.define('user', {})

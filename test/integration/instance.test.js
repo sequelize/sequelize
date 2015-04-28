@@ -13,9 +13,6 @@ var chai = require('chai')
   , uuid = require('node-uuid')
   , current = Support.sequelize;
 
-chai.should();
-chai.config.includeStack = true;
-
 describe(Support.getTestDialectTeaser('Instance'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
@@ -137,21 +134,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('returns false for non-changed attribute', function() {
       return this.User.create({ username: 'user' }).then(function(user) {
         user.username = 'user';
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
-    it('returns false for non-changed date attribute', function() {
-      return this.User.create({ aDate: new Date(2013, 6, 31, 14, 25, 21) }).then(function(user) {
-        user.aDate = '2013-07-31 14:25:21';
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
-    // In my opinion this is bad logic, null is different from an empty string
-    it.skip('returns false for two empty attributes', function() {
-      return this.User.create({ username: null }).then(function(user) {
-        user.username = '';
         expect(user.isDirty).to.be.false;
       });
     });
@@ -1707,7 +1689,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
       return User.sync().then(function() {
         var user = User.build({ username: 'foo' });
-        expect(user.values).to.deep.equal({ username: 'foo', id: null });
+        expect(user.get({ plain: true })).to.deep.equal({ username: 'foo', id: null });
       });
     });
   });
@@ -1767,9 +1749,11 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return UserDelete.create({name: 'hallo', bio: 'welt'}).then(function(u) {
           return UserDelete.findAll().then(function(users) {
             expect(users.length).to.equal(1);
-            return u.destroy().on('sql', function(sql) {
-              expect(sql).to.exist;
-              expect(sql.toUpperCase().indexOf('DELETE')).to.be.above(-1);
+            return u.destroy({
+              logging: function (sql) {
+                expect(sql).to.exist;
+                expect(sql.toUpperCase().indexOf('DELETE')).to.be.above(-1);
+              }
             });
           });
         });
@@ -1803,8 +1787,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       }).then(function() {
         return ParanoidUser.find({where: {secretValue: '42'}});
       }).then(function(user) {
-        return user.destroy()
-        .then(function() {
+        return user.destroy().then(function() {
           return user.restore();
         });
       }).then(function() {
