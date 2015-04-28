@@ -430,28 +430,28 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" LIKE ANY (ARRAY['foo','bar','baz'])"
+            postgres: "\"userId\" LIKE ANY ARRAY['foo','bar','baz']"
           });
           testsql('userId', {
             $iLike: {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" ILIKE ANY (ARRAY['foo','bar','baz'])"
+            postgres: "\"userId\" ILIKE ANY ARRAY['foo','bar','baz']"
           });
           testsql('userId', {
             $notLike: {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" NOT LIKE ANY (ARRAY['foo','bar','baz'])"
+            postgres: "\"userId\" NOT LIKE ANY ARRAY['foo','bar','baz']"
           });
           testsql('userId', {
             $notILike: {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" NOT ILIKE ANY (ARRAY['foo','bar','baz'])"
+            postgres: "\"userId\" NOT ILIKE ANY ARRAY['foo','bar','baz']"
           });
         });
       });
