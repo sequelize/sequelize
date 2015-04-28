@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             this.Company.create({ id: 2, active: false}),
             this.ScopeMe.create({ id: 5, username: 'bob', email: 'bob@foobar.com', access_level: 1, other_value: 9, parent_id: 5}),
           ]);
-        }).spread(function (u1, u2, u3, u4, c1, c2, u5, proj1, prof1) {
+        }).spread(function (u1, u2, u3, u4, c1, c2, u5) {
           return Promise.all([
             c1.setUsers([u1, u2, u3, u4]),
             c2.setUsers([u5]),

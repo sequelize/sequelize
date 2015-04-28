@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(Company.scope('somethingTrue', 'somethingFalse').$scope).to.deep.equal({
         where: {
           something: false,
-          somethingElse: 'cat'
+          somethingElse: 42
         },
         limit: 5
       });
