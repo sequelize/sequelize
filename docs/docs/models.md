@@ -699,7 +699,7 @@ Project.findAll({
       $gt: 6,                // id > 6
       $gte: 6,               // id >= 6
       $lt: 10,               // id < 10
-      $lte: 10,              // id
+      $lte: 10,              // id <= 10
       $ne: 20,               // id != 20
       $between: [6, 10],     // BETWEEN 6 AND 10
       $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
