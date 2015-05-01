@@ -188,14 +188,153 @@ UserProjects = sequelize.define('UserProjects', {
 })
 ```
 
+## Scopes
+This section concerns association scopes. For a definition of assocation scopes vs. scopes on associated models, see [Scopes](docs/scopes).
+
+Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
+
+#### 1:m
+Assume we have tables Comment, Post and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
+
+```js
+this.Comment = this.sequelize.define('comment', {
+  title: Sequelize.STRING,
+  commentable: Sequelize.STRING,
+  commentable_id: Sequelize.INTEGER
+}, {
+  instanceMethods: {
+    getItem: function() {
+      return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+    }
+  }
+});
+
+this.Post.hasMany(this.Comment, {
+  foreignKey: 'commentable_id',
+  scope: {
+    commentable: 'post'
+  }
+});
+this.Comment.belongsTo(this.Post, {
+  foreignKey: 'commentable_id',
+  as: 'post'
+});
+
+this.Image.hasMany(this.Comment, {
+  foreignKey: 'commentable_id',
+  scope: {
+    commentable: 'image'
+  }
+});
+this.Comment.belongsTo(this.Image, {
+  foreignKey: 'commentable_id',
+  as: 'image'
+});
+```
+
+Note that the Image -> Comment and Post -> Comment relations define a scope, `commentable: 'image'` and `commentable: 'post'` respectively. This scope is automatically applied when using the association functions:
+
+```js
+Image.getComments()
+SELECT * FROM comments WHERE commentable_id = 42 AND commentable = 'image';
+
+Image.createComment({
+  title: 'Awesome!'
+})
+INSERT INTO comments (title, commentable_id, commentable) VALUES ('Awesome!', 'image', 42);
+
+Image.addComment(comment);
+UPDATE comments SET commentable_id = 42, commentable = 'image'
+```
+
+The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to etiher `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
+
+#### n:m
+Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several item
+
+For brevity, the example only shows a Post model, but in reality Tag would be related to several other models.
+
+```js
+ItemTag = sequelize.define('item_tag', {
+  tag_id: {
+    type: DataTypes.INTEGER,
+    unique: 'item_tag_taggable'
+  },
+  taggable: {
+    type: DataTypes.STRING,
+    unique: 'item_tag_taggable'
+  },
+  taggable_id: {
+    type: DataTypes.INTEGER,
+    unique: 'item_tag_taggable',
+    references: null
+  }
+});
+Tag = sequelize.define('tag', {
+  name: DataTypes.STRING
+});
+
+Post.belongsToMany(Tag, {
+  through: {
+    model: ItemTag,
+    unique: false,
+    scope: {
+      taggable: 'post'
+    }
+  },
+  foreignKey: 'taggable_id',
+  constraints: false
+});
+Tag.belongsToMany(Post, {
+  through: {
+    model: ItemTag,
+    unique: false
+  },
+  foreignKey: 'tag_id'
+});
+```
+
+Notice that the scoped column (`taggable`) is now on the through model (`ItemTag`).
+
+We could also define a more restrictive association, for example to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
+
+```js
+Post.hasMany(Tag, {
+  through: {
+    model: ItemTag,
+    unique: false,
+    scope: {
+      taggable: 'post'
+    }
+  },
+  scope: {
+    status: 'pending'
+  },
+  as: 'pendingTags',
+  foreignKey: 'taggable_id',
+  constraints: false
+});
+
+Post.getPendingTags();
+```
+```sql
+SELECT `tag`.*  INNER JOIN `item_tags` AS `item_tag` 
+ON `tag`.`id` = `item_tag`.`tagId` 
+  AND `item_tag`.`taggable_id` = 42
+  AND `item_tag`.`taggable` = 'post'
+WHERE (`tag`.`status` = 'pending');
+```
+
+`constraints: false` disables references constraints on the `taggable_id` column. Because the column is polymorphic, we cannot say that it `REFERENCES` a specific table.
+
 ## Naming strategy
 
 By default sequelize will use the model name (the name passed to `sequelize.define`) to figure out the name of the model when used in associations. For example, a model named `user` will add the functions `get/set/add User` to instances of the associated model, and a property named `.user` in eager loading, while a model named `User` will add the same functions, but a property named `.User` (notice the upper case U) in eager loading.
 
 As we've already seen, you can alias models in associations using `as`. In single associations (has one and belongs to), the alias should be singular, while for many associations (has many) it should be plural. Sequelize then uses the [inflection ][0]library to convert the alias to its singular form. However, this might not always work for irregular or non-english words. In this case, you can provide both the plural and the singular form of the alias:
-   
-```js 
-User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks' }}) 
+
+```js
+User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks' }})
 // Notice that inflection has no problem singularizing tasks, this is just for illustrative purposes.
 ```
 

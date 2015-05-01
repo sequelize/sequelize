@@ -290,7 +290,7 @@ if (Support.dialectIsMySQL()) {
               )
             };
           }],
-          expectation: "SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN ('Lost','Found'));",
+          expectation: "SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN ('Lost', 'Found'));",
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -563,38 +563,6 @@ if (Support.dialectIsMySQL()) {
         }, {
           arguments: ['User', ['foo', 'bar']],
           expectation: 'DROP INDEX user_foo_bar ON `User`'
-        }
-      ],
-
-      hashToWhereConditions: [
-        {
-          arguments: [{ id: [1, 2, 3] }],
-          expectation: '`id` IN (1,2,3)'
-        },
-        {
-          arguments: [{ id: [] }],
-          expectation: '`id` IN (NULL)'
-        },
-        {
-          arguments: [{ maple: false, bacon: true }],
-          expectation: '`maple`=false AND `bacon`=true'
-        },
-        {
-          arguments: [{ beaver: [false, true] }],
-          expectation: '`beaver` IN (false,true)'
-        },
-        {
-          arguments: [{birthday: new Date(Date.UTC(2011, 6, 1, 10, 1, 55))}],
-          expectation: "`birthday`='2011-07-01 10:01:55'"
-        },
-        {
-          arguments: [{ birthday: new Date(Date.UTC(2011, 6, 1, 10, 1, 55)),
-                        otherday: new Date(Date.UTC(2013, 6, 2, 10, 1, 22)) }],
-          expectation: "`birthday`='2011-07-01 10:01:55' AND `otherday`='2013-07-02 10:01:22'"
-        },
-        {
-          arguments: [{ birthday: [new Date(Date.UTC(2011, 6, 1, 10, 1, 55)), new Date(Date.UTC(2013, 6, 2, 10, 1, 22))] }],
-          expectation: "`birthday` IN ('2011-07-01 10:01:55','2013-07-02 10:01:22')"
         }
       ]
     };
