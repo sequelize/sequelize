@@ -593,10 +593,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([data]#>>'{nested, attribute}')::integer > 2"
         });
 
+        var dt = new Date();
         testsql('data', {
           nested: {
             attribute: {
-              $gt: new Date()
+              $gt: dt
             }
           }
         }, {
@@ -604,7 +605,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(new Date())
+          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(dt)
         });
 
         testsql('data', {

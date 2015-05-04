@@ -18,6 +18,7 @@ pages:
 #- ['docs/usage.md', 'Documentation', 'Usage']
 - ['docs/models-definition.md', 'Documentation', 'Models - Definition']
 - ['docs/models-usage.md', 'Documentation', 'Models - Usage']
+- ['docs/querying.md', 'Documentation', 'Querying']
 - ['docs/scopes.md', 'Documentation', 'Scopes']
 - ['docs/instances.md', 'Documentation', 'Instances']
 - ['docs/associations.md', 'Documentation', 'Relations/Associations']
