@@ -82,6 +82,10 @@ cover:
 	rm -rf coverage \
 	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd $(TESTS); \
 
+mssql-cover:
+	rm -rf coverage
+	@DIALECT=mssql make cover
+	mv coverage coverage-mssql
 mariadb-cover:
 	rm -rf coverage
 	@DIALECT=mariadb make cover
@@ -108,9 +112,6 @@ merge-coverage:
 	mkdir coverage
 	./node_modules/.bin/lcov-result-merger 'coverage-*/lcov.info' 'coverage/lcov.info'
 
-coveralls-send:
-	cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage*
-
 codeclimate-send:
 	npm install -g codeclimate-test-reporter
 	CODECLIMATE_REPO_TOKEN=ce835a510bbf423a5ab5400a9bdcc2ec2d189d840b31657c6ee7cb9916b161d6 codeclimate < coverage/lcov.info
@@ -124,8 +125,7 @@ postgresn: postgres-native
 
 all: sqlite mysql postgres postgres-native mariadb
 
-all-cover: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover merge-coverage
-coveralls: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover merge-coverage coveralls-send
-codeclimate: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover merge-coverage codeclimate-send
+all-cover: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover mssql-cover merge-coverage
+codeclimate: all-cover codeclimate-send
 
 .PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test
