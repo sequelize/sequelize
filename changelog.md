@@ -17,7 +17,7 @@
     + bluebird@2.9.24
 
 #### Backwards compatibility changes
-- Events support have been removed so using `.on('success')` or `.success()` is no longer supported.
+- Events support have been removed so using `.on('success')` or `.success()` is no longer supported. Try using `.then()` instead.
 - Trying to apply a scope that does not exist will always throw an error
 
 # 2.0.6
