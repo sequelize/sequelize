@@ -201,7 +201,7 @@ User.bulkCreate([
 })
 ```
 
-`bulkCreate` was originally made to be a mainstream&sol;fast way of inserting records&comma; however&comma; sometimes you want the luxury of being able to insert multiple rows at once without sacrificing model validations even when you explicitly tell Sequelize which columns to sift through&period; You can do by adding a `validate: true` property to the optons object.
+`bulkCreate` was originally made to be a mainstream&sol;fast way of inserting records&comma; however&comma; sometimes you want the luxury of being able to insert multiple rows at once without sacrificing model validations even when you explicitly tell Sequelize which columns to sift through&period; You can do by adding a `validate: true` property to the options object.
     
 ```js
 var Tasks = sequelize.define('Task', {
