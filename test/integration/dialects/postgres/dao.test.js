@@ -24,6 +24,10 @@ if (dialect.match(/^postgres/)) {
           type: DataTypes.ARRAY(DataTypes.JSON),
           defaultValue: []
         },
+        magic_numbers: {
+          type: DataTypes.ARRAY(DataTypes.INTEGER),
+          defaultValue: []
+        },
         course_period: DataTypes.RANGE(DataTypes.DATE),
         acceptable_marks: { type: DataTypes.RANGE(DataTypes.DECIMAL), defaultValue: [0.65, 1] },
         available_amount: DataTypes.RANGE,
