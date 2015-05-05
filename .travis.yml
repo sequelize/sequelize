@@ -24,8 +24,7 @@ addons:
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"
-  - "psql -c 'create database sequelize_test;' -U postgres"
-  - psql -U postgres -c "create extension postgis"
+  - "psql -c 'create database sequelize_test; create extension postgis;' -U postgres"
 
 script:
   - "make test"
