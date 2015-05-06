@@ -45,9 +45,13 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       });
     });
     it('supports automatically rolling back with a thrown error', function() {
-      return expect(this.sequelize.transaction(function() {
+      var t;
+      return (expect(this.sequelize.transaction(function(transaction) {
+        t = transaction;
         throw new Error('Yolo');
-      })).to.eventually.be.rejected;
+      })).to.eventually.be.rejected).then(function() {
+        expect(t.finished).to.be.equal('rollback');
+      });
     });
     it('supports automatically rolling back with a rejection', function() {
       return expect(this.sequelize.transaction(function() {
