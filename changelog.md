@@ -6,6 +6,8 @@
 
 # 2.1.1
 - [BUG] .get() now passes along options correctly when using a custom getter
+- [BUG] Fix managed transactions not rolling back if an error occured the transaction block [3661](https://github.com/sequelize/sequelize/pull/3661)
+- [BUG] Fix a node-webkit issue [3650](https://github.com/sequelize/sequelize/pull/3650)
 - [FEATURE] Lock modes in Postgres now support `OF table`
 - [FEATURE] New transaction lock modes `FOR KEY SHARE` and `NO KEY UPDATE` for Postgres 9.3+
 - [FEATURE/REFACTOR] Rewritten scopes with complete support for includes and scopes across associations
