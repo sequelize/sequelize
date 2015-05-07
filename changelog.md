@@ -1,3 +1,6 @@
+# next
+- [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore
+
 # 2.1.2
 - [BUG] `Model.create()/update()` no longer attempts to save undefined fields.
 
