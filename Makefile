@@ -1,6 +1,8 @@
 REPORTER ?= spec
 TESTS = $(shell find ./test/integration/* -name "*.test.js")
 DIALECT ?= mysql
+JSHINT ?= ./node_modules/.bin/jshint
+MOCHA ?= ./node_modules/.bin/mocha
 
 # test commands
 
@@ -20,7 +22,7 @@ endif
 
 # Unit tests
 test-unit:
-	./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) ./test/unit/*.js ./test/unit/**/*.js
+	$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) ./test/unit/*.js ./test/unit/**/*.js
 
 test-unit-all: test-unit-sqlite test-unit-mysql test-unit-postgres test-unit-postgres-native test-unit-mariadb test-unit-mssql
 
@@ -40,9 +42,9 @@ test-unit-postgres-native:
 # Integration tests
 test-integration:
 	@if [ "$$GREP" ]; then \
-		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
-		./node_modules/mocha/bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
+		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
 	fi
 
 test-integration-all: test-integration-sqlite test-integration-mysql test-integration-postgres test-integration-postgres-native test-integration-mariadb test-integration-mssql
@@ -62,7 +64,7 @@ test-integration-postgres-native:
 
 
 jshint:
-	./node_modules/.bin/jshint lib test
+	$(JSHINT) lib test
 
 mariadb:
 	@DIALECT=mariadb make test

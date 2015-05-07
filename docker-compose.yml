@@ -1,0 +1,27 @@
+sequelize:
+  build: .
+  links:
+   - mysql
+   - postgres
+  volumes:
+    - .:/sequelize
+  environment:
+    SEQ_DB: sequelize_test
+    SEQ_USER: sequelize_test
+    SEQ_PW: sequelize_test
+    JSHINT: /node_modules/.bin/jshint
+    MOCHA: /node_modules/.bin/mocha
+
+postgres:
+  image: postgres:9.4
+  environment:
+    POSTGRES_USER: sequelize_test
+    POSTGRES_PASSWORD: sequelize_test
+
+mysql:
+  image: mysql:5.6
+  environment:
+    MYSQL_ROOT_PASSWORD: lollerskates
+    MYSQL_DATABASE: sequelize_test
+    MYSQL_USER: sequelize_test
+    MYSQL_PASSWORD: sequelize_test
