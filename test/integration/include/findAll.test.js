@@ -1817,8 +1817,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Group = this.sequelize.define('Group', {});
 
       User.belongsTo(Company);
-      User.belongsToMany(Group);
-      Group.belongsToMany(User);
+      User.belongsToMany(Group, { through: 'UsersGroups' });
+      Group.belongsToMany(User, { through: 'UsersGroups' });
 
       return this.sequelize.sync({force: true}).then(function () {
         return User.findAll({
