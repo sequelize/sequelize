@@ -1,3 +1,6 @@
+# 2.1.2
+- [BUG] `Model.create()/update()` no longer attempts to save undefined fields.
+
 # 2.1.1
 - [BUG] .get() now passes along options correctly when using a custom getter
 - [FEATURE] Lock modes in Postgres now support `OF table`
