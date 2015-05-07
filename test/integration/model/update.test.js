@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      return Account.sync({force: true, logging: console.log}).then(function () {
+      return Account.sync({force: true}).then(function () {
         return Account.create({
           ownerId: 2
         }).then(function (account) {
