@@ -3,7 +3,8 @@ language: node_js
 node_js:
   - "0.10"
   - "0.12"
-  - "iojs"
+  - "iojs-v1.8"
+ # - "iojs" # iojs 2.0 is failing because of pg-native and nan
 
 sudo: false
 

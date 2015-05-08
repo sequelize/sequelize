@@ -57,6 +57,8 @@ $like: '%hat',         // LIKE '%hat'
 $notLike: '%hat'       // NOT LIKE '%hat'
 $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
 $notILike: '%hat'      // NOT ILIKE '%hat'
+$like: { $any: ['cat', 'hat']} 
+                       // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
 $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
 $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
 $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)

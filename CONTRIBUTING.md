@@ -67,34 +67,24 @@ $ psql
 get SQLite tests for free :)
 
 #### 3a. Docker
-If you don't feel like setting up databases and users, you can use our [docker](http://docker.io) [image](https://index.docker.io/u/mhansen/sequelize-contribution/) for sequelize contribution.
 
-Getting the image:
-```console
-$ sudo docker pull mhansen/sequelize-contribution
+Makes sure Docker and docker-compose are installed.
+
+Then simply run:
+
+```sh
+npm run test-docker
 ```
 
-Start the container and save references to container id and ip:
-```console
-# Start mysql/postgres container
-$ CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
-# Or start postgres 9.4 container
-$ CONTAINER=$(sudo docker run --name sequelize-postgres -e POSTGRES_USER=sequelize_test -e POSTGRES_PASSWORD=sequelize_test -d postgres:9.4)
+And once in a while you might want to run:
 
-$ CONTAINER_IP=$(sudo docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
+```sh
+npm run build-docker
 ```
 
-Run tests:
-```console
-$ SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
-```
+To rebuild the image (in case of changed dependencies or similar).
 
-Stop the container:
-```console
-$ sudo docker stop $CONTAINER
-```
-
-When running tests repeatedly, you only need to redo step 3 if you haven't stopped the container.
+If sequelize is unable to connect to mysql you might want to try running `sudo docker-compose up` in a second terminal window.
 
 #### 3b. Docker and OSX:
 

@@ -44,20 +44,34 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         return Promise.resolve();
       });
     });
-    it('supports automatically rolling back with a thrown error', function() {
-      return expect(this.sequelize.transaction(function() {
-        throw new Error('Yolo');
-      })).to.eventually.be.rejected;
-    });
-    it('supports automatically rolling back with a rejection', function() {
-      return expect(this.sequelize.transaction(function() {
-        return Promise.reject('Swag');
-      })).to.eventually.be.rejected;
-    });
-    it('errors when no promise chain is returned', function() {
-      return expect(this.sequelize.transaction(function() {
 
-      })).to.eventually.be.rejected;
+    it('supports automatically rolling back with a thrown error', function() {
+      var t;
+      return (expect(this.sequelize.transaction(function(transaction) {
+        t = transaction;
+        throw new Error('Yolo');
+      })).to.eventually.be.rejected).then(function() {
+        expect(t.finished).to.be.equal('rollback');
+      });
+    });
+
+    it('supports automatically rolling back with a rejection', function() {
+      var t;
+      return (expect(this.sequelize.transaction(function(transaction) {
+        t = transaction;
+        return Promise.reject('Swag');
+      })).to.eventually.be.rejected).then(function() {
+        expect(t.finished).to.be.equal('rollback');
+      });
+    });
+
+    it('errors when no promise chain is returned', function() {
+      var t;
+      return (expect(this.sequelize.transaction(function(transaction) {
+        t = transaction;
+      })).to.eventually.be.rejected).then(function() {
+        expect(t.finished).to.be.equal('rollback');
+      });
     });
   });
 

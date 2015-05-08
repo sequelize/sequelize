@@ -452,6 +452,37 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             });
           });
         });
+
+        suite('$like', function() {
+          testsql('userId', {
+            $like: {
+              $any: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" LIKE ANY ARRAY['foo','bar','baz']"
+          });
+          testsql('userId', {
+            $iLike: {
+              $any: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" ILIKE ANY ARRAY['foo','bar','baz']"
+          });
+          testsql('userId', {
+            $notLike: {
+              $any: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" NOT LIKE ANY ARRAY['foo','bar','baz']"
+          });
+          testsql('userId', {
+            $notILike: {
+              $any: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" NOT ILIKE ANY ARRAY['foo','bar','baz']"
+          });
+        });
       });
     }
 
@@ -562,10 +593,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([data]#>>'{nested, attribute}')::integer > 2"
         });
 
+        var dt = new Date();
         testsql('data', {
           nested: {
             attribute: {
-              $gt: new Date()
+              $gt: dt
             }
           }
         }, {
@@ -573,7 +605,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(new Date())
+          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(dt)
         });
 
         testsql('data', {

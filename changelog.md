@@ -1,6 +1,17 @@
-# Next
+# 2.1.3
+- [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
+- [BUG] Fix managed transactions not rolling back if no thenable was provided in the transaction block [3667](https://github.com/sequelize/sequelize/pull/3667)
+
+# 2.1.2
+- [BUG] `Model.create()/update()` no longer attempts to save undefined fields.
+
+# 2.1.1
+- [BUG] .get() now passes along options correctly when using a custom getter
+- [BUG] Fix managed transactions not rolling back if an error occured the transaction block [3661](https://github.com/sequelize/sequelize/pull/3661)
+- [BUG] Fix a node-webkit issue [3650](https://github.com/sequelize/sequelize/pull/3650)
 - [FEATURE] Lock modes in Postgres now support `OF table`
 - [FEATURE] New transaction lock modes `FOR KEY SHARE` and `NO KEY UPDATE` for Postgres 9.3+
+- [FEATURE/REFACTOR] Rewritten scopes with complete support for includes and scopes across associations
 
 # 2.1.0
 - [BUG] Enable standards conforming strings on connection in postgres. Adresses [#3545](https://github.com/sequelize/sequelize/issues/3545)
@@ -16,7 +27,8 @@
     + bluebird@2.9.24
 
 #### Backwards compatibility changes
-- Events support have been removed so using `.on('succes')` or `.succes()` is no longer supported.
+- Events support have been removed so using `.on('success')` or `.success()` is no longer supported. Try using `.then()` instead.
+- Trying to apply a scope that does not exist will always throw an error
 
 # 2.0.6
 - [BUG] Don't update virtual attributes in Model.update. Fixes [#2860](https://github.com/sequelize/sequelize/issues/2860)
