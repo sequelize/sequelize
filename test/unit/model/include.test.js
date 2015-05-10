@@ -8,7 +8,7 @@ var chai = require('chai')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  describe.only('$validateIncludedElements', function () {
+  describe('$validateIncludedElements', function () {
     beforeEach(function () {
       this.User = this.sequelize.define('User');
       this.Task = this.sequelize.define('Task', {
@@ -60,6 +60,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(options.subQuery).to.equal(true);
       });
 
+      it('should be false if theres a duplicating association but no limit', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [
+            {association: this.User.Tasks}
+          ],
+          limit: null
+        });
+
+        expect(options.subQuery).to.equal(false);
+      });
+
       it('should be true if theres a nested duplicating association', function () {
         var options = Sequelize.Model.$validateIncludedElements({
           model: this.User,
@@ -73,9 +85,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(options.subQuery).to.equal(true);
       });
-    });
 
-    describe('subQueryFilter', function () {
+      it('should be false if theres a nested duplicating association but no limit', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [
+            {association: this.User.Company, include: [
+              this.Company.Employees
+            ]}
+          ],
+          limit: null
+        });
+
+        expect(options.subQuery).to.equal(false);
+      });
+
       it('should tag a required hasMany association', function () {
         var options = Sequelize.Model.$validateIncludedElements({
           model: this.User,
@@ -86,6 +110,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(true);
+        expect(options.include[0].subQuery).to.equal(false);
         expect(options.include[0].subQueryFilter).to.equal(true);
       });
 
@@ -99,6 +124,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(false);
+        expect(options.include[0].subQuery).to.equal(false);
         expect(options.include[0].subQueryFilter).to.equal(false);
       });
 
@@ -112,6 +138,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(true);
+        expect(options.include[0].subQuery).to.equal(false);
         expect(options.include[0].subQueryFilter).to.equal(true);
       });
 
@@ -125,11 +152,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(false);
+        expect(options.include[0].subQuery).to.equal(false);
         expect(options.include[0].subQueryFilter).to.equal(false);
       });
-    });
 
-    describe('subQueryFull', function () {
       it('should tag a required belongsTo alongside a duplicating association', function () {
         var options = Sequelize.Model.$validateIncludedElements({
           model: this.User,
@@ -141,7 +167,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(true);
-        expect(options.include[0].subQueryFull).to.equal(true);
+        expect(options.include[0].subQuery).to.equal(true);
       });
 
       it('should not tag a required belongsTo alongside a duplicating association with duplicating false', function () {
@@ -155,7 +181,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(false);
-        expect(options.include[0].subQueryFull).to.equal(false);
+        expect(options.include[0].subQuery).to.equal(false);
       });
 
       it('should tag a belongsTo association with where alongside a duplicating association', function () {
@@ -169,7 +195,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(true);
-        expect(options.include[0].subQueryFull).to.equal(true);
+        expect(options.include[0].subQuery).to.equal(true);
       });
 
       it('should tag a belongsTo association with where alongside a duplicating association with duplicating false', function () {
@@ -183,7 +209,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.subQuery).to.equal(false);
-        expect(options.include[0].subQueryFull).to.equal(false);
+        expect(options.include[0].subQuery).to.equal(false);
       });
     });    
   });
