@@ -102,21 +102,6 @@ You can have concurrent transactions within a sequence of queries or have some o
 ```js
 sequelize.transaction(function (t1) {
   return sequelize.transaction(function (t2) {
-    return Promise.all([
-        User.create({ name: 'Bob' }), // this is not in any transaction.
-        User.create({ name: 'Mallory' }, { transaction: t1 }),
-        User.create({ name: 'John' }, { transaction: t2 })
-    ]);
-  });
-});
-```
-
-### CLS enabled
-When CLS is enabled, queries will all default to a transaction depending on which callback they are in. To execute queries inside the callback without using the transaction you can pass `{ transaction: null }`, or another transaction as desired. This example produces the same result as the example without CLS:
-
-```js
-sequelize.transaction(function (t1) {
-  return sequelize.transaction(function (t2) {
     // With CLS enable, queries here will by default use t2
     // Pass in the `transaction` option to define/alter the transaction they belong to.
     return Promise.all([
