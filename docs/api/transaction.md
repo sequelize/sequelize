@@ -10,7 +10,7 @@ To run a query under a transaction, you should pass the transaction in the optio
 <a name="isolation_levels"></a>
 ## `ISOLATION_LEVELS`
 [View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/transaction.js#L45)
-The possible isolations levels to use when starting a transaction
+The possible isolations levels to use when starting a transaction:
 
 ```js
 {
@@ -19,6 +19,22 @@ The possible isolations levels to use when starting a transaction
   REPEATABLE_READ: "REPEATABLE READ",
   SERIALIZABLE: "SERIALIZABLE"
 }
+```
+
+Pass in the desired level as the first argument:
+
+```js
+return sequelize.transaction({
+  isolationLevel: Sequelize.Transaction.SERIALIZABLE
+}, function (t) {
+
+  // your transactions
+
+}).then(function(result) {
+  // transaction has been committed. Do something after the commit if required.
+}).catch(function(err) {
+  // do something with the err.
+});
 ```
 
 
