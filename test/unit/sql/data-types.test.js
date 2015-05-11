@@ -282,6 +282,33 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('GEOMETRY', function () {
+      testsql('GEOMETRY', DataTypes.GEOMETRY, {
+        default: 'GEOMETRY',
+        postgres: 'GEOMETRY'
+      });
+	
+      testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
+        default: 'GEOMETRY(POINT)',
+        postgres: 'GEOMETRY(POINT)'
+      });
+
+      testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LINESTRING'), {
+        default: 'GEOMETRY(LINESTRING)',
+        postgres: 'GEOMETRY(LINESTRING)',
+      });
+
+      testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('POLYGON'), {
+        default: 'GEOMETRY(POLYGON)',
+        postgres: 'GEOMETRY(POLYGON)'
+      });
+
+      testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('POINT', 4326), {
+        default: 'GEOMETRY(POINT,4326)',
+        postgres: 'GEOMETRY(POINT,4326)'
+      });
+    });
+
     if (current.dialect.supports.ARRAY) {
       suite('ARRAY', function () {
         testsql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
