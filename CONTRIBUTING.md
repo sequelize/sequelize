@@ -131,10 +131,11 @@ $ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password make test
 ```
 
 #### 4a. Check the documentation
-This step only applies if you have actually changed something in the documentation. To generate documentation for the `sequelize.js` file, run (in the sequelize dir)
+This step only applies if you have actually changed something in the documentation. Please read `CONTRIBUTING.DOCS.md` first.
+To generate documentation for the `sequelize.js` file, run (in the sequelize dir)
 
 ```console
-$ node docs/markdox.js --file lib/sequelize.js
+$ npm run docs
 ```
 
 The generated documentation will be placed in `docs/tmp.md`.
