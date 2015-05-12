@@ -36,8 +36,8 @@ pages:
 - ['api/promise.md', 'API', 'Promise']
 - ['api/transaction.md', 'API', 'Transaction']
 - ['api/datatypes.md', 'API', 'Datatypes']
+- ['api/deferrable.md', 'API', 'Deferrable']
 - ['api/errors.md', 'API', 'Errors']
 
 - ['changelog.md', 'Misc', 'Changelog']
 - ['imprint.md', 'Misc', 'Imprint']
-
