@@ -52,8 +52,8 @@ describe(Support.getTestDialectTeaser('Self'), function() {
 
     var Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
-    Person.hasMany(Person, { as: 'Parents', through: 'Family' });
-    Person.hasMany(Person, { as: 'Childs', through: 'Family' });
+    Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });
+    Person.belongsToMany(Person, { as: 'Childs', through: 'Family', foreignKey: 'PersonId', otherKey: 'ChildId' });
 
     var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier');
     var rawAttributes = _.keys(this.sequelize.models.Family.rawAttributes);
@@ -94,8 +94,8 @@ describe(Support.getTestDialectTeaser('Self'), function() {
       }
     }, { timestamps: false });
 
-    Person.hasMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child' });
-    Person.hasMany(Person, { as: 'Children', through: Family, foreignKey: 'preexisting_parent' });
+    Person.belongsToMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child', otherKey: 'preexisting_parent' });
+    Person.belongsToMany(Person, { as: 'Children', through: Family, foreignKey: 'preexisting_parent', otherKey: 'preexisting_child' });
 
     var foreignIdentifiers = _.map(_.values(Person.associations), 'foreignIdentifier');
     var rawAttributes = _.keys(Family.rawAttributes);
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Self'), function() {
         }
       });
     }).then(function() {
-      return this.john.getChildren(undefined, {
+      return this.john.getChildren({
         logging: function(sql) {
           count++;
           var whereClause = sql.split('FROM')[1]; // look only in the whereClause

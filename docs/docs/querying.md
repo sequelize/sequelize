@@ -158,7 +158,7 @@ Project.findAll({ offset: 5, limit: 5 })
 `order` takes an array of items to order the query by. Generally you will want to use a tuple/array of either attribute, direction or just direction to ensure proper escaping.
 
 ```js
-something.find({
+something.findOne({
   order: [
     // Will escape username and validate DESC against a list of valid direction parameters
     ['username', 'DESC'],

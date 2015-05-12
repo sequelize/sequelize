@@ -174,8 +174,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
-    Project.hasMany(User);
-    User.hasMany(Project);
+    Project.belongsToMany(User, {through: 'user_project'});
+    User.belongsToMany(Project, {through: 'user_project'});
 
     return this.sequelize.sync({ force: true }).then(function() {
       return User.bulkCreate([{
@@ -188,11 +188,11 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
         },{
           title: 'empire'
         }]).then(function() {
-          return User.find(1).then(function(user) {
-            return Project.find(1).then(function(project) {
+          return User.findById(1).then(function(user) {
+            return Project.findById(1).then(function(project) {
               return user.setProjects([project]).then(function() {
-                return User.find(2).then(function(user) {
-                  return Project.find(2).then(function(project) {
+                return User.findById(2).then(function(user) {
+                  return Project.findById(2).then(function(project) {
                     return user.setProjects([project]).then(function() {
                       return User.findAll({
                         include: [

@@ -5,18 +5,18 @@ Finder methods are designed to get data from the database&period; The returned d
 ### find - Search for one specific element in the database
 ```js
 // search for known ids
-Project.find(123).then(function(project) {
+Project.findById(123).then(function(project) {
   // project will be an instance of Project and stores the content of the table entry
   // with id 123. if such an entry is not defined you will get null
 })
 
 // search for attributes
-Project.find({ where: {title: 'aProject'} }).then(function(project) {
+Project.findOne({ where: {title: 'aProject'} }).then(function(project) {
   // project will be the first entry of the Projects table with the title 'aProject' || null
 })
 
 
-Project.find({
+Project.findOne({
   where: {title: 'aProject'},
   attributes: ['id', ['name', 'title']]
 }).then(function(project) {
@@ -168,7 +168,7 @@ Project.findAll({
 It's possible to do complex where queries with multiple levels of nested AND, OR and NOT conditions. In order to do that you can use `$or`, `$and` or `$not`:
 
 ```js
-Project.find({
+Project.findOne({
   where: {
     name: 'a project',
     $or: [
@@ -178,7 +178,7 @@ Project.find({
   }
 })
 
-Project.find({
+Project.findOne({
   where: {
     name: 'a project',
     id: {
@@ -206,7 +206,7 @@ LIMIT 1;
 `$not` example:
 
 ```js
-Project.find({
+Project.findOne({
   where: {
     name: 'a project',
     $not: [
@@ -257,7 +257,7 @@ Project.findAll({group: 'name'})
 Notice how in the two examples above&comma; the string provided is inserted verbatim into the query&comma; i&period;e&period; column names are not escaped&period; When you provide a string to order &sol; group&comma; this will always be the case. If you want to escape column names&comma; you should provide an array of arguments&comma; even though you only want to order &sol; group by a single column
 
 ```js
-something.find({
+something.findOne({
   order: [
     'name',
     // will return `name`
