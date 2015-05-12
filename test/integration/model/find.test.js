@@ -39,8 +39,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   where: { username: 'foo' }
                 }).then(function(user1) {
                   return User.findOne({
-                    where: { username: 'foo' }
-                  }, { transaction: t }).then(function(user2) {
+                    where: { username: 'foo' },
+                    transaction: t
+                  }).then(function (user2) {
                     expect(user1).to.be.null;
                     expect(user2).to.not.be.null;
                     return t.rollback();
@@ -117,8 +118,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('treats questionmarks in an array', function() {
         var test = false;
         return this.UserPrimary.findOne({
-          where: ['specialkey = ?', 'awesome']
-        }, {
+          where: ['specialkey = ?', 'awesome'],
           logging: function(sql) {
             test = true;
             expect(sql).to.contain("WHERE specialkey = 'awesome'");
@@ -189,7 +189,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('allows sql logging', function() {
         var test = false;
-        return this.User.findOne({ where: { username: 'foo' } }, {
+        return this.User.findOne({
+          where: { username: 'foo' },
           logging: function(sql) {
             test = true;
             expect(sql).to.exist;
@@ -253,9 +254,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var self = this
           , permutations = [
             0,
-            '0',
-            {where: {id: 0}},
-            {where: {id: '0'}}
+            '0'
           ]
           , count = 0;
 

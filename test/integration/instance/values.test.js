@@ -384,7 +384,6 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           return User.create({name: 'Jan Meier'}).then(function(user) {
             expect(user.changed('name')).to.be.false;
             expect(user.changed()).not.to.be.ok;
-            expect(user.isDirty).to.be.false;
           });
         });
       });
@@ -400,7 +399,6 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
         user.set('name', 'Mick Hansen');
         expect(user.changed('name')).to.be.true;
         expect(user.changed()).to.be.ok;
-        expect(user.isDirty).to.be.true;
       });
 
       it('should return false immediately after saving', function() {
@@ -415,12 +413,10 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           user.set('name', 'Mick Hansen');
           expect(user.changed('name')).to.be.true;
           expect(user.changed()).to.be.ok;
-          expect(user.isDirty).to.be.true;
 
           return user.save().then(function() {
             expect(user.changed('name')).to.be.false;
             expect(user.changed()).not.to.be.ok;
-            expect(user.isDirty).to.be.false;
           });
         });
       });
