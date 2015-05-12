@@ -6,7 +6,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
-  , _ = require('lodash')
   , moment = require('moment')
   , sinon = require('sinon')
   , Promise = Sequelize.Promise

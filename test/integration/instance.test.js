@@ -695,8 +695,8 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       }).then(function(user) {
         user.username = 'fizz';
         user.touchedAt = date;
-        
-        return user.save(['username']).then(function() {
+
+        return user.save({fields: ['username']}).then(function() {
           // re-select user
           return self.User.findById(user.id).then(function(user2) {
             // name should have changed
@@ -740,7 +740,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return this.User.build({
         validateTest: 'cake', // invalid, but not saved
         validateCustom: '1'
-      }).save(['validateCustom']);
+      }).save({
+        fields: ['validateCustom']
+      });
     });
 
     describe('hooks', function () {
@@ -934,7 +936,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         user.bNumber = self.sequelize.col('aNumber');
         user.username = self.sequelize.fn('upper', 'sequelize');
         return user.save().then(function() {
-          return self.User.findOne(user.id).then(function(user2) {
+          return self.User.findById(user.id).then(function(user2) {
             expect(user2.username).to.equal('SEQUELIZE');
             expect(user2.bNumber).to.equal(42);
           });
@@ -1033,7 +1035,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     it('takes zero into account', function() {
-      return this.User.build({ aNumber: 0 }).save(['aNumber']).then(function(user) {
+      return this.User.build({ aNumber: 0 }).save({
+        fields: ['aNumber']
+      }).then(function(user) {
         expect(user.aNumber).to.equal(0);
       });
     });
