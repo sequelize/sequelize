@@ -287,7 +287,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: 'GEOMETRY',
         postgres: 'GEOMETRY'
       });
-
+	
       testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
         default: 'GEOMETRY(POINT)',
         postgres: 'GEOMETRY(POINT)'
