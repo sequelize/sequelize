@@ -288,7 +288,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: 'GEOMETRY'
       });
 
-      testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY(4326), {
+      testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
+        default: 'GEOMETRY(POINT)',
+        postgres: 'GEOMETRY(POINT)'
+      });
+
+      testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LINESTRING'), {
+        default: 'GEOMETRY(LINESTRING)',
+        postgres: 'GEOMETRY(LINESTRING)',
+      });
+
+      testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('POLYGON'), {
+        default: 'GEOMETRY(POLYGON)',
+        postgres: 'GEOMETRY(POLYGON)'
+      });
+
+      testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('POINT', 4326), {
         default: 'GEOMETRY(POINT,4326)',
         postgres: 'GEOMETRY(POINT,4326)'
       });
