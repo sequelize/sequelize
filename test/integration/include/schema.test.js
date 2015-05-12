@@ -74,8 +74,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             AccUser.hasMany(Product);
             Product.belongsTo(AccUser);
 
-            Product.hasMany(Tag);
-            Tag.hasMany(Product);
+            Product.belongsToMany(Tag, {through: 'product_tag'});
+            Tag.belongsToMany(Product, {through: 'product_tag'});
             Product.belongsTo(Tag, {as: 'Category'});
             Product.belongsTo(Company);
 
@@ -229,8 +229,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           AccUser.hasMany(Product);
           Product.belongsTo(AccUser);
 
-          Product.hasMany(Tag);
-          Tag.hasMany(Product);
+          Product.belongsToMany(Tag, {through: 'product_tag'});
+          Tag.belongsToMany(Product, {through: 'product_tag'});
           Product.belongsTo(Tag, {as: 'Category'});
 
           Product.hasMany(Price);
@@ -497,8 +497,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             priority: DataTypes.INTEGER
         }, {schema: 'account'});
 
-      Product.hasMany(Tag, {through: ProductTag});
-      Tag.hasMany(Product, {through: ProductTag});
+      Product.belongsToMany(Tag, {through: ProductTag});
+      Tag.belongsToMany(Product, {through: ProductTag});
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.all([
@@ -563,12 +563,15 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             User.findAll()
           ]);
         }).spread(function(groups, users) {
-          return users[2].setGroup(groups[1]);
+          return users[2].setGroup(groups[1], {
+            logging: console.log
+          });
         }).then(function() {
           return User.findAll({
             include: [
               {model: Group, required: true}
-            ]
+            ],
+            logging: console.log
           }).then(function(users) {
             expect(users.length).to.equal(1);
             expect(users[0].Group).to.be.ok;
@@ -866,8 +869,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             priority: DataTypes.INTEGER
         }, {schema: 'account'});
 
-      Product.hasMany(Tag, {through: ProductTag});
-      Tag.hasMany(Product, {through: ProductTag});
+      Product.belongsToMany(Tag, {through: ProductTag});
+      Tag.belongsToMany(Product, {through: ProductTag});
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.all([
@@ -942,8 +945,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       User.hasMany(Product);
       Product.belongsTo(User);
 
-      Product.hasMany(Tag);
-      Tag.hasMany(Product);
+      Product.belongsToMany(Tag, {through: 'product_tag'});
+      Tag.belongsToMany(Product, {through: 'product_tag'});
       Product.belongsTo(Tag, {as: 'Category'});
 
       Product.hasMany(Price);
@@ -1182,8 +1185,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             dateField: Sequelize.DATE
           }, {timestamps: false, schema: 'account'});
 
-      User.hasMany(Group);
-      Group.hasMany(User);
+      User.belongsToMany(Group, {through: 'group_user'});
+      Group.belongsToMany(User, {through: 'group_user'});
 
       return this.sequelize.sync().then(function() {
         return User.create({ dateField: Date.UTC(2014, 1, 20) }).then(function(user) {

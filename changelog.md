@@ -1,4 +1,24 @@
-# Next
+# 3.0.0
+
+3.0.0 cleans up a lot of deprecated code, making it easier for us to develop and maintain features in the future.
+
+- [ADDED] findById/findByPrimary takes a single value as argument representing the primary key to find.
+- [CHANGED] belongsToMany relations MUST now be given a `through` argument.
+- [CHANGED] findOne/findAll/findAndCount/findOrCreate now only takes a single options argument instead of a options, queryOptions argument. So set transaction, raw, etc on the first options argument.
+- [CHANGED] The accessor for belongsToMany relationships is now either the `as` argument or the target model name pluralized.
+- [REMOVED] N:M relationships can no longer be represented by 2 x hasMany
+- [REMOVED] Model.create/Model.bulkCreate no longer takes an array of fields as its second argument, use `options.fields` instead.
+- [REMOVED] Query Chainer has been remved
+- [REMOVED] Migrations have been removed, use umzug instead
+- [REMOVED] Model.findAllJoin has been removed
+- [REMOVED] sequelize.query now only takes `sql, callee, options` as arguments, the 4th argument `replacements` has been removed and should be set via `options.replacements` instead.
+- [REMOVED] `instance.isDirty` has been removed, use `instance.changed()` instead
+- [REMOVED] `instance.values` has been removed, use `instance.get()` instead
+- [REMOVED] `instance.primaryKeyValues` has been removed.
+- [REMOVED] `instance.isDeleted` has been removed, simply check the timestamp with `get('deletedAt')` instead
+- [REMOVED] `instance.increment/decrement` now longer takes a number as it's second argument.
+- [REMOVED/SECURITY] findOne no longer takes a string/integer/binary argument to represent a primaryKey. Use findById instead
+- [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
 - [BUG] Fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
 - [BUG] Fix app crash in sqlite while running in special unique constraint errors [3730](https://github.com/sequelize/sequelize/pull/3730)
@@ -7,7 +27,7 @@
 - [BUG] Fix regression in beforeUpdate hook where `instance.changed()` would always be false [3727](https://github.com/sequelize/sequelize/pull/3727)
 
 #### Backwards compatibility changes
-- The error that is thrown when a column is declared to be an enum but without any values used to "Values for ENUM haven't been defined" and is now "Values for ENUM have not been defined".
+- Most of the changes in 3.0.0 are BC breaking, read the changelog for 3.0.0 carefully.
 
 # 2.1.3
 - [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)

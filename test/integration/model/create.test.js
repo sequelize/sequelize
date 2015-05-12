@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
-          return self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
+          return self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }, transaction: t }).then(function() {
             return self.User.count().then(function(count) {
               expect(count).to.equal(0);
               return t.commit().then(function() {
@@ -61,8 +61,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('supports more than one models per transaction', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
-          return self.User.findOrCreate({ where: { username: 'Username'}, defaults: { data: 'some data' }}, { transaction: t }).then(function() {
-            return self.Account.findOrCreate({ where: { accountName: 'accountName'}}, { transaction: t}).then(function() {
+          return self.User.findOrCreate({ where: { username: 'Username'}, defaults: { data: 'some data' }, transaction: t }).then(function() {
+            return self.Account.findOrCreate({ where: { accountName: 'accountName'}, transaction: t}).then(function() {
               return t.commit();
             });
           });
@@ -363,8 +363,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('works with a transaction', function() {
           return this.sequelize.transaction().bind(this).then(function(transaction) {
             return Promise.join(
-              this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
-              this.User.findOrCreate({ where: { uniqueName: 'winner' }}, { transaction: transaction }),
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction: transaction }),
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction: transaction }),
               function(first, second) {
                  var firstInstance = first[0]
                 , firstCreated = first[1]
@@ -679,7 +679,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           match = true;
         }
       }).then(function(user) {
-        return self.User.find(user.id).then(function(user) {
+        return self.User.findById(user.id).then(function(user) {
           expect(user.intVal).to.equal(1);
           expect(match).to.equal(true);
         });
@@ -707,7 +707,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           match = true;
         }
       }).then(function(user) {
-        return self.User.find(user.id).then(function(user) {
+        return self.User.findById(user.id).then(function(user) {
           expect(user.intVal).to.equal(-1);
           expect(match).to.equal(true);
         });
@@ -720,7 +720,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.User.create({
         intVal: this.sequelize.literal('CAST(1-2 AS ' + (Support.dialectIsMySQL() ? 'SIGNED' : 'INTEGER') + ')')
       }).then(function(user) {
-        return self.User.find(user.id).then(function(user) {
+        return self.User.findById(user.id).then(function(user) {
           expect(user.intVal).to.equal(-1);
         });
       });
@@ -731,7 +731,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.User.create({
         secretValue: this.sequelize.fn('upper', 'sequelize')
       }).then(function(user) {
-        return self.User.find(user.id).then(function(user) {
+        return self.User.findById(user.id).then(function(user) {
           expect(user.secretValue).to.equal('SEQUELIZE');
         });
       });
@@ -781,7 +781,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return userWithDefaults.sync({force: true}).then(function() {
           return userWithDefaults.create({}).then(function(user) {
-            return userWithDefaults.find(user.id).then(function(user) {
+            return userWithDefaults.findById(user.id).then(function(user) {
               var now = new Date()
                 , pad = function(number) {
                   if (number > 9) {
@@ -1018,7 +1018,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         , data = { username: 'Peter', secretValue: '42' };
 
       return this.User.create(data, { fields: ['username'] }).then(function(user) {
-        return self.User.find(user.id).then(function(_user) {
+        return self.User.findById(user.id).then(function(_user) {
           expect(_user.username).to.equal(data.username);
           expect(_user.secretValue).not.to.equal(data.secretValue);
           expect(_user.secretValue).to.equal(null);
@@ -1031,7 +1031,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         , data = { username: 'Peter', secretValue: '42' };
 
       return this.User.create(data).then(function(user) {
-        return self.User.find(user.id).then(function(_user) {
+        return self.User.findById(user.id).then(function(_user) {
           expect(_user.username).to.equal(data.username);
           expect(_user.secretValue).to.equal(data.secretValue);
         });
@@ -1115,7 +1115,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var self = this;
       return this.User.create({ id: 42 }).then(function(user) {
         expect(user.id).to.equal(42);
-        return self.User.find(42).then(function(user) {
+        return self.User.findById(42).then(function(user) {
           expect(user).to.exist;
         });
       });
@@ -1158,7 +1158,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(user) {
           expect(user.name).to.be.ok;
           expect(user.email).not.to.be.ok;
-          return User.find(user.id).then(function(user) {
+          return User.findById(user.id).then(function(user) {
             expect(user.name).to.be.ok;
             expect(user.email).not.to.be.ok;
           });

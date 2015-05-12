@@ -937,22 +937,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return this.sequelize.sync({force: true});
     });
 
-    it('uses the specified joinTableName or a reasonable default', function() {
-      for (var associationName in this.User.associations) {
-        expect(associationName).not.to.equal(this.User.tableName);
-        expect(associationName).not.to.equal(this.Task.tableName);
-
-        var through = this.User.associations[associationName].through.model;
-        if (typeof through !== 'undefined') {
-          expect(through.tableName).to.equal(associationName);
-        }
-        var tableName = this.User.associations[associationName].options.tableName;
-        if (typeof tableName !== 'undefined') {
-          expect(tableName).to.equal(associationName);
-        }
-      }
-    });
-
     it('makes join table non-paranoid by default', function() {
       var paranoidSequelize = Support.createSequelizeInstance({
           define: {

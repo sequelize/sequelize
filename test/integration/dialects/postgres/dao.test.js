@@ -521,7 +521,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }, { number: '8675309', type: "Jenny's"}, {number: '5555554321', type: '"home\n"' }]
         }).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.phones.length).to.equal(4);
             expect(user.phones[1].number).to.equal('987654321');
             expect(user.phones[2].type).to.equal("Jenny's");
@@ -538,7 +538,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           settings: {mailing: true, push: 'facebook', frequency: 3}
         }]).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.settings.mailing).to.equal('true');
           });
         });
@@ -684,7 +684,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           holidays: holidays
         }).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.holidays.length).to.equal(2);
             expect(user.holidays[0].length).to.equal(2);
             expect(user.holidays[0][0] instanceof Date).to.be.ok;
@@ -709,7 +709,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           course_period: period
         }]).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.course_period[0] instanceof Date).to.be.ok;
             expect(user.course_period[1] instanceof Date).to.be.ok;
             expect(user.course_period[0]).to.equalTime(period[0]); // lower bound

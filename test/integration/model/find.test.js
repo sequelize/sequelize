@@ -35,12 +35,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return User.sync({ force: true }).then(function() {
             return sequelize.transaction().then(function(t) {
               return User.create({ username: 'foo' }, { transaction: t }).then(function() {
-                return User.find({
+                return User.findOne({
                   where: { username: 'foo' }
                 }).then(function(user1) {
-                  return User.find({
-                    where: { username: 'foo' }
-                  }, { transaction: t }).then(function(user2) {
+                  return User.findOne({
+                    where: { username: 'foo' },
+                    transaction: t
+                  }).then(function (user2) {
                     expect(user1).to.be.null;
                     expect(user2).to.not.be.null;
                     return t.rollback();
@@ -109,16 +110,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('does not modify the passed arguments', function() {
         var options = { where: ['specialkey = ?', 'awesome']};
 
-        return this.UserPrimary.find(options).then(function() {
+        return this.UserPrimary.findOne(options).then(function() {
           expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']});
         });
       });
 
       it('treats questionmarks in an array', function() {
         var test = false;
-        return this.UserPrimary.find({
-          where: ['specialkey = ?', 'awesome']
-        }, {
+        return this.UserPrimary.findOne({
+          where: ['specialkey = ?', 'awesome'],
           logging: function(sql) {
             test = true;
             expect(sql).to.contain("WHERE specialkey = 'awesome'");
@@ -129,20 +129,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function() {
-        return this.UserPrimary.find('a string').then(function(user) {
+        return this.UserPrimary.findById('a string').then(function(user) {
           expect(user.specialkey).to.equal('a string');
-        });
-      });
-
-      it.skip('doesn\'t throw an error when entering in a non integer value', function() {
-        return this.User.find('a string value').then(function(user) {
-          expect(user).to.be.null;
         });
       });
 
       it('returns a single dao', function() {
         var self = this;
-        return this.User.find(this.user.id).then(function(user) {
+        return this.User.findById(this.user.id).then(function(user) {
           expect(Array.isArray(user)).to.not.be.ok;
           expect(user.id).to.equal(self.user.id);
           expect(user.id).to.equal(1);
@@ -151,7 +145,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('returns a single dao given a string id', function() {
         var self = this;
-        return this.User.find(this.user.id + '').then(function(user) {
+        return this.User.findById(this.user.id + '').then(function(user) {
           expect(Array.isArray(user)).to.not.be.ok;
           expect(user.id).to.equal(self.user.id);
           expect(user.id).to.equal(1);
@@ -159,7 +153,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should make aliased attributes available', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: { id: 1 },
           attributes: ['id', ['username', 'name']]
         }).then(function(user) {
@@ -174,7 +168,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return UserWithBoolean.sync({force: true}).then(function() {
           return UserWithBoolean.create({ active: true }).then(function(user) {
-            return UserWithBoolean.find({ where: { id: user.id }, attributes: ['id'] }).then(function(user) {
+            return UserWithBoolean.findOne({ where: { id: user.id }, attributes: ['id'] }).then(function(user) {
               expect(user.active).not.to.exist;
             });
           });
@@ -182,20 +176,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('finds a specific user via where option', function() {
-        return this.User.find({ where: { username: 'barfooz' } }).then(function(user) {
+        return this.User.findOne({ where: { username: 'barfooz' } }).then(function(user) {
           expect(user.username).to.equal('barfooz');
         });
       });
 
       it('doesn\'t find a user if conditions are not matching', function() {
-        return this.User.find({ where: { username: 'foo' } }).then(function(user) {
+        return this.User.findOne({ where: { username: 'foo' } }).then(function(user) {
           expect(user).to.be.null;
         });
       });
 
       it('allows sql logging', function() {
         var test = false;
-        return this.User.find({ where: { username: 'foo' } }, {
+        return this.User.findOne({
+          where: { username: 'foo' },
           logging: function(sql) {
             test = true;
             expect(sql).to.exist;
@@ -207,7 +202,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('ignores passed limit option', function() {
-        return this.User.find({ limit: 10 }).then(function(user) {
+        return this.User.findOne({ limit: 10 }).then(function(user) {
           // it returns an object instead of an array
           expect(Array.isArray(user)).to.not.be.ok;
           expect(user.dataValues.hasOwnProperty('username')).to.be.ok;
@@ -227,7 +222,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             name: 'John'
           }).then(function(u) {
             expect(u.id).not.to.exist;
-            return UserPrimary.find('an identifier').then(function(u2) {
+            return UserPrimary.findById('an identifier').then(function(u2) {
               expect(u2.identifier).to.equal('an identifier');
               expect(u2.name).to.equal('John');
             });
@@ -247,7 +242,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             id: 'a string based id',
             name: 'Johnno'
           }).then(function() {
-            return UserPrimary.find('a string based id').then(function(u2) {
+            return UserPrimary.findById('a string based id').then(function(u2) {
               expect(u2.id).to.equal('a string based id');
               expect(u2.name).to.equal('Johnno');
             });
@@ -259,15 +254,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var self = this
           , permutations = [
             0,
-            '0',
-            {where: {id: 0}},
-            {where: {id: '0'}}
+            '0'
           ]
           , count = 0;
 
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(function() {
           return self.sequelize.Promise.map(permutations, function(perm) {
-            return self.User.find(perm, {
+            return self.User.findById(perm, {
               logging: function(s) {
                 expect(s.indexOf(0)).not.to.equal(-1);
                 count++;
@@ -289,7 +282,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return User.sync({ force: true }).then(function() {
           return User.create({Login: 'foo'}).then(function() {
-            return User.find(1).then(function(user) {
+            return User.findById(1).then(function(user) {
               expect(user).to.exist;
               expect(user.ID).to.equal(1);
             });
@@ -321,14 +314,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         describe('generic', function() {
           it('throws an error about unexpected input if include contains a non-object', function() {
             var self = this;
-            return self.Worker.find({ include: [1] }).catch (function(err) {
+            return self.Worker.findOne({ include: [1] }).catch (function(err) {
               expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
             });
           });
 
           it('throws an error if included DaoFactory is not associated', function() {
             var self = this;
-            return self.Worker.find({ include: [self.Task] }).catch (function(err) {
+            return self.Worker.findOne({ include: [self.Task] }).catch (function(err) {
               expect(err.message).to.equal('Task is not associated to Worker!');
             });
           });
@@ -338,7 +331,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             this.Task.belongsTo(this.Worker);
             return this.init(function() {
               return self.task.setWorker(self.worker).then(function() {
-                return self.Task.find({
+                return self.Task.findOne({
                   where: { title: 'homework' },
                   include: [self.Worker]
                 }).then(function(task) {
@@ -365,7 +358,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   return self.Environment.create({ name: 'environment' }).then(function(env) {
                     return env.setPrivateDomain(privateIp).then(function() {
                       return env.setPublicDomain(publicIp).then(function() {
-                        return self.Environment.find({
+                        return self.Environment.findOne({
                           where: { name: 'environment' },
                           include: [
                             { model: self.Domain, as: 'PrivateDomain' },
@@ -406,7 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return self.sequelize.sync({ force: true }).then(function() {
             return self.Group.create({ name: 'people' }).then(function() {
               return self.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' }).then(function() {
-                return self.User.find({
+                return self.User.findOne({
                   where: {
                     username: 'someone'
                   },
@@ -468,7 +461,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           this.Worker.belongsTo(this.Task, { as: 'ToDo' });
           this.Worker.belongsTo(this.Task, { as: 'DoTo' });
           return this.init(function() {
-            return self.Worker.find({
+            return self.Worker.findOne({
               include: [
                 { model: self.Task, as: 'ToDo' },
                 { model: self.Task, as: 'DoTo' }
@@ -489,13 +482,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('throws an error if included DaoFactory is not associated', function() {
           var self = this;
-          return self.Task.find({ include: [self.Worker] }).catch (function(err) {
+          return self.Task.findOne({ include: [self.Worker] }).catch (function(err) {
             expect(err.message).to.equal('Worker is not associated to Task!');
           });
         });
 
         it('returns the associated task via worker.task', function() {
-          return this.Worker.find({
+          return this.Worker.findOne({
             where: { name: 'worker' },
             include: [this.Task]
           }).then(function(worker) {
@@ -524,7 +517,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return self.sequelize.sync({ force: true }).then(function() {
             return self.Group.create({ name: 'people' }).then(function() {
               return self.User.create({ username: 'someone', GroupPKeageroneName: 'people' }).then(function() {
-                return self.Group.find({
+                return self.Group.findOne({
                   where: {
                     name: 'people'
                   },
@@ -543,7 +536,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       describe('hasOne with alias', function() {
         it('throws an error if included DaoFactory is not referenced by alias', function() {
           var self = this;
-          return self.Worker.find({ include: [self.Task] }).catch (function(err) {
+          return self.Worker.findOne({ include: [self.Task] }).catch (function(err) {
             expect(err.message).to.equal('Task is not associated to Worker!');
           });
         });
@@ -559,13 +552,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           it('throws an error if alias is not associated', function() {
             var self = this;
-            return self.Worker.find({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
+            return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
               expect(err.message).to.equal('Task (Work) is not associated to Worker!');
             });
           });
 
           it('returns the associated task via worker.task', function() {
-            return this.Worker.find({
+            return this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDo' }]
             }).then(function(worker) {
@@ -576,7 +569,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
 
           it('returns the associated task via worker.task when daoFactory is aliased with model', function() {
-            return this.Worker.find({
+            return this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDo' }]
             }).then(function(worker) {
@@ -589,7 +582,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
             this.Worker.hasOne(this.Task, { as: 'DoTo' });
             return this.init(function() {
-              return self.Worker.find({
+              return self.Worker.findOne({
                 include: [
                   { model: self.Task, as: 'ToDo' },
                   { model: self.Task, as: 'DoTo' }
@@ -611,13 +604,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('throws an error if included DaoFactory is not associated', function() {
           var self = this;
-          return self.Task.find({ include: [self.Worker] }).catch (function(err) {
+          return self.Task.findOne({ include: [self.Worker] }).catch (function(err) {
             expect(err.message).to.equal('Worker is not associated to Task!');
           });
         });
 
         it('returns the associated tasks via worker.tasks', function() {
-          return this.Worker.find({
+          return this.Worker.findOne({
             where: { name: 'worker' },
             include: [this.Task]
           }).then(function(worker) {
@@ -644,7 +637,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   return self.PhoneNumber.create({ phone: '111111' }).then(function(somePhone2) {
                     return someContact.setPhotos([somePhoto]).then(function() {
                       return someContact.setPhoneNumbers([somePhone1, somePhone2]).then(function() {
-                        return self.Contact.find({
+                        return self.Contact.findOne({
                           where: {
                             name: 'Boris'
                           },
@@ -677,14 +670,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               primaryKey: true
             }
           });
-          self.Group.hasMany(self.User);
-          self.User.hasMany(self.Group);
+          self.Group.belongsToMany(self.User, {through: 'group_user'});
+          self.User.belongsToMany(self.Group, {through: 'group_user'});
 
           return self.sequelize.sync({ force: true }).then(function() {
             return self.User.create({ username: 'someone' }).then(function(someUser) {
               return self.Group.create({ name: 'people' }).then(function(someGroup) {
                 return someUser.setGroupPKeagerones([someGroup]).then(function() {
-                  return self.User.find({
+                  return self.User.findOne({
                     where: {
                       username: 'someone'
                     },
@@ -704,7 +697,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       describe('hasMany with alias', function() {
         it('throws an error if included DaoFactory is not referenced by alias', function() {
           var self = this;
-          return self.Worker.find({ include: [self.Task] }).catch (function(err) {
+          return self.Worker.findOne({ include: [self.Task] }).catch (function(err) {
             expect(err.message).to.equal('Task is not associated to Worker!');
           });
         });
@@ -720,13 +713,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           it('throws an error if alias is not associated', function() {
             var self = this;
-            return self.Worker.find({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
+            return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
               expect(err.message).to.equal('Task (Work) is not associated to Worker!');
             });
           });
 
           it('returns the associated task via worker.task', function() {
-            return this.Worker.find({
+            return this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDos' }]
             }).then(function(worker) {
@@ -737,7 +730,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
 
           it('returns the associated task via worker.task when daoFactory is aliased with model', function() {
-            return this.Worker.find({
+            return this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDos' }]
             }).then(function(worker) {
@@ -750,7 +743,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
             this.Worker.hasMany(this.Task, { as: 'DoTos' });
             return this.init(function() {
-              return self.Worker.find({
+              return self.Worker.findOne({
                 include: [
                   { model: self.Task, as: 'ToDos' },
                   { model: self.Task, as: 'DoTos' }
@@ -770,8 +763,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('returns the associated models when using through as string and alias', function() {
           var self = this;
 
-          this.Product.hasMany(this.Tag, {as: 'tags', through: 'product_tag'});
-          this.Tag.hasMany(this.Product, {as: 'products', through: 'product_tag'});
+          this.Product.belongsToMany(this.Tag, {as: 'tags', through: 'product_tag'});
+          this.Tag.belongsToMany(this.Product, {as: 'products', through: 'product_tag'});
 
           return this.sequelize.sync().then(function() {
             return Promise.all([
@@ -803,7 +796,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   products[4].setTags([tags[2]])
               ]).then(function() {
                 return Promise.all([
-                  self.Tag.find({
+                  self.Tag.findOne({
                     where: {
                       id: tags[0].id
                     },
@@ -817,7 +810,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   tags[1].getProducts().then(function(products) {
                     expect(products.length).to.equal(3);
                   }),
-                  self.Product.find({
+                  self.Product.findOne({
                     where: {
                       id: products[0].id
                     },
@@ -841,8 +834,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           // Exactly the same code as the previous test, just with a through model instance, and promisified
           var ProductTag = this.sequelize.define('product_tag');
 
-          this.Product.hasMany(this.Tag, {as: 'tags', through: ProductTag});
-          this.Tag.hasMany(this.Product, {as: 'products', through: ProductTag});
+          this.Product.belongsToMany(this.Tag, {as: 'tags', through: ProductTag});
+          this.Tag.belongsToMany(this.Product, {as: 'products', through: ProductTag});
 
           return this.sequelize.sync().bind(this).then(function() {
             return Promise.all([
@@ -877,7 +870,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             ]);
           }).then(function() {
             return Promise.all([
-              expect(this.Tag.find({
+              expect(this.Tag.findOne({
                 where: {
                   id: this.tags[0].id
                 },
@@ -885,7 +878,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   {model: this.Product, as: 'products'}
                 ]
               })).to.eventually.have.property('products').to.have.length(2),
-              expect(this.Product.find({
+              expect(this.Product.findOne({
                 where: {
                   id: this.products[0].id
                 },
@@ -911,21 +904,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('should return a DAO when queryOptions are not set', function() {
         var self = this;
-        return this.User.find({ where: { username: 'barfooz'}}).then(function(user) {
+        return this.User.findOne({ where: { username: 'barfooz'}}).then(function(user) {
           expect(user).to.be.instanceOf(self.User.DAO);
         });
       });
 
       it('should return a DAO when raw is false', function() {
         var self = this;
-        return this.User.find({ where: { username: 'barfooz'}}, { raw: false }).then(function(user) {
+        return this.User.findOne({ where: { username: 'barfooz'}, raw: false }).then(function(user) {
           expect(user).to.be.instanceOf(self.User.DAO);
         });
       });
 
       it('should return raw data when raw is true', function() {
         var self = this;
-        return this.User.find({ where: { username: 'barfooz'}}, { raw: true }).then(function(user) {
+        return this.User.findOne({ where: { username: 'barfooz'}, raw: true }).then(function(user) {
           expect(user).to.not.be.instanceOf(self.User.DAO);
           expect(user).to.be.instanceOf(Object);
         });

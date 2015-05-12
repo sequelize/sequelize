@@ -1068,13 +1068,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               this.sp2 = sp2;
               return this.User.create({}, { transaction: this.transaction });
             }).then(function() {
-              return this.User.findAll({}, { transaction: this.transaction });
+              return this.User.findAll({ transaction: this.transaction });
             }).then(function(users) {
               expect(users).to.have.length(2);
 
               return this.sp1.rollback();
             }).then(function() {
-              return this.User.findAll({}, { transaction: this.transaction });
+              return this.User.findAll({ transaction: this.transaction });
             }).then(function(users) {
               expect(users).to.have.length(0);
 
@@ -1096,13 +1096,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               this.sp2 = sp2;
               return this.User.create({}, { transaction: this.transaction });
             }).then(function() {
-              return this.User.findAll({}, { transaction: this.transaction });
+              return this.User.findAll({ transaction: this.transaction });
             }).then(function(users) {
               expect(users).to.have.length(2);
 
               return this.sp2.rollback();
             }).then(function() {
-              return this.User.findAll({}, { transaction: this.transaction });
+              return this.User.findAll({ transaction: this.transaction });
             }).then(function(users) {
               expect(users).to.have.length(1);
 
