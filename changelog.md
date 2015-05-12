@@ -1,5 +1,10 @@
-# Next
+# 3.0.0
 - [BUG] Fix addIndexQuery error when the model has a schema
+- [REMOVED] Query Chainer has been remved
+- [REMOVED] Migrations have been removed, use umzug instead
+- [REMOVED/SECURITY] findOne no longer takes a string/integer/binary argument to represent a primaryKey. Use findById instead
+- [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
+- [ADDED] findById/findByPrimary takes a single value as argument representing the primary key to find.
 
 # 2.1.3
 - [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
