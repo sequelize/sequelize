@@ -20,11 +20,11 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       A.hasMany(B);
 
       B.belongsTo(D);
-      B.hasMany(C, {
+      B.belongsToMany(C, {
         through: 'BC'
       });
 
-      C.hasMany(B, {
+      C.belongsToMany(B, {
         through: 'BC'
       });
 
@@ -105,8 +105,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           name: DataTypes.STRING(40)
         });
 
-      A.hasMany(B);
-      B.hasMany(A);
+      A.belongsToMany(B, {through: 'a_b'});
+      B.belongsToMany(A, {through: 'a_b'});
 
       return this.sequelize
         .sync({force: true})

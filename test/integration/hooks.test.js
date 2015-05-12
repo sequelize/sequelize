@@ -1151,8 +1151,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         next();
       });
 
-      B.hasMany(A);
-      A.hasMany(B);
+      B.belongsToMany(A, {through: 'a_b'});
+      A.belongsToMany(B, {through: 'a_b'});
 
       return this.sequelize.sync({force: true}).bind(this).then(function() {
         return this.sequelize.Promise.all([
@@ -4886,8 +4886,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             title: DataTypes.STRING
           });
 
-          this.Projects.hasMany(this.Tasks, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true});
-          this.Tasks.hasMany(this.Projects, {cascade: 'onDelete', joinTableName: 'projects_and_tasks', hooks: true});
+          this.Projects.belongsToMany(this.Tasks, {cascade: 'onDelete', through: 'projects_and_tasks', hooks: true});
+          this.Tasks.belongsToMany(this.Projects, {cascade: 'onDelete', through: 'projects_and_tasks', hooks: true});
 
           return this.sequelize.sync({ force: true });
         });
@@ -4988,8 +4988,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             title: DataTypes.STRING
           });
 
-          this.Projects.hasMany(this.Tasks, {hooks: true});
-          this.Tasks.hasMany(this.Projects, {hooks: true});
+          this.Projects.belongsToMany(this.Tasks, {hooks: true, through: 'project_tasks'});
+          this.Tasks.belongsToMany(this.Projects, {hooks: true, through: 'project_tasks'});
 
           return this.sequelize.sync({ force: true });
         });

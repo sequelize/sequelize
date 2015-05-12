@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         , self = this;
 
       return this.User.create({ username: bio }).then(function(u1) {
-        return self.User.find(u1.id).then(function(u2) {
+        return self.User.findById(u1.id).then(function(u2) {
           expect(u2.username).to.equal(bio);
         });
       });
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var self = this;
       return this.User.create({ username: 'user' }).then(function() {
         return self.User.create({ username: 'user' }).then(function(user) {
-          return self.User.find(user.id).then(function(user) {
+          return self.User.findById(user.id).then(function(user) {
             expect(user.isNewRecord).to.not.be.ok;
           });
         });
@@ -105,123 +105,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return self.User.findAll().then(function(users) {
           users.forEach(function(u) {
             expect(u.isNewRecord).to.not.be.ok;
-          });
-        });
-      });
-    });
-  });
-
-  describe('isDirty', function() {
-    it('returns true for non-saved objects', function() {
-      var user = this.User.build({ username: 'user' });
-      expect(user.id).to.be.null;
-      expect(user.isDirty).to.be.true;
-    });
-
-    it('returns false for saved objects', function() {
-      return this.User.build({ username: 'user' }).save().then(function(user) {
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
-    it('returns true for changed attribute', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
-        user.username = 'new';
-        expect(user.isDirty).to.be.true;
-      });
-    });
-
-    it('returns false for non-changed attribute', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
-        user.username = 'user';
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
-    it('returns true for bulk changed attribute', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
-        user.setAttributes({
-          username: 'new',
-          aNumber: 1
-        });
-        expect(user.isDirty).to.be.true;
-      });
-    });
-
-    it('returns false for bulk non-changed attribute + model with timestamps', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
-        user.setAttributes({
-          username: 'user'
-        });
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
-    it('returns false for bulk non-changed attribute + model without timestamps', function() {
-      var User = this.sequelize.define('User' + parseInt(Math.random() * 10000000), {
-        username: DataTypes.STRING
-      }, {
-        timestamps: false
-      });
-
-      return User
-        .sync({ force: true })
-        .then(function() {
-          return User.create({ username: 'user' });
-        })
-        .then(function(user) {
-          user.setAttributes({ username: 'user' });
-          expect(user.isDirty).to.be.false;
-        });
-    });
-
-    it('returns true for changed and bulk non-changed attribute', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
-        user.aNumber = 23;
-        user.setAttributes({
-          username: 'user'
-        });
-        expect(user.isDirty).to.be.true;
-      });
-    });
-
-    it('returns true for changed attribute and false for saved object', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
-        user.username = 'new';
-        expect(user.isDirty).to.be.true;
-        return user.save().then(function() {
-          expect(user.isDirty).to.be.false;
-        });
-      });
-    });
-
-    it('returns false for created objects', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
-        expect(user.isDirty).to.be.false;
-      });
-    });
-
-    it('returns false for objects found by find method', function() {
-      var self = this;
-      return this.User.create({ username: 'user' }).then(function(user) {
-        return self.User.find(user.id).then(function(user) {
-          expect(user.isDirty).to.be.false;
-        });
-      });
-    });
-
-    it('returns false for objects found by findAll method', function() {
-      var self = this
-        , users = [];
-
-      for (var i = 0; i < 10; i++) {
-        users[users.length] = {username: 'user'};
-      }
-
-      return this.User.bulkCreate(users).then(function() {
-        return self.User.findAll().then(function(users) {
-          users.forEach(function(u) {
-            expect(u.isDirty).to.be.false;
           });
         });
       });
@@ -259,9 +142,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('supports where conditions', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } }).then(function() {
-          return self.User.find(1).then(function(user3) {
+          return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(0);
           });
         });
@@ -270,9 +153,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with array', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.increment(['aNumber'], { by: 2 }).then(function() {
-          return self.User.find(1).then(function(user3) {
+          return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(2);
           });
         });
@@ -281,9 +164,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with single field', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.increment('aNumber', { by: 2 }).then(function() {
-          return self.User.find(1).then(function(user3) {
+          return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(2);
           });
         });
@@ -292,9 +175,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with single field and no value', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.increment('aNumber').then(function() {
-          return self.User.find(1).then(function(user2) {
+          return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.be.equal(1);
           });
         });
@@ -303,14 +186,14 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('should still work right with other concurrent updates', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         // Select the user again (simulating a concurrent query)
-        return self.User.find(1).then(function(user2) {
+        return self.User.findById(1).then(function(user2) {
           return user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).then(function() {
             return user1.increment(['aNumber'], { by: 2 }).then(function() {
-              return self.User.find(1).then(function(user5) {
+              return self.User.findById(1).then(function(user5) {
                 expect(user5.aNumber).to.be.equal(3);
               });
             });
@@ -321,13 +204,13 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('should still work right with other concurrent increments', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return this.sequelize.Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
         ]).then(function() {
-          return self.User.find(1).then(function(user2) {
+          return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.equal(6);
           });
         });
@@ -336,9 +219,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with key value pair', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.increment({ 'aNumber': 1, 'bNumber': 2 }).then(function() {
-          return self.User.find(1).then(function(user3) {
+          return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(1);
             expect(user3.bNumber).to.be.equal(2);
           });
@@ -356,7 +239,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           var oldDate = user.updatedAt;
           return this.sequelize.Promise.delay(1000).then(function() {
             return user.increment('aNumber', { by: 1 }).then(function() {
-              return User.find(1).then(function(user) {
+              return User.findById(1).then(function(user) {
                 expect(user.updatedAt).to.be.afterTime(oldDate);
               });
             });
@@ -397,9 +280,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with array', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.decrement(['aNumber'], { by: 2 }).then(function() {
-          return self.User.find(1).then(function(user3) {
+          return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(-2);
           });
         });
@@ -408,9 +291,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with single field', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.decrement('aNumber', { by: 2 }).then(function() {
-          return self.User.find(1).then(function(user3) {
+          return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(-2);
           });
         });
@@ -419,9 +302,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with single field and no value', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.decrement('aNumber').then(function() {
-          return self.User.find(1).then(function(user2) {
+          return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.be.equal(-1);
           });
         });
@@ -430,14 +313,14 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('should still work right with other concurrent updates', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         // Select the user again (simulating a concurrent query)
-        return self.User.find(1).then(function(user2) {
+        return self.User.findById(1).then(function(user2) {
           return user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).then(function() {
             return user1.decrement(['aNumber'], { by: 2 }).then(function() {
-              return self.User.find(1).then(function(user5) {
+              return self.User.findById(1).then(function(user5) {
                 expect(user5.aNumber).to.be.equal(-1);
               });
             });
@@ -448,13 +331,13 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('should still work right with other concurrent increments', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return this.sequelize.Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
         ]).then(function() {
-          return self.User.find(1).then(function(user2) {
+          return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.equal(-6);
           });
         });
@@ -463,9 +346,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('with key value pair', function() {
       var self = this;
-      return this.User.find(1).then(function(user1) {
+      return this.User.findById(1).then(function(user1) {
         return user1.decrement({ 'aNumber': 1, 'bNumber': 2}).then(function() {
-          return self.User.find(1).then(function(user3) {
+          return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(-1);
             expect(user3.bNumber).to.be.equal(-2);
           });
@@ -483,7 +366,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           var oldDate = user.updatedAt;
           return this.sequelize.Promise.delay(1000).then(function() {
             return user.decrement('aNumber', { by: 1 }).then(function() {
-              return User.find(1).then(function(user) {
+              return User.findById(1).then(function(user) {
                 expect(user.updatedAt).to.be.afterTime(oldDate);
               });
             });
@@ -531,7 +414,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('should update the values on all references to the DAO', function() {
       var self = this;
       return this.User.create({ username: 'John Doe' }).then(function(originalUser) {
-        return self.User.find(originalUser.id).then(function(updater) {
+        return self.User.findById(originalUser.id).then(function(updater) {
           return updater.updateAttributes({ username: 'Doe John' }).then(function() {
             // We used a different reference when calling updateAttributes, so originalUser is now out of sync
             expect(originalUser.username).to.equal('John Doe');
@@ -552,7 +435,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
         // Wait for a second, so updatedAt will actually be different
         return this.sequelize.Promise.delay(1000).then(function() {
-          return self.User.find(originalUser.id).then(function(updater) {
+          return self.User.findById(originalUser.id).then(function(updater) {
             return updater.updateAttributes({ username: 'Doe John' }).then(function() {
               return originalUser.reload().then(function(updatedUser) {
                 expect(originalUser.updatedAt).to.be.above(originallyUpdatedAt);
@@ -576,7 +459,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return Book.create({ title: 'A very old book' }).then(function(book) {
             return Page.create({ content: 'om nom nom' }).then(function(page) {
               return book.setPages([page]).then(function() {
-                return Book.find({
+                return Book.findOne({
                   where: { id: book.id },
                   include: [Page]
                 }).then(function(leBook) {
@@ -652,7 +535,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       it('should be just "null" and not Date with Invalid Date', function() {
         var self = this;
         return this.User.build({ username: 'a user'}).save().then(function() {
-          return self.User.find({where: {username: 'a user'}}).then(function(user) {
+          return self.User.findOne({where: {username: 'a user'}}).then(function(user) {
             expect(user.dateAllowNullTrue).to.be.null;
           });
         });
@@ -662,7 +545,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         var self = this;
         var date = new Date();
         return this.User.build({ username: 'a user', dateAllowNullTrue: date}).save().then(function() {
-          return self.User.find({where: {username: 'a user'}}).then(function(user) {
+          return self.User.findOne({where: {username: 'a user'}}).then(function(user) {
             expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
           });
         });
@@ -677,7 +560,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           .save()
           .bind(this)
           .then(function() {
-            return this.User.find({
+            return this.User.findOne({
               where: {
                 username: 'a user'
               }
@@ -696,7 +579,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           .save()
           .bind(this)
           .then(function() {
-            return this.User.find({
+            return this.User.findOne({
               where: {
                 username: 'a user'
               }
@@ -715,7 +598,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           .save()
           .bind(this)
           .then(function() {
-            return this.User.find({
+            return this.User.findOne({
               where: {
                 username: 'a user'
               }
@@ -734,7 +617,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         .save()
         .bind(this)
         .then(function() {
-          return this.User.find({
+          return this.User.findOne({
             where: {
               username: 'a user'
             }
@@ -767,7 +650,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
   describe('complete', function() {
     it('gets triggered if an error occurs', function() {
-      return this.User.find({ where: 'asdasdasd' }).catch(function(err) {
+      return this.User.findOne({ where: 'asdasdasd' }).catch(function(err) {
         expect(err).to.exist;
         expect(err.message).to.exist;
       });
@@ -812,9 +695,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       }).then(function(user) {
         user.username = 'fizz';
         user.touchedAt = date;
+        
         return user.save(['username']).then(function() {
           // re-select user
-          return self.User.find(user.id).then(function(user2) {
+          return self.User.findById(user.id).then(function(user2) {
             // name should have changed
             expect(user2.username).to.equal('fizz');
             // bio should be unchanged
@@ -1050,7 +934,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         user.bNumber = self.sequelize.col('aNumber');
         user.username = self.sequelize.fn('upper', 'sequelize');
         return user.save().then(function() {
-          return self.User.find(user.id).then(function(user2) {
+          return self.User.findOne(user.id).then(function(user2) {
             expect(user2.username).to.equal('SEQUELIZE');
             expect(user2.bNumber).to.equal(42);
           });
@@ -1196,7 +1080,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return self.ProjectEager.create({ title: 'project-joe1', overdue_days: 0 }).then(function(project1) {
             return self.ProjectEager.create({ title: 'project-joe2', overdue_days: 0 }).then(function(project2)  {
               return user.setProjects([project1, project2]).then(function() {
-                return self.UserEager.find({where: {age: 1}, include: [{model: self.ProjectEager, as: 'Projects'}]}).then(function(user) {
+                return self.UserEager.findOne({where: {age: 1}, include: [{model: self.ProjectEager, as: 'Projects'}]}).then(function(user) {
                   expect(user.username).to.equal('joe');
                   expect(user.age).to.equal(1);
                   expect(user.Projects).to.exist;
@@ -1330,7 +1214,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it.skip('Should assign a property to the instance', function() {
       // @thanpolas rethink this test, it doesn't make sense, a relation has
       // to be created first in the beforeEach().
-      return this.User.find({id: udo.id})
+      return this.User.findOne({id: udo.id})
         .then(function(user) {
           user.NiceProjectId = 1;
           expect(user.NiceProjectId).to.equal(1);
@@ -1361,7 +1245,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var self = this;
       return self.Project.create({ lovelyUserId: null })
         .then(function(project) {
-          return self.Project.find({
+          return self.Project.findOne({
             where: {
               id: project.id
             },
@@ -1380,7 +1264,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var self = this;
       return self.User.create({ username: 'cuss' })
         .then(function(user) {
-          return self.User.find({
+          return self.User.findOne({
             where: {
               id: user.id
             },
@@ -1581,7 +1465,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
       return UserDestroy.sync().then(function() {
         return UserDestroy.create({newId: '123ABC', email: 'hello'}).then(function() {
-          return UserDestroy.find({where: {email: 'hello'}}).then(function(user) {
+          return UserDestroy.findOne({where: {email: 'hello'}}).then(function(user) {
             return user.destroy();
           });
         });
@@ -1642,9 +1526,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var self = this;
       return this.User.create({ username: 'fnord' }).then(function() {
         var query = { where: { username: 'fnord' }};
-        return self.User.find(query).then(function(user) {
+        return self.User.findOne(query).then(function(user) {
           expect(user.username).to.equal('fnord');
-          return self.User.find(query).then(function(user) {
+          return self.User.findOne(query).then(function(user) {
             expect(user.username).to.equal('fnord');
           });
         });
@@ -1660,7 +1544,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
       return Setting.sync({ force: true }).then(function() {
         return Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined }).then(function() {
-          return Setting.find({ where: { setting_key: 'test' } }).then(function(setting) {
+          return Setting.findOne({ where: { setting_key: 'test' } }).then(function(setting) {
             expect(setting.bool_value).to.equal(null);
             expect(setting.bool_value2).to.equal(null);
             expect(setting.bool_value3).to.equal(null);
@@ -1674,7 +1558,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('can compare records with Date field', function() {
       var self = this;
       return this.User.create({ username: 'fnord' }).then(function(user1) {
-        return self.User.find({ where: { username: 'fnord' }}).then(function(user2) {
+        return self.User.findOne({ where: { username: 'fnord' }}).then(function(user2) {
           expect(user1.equals(user2)).to.be.true;
         });
       });
@@ -1785,13 +1669,13 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return ParanoidUser.sync({ force: true }).then(function() {
         return ParanoidUser.bulkCreate(data);
       }).then(function() {
-        return ParanoidUser.find({where: {secretValue: '42'}});
+        return ParanoidUser.findOne({where: {secretValue: '42'}});
       }).then(function(user) {
         return user.destroy().then(function() {
           return user.restore();
         });
       }).then(function() {
-        return ParanoidUser.find({where: {secretValue: '42'}});
+        return ParanoidUser.findOne({where: {secretValue: '42'}});
       }).then(function(user) {
         expect(user).to.be.ok;
         expect(user.username).to.equal('Peter');

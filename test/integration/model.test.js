@@ -788,7 +788,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.data).to.equal('ThisIsData');
           expect(initialized).to.be.true;
           expect(user.isNewRecord).to.be.true;
-          expect(user.isDirty).to.be.true;
         });
       });
     });

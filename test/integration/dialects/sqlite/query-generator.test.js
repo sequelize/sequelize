@@ -140,10 +140,6 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
-          expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
-          context: QueryGenerator
-        }, {
           arguments: ['myTable', {order: 'id DESC'}],
           expectation: 'SELECT * FROM `myTable` ORDER BY id DESC;',
           context: QueryGenerator

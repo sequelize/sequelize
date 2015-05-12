@@ -1,4 +1,7 @@
 # 3.0.0
+
+3.0.0 cleans up a lot of deprecated code, making it easier for us to develop and maintain features in the future.
+
 - [BUG] Fix addIndexQuery error when the model has a schema
 - [ADDED] findById/findByPrimary takes a single value as argument representing the primary key to find.
 - [CHANGED] belongsToMany relations MUST now be given a `through` argument.
@@ -10,6 +13,11 @@
 - [REMOVED] Migrations have been removed, use umzug instead
 - [REMOVED] Model.findAllJoin has been removed
 - [REMOVED] sequelize.query now only takes `sql, callee, options` as arguments, the 4th argument `replacements` has been removed and should be set via `options.replacements` instead.
+- [REMOVED] `instance.isDirty` has been removed, use `instance.changed()` instead
+- [REMOVED] `instance.values` has been removed, use `instance.get()` instead
+- [REMOVED] `instance.primaryKeyValues` has been removed.
+- [REMOVED] `instance.isDeleted` has been removed, simply check the timestamp with `get('deletedAt')` instead
+- [REMOVED] `instance.increment/decrement` now longer takes a number as it's second argument.
 - [REMOVED/SECURITY] findOne no longer takes a string/integer/binary argument to represent a primaryKey. Use findById instead
 - [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
 
