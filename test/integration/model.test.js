@@ -669,7 +669,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
   });
 
-  describe('find', function() {
+  describe('findOne', function() {
     if (current.dialect.supports.transactions) {
       it('supports the transaction option in the first parameter', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
@@ -677,7 +677,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return User.sync({ force: true }).then(function() {
             return sequelize.transaction().then(function(t) {
               return User.create({ username: 'foo' }, { transaction: t }).then(function() {
-                return User.find({ where: { username: 'foo' }, transaction: t }).then(function(user) {
+                return User.findOne({ where: { username: 'foo' }, transaction: t }).then(function(user) {
                   expect(user).to.not.be.null;
                   return t.rollback();
                 });
@@ -696,7 +696,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return User.create({ username: 'A fancy name' });
         })
         .then(function() {
-          return User.find({ where: [] });
+          return User.findOne({ where: [] });
         })
         .then(function(u) {
           expect(u.username).to.equal('A fancy name');

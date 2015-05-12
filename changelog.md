@@ -1,10 +1,15 @@
 # 3.0.0
 - [BUG] Fix addIndexQuery error when the model has a schema
+- [ADDED] findById/findByPrimary takes a single value as argument representing the primary key to find.
+- [CHANGED] findOne/findAll now only takes a single options argument instead of a options, queryOptions argument. So set transaction, raw, etc on the first options argument.
 - [REMOVED] Query Chainer has been remved
 - [REMOVED] Migrations have been removed, use umzug instead
+- [REMOVED] Model.findAllJoin has been removed
 - [REMOVED/SECURITY] findOne no longer takes a string/integer/binary argument to represent a primaryKey. Use findById instead
 - [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
-- [ADDED] findById/findByPrimary takes a single value as argument representing the primary key to find.
+
+#### Backwards compatibility changes
+- Most of the changes in 3.0.0 are BC breaking, read the changelog for 3.0.0 carefully.
 
 # 2.1.3
 - [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
