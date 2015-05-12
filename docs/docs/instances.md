@@ -274,7 +274,7 @@ Person.create({
 If you need to get your instance in sync&comma; you can use the method`reload`&period; It will fetch the current data from the database and overwrite the attributes of the model on which the method has been called on&period;
 
 ```js
-Person.find({ where: { name: 'john' } }).then(function(person) {
+Person.findOne({ where: { name: 'john' } }).then(function(person) {
   person.name = 'jane'
   console.log(person.name) // 'jane'
  
@@ -291,7 +291,7 @@ In order to increment values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
     
 ```js
-User.find(1).then(function(user) {
+User.findById(1).then(function(user) {
   user.increment('my-integer-field', 2).then(/* ... */)
 })
 ```
@@ -299,7 +299,7 @@ User.find(1).then(function(user) {
 Second&comma; you can define multiple fields and the value you want to add to them&period;
     
 ```js
-User.find(1).then(function(user) {
+User.findById(1).then(function(user) {
   user.increment([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)
 })
 ```
@@ -307,7 +307,7 @@ User.find(1).then(function(user) {
 Third&comma; you can define an object containing fields and its increment values&period;
     
 ```js
-User.find(1).then(function(user) {
+User.findById(1).then(function(user) {
   user.increment({
     'my-integer-field':    2,
     'my-very-other-field': 3
@@ -322,7 +322,7 @@ In order to decrement values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
     
 ```js
-User.find(1).then(function(user) {
+User.findById(1).then(function(user) {
   user.decrement('my-integer-field', 2).then(/* ... */)
 })
 ```
@@ -330,7 +330,7 @@ User.find(1).then(function(user) {
 Second&comma; you can define multiple fields and the value you want to add to them&period;
     
 ```js
-User.find(1).then(function(user) {
+User.findById(1).then(function(user) {
   user.decrement([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)
 })
 ```
@@ -338,7 +338,7 @@ User.find(1).then(function(user) {
 Third&comma; you can define an object containing fields and its decrement values&period;
 
 ```js
-User.find(1).then(function(user) {
+User.findById(1).then(function(user) {
   user.decrement({
     'my-integer-field':    2,
     'my-very-other-field': 3

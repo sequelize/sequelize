@@ -5,6 +5,7 @@
 - [REMOVED] Query Chainer has been remved
 - [REMOVED] Migrations have been removed, use umzug instead
 - [REMOVED] Model.findAllJoin has been removed
+- [REMOVED] sequelize.query now only takes `sql, callee, options` as arguments, the 4th argument `replacements` has been removed and should be set via `options.replacements` instead.
 - [REMOVED/SECURITY] findOne no longer takes a string/integer/binary argument to represent a primaryKey. Use findById instead
 - [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
 
