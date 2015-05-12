@@ -1,7 +1,11 @@
 # 3.0.0
 - [BUG] Fix addIndexQuery error when the model has a schema
 - [ADDED] findById/findByPrimary takes a single value as argument representing the primary key to find.
-- [CHANGED] findOne/findAll now only takes a single options argument instead of a options, queryOptions argument. So set transaction, raw, etc on the first options argument.
+- [CHANGED] belongsToMany relations MUST now be given a `through` argument.
+- [CHANGED] findOne/findAll/findAndCount/findOrCreate now only takes a single options argument instead of a options, queryOptions argument. So set transaction, raw, etc on the first options argument.
+- [CHANGED] The accessor for belongsToMany relationships is now either the `as` argument or the target model name pluralized.
+- [REMOVED] N:M relationships can no longer be represented by 2 x hasMany
+- [REMOVED] Model.create/Model.bulkCreate no longer takes an array of fields as its second argument, use `options.fields` instead.
 - [REMOVED] Query Chainer has been remved
 - [REMOVED] Migrations have been removed, use umzug instead
 - [REMOVED] Model.findAllJoin has been removed
