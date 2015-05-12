@@ -19,6 +19,15 @@ before(function() {
   return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS btree_gist', null, {raw: true});
 });
 
+before(function() {
+  var dialect = Support.getTestDialect();
+
+  if (dialect !== 'postgres' && dialect !== 'postgres-native') {
+    return;
+  }
+  return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS postgis', null, {raw:true});
+});
+
 beforeEach(function() {
   this.sequelize.test.trackRunningQueries();
   return Support.clearDatabase(this.sequelize);
