@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.find(42);
+          return this.User.findById(42);
         }).then(function(user) {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -191,7 +191,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.find(42);
+          return this.User.findById(42);
         }).then(function(user) {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -218,7 +218,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.find(42);
+          return this.User.findById(42);
         }).then(function(user) {
           expect(user.baz).to.equal('oof');
         });
