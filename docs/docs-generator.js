@@ -23,7 +23,6 @@ if (program.file) {
     {file:'lib/sequelize.js', output: 'sequelize'},
     {file:'lib/instance.js', output: 'instance'},
     {file:'lib/model.js', output: 'model'},
-    {file:'lib/querying.js', output: 'querying'},
     {file:'lib/hooks.js', output: 'hooks'},
     {file:'lib/associations/mixin.js', output: 'associations'},
     {file:'lib/promise.js', output: 'promise'},
@@ -68,7 +67,7 @@ Comment.prototype.getName = function () {
 
   tag = this.getTag('property');
   if (tag) {
-    return tag.types[0];
+    return tag.string;
   }
 
   tag = this.getTag('method');
