@@ -1,4 +1,5 @@
 # Next
+- [BUG] fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
 
 # 2.1.3
