@@ -670,8 +670,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               primaryKey: true
             }
           });
-          self.Group.hasMany(self.User);
-          self.User.hasMany(self.Group);
+          self.Group.belongsToMany(self.User, {through: 'group_user'});
+          self.User.belongsToMany(self.Group, {through: 'group_user'});
 
           return self.sequelize.sync({ force: true }).then(function() {
             return self.User.create({ username: 'someone' }).then(function(someUser) {
@@ -763,8 +763,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('returns the associated models when using through as string and alias', function() {
           var self = this;
 
-          this.Product.hasMany(this.Tag, {as: 'tags', through: 'product_tag'});
-          this.Tag.hasMany(this.Product, {as: 'products', through: 'product_tag'});
+          this.Product.belongsToMany(this.Tag, {as: 'tags', through: 'product_tag'});
+          this.Tag.belongsToMany(this.Product, {as: 'products', through: 'product_tag'});
 
           return this.sequelize.sync().then(function() {
             return Promise.all([
@@ -834,8 +834,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           // Exactly the same code as the previous test, just with a through model instance, and promisified
           var ProductTag = this.sequelize.define('product_tag');
 
-          this.Product.hasMany(this.Tag, {as: 'tags', through: ProductTag});
-          this.Tag.hasMany(this.Product, {as: 'products', through: ProductTag});
+          this.Product.belongsToMany(this.Tag, {as: 'tags', through: ProductTag});
+          this.Tag.belongsToMany(this.Product, {as: 'products', through: ProductTag});
 
           return this.sequelize.sync().bind(this).then(function() {
             return Promise.all([
@@ -911,14 +911,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('should return a DAO when raw is false', function() {
         var self = this;
-        return this.User.findOne({ where: { username: 'barfooz'}}, { raw: false }).then(function(user) {
+        return this.User.findOne({ where: { username: 'barfooz'}, raw: false }).then(function(user) {
           expect(user).to.be.instanceOf(self.User.DAO);
         });
       });
 
       it('should return raw data when raw is true', function() {
         var self = this;
-        return this.User.findOne({ where: { username: 'barfooz'}}, { raw: true }).then(function(user) {
+        return this.User.findOne({ where: { username: 'barfooz'}, raw: true }).then(function(user) {
           expect(user).to.not.be.instanceOf(self.User.DAO);
           expect(user).to.be.instanceOf(Object);
         });

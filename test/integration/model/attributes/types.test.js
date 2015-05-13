@@ -41,8 +41,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           this.Project = this.sequelize.define('project', {});
 
           this.Task.belongsTo(this.User);
-          this.Project.hasMany(this.User);
-          this.User.hasMany(this.Project);
+          this.Project.belongsToMany(this.User, {through: 'project_user'});
+          this.User.belongsToMany(this.Project, {through: 'project_user'});
 
           this.sqlAssert = function(sql) {
             expect(sql.indexOf('field1')).to.equal(-1);
@@ -69,10 +69,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should be ignored in find, findAll and includes', function() {
           return Promise.all([
-            this.User.find(null, {
+            this.User.find({}, {
               logging: this.sqlAssert
             }),
-            this.User.findAll(null, {
+            this.User.findAll({}, {
               logging: this.sqlAssert
             }),
             this.Task.findAll({

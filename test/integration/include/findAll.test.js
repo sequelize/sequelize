@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       SubCategory.belongsTo(Category, {foreignKey: 'boundCategory'});
 
       return this.sequelize.sync({force: true}).then(function() {
-        return User.find({
+        return User.findOne({
           include: [
             {
               model: SubscriptionForm,
