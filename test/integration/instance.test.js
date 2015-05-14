@@ -1759,6 +1759,38 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
       });
     });
+
+    it('delete a record of multiple primary keys table', function() {
+      var MultiPrimary = this.sequelize.define('MultiPrimary', {
+        bilibili: {
+          type: Support.Sequelize.CHAR(2),
+          primaryKey: true
+        },
+
+        guruguru: {
+          type: Support.Sequelize.CHAR(2),
+          primaryKey: true
+        }
+      });
+
+      return MultiPrimary.sync({ force: true }).then(function() {
+        return MultiPrimary.create({ bilibili: 'bl', guruguru: 'gu' }).then(function() {
+          return MultiPrimary.create({ bilibili: 'bl', guruguru: 'ru' }).then(function(m2) {
+            return MultiPrimary.findAll().then(function(ms) {
+              expect(ms.length).to.equal(2);
+              return m2.destroy({
+                logging: function(sql) {
+                  expect(sql).to.exist;
+                  expect(sql.toUpperCase().indexOf('DELETE')).to.be.above(-1);
+                  expect(sql.indexOf('ru')).to.be.above(-1);
+                  expect(sql.indexOf('bl')).to.be.above(-1);
+                }
+              });
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('restore', function() {
