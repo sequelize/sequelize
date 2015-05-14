@@ -65,6 +65,19 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
+    it('should support updating GeoJSON', function () {
+      var self = this;
+      return self.User.create(Ted).then(function (ted) {
+        ted.set('location', normalizeSRID({
+          type: 'Point',
+          coordinates: [0.1, 0.1]
+        }));
+        return ted.save();
+      }).then(function (ted) {
+        expect(ted.get('location')).to.be.instanceof(Object);
+      });
+    });
+
     it('should support $geoWithin', function () {
       var self = this;
 
