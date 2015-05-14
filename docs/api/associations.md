@@ -1,8 +1,8 @@
 <a name="mixin"></a>
 # Mixin Mixin
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/associations/mixin.js#L95)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/associations/mixin.js#L95)
 Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions
-on a model (the source), and prodiving another model as the first argument to the function (the target).
+on a model (the source), and providing another model as the first argument to the function (the target).
 
 * hasOne - adds a foreign key to target
 * belongsTo - add a foreign key to source
@@ -89,7 +89,7 @@ you should either disable some constraints, or rethink your associations complet
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/associations/mixin.js#L145)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/associations/mixin.js#L145)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
@@ -121,7 +121,7 @@ All methods return a promise
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/associations/mixin.js#L170)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/associations/mixin.js#L170)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
@@ -153,7 +153,7 @@ All methods return a promise
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/associations/mixin.js#L245)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/associations/mixin.js#L245)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -192,7 +192,7 @@ Project.hasMany(User, { through: UserProjects })
 ```
 ```js
 jan.addProject(homework, { started: false }) // The homework project is not started yet
-jan.setProjects([makedinner, doshopping], { started: true}) // Both shopping and dinner has been started
+jan.setProjects([makedinner, doshopping], { started: true}) // Both shopping and dinner have been started
 ```
 
 If you want to set several target instances, but with different attributes you have to set the attributes on the instance, using a property with the name of the through model:
@@ -236,7 +236,7 @@ user.getProjects().success(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/associations/mixin.js#L339)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/associations/mixin.js#L339)
 Create an N:M association with a join table
 
 ```js
