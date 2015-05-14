@@ -62,6 +62,10 @@ if (Support.dialectIsMySQL()) {
         {
           arguments: [{id: {type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', comment: 'column comment'}}],
+          expectation: {id: "INTEGER COMMENT 'column comment'"}
         }
       ],
 
