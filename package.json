@@ -1,8 +1,8 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS/io.js",
-  "version": "2.1.3",
-  "author": "Sascha Depold <sascha@depold.com>",
+  "version": "2.1.3-0.0",
+  "author": "Lebret Rémi",
   "contributors": [
     {
       "name": "Sascha Depold",
@@ -26,10 +26,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
+    "url": "https://github.com/lebretr/sequelize-oracle.git"
   },
   "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
+    "url": "https://github.com/lebretr/sequelize-oracle/issues"
   },
   "dependencies": {
     "bluebird": "~2.9.24",
