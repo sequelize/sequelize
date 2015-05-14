@@ -1,29 +1,22 @@
-# Note:
-The master Branch (fork of Sequelize 2.x.x) not support Oracle.
-For Oracle support, view branch 1.7.x
-
-
-
-
 # Sequelize
 
-[![Build Status](https://secure.travis-ci.org/sequelize/sequelize.png)](http://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.png)](https://david-dm.org/sequelize/sequelize) [![Coverage Status](https://codeclimate.com/github/sequelize/sequelize/coverage.png)](https://codeclimate.com/github/sequelize/sequelize)[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize)
+[![Build Status](https://travis-ci.org/sequelize/sequelize.svg?branch=master)](https://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.svg)](https://david-dm.org/sequelize/sequelize) [![Test Coverage](https://codeclimate.com/github/sequelize/sequelize/badges/coverage.svg)](https://codeclimate.com/github/sequelize/sequelize)
+[![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
+[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize)
 
-MySQL, MariaDB, PostgresSQL, and SQLite Object Relational Mapper (ORM) for [node](http://nodejs.org).
+Sequelize is a promise-based Node.js/io.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
-### Install
+[Documentation](http://sequelize.readthedocs.org/en/latest/)
 
-To install 1.x.x (currently 1.7.x) - which has a stable API and is mostly backwards compatible:
+## Installation
 
 `npm install sequelize`
 
-To install 2.x.x branch - which has a unstable API and will break backwards compatability:
-
-`npm install sequelize@unstable`
+Will install the latest version of sequelize (currently 2.0).
 
 [Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0)
 
-### Features
+## Features
 
 - Schema definition
 - Schema synchronization/dropping
@@ -36,23 +29,14 @@ To install 2.x.x branch - which has a unstable API and will break backwards comp
 - Migrations
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
-### Resources
+## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
-- [Getting Started](http://sequelizejs.com/articles/getting-started)
-- [Documentation](http://sequelizejs.com/docs)
-- [API Reference](https://github.com/sequelize/sequelize/wiki/API-Reference) *Work in progress*
-- [Collaboration and pull requests](https://github.com/sequelize/sequelize/wiki/Collaboration)
-- [Roadmap](https://github.com/sequelize/sequelize/wiki/Roadmap)
-- [Meetups](https://github.com/sequelize/sequelize/wiki/Meetups)
-- [Twitter](http://twitter.com/sdepold)
-- [IRC](http://webchat.freenode.net?channels=sequelizejs)
+- [Getting Started](http://docs.sequelizejs.com/en/latest/docs/getting-started/)
+- [Documentation](http://docs.sequelizejs.com/en/latest/)
+- [API Reference](http://docs.sequelizejs.com/en/latest/)
+- [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
+- [Roadmap](https://github.com/sequelize/sequelize/issues/2869)
+- [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS
+- [IRC](http://webchat.freenode.net?channels=sequelizejs): sequelizejs on Freenode
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
-
-## Running Examples
-Instructions for running samples are located in the [example directory](https://github.com/sequelize/sequelize/tree/master/examples). Try these samples in a live sandbox environment:
-
-<a href="https://runnable.com/sequelize" target="_blank"><img src="https://runnable.com/external/styles/assets/runnablebtn.png"></a>
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lebretr/sequelize/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
+- [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)

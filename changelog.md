@@ -1,5 +1,180 @@
 # Next
+- [BUG] fix showIndexQuery so appropriate indexes are returned when a schema is used
+- [BUG] Fix addIndexQuery error when the model has a schema
+
+# 2.1.3
+- [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
+- [BUG] Fix managed transactions not rolling back if no thenable was provided in the transaction block [3667](https://github.com/sequelize/sequelize/pull/3667)
+
+# 2.1.2
+- [BUG] `Model.create()/update()` no longer attempts to save undefined fields.
+
+# 2.1.1
+- [BUG] .get() now passes along options correctly when using a custom getter
+- [BUG] Fix managed transactions not rolling back if an error occured the transaction block [3661](https://github.com/sequelize/sequelize/pull/3661)
+- [BUG] Fix a node-webkit issue [3650](https://github.com/sequelize/sequelize/pull/3650)
+- [FEATURE] Lock modes in Postgres now support `OF table`
+- [FEATURE] New transaction lock modes `FOR KEY SHARE` and `NO KEY UPDATE` for Postgres 9.3+
+- [FEATURE/REFACTOR] Rewritten scopes with complete support for includes and scopes across associations
+
+# 2.1.0
+- [BUG] Enable standards conforming strings on connection in postgres. Adresses [#3545](https://github.com/sequelize/sequelize/issues/3545)
+- [BUG] instance.removeAssociation(s) do not fire the select query twice anymore
+- [BUG] Error messages thrown by the db in languages other than english do not crash the app anymore (mysql, mariadb and postgres only) [#3567](https://github.com/sequelize/sequelize/pull/3567)
+- [FEATURE] [JSONB](https://github.com/sequelize/sequelize/issues/3471)
+- [FEATURE] All querys can be logged individually by inserting `logging: fn` in the query option.
+- [FEATURE] Partial index support for Postgres with `index.where`
+- [REFACTOR] `.changed()` now works proactively by setting a flag on `set` instead of matching reactively. Note that objects and arrays will not be checked for equality on set and will always result in a change if they are `set`.
+- [DEPRECATED] The query-chainer is deprecated and will be removed in version 2.2. Please use promises instead.
+- [REMOVED] Events are no longer supported.
+- [INTERNALS] Updated dependencies.
+    + bluebird@2.9.24
+
+#### Backwards compatibility changes
+- Events support have been removed so using `.on('success')` or `.success()` is no longer supported. Try using `.then()` instead.
+- Trying to apply a scope that does not exist will always throw an error
+
+# 2.0.6
+- [BUG] Don't update virtual attributes in Model.update. Fixes [#2860](https://github.com/sequelize/sequelize/issues/2860)
+- [BUG] Fix for newlines in hstore [#3383](https://github.com/sequelize/sequelize/issues/3383)
+- [BUG] Fix unique key handling in Model.update [#3474](https://github.com/sequelize/sequelize/issues/3474)
+- [BUG] Fix issue with Model.create() using fields not specifying and non-incremental primary key [#3458](https://github.com/sequelize/sequelize/issues/3458)
+- [FEATURE] `field` support for Model.update [#3498](https://github.com/sequelize/sequelize/pull/3498)
+- [INTERNALS] Updated dependencies. Most notably we are moving up one major version on lodash. If you are using `sequelize.Utils._`, notice that the semantics for many matching functions have changed to include a check for `hasOwnProperty`
+    + dottie@0.3.1
+    + inflection@1.6.0
+    + lodash@3.5.0
+    + validator@3.34
+    + generic-pool@2.2.0
+- [INTERNALS] Updated devDependencies.
+    + coffee-script@1.9.1
+    + dox@0.7.1
+    + mysql@2.6.2
+
+# 2.0.5
+- [FEATURE] Highly experimental support for nested creation [#3386](https://github.com/sequelize/sequelize/pull/3386)
+
+# 2.0.4
+- [BUG] Fixed support for 2 x belongsToMany without foreignKey defined and association getter/adder [#3185](https://github.com/sequelize/sequelize/issues/3185)
+- [BUG] No longer throws on `Model.hasHook()` if no hooks are defiend [#3181](https://github.com/sequelize/sequelize/issues/3181)
+- [BUG] Fixed issue with `{$and: []}`
+- [BUG] Fixed issue with N:M relations with primary keys with field defined
+
+# 2.0.3
+- [BUG] Support for plain strings, ints and bools on JSON insert
+- [BUG] Fixed regression where `{$in: []}` would result in `IN ()` rather than `IN (NULL)` [#3105](https://github.com/sequelize/sequelize/issues/3105) [#3132](https://github.com/sequelize/sequelize/issues/3132)
+- [BUG] Fixed bug where 2 x `belongsToMany` with `foreignKey` but no `otherKey` defined would result in 3 keys instead of 2. [#2991](https://github.com/sequelize/sequelize/issues/2991)
+- [BUG] Fixed regression with `where: sequelize.json()` [#3138](https://github.com/sequelize/sequelize/issues/3138)
+- [BUG] Fixed support for `field` with `$or`/`$and` [#3153](https://github.com/sequelize/sequelize/issues/3153)
+
+# 2.0.2
+- [BUG] Fixed regression with `DataTypes.ARRAY(DataTypes.STRING(length))` [#3106](https://github.com/sequelize/sequelize/issues/3106)
+- [BUG] Fixed regression where `.or([{key: value}, {key: value, key2: value}])` would result in 3 `A OR B OR C` rather than `A OR (B AND C)` [#3107](https://github.com/sequelize/sequelize/issues/3107)
+- [BUG] Fixed regression with `DataTypes.DECIMAL(10)` resulting in `10, undefined` [#3119](https://github.com/sequelize/sequelize/issues/3119)
+- [BUG] Fixed issue with dangling `WHERE ` query on `Model.update(values, {where: {}})` [#3113](https://github.com/sequelize/sequelize/issues/3113)
+
+# 2.0.1
+- [BUG] Fixed issue with empty `include.where`
+- [BUG] Fixed issue with otherKey generation for self-association N:M
+
+# 2.0.0
+- [BUG] Fixed `field` support for `increment` and `decrement`.
+- [FEATURE/BUG] Raw queries always return all results (including affected rows etc). This means you should change all promise listeners on `sequelize.query` to use `.spread` instead of `.then`, unless you are passing a query type.
+- [BUG] Support for composite primary keys in upsert [#3065](https://github.com/sequelize/sequelize/pull/3065)
+- [BUG] Support for `field` in upsert
+- [FEATURE] Support for setting an initial autoincrement option in mysql [#3076](https://github.com/sequelize/sequelize/pull/3076)
+- [FEATURE] Test coverage for Node.js 0.12 and io.js 1.x
+
+#### Backwards compatibility changes
+- The default query type for `sequelize.query` is now `RAW` - this means that two arguments (results and metadata) will be returned by default and you should use `.spread`
+- The 4th argument to `sequelize.query` has been deprecated in favor of `options.replacements`
+
+# 2.0.0-rc8
+- [FEATURE] CLS Support. CLS is also used to automatically pass the transaction to any calls within the callback chain when using `sequelize.transaction(function() ...`.
+- [BUG] Fixed issue with paranoid deletes and `deletedAt` with a custom field.
+- [BUG] No longer crahes on `where: []`
+- [FEATURE] Validations are now enabled by default for upsert.
+- [FEATURE] Preliminary support for `include.through.where`
+- [SECURITY/BUG] Fixed injection issue in direction param for order
+
+# 2.0.0-rc7
+- [FEATURE] Throw an error if no where clause is given to `Model.destroy()`.
+- [BUG] Fixed issue with `order: sequelize.literal('string')`
+- [FEATURE] add `clone: true` support to `.get()`. Is needed when using `delete` on values from a `.get()` (`toJSON()`, `this.values`). (.get() is just a reference to the values for performance reasons when there's no custom getters or includes)
+- [FEATURE] add `sequelize.escape(value)` convenience method
+- [BUG] Fixes crash with `findAll({include: [Model], order: sequelize.literal()})`
+- [FEATURE] Now possible to pass `createdAt` and `updatedAt` values to `Model.create`/`Model.bulkCreate` when using silent: true (when importing datasets with existing timestamps)
+- [FEATURE] `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
+- [BUG] Fixed bad SQL when updating a JSON attribute with a different `field`
+- [BUG] Fixed issue with creating and updating values of a `DataTypes.ARRAY(DataTypes.JSON)` attribute
+- [BUG] `Model.bulkCreate([{}], {returning: true})` will now correctly result in instances with primary key values.
+- [BUG] `instance.save()` with `fields: []` (as a result of `.changed()` being `[]`) will no result in a noop instead of an empty update query.
+- [BUG] Fixed case where `findOrCreate` could return `[null, true]` when given a `defaults` value that triggered a unique constraint error.
+
+#### Backwards compatibility changes
+- `instance.update()` using default fields will now automatically also save and validate values provided via `beforeUpdate` hooks
+- Sequelize no longer supports case insensitive mysql enums
+- `pg-hstore` has been moved to a devDependency, Postgres users will have to install `pg-hstore` manually alongside `pg`: `$ npm install pg pg-hstore`
+
+# 2.0.0-rc6
+- [BUG] Fixed issue with including by association reference and where
+
+# 2.0.0-rc5
+- [BUG] Fixed issue with subquery creating `include.where` and a paranoid main model.#2749/#2769
+- UniqueConstraintErrors will now extend from ValidationError making it possible to catch both with `.catch(ValidationError)`
+- [FEATURE] Adds `{save: false}` for belongsTo relationship setters. `user.setOrganization(organization, {save: false})` will then only set the foreign key value, but not trigger a save on `user`.
+- [FEATURE] When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
+- [BUG] Sequelize will no longer fail on a postgres constraint error not defined by Sequelize
+- [FEATURE] It's now possible to pass an association reference to include. `var Owner = Company.belongsTo(User, {as: 'owner'}; Company.findOne({include: [Owner]});`
+
+#### Backwards compatibility changes
+- When updating an instance `_previousDataValues` will now be updated after `afterUpdate` hooks have been run rather than before allowing you to use `changed` in `afterUpdate`
+
+# 2.0.0-rc4
+- [INTERNALS] Update `inflection` dependency to v1.5.3
+- [FEATURE] Replaced string error messages for connection errors with error objects. [#2576](https://github.com/sequelize/sequelize/pull/2576)
+- [FEATURE] Support for updating fields on duplicate key in bulk update (mysql only) [#2692](https://github.com/sequelize/sequelize/pull/2692)
+- [FEATURE] Basic support for Microsoft SQL Server
+- [INTERNALS] Deprecate migration logic. This is now implemented in [umzug](https://github.com/sequelize/umzug) and the [CLI](https://github.com/sequelize/cli).
+- [BUG] Fixed various inconsistencies with `Instance.update` and how it behaves together with `create`, `fields` and more.
+- [BUG] Fixed crash/bug when using `include.where` together with `association.scope`
+- [BUG] Fixed support for `Instance.destroy()` and `field` for postgres.
+
+#### Backwards compatibility changes
+- Some of the string error messages for connection errors have been replaced with actual error instances. Checking for connection errors should now be more consistent.
+
+# 2.0.0-rc3
+- [FEATURE] Added the possibility of removing multiple associations in 1 call [#2338](https://github.com/sequelize/sequelize/issues/2338)
+- [FEATURE] Undestroy method for paranoid models [#2540](https://github.com/sequelize/sequelize/pull/2540)
+- [FEATURE] Support for UPSERT
+- [BUG] Add support for `field` named the same as the attribute in `reload`, `bulkCreate` and `save` [#2348](https://github.com/sequelize/sequelize/issues/2348)
+- [BUG] Copy the options object in association getters. [#2311](https://github.com/sequelize/sequelize/issues/2311)
+- [BUG] `Model#destroy()` now supports `field`, this also fixes an issue with `N:M#removeAssociation` and `field`
+- [BUG] Customized error message can now be set for unique constraint that was created manually (not with sync, but e.g. with migrations) or that has fields with underscore naming. This was problem at least with postgres before.
+- [BUG] Fixed a bug where plain objects like `{ in: [...] }` were not properly converted to SQL when combined with a sequelize method (`fn`, `where` etc.). Closes [#2077](https://github.com/sequelize/sequelize/issues/2077)
+- [BUG] Made the default for array search in postgres exact comparison instead of overlap
+- [BUG] Allow logging from individual functions even though the global logging setting is false. Closes [#2571](https://github.com/sequelize/sequelize/issues/2571)
+- [BUG] Allow increment/decrement operations when using schemata
+- [BUG] Allow createTable with schema
+- [BUG] Fix some issues with findAndCount and include
+- [INTERNALS] Update `inflection` dependency to v1.5.2
+- [REMOVED] Remove query generation syntactic sugar provided by `node-sql`, as well as the dependency on that module
+
+#### Backwards compatibility changes
+- When eager-loading a many-to-many association, the attributes of the through table are now accessible through an attribute named after the through model rather than the through table name singularized. i.e. `Task.find({include: Worker})` where the table name for through model `TaskWorker` is `TableTaskWorkers` used to produce `{ Worker: { ..., TableTaskWorker: {...} } }`. It now produces `{ Worker: { ..., TaskWorker: {...} } }`. Does not affect models where table name is auto-defined by Sequelize, or where table name is model name pluralized.
+- When using `Model#find()` with an `order` clause, the table name is prepended to the `ORDER BY` SQL. e.g. `ORDER BY Task.id` rather than `ORDER BY id`. The change is to avoid ambiguous column names where there are eager-loaded associations with the same column names. A side effect is that code like `Task.findAll( { include: [ User ], order: [ [ 'Users.id', 'ASC' ] ] } )` will now throw an error. This should be achieved with `Task.findAll( { include: [ User ], order: [ [ User, 'id', 'ASC' ] ] } )` instead.
+- Nested HSTORE objects are no longer supported. Use DataTypes.JSON instead.
+- In PG `where: { arr: [1, 2] }` where the `arr` column is an array will now use strict comparison (`=`) instead of the overlap operator (`&&`). To obtain the old behaviour, use `  where: { arr: { overlap: [1, 2] }}`
+- The default `fields` for `Instance#save` (when not a new record) is now an intersection of the model attributes and the changed attributes making saves more atomic while still allowing only defined attributes.
+- Syntactic sugar for query generation was removed. You will no longer be able to call Model.dataset() to generate raw sql queries
+
+# 2.0.0-rc2
 - [FEATURE] Added to posibility of using a sequelize object as key in `sequelize.where`. Also added the option of specifying a comparator
+- [FEATURE] Added countercache functionality to hasMany associations [#2375](https://github.com/sequelize/sequelize/pull/2375)
+- [FEATURE] Basic JSON support [#2314](https://github.com/sequelize/sequelize/pull/2314)
+- [BUG] Fixes regression bug with multiple hasMany between the same models with different join tables. Closes [#2316](https://github.com/sequelize/sequelize/issues/2316)
+- [BUG] Don't set autocommit in nested transactions [#2418](https://github.com/sequelize/sequelize/issues/2418)
+- [BUG] Improved `field` support
 
 # 2.0.0-rc1
 - [BUG] Fixed an issue with foreign key object syntax for hasOne and belongsTo
@@ -12,12 +187,13 @@
 - [FEATURE] Hooks need not return a result - undefined return is interpreted as a resolved promise
 - [FEATURE] Added `find()` hooks
 
-#### Backwards compatability changes
+#### Backwards compatibility changes
 - The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
 - The naming of the join table entry for N:M association getters is now singular (like includes)
 - Signature of hooks has changed to pass options to all hooks. Any hooks previously defined like `Model.beforeCreate(values)` now need to be `Model.beforeCreate(values, options)` etc.
 - Results returned by hooks are ignored - changes to results by hooks should be made by reference
 - `Model.destroy()` signature has been changed from `(where, options)` to `(options)`, options now take a where parameter.
+- `Model.update()` signature has been changed from `(values, where, options)` to `(values, options)`, options now take a where parameter.
 - The syntax for `Model.findOrBuild` has changed, to be more in line with the rest of the library. `Model.findOrBuild(where, defaults);` becomes `Model.findOrBuild({ where: where, defaults: defaults });`.
 
 # v2.0.0-dev13
@@ -43,10 +219,10 @@ We are working our way to the first 2.0.0 release candidate.
     + sql 0.35.0 -> 0.39.0
 - [INTERNALS] Use a transaction inside `findOrCreate`, and handle unique constraint errors if multiple calls are issues concurrently on the same transaction
 
-#### Backwards compatability changes
+#### Backwards compatibility changes
 - We are using a new inflection library, which should make pluralization and singularization in general more robust. However, a couple of pluralizations have changed as a result:
     + Person is now pluralized as people instead of persons
-- Accesors for models with underscored names are no longer camel cased automatically. For example, if you have a model with name `my_model`, and `my_other_model.hasMany(my_model)`, the getter will now be `instance_of_my_model.getMy_model` instead of `.getMyModel`. 
+- Accesors for models with underscored names are no longer camel cased automatically. For example, if you have a model with name `my_model`, and `my_other_model.hasMany(my_model)`, the getter will now be `instance_of_my_model.getMy_model` instead of `.getMyModel`.
 - Removed support for setting sequelize.language. If your model names are not in english, use the name option provided by `sequelize.name` to defined singular and plural forms for your model.
 - Model names are now used more verbatim in associations. This means that if you have a model named `Task` (plural T), or an association specifying `{ as: 'Task' }`, the tasks will be returned as `relatedModel.Tasks` instead of `relatedModel.tasks`. For more information and how to mitigate this, see https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0#inflection-replaces-lingo-and-changes-to-naming-conventions
 - Removed the freezeAssociations option - use model and assocation names instead to provide the plural form yourself
@@ -55,11 +231,11 @@ We are working our way to the first 2.0.0 release candidate.
     + All Error classes properly inherit from Error and a common SequelizeBaseError base
     + Instance Validator returns a single instance of a ValidationError which contains an errors array property. This property contains individual error items for each failed validation.
     + ValidationError includes a `get(path)` method to find all broken validations for a path on an instance. To migrate existing error handling, switch from array indexing to using the get method:
-        
-        Old: `err.validateCustom[0]` 
-        New: `err.get('validateCustom')[0]` 
+
+        Old: `err.validateCustom[0]`
+        New: `err.get('validateCustom')[0]`
 - The syntax for findOrCreate has changed, to be more in line with the rest of the library. `Model.findOrCreate(where, defaults);` becomes `Model.findOrCreate({ where: where, defaults: defaults });`.
-       
+
 
 # v2.0.0-dev12
 - [FEATURE] You can now return a promise to a hook rather than use a callback
@@ -82,7 +258,7 @@ We are working our way to the first 2.0.0 release candidate.
 - [BUG] Create a composite primary key for doubled linked self reference [#1891](https://github.com/sequelize/sequelize/issues/1891)
 - [INTERNALS] `bulkDeleteQuery` was removed from the MySQL / abstract query generator, since it was never used internally. Please use `deleteQuery` instead.
 
-#### Backwards compatability changes
+#### Backwards compatibility changes
 - Sequelize now returns promises instead of its custom event emitter from most calls. This affects methods that return multiple values (like `findOrCreate` or `findOrInitialize`). If your current callbacks do not accept the 2nd success parameter you might be seeing an array as the first param. Either use `.spread()` for these methods or add another argument to your callback: `.success(instance)` -> `.success(instance, created)`.
 - `.success()`/`.done()` and any other non promise methods are now deprecated (we will keep the codebase around for a few versions though). on('sql') persists for debugging purposes.
 - Model association calls (belongsTo/hasOne/hasMany) are no longer chainable. (this is to support being able to pass association references to include rather than model/as combinations)
@@ -107,7 +283,7 @@ We are working our way to the first 2.0.0 release candidate.
 - [FEATURE/BUG] hstore values are now parsed on find/findAll. Thanks to @nunofgs [#1560](https://github.com/sequelize/sequelize/pull/1560)
 - [FEATURE] Read cli options from a file. Thanks to @codeinvain  [#1540](https://github.com/sequelize/sequelize/pull/1540)
 
-#### Backwards compatability changes
+#### Backwards compatibility changes
 - The `notNull` validator has been removed, use the Schema's `allowNull` property.
 - All Validation errors now return a sequelize.ValidationError which inherits from Error.
 - selectedValues has been removed for performance reasons, if you depend on this, please open an issue and we will help you work around it.

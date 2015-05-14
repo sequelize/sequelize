@@ -1,0 +1,43 @@
+site_name: Sequelize | The Node.js / io.js ORM for PostgreSQL, MySQL, SQLite and MSSQL
+site_description: Sequelize is an ORM for Node.js and io.js. It supports the dialects PostgreSQL, MySQL, MariaDB, SQLite and MSSQL.
+theme: ""
+theme_dir: docs/readthedocs_theme
+repo_url: https://github.com/sequelize/sequelize
+site_favicon: favicon.ico
+site_url: http://docs.sequelizejs.com
+markdown_extensions: [gfm]
+extra_css:
+- css/custom.css
+extra_javascript:
+- //cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js
+pages:
+- ['index.md', 'Home']
+
+- ['docs/getting-started.md', 'Documentation', 'Getting Started']
+- ['docs/schema.md', 'Documentation', 'Working with table schemas']
+#- ['docs/usage.md', 'Documentation', 'Usage']
+- ['docs/models-definition.md', 'Documentation', 'Models - Definition']
+- ['docs/models-usage.md', 'Documentation', 'Models - Usage']
+- ['docs/querying.md', 'Documentation', 'Querying']
+- ['docs/scopes.md', 'Documentation', 'Scopes']
+- ['docs/instances.md', 'Documentation', 'Instances']
+- ['docs/associations.md', 'Documentation', 'Relations/Associations']
+- ['docs/hooks.md', 'Documentation', 'Hooks']
+- ['docs/transactions.md', 'Documentation', 'Transactions']
+- ['docs/legacy.md', 'Documentation', 'Working with legacy tables']
+- ['docs/raw-queries.md', 'Documentation', 'Raw queries']
+- ['docs/migrations.md', 'Documentation', 'Migrations']
+
+- ['api/sequelize.md', 'API', 'Sequelize']
+- ['api/model.md', 'API', 'Model']
+- ['api/instance.md', 'API', 'Instance']
+- ['api/associations.md', 'API', 'Associations']
+- ['api/hooks.md', 'API', 'Hooks']
+- ['api/promise.md', 'API', 'Promise']
+- ['api/transaction.md', 'API', 'Transaction']
+- ['api/datatypes.md', 'API', 'Datatypes']
+- ['api/errors.md', 'API', 'Errors']
+
+- ['changelog.md', 'Misc', 'Changelog']
+- ['imprint.md', 'Misc', 'Imprint']
+

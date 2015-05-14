@@ -1,3 +1,5 @@
+_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js) or [Google groups](https://groups.google.com/forum/#!forum/sequelize).
+
 # Issues
 Issues are always very welcome - after all, they are a big part of making sequelize better. However, there are a couple of things you can do to make the lives of the developers _much, much_ easier:
 
@@ -7,7 +9,7 @@ Issues are always very welcome - after all, they are a big part of making sequel
   * Post a _minimal_ code sample that reproduces the issue, including models and associations
   * What do you expect to happen?
   * What is actually happening?
-* Which dialect you are using?
+* Which dialect you are using (postgres, mysql etc)?
 * Which sequelize version you are using?
 
 When you post code, please use [Github flavored markdown](https://help.github.com/articles/github-flavored-markdown), in order to get proper syntax highlighting!
@@ -26,6 +28,7 @@ We're glad to get pull request if any functionality is missing or something is b
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 1.7 branch are accepted without tests.
 * If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation  ) for the specifics.
+* Add an entry to [the changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md), with a link to the issue you are solving
 
 Still interested? Coolio! Here is how to get started:
 
@@ -50,7 +53,7 @@ For MySQL this would look like this:
 $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 ```
 
-**CLEVER NOTE:** by default, your local MySQL install must be with username `root` without password. If you want to customize that, you can set the environment variables `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT`. 
+**CLEVER NOTE:** by default, your local MySQL install must be with username `root` without password. If you want to customize that, you can set the environment variables `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT`.
 
 For Postgres, creating the database and (optionally) adding the test user this would look like:
 
@@ -64,30 +67,24 @@ $ psql
 get SQLite tests for free :)
 
 #### 3a. Docker
-If you don't feel like setting up databases and users, you can use our [docker](http://docker.io) [image](https://index.docker.io/u/mhansen/sequelize-contribution/) for sequelize contribution.
 
-Getting the image:
-```console
-$ sudo docker pull mhansen/sequelize-contribution
+Makes sure Docker and docker-compose are installed.
+
+Then simply run:
+
+```sh
+npm run test-docker
 ```
 
-Start the container and save references to container id and ip:
-```console
-$ CONTAINER=$(sudo docker run -d -i -t mhansen/sequelize-contribution)
-$ CONTAINER_IP=$(sudo docker inspect -format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
+And once in a while you might want to run:
+
+```sh
+npm run build-docker
 ```
 
-Run tests:
-```console
-$ SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
-```
+To rebuild the image (in case of changed dependencies or similar).
 
-Stop the container:
-```console
-$ sudo docker stop $CONTAINER
-```
-
-When running tests repeatedly, you only need to redo step 3 if you haven't stopped the container.
+If sequelize is unable to connect to mysql you might want to try running `sudo docker-compose up` in a second terminal window.
 
 #### 3b. Docker and OSX:
 
@@ -134,10 +131,11 @@ $ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password make test
 ```
 
 #### 4a. Check the documentation
-This step only applies if you have actually changed something in the documentation. To generate documentation for the `sequelize.js` file, run (in the sequelize dir)
+This step only applies if you have actually changed something in the documentation. Please read `CONTRIBUTING.DOCS.md` first.
+To generate documentation for the `sequelize.js` file, run (in the sequelize dir)
 
 ```console
-$ node docs/markdox.js --file lib/sequelize.js
+$ npm run docs
 ```
 
 The generated documentation will be placed in `docs/tmp.md`.
