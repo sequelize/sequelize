@@ -12,22 +12,22 @@ if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
   describe('promise', function () {
-    var t;
     beforeEach(function () {
+      var self = this;
       return this
         .sequelize
         .transaction()
-        .then(function (_t) {
-          t = _t;
+        .then(function (t) {
+          self.t = t;
         });
     });
     it('should be fulfilled after commit', function () {
-      t.commit();
-      return t.promise;
+      this.t.commit();
+      return this.t.promise;
     });
     it('shouldn be rejected after rollback', function () {
-      t.rollback();
-      expect(t.promise).to.have.been.rejected;
+      this.t.rollback();
+      expect(this.t.promise).to.have.been.rejected;
     });
   });
 
