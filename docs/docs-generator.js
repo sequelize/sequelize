@@ -52,25 +52,10 @@ Comment.prototype.hasTag = function(tagName) {
 };
 
 Comment.prototype.getName = function () {
-  var tag;
+  var tag = (['name', 'class', 'property', 'method']).reduce(function (tag, tagName) {
+    return tag || this.getTag(tagName);
+  }.bind(this), null);
 
-  tag = this.getTag('name');
-
-  if (tag) {
-    return tag.string;
-  }
-
-  tag = this.getTag('class');
-  if (tag) {
-    return tag.string;
-  }
-
-  tag = this.getTag('property');
-  if (tag) {
-    return tag.string;
-  }
-
-  tag = this.getTag('method');
   if (tag) {
     return tag.string;
   }
@@ -280,6 +265,7 @@ new git.Repo(path.dirname(__filename) + '/..', function (err, repo) {
       fs.readFile(file.file, function (err, code) {
         obj = dox.parseComments(code.toString(), { raw: true});
         path = program.out + '/' + file.output + '.md';
+
         console.log(path)
 
         var output = parseComments(obj, file.file);
