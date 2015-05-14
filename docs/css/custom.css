@@ -1,0 +1,87 @@
+@import url(http://fonts.googleapis.com/css?family=Titillium+Web);
+
+table {
+  width:100%;
+}
+
+th:nth-child(1),
+td:nth-child(1) {
+  width: 35%;
+  word-break: break-all;
+}
+
+td:nth-child(2),
+td:nth-child(2) {
+  width: 20%;
+  word-break: break-word;
+}
+
+td,
+th {
+  padding: 6px 13px;
+  border: 1px solid #ddd;
+}
+tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}
+
+#teaser-home {
+  height: 250px;
+  position: relative;
+  margin-bottom: 24px;
+}
+
+#teaser-home img {
+  position: absolute;
+  top: 0;
+}
+
+#teaser-home span {
+  color: #2F406A;
+  position: absolute;
+  top: 0;
+  left: 250px;
+  font-size: 100px;
+  display: inline-block;
+  height: 250px;
+  line-height: 250px;
+  font-family: 'Titillium Web', sans-serif;
+}
+
+a.toctree-l3 {
+  margin-left: 0.8em;
+}
+
+p > code {
+  padding: 0;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+p > code:before, p > code:after {
+  letter-spacing: -0.2em;
+  content: "\00a0";
+}
+
+@media screen and (max-width: 768px) {
+  #teaser-home {
+    height: auto;
+    text-align: center;
+  }
+
+  #teaser-home img {
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+    content:url(/images/logo.png);
+  }
+
+  #teaser-home span {
+    display: none;
+  }
+}

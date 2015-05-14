@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
-  "description": "Multi dialect ORM for Node.JS",
-  "version": "2.0.0-rc1",
+  "description": "Multi dialect ORM for Node.JS/io.js",
+  "version": "2.1.3",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -32,42 +32,46 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "dottie": "0.2.4",
-    "generic-pool": "2.1.1",
-    "inflection": "1.4.2",
-    "lodash": "~2.4.0",
-    "moment": "~2.7.0",
+    "bluebird": "~2.9.24",
+    "dottie": "^0.3.1",
+    "generic-pool": "2.2.0",
+    "inflection": "^1.6.0",
+    "lodash": "^3.5.0",
+    "moment": "^2.9.0",
     "node-uuid": "~1.4.1",
-    "bluebird": "2.3.2",
-    "sql": "~0.39.0",
     "toposort-class": "~0.3.0",
-    "validator": "~3.16.0"
+    "validator": "^3.34.0"
   },
   "devDependencies": {
-    "chai-as-promised": "^4.1.1",
-    "sqlite3": "~2.2.4",
-    "mysql": "~2.4.1",
-    "pg": "~3.4.0",
-    "watchr": "~2.4.11",
-    "chai": "~1.9.0",
-    "mocha": "~1.21.3",
-    "chai-datetime": "~1.2.0",
-    "sinon": "~1.10.3",
-    "mariasql": "~0.1.2",
+    "chai": "^2.1.2",
+    "chai-as-promised": "^4.3.0",
+    "chai-datetime": "~1.3.0",
     "chai-spies": "~0.5.1",
-    "lcov-result-merger": "~1.0.0",
+    "coffee-script": "~1.9.1",
+    "commander": "^2.6.0",
+    "continuation-local-storage": "^3.1.4",
+    "dox": "0.7.1",
+    "git": "^0.1.5",
     "istanbul": "~0.3.0",
-    "async": "~0.9.0",
-    "coffee-script": "~1.7.1",
-    "markdox": "0.1.4",
-    "sinon-chai": "~2.5.0",
-    "jshint": ">=2.4.2"
+    "jshint": ">=2.4.2",
+    "lcov-result-merger": "~1.0.0",
+    "mocha": "^2.2.1",
+    "mysql": "~2.6.2",
+    "pg": "^4.2.0",
+    "pg-hstore": "^2.3.1",
+    "pg-native": "^1.8.0",
+    "sinon": "^1.14.1",
+    "sinon-chai": "^2.7.0",
+    "sqlite3": "^3.0.6",
+    "tedious": "^1.7.0",
+    "watchr": "~2.4.11"
   },
   "keywords": [
     "mysql",
     "sqlite",
     "postgresql",
     "postgres",
+    "mssql",
     "orm",
     "nodejs",
     "object relational mapper"
@@ -75,7 +79,9 @@
   "main": "index",
   "scripts": {
     "test": "make all",
-    "docs": "node_modules/.bin/yuidoc . -o docs"
+    "test-docker": "sudo docker-compose run sequelize /bin/sh -c \"make all\"",
+    "build-docker": "sudo docker-compose build",
+    "docs": "node docs/docs-generator.js"
   },
   "engines": {
     "node": ">=0.6.21"
