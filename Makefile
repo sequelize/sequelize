@@ -116,7 +116,7 @@ merge-coverage:
 
 codeclimate-send:
 	npm install -g codeclimate-test-reporter
-	CODECLIMATE_REPO_TOKEN=ce835a510bbf423a5ab5400a9bdcc2ec2d189d840b31657c6ee7cb9916b161d6 codeclimate < coverage/lcov.info
+	CODECLIMATE_REPO_TOKEN=b3a6d1113ecc9a912056cc0adc1490d3b8990069fb00f27dba6eefe61cd637c3 codeclimate < coverage/lcov.info
 
 # test aliases
 
