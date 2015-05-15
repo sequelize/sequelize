@@ -107,6 +107,39 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
+    it('works with schemas', function() {
+      var self = this;
+      return self.sequelize.dropAllSchemas({logging: log}).then(function() {
+        return self.sequelize.createSchema('schema', {logging: log});
+      }).then(function() {
+        return self.queryInterface.createTable('table', {
+          name: {
+            type: DataTypes.STRING
+          },
+          isAdmin: {
+            type: DataTypes.STRING
+          }
+        }, {
+          schema: 'schema'
+        });
+      }).then(function() {
+          return self.queryInterface.addIndex({
+            schema: 'schema',
+            tableName: 'table'
+          }, ['name', 'isAdmin'], {
+            logging: log
+          }, 'schema_table').then(function() {
+            return self.queryInterface.showIndex({
+              schema: 'schema',
+              tableName: 'table'
+            }, {logging: log}).then(function(indexes) {
+              expect(indexes.length).to.eq(1);
+              count = 0;
+            });
+          });
+      });
+    });
+
     it('does not fail on reserved keywords', function() {
       return this.queryInterface.addIndex('Group', ['from']);
     });

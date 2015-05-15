@@ -975,6 +975,77 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('doesn\'t update attributes that are altered by virtual setters when option is enabled', function () {
+      var User = this.sequelize.define('UserWithVirtualSetters', {
+        username: Sequelize.STRING,
+        illness_name: Sequelize.STRING,
+        illness_pain: Sequelize.INTEGER,
+        illness: {
+          type: Sequelize.VIRTUAL,
+          set: function (value) {
+            this.set('illness_name', value.name);
+            this.set('illness_pain', value.pain);
+          }
+        }
+      });
+
+      return User.sync({ force: true }).then(function () {
+        return User.create({
+          username: 'Jan',
+          illness_name: 'Headache',
+          illness_pain: 5
+        });
+      }).then(function () {
+        return User.update({
+          illness: { pain: 10, name: 'Backache' }
+        }, {
+          where: {
+            username: 'Jan'
+          },
+          persistSideEffects: false
+        });
+      }).then(function (user) {
+        return User.findAll();
+      }).spread(function (user) {
+        expect(user.illness_pain).to.be.equal(5);
+      });
+    });
+
+    it('updates attributes that are altered by virtual setters', function () {
+      var User = this.sequelize.define('UserWithVirtualSetters', {
+        username: Sequelize.STRING,
+        illness_name: Sequelize.STRING,
+        illness_pain: Sequelize.INTEGER,
+        illness: {
+          type: Sequelize.VIRTUAL,
+          set: function (value) {
+            this.set('illness_name', value.name);
+            this.set('illness_pain', value.pain);
+          }
+        }
+      });
+
+      return User.sync({ force: true }).then(function () {
+        return User.create({
+          username: 'Jan',
+          illness_name: 'Headache',
+          illness_pain: 5
+        });
+      }).then(function () {
+        return User.update({
+          illness: { pain: 10, name: 'Backache' }
+        }, {
+          where: {
+            username: 'Jan'
+          }
+        });
+      }).then(function (user) {
+        return User.findAll();
+      }).spread(function (user) {
+        expect(user.illness_pain).to.be.equal(10);
+      });
+    });
+
     it('sets updatedAt to the current timestamp', function() {
       var data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },

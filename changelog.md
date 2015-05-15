@@ -1,3 +1,7 @@
+# Next
+- [BUG] fix showIndexQuery so appropriate indexes are returned when a schema is used
+- [BUG] Fix addIndexQuery error when the model has a schema
+
 # 2.1.3
 - [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
 - [BUG] Fix managed transactions not rolling back if no thenable was provided in the transaction block [3667](https://github.com/sequelize/sequelize/pull/3667)
