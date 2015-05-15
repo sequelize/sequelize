@@ -1785,6 +1785,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                   expect(sql.indexOf('ru')).to.be.above(-1);
                   expect(sql.indexOf('bl')).to.be.above(-1);
                 }
+              }).then(function() {
+                return MultiPrimary.findAll().then(function(ms) {
+                  expect(ms.length).to.equal(1);
+                  expect(ms[0].bilibili).to.equal('bl');
+                  expect(ms[0].guruguru).to.equal('gu');
+                });
               });
             });
           });
