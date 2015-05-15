@@ -47,7 +47,7 @@ if (dialect !== 'sqlite') {
           return TimezonedUser.create({});
         }).then(function(timezonedUser) {
           this.timezonedUser = timezonedUser;
-          return NormalUser.find(timezonedUser.id);
+          return NormalUser.findById(timezonedUser.id);
         }).then(function(normalUser) {
           // Expect 7 hours difference, in milliseconds.
           // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp

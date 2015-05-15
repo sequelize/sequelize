@@ -69,24 +69,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should be ignored in find, findAll and includes', function() {
           return Promise.all([
-            this.User.find({}, {
+            this.User.findOne({
               logging: this.sqlAssert
             }),
-            this.User.findAll({}, {
+            this.User.findAll({
               logging: this.sqlAssert
             }),
             this.Task.findAll({
               include: [
                 this.User
-              ]
-            }, {
+              ],
               logging: this.sqlAssert
             }),
             this.Project.findAll({
               include: [
                 this.User
-              ]
-            }, {
+              ],
               logging: this.sqlAssert
             })
           ]);

@@ -57,12 +57,12 @@ $like: '%hat',         // LIKE '%hat'
 $notLike: '%hat'       // NOT LIKE '%hat'
 $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
 $notILike: '%hat'      // NOT ILIKE '%hat'
-$like: { $any: ['cat', 'hat']} 
+$like: { $any: ['cat', 'hat']}
                        // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
 $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
 $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
 $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
-$any: [2,3]            // ANY ARRAY[2, 3]::INTEGER
+$any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 ```
 
 ### Combinations
@@ -169,7 +169,7 @@ something.findOne({
     // Will order by max(age) DESC
     [sequelize.fn('max', sequelize.col('age')), 'DESC'],
 
-    // Will order by  otherfunction(`col1`, 12, 'lalala') DESC    
+    // Will order by  otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
 
     // Both the following statements will be treated literally so should be treated with care

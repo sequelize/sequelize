@@ -30,7 +30,7 @@ $ sequelize help:db:migrate
 $ sequelize help:db:migrate:undo
 # etc
 ```
-    
+
 The latter one for example will print out the following output:
 
 ```bash
@@ -48,21 +48,19 @@ OPTIONS
     --coffee        Enables coffee script support. Default: false
     --config        The path to the config file. Default: config/config.json
 ```
-    
+
 ## Skeleton
 
 The following skeleton shows a typical migration file&period; All migrations are expected to be located in a folder called `migrations` at the very top of the project&period; The sequelize binary can generate a migration skeleton&period; See the aboves section for more details&period;
 
 ```js
 module.exports = {
-  up: function(migration, DataTypes, done) {
+  up: function(migration, DataTypes) {
     // logic for transforming into the new state
-    done() // sets the migration as finished
   },
  
-  down: function(migration, DataTypes, done) {
+  down: function(migration, DataTypes) {
     // logic for reverting the changes
-    done() // sets the migration as finished
   }
 }
 ```
@@ -71,17 +69,8 @@ The passed `migration` object can be used to modify the database&period; The `Da
 
 ```js
 module.exports = {
-  up: function(migration, DataTypes, done) {
-    migration.dropAllTables().complete(done)
- 
-    // equals:
-    migration.dropAllTables().complete(function(err) {
-      if (err) {
-        done(err)
-      } else {
-        done(null)
-      }
-    })
+  up: function(migration, DataTypes) {
+    return migration.dropAllTables();
   }
 }
 ```
@@ -155,7 +144,7 @@ migration.renameTable('Person', 'User')
 This method returns the name of all existing tables in the database&period;
 
 ```js
-migration.showAllTables().success(function(tableNames) {})
+migration.showAllTables().then(function(tableNames) {})
 ```
 
 ### describeTable&lpar;tableName&comma; options&rpar;
@@ -163,7 +152,7 @@ migration.showAllTables().success(function(tableNames) {})
 This method returns an array of hashes containing information about all attributes in the table&period;
 
 ```js
-migration.describeTable('Person').success(function(attributes) {
+migration.describeTable('Person').then(function(attributes) {
   /*
     attributes will be something like:
  
@@ -299,7 +288,7 @@ Once you have a migrator object, you can run its migration with `migrator.migrat
 ```js
 migrator
   .migrate({ method: 'down' })
-  .success(function() {
+  .then(function() {
     // The migrations have been executed!
   })
 ```

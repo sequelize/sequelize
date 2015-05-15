@@ -301,7 +301,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       }).then(function(user) {
         // the sql query should correctly look at task_id instead of taskId
         expect(user).to.not.be.null;
-        return Task.find({
+        return Task.findOne({
           where: {title: 'task'},
           include: [User]
         });

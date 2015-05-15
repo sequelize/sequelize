@@ -1079,7 +1079,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         expect(project).to.be.ok;
         return project.destroy().return (user);
       }).then(function(user) {
-        return self.User.find({
+        return self.User.findOne({
           where: { id: user.id},
           include: [{model: self.Project, as: 'Projects'}]
         });
@@ -1361,7 +1361,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
             return u.addProject(p, { status: 'active' });
           }).then(function() {
-            return this.UserProjects.find({ where: { UserId: this.u.id, ProjectId: this.p.id }});
+            return this.UserProjects.findOne({ where: { UserId: this.u.id, ProjectId: this.p.id }});
           }).then(function(up) {
             expect(up.status).to.equal('active');
           });
@@ -1449,8 +1449,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
             return user.setProjects([this.p1, this.p2], { status: 'active' });
           }).then(function() {
             return Promise.all([
-              self.UserProjects.find({ where: { UserId: this.user.id, ProjectId: this.p1.id }}),
-              self.UserProjects.find({ where: { UserId: this.user.id, ProjectId: this.p2.id }})
+              self.UserProjects.findOne({ where: { UserId: this.user.id, ProjectId: this.p1.id }}),
+              self.UserProjects.findOne({ where: { UserId: this.user.id, ProjectId: this.p2.id }})
             ]);
           }).spread(function(up1, up2) {
             expect(up1.status).to.equal('inactive');
@@ -1570,7 +1570,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           .save()
           .then(function() { return b1.save(); })
           .then(function() { return a1.setRelation1(b1); })
-          .then(function() { return self.A.find({ where: { name: 'a1' } }); })
+          .then(function() { return self.A.findOne({ where: { name: 'a1' } }); })
           .then(function(a) {
             expect(a.relation1Id).to.be.eq(b1.id);
           });
@@ -1596,7 +1596,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           .save()
           .then(function() { return b1.save(); })
           .then(function() { return b1.setRelation1(a1); })
-          .then(function() { return self.B.find({ where: { name: 'b1' } }); })
+          .then(function() { return self.B.findOne({ where: { name: 'b1' } }); })
           .then(function(b) {
             expect(b.relation1Id).to.be.eq(a1.id);
           });

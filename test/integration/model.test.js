@@ -1449,7 +1449,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(result.username).to.equal('Tony');
         return User.destroy({where: {username: ['Tony', 'Max']}, force: true});
       }).then(function() {
-        return self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true});
+        return self.sequelize.query('SELECT * FROM paranoidusers', {raw: true});
       }).spread(function(users) {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('Tobi');

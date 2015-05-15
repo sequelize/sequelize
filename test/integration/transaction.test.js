@@ -103,10 +103,10 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     var self = this;
     return expect(
       this.sequelize.transaction().then(function(t) {
-        return self.sequelize.query('SELECT 1+1', null, {transaction: t, raw: true}).then(function() {
+        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
           return t.commit();
         }).then(function() {
-          return self.sequelize.query('SELECT 1+1', null, {transaction: t, raw: true});
+          return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
         });
       })
     ).to.eventually.be.rejected;
@@ -116,10 +116,10 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     var self = this;
     return expect(
       this.sequelize.transaction().then(function(t) {
-        return self.sequelize.query('SELECT 1+1', null, {transaction: t, raw: true}).then(function() {
+        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
           return t.commit();
         }).then(function() {
-          return self.sequelize.query('SELECT 1+1', null, {transaction: t, raw: true});
+          return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
         });
       })
     ).to.eventually.be.rejected;
@@ -127,34 +127,31 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
 
   if (dialect === 'sqlite'){
     it('provides persistent transactions', function () {
-      var sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
-          User = sequelize.define('user', {
+      var sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'})
+        , User = sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN
-          });
+          })
+        , persistentTransaction;
 
-      return sequelize.transaction()
-        .then(function(t) {
-          return sequelize.sync({transaction:t})
-            .then(function( ) {
-              return t;
-            });
-        })
-        .then(function(t) {
-          return User.create({}, {transaction:t})
-            .then(function( ) {
-              t.commit();
-            });
-        })
-        .then(function( ) {
-          return sequelize.transaction();
-        })
-        .then(function(t) {
-          return User.findAll({}, {transaction:t});
-        })
-        .then(function(users) {
-          return expect(users.length).to.equal(1);
+      return sequelize.transaction().then(function(t) {
+        return sequelize.sync({ transaction:t }).then(function( ) {
+          return t;
         });
+      }).then(function(t) {
+        return User.create({}, {transaction:t}).then(function( ) {
+          return t.commit();
+        });
+      }).then(function() {
+        return sequelize.transaction().then(function(t) {
+          persistentTransaction = t;
+        });
+      }).then(function() {
+        return User.findAll({transaction: persistentTransaction}).then(function(users) {
+          expect(users.length).to.equal(1);
+          return persistentTransaction.commit();
+        });
+      });
     });
   }
 
@@ -176,8 +173,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
             return User.find({
               where: {
                 username: 'jan'
-              }
-            }, {
+              },
               lock: t1.LOCK.UPDATE,
               transaction: t1
             }).then(function(t1Jan) {
@@ -188,8 +184,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                   User.find({
                     where: {
                       username: 'jan'
-                    }
-                  }, {
+                    },
                     lock: t2.LOCK.UPDATE,
                     transaction: t2
                   }).then(function() {
@@ -201,7 +196,9 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
 
                   t1Jan.updateAttributes({
                     awesome: true
-                  }, { transaction: t1}).then(function() {
+                  }, {
+                    transaction: t1
+                  }).then(function() {
                     t1Spy();
                     return Promise.delay(2000).then(function () {
                       return t1.commit();
@@ -237,8 +234,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                   where: {
                     username: 'John'
                   },
-                  include: [Task]
-                }, {
+                  include: [Task],
                   lock: t1.LOCK.UPDATE,
                   transaction: t1
                 })).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
@@ -249,8 +245,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                   where: {
                     username: 'John'
                   },
-                  include: [Task]
-                }, {
+                  include: [Task],
                   lock: t1.LOCK.UPDATE,
                   transaction: t1
                 });
@@ -283,8 +278,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                   where: {
                     username: 'John'
                   },
-                  include: [Task]
-                }, {
+                  include: [Task],
                   lock: {
                     level: t1.LOCK.UPDATE,
                     of: User
@@ -330,8 +324,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
               return User.find({
                 where: {
                   username: 'jan'
-                }
-              }, {
+                },
                 lock: t1.LOCK.NO_KEY_UPDATE,
                 transaction: t1
               }).then(function(t1Jan) {
@@ -340,8 +333,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                     User.find({
                       where: {
                         username: 'jan'
-                      }
-                    }, {
+                      },
                       lock: t2.LOCK.KEY_SHARE,
                       transaction: t2
                     }).then(function() {
@@ -350,7 +342,9 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                     }),
                     t1Jan.update({
                       awesome: true
-                    }, { transaction: t1}).then(function() {
+                    }, {
+                      transaction: t1
+                    }).then(function() {
                       return Promise.delay(2000).then(function () {
                         t1Spy();
                         expect(t1Spy).to.have.been.calledAfter(t2Spy);
@@ -382,8 +376,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
             return User.find({
               where: {
                 username: 'jan'
-              }
-            }, {
+              },
               lock: t1.LOCK.SHARE,
               transaction: t1
             }).then(function(t1Jan) {
@@ -394,10 +387,10 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                   User.find({
                     where: {
                       username: 'jan'
-                    }
-                  }, { transaction: t2}).then(function(t2Jan) {
+                    },
+                    transaction: t2
+                  }).then(function(t2Jan) {
                     t2FindSpy();
-
                     return t2Jan.updateAttributes({
                       awesome: false
                     }, {

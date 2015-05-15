@@ -16,8 +16,8 @@ if (dialect.match(/^postgres/)) {
           var Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING});
 
-          Table1.hasMany(Table2);
-          Table2.hasMany(Table1);
+          Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
+          Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
 
           expect(this.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).to.exist;
         });
@@ -28,8 +28,8 @@ if (dialect.match(/^postgres/)) {
           var Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
-          Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'});
-          Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'});
+          Table1.belongsToMany(Table2, {through: 'table1_to_table2'});
+          Table2.belongsToMany(Table1, {through: 'table1_to_table2'});
         });
 
         it('should not use a combined name', function() {
@@ -107,8 +107,8 @@ if (dialect.match(/^postgres/)) {
           this.users = null;
           this.tasks = null;
 
-          this.User.hasMany(this.Task, {as: 'Tasks', through: 'usertasks'});
-          this.Task.hasMany(this.User, {as: 'Users', through: 'usertasks'});
+          this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'usertasks'});
+          this.Task.belongsToMany(this.User, {as: 'Users', through: 'usertasks'});
 
           for (var i = 0; i < 5; ++i) {
             users[users.length] = {id: i + 1, name: 'User' + Math.random()};

@@ -10,7 +10,7 @@ A simple example would be a **User** being part of a team **Team** with the fore
 ```js
 var Player = this.sequelize.define('Player', {/* attributes */})
   , Team  = this.sequelize.define('Team', {/* attributes */});
-  
+
 Player.belongsTo(Team); // Will add a TeamId attribute to Player to hold the primary key value for Team
 ```
 
@@ -23,7 +23,7 @@ The default casing is `camelCase` however if the source model is configured with
 ```js
 var User = this.sequelize.define('User', {/* attributes */})
   , Company  = this.sequelize.define('Company', {/* attributes */});
-  
+
 User.belongsTo(Company); // Will add CompanyId to user
 
 var User = this.sequelize.define('User', {/* attributes */}, {underscored: true})
@@ -33,7 +33,7 @@ var User = this.sequelize.define('User', {/* attributes */}, {underscored: true}
       primaryKey: true
     }
   });
-  
+
 User.belongsTo(Company); // Will add company_uuid to user
 ```
 
@@ -42,7 +42,7 @@ In cases where `as` has been defined it will be used in place of the target mode
 ```js
 var User = this.sequelize.define('User', {/* attributes */})
   , UserRole  = this.sequelize.define('UserRole', {/* attributes */});
-  
+
 User.belongsTo(UserRole, {as: 'Role'}); // Adds RoleId to user rather than UserRoleId
 ```
 
@@ -52,7 +52,7 @@ When the foreign key option is used, Sequelize will use it as-is:
 ```js
 var User = this.sequelize.define('User', {/* attributes */})
   , Company  = this.sequelize.define('Company', {/* attributes */});
-  
+
 User.belongsTo(Company, {foreignKey: 'fk_company'}); // Adds fk_company to User
 ```
 
@@ -73,9 +73,9 @@ Project.hasOne(User)
   Furthermore, Project.prototype will gain the methods getUser and setUser according
   to the first parameter passed to define. If you have underscore style
   enabled, the added attribute will be project_id instead of ProjectId.
-  
+
   The foreign key will be placed on the users table.
-  
+
   You can also define the foreign key, e.g. if you already have an existing
   database and want to work on it:
 */
@@ -131,7 +131,7 @@ But we want more! Let's define it the other way around by creating a many to man
 ## Belongs-To-Many associations
 
 Belongs-To-Many associations are used to connect sources with multiple targets. Furthermore the targets can also have connections to multiple sources.
-    
+
 ```js
 Project.belongsToMany(User, {through: 'UserProject'});
 User.belongsToMany(Project, {through: 'UserProject'});
@@ -144,13 +144,13 @@ Defining `through` is required. Sequelize would previously attempt to autogenera
 This will add methods `getUsers`, `setUsers`, `addUsers` to `Project`, and `getProjects`, `setProjects` and `addProject` to `User`.
 
 Sometimes you may want to rename your models when using them in associations. Let's define users as workers and projects as tasks by using the alias (`as`) option:
-```js  
+```js
 User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks' })
 Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks' })
 ```
 
 Of course you can also define self references with belongsToMany:
-    
+
 ```js
 Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
 // This will create the table PersonChildren which stores the ids of the objects.
@@ -170,13 +170,13 @@ Project.belongsToMany(User, { through: UserProjects })
 ```
 
 To add a new project to a user and set it's status, you pass an extra object to the setter, which contains the attributes for the join table
-    
+
 ```js
 user.addProject(project, { status: 'started' })
 ```
 
 By default the code above will add ProjectId and UserId to the UserProjects table, and _remove any previously defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
-    
+
 ```js
 UserProjects = sequelize.define('UserProjects', {
     id: {
@@ -322,8 +322,8 @@ Post.hasMany(Tag, {
 Post.getPendingTags();
 ```
 ```sql
-SELECT `tag`.*  INNER JOIN `item_tags` AS `item_tag` 
-ON `tag`.`id` = `item_tag`.`tagId` 
+SELECT `tag`.*  INNER JOIN `item_tags` AS `item_tag`
+ON `tag`.`id` = `item_tag`.`tagId`
   AND `item_tag`.`taggable_id` = 42
   AND `item_tag`.`taggable` = 'post'
 WHERE (`tag`.`status` = 'pending');
@@ -343,7 +343,7 @@ User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks' }})
 ```
 
 If you know that a model will always use the same alias in associations, you can provide it when creating the model
-    
+
 ```js
 var Project = sequelize.define('project', attributes, {
   name: {
@@ -360,7 +360,7 @@ This will add the functions `add/set/get Tasks` to user instances.
 ## Associating objects
 
 Because Sequelize is doing a lot of magic, you have to call `Sequelize.sync` after setting the associations! Doing so will allow you the following:
-    
+
 ```js
 Project.belongsToMany(Task)
 Task.belongsToMany(Project)
@@ -393,7 +393,7 @@ project.getTasks({attributes: ['title']}).then(function(tasks) {
 ```
 
 To remove created associations you can just call the set method without a specific id:
-    
+
 ```js
 // remove the association with task1
 project.setTasks([task2]).then(function(associatedTasks) {
@@ -433,7 +433,7 @@ Task#setAuthor(anAuthor)
 ```
 
 Adding associations to a relation with a custom join table can be done in two ways (continuing with the associations defined in the previous chapter):
-    
+
 ```js
 // Either by adding a property with the name of the join table model to the object, before creating the association
 project.UserProjects = {
@@ -471,7 +471,7 @@ u.getProjects().then(function(projects) {
 ```
 
 If you only need some of the attributes from the join table, you can provide an array with the attributes you want:
-    
+
 ```js
 // This will select only name from the Projects table, and only status from the UserProjects table
 user.getProjects({ attributes: ['name'], joinTableAttributes: ['status']})
@@ -479,7 +479,7 @@ user.getProjects({ attributes: ['name'], joinTableAttributes: ['status']})
 
 ## Check associations
 You can also check if an object is already associated with another one (N:M only). Here is how you'd do it:
-    
+
 ```js
 // check if an object is one of associated ones:
 Project.create({ /* */ }).then(function(project) {
@@ -520,26 +520,26 @@ Task.belongsTo(User)
 ```
 
 Will generate the following SQL:
-    
+
 ```sql
 CREATE TABLE IF NOT EXISTS `User` (
-  `id` INTEGER PRIMARY KEY, 
+  `id` INTEGER PRIMARY KEY,
   `username` VARCHAR(255)
 );
- 
+
 CREATE TABLE IF NOT EXISTS `Task` (
-  `id` INTEGER PRIMARY KEY, 
-  `title` VARCHAR(255), 
+  `id` INTEGER PRIMARY KEY,
+  `title` VARCHAR(255),
   `user_id` INTEGER REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 );
 ```
 
-The relation between task and user injects the `user_id` foreign key on tasks, and marks it as a reference to the `User` table. By default `user_id` will be set to `NULL` if the referenced user is deleted, and updated if the id of the user id updated. These options can be overridden by passing `onUpdate` and `onDelete` options to the association calls. The validation options are `RESTRICT, CASCADE, NO ACTION, SET DEFAULT, SET NULL`. 
+The relation between task and user injects the `user_id` foreign key on tasks, and marks it as a reference to the `User` table. By default `user_id` will be set to `NULL` if the referenced user is deleted, and updated if the id of the user id updated. These options can be overridden by passing `onUpdate` and `onDelete` options to the association calls. The validation options are `RESTRICT, CASCADE, NO ACTION, SET DEFAULT, SET NULL`.
 
 For 1:1 and 1:m associations the default option is `SET NULL` for deletion, and `CASCADE` for updates. For n:m, the default for both is `CASCADE`. This means, that if you delete or update a row from one side of an n:m association, all the rows in the join table referencing that row will also be deleted or updated.
 
 Adding constraints between tables means that tables must be created in the database in a certain order, when using `sequelize.sync`. If Task has a reference to User, the User table must be created before the Task table can be created. This can sometimes lead to circular references, where sequelize cannot find an order in which to sync. Imagine a scenario of documents and versions. A document can have multiple versions, and for convenience, a document has an reference to it's current version.
-    
+
 ```js
 var Document = this.sequelize.define('Document', {
       author: Sequelize.STRING
@@ -547,29 +547,29 @@ var Document = this.sequelize.define('Document', {
   , Version = this.sequelize.define('Version', {
       timestamp: Sequelize.DATE
     })
- 
+
 Document.hasMany(Version) // This adds document_id to version
 Document.belongsTo(Version, { as: 'Current', foreignKey: 'current_version_id'}) // This adds current_version_id to document
 ```
 
 However, the code above will result in the following error: `Cyclic dependency found. 'Document' is dependent of itself. Dependency Chain: Document -> Version => Document`. In order to alleviate that, we can pass `constraints: false` to one of the associations:
-    
+
 ```js
 Document.hasMany(Version)
 Document.belongsTo(Version, { as: 'Current', foreignKey: 'current_version_id', constraints: false})
 ```
 
 Which will allow us to sync the tables correctly:
-    
+
 ```sql
 CREATE TABLE IF NOT EXISTS `Document` (
-  `id` INTEGER PRIMARY KEY, 
-  `author` VARCHAR(255), 
+  `id` INTEGER PRIMARY KEY,
+  `author` VARCHAR(255),
   `current_version_id` INTEGER
 );
 CREATE TABLE IF NOT EXISTS `Version` (
-  `id` INTEGER PRIMARY KEY, 
-  `timestamp` DATETIME, 
+  `id` INTEGER PRIMARY KEY,
+  `timestamp` DATETIME,
   `document_id` INTEGER REFERENCES `Document` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 );
 ```
@@ -577,7 +577,7 @@ CREATE TABLE IF NOT EXISTS `Version` (
 ### Enforcing a foreign key reference without constraints
 
 Some times you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
-    
+
 ```js
 var Series, Trainer, Video
  

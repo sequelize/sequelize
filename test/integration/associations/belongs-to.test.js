@@ -416,7 +416,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       }).then(function(user) {
         // the sql query should correctly look at task_id instead of taskId
         expect(user).to.not.be.null;
-        return User.find({
+        return User.findOne({
           where: {username: 'foo'},
           include: [Account]
         });

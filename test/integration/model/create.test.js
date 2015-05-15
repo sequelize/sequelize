@@ -839,9 +839,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return User.sync({force: true}).then(function() {
         return User.create({myvals: [1, 2, 3, 4], mystr: ['One', 'Two', 'Three', 'Four']}).then(function(user) {
-         user.myvals = [];
+          user.myvals = [];
           user.mystr = [];
-          return user.save(undefined, {
+          return user.save({
             logging: function(sql) {
               test = true;
               expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
