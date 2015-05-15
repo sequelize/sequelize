@@ -4,6 +4,7 @@
 
 - [BUG] fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
+- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting
 - [ADDED] findById / findByPrimary takes a single value as argument representing the primary key to find.
 - [CHANGED] belongsToMany relations MUST now be given a `through` argument.
 - [CHANGED] findOne / findAll / findAndCount / findOrCreate now only takes a single options argument instead of a options and queryOptions argument. So set transaction, raw, etc on the first options argument.
