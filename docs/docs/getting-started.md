@@ -80,5 +80,5 @@ var sequelize = new Sequelize('connectionUri', {
 var User = sequelize.define('user', {}); // timestamps is false by default
 var Post = sequelize.define('user', {}, {
   timestamps: true // timestamps will now be true
-}); 
+});
 ```

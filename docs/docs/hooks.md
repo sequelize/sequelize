@@ -2,32 +2,32 @@ Hooks (also known as callbacks or lifecycle events), are functions which are cal
 
 ## Order of Operations
 
-```    
-(1) 
-  beforeBulkCreate(instances, options, fn) 
-  beforeBulkDestroy(instances, options, fn) 
+```
+(1)
+  beforeBulkCreate(instances, options, fn)
+  beforeBulkDestroy(instances, options, fn)
   beforeBulkUpdate(instances, options, fn)
-(2) 
+(2)
   beforeValidate(instance, options, fn)
 (-)
   validate
-(3) 
+(3)
   afterValidate(instance, options, fn)
-(4) 
+(4)
   beforeCreate(instance, options, fn)
   beforeDestroy(instance, options, fn)
   beforeUpdate(instance, options, fn)
-(-) 
-  create 
-  destroy 
+(-)
+  create
+  destroy
   update
-(5) 
-  afterCreate(instance, options, fn) 
+(5)
+  afterCreate(instance, options, fn)
   afterDestroy(instance, options, fn)
-  afterUpdate(instance, options, fn) 
-(6) 
-  afterBulkCreate(instances, options, fn) 
-  afterBulkDestory(instances, options, fn) 
+  afterUpdate(instance, options, fn)
+(6)
+  afterBulkCreate(instances, options, fn)
+  afterBulkDestory(instances, options, fn)
   afterBulkUpdate(instances, options, fn)
 ```
 
@@ -35,7 +35,7 @@ Hooks (also known as callbacks or lifecycle events), are functions which are cal
 
 There are currently three ways to programmatically add hooks. A hook function always runs asynchronousĺy, and can be resolved either by calling a callback (passed as the last argument),
 or by returning a promise.
-    
+
 ```js
 // Method 1 via the .define() method
 var User = sequelize.define('User', {
@@ -56,7 +56,7 @@ var User = sequelize.define('User', {
     }
   }
 })
- 
+
 // Method 2 via the .hook() method
 var User = sequelize.define('User', {
   username: DataTypes.STRING,
@@ -65,16 +65,16 @@ var User = sequelize.define('User', {
     values: ['happy', 'sad', 'neutral']
   }
 })
- 
+
 User.hook('beforeValidate', function(user, options, fn) {
   user.mood = 'happy'
   fn(null, user)
 })
- 
+
 User.hook('afterValidate', function(user, options) {
   return sequelize.Promise.reject("I'm afraid I can't let you do that!")
 })
- 
+
 // Method 3 via the direct method
 var User = sequelize.define('User', {
   username: DataTypes.STRING,
@@ -83,12 +83,12 @@ var User = sequelize.define('User', {
     values: ['happy', 'sad', 'neutral']
   }
 })
- 
+
 User.beforeValidate(function(user, options) {
   user.mood = 'happy'
   return sequelize.Promise.resolve(user)
 })
- 
+
 User.afterValidate(function(user, options, fn) {
   user.username = 'Toni'
   fn(null, user)
@@ -115,15 +115,15 @@ User.beforeCreate(function(user) {
 })
 ```
 
-This example will emit an error:
-    
+This example will return an error:
+
 ```js
 User.create({username: 'Not a Boss', accessLevel: 20}).catch(function(err) {
   console.log(err) // You can't grant this user an access level above 10!
 })
 ```
 
-The following example would emit a success event:
+The following example would return successful:
 
 ```js
 User.create({username: 'Boss', accessLevel: 20}).then(function(user) {
@@ -134,18 +134,18 @@ User.create({username: 'Boss', accessLevel: 20}).then(function(user) {
 ### Model hooks
 
 Sometimes you'll be editing more than one record at a time by utilizing the `bulkCreate, update, destroy` methods on the model. The following will emit whenever you're using one of those methods.
-    
+
 ```
 beforeBulkCreate / beforeBulkUpdate / beforeBulkDestroy
 afterBulkCreate / afterBulkUpdate / afterBulkDestroy
 ```
 
 If you want to emit hooks for each individual record, along with the bulk hooks you can pass `individualHooks: true` to the call.
-    
+
 ```js
-Model.destroy({ where: {accessLevel: 0}, individualHooks: true}) 
+Model.destroy({ where: {accessLevel: 0}, individualHooks: true})
 // Will select all records that are about to be deleted and emit before- + after- Destroy on each instance
- 
+
 Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: true})
 // Will select all records that are about to be updated and emit before- + after- Update on each instance
 ```
@@ -157,23 +157,23 @@ Model.beforeBulkCreate(function(records, fields, fn) {
   // records = the first argument sent to .bulkCreate
   // fields = the second argument sent to .bulkCreate
 })
- 
+
 Model.bulkCreate([
   {username: 'Toni'}, // part of records argument
   {username: 'Tobi'} // part of records argument
 ], ['username'] /* part of fields argument */)
- 
+
 Model.beforeBulkUpdate(function(attributes, where, fn) {
   // attributes = first argument sent to Model.update
   // where = second argument sent to Model.update
 })
- 
+
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
- 
+
 Model.beforeBulkDestroy(function(whereClause, fn) {
   // whereClause = first argument sent to Model.destroy
 })
- 
+
 Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 ```
 
@@ -183,22 +183,22 @@ For the most part hooks will work the same for instances when being associated e
 
 1. When using add/set\[s\] functions the beforeUpdate/afterUpdate hooks will run.
 2. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
-```js  
+```js
 var Projects = sequelize.define('Projects', {
   title: DataTypes.STRING
 })
- 
+
 var Tasks = sequelize.define('Tasks', {
   title: DataTypes.STRING
 })
- 
+
 Projects.hasMany(Tasks, {onDelete: 'cascade', hooks: true})
 Tasks.belongsTo(Projects)
 ```
 
 This code will run beforeDestroy/afterDestroy on the Tasks table. Sequelize, by default, will try to optimize your queries as much as possible. 
-When calling cascade on delete, Sequelize will simply execute a 
-    
+When calling cascade on delete, Sequelize will simply execute a
+
 ```sql
 DELETE FROM `table` WHERE associatedIdentifiier = associatedIdentifier.primaryKey
 ```
@@ -231,14 +231,14 @@ User.beforeCreate(function(user, options) {
 ## A Note About Transactions
 
 Note that many model operations in Sequelize allow you to specify a transaction in the options parameter of the method. If a transaction _is_ specified in the original call, it will be present in the options parameter passed to the hook function. For example, consider the following snippet:
-    
+
 ```js
 // Here we use the promise-style of async hooks rather than
 // the callback.
 User.hook('afterCreate', function(user, options) {
   // 'transaction' will be available in options.transaction
- 
-  // This operation will be part of the same transaction as the 
+
+  // This operation will be part of the same transaction as the
   // original User.create call.
   return User.update({
     mood: 'sad'
@@ -249,19 +249,18 @@ User.hook('afterCreate', function(user, options) {
     transaction: options.transaction
   });
 });
- 
- 
+
+
 sequelize.transaction(function(t) {
   User.create({
     username: 'someguy',
-    mood: 'happy'
-  }, {
+    mood: 'happy',
     transaction: t
   });
 });
 ```
 
-If we had not included the transaction option in our call to `User.update` in the preceding code, no change would have occurred, since our newly created user does not exist in the database until the pending transaction has been committed. 
+If we had not included the transaction option in our call to `User.update` in the preceding code, no change would have occurred, since our newly created user does not exist in the database until the pending transaction has been committed.
 
 ### Internal Transactions
 

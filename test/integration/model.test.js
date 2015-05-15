@@ -628,8 +628,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         Product.hasMany(Tag, {as: 'categories'});
-        Product.hasMany(User, {as: 'followers', through: 'product_followers'});
-        User.hasMany(Product, {as: 'following', through: 'product_followers'});
+        Product.belongsToMany(User, {as: 'followers', through: 'product_followers'});
+        User.belongsToMany(Product, {as: 'following', through: 'product_followers'});
 
         var product = Product.build({
           id: 1,
@@ -669,7 +669,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
   });
 
-  describe('find', function() {
+  describe('findOne', function() {
     if (current.dialect.supports.transactions) {
       it('supports the transaction option in the first parameter', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
@@ -677,7 +677,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return User.sync({ force: true }).then(function() {
             return sequelize.transaction().then(function(t) {
               return User.create({ username: 'foo' }, { transaction: t }).then(function() {
-                return User.find({ where: { username: 'foo' }, transaction: t }).then(function(user) {
+                return User.findOne({ where: { username: 'foo' }, transaction: t }).then(function(user) {
                   expect(user).to.not.be.null;
                   return t.rollback();
                 });
@@ -696,7 +696,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return User.create({ username: 'A fancy name' });
         })
         .then(function() {
-          return User.find({ where: [] });
+          return User.findOne({ where: [] });
         })
         .then(function(u) {
           expect(u.username).to.equal('A fancy name');
@@ -788,7 +788,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.data).to.equal('ThisIsData');
           expect(initialized).to.be.true;
           expect(user.isNewRecord).to.be.true;
-          expect(user.isDirty).to.be.true;
         });
       });
     });
@@ -1253,9 +1252,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             {username: 'Tobi'},
             {username: 'Max'}
           ]).then(function() {
-            return User.find(1).then(function(user) {
+            return User.findById(1).then(function(user) {
               return user.destroy().then(function() {
-                return User.find(1).then(function(user) {
+                return User.findById(1).then(function(user) {
                   expect(user).to.be.null;
                   return User.count().then(function(cnt) {
                     expect(cnt).to.equal(2);
@@ -1285,12 +1284,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               {username: 'Max'}
             ]);
           })
-          .then(function() { return User.find(1); })
+          .then(function() { return User.findById(1); })
           .then(function(user) { return user.destroy(); })
           .then(function() { return User.find({ where: 1, paranoid: false }); })
           .then(function(user) {
             expect(user).to.exist;
-            return User.find(1);
+            return User.findById(1);
           })
           .then(function(user) {
             expect(user).to.be.null;
@@ -1326,7 +1325,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               { name: 'Fifi', UserId: user.id }
             ]);
           })
-          .then(function() { return Pet.find(1); })
+          .then(function() { return Pet.findById(1); })
           .then(function(pet) { return pet.destroy(); })
           .then(function() {
             return [
@@ -1379,7 +1378,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(result.username).to.equal('Tony');
         return User.destroy({where: {username: ['Tony', 'Max']}, force: true});
       }).then(function() {
-        return self.sequelize.query('SELECT * FROM paranoidusers', null, {raw: true});
+        return self.sequelize.query('SELECT * FROM paranoidusers', {raw: true});
       }).spread(function(users) {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('Tobi');
@@ -1596,7 +1595,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var self = this;
       return this.User.create({username: 'user1'}).then(function() {
         return self.User.create({username: 'foo'}).then(function() {
-          return self.User.count({where: "username LIKE '%us%'"}).then(function(count) {
+          return self.User.count({where: ["username LIKE '%us%'"]}).then(function(count) {
             expect(count).to.equal(1);
           });
         });
@@ -2252,7 +2251,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.BlobUser.create({
           data: new Buffer('Sequelize')
         }).then(function(user) {
-          return self.BlobUser.find(user.id).then(function(user) {
+          return self.BlobUser.findById(user.id).then(function(user) {
             expect(user.data).to.be.an.instanceOf(Buffer);
             expect(user.data.toString()).to.have.string('Sequelize');
           });
@@ -2264,7 +2263,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.BlobUser.create({
           // create a null column
         }).then(function(user) {
-          return self.BlobUser.find(user.id).then(function(user) {
+          return self.BlobUser.findById(user.id).then(function(user) {
             expect(user.data).to.be.null;
           });
         });
@@ -2291,7 +2290,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return this.BlobUser.create({
             data: 'Sequelize'
           }).then(function(user) {
-            return self.BlobUser.find(user.id).then(function(user) {
+            return self.BlobUser.findById(user.id).then(function(user) {
               expect(user.data).to.be.an.instanceOf(Buffer);
               expect(user.data.toString()).to.have.string('Sequelize');
             });
@@ -2308,8 +2307,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       this.User = this.sequelize.define('User', {username: DataTypes.STRING }, { paranoid: true });
       this.Project = this.sequelize.define('Project', { title: DataTypes.STRING }, { paranoid: true });
 
-      this.Project.hasMany(this.User);
-      this.User.hasMany(this.Project);
+      this.Project.belongsToMany(this.User, {through: 'project_user'});
+      this.User.belongsToMany(this.Project, {through: 'project_user'});
 
       var self = this;
       return this.sequelize.sync({ force: true }).then(function() {

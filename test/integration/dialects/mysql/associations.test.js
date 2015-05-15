@@ -15,8 +15,8 @@ if (Support.dialectIsMySQL()) {
             , Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING})
             , self = this;
 
-          Table1.hasMany(Table2);
-          Table2.hasMany(Table1);
+          Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
+          Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
           return Table1.sync({ force: true }).then(function() {
             return Table2.sync({ force: true }).then(function() {
               expect(self.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).to.exist;
@@ -30,8 +30,8 @@ if (Support.dialectIsMySQL()) {
           var Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
-          Table1.hasMany(Table2, {joinTableName: 'table1_to_table2'});
-          Table2.hasMany(Table1, {joinTableName: 'table1_to_table2'});
+          Table1.belongsToMany(Table2, {through: 'table1_to_table2'});
+          Table2.belongsToMany(Table1, {through: 'table1_to_table2'});
           return Table1.sync({ force: true }).then(function() {
             return Table2.sync({ force: true });
           });
@@ -52,8 +52,8 @@ if (Support.dialectIsMySQL()) {
         this.users = null;
         this.tasks = null;
 
-        this.User.hasMany(this.Task, {as: 'Tasks', through: 'UserTasks'});
-        this.Task.hasMany(this.User, {as: 'Users', through: 'UserTasks'});
+        this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'UserTasks'});
+        this.Task.belongsToMany(this.User, {as: 'Users', through: 'UserTasks'});
 
         var self = this
           , users = []

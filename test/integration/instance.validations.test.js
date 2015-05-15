@@ -266,9 +266,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           return User.create({ username: 'bob', email: 'hello@world.com' }).then(function(user) {
             return User
               .update({ username: 'toni' }, { where: {id: user.id }})
-              .catch(function(err) { console.log(err); })
               .then(function() {
-                return User.find(1).then(function(user) {
+                return User.findById(1).then(function(user) {
                   expect(user.username).to.equal('toni');
                 });
               });

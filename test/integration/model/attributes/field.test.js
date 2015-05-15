@@ -204,7 +204,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('reload should work', function() {
-          return this.Comment.find(1).then(function(comment) {
+          return this.Comment.findById(1).then(function(comment) {
             return comment.reload();
           });
         });

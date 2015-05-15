@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
 
         return user.createGroup().return (user);
       }).then(function(user) {
-        return User.find(user.id);
+        return User.findById(user.id);
       }).then(function(user) {
         expect(user.countGroups).to.equal(1);
       });

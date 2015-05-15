@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             expect(download.finishedAt).to.not.be.ok;
 
             return Download.findAll({
-              where: (dialect === 'postgres' || dialect === 'mssql' ? '"finishedAt" IS NULL' : '`finishedAt` IS NULL')
+              where: (dialect === 'postgres' || dialect === 'mssql' ? ['"finishedAt" IS NULL'] : ['`finishedAt` IS NULL'])
             }).then(function(downloads) {
               downloads.forEach(function(download) {
                 expect(download.startedAt instanceof Date).to.be.true;

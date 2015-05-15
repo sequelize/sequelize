@@ -38,9 +38,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return User.sync({ force: true }).then(function() {
             return sequelize.transaction().then(function(t) {
               return User.create({ username: 'foo' }, { transaction: t }).then(function() {
-                return User.findAll({ username: 'foo' }).then(function(users1) {
+                return User.findAll({ where: {username: 'foo'} }).then(function(users1) {
                   return User.findAll({ transaction: t }).then(function(users2) {
-                    return User.findAll({ username: 'foo' }, { transaction: t }).then(function(users3) {
+                    return User.findAll({ where: {username: 'foo'}, transaction: t }).then(function(users3) {
                       expect(users1.length).to.equal(0);
                       expect(users2.length).to.equal(1);
                       expect(users3.length).to.equal(1);
@@ -222,11 +222,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 {isActive: true},
                 {isActive: false}
               ]).then(function() {
-                return User.find(1).then(function(user) {
-                  return Passports.find(1).then(function(passport) {
+                return User.findById(1).then(function(user) {
+                  return Passports.findById(1).then(function(passport) {
                     return user.setPassports([passport]).then(function() {
-                      return User.find(2).then(function(_user) {
-                        return Passports.find(2).then(function(_passport) {
+                      return User.findById(2).then(function(_user) {
+                        return Passports.findById(2).then(function(_passport) {
                           return _user.setPassports([_passport]).then(function() {
                             return _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).then(function(theFalsePassport) {
                               return user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).then(function(theTruePassport) {
@@ -272,11 +272,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               {id: buf1},
               {id: buf2}
             ]).then(function() {
-              return User.find(1).then(function(user) {
-                return Binary.find(buf1).then(function(binary) {
+              return User.findById(1).then(function(user) {
+                return Binary.findById(buf1).then(function(binary) {
                   return user.setBinary(binary).then(function() {
-                    return User.find(2).then(function(_user) {
-                      return Binary.find(buf2).then(function(_binary) {
+                    return User.findById(2).then(function(_user) {
+                      return Binary.findById(buf2).then(function(_binary) {
                         return _user.setBinary(_binary).then(function() {
                           return _user.getBinary().then(function(_binaryRetrieved) {
                             return user.getBinary().then(function(binaryRetrieved) {
@@ -767,7 +767,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should return a DAO when raw is false', function() {
           var self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}}, { raw: false }).then(function(users) {
+          return this.User.findAll({ where: { username: 'barfooz'}, raw: false }).then(function(users) {
             users.forEach(function(user) {
               expect(user).to.be.instanceOf(self.User.DAO);
             });
@@ -776,7 +776,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should return raw data when raw is true', function() {
           var self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}}, { raw: true }).then(function(users) {
+          return this.User.findAll({ where: { username: 'barfooz'}, raw: true }).then(function(users) {
             users.forEach(function(user) {
               expect(user).to.not.be.instanceOf(self.User.DAO);
               expect(users[0]).to.be.instanceOf(Object);
@@ -796,8 +796,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           self.Continent.hasMany(self.Country);
           self.Country.belongsTo(self.Continent);
-          self.Country.hasMany(self.Industry);
-          self.Industry.hasMany(self.Country);
+          self.Country.belongsToMany(self.Industry, {through: 'country_industry'});
+          self.Industry.belongsToMany(self.Country, {through: 'country_industry'});
           self.Country.hasMany(self.Person);
           self.Person.belongsTo(self.Country);
           self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
@@ -849,7 +849,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] }).then(function(countries) {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
-            expect(countries[0].industries).to.exist;
             expect(countries[0].people).to.exist;
             expect(countries[0].people[0]).to.exist;
             expect(countries[0].people[0].name).not.to.be.undefined;
@@ -1036,8 +1035,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           self.Industry = this.sequelize.define('industry', { name: Sequelize.STRING });
           self.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: Sequelize.INTEGER });
 
-          self.Country.hasMany(self.Industry, {through: self.IndustryCountry});
-          self.Industry.hasMany(self.Country, {through: self.IndustryCountry});
+          self.Country.belongsToMany(self.Industry, {through: self.IndustryCountry});
+          self.Industry.belongsToMany(self.Country, {through: self.IndustryCountry});
 
           return this.sequelize.sync({ force: true }).then(function() {
             return self.sequelize.Promise.props({
@@ -1138,12 +1137,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var options = { where: ['username = ?', 'awesome']};
         return this.User.findAll(options).then(function() {
           expect(options).to.deep.equal({ where: ['username = ?', 'awesome']});
-        });
-      });
-
-      it('finds all users matching the passed conditions', function() {
-        return this.User.findAll({where: 'id != ' + this.users[1].id}).then(function(users) {
-          expect(users.length).to.equal(1);
         });
       });
 
@@ -1255,7 +1248,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     }
 
     it('handles where clause [only]', function() {
-      return this.User.findAndCountAll({where: 'id != ' + this.users[0].id}).then(function(info) {
+      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id]}).then(function(info) {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1263,7 +1256,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('handles where clause with ordering [only]', function() {
-      return this.User.findAndCountAll({where: 'id != ' + this.users[0].id, order: 'id ASC'}).then(function(info) {
+      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id], order: 'id ASC'}).then(function(info) {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1304,9 +1297,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       // Associations
       Election.belongsTo(Citizen);
-      Election.hasMany(Citizen, { as: 'Voters', through: 'ElectionsVotes' });
+      Election.belongsToMany(Citizen, { as: 'Voters', through: 'ElectionsVotes' });
       Citizen.hasMany(Election);
-      Citizen.hasMany(Election, { as: 'Votes', through: 'ElectionsVotes' });
+      Citizen.belongsToMany(Election, { as: 'Votes', through: 'ElectionsVotes' });
 
       return this.sequelize.sync().then(function() {
         // Add some data
@@ -1338,7 +1331,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('handles attributes', function() {
-      return this.User.findAndCountAll({where: 'id != ' + this.users[0].id, attributes: ['data']}).then(function(info) {
+      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id], attributes: ['data']}).then(function(info) {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
