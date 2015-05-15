@@ -3437,6 +3437,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         this.User.beforeUpdate(function(user, options, fn) {
+          expect(user.changed()).to.not.be.empty;
           user.beforeHookTest = true;
           fn();
         });
@@ -3460,33 +3461,52 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
 
+      it('should run the after/before functions for each item created successfully changing some data before updating', function() {
+        var self = this;
+
+        this.User.beforeUpdate(function(user, options) {
+          expect(user.changed()).to.not.be.empty;
+          if (user.get('id') === 1) {
+            user.set('aNumber', user.get('aNumber') + 3);
+          }
+        });
+
+        return this.User.bulkCreate([
+          {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
+        ]).then(function() {
+          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread(function(affectedRows, records) {
+            records.forEach(function(record, i) {
+              expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
+            });
+          });
+        });
+      });
+
       it('should run the after/before functions for each item created with an error', function() {
         var self = this
           , beforeBulk = false
           , afterBulk = false;
 
-        this.User.beforeBulkUpdate(function(options, fn) {
+        this.User.beforeBulkUpdate(function(options) {
           beforeBulk = true;
-          fn();
         });
 
-        this.User.afterBulkUpdate(function(options, fn) {
+        this.User.afterBulkUpdate(function(options) {
           afterBulk = true;
-          fn();
         });
 
-        this.User.beforeUpdate(function(user, options, fn) {
-          fn(new Error('You shall not pass!'));
+        this.User.beforeUpdate(function(user, options) {
+          throw new Error('You shall not pass!');
         });
 
-        this.User.afterUpdate(function(user, options, fn) {
+        this.User.afterUpdate(function(user, options) {
           user.username = 'User' + user.id;
-          fn();
         });
 
         return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(function() {
           return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).catch(function(err) {
             expect(err).to.be.instanceOf(Error);
+            expect(err.message).to.be.equal('You shall not pass!');
             expect(beforeBulk).to.be.true;
             expect(afterBulk).to.be.false;
           });
