@@ -4,22 +4,23 @@
 
 - [BUG] fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
-- [ADDED] findById/findByPrimary takes a single value as argument representing the primary key to find.
+- [ADDED] findById / findByPrimary takes a single value as argument representing the primary key to find.
 - [CHANGED] belongsToMany relations MUST now be given a `through` argument.
-- [CHANGED] findOne/findAll/findAndCount/findOrCreate now only takes a single options argument instead of a options, queryOptions argument. So set transaction, raw, etc on the first options argument.
+- [CHANGED] findOne / findAll / findAndCount / findOrCreate now only takes a single options argument instead of a options and queryOptions argument. So set transaction, raw, etc on the first options argument.
 - [CHANGED] The accessor for belongsToMany relationships is now either the `as` argument or the target model name pluralized.
 - [REMOVED] N:M relationships can no longer be represented by 2 x hasMany
-- [REMOVED] Model.create/Model.bulkCreate no longer takes an array of fields as its second argument, use `options.fields` instead.
-- [REMOVED] Query Chainer has been remved
+- [REMOVED] Model.create / Model.bulkCreate / Instance.save no longer takes an array of fields as its second argument, use `options.fields` instead.
+- [REMOVED] Query Chainer has been removed
 - [REMOVED] Migrations have been removed, use umzug instead
 - [REMOVED] Model.findAllJoin has been removed
-- [REMOVED] sequelize.query now only takes `sql, callee, options` as arguments, the 4th argument `replacements` has been removed and should be set via `options.replacements` instead.
+- [REMOVED] sequelize.query now only takes `sql and options` as arguments, the second and fourth argument `callee` and `replacements` have been removed and should be set via `options.instance` / `options.model` and  `options.replacements` instead.
 - [REMOVED] `instance.isDirty` has been removed, use `instance.changed()` instead
 - [REMOVED] `instance.values` has been removed, use `instance.get()` instead
 - [REMOVED] `instance.primaryKeyValues` has been removed.
+- [REMOVED] `instance.identifiers` has been removed, use `instance.where()` instead
 - [REMOVED] `instance.isDeleted` has been removed, simply check the timestamp with `get('deletedAt')` instead
 - [REMOVED] `instance.increment/decrement` now longer takes a number as it's second argument.
-- [REMOVED/SECURITY] findOne no longer takes a string/integer/binary argument to represent a primaryKey. Use findById instead
+- [REMOVED/SECURITY] findOne no longer takes a string / integer / binary argument to represent a primaryKey. Use findById instead
 - [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
 
 #### Backwards compatibility changes
