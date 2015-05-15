@@ -233,7 +233,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";'
         }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
+          arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
         }, {
           arguments: ['myTable', {order: 'id DESC'}],
@@ -424,7 +424,7 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT count(*) AS count FROM foo;',
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
+          arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM myTable WHERE foo='bar';",
           context: {options: {quoteIdentifiers: false}}
         }, {

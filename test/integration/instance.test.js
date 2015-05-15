@@ -650,7 +650,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
   describe('complete', function() {
     it('gets triggered if an error occurs', function() {
-      return this.User.findOne({ where: 'asdasdasd' }).catch(function(err) {
+      return this.User.findOne({ where: ['asdasdasd'] }).catch(function(err) {
         expect(err).to.exist;
         expect(err.message).to.exist;
       });

@@ -149,7 +149,7 @@ if (Support.dialectIsMySQL()) {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
+          arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
           context: QueryGenerator
         }, {
@@ -318,8 +318,8 @@ if (Support.dialectIsMySQL()) {
           context: QueryGenerator
         }, {
           title: 'no where arguments (string)',
-          arguments: ['myTable', {where: ''}],
-          expectation: 'SELECT * FROM `myTable`;',
+          arguments: ['myTable', {where: ['']}],
+          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',

@@ -296,8 +296,8 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           title: 'no where arguments (string)',
-          arguments: ['myTable', {where: ''}],
-          expectation: 'SELECT * FROM `myTable`;',
+          arguments: ['myTable', {where: ['']}],
+          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',

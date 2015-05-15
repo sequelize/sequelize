@@ -197,10 +197,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               }
             }
           }).then(function (events) {
-            var event = events[0];
-
             expect(events.length).to.equal(1);
-            expect(event.get('data')).to.eql({
+            expect(events[0].get('data')).to.eql({
               name: {
                 first: 'Marge',
                 last: 'Simpson'
