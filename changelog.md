@@ -2,6 +2,7 @@
 - [BUG] fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
 - [BUG] Fix app crash in sqlite while running in special unique constraint errors [3730](https://github.com/sequelize/sequelize/pull/3730)
+- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting resulting in an unhandled rejection [3726](https://github.com/sequelize/sequelize/pull/3726)
 
 # 2.1.3
 - [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
