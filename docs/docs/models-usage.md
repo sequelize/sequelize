@@ -387,7 +387,7 @@ Task.belongsTo(User)
 User.hasMany(Task)
 User.hasMany(Tool, { as: 'Instruments' })
 
-sequelize.sync().done(function() {
+sequelize.sync().then(function() {
   // this is where we continue ...
 })
 ```

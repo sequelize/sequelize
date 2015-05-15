@@ -1,7 +1,7 @@
 ## Building a non-persistent instance
 
 In order to create instances of defined classes just do as follows&period; You might recognize the syntax if you coded Ruby in the past&period; Using the `build`-method will return an unsaved object&comma; which you explicitly have to save&period;
-    
+
 ```js
 var project = Project.build({
   title: 'my awesome project',
@@ -56,7 +56,7 @@ Task
 ## Creating persistent instances
 
 Besides constructing objects&comma; that needs an explicit save call to get stored in the database&comma; there is also the possibility to do all those steps with one single command&period; It's called `create`.
-    
+
 ```js
 Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(function(task) {
   // you can now access the newly created task via the variable task
@@ -64,7 +64,7 @@ Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(fun
 ```
 
 It is also possible to define which attributes can be set via the create method&period; This can be especially very handy if you create database entries based on a form which can be filled by a user&period; Using that would for example allow you to restrict the `User` model to set only a username and an address but not an admin flag&colon;
-    
+
 ```js
 User.create({ username: 'barfooz', isAdmin: true }, [ 'username' ]).then(function(user) {
   // let's assume the default of isAdmin is false:
@@ -77,7 +77,7 @@ User.create({ username: 'barfooz', isAdmin: true }, [ 'username' ]).then(functio
 ## Updating / Saving / Persisting an instance
 
 Now lets change some values and save changes to the database&period;&period;&period; There are two ways to do that&colon;
-    
+
 ```js
 // way 1
 task.title = 'a very different title now'
@@ -90,7 +90,7 @@ task.updateAttributes({
 ```
 
 It's also possible to define which attributes should be saved when calling `save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `updateAttributes`&period; This is how it looks like&colon;
-    
+
 ```js
 task.title = 'foooo'
 task.description = 'baaaaaar'
@@ -119,7 +119,7 @@ Task.create({ title: 'a task' }).then(function(task) {
 ```
 
 If the `paranoid` options is true, the object will not be deleted, instead the `deletedAt` column will be set to the current timestamp. To force the deletion, you can pass `force: true` to the destroy call:
-    
+
 ```js
 task.destroy({ force: true })
 ```
@@ -135,7 +135,7 @@ In addition to updating a single instance, you can also create, update, and dele
 Since you are working with multiple models, the callbacks will not return DAO instances. BulkCreate will return an array of model instances/DAOs, they will however, unlike `create`, not have the resulting values of autoIncrement attributes.`update` and `destroy` will return the number of affected rows.
 
 First lets look at bulkCreate
-    
+
 ```js
 User.bulkCreate([
   { username: 'barfooz', isAdmin: true },
@@ -149,7 +149,7 @@ User.bulkCreate([
 ```
 
 To update several rows at once:
-    
+
 ```js
 Task.bulkCreate([
   {subject: 'programming', status: 'executing'},
@@ -157,7 +157,7 @@ Task.bulkCreate([
   {subject: 'programming', status: 'finished'}
 ]).then(function() {
   Task.update(
-    { status: 'inactive' } /* set attributes' value */, 
+    { status: 'inactive' } /* set attributes' value */,
     { where: { subject: 'programming' }} /* where criteria */
   ).then(function(affectedRows) {
     // affectedRows will be 2
@@ -169,14 +169,14 @@ Task.bulkCreate([
 ```
 
 And delete them:
-    
+
 ```js
 Task.bulkCreate([
   {subject: 'programming', status: 'executing'},
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
 ]).then(function() {
-  Task.destroy({ 
+  Task.destroy({
     where: {
       subject: 'programming'
     },
@@ -191,18 +191,18 @@ Task.bulkCreate([
 ```
 
 If you are accepting values directly from the user, it might be beneficial to limit the columns that you want to actually insert.`bulkCreate()`accepts an options object as the second parameter. The object can have a `fields` parameter, &lpar;an array&rpar; to let it know which fields you want to build explicitly
-    
+
 ```js
 User.bulkCreate([
   { username: 'foo' },
   { username: 'bar', admin: true}
 ], { fields: ['username'] }).then(function() {
-  // nope bar, you can't be admin! 
+  // nope bar, you can't be admin!
 })
 ```
 
 `bulkCreate` was originally made to be a mainstream&sol;fast way of inserting records&comma; however&comma; sometimes you want the luxury of being able to insert multiple rows at once without sacrificing model validations even when you explicitly tell Sequelize which columns to sift through&period; You can do by adding a `validate: true` property to the options object.
-    
+
 ```js
 var Tasks = sequelize.define('Task', {
   name: {
@@ -226,19 +226,19 @@ Tasks.bulkCreate([
 ], { validate: true }).catch(function(errors) {
   /* console.log(errors) would look like:
   [
-    { record: 
-    ... 
-    errors: 
+    { record:
+    ...
+    errors:
       { name: 'SequelizeValidationError',
         message: 'Validation error',
         errors: [Object] } },
-    { record: 
+    { record:
       ...
-      errors: 
+      errors:
         { name: 'SequelizeValidationError',
         message: 'Validation error',
-        errors: [Object] } } 
-  ]  
+        errors: [Object] } }
+  ]
   */
 })
 ```
@@ -246,7 +246,7 @@ Tasks.bulkCreate([
 ## Values of an instance
 
 If you log an instance you will notice&comma; that there is a lot of additional stuff&period; In order to hide such stuff and reduce it to the very interesting information&comma; you can use the`get`-attribute&period; Calling it with the option `plain` = true will only return the values of an instance&period;
-    
+
 ```js
 Person.create({
   name: 'Rambow',
@@ -289,7 +289,7 @@ Person.findOne({ where: { name: 'john' } }).then(function(person) {
 In order to increment values of an instance without running into concurrency issues&comma; you may use `increment`&period;
 
 First of all you can define a field and the value you want to add to it&period;
-    
+
 ```js
 User.findById(1).then(function(user) {
   user.increment('my-integer-field', 2).then(/* ... */)
@@ -297,7 +297,7 @@ User.findById(1).then(function(user) {
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
-    
+
 ```js
 User.findById(1).then(function(user) {
   user.increment([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)
@@ -305,7 +305,7 @@ User.findById(1).then(function(user) {
 ```
 
 Third&comma; you can define an object containing fields and its increment values&period;
-    
+
 ```js
 User.findById(1).then(function(user) {
   user.increment({
@@ -320,7 +320,7 @@ User.findById(1).then(function(user) {
 In order to decrement values of an instance without running into concurrency issues&comma; you may use `decrement`&period;
 
 First of all you can define a field and the value you want to add to it&period;
-    
+
 ```js
 User.findById(1).then(function(user) {
   user.decrement('my-integer-field', 2).then(/* ... */)
@@ -328,7 +328,7 @@ User.findById(1).then(function(user) {
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
-    
+
 ```js
 User.findById(1).then(function(user) {
   user.decrement([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)

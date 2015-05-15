@@ -67,9 +67,18 @@ Sequelize.TEXT                        // TEXT
 Sequelize.INTEGER                     // INTEGER
 Sequelize.BIGINT                      // BIGINT
 Sequelize.BIGINT(11)                  // BIGINT(11)
+
 Sequelize.FLOAT                       // FLOAT
 Sequelize.FLOAT(11)                   // FLOAT(11)
 Sequelize.FLOAT(11, 12)               // FLOAT(11,12)
+
+Sequelize.REAL                        // REAL        PostgreSQL only.
+Sequelize.REAL(11)                    // REAL(11)    PostgreSQL only.
+Sequelize.REAL(11, 12)                // REAL(11,12) PostgreSQL only.
+
+Sequelize.DOUBLE                      // DOUBLE
+Sequelize.DOUBLE(11)                  // DOUBLE(11)
+Sequelize.DOUBLE(11, 12)              // DOUBLE(11,12)
 
 Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
@@ -85,6 +94,7 @@ Sequelize.JSONB                       // JSONB column. PostgreSQL only.
 
 Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
 Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other options are medium and long)
+
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
 ```
 
@@ -99,7 +109,8 @@ require('pg').types.setTypeParser(1114, function(stringValue) {
 });
 ```
 
-In addition to the type mentioned above, integer, bigint and float also support unsigned and zerofill properties, which can be combined in any order:
+In addition to the type mentioned above, integer, bigint, float and double also support unsigned and zerofill properties, which can be combined in any order:
+Be aware that this does not apply for PostgreSQL!
 
 ```js
 Sequelize.INTEGER.UNSIGNED              // INTEGER UNSIGNED
@@ -142,7 +153,7 @@ var Employee = sequelize.define('Employee', {
     type     : Sequelize.STRING,
     allowNull: false,
     get      : function()  {
-      var title = this.getDataValue('title'); 
+      var title = this.getDataValue('title');
       // 'this' allows you to access attributes of the instance
       return this.getDataValue('name') + ' (' + title + ')';
     },
@@ -180,7 +191,7 @@ var Foo = sequelize.define('Foo', {
   },
 
   setterMethods   : {
-    fullName       : function(value) { 
+    fullName       : function(value) {
         var names = value.split(' ');
 
         this.setDataValue('firstname', names.slice(0, -1).join(' '));
@@ -711,6 +722,7 @@ Project.findAll({
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+      $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
     },
     status: {
       $not: false,           // status NOT FALSE
@@ -982,7 +994,7 @@ Task.belongsTo(User)
 User.hasMany(Task)
 User.hasMany(Tool, { as: 'Instruments' })
 
-sequelize.sync().done(function() {
+sequelize.sync().then(function() {
   // this is where we continue ...
 })
 ```
@@ -1098,7 +1110,7 @@ Company.findAll({
 ```
 
 ### Nested eager loading
-You can used nested eager loading to load all related models of a related model: 
+You can used nested eager loading to load all related models of a related model:
 ```js
 User.findAll({
   include: [
@@ -1130,7 +1142,7 @@ User.findAll({
 })
 ```
 
-Include all also supports nested loading: 
+Include all also supports nested loading:
 
 ```js
 User.findAll({ include: [{ all: true, nested: true }]});
