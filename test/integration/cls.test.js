@@ -138,5 +138,155 @@ if (current.dialect.supports.transactions) {
         });
       });
     });
+
+    describe('bluebird shims', function () {
+      beforeEach(function () {
+        // Make sure we have some data so the each, map, filter, ... actually run and validate asserts
+        return this.sequelize.Promise.all([this.User.create({ name: 'bob' }), this.User.create({ name: 'joe' })]);
+      });
+
+      it('join', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.join(self.User.findAll(), function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('then fulfilled', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().then(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('then rejected', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.reject('test rejection handler').then(null,function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('spread', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().spread(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          },function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('catch', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.try(function () {
+            throw new Error('To test catch');
+          }).catch(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('error', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.try(function () {
+            throw new self.sequelize.Promise.OperationalError('To test catch');
+          }).error(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('finally', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().finally( function(){
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('map', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().map(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('reduce', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().reduce(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('filter', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().filter(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('each', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().each(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('tap', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().tap(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+
+
+    });
+
   });
 }

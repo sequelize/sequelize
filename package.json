@@ -40,7 +40,8 @@
     "moment": "^2.9.0",
     "node-uuid": "~1.4.1",
     "toposort-class": "~0.3.0",
-    "validator": "^3.34.0"
+    "validator": "^3.34.0",
+    "shimmer": "1.0.0"
   },
   "devDependencies": {
     "chai": "^2.1.2",
