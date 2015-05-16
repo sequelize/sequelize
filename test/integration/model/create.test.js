@@ -894,7 +894,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
     });
-    it('raises an error if created object breaks definition contraints', function() {
+    it.only('raises an error if created object breaks definition contraints', function() {
       var self = this
         , UserNull = this.sequelize.define('UserWithNonNullSmth', {
             username: { type: Sequelize.STRING, unique: true },
@@ -906,6 +906,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return UserNull.sync({ force: true }).then(function() {
         return UserNull.create({ username: 'foo', smth: 'foo' }).then(function() {
           return UserNull.create({ username: 'foo', smth: 'bar' }).catch (self.sequelize.UniqueConstraintError, function(err) {
+            console.log(err.errors[0]);
             expect(err).to.be.ok;
           });
         });
