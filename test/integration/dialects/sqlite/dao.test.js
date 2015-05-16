@@ -33,5 +33,17 @@ if (dialect === 'sqlite') {
         });
       });
     });
+
+    describe('regression tests', function() {
+
+      it('do not crash while parsing unique constraint errors', function() {
+        var Payments = this.sequelize.define('payments', {});
+
+        return Payments.sync({force: true}).then(function () {
+          return (expect(Payments.bulkCreate([{id: 1}, {id: 1}], { ignoreDuplicates: false })).to.eventually.be.rejected);
+        });
+
+      });
+    });
   });
 }
