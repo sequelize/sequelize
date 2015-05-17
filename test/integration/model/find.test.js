@@ -905,21 +905,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('should return a DAO when queryOptions are not set', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}}).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.DAO);
+          expect(user).to.be.instanceOf(self.User.Instance);
         });
       });
 
       it('should return a DAO when raw is false', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: false }).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.DAO);
+          expect(user).to.be.instanceOf(self.User.Instance);
         });
       });
 
       it('should return raw data when raw is true', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: true }).then(function(user) {
-          expect(user).to.not.be.instanceOf(self.User.DAO);
+          expect(user).to.not.be.instanceOf(self.User.Instance);
           expect(user).to.be.instanceOf(Object);
         });
       });

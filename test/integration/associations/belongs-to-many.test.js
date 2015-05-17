@@ -1375,7 +1375,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
 
-          return this.sequelize.sync().bind({}).then(function() {
+          return this.sequelize.sync({force: true}).bind({}).then(function() {
             return Worker.create({id: 1337});
           }).then(function(worker) {
             this.worker = worker;
@@ -1416,7 +1416,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
 
-          return this.sequelize.sync().bind({}).then(function() {
+          return this.sequelize.sync({force: true}).bind({}).then(function() {
             return Worker.create({id: 1337});
           }).then(function(worker) {
             this.worker = worker;
@@ -1466,7 +1466,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
 
-          return this.sequelize.sync().then(function() {
+          return this.sequelize.sync({force: true}).then(function() {
             return Promise.all([
               Worker.create(),
               Task.bulkCreate([{}, {}]).then(function() {
@@ -1492,7 +1492,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         Task.belongsToMany(Worker, { through: WorkerTasks });
 
         // Test setup
-        return this.sequelize.sync().then(function() {
+        return this.sequelize.sync({force: true}).then(function() {
           return Sequelize.Promise.all([
             Worker.create({}),
             Task.bulkCreate([{}, {}, {}]).then(function() {
@@ -1522,7 +1522,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         Task.belongsToMany(Worker, { through: WorkerTasks });
 
         // Test setup
-        return this.sequelize.sync().then(function() {
+        return this.sequelize.sync({force: true}).then(function() {
           return Sequelize.Promise.all([
             Worker.create({}),
             Task.bulkCreate([{}, {}, {}, {}, {}]).then(function() {
@@ -1808,7 +1808,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           );
         }).then(function() {
           return Sequelize.Promise.join(
-            this.user1.destroy().catch (self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
+            this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
             this.task2.destroy()
           );
         }).then(function() {

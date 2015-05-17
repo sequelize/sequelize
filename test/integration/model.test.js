@@ -40,10 +40,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('uses checks to make sure dao factory isnt leaking on multiple define', function() {
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
-      var factorySize = this.sequelize.daoFactoryManager.all.length;
+      var factorySize = this.sequelize.modelManager.all.length;
 
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
-      var factorySize2 = this.sequelize.daoFactoryManager.all.length;
+      var factorySize2 = this.sequelize.modelManager.all.length;
 
       expect(factorySize).to.equal(factorySize2);
     });

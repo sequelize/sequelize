@@ -22,26 +22,27 @@
 - [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
 - [BUG] Fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
-- [BUG] Fix app crash in sqlite while running in special unique constraint errors [3730](https://github.com/sequelize/sequelize/pull/3730)
-- [BUG] Fix bulkCreate: do not insert NULL for undefined values [3729](https://github.com/sequelize/sequelize/pull/3729)
-- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting resulting in an unhandled rejection [3726](https://github.com/sequelize/sequelize/pull/3726)
-- [BUG] Fix regression in beforeUpdate hook where `instance.changed()` would always be false [3727](https://github.com/sequelize/sequelize/pull/3727)
+- [BUG] Fix app crash in sqlite while running in special unique constraint errors [#3730](https://github.com/sequelize/sequelize/pull/3730)
+- [BUG] Fix bulkCreate: do not insert NULL for undefined values [#3729](https://github.com/sequelize/sequelize/pull/3729)
+- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting resulting in an unhandled rejection [#3726](https://github.com/sequelize/sequelize/pull/3726)
+- [BUG] Fix regression in beforeUpdate hook where `instance.changed()` would always be false [#3727](https://github.com/sequelize/sequelize/pull/3727)
 - [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting
 
 #### Backwards compatibility changes
 - Most of the changes in 3.0.0 are BC breaking, read the changelog for 3.0.0 carefully.
+- The error that is thrown when a column is declared to be an enum but without any values used to "Values for ENUM haven't been defined" and is now "Values for ENUM have not been defined".
 
 # 2.1.3
-- [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
-- [BUG] Fix managed transactions not rolling back if no thenable was provided in the transaction block [3667](https://github.com/sequelize/sequelize/pull/3667)
+- [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [#3667](https://github.com/sequelize/sequelize/pull/3667)
+- [BUG] Fix managed transactions not rolling back if no thenable was provided in the transaction block [#3667](https://github.com/sequelize/sequelize/pull/3667)
 
 # 2.1.2
 - [BUG] `Model.create()/update()` no longer attempts to save undefined fields.
 
 # 2.1.1
 - [BUG] .get() now passes along options correctly when using a custom getter
-- [BUG] Fix managed transactions not rolling back if an error occured the transaction block [3661](https://github.com/sequelize/sequelize/pull/3661)
-- [BUG] Fix a node-webkit issue [3650](https://github.com/sequelize/sequelize/pull/3650)
+- [BUG] Fix managed transactions not rolling back if an error occured the transaction block [#3661](https://github.com/sequelize/sequelize/pull/3661)
+- [BUG] Fix a node-webkit issue [#3650](https://github.com/sequelize/sequelize/pull/3650)
 - [FEATURE] Lock modes in Postgres now support `OF table`
 - [FEATURE] New transaction lock modes `FOR KEY SHARE` and `NO KEY UPDATE` for Postgres 9.3+
 - [FEATURE/REFACTOR] Rewritten scopes with complete support for includes and scopes across associations

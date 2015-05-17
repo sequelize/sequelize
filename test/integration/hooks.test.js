@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('via DAOFactory', function() {
+    describe('via Model', function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -806,7 +806,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('via DAOFactory', function() {
+    describe('via Model', function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -1421,7 +1421,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('via DAOFactory', function() {
+    describe('via Model', function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -2027,7 +2027,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('via DAOFactory', function() {
+    describe('via Model', function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -2558,7 +2558,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('via DAOFactory', function() {
+    describe('via Model', function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -3093,7 +3093,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('via DAOFactory', function() {
+    describe('via Model', function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -3680,7 +3680,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('via DAOFactory', function() {
+    describe('via Model', function() {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -4174,7 +4174,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     after(function() {
       this.sequelize.options.hooks = {};
-      this.sequelize.modelManager.removeDAO(this.model);
+      this.sequelize.modelManager.removeModel(this.model);
     });
   });
 
@@ -5401,12 +5401,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeValidate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               beforeHooked = true;
               fn();
             },
             afterValidate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               afterHooked = true;
               fn();
             }
@@ -5431,12 +5431,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeCreate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               beforeHooked = true;
               fn();
             },
             afterCreate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               afterHooked = true;
               fn();
             }
@@ -5461,12 +5461,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeDestroy: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               beforeHooked = true;
               fn();
             },
             afterDestroy: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               afterHooked = true;
               fn();
             }
@@ -5493,12 +5493,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeDelete: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               beforeHooked = true;
               fn();
             },
             afterDelete: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               afterHooked = true;
               fn();
             }
@@ -5525,12 +5525,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeUpdate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               beforeHooked = true;
               fn();
             },
             afterUpdate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.DAO);
+              expect(user).to.be.instanceof(User.Instance);
               afterHooked = true;
               fn();
             }
