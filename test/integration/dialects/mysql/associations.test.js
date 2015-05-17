@@ -19,7 +19,7 @@ if (Support.dialectIsMySQL()) {
           Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
           return Table1.sync({ force: true }).then(function() {
             return Table2.sync({ force: true }).then(function() {
-              expect(self.sequelize.daoFactoryManager.getDAO('wp_table1swp_table2s')).to.exist;
+              expect(self.sequelize.modelManager.getDAO('wp_table1swp_table2s')).to.exist;
             });
           });
         });
@@ -38,8 +38,8 @@ if (Support.dialectIsMySQL()) {
         });
 
         it('should not use only a specified name', function() {
-          expect(this.sequelize.daoFactoryManager.getDAO('ms_table1sms_table2s')).not.to.exist;
-          expect(this.sequelize.daoFactoryManager.getDAO('table1_to_table2')).to.exist;
+          expect(this.sequelize.modelManager.getDAO('ms_table1sms_table2s')).not.to.exist;
+          expect(this.sequelize.modelManager.getDAO('table1_to_table2')).to.exist;
         });
       });
     });
