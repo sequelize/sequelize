@@ -851,68 +851,6 @@ if (dialect.match(/^postgres/)) {
         }
       ],
 
-      addIndexQuery: [
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\", \"isAdmin\")'
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\" ASC, \"isAdmin\")'
-        }, {
-          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, 'User'],
-          expectation: 'CREATE INDEX \"bar\" ON \"User\" (\"username\", \"isAdmin\")'
-        }, {
-          arguments: ['mySchema.User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"mySchema\".\"User\" (\"username\", \"isAdmin\")'
-        }, {
-          arguments: ['User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
-            name: 'a_b_uniq',
-            unique: true,
-            method: 'BTREE'
-          }, 'User'],
-          expectation: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)'
-        }, {
-          arguments: ['User', ['fieldC'], {
-            type: 'FULLTEXT',
-            concurrently: true
-          }, 'User'],
-          expectation: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")'
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX user_username_is_admin ON User (username ASC, isAdmin)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, 'User'],
-          expectation: 'CREATE INDEX bar ON User (username, isAdmin)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['mySchema.User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX user_username_is_admin ON mySchema.User (username, isAdmin)',
-          context: {options: {quoteIdentifiers: false}}
-        }
-      ],
-
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],

@@ -491,39 +491,6 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
           expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
         }
-      ],
-
-      addIndexQuery: [
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username` ASC, `isAdmin`)'
-        }, {
-          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, 'User'],
-          expectation: 'CREATE INDEX `bar` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: ['User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
-            name: 'a_b_uniq',
-            unique: true,
-            method: 'BTREE'
-          }, 'User'],
-          expectation: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)'
-        }, {
-          arguments: ['User', ['fieldC'], {
-            type: 'FULLTEXT',
-            concurrently: true
-          }, 'User'],
-          expectation: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)'
-        }
       ]
     };
 

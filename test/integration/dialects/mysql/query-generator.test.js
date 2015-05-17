@@ -506,46 +506,6 @@ if (Support.dialectIsMySQL()) {
         }
       ],
 
-      addIndexQuery: [
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username`(10) ASC, `isAdmin`)'
-        }, {
-          arguments: [
-            'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}, 'User'
-          ],
-          expectation: 'CREATE FULLTEXT INDEX `bar` ON `User` (`username`, `isAdmin`) WITH PARSER foo'
-        }, {
-          arguments: [
-            'User', ['username', 'isAdmin'], { indicesType: 'UNIQUE'}, 'User'
-          ],
-          expectation: 'CREATE UNIQUE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: ['User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
-            name: 'a_b_uniq',
-            unique: true,
-            method: 'BTREE'
-          }, 'User'],
-          expectation: 'CREATE UNIQUE INDEX `a_b_uniq` USING BTREE ON `User` (`fieldB`, `fieldA`(5) DESC)'
-        }, {
-          arguments: ['User', ['fieldC'], {
-            type: 'FULLTEXT',
-            concurrently: true
-          }, 'User'],
-          expectation: 'CREATE FULLTEXT INDEX `user_field_c` ON `User` (`fieldC`)'
-        }
-      ],
-
       showIndexesQuery: [
         {
           arguments: ['User'],
