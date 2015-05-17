@@ -64,7 +64,7 @@ if (dialect !== 'sqlite') {
           return TimezonedUser.create({});
         }).then(function(timezonedUser) {
           this.timezonedUser = timezonedUser;
-          return NormalUser.find(timezonedUser.id);
+          return NormalUser.findById(timezonedUser.id);
         }).then(function(normalUser) {
           // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST
           expect(normalUser.createdAt.getTime() - this.timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 4 * 1000 * -1, 60 * 60 * 1000);
