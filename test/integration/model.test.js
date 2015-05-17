@@ -1002,7 +1002,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           where: {
             username: 'Jan'
           },
-          persistSideEffects: false
+          sideEffects: false
         });
       }).then(function (user) {
         return User.findAll();
