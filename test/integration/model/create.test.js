@@ -1351,6 +1351,29 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should not insert NULL for unused fields', function () {
+      var Beer = this.sequelize.define('Beer', {
+          style: Sequelize.STRING,
+          size: Sequelize.INTEGER,
+      });
+
+      return Beer.sync({force: true}).then(function () {
+        return Beer.bulkCreate([{
+            style: 'ipa'
+        }], {
+          logging: function(sql) {
+            if (dialect === 'postgres') {
+              expect(sql.indexOf('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT')).not.be.equal(-1);
+            } else if (dialect === 'mssql') {
+              expect(sql.indexOf('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES')).not.be.equal(-1);
+            } else { // mysql, sqlite, mariadb
+              expect(sql.indexOf('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL')).not.be.equal(-1);
+            }
+          }
+        });
+      });
+    });
+
     it('properly handles disparate field lists', function() {
       var self = this
         , data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },

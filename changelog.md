@@ -2,6 +2,7 @@
 - [BUG] Fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
 - [BUG] Fix app crash in sqlite while running in special unique constraint errors [3730](https://github.com/sequelize/sequelize/pull/3730)
+- [BUG] Fix bulkCreate: do not insert NULL for undefined values [3729](https://github.com/sequelize/sequelize/pull/3729)
 - [BUG] Fix API doc generation
 
 #### Backwards compatibility changes
