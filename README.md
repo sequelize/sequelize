@@ -12,15 +12,9 @@ Sequelize is a promise-based Node.js/io.js ORM for Postgres, MySQL, MariaDB, SQL
 
 `npm install sequelize`
 
-From 3.0.0 and up Sequelize will follow SEMVER.
+From 3.0.0 and up Sequelize will follow SEMVER. 3.0.0 contains important security fixes so we highly recommend that users upgrade.
 
-## Backwards compatibility changes
-
-3.0.0 cleans up a lot of deprecated code, making it easier for us to develop and maintain features in the future. This implies that most of the changes in 3.0.0 are breaking changes! Please read the changelog for 3.0.0 carefully.
-[Upgrading to 3.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-3.0).
-We highly recommend to use 3.0 as it also includes security related fixes that can't be backported to either 2.0 or 1.7.
-
-If you still use 1.7 please read our guide [Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0) plus the changelog up to now. Version 2.1 also contained new breaking changes.
+If you still use 1.7 please prefer to [Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0) and the changelog between 2.0 and 3.0. 2.1 also has a breaking change.
 
 ## Features
 
