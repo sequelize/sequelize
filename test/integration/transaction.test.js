@@ -73,6 +73,30 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         expect(t.finished).to.be.equal('rollback');
       });
     });
+
+    if (dialect === 'postgres' || dialect === 'mssql') {
+      it('do not rollback if already committed', function() {
+        var SumSumSum = this.sequelize.define('transaction', {
+              value: {
+                type: Support.Sequelize.DECIMAL(10, 3),
+                field: 'value'
+              }
+            })
+          , transTest = function (val) {
+              return self.sequelize.transaction({isolationLevel: 'SERIALIZABLE'}, function(t) {
+                return SumSumSum.sum('value', {transaction: t}).then(function (balance) {
+                  return SumSumSum.create({value: -val}, {transaction: t});
+                });
+              });
+            }
+          , self = this;
+
+        return SumSumSum.sync({force: true}).then(function () {
+          return (expect(Promise.join(transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions'));
+        });
+      });
+    }
+
   });
 
   it('does not allow queries after commit', function() {
