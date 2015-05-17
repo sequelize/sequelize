@@ -1,6 +1,6 @@
 <a name="transaction"></a>
 # Class Transaction
-[View code](https://github.com/sequelize/sequelize/blob/8cacc120955e369f681e589f78b986bf8dc36463/lib/transaction.js#L18)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/transaction.js#L18)
 The transaction object is used to identify a running transaction. It is created by calling `Sequelize.transaction()`.
 
 To run a query under a transaction, you should pass the transaction in the options object.
@@ -13,14 +13,14 @@ To run a query under a transaction, you should pass the transaction in the optio
 | options | Object | An object with options |
 | options.autocommit=true | Boolean | Sets the autocommit property of the transaction. |
 | options.isolationLevel=true | String | Sets the isolation level of the transaction. |
-| options.deferred | String | Sets the constraints to be deferred or immediately checked. |
+| options.deferrable | String | Sets the constraints to be deferred or immediately checked. |
 
 
 ***
 
 <a name="isolation_levels"></a>
 ## `ISOLATION_LEVELS`
-[View code](https://github.com/sequelize/sequelize/blob/8cacc120955e369f681e589f78b986bf8dc36463/lib/transaction.js#L53)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/transaction.js#L53)
 The possible isolations levels to use when starting a transaction.
 Can be set per-transaction by passing `options.isolationLevel` to `sequelize.transaction`.
 Default to `REPEATABLE_READ` but you can override the default isolation level by passing `options.isolationLevel` in `new Sequelize`.
@@ -39,7 +39,7 @@ Default to `REPEATABLE_READ` but you can override the default isolation level by
 
 <a name="lock"></a>
 ## `LOCK`
-[View code](https://github.com/sequelize/sequelize/blob/8cacc120955e369f681e589f78b986bf8dc36463/lib/transaction.js#L77)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/transaction.js#L97)
 Possible options for row locking. Used in conjuction with `find` calls:
 
 ```js
@@ -56,18 +56,30 @@ t1 // is a transaction
 Model.findAll({
   where: ...,
   transaction: t1,
+  lock: t1.LOCK...
+});
+```
+
+Postgres also supports specific locks while eager loading by using OF:
+```js
+UserModel.findAll({
+  where: ...,
+  include: [TaskModel, ...],
+  transaction: t1,
   lock: {
     level: t1.LOCK...,
     of: UserModel
   }
 });
 ```
+UserModel will be locked but TaskModel won't!
+
 
 ***
 
 <a name="commit"></a>
 ## `commit()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/8cacc120955e369f681e589f78b986bf8dc36463/lib/transaction.js#L89)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/transaction.js#L109)
 Commit the transaction
 
 
@@ -75,7 +87,7 @@ Commit the transaction
 
 <a name="rollback"></a>
 ## `rollback()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/8cacc120955e369f681e589f78b986bf8dc36463/lib/transaction.js#L110)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/transaction.js#L130)
 Rollback (abort) the transaction
 
 

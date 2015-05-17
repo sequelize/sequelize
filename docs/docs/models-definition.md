@@ -54,14 +54,16 @@ var Foo = sequelize.define('Foo', {
  bar_id: {
    type: Sequelize.INTEGER,
 
-   // This is a reference to another model
-   references: Bar,
+   references: {
+     // This is a reference to another model
+     model: Bar,
 
-   // This is the column name of the referenced model
-   referencesKey: 'id',
+     // This is the column name of the referenced model
+     key: 'id',
 
-   // This declares when to check the foreign key constraint. PostgreSQL only.
-   referencesDeferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
+     // This declares when to check the foreign key constraint. PostgreSQL only.
+     deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
+   }
  }
 })
 ```
