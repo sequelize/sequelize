@@ -9,6 +9,28 @@ var chai = require('chai')
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 suite(Support.getTestDialectTeaser('Utils'), function() {
+
+  suite('toDefaultValue', function () {
+    test('return plain data types', function () {
+      expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
+    });
+    test('return uuid v1', function () {
+      expect(/^[a-z0-9\-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
+    });
+    test('return uuid v4', function () {
+      expect(/^[a-z0-9\-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
+    });
+    test('return now', function () {
+      expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
+    });
+    test('return plain string', function () {
+      expect(Utils.toDefaultValue('Test')).to.equal('Test');
+    });
+    test('return plain object', function () {
+      chai.assert.deepEqual({}, Utils.toDefaultValue({}));
+    });
+  });
+
   suite('mapOptionFieldNames', function () {
     test('plain where', function () {
       expect(Utils.mapOptionFieldNames({

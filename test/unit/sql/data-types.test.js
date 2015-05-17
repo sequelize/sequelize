@@ -88,6 +88,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         mysql: 'CHAR(36) BINARY',
         sqlite: 'UUID'
       });
+
+      testsql('UUIDV1', DataTypes.UUIDV1, {
+        default: 'UUIDV1'
+      });
+
+      testsql('UUIDV4', DataTypes.UUIDV4, {
+        default: 'UUIDV4'
+      });
     });
 
     suite('NOW', function () {
