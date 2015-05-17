@@ -196,6 +196,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
     });
 
+    it('should be able to merge aliassed includes with the same model', function () {
+      var scope = {
+        include: [{model: User, as: 'someUser'}]
+      };
+
+      var options = {
+        include: [{model: User, as: 'otherUser'}]
+      };
+
+      current.Model.$injectScope(scope, options);
+
+      expect(options.include).to.have.length(2);
+      expect(options.include[0]).to.deep.equal({model: User, as: 'otherUser'});
+      expect(options.include[1]).to.deep.equal({model: User, as: 'someUser'});
+    });
+
     it('should be able to merge scoped include with include in find', function () {
       var scope = {
         include: [
