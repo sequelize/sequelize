@@ -4,6 +4,7 @@
 - [BUG] Fix app crash in sqlite while running in special unique constraint errors [3730](https://github.com/sequelize/sequelize/pull/3730)
 - [BUG] Fix bulkCreate: do not insert NULL for undefined values [3729](https://github.com/sequelize/sequelize/pull/3729)
 - [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting resulting in an unhandled rejection [3726](https://github.com/sequelize/sequelize/pull/3726)
+- [BUG] Fix regression in beforeUpdate hook where `instance.changed()` would always be false [3727](https://github.com/sequelize/sequelize/pull/3727)
 
 #### Backwards compatibility changes
 - The error that is thrown when a column is declared to be an enum but without any values used to "Values for ENUM haven't been defined" and is now "Values for ENUM have not been defined".
