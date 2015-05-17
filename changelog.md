@@ -1,7 +1,11 @@
 # Next
-- [BUG] fix showIndexQuery so appropriate indexes are returned when a schema is used
+- [BUG] Fix showIndexQuery so appropriate indexes are returned when a schema is used
 - [BUG] Fix addIndexQuery error when the model has a schema
 - [BUG] Fix app crash in sqlite while running in special unique constraint errors [3730](https://github.com/sequelize/sequelize/pull/3730)
+- [BUG] Fix API doc generation
+
+#### Backwards compatibility changes
+- The error that is thrown when a column is declared to be an enum but without any values used to "Values for ENUM haven't been defined" and is now "Values for ENUM have not been defined".
 
 # 2.1.3
 - [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
@@ -189,7 +193,7 @@
 - [FEATURE] Added `find()` hooks
 
 #### Backwards compatibility changes
-- The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
+- The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`.
 - The naming of the join table entry for N:M association getters is now singular (like includes)
 - Signature of hooks has changed to pass options to all hooks. Any hooks previously defined like `Model.beforeCreate(values)` now need to be `Model.beforeCreate(values, options)` etc.
 - Results returned by hooks are ignored - changes to results by hooks should be made by reference
@@ -212,7 +216,7 @@ We are working our way to the first 2.0.0 release candidate.
 - [BUG] Fix default scope being overwritten [#2087](https://github.com/sequelize/sequelize/issues/2087)
 - [BUG] Fixed updatedAt timestamp not being set in bulk create when validate = true. [#1962](https://github.com/sequelize/sequelize/issues/1962)
 - [INTERNALS] Replaced lingo with inflection
-- [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
+- [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils`
 - [INTERNALS] Update dependencies
     + validator 3.2.0 -> 3.16.1
     + moment 2.5.0 -> 2.7.0

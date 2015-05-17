@@ -1,6 +1,6 @@
 <a name="errors"></a>
 # Class Errors
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L11)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L11)
 Sequelize provides a host of custom error classes, to allow you to do easier debugging. All of these errors are exposed on the sequelize object and the sequelize constructor.
 All sequelize errors inherit from the base JS error object.
 
@@ -9,7 +9,7 @@ All sequelize errors inherit from the base JS error object.
 
 <a name="baseerror"></a>
 ## `new BaseError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L20)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L20)
 The Base Error all Sequelize Errors inherit from.
 
 __Aliases:__ Error
@@ -18,7 +18,7 @@ __Aliases:__ Error
 
 <a name="validationerror"></a>
 ## `new ValidationError(message, [errors])`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L40)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L41)
 Validation Error. Thrown when the sequelize validation has failed. The error contains an `errors` property,
 which is an array with 1 or more ValidationErrorItems, one for each validation that failed.
 
@@ -35,9 +35,16 @@ __Extends:__ BaseError
 
 ***
 
+<a name="errors"></a>
+## `errors`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L49)
+An array of ValidationErrorItems
+
+***
+
 <a name="get"></a>
 ## `get(path)`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L65)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L70)
 Gets all validation error items for the path / field specified.
 
 
@@ -50,16 +57,9 @@ Gets all validation error items for the path / field specified.
 
 ***
 
-<a name="errors"></a>
-## `errors()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L79)
-An array of ValidationErrorItems
-
-***
-
 <a name="databaseerror"></a>
 ## `new DatabaseError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L86)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L84)
 A base class for all database related errors.
 
 __Extends:__ BaseError
@@ -67,22 +67,50 @@ __Extends:__ BaseError
 ***
 
 <a name="parent"></a>
-## `parent()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L101)
+## `parent`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L92)
 The database specific error which triggered this one
 
 ***
 
 <a name="sql"></a>
-## `sql()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L107)
+## `sql`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L98)
 The SQL that triggered the error
+
+***
+
+<a name="message"></a>
+## `message()`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L104)
+The message from the DB.
+
+***
+
+<a name="fields"></a>
+## `fields()`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L109)
+The fields of the unique constraint
+
+***
+
+<a name="value"></a>
+## `value()`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L114)
+The value(s) which triggered the error
+
+***
+
+<a name="index"></a>
+## `index()`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L119)
+The name of the index that triggered the error
 
 ***
 
 <a name="timeouterror"></a>
 ## `new TimeoutError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L114)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L127)
 Thrown when a database query times out because of a deadlock
 
 __Extends:__ DatabaseError
@@ -91,7 +119,7 @@ __Extends:__ DatabaseError
 
 <a name="uniqueconstrainterror"></a>
 ## `new UniqueConstraintError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L125)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L138)
 Thrown when a unique constraint is violated in the database
 
 __Extends:__ DatabaseError
@@ -100,7 +128,7 @@ __Extends:__ DatabaseError
 
 <a name="foreignkeyconstrainterror"></a>
 ## `new ForeignKeyConstraintError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L144)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L157)
 Thrown when a foreign key constraint is violated in the database
 
 __Extends:__ DatabaseError
@@ -109,44 +137,16 @@ __Extends:__ DatabaseError
 
 <a name="exclusionconstrainterror"></a>
 ## `new ExclusionConstraintError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L164)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L177)
 Thrown when an exclusion constraint is violated in the database
 
 __Extends:__ DatabaseError
 
 ***
 
-<a name="message"></a>
-## `message()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L183)
-The message from the DB.
-
-***
-
-<a name="fields"></a>
-## `fields()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L189)
-The fields of the unique constraint
-
-***
-
-<a name="value"></a>
-## `value()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L195)
-The value(s) which triggered the error
-
-***
-
-<a name="index"></a>
-## `index()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L201)
-The name of the index that triggered the error
-
-***
-
 <a name="validationerroritem"></a>
 ## `new ValidationErrorItem(message, type, path, value)`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L213)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L201)
 Validation Error Item
 Instances of this class are included in the `ValidationError.errors` property.
 
@@ -165,7 +165,7 @@ Instances of this class are included in the `ValidationError.errors` property.
 
 <a name="connectionerror"></a>
 ## `new ConnectionError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L225)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L213)
 A base class for all connection related errors.
 
 __Extends:__ BaseError
@@ -173,15 +173,15 @@ __Extends:__ BaseError
 ***
 
 <a name="parent"></a>
-## `parent()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L239)
+## `parent`
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L220)
 The connection specific error which triggered this one
 
 ***
 
 <a name="connectionrefusederror"></a>
 ## `new ConnectionRefusedError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L246)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L230)
 Thrown when a connection to a database is refused
 
 __Extends:__ ConnectionError
@@ -190,7 +190,7 @@ __Extends:__ ConnectionError
 
 <a name="accessdeniederror"></a>
 ## `new AccessDeniedError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L257)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L241)
 Thrown when a connection to a database is refused due to insufficient privileges
 
 __Extends:__ ConnectionError
@@ -199,7 +199,7 @@ __Extends:__ ConnectionError
 
 <a name="hostnotfounderror"></a>
 ## `new HostNotFoundError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L268)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L252)
 Thrown when a connection to a database has a hostname that was not found
 
 __Extends:__ ConnectionError
@@ -208,7 +208,7 @@ __Extends:__ ConnectionError
 
 <a name="hostnotreachableerror"></a>
 ## `new HostNotReachableError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L279)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L263)
 Thrown when a connection to a database has a hostname that was not reachable
 
 __Extends:__ ConnectionError
@@ -217,7 +217,7 @@ __Extends:__ ConnectionError
 
 <a name="invalidconnectionerror"></a>
 ## `new InvalidConnectionError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L290)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L274)
 Thrown when a connection to a database has invalid values for any of the connection parameters
 
 __Extends:__ ConnectionError
@@ -226,7 +226,7 @@ __Extends:__ ConnectionError
 
 <a name="connectiontimedouterror"></a>
 ## `new ConnectionTimedOutError()`
-[View code](https://github.com/sequelize/sequelize/blob/421f0f34356a3484b0f26e92e7fd133af6d3f6db/lib/errors.js#L301)
+[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/errors.js#L285)
 Thrown when a connection to a database times out
 
 __Extends:__ ConnectionError

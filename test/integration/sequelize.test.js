@@ -877,7 +877,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             self.sequelize.define('omnomnom', {
               bla: { type: DataTypes.ENUM }
             });
-          }).to.throw(Error, 'Values for ENUM haven\'t been defined.');
+          }).to.throw(Error, 'Values for ENUM have not been defined.');
         });
 
         it('correctly stores values', function() {
