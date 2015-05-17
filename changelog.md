@@ -1,3 +1,5 @@
+#next
+
 # 3.0.0
 
 3.0.0 cleans up a lot of deprecated code, making it easier for us to develop and maintain features in the future.

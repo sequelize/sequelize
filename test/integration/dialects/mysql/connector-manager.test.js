@@ -15,19 +15,23 @@ if (Support.dialectIsMySQL()) {
         , self = this;
 
       return User.sync({force: true}).then(function() {
-        return User.create({username: 'user1'}).then(function() {
+        return User.count({group: ['id']}).then(function(count) {
+          expect(count.length).to.equal(0);
+          return User.create({username: 'user1'});
+        }).then(function() {
           return User.count().then(function(count) {
             expect(count).to.equal(1);
             spy();
-            return self.sequelize.Promise.delay(1000).then(function() {
-              return User.count().then(function(count) {
-                expect(count).to.equal(1);
-                spy();
-                if (!spy.calledTwice) {
-                  throw new Error('Spy was not called twice');
-                }
-              });
-            });
+          });
+        }).then(function() {
+          return self.sequelize.Promise.delay(1000);
+        }).then(function() {
+          return User.count().then(function(count) {
+            expect(count).to.equal(1);
+            spy();
+            if (!spy.calledTwice) {
+              throw new Error('Spy was not called twice');
+            }
           });
         });
       });
