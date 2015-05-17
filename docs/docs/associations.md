@@ -211,39 +211,43 @@ this.Comment = this.sequelize.define('comment', {
 
 this.Post.hasMany(this.Comment, {
   foreignKey: 'commentable_id',
+  constraints: false,
   scope: {
     commentable: 'post'
   }
 });
 this.Comment.belongsTo(this.Post, {
   foreignKey: 'commentable_id',
+  constraints: false,
   as: 'post'
 });
 
 this.Image.hasMany(this.Comment, {
   foreignKey: 'commentable_id',
+  constraints: false,
   scope: {
     commentable: 'image'
   }
 });
 this.Comment.belongsTo(this.Image, {
   foreignKey: 'commentable_id',
+  constraints: false,
   as: 'image'
 });
 ```
 
-Note that the Image -> Comment and Post -> Comment relations define a scope, `commentable: 'image'` and `commentable: 'post'` respectively. This scope is automatically applied when using the association functions:
+`constraints: false,` disables references constraints - since the `commentable_id` column references several tables, we cannot add a `REFERENCES` constraint to it. Note that the Image -> Comment and Post -> Comment relations define a scope, `commentable: 'image'` and `commentable: 'post'` respectively. This scope is automatically applied when using the association functions:
 
 ```js
-Image.getComments()
+image.getComments()
 SELECT * FROM comments WHERE commentable_id = 42 AND commentable = 'image';
 
-Image.createComment({
+image.createComment({
   title: 'Awesome!'
 })
 INSERT INTO comments (title, commentable_id, commentable) VALUES ('Awesome!', 'image', 42);
 
-Image.addComment(comment);
+image.addComment(comment);
 UPDATE comments SET commentable_id = 42, commentable = 'image'
 ```
 
