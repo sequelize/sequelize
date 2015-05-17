@@ -1,3 +1,7 @@
+#3.0.1
+
+This is an emergency patch as 3.0.0 contains some conflicts that appeared while releasing that made it unusable
+
 # 3.0.0
 
 3.0.0 cleans up a lot of deprecated code, making it easier for us to develop and maintain features in the future.
