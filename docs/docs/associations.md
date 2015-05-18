@@ -590,8 +590,10 @@ Series = sequelize.define('Series', {
   // Set FK relationship (hasMany) with `Trainer`
   trainer_id: {
     type: DataTypes.INTEGER,
-    references: "Trainers",
-    referencesKey: "id"
+    references: {
+      model: "Trainers",
+      key: "id"
+    }
   }
 })
  
@@ -609,8 +611,10 @@ Video = sequelize.define('Video', {
   // set relationship (hasOne) with `Series`
   series_id: {
     type: DataTypes.INTEGER,
-    references: Series, // Can be both a string representing the table name, or a reference to the model
-    referencesKey: "id"
+    references: {
+      model: Series, // Can be both a string representing the table name, or a reference to the model
+      key:   "id"
+    }
   }
 });
  

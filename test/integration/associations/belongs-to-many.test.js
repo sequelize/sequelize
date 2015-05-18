@@ -1885,8 +1885,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
         var UserProjects = User.belongsToMany(Project, { foreignKey: { name: 'user_id', defaultValue: 42 }, through: 'UserProjects' });
         expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        expect(UserProjects.through.model.rawAttributes.user_id.references).to.equal(User.getTableName());
-        expect(UserProjects.through.model.rawAttributes.user_id.referencesKey).to.equal('uid');
+        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
         expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
       });
     });

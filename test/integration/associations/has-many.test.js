@@ -907,8 +907,8 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
         expect(Task.rawAttributes.uid).to.be.ok;
         expect(Task.rawAttributes.uid.allowNull).to.be.false;
-        expect(Task.rawAttributes.uid.references).to.equal(User.getTableName());
-        expect(Task.rawAttributes.uid.referencesKey).to.equal('id');
+        expect(Task.rawAttributes.uid.references.model).to.equal(User.getTableName());
+        expect(Task.rawAttributes.uid.references.key).to.equal('id');
       });
 
       it('works when taking a column directly from the object', function() {
@@ -928,8 +928,8 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id});
 
         expect(Project.rawAttributes.user_id).to.be.ok;
-        expect(Project.rawAttributes.user_id.references).to.equal(User.getTableName());
-        expect(Project.rawAttributes.user_id.referencesKey).to.equal('uid');
+        expect(Project.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        expect(Project.rawAttributes.user_id.references.key).to.equal('uid');
         expect(Project.rawAttributes.user_id.defaultValue).to.equal(42);
       });
 

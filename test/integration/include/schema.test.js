@@ -1241,8 +1241,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
         },
         UserId: {
           type: Sequelize.INTEGER,
-          references: UserModel,
-          referencesKey: 'Id'
+          references: {
+            model: UserModel,
+            key:   'Id'
+          }
         },
         Name: Sequelize.STRING,
         Contact: Sequelize.STRING,

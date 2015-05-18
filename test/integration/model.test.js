@@ -2183,8 +2183,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             title: Sequelize.STRING,
             authorId: {
               type: Sequelize.INTEGER,
-              references: this.Author,
-              referencesKey: 'id'
+              references: {
+                model: this.Author,
+                key:   'id'
+              }
             }
           });
 
@@ -2213,8 +2215,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             title: Sequelize.STRING,
             authorId: {
               type: Sequelize.INTEGER,
-              references: 'authors',
-              referencesKey: 'id'
+              references: {
+                model: 'authors',
+                key:   'id'
+              }
             }
           });
 
@@ -2242,8 +2246,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             title: Sequelize.STRING,
             authorId: {
               type: Sequelize.INTEGER,
-              references: '4uth0r5',
-              referencesKey: 'id'
+              references: {
+                model: '4uth0r5',
+                key:   'id'
+              }
             }
           });
 
@@ -2284,15 +2290,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       // jshint ignore:start
       var Member = this.sequelize.define('Member', {})
         , Profile = this.sequelize.define('Profile', {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          references: Member,
-          referencesKey: 'id',
-          autoIncrement: false,
-          comment: 'asdf'
-        }
-      });
+            id: {
+              type: Sequelize.INTEGER,
+              primaryKey: true,
+              references: {
+                model: Member,
+                key:   'id'
+              },
+              autoIncrement: false,
+              comment: 'asdf'
+            }
+          });
       // jshint ignore:end
 
       return this.sequelize.sync({ force: true });
@@ -2571,8 +2579,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     var project = this.sequelize.define('project', {
       UserId: {
         type: Sequelize.STRING,
-        references: 'Users',
-        referencesKey: 'UUID'
+        references: {
+          model: 'Users',
+          key:   'UUID'
+        }
       }
     });
 
