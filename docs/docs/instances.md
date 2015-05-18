@@ -292,7 +292,7 @@ First of all you can define a field and the value you want to add to it&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment('my-integer-field', 2).then(/* ... */)
+  user.increment('my-integer-field', {by: 2}).then(/* ... */)
 })
 ```
 
@@ -300,7 +300,7 @@ Second&comma; you can define multiple fields and the value you want to add to th
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)
+  user.increment([ 'my-integer-field', 'my-very-other-field' ], {by: 2}).then(/* ... */)
 })
 ```
 
@@ -323,7 +323,7 @@ First of all you can define a field and the value you want to add to it&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement('my-integer-field', 2).then(/* ... */)
+  user.decrement('my-integer-field', {by: 2}).then(/* ... */)
 })
 ```
 
@@ -331,7 +331,7 @@ Second&comma; you can define multiple fields and the value you want to add to th
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement([ 'my-integer-field', 'my-very-other-field' ], 2).then(/* ... */)
+  user.decrement([ 'my-integer-field', 'my-very-other-field' ], {by: 2}).then(/* ... */)
 })
 ```
 
