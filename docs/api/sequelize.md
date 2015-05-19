@@ -45,7 +45,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [username=null] | String | The username which is used to authenticate against the database. |
 | [password=null] | String | The password which is used to authenticate against the database. |
 | [options={}] | Object | An object with options. |
-| [options.dialect='mysql'] | String | The dialect of the database you are connecting to. One of mysql, postgres, sqlite and mariadb |
+| [options.dialect='mysql'] | String | The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql |
 | [options.dialectModulePath=null] | String | If specified, load the dialect library from this path. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify 'pg.js' here |
 | [options.dialectOptions] | Object | An object of additional options, which are passed directly to the connection library |
 | [options.storage] | String | Only used by sqlite. Defaults to ':memory:' |
