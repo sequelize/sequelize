@@ -1344,32 +1344,37 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     describe('can find paranoid records if paranoid is marked as false in query', function() {
       it('with the DAOFactory', function() {
         var User = this.sequelize.define('UserCol', {
-          username: Sequelize.STRING
-        }, { paranoid: true });
+              username: Sequelize.STRING
+            }, {
+              paranoid: true
+            })
+          , self = this;
 
-        return User.sync({ force: true })
-          .then(function() {
-            return User.bulkCreate([
-              {username: 'Toni'},
-              {username: 'Tobi'},
-              {username: 'Max'}
-            ]);
-          })
-          .then(function() { return User.findById(1); })
-          .then(function(user) { return user.destroy(); })
-          .then(function() { return User.find({ where: 1, paranoid: false }); })
-          .then(function(user) {
-            expect(user).to.exist;
-            return User.findById(1);
-          })
-          .then(function(user) {
-            expect(user).to.be.null;
-            return [User.count(), User.count({ paranoid: false })];
-          })
-          .spread(function(cnt, cntWithDeleted) {
+        return User.sync({ force: true }).then(function() {
+          return User.bulkCreate([
+            {username: 'Toni'},
+            {username: 'Tobi'},
+            {username: 'Max'}
+          ]);
+        }).then(function() {
+          return User.findById(1);
+        }).then(function(user) {
+          return user.destroy();
+        }).then(function() {
+          return User.find({ where: 1, paranoid: false });
+        }).then(function(user) {
+          expect(user).to.exist;
+          return User.findById(1);
+        }).then(function(user) {
+          expect(user).to.be.null;
+          return self.sequelize.Promise.join(
+            User.count(),
+            User.count({ paranoid: false }),
+          function(cnt, cntWithDeleted) {
             expect(cnt).to.equal(2);
             expect(cntWithDeleted).to.equal(3);
           });
+        });
       });
     });
 
