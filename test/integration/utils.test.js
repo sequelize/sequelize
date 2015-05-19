@@ -189,4 +189,26 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
       expect(Utils.singularize('status')).to.equal('status');
     });
   });
+
+  describe('formatReferences', function () {
+    ([
+      [undefined, undefined],
+      [false, false],
+      [null, null],
+      ['a', 'a'],
+      [{}, {}],
+      [{a: 1}, {a: 1}],
+      [{referencesKey: 1}, {referencesKey: 1}],
+      [{references: 'a'}, {references: {model: 'a'}}],
+      [{references: 'a', referencesKey: 1}, {references: {model: 'a', key: 1}}],
+      [{references: {model: 1}}, {references: {model: 1}}]
+    ]).forEach(function (test) {
+      var input  = test[0];
+      var output = test[1];
+
+      it('converts ' + JSON.stringify(input) + ' to ' + JSON.stringify(output), function () {
+        expect(Utils.formatReferences(input)).to.deep.equal(output);
+      });
+    });
+  });
 });
