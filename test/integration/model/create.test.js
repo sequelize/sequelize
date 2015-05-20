@@ -325,7 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         };
 
       return this.User.findOrCreate({ where: data, defaults: default_values}).spread(function(user, created) {
-        expect(user.username).to.be.empty;
+        expect(user.username).to.not.exist;
         expect(user.data).to.equal('ThisIsData');
         expect(created).to.be.true;
       });
