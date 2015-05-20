@@ -7,7 +7,7 @@ before(function() {
   if (dialect !== 'postgres' && dialect !== 'postgres-native') {
     return;
   }
-  return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS hstore', null, {raw: true});
+  return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS hstore', {raw: true});
 });
 
 before(function() {
@@ -16,7 +16,7 @@ before(function() {
   if (dialect !== 'postgres' && dialect !== 'postgres-native') {
     return;
   }
-  return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS btree_gist', null, {raw: true});
+  return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS btree_gist', {raw: true});
 });
 
 beforeEach(function() {

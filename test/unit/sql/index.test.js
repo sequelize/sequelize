@@ -12,12 +12,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
   suite('addIndex', function () {
     test('naming', function () {
       expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
-        default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])'
+        default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])',
+        mysql: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)'
       });
 
       if (current.dialect.supports.schemas) {
         expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
-          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
         });
 
         expectsql(sql.addIndexQuery({
@@ -36,17 +37,42 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }
     });
 
+    test('type and method', function () {
+      expectsql(sql.addIndexQuery('User', ['fieldC'], {
+          type: 'FULLTEXT',
+          concurrently: true
+        }), {
+        sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
+        mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
+        postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
+        mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)'
+      });
+
+      expectsql(sql.addIndexQuery('User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
+          name: 'a_b_uniq',
+          unique: true,
+          method: 'BTREE',
+          parser: 'foo'
+        }), {
+        sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
+        mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
+        postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
+        mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+      });
+    });
+
     test('POJO field', function () {
       expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC'}], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
-        mysql: 'CREATE INDEX `table_column` ON `table` (`column`(5) DESC)',
-        mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)'
+        mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
+        mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)'
       });
     });
 
     test('function', function () {
       expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex'}), {
-        default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))'
+        default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
+        mysql: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))'
       });
     });
 

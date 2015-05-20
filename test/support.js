@@ -17,7 +17,12 @@ chai.config.includeStack = true;
 chai.should();
 
 // Make sure errors get thrown when testing
+process.on('uncaughtException', function(e, promise) {
+  console.error('An unhandled exception occured:');
+  throw e;
+});
 Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {
+  console.error('An unhandled rejection occured:');
   throw e;
 });
 Sequelize.Promise.longStackTraces();
@@ -112,7 +117,7 @@ var Support = {
       .getQueryInterface()
       .dropAllTables()
       .then(function() {
-        sequelize.modelManager.daos = [];
+        sequelize.modelManager.models = [];
         sequelize.models = {};
 
         return sequelize

@@ -8,7 +8,7 @@ sequelize.query("UPDATE users SET y = 42 WHERE x = 12").spread(function(results,
 })
 ```
 
-In cases where you don't need to access the metadata you can pass in a query type to tell sequelize how to format the results. For example, for a simple select query you could do: 
+In cases where you don't need to access the metadata you can pass in a query type to tell sequelize how to format the results. For example, for a simple select query you could do:
 
 ```js
 sequelize.query("SELECT * FROM `users`", { type: sequelize.QueryTypes.SELECT})
@@ -19,11 +19,11 @@ sequelize.query("SELECT * FROM `users`", { type: sequelize.QueryTypes.SELECT})
 
 Several other query types are available. [Peek into the source for details](https://github.com/sequelize/sequelize/blob/master/lib/query-types.js)
 
-A second, optional, argument is the _callee_, which is a model. If you pass a model the returned data will be instances of that model.
+A second option is the model. If you pass a model the returned data will be instances of that model.
 
 ```js
 // Callee is the model definition. This allows you to easily map a query to a predefined model
-sequelize.query('SELECT * FROM projects', Projects).then(function(projects){
+sequelize.query('SELECT * FROM projects', { model: Projects }).then(function(projects){
   // Each record will now be a instance of Project
 })
 ```
@@ -35,13 +35,13 @@ Replacements in a query can be done in two different ways, either using named pa
 * If an object is passed, `:key` will be replaced with the keys from that object. If the object contains keys not found in the query or vice verca, an exception will be thrown.
 
 ```js
-sequelize.query('SELECT * FROM projects WHERE status = ?', 
+sequelize.query('SELECT * FROM projects WHERE status = ?',
   { replacements: ['active'], type: sequelize.QueryTypes.SELECT }
 ).then(function(projects) {
   console.log(projects)
 })
 
-sequelize.query('SELECT * FROM projects WHERE status = :status ', 
+sequelize.query('SELECT * FROM projects WHERE status = :status ',
   { replacements: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
 ).then(function(projects) {
   console.log(projects)

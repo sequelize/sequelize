@@ -15,8 +15,10 @@ module.exports = function(sequelize, DataTypes) {
         // Set FK relationship (hasMany) with `Trainer`
         trainer_id: {
             type: DataTypes.INTEGER,
-            references: "Trainer",
-            referencesKey: 'id'
+            references: {
+              model: 'Trainer',
+              key:   'id'
+            }
         }
     }, {
         // don't need timestamp attributes for this model

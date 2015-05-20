@@ -125,10 +125,10 @@ describe(Support.getTestDialectTeaser('associations'), function() {
             self.Post.find({
               include: [self.Comment]
             }),
-            self.Image.find({
+            self.Image.findOne({
               include: [self.Comment]
             }),
-            self.Question.find({
+            self.Question.findOne({
               include: [self.Comment]
             })
           );
@@ -153,9 +153,9 @@ describe(Support.getTestDialectTeaser('associations'), function() {
             });
             this.PostTag = this.sequelize.define('post_tag');
 
-            this.Tag.hasMany(this.Post, {through: this.PostTag});
-            this.Post.hasMany(this.Tag, {as: 'categories', through: this.PostTag, scope: { type: 'category' }});
-            this.Post.hasMany(this.Tag, {as: 'tags', through: this.PostTag, scope: { type: 'tag' }});
+            this.Tag.belongsToMany(this.Post, {through: this.PostTag});
+            this.Post.belongsToMany(this.Tag, {as: 'categories', through: this.PostTag, scope: { type: 'category' }});
+            this.Post.belongsToMany(this.Tag, {as: 'tags', through: this.PostTag, scope: { type: 'tag' }});
           });
 
           it('should create, find and include associations with scope values', function() {
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
               expect(postCTags[0].get('type')).to.equal('tag');
             }).then(function() {
               return Promise.join(
-                self.Post.find({
+                self.Post.findOne({
                   where: {
                     id: self.postA.get('id')
                   },
@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
                     {model: self.Tag, as: 'categories'}
                   ]
                 }),
-                self.Post.find({
+                self.Post.findOne({
                   where: {
                     id: self.postB.get('id')
                   },
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
                     {model: self.Tag, as: 'categories'}
                   ]
                 }),
-                self.Post.find({
+                self.Post.findOne({
                   where: {
                     id: self.postC.get('id')
                   },
@@ -289,7 +289,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
               name: DataTypes.STRING
             });
 
-            this.Post.hasMany(this.Tag, {
+            this.Post.belongsToMany(this.Tag, {
               through: {
                 model: this.ItemTag,
                 unique: false,
@@ -300,7 +300,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
               foreignKey: 'taggable_id',
               constraints: false
             });
-            this.Tag.hasMany(this.Post, {
+            this.Tag.belongsToMany(this.Post, {
               through: {
                 model: this.ItemTag,
                 unique: false
@@ -308,7 +308,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
               foreignKey: 'tag_id'
             });
 
-            this.Image.hasMany(this.Tag, {
+            this.Image.belongsToMany(this.Tag, {
               through: {
                 model: this.ItemTag,
                 unique: false,
@@ -319,7 +319,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
               foreignKey: 'taggable_id',
               constraints: false
             });
-            this.Tag.hasMany(this.Image, {
+            this.Tag.belongsToMany(this.Image, {
               through: {
                 model: this.ItemTag,
                 unique: false
@@ -327,7 +327,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
               foreignKey: 'tag_id'
             });
 
-            this.Question.hasMany(this.Tag, {
+            this.Question.belongsToMany(this.Tag, {
               through: {
                 model: this.ItemTag,
                 unique: false,
@@ -338,7 +338,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
               foreignKey: 'taggable_id',
               constraints: false
             });
-            this.Tag.hasMany(this.Question, {
+            this.Tag.belongsToMany(this.Question, {
               through: {
                 model: this.ItemTag,
                 unique: false
@@ -412,15 +412,15 @@ describe(Support.getTestDialectTeaser('associations'), function() {
                 }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
               }).then(function () {
                 return Promise.join(
-                  self.Post.find({
+                  self.Post.findOne({
                     where: {},
                     include: [self.Tag]
                   }),
-                  self.Image.find({
+                  self.Image.findOne({
                     where: {},
                     include: [self.Tag]
                   }),
-                  self.Question.find({
+                  self.Question.findOne({
                     where: {},
                     include: [self.Tag]
                   })

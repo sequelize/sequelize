@@ -41,7 +41,11 @@ if (dialect.match(/^postgres/)) {
     });
 
     it('should be able to search within an array', function() {
-      return this.User.findAll({where: {email: ['hello', 'world']}, attributes: ['id','username','email','settings','document','phones','emergency_contact','friends']}, {
+      return this.User.findAll({
+        where: {
+          email: ['hello', 'world']
+        },
+        attributes: ['id','username','email','settings','document','phones','emergency_contact','friends'],
         logging: function (sql) {
           expect(sql).to.equal('Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
         }
@@ -521,7 +525,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           phones: [{ number: '123456789', type: 'mobile' }, { number: '987654321', type: 'landline' }, { number: '8675309', type: "Jenny's"}, {number: '5555554321', type: '"home\n"' }]
         }).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.phones.length).to.equal(4);
             expect(user.phones[1].number).to.equal('987654321');
             expect(user.phones[2].type).to.equal("Jenny's");
@@ -538,7 +542,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           settings: {mailing: true, push: 'facebook', frequency: 3}
         }]).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.settings.mailing).to.equal('true');
           });
         });
@@ -549,14 +553,14 @@ if (dialect.match(/^postgres/)) {
 
         return this.User.create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }}).then(function(newUser) {
             // Check to see if the default value for an hstore field works
-            expect(newUser.document).to.deep.equal({default: "'value'"});
+            expect(newUser.document).to.deep.equal({ default: "'value'" });
             expect(newUser.settings).to.deep.equal({ test: '"value"' });
 
             // Check to see if updating an hstore field works
-            return self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: newUser.identifiers}).then(function() {
+            return self.User.update({ settings: { should: 'update', to: 'this', first: 'place' }}, { where: newUser.where() }).then(function() {
               return newUser.reload().then(function() {
                 // Postgres always returns keys in alphabetical order (ascending)
-                expect(newUser.settings).to.deep.equal({first: 'place', should: 'update', to: 'this'});
+                expect(newUser.settings).to.deep.equal({ first: 'place', should: 'update', to: 'this' });
               });
             });
           });
@@ -567,9 +571,9 @@ if (dialect.match(/^postgres/)) {
 
         return this.User.create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' }}).then(function(oldUser) {
             // Update the user and check that the returned object's fields have been parsed by the hstore library
-            return self.User.update({settings: {should: 'update', to: 'this', first: 'place'}}, {where: oldUser.identifiers, returning: true }).spread(function(count, users) {
+            return self.User.update({ settings: { should: 'update', to: 'this', first: 'place' }}, { where: oldUser.where(), returning: true }).spread(function(count, users) {
               expect(count).to.equal(1);
-              expect(users[0].settings).to.deep.equal({should: 'update', to: 'this', first: 'place'});
+              expect(users[0].settings).to.deep.equal({ should: 'update', to: 'this', first: 'place' });
             });
           });
       });
@@ -684,7 +688,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           holidays: holidays
         }).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.holidays.length).to.equal(2);
             expect(user.holidays[0].length).to.equal(2);
             expect(user.holidays[0][0] instanceof Date).to.be.ok;
@@ -709,7 +713,7 @@ if (dialect.match(/^postgres/)) {
           email: ['myemail@email.com'],
           course_period: period
         }]).then(function() {
-          return User.find(1).then(function(user) {
+          return User.findById(1).then(function(user) {
             expect(user.course_period[0] instanceof Date).to.be.ok;
             expect(user.course_period[1] instanceof Date).to.be.ok;
             expect(user.course_period[0]).to.equalTime(period[0]); // lower bound
@@ -723,7 +727,7 @@ if (dialect.match(/^postgres/)) {
         var User = this.User
           , period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
 
-        return User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
+        return User.create({ username: 'user', email: ['foo@bar.com'], course_period: period }).then(function(newUser) {
           // Check to see if the default value for a range field works
           expect(newUser.acceptable_marks.length).to.equal(2);
           expect(newUser.acceptable_marks[0]).to.equal(0.65); // lower bound
@@ -738,7 +742,7 @@ if (dialect.match(/^postgres/)) {
           period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
 
           // Check to see if updating a range field works
-          return User.update({course_period: period}, {where: newUser.identifiers}).then(function() {
+          return User.update({course_period: period}, {where: newUser.where()}).then(function() {
             return newUser.reload().then(function() {
               expect(newUser.course_period[0] instanceof Date).to.be.ok;
               expect(newUser.course_period[1] instanceof Date).to.be.ok;
@@ -760,7 +764,7 @@ if (dialect.match(/^postgres/)) {
           course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]
         }).then(function (oldUser) {
             // Update the user and check that the returned object's fields have been parsed by the range parser
-            return User.update({ course_period: period }, { where: oldUser.identifiers, returning: true })
+            return User.update({ course_period: period }, { where: oldUser.where(), returning: true })
               .spread(function (count, users) {
                 expect(count).to.equal(1);
                 expect(users[0].course_period[0] instanceof Date).to.be.ok;

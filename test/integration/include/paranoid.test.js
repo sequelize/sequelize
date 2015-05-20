@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
         D = this.D = S.define('D', { name: DT.STRING }, { paranoid: true });
 
     A.belongsTo(B);
-    A.hasMany(D);
+    A.belongsToMany(D, {through: 'a_d'});
     A.hasMany(C);
 
     B.hasMany(A);
@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
     C.belongsTo(A);
     C.belongsTo(B);
 
-    D.hasMany(A);
+    D.belongsToMany(A, {through: 'a_d'});
 
     return S.sync({ force: true });
   });
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
         });
 
     return S.sync({ force: true }).then(function() {
-      return Test.find(1);
+      return Test.findById(1);
     });
   });
 
