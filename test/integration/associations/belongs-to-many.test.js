@@ -1740,7 +1740,18 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).then(function() {
         return Promise.all([
           self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
-          self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }})
+          self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }}),
+          self.User.findOne({
+            where: self.sequelize.or({ username: 'Franz Joseph' }),
+            include: [{
+              model: self.Task,
+              where: {
+                title: {
+                  $ne: 'task'
+                }
+              }
+            }]
+          }),
         ]);
       }).spread(function(tu1, tu2) {
         expect(tu1).to.have.length(0);
