@@ -155,7 +155,11 @@ Project.findAll({
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
-    },
+      $geoIn: { type: 'Polygon', coordinates: [[[1,1], [1,2], [0,1], [0,2]]] } // Postgres Only, Checks if field is contained by geometric structure
+      $geoNotIn: { type: 'Polygon', coordinates: [[[1,1], [1,2], [0,1], [0,2]]] } // Postgres Only, Checks if field is not contained geometric structure
+      $geoWithin: { point: { type: 'Point', coordinates: [[1,1],[2,2]] }, distance: 10 } // Postgres Only, Checks if field is within distance of point
+      $geoWithout: { point: { type: 'Point', coordinates: [[1,1],[2,2]] }, distance: 10 } // Postgres Only, Checks if field is not within distance of point
+     },
     status: {
       $not: false,           // status NOT FALSE
     }
@@ -503,7 +507,7 @@ Company.findAll({
 ```
 
 ### Nested eager loading
-You can used nested eager loading to load all related models of a related model: 
+You can used nested eager loading to load all related models of a related model:
 ```js
 User.findAll({
   include: [
@@ -535,7 +539,7 @@ User.findAll({
 })
 ```
 
-Include all also supports nested loading: 
+Include all also supports nested loading:
 
 ```js
 User.findAll({ include: [{ all: true, nested: true }]});
