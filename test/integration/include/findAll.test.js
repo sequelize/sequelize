@@ -1907,6 +1907,9 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           ],
           include: [
             {association: Post.Comments, attributes: []}
+          ],
+          group: [
+            'Post.id'
           ]
         });
       }).then(function (posts) {
@@ -1915,7 +1918,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         var post = posts[0];
 
         expect(post.get('comments')).not.to.be.ok;
-        expect(post.get('commentCount')).to.equal(3);
+        expect(parseInt(post.get('commentCount'), 10)).to.equal(3);
       });
     });
   });
