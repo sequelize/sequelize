@@ -274,7 +274,7 @@ if (dialect.match(/^postgres/)) {
         var self = this;
         var text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
 
-        return this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } })
+        return this.User.findOrCreate({ where: { username: 'swen' }, defaults: { username: 'swen', emergency_contact: { value: text } } })
           .then(function(user) {
             expect(!user.isNewRecord).to.equal(true);
           })
