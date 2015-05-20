@@ -1902,7 +1902,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       }).then(function () {
         return Post.findAll({
           attributes: [
-            'title',
             [this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount']
           ],
           include: [
