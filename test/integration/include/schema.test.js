@@ -1212,6 +1212,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
   });
 
   describe('findOne', function() {
+    ([ true, false ]).forEach(function (useNewReferencesStyle) {
     it('should work with schemas', function() {
       var self = this;
       var UserModel = this.sequelize.define('User', {
@@ -1234,16 +1235,17 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
         timestamps: false
       });
 
+      var UserIdColumn = useNewReferencesStyle
+        ? { type: Sequelize.INTEGER, references: UserModel, referencesKey: 'Id' }
+        : { type: Sequelize.INTEGER, references: { model: UserModel, key: 'Id' } }
+        ;
+
       var ResumeModel = this.sequelize.define('Resume', {
         Id: {
           type: Sequelize.INTEGER,
           primaryKey: true
         },
-        UserId: {
-          type: Sequelize.INTEGER,
-          references: UserModel,
-          referencesKey: 'Id'
-        },
+        UserId: UserIdColumn,
         Name: Sequelize.STRING,
         Contact: Sequelize.STRING,
         School: Sequelize.STRING,
@@ -1282,6 +1284,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           });
         });
       });
+    });
     });
   });
 });

@@ -637,8 +637,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
         expect(Task.rawAttributes.uid).to.be.ok;
         expect(Task.rawAttributes.uid.allowNull).to.be.false;
-        expect(Task.rawAttributes.uid.references).to.equal(User.getTableName());
-        expect(Task.rawAttributes.uid.referencesKey).to.equal('id');
+        expect(Task.rawAttributes.uid.references.model).to.equal(User.getTableName());
+        expect(Task.rawAttributes.uid.references.key).to.equal('id');
       });
 
       it('works when taking a column directly from the object', function() {
@@ -658,8 +658,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id});
 
         expect(Profile.rawAttributes.user_id).to.be.ok;
-        expect(Profile.rawAttributes.user_id.references).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.user_id.referencesKey).to.equal('uid');
+        expect(Profile.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
         expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
       });
 

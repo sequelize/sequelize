@@ -456,8 +456,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.sequelize.sync({ force: true })
         .then(function() {
           var attrs = this.Task.tableAttributes;
-          expect(attrs.user_id.references).to.equal('users');
-          expect(attrs.user_id.referencesKey).to.equal('userId');
+          expect(attrs.user_id.references.model).to.equal('users');
+          expect(attrs.user_id.references.key).to.equal('userId');
         }.bind(this));
       });
 

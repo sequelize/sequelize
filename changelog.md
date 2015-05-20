@@ -1,3 +1,6 @@
+# Next
+- [CHANGED] The `references` property of model attributes has been transformed to an object: `{type: Sequelize.INTEGER, references: { model: SomeModel, key: 'some_key' }}`. The former format is deprecated.
+
 # 3.0.0
 
 3.0.0 cleans up a lot of deprecated code, making it easier for us to develop and maintain features in the future.

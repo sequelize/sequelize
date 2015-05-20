@@ -2178,15 +2178,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    ([ true, false ]).forEach(function (useNewReferencesStyle) {
     it('uses an existing dao factory and references the author table', function() {
+      var authorIdColumn = useNewReferencesStyle
+        ? { type: Sequelize.INTEGER, references: this.Author, referencesKey: 'id' }
+        : { type: Sequelize.INTEGER, references: { model: this.Author, key: 'id' } }
+        ;
+
       var Post = this.sequelize.define('post', {
-            title: Sequelize.STRING,
-            authorId: {
-              type: Sequelize.INTEGER,
-              references: this.Author,
-              referencesKey: 'id'
-            }
-          });
+        title: Sequelize.STRING,
+        authorId: authorIdColumn
+      });
 
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
@@ -2208,15 +2210,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('uses a table name as a string and references the author table', function() {
+      var authorIdColumn = useNewReferencesStyle
+        ? { type: Sequelize.INTEGER, references: 'authors', referencesKey: 'id' }
+        : { type: Sequelize.INTEGER, references: { model: 'authors', key: 'id' } }
+        ;
+
       var self = this
-        , Post = self.sequelize.define('post', {
-            title: Sequelize.STRING,
-            authorId: {
-              type: Sequelize.INTEGER,
-              references: 'authors',
-              referencesKey: 'id'
-            }
-          });
+        , Post = self.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
 
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
@@ -2238,14 +2238,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('emits an error event as the referenced table name is invalid', function() {
-      var Post = this.sequelize.define('post', {
-            title: Sequelize.STRING,
-            authorId: {
-              type: Sequelize.INTEGER,
-              references: '4uth0r5',
-              referencesKey: 'id'
-            }
-          });
+      var authorIdColumn = useNewReferencesStyle
+        ? { type: Sequelize.INTEGER, references: '4uth0r5', referencesKey: 'id' }
+        : { type: Sequelize.INTEGER, references: { model: '4uth0r5', key: 'id' } }
+        ;
+
+      var Post = this.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
 
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
@@ -2282,20 +2280,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('works with comments', function() {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
       // jshint ignore:start
-      var Member = this.sequelize.define('Member', {})
-        , Profile = this.sequelize.define('Profile', {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          references: Member,
-          referencesKey: 'id',
-          autoIncrement: false,
-          comment: 'asdf'
-        }
-      });
+      var Member = this.sequelize.define('Member', {});
+      var idColumn = {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: false,
+        comment: 'asdf'
+      };
+
+      if (useNewReferencesStyle) {
+        idColumn.references = { model: Member, key: 'id' };
+      } else {
+        idColumn.references = Member;
+        idColumn.referencesKey = 'id';
+      }
+
+      var Profile = this.sequelize.define('Profile', { id: idColumn });
       // jshint ignore:end
 
       return this.sequelize.sync({ force: true });
+    });
     });
   });
 
@@ -2571,8 +2575,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     var project = this.sequelize.define('project', {
       UserId: {
         type: Sequelize.STRING,
-        references: 'Users',
-        referencesKey: 'UUID'
+        references: {
+          model: 'Users',
+          key:   'UUID'
+        }
       }
     });
 

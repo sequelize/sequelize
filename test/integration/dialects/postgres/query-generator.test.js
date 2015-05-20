@@ -57,6 +57,8 @@ if (dialect.match(/^postgres/)) {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },
+
+        // Old references style
         {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
@@ -103,8 +105,56 @@ if (dialect.match(/^postgres/)) {
           arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT'},
           context: {options: {quoteIdentifiers: false}}
-        }
+        },
 
+        // New references style
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar', key: 'pk' }}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("pk")'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE'}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT'}
+        },
+
+        // Variants when quoteIdentifiers is false
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (id)'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar', key: 'pk' }}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (pk)'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE'}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT'},
+          context: {options: {quoteIdentifiers: false}}
+        }
       ],
 
       createTableQuery: [

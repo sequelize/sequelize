@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "bluebird": "~2.9.24",
+    "depd": "^1.0.1",
     "dottie": "^0.3.1",
     "generic-pool": "2.2.0",
     "inflection": "^1.6.0",
@@ -40,9 +41,9 @@
     "moment": "^2.9.0",
     "moment-timezone": "^0.3.1",
     "node-uuid": "~1.4.1",
+    "shimmer": "1.0.0",
     "toposort-class": "~0.3.0",
-    "validator": "^3.34.0",
-    "shimmer": "1.0.0"
+    "validator": "^3.34.0"
   },
   "devDependencies": {
     "chai": "^2.1.2",
