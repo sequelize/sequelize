@@ -114,4 +114,30 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
   });
+
+
+  suite('stack', function() {
+    test('stack trace starts after call to Util.stack()', function this_here_test() {
+
+      function a() {
+        return b();
+      }
+
+      function b() {
+        return c();
+      }
+
+      function c() {
+        return Utils.stack();
+      }
+
+      var stack = a();
+
+      expect(stack[0].getFunctionName()).to.eql('c');
+      expect(stack[1].getFunctionName()).to.eql('b');
+      expect(stack[2].getFunctionName()).to.eql('a');
+      expect(stack[3].getFunctionName()).to.eql('this_here_test');
+    });
+  });
+
 });
