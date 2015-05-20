@@ -306,12 +306,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         defaults: {}
       }).spread(function(user, created) {
         expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
+        expect(user.username).to.be.equal('Username');
       }).then(function () {
         return self.User.findOrCreate({
           where: data,
           defaults: {}
         }).spread(function(user, created) {
           expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
+          expect(user.data).to.be.equal('ThisIsData');
         });
       });
     });
