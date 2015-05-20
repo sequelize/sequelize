@@ -1,4 +1,5 @@
-# Next
+# 3.0.1
+
 - [FIXED] `include.attributes = []` will no longer force the inclusion of the primary key, making it possible to write aggregates with includes.
 - [CHANGED] The `references` property of model attributes has been transformed to an object: `{type: Sequelize.INTEGER, references: { model: SomeModel, key: 'some_key' }}`. The former format (`references` and `referecesKey`) still exists but is deprecated and will be removed in 4.0.
 
