@@ -1075,6 +1075,47 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 })
 ```
 
+When eager loading we can also filter the associated model using `where`
+
+```js
+User.findAll({ include: [{ model: Tool, as: 'Instruments', where: {name: {$like: '%ooth%'}} }] })
+  .then(function(users) {
+    console.log(JSON.stringify(users))
+
+    /*
+      [{
+        "name": "John Doe",
+        "id": 1,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "UserId": 1
+        }]
+      }],
+
+      [{
+        "name": "John Smith",
+        "id": 2,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "UserId": 1
+        }]
+      }],
+    */
+    
+  })
+```
+
+
 ### Including everything
 
 To include all attributes, you can pass a single object with `all: true`:
