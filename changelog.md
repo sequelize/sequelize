@@ -1,3 +1,7 @@
+# next
+
+- [BUG] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
+
 # 3.0.1
 
 - [FIXED] `include.attributes = []` will no longer force the inclusion of the primary key, making it possible to write aggregates with includes.
