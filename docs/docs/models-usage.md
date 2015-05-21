@@ -538,11 +538,17 @@ This will produce an outer join. However, a `where` clause on a related model wi
 
 ```js
 User.findAll({
-  include: [
-    {model: Tool, as: 'Instruments', include: [
-      {model: Teacher, include: [ /* etc */], required: false}
-    ]}
-  ]
+  include: [{
+    model: Tool, 
+    as: 'Instruments', 
+    include: [{
+      model: Teacher, 
+      where: {
+        school: "Woodstock Music School"
+      },
+      required: false
+    }]
+  }]
 }).then(function(users) {
   /* ... */
 })
