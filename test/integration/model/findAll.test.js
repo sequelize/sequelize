@@ -562,6 +562,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(tasks[0].Worker.name).to.equal('worker');
           });
         });
+
+        it('returns the associated worker via task.worker, using limit and sort', function() {
+          return this.Task.findAll({
+            where: { title: 'homework' },
+            include: [this.Worker],
+            limit: 1,
+            order: 'title DESC'
+          }).then(function(tasks) {
+            expect(tasks).to.exist;
+            expect(tasks[0].Worker).to.exist;
+            expect(tasks[0].Worker.name).to.equal('worker');
+          });
+        });
       });
 
       describe('hasOne', function() {
