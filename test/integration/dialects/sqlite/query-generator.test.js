@@ -53,6 +53,8 @@ if (dialect === 'sqlite') {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },
+
+        // Old references style
         {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
@@ -72,7 +74,29 @@ if (dialect === 'sqlite') {
         {
           arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
-        }
+        },
+
+        // New references style
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar', key: 'pk' }}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`pk`)'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE'}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
+        },
       ],
 
       createTableQuery: [
@@ -138,10 +162,6 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
-          context: QueryGenerator
-        }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
-          expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: 'id DESC'}],
@@ -300,8 +320,8 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           title: 'no where arguments (string)',
-          arguments: ['myTable', {where: ''}],
-          expectation: 'SELECT * FROM `myTable`;',
+          arguments: ['myTable', {where: ['']}],
+          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',
@@ -494,39 +514,6 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
           expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }
-      ],
-
-      addIndexQuery: [
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username` ASC, `isAdmin`)'
-        }, {
-          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, 'User'],
-          expectation: 'CREATE INDEX `bar` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: ['User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
-            name: 'a_b_uniq',
-            unique: true,
-            method: 'BTREE'
-          }, 'User'],
-          expectation: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)'
-        }, {
-          arguments: ['User', ['fieldC'], {
-            type: 'FULLTEXT',
-            concurrently: true
-          }, 'User'],
-          expectation: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)'
         }
       ]
     };

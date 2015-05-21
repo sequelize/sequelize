@@ -197,10 +197,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               }
             }
           }).then(function (events) {
-            var event = events[0];
-
             expect(events.length).to.equal(1);
-            expect(event.get('data')).to.eql({
+            expect(events[0].get('data')).to.eql({
               name: {
                 first: 'Marge',
                 last: 'Simpson'
@@ -212,36 +210,38 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should be possible to query multiple nested values', function () {
-        return Promise.join(
-          this.Event.create({
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson'
-              },
-              employment: 'Nuclear Safety Inspector'
-            }
-          }),
-          this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              employment: 'Housewife'
-            }
-          }),
-          this.Event.create({
-            data: {
-              name: {
-                first: 'Bart',
-                last: 'Simpson'
-              },
-              employment: 'None'
-            }
-          })
-        ).bind(this).then(function () {
-          return this.Event.findAll({
+        var self = this;
+        return this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson'
+            },
+            employment: 'Nuclear Safety Inspector'
+          }
+        }).then(function() {
+          return Promise.join(
+            self.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              }
+            }),
+            self.Event.create({
+              data: {
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson'
+                },
+                employment: 'None'
+              }
+            })
+          );
+        }).then(function () {
+          return self.Event.findAll({
             where: {
               data: {
                 name: {

@@ -23,7 +23,6 @@ if (program.file) {
     {file:'lib/sequelize.js', output: 'sequelize'},
     {file:'lib/instance.js', output: 'instance'},
     {file:'lib/model.js', output: 'model'},
-    {file:'lib/querying.js', output: 'querying'},
     {file:'lib/hooks.js', output: 'hooks'},
     {file:'lib/associations/mixin.js', output: 'associations'},
     {file:'lib/promise.js', output: 'promise'},
@@ -53,25 +52,10 @@ Comment.prototype.hasTag = function(tagName) {
 };
 
 Comment.prototype.getName = function () {
-  var tag;
+  var tag = (['name', 'class', 'property', 'method']).reduce(function (tag, tagName) {
+    return tag || this.getTag(tagName);
+  }.bind(this), null);
 
-  tag = this.getTag('name');
-
-  if (tag) {
-    return tag.string;
-  }
-
-  tag = this.getTag('class');
-  if (tag) {
-    return tag.string;
-  }
-
-  tag = this.getTag('property');
-  if (tag) {
-    return tag.types[0];
-  }
-
-  tag = this.getTag('method');
   if (tag) {
     return tag.string;
   }
@@ -281,6 +265,7 @@ new git.Repo(path.dirname(__filename) + '/..', function (err, repo) {
       fs.readFile(file.file, function (err, code) {
         obj = dox.parseComments(code.toString(), { raw: true});
         path = program.out + '/' + file.output + '.md';
+
         console.log(path)
 
         var output = parseComments(obj, file.file);

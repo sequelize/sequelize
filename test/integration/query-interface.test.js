@@ -406,8 +406,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       }).bind(this).then(function() {
         return this.queryInterface.addColumn('users', 'level_id', {
           type: DataTypes.INTEGER,
-          references: 'level',
-          referenceKey: 'id',
+          references: {
+            model: 'level',
+            key:   'id'
+          },
           onUpdate: 'cascade',
           onDelete: 'set null'
         }, {logging: log});
@@ -466,19 +468,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           },
           admin: {
             type: DataTypes.INTEGER,
-            references: 'users',
-            referenceKey: 'id'
+            references: {
+              model: 'users',
+              key:   'id'
+            }
           },
           operator: {
             type: DataTypes.INTEGER,
-            references: 'users',
-            referenceKey: 'id',
+            references: {
+              model: 'users',
+              key:   'id'
+            },
             onUpdate: 'cascade'
           },
           owner: {
             type: DataTypes.INTEGER,
-            references: 'users',
-            referenceKey: 'id',
+            references: {
+              model: 'users',
+              key:   'id'
+            },
             onUpdate: 'cascade',
             onDelete: 'set null'
           }

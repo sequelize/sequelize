@@ -43,8 +43,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           timestamps: false
         });
 
-        this.Student.hasMany(this.Course, {through: this.Score, foreignKey: 'StudentId'});
-        this.Course.hasMany(this.Student, {through: this.Score, foreignKey: 'CourseId'});
+        this.Student.belongsToMany(this.Course, {through: this.Score, foreignKey: 'StudentId'});
+        this.Course.belongsToMany(this.Student, {through: this.Score, foreignKey: 'CourseId'});
 
         return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(

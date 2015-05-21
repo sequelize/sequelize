@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         describe('it should be able to unscope', function () {
           it('hasMany', function () {
-            return this.Company.find(1).then(function (company) {
+            return this.Company.findById(1).then(function (company) {
               return company.getUsers({ scope: false});
             }).then(function (users) {
               expect(users).to.have.length(4);
@@ -155,7 +155,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               active: false,
               userId: 1
             }).bind(this).then(function () {
-              return this.ScopeMe.find(1);
+              return this.ScopeMe.findById(1);
             }).then(function (user) {
               return user.getProfile({ scope: false });
             }).then(function (project) {
@@ -182,7 +182,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         describe('it should apply default scope', function () {
           it('hasMany', function () {
-            return this.Company.find(1).then(function (company) {
+            return this.Company.findById(1).then(function (company) {
               return company.getUsers();
             }).then(function (users) {
               expect(users).to.have.length(2);
@@ -194,7 +194,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               active: false,
               userId: 1
             }).bind(this).then(function () {
-              return this.ScopeMe.find(1);
+              return this.ScopeMe.findById(1);
             }).then(function (user) {
               return user.getProfile();
             }).then(function (project) {
@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         describe('it should be able to apply another scope', function () {
           it('hasMany', function () {
-            return this.Company.find(1).then(function (company) {
+            return this.Company.findById(1).then(function (company) {
               return company.getUsers({ scope: 'isTony'});
             }).then(function (users) {
               expect(users).to.have.length(1);
@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               active: true,
               userId: 1
             }).bind(this).then(function () {
-              return this.ScopeMe.find(1);
+              return this.ScopeMe.findById(1);
             }).then(function (user) {
               return user.getProfile({ scope: 'notActive' });
             }).then(function (project) {

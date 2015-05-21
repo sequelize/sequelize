@@ -15,8 +15,10 @@ module.exports = function(sequelize, DataTypes) {
         // set relationship (hasOne) with `Series`
         series_id: {
             type: DataTypes.INTEGER,
-            references: "Series",
-            referencesKey: 'id'
+            references: {
+              model: 'Series',
+              key:   'id'
+            }
         }
     }, {
         // don't need timestamp attributes for this model
