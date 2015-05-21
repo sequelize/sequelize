@@ -1075,7 +1075,8 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 })
 ```
 
-When eager loading we can also filter the associated model using `where`
+When eager loading we can also filter the associated model using `where`. This will return all
+`User`s in which the `where` clause of `Tool` model matches rows. 
 
 ```js
 User.findAll({ include: [{ model: Tool, as: 'Instruments', where: {name: {$like: '%ooth%'}} }] })
@@ -1114,6 +1115,9 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments', where: {name: {$like:
     
   })
 ```
+
+When an eager loaded model is filtered using `include.where` then `include.required` is implicitly set to
+`true`. This means that an inner join is done returning parent models with any matching children.
 
 
 ### Including everything
