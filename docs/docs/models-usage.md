@@ -503,7 +503,7 @@ Company.findAll({
 ```
 
 ### Nested eager loading
-You can used nested eager loading to load all related models of a related model: 
+You can use nested eager loading to load all related models of a related model: 
 ```js
 User.findAll({
   include: [
@@ -532,6 +532,19 @@ User.findAll({
       }]
     }]
   */
+})
+```
+This will produce an outer join. However, a `where` clause on a related model will create an inner join and return only the instances that have matching sub-models. To return all the instances, you should add `required: false`.
+
+```js
+User.findAll({
+  include: [
+    {model: Tool, as: 'Instruments', include: [
+      {model: Teacher, include: [ /* etc */], required: false}
+    ]}
+  ]
+}).then(function(users) {
+  /* ... */
 })
 ```
 
