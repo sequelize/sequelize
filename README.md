@@ -1,5 +1,5 @@
-# Sequelize
-
+# Sequelize-oracle
+  
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lebretr/sequelize-oracle/trend.png)](https://bitdeli.com/free "Bitdeli Badge") 
 [![Build Status](https://travis-ci.org/lebretr/sequelize-oracle.svg?branch=master-Oracle-dev)](https://travis-ci.org/lebretr/sequelize-oracle) 
 [![Dependency Status](https://david-dm.org/lebretr/sequelize-oracle.png)](https://david-dm.org/lebretr/sequelize-oracle) 
@@ -13,7 +13,20 @@ sequelize-oracle is a fork of [sequelize@master](https://github.com/sequelize/se
 this fork add support of DML statements for Oracle  
 If you don't need Oracle support, prefer the original [Sequelize](http://sequelizejs.com/)  
 
+
+## limitation:
+
+- DataType: only this dataTypes are managed: STRING (=VARCHAR2), CHAR, DECIMAL (=NUMBER), BIGINT, (=NUMBER(19,0)), INTEGER, FLOAT, DOUBLE, UUID (=CHAR 36), DATE (=TIMESTAMP WITH LOCAL TIME ZONE), DATEONLY (=DATETIME), BOOLEAN (=NUMBER(1))
+- Index: index type is not fully managed
+  
+## TODO:
+- ENUM DataType
+- improve index for type
+
+# Sequelize  
+
 [Sequelize Documentation](http://sequelize.readthedocs.org/en/latest/)
+
 
 ## Installation
 

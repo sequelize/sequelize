@@ -38,6 +38,8 @@ test-unit-postgres:
 	@DIALECT=postgres make test-unit
 test-unit-postgres-native:
 	@DIALECT=postgres-native make test-unit
+test-unit-oracle:
+	@DIALECT=oracle make test-unit
 
 # Integration tests
 test-integration:
@@ -61,6 +63,8 @@ test-integration-postgres:
 	@DIALECT=postgres make test-integration
 test-integration-postgres-native:
 	@DIALECT=postgres-native make test-integration
+test-integration-oracle:
+	@DIALECT=oracle make test-integration
 
 
 jshint:
@@ -78,6 +82,8 @@ postgres:
 	@DIALECT=postgres make test
 postgres-native:
 	@DIALECT=postgres-native make test
+oracle:
+	@DIALECT=oracle make test
 
 # Coverage
 cover:
@@ -108,6 +114,10 @@ postgres-native-cover:
 	rm -rf coverage
 	@DIALECT=postgres-native make cover
 	mv coverage coverage-postgresnative
+oracle-cover:
+	rm -rf coverage
+	@DIALECT=oracle make cover
+	mv coverage coverage-oracle
 
 merge-coverage:
 	rm -rf coverage
@@ -130,4 +140,4 @@ all: sqlite mysql postgres postgres-native mariadb
 all-cover: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover mssql-cover merge-coverage
 codeclimate: all-cover codeclimate-send
 
-.PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test
+.PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test oracle

@@ -41,6 +41,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
         mssql: 'WHERE [yolo].[User].[id] = 1',
+        oracle: 'WHERE "yolo"."User"."id" = 1'
       });
     });
 
@@ -86,7 +87,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql('deleted', null, {
       default: '`deleted` IS NULL',
       postgres: '"deleted" IS NULL',
-      mssql: '[deleted] IS NULL'
+      mssql: '[deleted] IS NULL',
+      oracle: '"deleted" IS NULL',
     });
 
     suite('$in', function () {
@@ -117,14 +119,16 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('Buffer', function () {
-      testsql('field', new Buffer('Sequelize'), {
-        postgres: '"field" = E\'\\\\x53657175656c697a65\'',
-        sqlite: "`field` = X'53657175656c697a65'",
-        mysql: "`field` = X'53657175656c697a65'",
-        mssql: '[field] = 0x53657175656c697a65'
+    if(current.dialect.supports.BUFFER !== false) {
+      suite('Buffer', function () {
+        testsql('field', new Buffer('Sequelize'), {
+          postgres: '"field" = E\'\\\\x53657175656c697a65\'',
+          sqlite: "`field` = X'53657175656c697a65'",
+          mysql: "`field` = X'53657175656c697a65'",
+          mssql: '[field] = 0x53657175656c697a65'
+        });
       });
-    });
+    }
 
     suite('$not', function () {
       testsql('deleted', {
@@ -132,7 +136,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, {
         default: '[deleted] IS NOT true',
         mssql: "[deleted] IS NOT 'true'",
-        sqlite: '`deleted` IS NOT 1'
+        sqlite: '`deleted` IS NOT 1',
+        oracle: '"deleted" IS NOT 1'
       });
 
       testsql('deleted', {
