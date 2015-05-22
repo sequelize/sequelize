@@ -45,7 +45,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
-          return self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }, transaction: t }).then(function() {
+          return self.User.findOrCreate({
+            where: {
+              username: {
+                $ne: 'Username'
+              }
+            },
+            defaults: {
+              data: 'some data'
+            },
+            transaction: t
+          }).then(function() {
             return self.User.count().then(function(count) {
               expect(count).to.equal(0);
               return t.commit().then(function() {
@@ -296,17 +306,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         defaults: {}
       }).spread(function(user, created) {
         expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
+        expect(user.username).to.be.equal('Username');
       }).then(function () {
         return self.User.findOrCreate({
           where: data,
           defaults: {}
         }).spread(function(user, created) {
           expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
+          expect(user.data).to.be.equal('ThisIsData');
         });
       });
     });
 
-    it('creates new instance with default value.', function() {
+    it('creates new instance with default value', function() {
       var data = {
           username: 'Username'
         },
@@ -315,7 +327,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         };
 
       return this.User.findOrCreate({ where: data, defaults: default_values}).spread(function(user, created) {
-        expect(user.username).to.equal('Username');
+        expect(user.username).to.not.exist;
         expect(user.data).to.equal('ThisIsData');
         expect(created).to.be.true;
       });
@@ -323,7 +335,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('supports .or() (only using default values)', function() {
       return this.User.findOrCreate({
-        where: Sequelize.or({username: 'Fooobzz'}, {secretValue: 'Yolo'}),
+        where: Sequelize.or({ username: 'Fooobzz' }, { secretValue: 'Yolo' }),
         defaults: {username: 'Fooobzz', secretValue: 'Yolo'}
       }).spread(function(user, created) {
         expect(user.username).to.equal('Fooobzz');

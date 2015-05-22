@@ -635,7 +635,7 @@ Let's assume we have an empty database with a `User` model which has a `username
 
 ```js
 User
-  .findOrCreate({where: {username: 'sdepold'}, defaults: {job: 'Technical Lead JavaScript'}})
+  .findOrCreate({where: {username: 'sdepold'}, defaults: {username: 'sdepold', job: 'Technical Lead JavaScript'}})
   .spread(function(user, created) {
     console.log(user.get({
       plain: true
@@ -661,7 +661,7 @@ User
   .create({ username: 'fnord', job: 'omnomnom' })
   .then(function() {
     User
-      .findOrCreate({where: {username: 'fnord'}, defaults: {job: 'something else'}})
+      .findOrCreate({where: {username: 'fnord'}, defaults: {username: 'fnord', job: 'something else'}})
       .spread(function(user, created) {
         console.log(user.get({
           plain: true
