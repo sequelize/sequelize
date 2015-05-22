@@ -1,6 +1,6 @@
 <a name="instance"></a>
 # Class Instance
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L41)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L34)
 This class represents an single instance, a database row. You might see it referred to as both Instance and instance. You should not
 instantiate the Instance class directly, instead you access it using the finder and creation methods on the model.
 
@@ -26,14 +26,14 @@ Accessing properties directly or using `get` is preferred for regular use, `getD
 
 <a name="isnewrecord"></a>
 ## `isNewRecord` -> `Boolean`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L54)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L47)
 Returns true if this instance has not yet been persisted to the database
 
 ***
 
 <a name="model"></a>
 ## `Model()` -> `Model`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L63)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L56)
 Returns the Model the instance was created from.
 
 **See:**
@@ -45,7 +45,7 @@ Returns the Model the instance was created from.
 
 <a name="sequelize"></a>
 ## `sequelize()` -> `Sequelize`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L72)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L65)
 A reference to the sequelize instance
 
 **See:**
@@ -55,50 +55,17 @@ A reference to the sequelize instance
 
 ***
 
-<a name="isdeleted"></a>
-## `isDeleted()` -> `Boolean`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L85)
-If timestamps and paranoid are enabled, returns whether the deletedAt timestamp of this instance is set. Otherwise, always returns false.
-
-***
-
-<a name="values"></a>
-## `values()` -> `Object`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L98)
-Get the values of this Instance. Proxies to `this.get`
-**Deprecated** .values is deprecated. Please use .get() instead.
-
-**See:**
-
-* [Instance#get](api/instance#get)
-
-
-***
-
-<a name="isdirty"></a>
-## `isDirty()` -> `Boolean`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L112)
-A getter for `this.changed()`. Returns true if any keys have changed.
-
-
-**See:**
-
-* [Instance#changed](api/instance#changed)
-
-
-***
-
-<a name="primarykeyvalues"></a>
-## `primaryKeyValues()` -> `Object`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L124)
-Get the values of the primary keys of this instance.
+<a name="where"></a>
+## `where()` -> `Object`
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L75)
+Get an object representing the query for this instance, use with `options.where`
 
 
 ***
 
 <a name="getdatavalue"></a>
 ## `getDataValue(key)` -> `any`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L160)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L99)
 Get the value of the underlying data value
 
 
@@ -113,7 +80,7 @@ Get the value of the underlying data value
 
 <a name="setdatavalue"></a>
 ## `setDataValue(key, value)`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L170)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L109)
 Update the underlying data value
 
 
@@ -129,7 +96,7 @@ Update the underlying data value
 
 <a name="get"></a>
 ## `get([key], [options])` -> `Object|any`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L189)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L128)
 If no key is given, returns all values of the instance, also invoking virtual getters.
 
 If key is given and a field or virtual getter is present for the key it will call that getter - else it will return the value for key.
@@ -148,7 +115,7 @@ If key is given and a field or virtual getter is present for the key it will cal
 
 <a name="set"></a>
 ## `set(key, value, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L271)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L210)
 Set is used to update values on the instance (the sequelize representation of the instance that is, remember that nothing will be persisted before you actually call `save`).
 In its most basic form `set` will update a value stored in the underlying `dataValues` object. However, if a custom setter function is defined for the key, that function
 will be called instead. To bypass the setter, you can pass `raw: true` in the options object.
@@ -186,7 +153,7 @@ __Aliases:__ setAttributes
 
 <a name="changed"></a>
 ## `changed([key])` -> `Boolean|Array`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L412)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L351)
 If changed is called with a string it will return a boolean indicating whether the value of that key in `dataValues` is different from the value in `_previousDataValues`.
 
 If changed is called without an argument, it will return an array of keys that have changed.
@@ -205,7 +172,7 @@ If changed is called without an argument and no keys have changed, it will retur
 
 <a name="previous"></a>
 ## `previous(key)` -> `any`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L433)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L372)
 Returns the previous value for key from `_previousDataValues`.
 
 **Params:**
@@ -219,7 +186,7 @@ Returns the previous value for key from `_previousDataValues`.
 
 <a name="save"></a>
 ## `save([options])` -> `Promise.<this|Errors.ValidationError>`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L494)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L433)
 Validate this instance, and if the validation passes, persist it to the database.
 
 On success, the callback will be called with this instance. On validation error, the callback will be called with an instance of `Sequelize.ValidationError`.
@@ -234,6 +201,7 @@ This error will have a property for each of the fields for which validation fail
 | [options.fields] | Object | An optional array of strings, representing database columns. If fields is provided, only those columns will be validated and saved. |
 | [options.silent=false] | Boolean | If true, the updatedAt timestamp will not be updated. |
 | [options.validate=true] | Boolean | If false, validations won't be run. |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.transaction] | Transaction |  |
 
 
@@ -241,7 +209,7 @@ This error will have a property for each of the fields for which validation fail
 
 <a name="reload"></a>
 ## `reload([options])` -> `Promise.<this>`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L742)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L676)
 Refresh the current instance in-place, i.e. update the object with current data from the DB and return the same object.
 This is different from doing a `find(Instance.id)`, because that would create and return a new instance. With this method,
 all references to the Instance are updated with the new data and no new objects are created.
@@ -257,13 +225,14 @@ all references to the Instance are updated with the new data and no new objects 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [options] | Object | Options that are passed on to `Model.find` |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 
 
 ***
 
 <a name="validate"></a>
 ## `validate([options])` -> `Promise.<Errors.ValidationError|undefined>`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L769)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L705)
 Validate the attribute of this instance according to validation rules set in the model definition.
 
 Emits null if and only if validation successful; otherwise an Error instance containing { field name : [error msgs] } entries.
@@ -286,7 +255,7 @@ Emits null if and only if validation successful; otherwise an Error instance con
 
 <a name="update"></a>
 ## `update(updates, options)` -> `Promise.<this>`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L788)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L724)
 This is the same as calling `set` and then calling `save`.
 
 
@@ -309,7 +278,7 @@ __Aliases:__ updateAttributes
 
 <a name="destroy"></a>
 ## `destroy([options={}])` -> `Promise.<undefined>`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L820)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L757)
 Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will either be completely deleted, or have its deletedAt timestamp set to the current time.
 
 
@@ -319,6 +288,7 @@ Destroy the row corresponding to this instance. Depending on your setting for pa
 | ---- | ---- | ----------- |
 | [options={}] | Object |  |
 | [options.force=false] | Boolean | If set to true, paranoid models will actually be deleted |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.transaction] | Transaction |  |
 
 
@@ -326,7 +296,7 @@ Destroy the row corresponding to this instance. Depending on your setting for pa
 
 <a name="restore"></a>
 ## `restore([options={}])` -> `Promise.<undefined>`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L863)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L801)
 Restore the row corresponding to this instance. Only available for paranoid models.
 
 
@@ -335,6 +305,7 @@ Restore the row corresponding to this instance. Only available for paranoid mode
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [options={}] | Object |  |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.transaction] | Transaction |  |
 
 
@@ -342,7 +313,7 @@ Restore the row corresponding to this instance. Only available for paranoid mode
 
 <a name="increment"></a>
 ## `increment(fields, [options])` -> `Promise.<this>`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L909)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L848)
 Increment the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The increment is done using a
 ```sql
 SET column = column + X
@@ -369,6 +340,7 @@ instance.increment({ answer: 42, tries: 1}, { by: 2 }) // increment answer by 42
 | fields | String &#124; Array &#124; Object | If a string is provided, that column is incremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is incremented by the value given. |
 | [options] | Object |  |
 | [options.by=1] | Integer | The number to increment by |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.transaction] | Transaction |  |
 
 
@@ -376,7 +348,7 @@ instance.increment({ answer: 42, tries: 1}, { by: 2 }) // increment answer by 42
 
 <a name="decrement"></a>
 ## `decrement(fields, [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L998)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L921)
 Decrement the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The decrement is done using a
 ```sql
 SET column = column - X
@@ -403,6 +375,7 @@ instance.decrement({ answer: 42, tries: 1}, { by: 2 }) // decrement answer by 42
 | fields | String &#124; Array &#124; Object | If a string is provided, that column is decremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is decremented by the value given |
 | [options] | Object |  |
 | [options.by=1] | Integer | The number to decrement by |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.transaction] | Transaction |  |
 
 
@@ -410,7 +383,7 @@ instance.decrement({ answer: 42, tries: 1}, { by: 2 }) // decrement answer by 42
 
 <a name="equals"></a>
 ## `equals(other)` -> `Boolean`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L1034)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L943)
 Check whether all values of this and `other` Instance are the same
 
 
@@ -425,7 +398,7 @@ Check whether all values of this and `other` Instance are the same
 
 <a name="equalsoneof"></a>
 ## `equalsOneOf(others)` -> `Boolean`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L1054)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L963)
 Check if this is eqaul to one of `others` by calling equals
 
 
@@ -440,7 +413,7 @@ Check if this is eqaul to one of `others` by calling equals
 
 <a name="tojson"></a>
 ## `toJSON()` -> `object`
-[View code](https://github.com/sequelize/sequelize/blob/716cb2d2aae3a4cd7fdaace13411cf4161e6deb6/lib/instance.js#L1072)
+[View code](https://github.com/sequelize/sequelize/blob/2dc7a0f610480e045a412d215d7247912158407d/lib/instance.js#L981)
 Convert the instance to a JSON representation. Proxies to calling `get` with no keys. This means get all values gotten from the DB, and apply all custom getters.
 
 

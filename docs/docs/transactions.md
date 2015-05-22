@@ -24,7 +24,7 @@ return sequelize.transaction(function (t) {
   });
 }).then(function (result) {
   // Transaction has been committed
-  // result is whatever the result of the promise chain returned to the transaction callback 
+  // result is whatever the result of the promise chain returned to the transaction callback
 }).catch(function (err) {
   // Transaction has been rolled back
   // err is whatever rejected the promise chain returned to the transaction callback
@@ -101,7 +101,7 @@ sequelize.transaction(function (t1) {
 # Unmanaged transaction (then-callback)
 Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise.
 
-```js    
+```js
 return sequelize.transaction().then(function (t) {
   return User.create({
     firstName: 'Homer',
@@ -110,7 +110,7 @@ return sequelize.transaction().then(function (t) {
     return user.addSibling({
       firstName: 'Lisa',
       lastName: 'Simpson'
-    }, {transction: t});
+    }, {transaction: t});
   }).then(function () {
     t.commit();
   }).catch(function (err) {
@@ -119,7 +119,57 @@ return sequelize.transaction().then(function (t) {
 });
 ```
 
-# Using transactions with other sequelize methods
+# Options
+The `transaction` method can be called with an options object as the first argument, that
+allows the configuration of the transaction.
+
+```js
+return sequelize.transaction({ /* options */ });
+```
+
+The following options (with it's default values) are available:
+
+```js
+{
+  autocommit: true,
+  isolationLevel: 'REPEATABLE_READ',
+  deferrable: 'NOT DEFERRABLE' // implicit default of postgres
+}
+```
+
+The `isolationLevel` can either be set globally when initializing the Sequelize instance or
+locally for every transaction:
+
+```js
+// globally
+new Sequelize('db', 'user', 'pw', {
+  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+});
+
+// locally
+sequelize.transaction({
+  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+});
+```
+
+The `deferrable` option triggers an additional query after the transaction start
+that optionally set the constraint checks to be deferred or immediate. Please note
+that this is only supported in PostgreSQL.
+
+```js
+sequelize.transaction({
+  // to defer all constraints:
+  deferrable: Sequelize.Deferrable.SET_DEFERRED,
+
+  // to defer a specific constraint:
+  deferrable: Sequelize.Deferrable.SET_DEFERRED(['some_constraint']),
+
+  // to not defer constraints:
+  deferrable: Sequelize.Deferrable.SET_IMMEDIATE
+})
+```
+
+# Usage with other sequelize methods
 
 The `transaction` option goes with most other options, which are usually the first argument of a method.
 For methods that take values, like `.create`, `.update()`, `.updateAttributes()` etc. `transaction` should be passed to the option in the second argument.

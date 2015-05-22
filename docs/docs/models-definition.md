@@ -48,7 +48,23 @@ var Foo = sequelize.define('Foo', {
  hasComment: { type: Sequelize.INTEGER, comment: "I'm a comment!" },
 
  // You can specify a custom field name via the "field" attribute:
- fieldWithUnderscores: { type: Sequelize.STRING, field: "field_with_underscores" }
+ fieldWithUnderscores: { type: Sequelize.STRING, field: "field_with_underscores" },
+
+ // It is possible to create foreign keys:
+ bar_id: {
+   type: Sequelize.INTEGER,
+
+   references: {
+     // This is a reference to another model
+     model: Bar,
+
+     // This is the column name of the referenced model
+     key: 'id',
+
+     // This declares when to check the foreign key constraint. PostgreSQL only.
+     deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
+   }
+ }
 })
 ```
 
@@ -133,6 +149,25 @@ sequelize.define('model', {
   }
 })
 ```
+
+## Deferrable
+
+When you specify a foreign key column it is optionally possible to declare the deferrable
+type in PostgreSQL. The following options are available:
+
+```js
+// Defer all foreign key constraint check to the end of a transaction
+Sequelize.Deferrable.INITIALLY_DEFERRED
+
+// Immediately check the foreign key constraints
+Sequelize.Deferrable.INITIALLY_IMMEDIATE
+
+// Don't defer the checks at all
+Sequelize.Deferrable.NOT
+```
+
+The last option is the default in PostgreSQL and won't allow you to dynamically change
+the rule in a transaction. See [the transaction section](docs/transactions/#options) for further information.
 
 ## Getters & setters
 
