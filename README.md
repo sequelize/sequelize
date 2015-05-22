@@ -15,7 +15,7 @@ If you don't need Oracle support, prefer the original [Sequelize](http://sequeli
   
 Sequelize-oracle@3.x.x-x.x is in development. Only the old version (1.10.x-x.x) is on npmjs registry.  
 
-## compatibility:
+## Compatibility:
 Sequelize-oracle is compatible only with nodejs@0.10.x (oracledb limitation).  
 Sequelize-oracle is only tested with Oracle 11 XE.  
   
@@ -26,7 +26,7 @@ npm install oracledb
 npm install sequelize
 ```
 
-## limitation:
+## Limitations:
 
 - DataType: only this dataTypes are managed: 
   - STRING (=VARCHAR2)
@@ -42,7 +42,7 @@ npm install sequelize
   - BOOLEAN (=NUMBER(1))
 - Index: index type is not fully managed
   
-## TODO:
+## Todo:
 - ENUM DataType
 - improve index for type
 - RETURNING in update and insert query
