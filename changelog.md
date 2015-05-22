@@ -1,12 +1,12 @@
 # next
 
 - [BUG] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
+- [ADDED] It is now possible to defer constraints in PostgreSQL by added a property `deferrable` to the `references` object of a field.
 
 # 3.0.1
 
 - [FIXED] `include.attributes = []` will no longer force the inclusion of the primary key, making it possible to write aggregates with includes.
 - [CHANGED] The `references` property of model attributes has been transformed to an object: `{type: Sequelize.INTEGER, references: { model: SomeModel, key: 'some_key' }}`. The former format (`references` and `referecesKey`) still exists but is deprecated and will be removed in 4.0.
-- [ADDED] It is now possible to defer constraints in PostgreSQL by added a property `deferrable` to the `references` object of a field.
 
 # 3.0.0
 
