@@ -1,4 +1,4 @@
-# next
+# 3.1.0
 
 - [BUG] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
 - [ADDED] It is now possible to defer constraints in PostgreSQL by added a property `deferrable` to the `references` object of a field.
