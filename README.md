@@ -13,7 +13,7 @@ sequelize-oracle is a fork of [sequelize@master](https://github.com/sequelize/se
 this fork add support of DML statements for Oracle  
 If you don't need Oracle support, prefer the original [Sequelize](http://sequelizejs.com/)  
   
-Sequelize-oracle@3.x.x-x.x is in development. Only the old version (1.10.x-x.x) is on npmjs registry.  
+Sequelize-oracle@3.0.1-x.x is in development. Only the old version (1.7.10-x.x) is on npmjs registry.  
 
 ## Compatibility:
 Sequelize-oracle is compatible only with nodejs@0.10.x (oracledb limitation).  
@@ -21,10 +21,16 @@ Sequelize-oracle is only tested with Oracle 11 XE.
   
 ## Installation
 
-```
-npm install oracledb
-npm install sequelize
-```
+The basic install steps are:
+
+- Install oracledb
+  - Install the small, free [Oracle Instant Client](http://www.oracle.com/technetwork/database/features/instant-client/index-100365.html) libraries if your database is remote, or have a local database such as the free [Oracle XE](http://www.oracle.com/technetwork/database/database-technologies/express-edition/overview/index.html) release.
+  - Run `npm install oracledb` to install from the NPM registry.
+
+  See [INSTALL](https://github.com/oracle/node-oracledb/blob/master/INSTALL.md) for details.
+
+- Install sequelize-oracle
+  - Run `npm install sequelize-oracle` to install from the NPM registry.
 
 ## Limitations:
 
