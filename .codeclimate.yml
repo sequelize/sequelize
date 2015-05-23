@@ -1,0 +1,5 @@
+# Save as .codeclimate.yml (note leading .) in project root directory
+languages:
+  JavaScript: true
+exclude_paths:
+- "test/*"
