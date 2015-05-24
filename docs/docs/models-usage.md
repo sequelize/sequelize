@@ -229,7 +229,7 @@ WHERE (
 LIMIT 1;
 ```
 
-### Manipulating the dataset with limit&comma; offset&comma; order and group
+### Manipulating the dataset with limit, offset, order and group
 
 To get more relevant data&comma; you can use limit&comma; offset&comma; order and grouping&colon;
 
@@ -468,6 +468,53 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 })
 ```
 
+When eager loading we can also filter the associated model using `where`. This will return all `User`s in which the `where` clause of `Tool` model matches rows.
+
+```js
+User.findAll({
+    include: [{
+        model: Tool,
+        as: 'Instruments',
+        where: { name: { $like: '%ooth%' } }
+    }]
+}).then(function(users) {
+    console.log(JSON.stringify(users))
+
+    /*
+      [{
+        "name": "John Doe",
+        "id": 1,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "UserId": 1
+        }]
+      }],
+
+      [{
+        "name": "John Smith",
+        "id": 2,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "UserId": 1
+        }]
+      }],
+    */
+  })
+```
+
+When an eager loaded model is filtered using `include.where` then `include.required` is implicitly set to
+`true`. This means that an inner join is done returning parent models with any matching children.
+
 ### Including everything
 
 To include all attributes, you can pass a single object with `all: true`:
@@ -503,7 +550,8 @@ Company.findAll({
 ```
 
 ### Nested eager loading
-You can use nested eager loading to load all related models of a related model: 
+You can use nested eager loading to load all related models of a related model:
+
 ```js
 User.findAll({
   include: [
@@ -534,15 +582,16 @@ User.findAll({
   */
 })
 ```
-This will produce an outer join. However, a `where` clause on a related model will create an inner join and return only the instances that have matching sub-models. To return all the instances, you should add `required: false`.
+
+This will produce an outer join. However, a `where` clause on a related model will create an inner join and return only the instances that have matching sub-models. To return all parent instances, you should add `required: false`.
 
 ```js
 User.findAll({
   include: [{
-    model: Tool, 
-    as: 'Instruments', 
+    model: Tool,
+    as: 'Instruments',
     include: [{
-      model: Teacher, 
+      model: Teacher,
       where: {
         school: "Woodstock Music School"
       },
@@ -554,7 +603,9 @@ User.findAll({
 })
 ```
 
-Include all also supports nested loading: 
+The query above will return all users, and all their instruments, but only those teachers associated with `Woodstock Music School`.
+
+Include all also supports nested loading:
 
 ```js
 User.findAll({ include: [{ all: true, nested: true }]});
