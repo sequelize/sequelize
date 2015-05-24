@@ -634,54 +634,6 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
     });
 
-    describe('optimizations using bulk create, destroy and update', function() {
-      beforeEach(function() {
-        this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false});
-        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, {timestamps: false});
-
-        this.User.hasMany(this.Task);
-
-        return this.sequelize.sync({ force: true });
-      });
-
-      it('uses one UPDATE statement', function() {
-        var self = this
-          , spy = sinon.spy();
-
-        return this.User.create({ username: 'foo' }).bind({}).then(function(user) {
-          this.user = user;
-          return self.Task.create({ title: 'task1' });
-        }).then(function(task1) {
-          this.task1 = task1;
-          return self.Task.create({ title: 'task2' });
-        }).then(function(task2) {
-          this.task2 = task2;
-          return this.user.setTasks([this.task1, this.task2], {logging: spy});
-        }).then(function() {
-          expect(spy).to.have.been.calledTwice; // Once for SELECT, once for UPDATE
-        });
-      });
-
-      it('uses one UPDATE statement', function() {
-        var self = this
-          , spy = sinon.spy();
-
-        return this.User.create({ username: 'foo' }).bind(this).then(function(user) {
-          this.user = user;
-          return self.Task.create({ title: 'task1' });
-        }).then(function(task1) {
-          this.task1 = task1;
-          return self.Task.create({ title: 'task2' });
-        }).then(function(task2) {
-          return this.user.setTasks([this.task1, task2]);
-        }).then(function() {
-          return this.user.setTasks(null, {logging: spy});
-        }).then(function() {
-          expect(spy).to.have.been.calledTwice; // Once for SELECT, once for UPDATE
-        });
-      });
-    }); // end optimization using bulk create, destroy and update
-
     describe('selfAssociations', function() {
       it('should work with alias', function() {
         var Person = this.sequelize.define('Group', {});
