@@ -1,5 +1,5 @@
 # Next
-- [BUG] Always quote aliases, even when quoteIdentifiers is false [#](1589)https://github.com/sequelize/sequelize/issues/1589
+- [BUG] Always quote aliases, even when quoteIdentifiers is false [#1589](https://github.com/sequelize/sequelize/issues/1589)
 
 # 3.1.0
 
