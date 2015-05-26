@@ -1,11 +1,12 @@
-# Next
-- [BUG] Always quote aliases, even when quoteIdentifiers is false [#1589](https://github.com/sequelize/sequelize/issues/1589)
+# 3.1.1
+- [FIXED] Always quote aliases, even when quoteIdentifiers is false [#1589](https://github.com/sequelize/sequelize/issues/1589)
+- [FIXED] No longer clones Instances in model finder options
 
 # 3.1.0
 
 - [ADDED] It is now possible to defer constraints in PostgreSQL by added a property `deferrable` to the `references` object of a field.
-- [BUG] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
-- [BUG] Fix regression in util.toDefaultValue not returning the data types [#3733](https://github.com/sequelize/sequelize/pull/3733)
+- [FIXED] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
+- [FIXED] Fix regression in util.toDefaultValue not returning the data types [#3733](https://github.com/sequelize/sequelize/pull/3733)
 
 # 3.0.1
 
