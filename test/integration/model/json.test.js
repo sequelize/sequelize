@@ -19,11 +19,45 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             type: DataTypes.JSONB,
             field: 'event_data',
             index: true
-          }
+          },
+          json: DataTypes.JSON
         });
 
         return this.Event.sync({force: true});
       });
+
+      if (current.dialect.supports.lock) {
+        it('findOrCreate supports transactions, json and locks', function() {
+          var self = this;
+          return current.transaction().then(function(t) {
+            return self.Event.findOrCreate({
+              where: {
+                json: { some: { input: 'Hello' } }
+              },
+              defaults: {
+                json: { some: { input: 'Hello' }, input: [1, 2, 3] },
+                data: { some: { input: 'There' }, input: [4, 5, 6] }
+              },
+              transaction: t,
+              lock: t.LOCK.UPDATE,
+              logging: function (sql) {
+                if (sql.indexOf('SELECT') !== -1 && sql.indexOf('CREATE') === -1) {
+                  expect(sql.indexOf('FOR UPDATE')).not.to.be.equal(-1);
+                }
+              }
+            }).then(function() {
+              return self.Event.count().then(function(count) {
+                expect(count).to.equal(0);
+                return t.commit().then(function() {
+                  return self.Event.count().then(function(count) {
+                    expect(count).to.equal(1);
+                  });
+                });
+              });
+            });
+          });
+        });
+      }
 
       it('should create an instance with JSONB data', function () {
         return this.Event.create({
