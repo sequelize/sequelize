@@ -4,7 +4,7 @@ node_js:
   - "0.10"
   - "0.12"
   - "iojs-v1.8"
- # - "iojs" # iojs 2.0 is failing because of pg-native and nan
+# - "iojs" # iojs 2.x is failing because of an issue with pg
 
 sudo: false
 
