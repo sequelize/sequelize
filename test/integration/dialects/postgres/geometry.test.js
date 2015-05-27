@@ -4,8 +4,7 @@ var chai = require('chai')
   , expect = chai.expect
   , Support =  require(__dirname + '/../../support')
   , dialect = Support.getTestDialect()
-  , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , Promise = require('bluebird');
+  , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 function normalizeSRID(obj) {
   obj.crs = {
@@ -49,8 +48,10 @@ if (dialect.match(/^postgres/)) {
         place: DataTypes.STRING,
         bounds: DataTypes.GEOMETRY('POLYGON', 4326)
       });
+      this.User.hasOne(this.City);
+      this.City.belongsTo(this.User);
 
-      return Promise.all([ this.User.sync({ force : true }), this.City.sync({ force: true }) ]);
+      return this.sequelize.sync({ force: true });
     });
 
     it('should support GeoJSON for get and retrieval', function () {
@@ -62,6 +63,28 @@ if (dialect.match(/^postgres/)) {
         expect(users).to.have.length(1);
         expect(users[0].location).to.be.instanceof(Object);
         expect(users[0].location.coordinates).to.be.instanceof(Array);
+      });
+    });
+
+    it('should support geometry columns across multiple joins', function () {
+      var self = this;
+
+      return self.User.create(Ted).bind(this)
+      .then(function (user) {
+        this.Ted = user;
+        return self.City.create(FakeTown);
+      })
+      .then(function (ft) {
+        return this.Ted.setCity(ft);
+      })
+      .then(function () {
+        return self.User.findAll({
+          include: [{ model: self.City }],
+        });
+      })
+      .then(function (users) {
+        expect(users).to.be.instanceof(Array);
+        expect(users[0].City).to.have.property('place');
       });
     });
 
