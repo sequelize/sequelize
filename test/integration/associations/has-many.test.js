@@ -896,7 +896,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
     describe('allows the user to provide an attribute definition object as foreignKey', function() {
       it('works with a column that hasnt been defined before', function() {
         var Task = this.sequelize.define('task', {})
-        , User = this.sequelize.define('user', {});
+          , User = this.sequelize.define('user', {});
 
         User.hasMany(Task, {
           foreignKey: {

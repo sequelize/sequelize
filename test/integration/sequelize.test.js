@@ -647,8 +647,35 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     });
   });
 
+  describe('truncate', function() {
+    it("truncates all models", function() {
+      var Project = this.sequelize.define('project' + config.rand(), {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            },
+            title: DataTypes.STRING
+          });
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return Project.create({ title: 'bla' });
+      }).bind(this).then(function(project) {
+        expect(project).to.exist;
+        expect(project.title).to.equal('bla');
+        expect(project.id).to.equal(1);
+        return this.sequelize.truncate().then(function() {
+          return Project.findAll({});
+        });
+      }).then(function(projects) {
+        expect(projects).to.exist;
+        expect(projects).to.have.length(0);
+      });
+    });
+  });
+
   describe('sync', function() {
-    it('synchronizes all daos', function() {
+    it('synchronizes all models', function() {
       var Project = this.sequelize.define('project' + config.rand(), { title: DataTypes.STRING });
       var Task = this.sequelize.define('task' + config.rand(), { title: DataTypes.STRING });
 
