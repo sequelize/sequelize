@@ -93,6 +93,9 @@ sequelize.transaction(function (t1) {
 
 # Concurrent/Partial transactions
 
+=======
+>>>>>>> origin/master
+
 You can have concurrent transactions within a sequence of queries or have some of them excluded from any transactions. Use the `{transaction: }` option to control which transaction a query belong to:
 
 ### Without CLS enabled
