@@ -13,6 +13,8 @@ Notice how the callback passed to `transaction` returns a promise chain, and doe
 
 ```js
 return sequelize.transaction(function (t) {
+
+  // chain all your queries here. make sure you return them.
   return User.create({
     firstName: 'Abraham',
     lastName: 'Lincoln'
@@ -22,6 +24,7 @@ return sequelize.transaction(function (t) {
       lastName: 'Boothe'
     }, {transaction: t});
   });
+
 }).then(function (result) {
   // Transaction has been committed
   // result is whatever the result of the promise chain returned to the transaction callback
@@ -30,6 +33,8 @@ return sequelize.transaction(function (t) {
   // err is whatever rejected the promise chain returned to the transaction callback
 });
 ```
+
+### Throw errors to rollback
 
 When using the managed transaction you should _never_ commit or rollback the transaction manually. If all queries are successful, but you still want to rollback the transaction (for example because of a validation failure) you should throw an error to break and reject the chain:
 
@@ -44,6 +49,8 @@ return sequelize.transaction(function (t) {
   });
 });
 ```
+
+### Automatically pass transactions to all queries
 
 In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
 
@@ -67,11 +74,11 @@ CLS works like a thread-local storage for callbacks. What this means in practice
 
 ```js
 sequelize.transaction(function (t1) {
-  namespace.get('transaction') === t1;
+  namespace.get('transaction') === t1; // true
 });
 
 sequelize.transaction(function (t2) {
-  namespace.get('transaction') === t2;
+  namespace.get('transaction') === t2; // true
 });
 ```
 
@@ -84,18 +91,45 @@ sequelize.transaction(function (t1) {
 });
 ```
 
-If you want to execute queries inside the callback without using the transaction you can pass `{ transaction: null }`, or another transaction if you have several concurrent ones:
+# Concurrent/Partial transactions
 
+You can have concurrent transactions within a sequence of queries or have some of them excluded from any transactions. Use the `{transaction: }` option to control which transaction a query belong to:
+
+### Without CLS enabled
 ```js
 sequelize.transaction(function (t1) {
-  sequelize.transaction(function (t2) {
-    // By default queries here will use t2
+  return sequelize.transaction(function (t2) {
+    // With CLS enable, queries here will by default use t2
+    // Pass in the `transaction` option to define/alter the transaction they belong to.
     return Promise.all([
         User.create({ name: 'Bob' }, { transaction: null }),
-        User.create({ name: 'Mallory' }, { transaction: t1 })
+        User.create({ name: 'Mallory' }, { transaction: t1 }),
+        User.create({ name: 'John' }) // this would default to t2
     ]);
   });
 });
+```
+
+# Isolation levels
+The possible isolations levels to use when starting a transaction:
+
+```js
+Sequelize.Transaction.READ_UNCOMMITTED // "READ UNCOMMITTED"
+Sequelize.Transaction.READ_COMMITTED // "READ COMMITTED"
+Sequelize.Transaction.REPEATABLE_READ  // "REPEATABLE READ"
+Sequelize.Transaction.SERIALIZABLE // "SERIALIZABLE"
+```
+
+By default, sequelize uses "REPEATABLE READ". If you want to use a different isolation level, pass in the desired level as the first argument:
+
+```js
+return sequelize.transaction({
+  isolationLevel: Sequelize.Transaction.SERIALIZABLE
+  }, function (t) {
+
+  // your transactions
+
+  });
 ```
 
 # Unmanaged transaction (then-callback)

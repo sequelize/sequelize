@@ -1,16 +1,16 @@
 # Next
-- [BUG] Fix a case where `type` in `sequelize.query` was not being set to raw. [#3800](https://github.com/sequelize/sequelize/pull/3800)
-- [BUG] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
+- [FIXED] Fix a case where `type` in `sequelize.query` was not being set to raw. [#3800](https://github.com/sequelize/sequelize/pull/3800)
+- [FIXED] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
 
 # 3.1.1
 - [FIXED] Always quote aliases, even when quoteIdentifiers is false [#1589](https://github.com/sequelize/sequelize/issues/1589)
 - [FIXED] No longer clones Instances in model finder options
+- [FIXED] Fix regression in util.toDefaultValue not returning the data types [#3733](https://github.com/sequelize/sequelize/pull/3733)
 
 # 3.1.0
 
 - [ADDED] It is now possible to defer constraints in PostgreSQL by added a property `deferrable` to the `references` object of a field.
 - [FIXED] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
-- [FIXED] Fix regression in util.toDefaultValue not returning the data types [#3733](https://github.com/sequelize/sequelize/pull/3733)
 
 # 3.0.1
 
