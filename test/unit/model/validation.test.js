@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           var validations = {}
             , message = validator + '(' + failingValue + ')';
 
-          if (validatorDetails.hasOwnProperty('spec')) {
+          if (validatorDetails.spec) {
             validations[validator] = validatorDetails.spec;
           } else {
             validations[validator] = {};
@@ -203,19 +203,24 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           });
         });
       }
-      , applyPassTest = function applyPassTest(validatorDetails, j, validator, msg) {
+      , applyPassTest = function applyPassTest(validatorDetails, j, validator, type) {
           var succeedingValue = validatorDetails.pass[j];
           it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
             var validations = {};
 
-            if (validatorDetails.hasOwnProperty('spec')) {
+            if (validatorDetails.spec !== undefined) {
               validations[validator] = validatorDetails.spec;
             } else {
               validations[validator] = {};
             }
 
-            if (msg) {
+            if (type === 'msg') {
               validations[validator].msg = validator + '(' + succeedingValue + ')';
+            } else if (type === 'args') {
+              validations[validator].args = validations[validator].args || true;
+              validations[validator].msg = validator + '(' + succeedingValue + ')';
+            } else if (type === 'true') {
+              validations[validator] = true;
             }
 
             var UserSuccess = this.sequelize.define('User' + config.rand(), {
@@ -238,7 +243,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           validator = validator.replace(/\$$/, '');
           var validatorDetails = checks[validator];
 
-          if (!validatorDetails.hasOwnProperty('raw')) {
+          if (!validatorDetails.raw) {
             validatorDetails.fail = Array.isArray(validatorDetails.fail) ? validatorDetails.fail : [validatorDetails.fail];
             validatorDetails.pass = Array.isArray(validatorDetails.pass) ? validatorDetails.pass : [validatorDetails.pass];
           }
@@ -248,11 +253,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           }
 
           for (i = 0; i < validatorDetails.pass.length; i++) {
-            applyPassTest(validatorDetails, i, validator, false);
-          }
-
-          for (i = 0; i < validatorDetails.pass.length; i++) {
-            applyPassTest(validatorDetails, i, validator, true);
+            applyPassTest(validatorDetails, i, validator);
+            applyPassTest(validatorDetails, i, validator, 'msg');
+            applyPassTest(validatorDetails, i, validator, 'args');
+            if (validatorDetails.spec === undefined) {
+              applyPassTest(validatorDetails, i, validator, 'true');
+            }
           }
         }
       }

@@ -6,7 +6,7 @@ on a model (the source), and providing another model as the first argument to th
 
 * hasOne - adds a foreign key to target
 * belongsTo - add a foreign key to source
-* hasMany - adds a foreign key to target, unless you also specifiy that target hasMany source, in which case a junction table is created with sourceId and targetId
+* hasMany - adds a foreign key to target, unless you also specify that target hasMany source, in which case a junction table is created with sourceId and targetId
 
 Creating an association will add a foreign key constraint to the attributes. All associations use `CASCADE` on update and `SET NULL` on delete, except for n:m, which also uses `CASCADE` on delete.
 

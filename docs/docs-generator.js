@@ -25,7 +25,6 @@ if (program.file) {
     {file:'lib/model.js', output: 'model'},
     {file:'lib/hooks.js', output: 'hooks'},
     {file:'lib/associations/mixin.js', output: 'associations'},
-    {file:'lib/promise.js', output: 'promise'},
     {file:'lib/transaction.js', output: 'transaction'},
     {file:'lib/data-types.js', output: 'datatypes'},
     {file:'lib/deferrable.js', output: 'deferrable'}
