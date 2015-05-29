@@ -600,6 +600,28 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
       });
     });
+
+    it('should support a non-primary key as the association column', function() {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+      User.removeAttribute('id');
+      Task.belongsTo(User, { foreignKey: 'user_name', associationKey: 'username'});
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'bob' }).then(function(newUser) {
+          return Task.create({ title: 'some task' }).then(function(newTask) {
+            newTask.setUser(newUser);
+            return newTask.save().then(function() {
+              return Task.findOne({title: 'some task'}).then(function (foundTask) {
+                return foundTask.getUser().then(function (foundUser) {
+                  expect(foundUser.username).to.equal('bob');
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('Association options', function() {
