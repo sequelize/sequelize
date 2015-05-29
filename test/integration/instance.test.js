@@ -898,6 +898,38 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('handles an entry with primaryKey of zero', function() {
+      var username = 'user'
+        , newUsername = 'newUser'
+        , User2 = this.sequelize.define('User2',
+          {
+            id: {
+              type: DataTypes.INTEGER.UNSIGNED,
+              autoIncrement: false,
+              primaryKey: true
+            },
+            username: { type: DataTypes.STRING }
+          });
+
+      return User2.sync().then(function () {
+        return User2.create({id: 0, username: username}).then(function (user){
+          expect(user).to.be.ok;
+          expect(user.id).to.equal(0);
+          expect(user.username).to.equal(username);
+          return User2.findById(0).then(function (user) {
+            expect(user).to.be.ok;
+            expect(user.id).to.equal(0);
+            expect(user.username).to.equal(username);
+            return user.updateAttributes({username: newUsername}).then(function (user) {
+              expect(user).to.be.ok;
+              expect(user.id).to.equal(0);
+              expect(user.username).to.equal(newUsername);
+            });
+          });
+        });
+      });
+    });
+
     it('updates the timestamps', function() {
       var now = Date.now()
         , user = null
