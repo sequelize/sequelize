@@ -33,6 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             }
           },
           andScope: {
+            order: 'username ASC',
             where: {
               $and: [
                 {
@@ -87,6 +88,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.ScopeMe.scope('andScope').findAll().then(function(users) {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('tony');
+      });
+    });
+
+    it('should be able to execute `findAndCount` in a model with a sorted scope without a group by clause or an aggregate function', function () {
+      return this.ScopeMe.scope('andScope').findAndCount().then(function(result) {
+        expect(result.count).to.equal(1);
+        expect(result.rows).to.have.length(1);
+        expect(result.rows[0].username).to.equal('tony');
       });
     });
 
