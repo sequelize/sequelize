@@ -6,6 +6,7 @@
 - [FIXED] Fix isEmail validator to allow args: true [#3770](https://github.com/sequelize/sequelize/issues/3770)
 - [FIXED] Fix some occasions where `options.logging` was not used correctly
 - [FIXED] Fix `Model#destroy()` to correctly use `options.transaction`
+- [FIXED] Fix `QueryInterface#showIndex()` to correctly pass on `options.transaction`
 
 # 3.1.1
 - [FIXED] Always quote aliases, even when quoteIdentifiers is false [#1589](https://github.com/sequelize/sequelize/issues/1589)
