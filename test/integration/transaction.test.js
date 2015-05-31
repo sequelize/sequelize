@@ -13,7 +13,7 @@ var chai = require('chai')
 if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser('Transaction'), function() {
-  this.timeout(4000);
+  this.timeout(5000);
   describe('constructor', function() {
     it('stores options', function() {
       var transaction = new Transaction(this.sequelize);
@@ -90,9 +90,18 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
               });
             }
           , self = this;
-
+        // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
         return SumSumSum.sync({force: true}).then(function () {
-          return (expect(Promise.join(transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions'));
+          return (expect(Promise.join(transTest(80), transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions'));
+        }).delay(100).then(function() {
+          if (self.sequelize.test.$runningQueries !== 0) {
+            return self.sequelize.Promise.delay(200);
+          }
+          return void 0;
+        }).then(function() {
+          if (self.sequelize.test.$runningQueries !== 0) {
+            return self.sequelize.Promise.delay(500);
+          }
         });
       });
     }

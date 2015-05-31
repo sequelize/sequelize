@@ -33,7 +33,7 @@ if (dialect !== 'sqlite') {
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
       ]).spread(function(now1, now2) {
-        var elapsedQueryTime = (Date.now() - startQueryTime) + 20;
+        var elapsedQueryTime = (Date.now() - startQueryTime) + 1001;
         expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
       });
     });
