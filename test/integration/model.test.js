@@ -1130,6 +1130,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   describe('destroy', function() {
+    it('convenient method `truncate` should clear the table', function() {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING }),
+          data = [
+            { username: 'user1' },
+            { username: 'user2' }
+          ];
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.bulkCreate(data);
+      }).then(function() {
+        return User.truncate();
+      }).then(function() {
+        return expect(User.findAll()).to.eventually.have.length(0);
+      });
+    });
+
     it('truncate should clear the table', function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING }),
           data = [
@@ -1155,7 +1171,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         throw new Error('Destroy should throw an error if no where clause is given.');
       }, function(err) {
         expect(err).to.be.an.instanceof(Error);
-        expect(err.message).to.equal('Missing where or truncate attribute in the options parameter passed to destroy.');
+        expect(err.message).to.equal('Missing where or truncate attribute in the options parameter of model.destroy.');
       });
     });
 
