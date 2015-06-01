@@ -1,5 +1,6 @@
 # Next
 - [FIXED] Fix `Promise#nodeify()` and `Promise#done()` not passing CLS context
+- [ADDED] Unique constraints may now include custom error messages
 
 # 3.2.0
 - [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.
