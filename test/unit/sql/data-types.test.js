@@ -103,7 +103,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
         mssql: 'GETDATE()',
-        oracle: 'CURRENT_TIMESTAMP'
+        oracle: 'LOCALTIMESTAMP'
       });
     });
 
