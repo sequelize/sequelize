@@ -1,6 +1,6 @@
 <a name="mixin"></a>
 # Mixin Mixin
-[View code](https://github.com/sequelize/sequelize/blob/f4a8cbc3741aba36207647c6afe62eb3fc115a78/lib/associations/mixin.js#L95)
+[View code](https://github.com/sequelize/sequelize/blob/9ca13c90fb937e3e4adecb056dce11e53c7df73a/lib/associations/mixin.js#L95)
 Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions
 on a model (the source), and providing another model as the first argument to the function (the target).
 
@@ -89,7 +89,7 @@ you should either disable some constraints, or rethink your associations complet
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f4a8cbc3741aba36207647c6afe62eb3fc115a78/lib/associations/mixin.js#L145)
+[View code](https://github.com/sequelize/sequelize/blob/9ca13c90fb937e3e4adecb056dce11e53c7df73a/lib/associations/mixin.js#L145)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
@@ -121,7 +121,7 @@ All methods return a promise
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f4a8cbc3741aba36207647c6afe62eb3fc115a78/lib/associations/mixin.js#L171)
+[View code](https://github.com/sequelize/sequelize/blob/9ca13c90fb937e3e4adecb056dce11e53c7df73a/lib/associations/mixin.js#L171)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
@@ -144,7 +144,7 @@ All methods return a promise
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
 | [options.as] | string | The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting assocated models. Defaults to the singularized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the source table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of target + primary key of target |
-| [options.associationKey] | string | The name of the field to use as the key for the association in the target table. Defaults to the primary key of the target table |
+| [options.otherKey] | string | The name of the field to use as the key for the association in the target table. Defaults to the primary key of the target table |
 | [options.onDelete='SET&nbsp;NULL'] | string |  |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
@@ -154,7 +154,7 @@ All methods return a promise
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f4a8cbc3741aba36207647c6afe62eb3fc115a78/lib/associations/mixin.js#L246)
+[View code](https://github.com/sequelize/sequelize/blob/9ca13c90fb937e3e4adecb056dce11e53c7df73a/lib/associations/mixin.js#L246)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -237,7 +237,7 @@ user.getProjects().then(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f4a8cbc3741aba36207647c6afe62eb3fc115a78/lib/associations/mixin.js#L340)
+[View code](https://github.com/sequelize/sequelize/blob/9ca13c90fb937e3e4adecb056dce11e53c7df73a/lib/associations/mixin.js#L340)
 Create an N:M association with a join table
 
 ```js
