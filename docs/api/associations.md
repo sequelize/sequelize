@@ -1,6 +1,6 @@
 <a name="mixin"></a>
 # Mixin Mixin
-[View code](https://github.com/sequelize/sequelize/blob/cc8687539fe96f7f64887a04ddf5d48f159f5e92/lib/associations/mixin.js#L95)
+[View code](https://github.com/sequelize/sequelize/blob/cab2dbf5e2c0ca8e71430aceae1953d612a34dd2/lib/associations/mixin.js#L95)
 Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions
 on a model (the source), and providing another model as the first argument to the function (the target).
 
@@ -89,7 +89,7 @@ you should either disable some constraints, or rethink your associations complet
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/cc8687539fe96f7f64887a04ddf5d48f159f5e92/lib/associations/mixin.js#L145)
+[View code](https://github.com/sequelize/sequelize/blob/cab2dbf5e2c0ca8e71430aceae1953d612a34dd2/lib/associations/mixin.js#L145)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
@@ -121,7 +121,7 @@ All methods return a promise
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/cc8687539fe96f7f64887a04ddf5d48f159f5e92/lib/associations/mixin.js#L170)
+[View code](https://github.com/sequelize/sequelize/blob/cab2dbf5e2c0ca8e71430aceae1953d612a34dd2/lib/associations/mixin.js#L170)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
@@ -153,7 +153,7 @@ All methods return a promise
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/cc8687539fe96f7f64887a04ddf5d48f159f5e92/lib/associations/mixin.js#L245)
+[View code](https://github.com/sequelize/sequelize/blob/cab2dbf5e2c0ca8e71430aceae1953d612a34dd2/lib/associations/mixin.js#L245)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -206,7 +206,7 @@ user.setProjects([p1, p2], {started: false}) // The default value is false, but 
 
 Similarily, when fetching through a join table with custom attributes, these attributes will be available as an object with the name of the through model.
 ```js
-user.getProjects().success(function (projects) {
+user.getProjects().then(function (projects) {
   var p1 = projects[0]
   p1.userprojects.started // Is this project started yet?
 })
@@ -236,7 +236,7 @@ user.getProjects().success(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/cc8687539fe96f7f64887a04ddf5d48f159f5e92/lib/associations/mixin.js#L339)
+[View code](https://github.com/sequelize/sequelize/blob/cab2dbf5e2c0ca8e71430aceae1953d612a34dd2/lib/associations/mixin.js#L339)
 Create an N:M association with a join table
 
 ```js
