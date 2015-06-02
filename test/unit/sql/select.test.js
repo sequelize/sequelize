@@ -25,6 +25,29 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    it('with model', function () {
+      var Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING
+      });
+      expectsql(sql.selectQuery('Posts', {
+        attributes: ['title']
+      }, Post), {
+        default: 'SELECT [title] FROM [Posts] AS [Post];'
+      });
+    });
+
+    it('with model named with reserved keyword', function () {
+      var User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      });
+      expectsql(sql.selectQuery('Users', {
+        attributes: ['name', 'age']
+      }, User), {
+        default: 'SELECT [name], [age] FROM [Users] AS [User];'
+      });
+    });
+
     it('include (left outer join)', function () {
       var User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
@@ -80,6 +103,32 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       }), {
         default: 'SELECT [name], [age] FROM [User];',
         postgres: 'SELECT name, age FROM User;'
+      });
+    });
+
+    it('with model', function () {
+      var Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING
+      });
+      expectsql(sql.selectQuery('Posts', {
+        attributes: ['title']
+      }, Post), {
+        default: 'SELECT [title] FROM [Posts] AS [Post];',
+        postgres: 'SELECT title FROM Posts AS Post;'
+      });
+    });
+
+    it('with model named with reserved keyword', function () {
+      var User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      });
+      expectsql(sql.selectQuery('Users', {
+        attributes: ['name', 'age']
+      }, User), {
+        default: 'SELECT [name], [age] FROM [Users] AS [User];',
+        // Must quote the reserved keyword after AS
+        postgres: 'SELECT name, age FROM Users AS [User];'
       });
     });
 
