@@ -560,6 +560,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    // TODO: Fix Enums and add more tests
+    // suite('ENUM', function () {
+    //   testsql('ENUM("value 1", "value 2")', DataTypes.ENUM('value 1', 'value 2'), {
+    //     default: 'ENUM'
+    //   });
+    // });
+
     suite('BLOB', function () {
       testsql('BLOB', DataTypes.BLOB, {
         default: 'BLOB',
