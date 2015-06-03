@@ -605,7 +605,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
         , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       User.removeAttribute('id');
-      Task.belongsTo(User, { foreignKey: 'user_name', otherKey: 'username'});
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(function() {
         return User.create({ username: 'bob' }).then(function(newUser) {
@@ -632,7 +632,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
       User.removeAttribute('id');
-      Task.belongsTo(User, { foreignKey: 'user_name', otherKey: 'username'});
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(function() {
         return User.create({ username: 'bob' }).then(function(newUser) {

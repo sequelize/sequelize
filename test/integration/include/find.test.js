@@ -170,11 +170,11 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
     });
 
-    it('should support a belongsTo with the otherKey option', function() {
+    it('should support a belongsTo with the targetKey option', function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
         , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       User.removeAttribute('id');
-      Task.belongsTo(User, { foreignKey: 'user_name', otherKey: 'username'});
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(function() {
         return User.create({ username: 'bob' }).then(function(newUser) {
