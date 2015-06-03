@@ -32,6 +32,12 @@ The basic install steps are:
 - Install sequelize-oracle
   - Run `npm install sequelize-oracle` to install from the NPM registry.
 
+## Oracledb config in Sequelize-Oracle
+  - With Oracledb, the maximum number of rows that are fetched by select query is 100 rows. You can change this parameter with options.maxRows in each query.  
+  - In Sequelize, for Raw query, the outFormat parameter for oracledb is OBJECT.  
+  - AutoCommit is enable by default. If you don't want autoCommit, use Sequelize Transactions for manage commit et rollback.  
+
+
 ## Limitations:
 
 - DataType: only this dataTypes are managed: 
@@ -51,7 +57,6 @@ The basic install steps are:
 ## Todo:
 - ENUM DataType
 - improve index for type
-- RETURNING in update and insert query
 - resolve the pb "name column length > 30 char" in nesteed querry
 - ...
   
