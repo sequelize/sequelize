@@ -2,7 +2,7 @@
 - [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)
 - [FEATURE] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
 - [FEATURE] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
-- [FEATURE] Add `options.useStandardConformingStrings` to enable/disable `standard_conforming_strings`, only for Postgres
+- [FEATURE] Add `options.useStandardConformingStrings` to enable/disable `standard_conforming_strings`, only for Postgres [#3861](https://github.com/sequelize/sequelize/pull/3861)
 - [FEATURE] Provide warnings if you misuse data types. [#3839](https://github.com/sequelize/sequelize/pull/3839)
 - [FIXED] Fix a case where Postgres arrays containing JSONB type was being generated as JSON type.
 - [FIXED] Fix a case where `type` in `sequelize.query` was not being set to raw. [#3800](https://github.com/sequelize/sequelize/pull/3800)
