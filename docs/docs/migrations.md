@@ -273,25 +273,8 @@ migration.removeIndex('Person', ['firstname', 'lastname'])
 ```
 
 ## Programmatic use
+Sequelize has a [sister library](https://github.com/sequelize/umzug) for programmatically handling execution and logging of migration tasks.
 
-If you need to interact with the migrator within your code, you can easily achieve that via `sequelize.getMigrator`. You can specify the path to your migrations as well as a pattern which represents the files that contain the migrations.
-
-```js
-var migrator = sequelize.getMigrator({
-  path:        process.cwd() + '/database/migrations',
-  filesFilter: /\.coffee$/
-})
-```
-
-Once you have a migrator object, you can run its migration with `migrator.migrate`. By default, this will execute all the up methods within your pending migrations. If you want to rollback a migration, just call it like this:
-
-```js
-migrator
-  .migrate({ method: 'down' })
-  .then(function() {
-    // The migrations have been executed!
-  })
-```
 
 [0]: http://gulpjs.com/
 [1]: https://github.com/sequelize/cli

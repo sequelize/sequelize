@@ -1,3 +1,27 @@
+# Next
+- [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)
+- [FEATURE] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
+- [FEATURE] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
+- [FEATURE] Provide warnings if you misuse data types. [#3839](https://github.com/sequelize/sequelize/pull/3839)
+- [FIXED] Fix a case where Postgres arrays containing JSONB type was being generated as JSON type.
+- [FIXED] Fix a case where `type` in `sequelize.query` was not being set to raw. [#3800](https://github.com/sequelize/sequelize/pull/3800)
+- [FIXED] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
+- [FIXED] Fix instance.changed regression to not return false negatives for not changed null values [#3812](https://github.com/sequelize/sequelize/issues/3812)
+- [FIXED] Fix isEmail validator to allow args: true [#3770](https://github.com/sequelize/sequelize/issues/3770)
+- [FIXED] Fix some occasions where `options.logging` was not used correctly
+- [FIXED] Fix `Model#destroy()` to correctly use `options.transaction`
+- [FIXED] Fix `QueryInterface#showIndex()` to correctly pass on `options.transaction`
+
+# 3.1.1
+- [FIXED] Always quote aliases, even when quoteIdentifiers is false [#1589](https://github.com/sequelize/sequelize/issues/1589)
+- [FIXED] No longer clones Instances in model finder options
+- [FIXED] Fix regression in util.toDefaultValue not returning the data types [#3733](https://github.com/sequelize/sequelize/pull/3733)
+
+# 3.1.0
+
+- [ADDED] It is now possible to defer constraints in PostgreSQL by added a property `deferrable` to the `references` object of a field.
+- [FIXED] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
+
 # 3.0.1
 
 - [FIXED] `include.attributes = []` will no longer force the inclusion of the primary key, making it possible to write aggregates with includes.
