@@ -13,7 +13,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
   describe('select', function () {
     it('*', function () {
       expectsql(sql.selectQuery('User'), {
-        default: 'SELECT * FROM [User];'
+        default: 'SELECT * FROM [User];',
+        oracle: 'SELECT * FROM "User"'
       });
     });
 
@@ -21,7 +22,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age']
       }), {
-        default: 'SELECT [name], [age] FROM [User];'
+        default: 'SELECT [name], [age] FROM [User];',
+        oracle: 'SELECT "name", "age" FROM "User"'
       });
     });
 
@@ -54,7 +56,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         } ],
         tableAs: 'User'
       }), {
-        default: 'SELECT [User].[name], [User].[age], [Post].[title] AS [Post.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Post] ON [User].[id] = [Post].[user_id];'
+        default: 'SELECT [User].[name], [User].[age], [Post].[title] AS [Post.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Post] ON [User].[id] = [Post].[user_id];',
+        oracle: 'SELECT "User"."name", "User"."age", "Post"."title" "Post.title" FROM "User" "User" LEFT OUTER JOIN "Post" "Post" ON "User"."id" = "Post"."user_id"'
       });
     });
   });
@@ -70,7 +73,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
     it('*', function () {
       expectsql(sql.selectQuery('User'), {
         default: 'SELECT * FROM [User];',
-        postgres: 'SELECT * FROM User;'
+        postgres: 'SELECT * FROM User;',
+        oracle: 'SELECT * FROM User'
       });
     });
 
@@ -79,7 +83,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         attributes: ['name', 'age']
       }), {
         default: 'SELECT [name], [age] FROM [User];',
-        postgres: 'SELECT name, age FROM User;'
+        postgres: 'SELECT name, age FROM User;',
+        oracle: 'SELECT name, age FROM User'
       });
     });
 
@@ -113,7 +118,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         tableAs: 'User'
       }), {
         default: 'SELECT [User].[name], [User].[age], [Post].[title] AS [Post.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Post] ON [User].[id] = [Post].[user_id];',
-        postgres: 'SELECT User.name, User.age, Post.title AS "Post.title" FROM User AS User LEFT OUTER JOIN Post AS Post ON User.id = Post.user_id;'
+        postgres: 'SELECT User.name, User.age, Post.title AS "Post.title" FROM User AS User LEFT OUTER JOIN Post AS Post ON User.id = Post.user_id;',
+        oracle: 'SELECT User.name, User.age, Post.title "Post.title" FROM User User LEFT OUTER JOIN Post Post ON User.id = Post.user_id'
       });
     });
 
