@@ -56,6 +56,17 @@ var User = this.sequelize.define('User', {/* attributes */})
 User.belongsTo(Company, {foreignKey: 'fk_company'}); // Adds fk_company to User
 ```
 
+#### Target keys
+
+By default the target key for a belongsTo relation will be the target primary key. To override this behavior, use the `targetKey` option.
+
+```js
+var User = this.sequelize.define('User', {/* attributes */})
+  , Company  = this.sequelize.define('Company', {/* attributes */});
+  
+User.belongsTo(Company, {foreignKey: 'fk_companyname', targetKey: 'name'}); // Adds fk_companyname to User
+```
+
 
 ### HasOne
 
