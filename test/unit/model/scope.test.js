@@ -12,6 +12,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     , Company;
 
   var scopes = {
+    complexFunction: function(value) {
+      return {
+        where: [(value + ' IN (SELECT foobar FROM some_sql_function(foo.bar))')]
+      };
+    },
     somethingTrue: {
       where: {
         something: true,
@@ -91,7 +96,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(scoped2.$scope).to.deep.equal(scopes.somethingFalse);
     });
 
-
     it('should work with function scopes', function () {
       expect(Company.scope({method: ['actualValue', 11]}).$scope).to.deep.equal({
         where: {
@@ -125,6 +129,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           active: true,
           other_value: 11
         }
+      });
+    });
+
+    it('should be able to use raw queries', function () {
+      expect(Company.scope([{method: ['complexFunction', 'qux']}]).$scope).to.deep.equal({
+        where: [ 'qux IN (SELECT foobar FROM some_sql_function(foo.bar))' ]
+      });
+    });
+
+    it('should override the default scope', function () {
+      expect(Company.scope(['defaultScope', {method: ['complexFunction', 'qux']}]).$scope).to.deep.equal({
+        where: [ 'qux IN (SELECT foobar FROM some_sql_function(foo.bar))' ]
       });
     });
 

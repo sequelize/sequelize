@@ -10,10 +10,11 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('formatReferences', function () {
     ([
-      [{referencesKey: 1}, {references: {model: undefined, key: 1}, referencesKey: undefined}],
-      [{references: 'a'}, {references: {model: 'a', key: undefined}, referencesKey: undefined}],
-      [{references: 'a', referencesKey: 1}, {references: {model: 'a', key: 1}, referencesKey: undefined}],
-      [{references: {model: 1}}, {references: {model: 1}}]
+      [{referencesKey: 1}, {references: {model: undefined, key: 1, deferrable: undefined}, referencesKey: undefined, referencesDeferrable: undefined}],
+      [{references: 'a'}, {references: {model: 'a', key: undefined, deferrable: undefined}, referencesKey: undefined, referencesDeferrable: undefined}],
+      [{references: 'a', referencesKey: 1}, {references: {model: 'a', key: 1, deferrable: undefined}, referencesKey: undefined, referencesDeferrable: undefined}],
+      [{references: {model: 1}}, {references: {model: 1}}],
+      [{references: 1, referencesKey: 2, referencesDeferrable: 3}, {references: {model: 1, key: 2, deferrable: 3}, referencesKey: undefined, referencesDeferrable: undefined}]
     ]).forEach(function (test) {
       var input  = test[0];
       var output = test[1];
