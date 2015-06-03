@@ -9,15 +9,15 @@
 Sequelize is a promise-based Node.js/io.js ORM for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server and Oracle. It features solid transaction support, relations, read replication and more.
 
 ### Note
-sequelize-oracle is a fork of [sequelize@master](https://github.com/sequelize/sequelize/tree/master) 
-this fork add support of DML statements for Oracle  
+sequelize-oracle is a fork of [sequelize@master](https://github.com/sequelize/sequelize/tree/master)  
+This fork add support of DML statements for Oracle  
 If you don't need Oracle support, prefer the original [Sequelize](http://sequelizejs.com/)  
   
 Sequelize-oracle@3.0.1-x.x is in development. Only the old version (1.7.10-x.x) is on npmjs registry.  
 
 ## Compatibility:
-Sequelize-oracle is compatible only with nodejs@0.10.x (oracledb limitation).  
-Sequelize-oracle is only tested with Oracle 11 XE.  
+Sequelize-oracle is compatible only with nodejs@0.10 and nodejs@0.12 (with oracledb >= 0.6).  
+Sequelize-oracle is only tested with Oracle 11 XE and nodejs@0.10
   
 ## Installation
 
