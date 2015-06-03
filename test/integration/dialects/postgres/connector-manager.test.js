@@ -4,9 +4,7 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , sinon = require('sinon')
-  , DataTypes = require(__dirname + '/../../../../lib/data-types');
+  , dialect = Support.getTestDialect();
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] Connector Manager', function() {
