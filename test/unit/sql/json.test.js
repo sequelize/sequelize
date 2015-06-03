@@ -40,6 +40,15 @@ if (current.dialect.supports.JSON) {
             postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]'
           });
         });
+        test('array of JSONB', function () {
+          expectsql(sql.escape([
+            { some: 'nested', more: { nested: true }, answer: 42 },
+            43,
+            'joe'
+          ], { type: DataTypes.ARRAY(DataTypes.JSONB)}), {
+            postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]'
+          });
+        });
       });
     });
   });

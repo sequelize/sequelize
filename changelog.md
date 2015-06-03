@@ -3,6 +3,7 @@
 - [FEATURE] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
 - [FEATURE] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
 - [FEATURE] Provide warnings if you misuse data types. [#3839](https://github.com/sequelize/sequelize/pull/3839)
+- [FIXED] Fix a case where Postgres arrays containing JSONB type was being generated as JSON type.
 - [FIXED] Fix a case where `type` in `sequelize.query` was not being set to raw. [#3800](https://github.com/sequelize/sequelize/pull/3800)
 - [FIXED] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
 - [FIXED] Fix instance.changed regression to not return false negatives for not changed null values [#3812](https://github.com/sequelize/sequelize/issues/3812)
