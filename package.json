@@ -1,7 +1,7 @@
 {
-  "name": "sequelize",
+  "name": "sequelize-oracle",
   "description": "Multi dialect ORM for Node.JS/io.js",
-  "version": "3.0.1-0.1",
+  "version": "3.0.1-0.2",
   "author": "Lebret Rémi",
   "contributors": [
     {
