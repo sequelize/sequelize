@@ -6,22 +6,30 @@ node_js:
   - "iojs-v1.8"
  # - "iojs" # iojs 2.0 is failing because of pg-native and nan
 
-sudo: false
+sudo: required
 
 cache:
   directories:
     - node_modules
 
 env:
+  global:
+    - secure: IJ1wpoX5D9BrTs9T3BiFrRokCJaojjgSEGDL1faD7vjAnPoS9rqWGiy6s8+QPEqEY+xqk25pJspYukJCXOYU19btkLomHR6iQ6Zrl1Fi5bHd5krUqyW4tnRSZMM2FSI9nYM/YiBeNSdna0p2u6/fAcLiT/k5LVoYiEPAvON+g3Y=
+    - secure: cASdXr1BrN9IH0HbBBvzZA3nPLeg/1C9A6IMQHF43vCxPiVGYuWdaod1lfRqwBQOip/pUcMOnLxbsz+OSFjv+WtMz07Zk4tcJNz3Y3GOAcjr001sDaNeZf9wGWIQBCg2a5uHvABcOsIv4wIKC7Hv2sg1WY5+Yi5wWWU9jVA4ESw=
+  matrix:
   - DIALECT=mysql
   - DIALECT=postgres
   - DIALECT=postgres-native
   - DIALECT=sqlite
   - DIALECT=mariadb
   - DIALECT=mssql
+  - DIALECT=oracle
 
 addons:
   postgresql: "9.4"
+
+before_install:
+  - . ./.travis/sequelize/init.sh
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"

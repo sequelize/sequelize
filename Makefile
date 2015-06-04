@@ -13,11 +13,20 @@ teaser:
 	node -pe "Array(20 + '$(DIALECT)'.length + 3).join('#')" && \
 	echo ''
 
-ifeq (true,$(COVERAGE))
-test: codeclimate
+ifeq ('oralce',$(DIALECT))
+	ifeq (true,$(COVERAGE))
+	test: codeclimate
+	else
+	test:
+		make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js
+	endif
 else
-test:
-	make jshint && make teaser && make test-unit && make test-integration
+	ifeq (true,$(COVERAGE))
+	test: codeclimate
+	else
+	test:
+		make jshint && make teaser && make test-unit && make test-integration
+	endif
 endif
 
 # Unit tests
