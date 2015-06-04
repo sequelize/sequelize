@@ -16,7 +16,7 @@ teaser:
 ifeq (true,$(COVERAGE))
 test: codeclimate
 else
-	ifeq ('oralce',$(DIALECT))
+	ifeq (oralce,$(DIALECT))
 test:
 	make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js
 	else
