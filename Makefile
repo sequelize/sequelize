@@ -16,13 +16,12 @@ teaser:
 ifeq (true,$(COVERAGE))
 test: codeclimate
 else
-	ifeq (oralce,$(DIALECT))
 test:
-	make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js
-	else
-test:
-	make jshint && make teaser && make test-unit && make test-integration
-	endif
+	@if [ "DIALECT"${DIALECT} = "DIALECToracle" ]; then \
+		make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js \
+	else \
+		make jshint && make teaser && make test-unit && make test-integration  \
+	fi
 endif
 
 # Unit tests
