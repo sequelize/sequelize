@@ -29,11 +29,12 @@ addons:
   postgresql: "9.4"
 
 before_install:
-  - . ./.travis/sequelize/init.sh
+  - . ./.travis/sequelize/before_install.sh
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"
   - "psql -c 'create database sequelize_test;' -U postgres"
+  - . ./.travis/sequelize/before_script.sh
 
 script:
   - "make test"
