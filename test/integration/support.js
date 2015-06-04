@@ -1,22 +1,16 @@
 'use strict';
-var Support = require('../support');
+
+var Support = require('../support')
+  , dialect = Support.getTestDialect();
 
 before(function() {
-  var dialect = Support.getTestDialect();
-
   if (dialect !== 'postgres' && dialect !== 'postgres-native') {
     return;
   }
-  return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS hstore', null, {raw: true});
-});
-
-before(function() {
-  var dialect = Support.getTestDialect();
-
-  if (dialect !== 'postgres' && dialect !== 'postgres-native') {
-    return;
-  }
-  return Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS btree_gist', null, {raw: true});
+  return Support.sequelize.Promise.all([
+    Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS hstore', {raw: true}),
+    Support.sequelize.query('CREATE EXTENSION IF NOT EXISTS btree_gist', {raw: true})
+  ]);
 });
 
 beforeEach(function() {

@@ -1,14 +1,77 @@
+# Next
+- [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)
+- [FEATURE] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
+- [FEATURE] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
+- [FEATURE] Provide warnings if you misuse data types. [#3839](https://github.com/sequelize/sequelize/pull/3839)
+- [FIXED] Fix a case where Postgres arrays containing JSONB type was being generated as JSON type.
+- [FIXED] Fix a case where `type` in `sequelize.query` was not being set to raw. [#3800](https://github.com/sequelize/sequelize/pull/3800)
+- [FIXED] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
+- [FIXED] Fix instance.changed regression to not return false negatives for not changed null values [#3812](https://github.com/sequelize/sequelize/issues/3812)
+- [FIXED] Fix isEmail validator to allow args: true [#3770](https://github.com/sequelize/sequelize/issues/3770)
+- [FIXED] Fix some occasions where `options.logging` was not used correctly
+- [FIXED] Fix `Model#destroy()` to correctly use `options.transaction`
+- [FIXED] Fix `QueryInterface#showIndex()` to correctly pass on `options.transaction`
+
+# 3.1.1
+- [FIXED] Always quote aliases, even when quoteIdentifiers is false [#1589](https://github.com/sequelize/sequelize/issues/1589)
+- [FIXED] No longer clones Instances in model finder options
+- [FIXED] Fix regression in util.toDefaultValue not returning the data types [#3733](https://github.com/sequelize/sequelize/pull/3733)
+
+# 3.1.0
+
+- [ADDED] It is now possible to defer constraints in PostgreSQL by added a property `deferrable` to the `references` object of a field.
+- [FIXED] Fix an issue with the build in isIP validator returning false negatives [#3756](https://github.com/sequelize/sequelize/pull/3756)
+
+# 3.0.1
+
+- [FIXED] `include.attributes = []` will no longer force the inclusion of the primary key, making it possible to write aggregates with includes.
+- [CHANGED] The `references` property of model attributes has been transformed to an object: `{type: Sequelize.INTEGER, references: { model: SomeModel, key: 'some_key' }}`. The former format (`references` and `referecesKey`) still exists but is deprecated and will be removed in 4.0.
+
+# 3.0.0
+
+3.0.0 cleans up a lot of deprecated code, making it easier for us to develop and maintain features in the future.
+
+- [ADDED] findById / findByPrimary takes a single value as argument representing the primary key to find.
+- [CHANGED] belongsToMany relations MUST now be given a `through` argument.
+- [CHANGED] findOne / findAll / findAndCount / findOrCreate now only takes a single options argument instead of a options and queryOptions argument. So set transaction, raw, etc on the first options argument.
+- [CHANGED] The accessor for belongsToMany relationships is now either the `as` argument or the target model name pluralized.
+- [REMOVED] N:M relationships can no longer be represented by 2 x hasMany
+- [REMOVED] Model.create / Model.bulkCreate / Instance.save no longer takes an array of fields as its second argument, use `options.fields` instead.
+- [REMOVED] Query Chainer has been removed
+- [REMOVED] Migrations have been removed, use umzug instead
+- [REMOVED] Model.findAllJoin has been removed
+- [REMOVED] sequelize.query now only takes `sql and options` as arguments, the second and fourth argument `callee` and `replacements` have been removed and should be set via `options.instance` / `options.model` and  `options.replacements` instead.
+- [REMOVED] `instance.isDirty` has been removed, use `instance.changed()` instead
+- [REMOVED] `instance.values` has been removed, use `instance.get()` instead
+- [REMOVED] `instance.primaryKeyValues` has been removed.
+- [REMOVED] `instance.identifiers` has been removed, use `instance.where()` instead
+- [REMOVED] `instance.isDeleted` has been removed, simply check the timestamp with `get('deletedAt')` instead
+- [REMOVED] `instance.increment/decrement` now longer takes a number as it's second argument.
+- [REMOVED/SECURITY] findOne no longer takes a string / integer / binary argument to represent a primaryKey. Use findById instead
+- [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
+- [BUG] Fix showIndexQuery so appropriate indexes are returned when a schema is used
+- [BUG] Fix addIndexQuery error when the model has a schema
+- [BUG] Fix app crash in sqlite while running in special unique constraint errors [#3730](https://github.com/sequelize/sequelize/pull/3730)
+- [BUG] Fix bulkCreate: do not insert NULL for undefined values [#3729](https://github.com/sequelize/sequelize/pull/3729)
+- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting resulting in an unhandled rejection [#3726](https://github.com/sequelize/sequelize/pull/3726)
+- [BUG] Fix regression in beforeUpdate hook where `instance.changed()` would always be false [#3727](https://github.com/sequelize/sequelize/pull/3727)
+- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting
+
+#### Backwards compatibility changes
+- Most of the changes in 3.0.0 are BC breaking, read the changelog for 3.0.0 carefully.
+- The error that is thrown when a column is declared to be an enum but without any values used to "Values for ENUM haven't been defined" and is now "Values for ENUM have not been defined".
+
 # 2.1.3
-- [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [3667](https://github.com/sequelize/sequelize/pull/3667)
-- [BUG] Fix managed transactions not rolling back if no thenable was provided in the transaction block [3667](https://github.com/sequelize/sequelize/pull/3667)
+- [BUG] Fix regression introduced in 2.1.2: updatedAt not set anymore [#3667](https://github.com/sequelize/sequelize/pull/3667)
+- [BUG] Fix managed transactions not rolling back if no thenable was provided in the transaction block [#3667](https://github.com/sequelize/sequelize/pull/3667)
 
 # 2.1.2
 - [BUG] `Model.create()/update()` no longer attempts to save undefined fields.
 
 # 2.1.1
 - [BUG] .get() now passes along options correctly when using a custom getter
-- [BUG] Fix managed transactions not rolling back if an error occured the transaction block [3661](https://github.com/sequelize/sequelize/pull/3661)
-- [BUG] Fix a node-webkit issue [3650](https://github.com/sequelize/sequelize/pull/3650)
+- [BUG] Fix managed transactions not rolling back if an error occured the transaction block [#3661](https://github.com/sequelize/sequelize/pull/3661)
+- [BUG] Fix a node-webkit issue [#3650](https://github.com/sequelize/sequelize/pull/3650)
 - [FEATURE] Lock modes in Postgres now support `OF table`
 - [FEATURE] New transaction lock modes `FOR KEY SHARE` and `NO KEY UPDATE` for Postgres 9.3+
 - [FEATURE/REFACTOR] Rewritten scopes with complete support for includes and scopes across associations
@@ -184,7 +247,7 @@
 - [FEATURE] Added `find()` hooks
 
 #### Backwards compatibility changes
-- The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`. 
+- The `fieldName` property, used in associations with a foreign key object `(A.hasMany(B, { foreignKey: { ... }})`, has been renamed to `name` to avoid confusion with `field`.
 - The naming of the join table entry for N:M association getters is now singular (like includes)
 - Signature of hooks has changed to pass options to all hooks. Any hooks previously defined like `Model.beforeCreate(values)` now need to be `Model.beforeCreate(values, options)` etc.
 - Results returned by hooks are ignored - changes to results by hooks should be made by reference
@@ -207,7 +270,7 @@ We are working our way to the first 2.0.0 release candidate.
 - [BUG] Fix default scope being overwritten [#2087](https://github.com/sequelize/sequelize/issues/2087)
 - [BUG] Fixed updatedAt timestamp not being set in bulk create when validate = true. [#1962](https://github.com/sequelize/sequelize/issues/1962)
 - [INTERNALS] Replaced lingo with inflection
-- [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils` 
+- [INTERNALS] Removed underscore.string dependency and moved a couple of helper functions from `Utils._` to `Utils`
 - [INTERNALS] Update dependencies
     + validator 3.2.0 -> 3.16.1
     + moment 2.5.0 -> 2.7.0

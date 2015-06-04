@@ -15,6 +15,9 @@ if (dialect !== 'sqlite') {
       this.sequelizeWithTimezone = Support.createSequelizeInstance({
         timezone: '+07:00'
       });
+      this.sequelizeWithNamedTimezone = Support.createSequelizeInstance({
+        timezone: 'America/New_York'
+      });
     });
 
     it('returns the same value for current timestamp', function() {
@@ -30,7 +33,7 @@ if (dialect !== 'sqlite') {
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
       ]).spread(function(now1, now2) {
-        var elapsedQueryTime = (Date.now() - startQueryTime) + 20;
+        var elapsedQueryTime = (Date.now() - startQueryTime) + 1001;
         expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
       });
     });
@@ -44,12 +47,27 @@ if (dialect !== 'sqlite') {
           return TimezonedUser.create({});
         }).then(function(timezonedUser) {
           this.timezonedUser = timezonedUser;
-          return NormalUser.find(timezonedUser.id);
+          return NormalUser.findById(timezonedUser.id);
         }).then(function(normalUser) {
           // Expect 7 hours difference, in milliseconds.
           // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
           // this test does not apply to PG, since it stores the timezone along with the timestamp.
           expect(normalUser.createdAt.getTime() - this.timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 7 * 1000, 50);
+        });
+      });
+
+      it('handles named timezones', function() {
+        var NormalUser = this.sequelize.define('user', {})
+          , TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
+
+        return this.sequelize.sync({ force: true }).bind(this).then(function() {
+          return TimezonedUser.create({});
+        }).then(function(timezonedUser) {
+          this.timezonedUser = timezonedUser;
+          return NormalUser.findById(timezonedUser.id);
+        }).then(function(normalUser) {
+          // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST
+          expect(normalUser.createdAt.getTime() - this.timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 4 * 1000 * -1, 60 * 60 * 1000);
         });
       });
     }

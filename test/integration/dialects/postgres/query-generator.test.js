@@ -57,6 +57,8 @@ if (dialect.match(/^postgres/)) {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },
+
+        // Old references style
         {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
@@ -103,8 +105,56 @@ if (dialect.match(/^postgres/)) {
           arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT'},
           context: {options: {quoteIdentifiers: false}}
-        }
+        },
 
+        // New references style
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar', key: 'pk' }}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("pk")'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE'}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT'}
+        },
+
+        // Variants when quoteIdentifiers is false
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (id)'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar', key: 'pk' }}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (pk)'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE'}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT'},
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT'},
+          context: {options: {quoteIdentifiers: false}}
+        }
       ],
 
       createTableQuery: [
@@ -233,7 +283,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";'
         }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
+          arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
         }, {
           arguments: ['myTable', {order: 'id DESC'}],
@@ -424,7 +474,7 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT count(*) AS count FROM foo;',
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
+          arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM myTable WHERE foo='bar';",
           context: {options: {quoteIdentifiers: false}}
         }, {
@@ -847,68 +897,6 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
           expectation: "DELETE FROM myTable WHERE name = 'foo'",
-          context: {options: {quoteIdentifiers: false}}
-        }
-      ],
-
-      addIndexQuery: [
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\", \"isAdmin\")'
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"User\" (\"username\" ASC, \"isAdmin\")'
-        }, {
-          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, 'User'],
-          expectation: 'CREATE INDEX \"bar\" ON \"User\" (\"username\", \"isAdmin\")'
-        }, {
-          arguments: ['mySchema.User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX \"user_username_is_admin\" ON \"mySchema\".\"User\" (\"username\", \"isAdmin\")'
-        }, {
-          arguments: ['User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
-            name: 'a_b_uniq',
-            unique: true,
-            method: 'BTREE'
-          }, 'User'],
-          expectation: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)'
-        }, {
-          arguments: ['User', ['fieldC'], {
-            type: 'FULLTEXT',
-            concurrently: true
-          }, 'User'],
-          expectation: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")'
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX user_username_is_admin ON User (username, isAdmin)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX user_username_is_admin ON User (username ASC, isAdmin)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['User', ['username', 'isAdmin'], { indexName: 'bar'}, 'User'],
-          expectation: 'CREATE INDEX bar ON User (username, isAdmin)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['mySchema.User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX user_username_is_admin ON mySchema.User (username, isAdmin)',
           context: {options: {quoteIdentifiers: false}}
         }
       ],

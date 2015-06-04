@@ -131,7 +131,7 @@ if (current.dialect.supports.transactions) {
         return this.sequelize.transaction(function () {
           return self.User.create({ name: 'bob' }).then(function () {
             return Promise.all([
-              expect(self.User.findAll({}, { transaction: null })).to.eventually.have.length(0),
+              expect(self.User.findAll({ transaction: null })).to.eventually.have.length(0),
               expect(self.User.findAll({})).to.eventually.have.length(1)
             ]);
           });

@@ -20,17 +20,37 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             type: DataTypes.DATE,
             allowNull: true,
             defaultValue: DataTypes.NOW
+          },
+          ip: {
+            type: DataTypes.STRING,
+            validate: {
+              isIP: true
+            }
+          },
+          ip2: {
+            type: DataTypes.STRING,
+            validate: {
+              isIP: {
+                msg: 'test'
+              }
+            }
           }
+        }, {
+          timestamp: false
         })
         , instance;
 
-      instance = Model.build({});
+      instance = Model.build({ip: '127.0.0.1', ip2: '0.0.0.0'});
 
       expect(instance.get('created_time')).to.be.ok;
       expect(instance.get('created_time')).to.be.an.instanceof(Date);
 
       expect(instance.get('updated_time')).to.be.ok;
       expect(instance.get('updated_time')).to.be.an.instanceof(Date);
+
+      return instance.validate().then(function(err) {
+        expect(err).to.be.equal(undefined);
+      });
     });
 
     it('should popuplate explicitely undefined UUID primary keys', function () {

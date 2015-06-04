@@ -44,6 +44,12 @@ if (Support.dialectIsMySQL()) {
           expectation: {id: 'INTEGER UNIQUE'}
         },
         {
+          arguments: [{id: {type: 'INTEGER', after: 'Bar'}}],
+          expectation: {id: 'INTEGER AFTER `Bar`'}
+        },
+
+        // Old references style
+        {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
           expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
         },
@@ -62,7 +68,29 @@ if (Support.dialectIsMySQL()) {
         {
           arguments: [{id: {type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
-        }
+        },
+
+        // New references style
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar', key: 'pk' }}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`pk`)'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE'}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT'}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
+          expectation: {id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
+        },
       ],
 
       createTableQuery: [
@@ -149,7 +177,7 @@ if (Support.dialectIsMySQL()) {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: "foo='bar'"}],
+          arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
           context: QueryGenerator
         }, {
@@ -318,8 +346,8 @@ if (Support.dialectIsMySQL()) {
           context: QueryGenerator
         }, {
           title: 'no where arguments (string)',
-          arguments: ['myTable', {where: ''}],
-          expectation: 'SELECT * FROM `myTable`;',
+          arguments: ['myTable', {where: ['']}],
+          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',
@@ -503,46 +531,6 @@ if (Support.dialectIsMySQL()) {
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
           expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }
-      ],
-
-      addIndexQuery: [
-        {
-          arguments: ['User', ['username', 'isAdmin'], {}, 'User'],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: [
-            'User', [
-              { attribute: 'username', length: 10, order: 'ASC'},
-              'isAdmin'
-            ],
-            {},
-            'User'
-          ],
-          expectation: 'CREATE INDEX `user_username_is_admin` ON `User` (`username`(10) ASC, `isAdmin`)'
-        }, {
-          arguments: [
-            'User', ['username', 'isAdmin'], { parser: 'foo', indicesType: 'FULLTEXT', indexName: 'bar'}, 'User'
-          ],
-          expectation: 'CREATE FULLTEXT INDEX `bar` ON `User` (`username`, `isAdmin`) WITH PARSER foo'
-        }, {
-          arguments: [
-            'User', ['username', 'isAdmin'], { indicesType: 'UNIQUE'}, 'User'
-          ],
-          expectation: 'CREATE UNIQUE INDEX `user_username_is_admin` ON `User` (`username`, `isAdmin`)'
-        }, {
-          arguments: ['User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
-            name: 'a_b_uniq',
-            unique: true,
-            method: 'BTREE'
-          }, 'User'],
-          expectation: 'CREATE UNIQUE INDEX `a_b_uniq` USING BTREE ON `User` (`fieldB`, `fieldA`(5) DESC)'
-        }, {
-          arguments: ['User', ['fieldC'], {
-            type: 'FULLTEXT',
-            concurrently: true
-          }, 'User'],
-          expectation: 'CREATE FULLTEXT INDEX `user_field_c` ON `User` (`fieldC`)'
         }
       ],
 

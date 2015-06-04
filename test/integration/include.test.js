@@ -190,7 +190,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Users;
 
       Groups = User.belongsToMany(Group, { through: 'UserGroup' });
-      Users = Group.belongsToMany(User), { through: 'UserGroup' };
+      Users = Group.belongsToMany(User, { through: 'UserGroup' });
 
       return this.sequelize.sync({force: true}).then(function () {
         return User.create().then(function (user) {
@@ -392,8 +392,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           });
 
       User.hasMany(Product);
-      Product.hasMany(Tag);
-      Tag.hasMany(Product);
+      Product.belongsToMany(Tag, {through: 'product_tag'});
+      Tag.belongsToMany(Product, {through: 'product_tag'});
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.all([
@@ -480,8 +480,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       User.hasMany(Product);
       Product.belongsTo(User);
 
-      Product.hasMany(Tag);
-      Tag.hasMany(Product);
+      Product.belongsToMany(Tag, {through: 'product_tag'});
+      Tag.belongsToMany(Product, {through: 'product_tag'});
       Product.belongsTo(Tag, {as: 'Category'});
 
       Product.hasMany(Price);
@@ -650,7 +650,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         name: DataTypes.STRING
       });
 
-      Group.hasMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
+      Group.belongsToMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
 
       return this.sequelize.sync({force: true}).bind({}).then(function() {
         return Group.bulkCreate([
@@ -684,8 +684,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           dateField: Sequelize.DATE
         }, {timestamps: false});
 
-      User.hasMany(Group);
-      Group.hasMany(User);
+      User.belongsToMany(Group, {through: 'group_user'});
+      Group.belongsToMany(User, {through: 'group_user'});
 
       return this.sequelize.sync({ force: true }).bind({}).then(function() {
         return Promise.all([
@@ -721,11 +721,11 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
       User.hasMany(Group);
       Group.belongsTo(User);
-      User.hasMany(Group, {
+      User.belongsToMany(Group, {
         through: UserGroup,
         as: 'Clubs'
       });
-      Group.hasMany(User, {
+      Group.belongsToMany(User, {
         through: UserGroup,
         as: 'Members'
       });
@@ -843,8 +843,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         , Answer = this.sequelize.define('Answer', {})
         , Questionnaire = this.sequelize.define('Questionnaire', {});
 
-      Question.hasMany(Answer);
-      Answer.hasMany(Question);
+      Question.belongsToMany(Answer, {through: 'question_answer'});
+      Answer.belongsToMany(Question, {through: 'question_answer'});
 
       Questionnaire.hasMany(Question);
       Question.belongsTo(Questionnaire);

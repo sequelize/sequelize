@@ -937,22 +937,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return this.sequelize.sync({force: true});
     });
 
-    it('uses the specified joinTableName or a reasonable default', function() {
-      for (var associationName in this.User.associations) {
-        expect(associationName).not.to.equal(this.User.tableName);
-        expect(associationName).not.to.equal(this.Task.tableName);
-
-        var through = this.User.associations[associationName].through.model;
-        if (typeof through !== 'undefined') {
-          expect(through.tableName).to.equal(associationName);
-        }
-        var tableName = this.User.associations[associationName].options.tableName;
-        if (typeof tableName !== 'undefined') {
-          expect(tableName).to.equal(associationName);
-        }
-      }
-    });
-
     it('makes join table non-paranoid by default', function() {
       var paranoidSequelize = Support.createSequelizeInstance({
           define: {
@@ -1095,7 +1079,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         expect(project).to.be.ok;
         return project.destroy().return (user);
       }).then(function(user) {
-        return self.User.find({
+        return self.User.findOne({
           where: { id: user.id},
           include: [{model: self.Project, as: 'Projects'}]
         });
@@ -1377,7 +1361,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
             return u.addProject(p, { status: 'active' });
           }).then(function() {
-            return this.UserProjects.find({ where: { UserId: this.u.id, ProjectId: this.p.id }});
+            return this.UserProjects.findOne({ where: { UserId: this.u.id, ProjectId: this.p.id }});
           }).then(function(up) {
             expect(up.status).to.equal('active');
           });
@@ -1391,7 +1375,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
 
-          return this.sequelize.sync().bind({}).then(function() {
+          return this.sequelize.sync({force: true}).bind({}).then(function() {
             return Worker.create({id: 1337});
           }).then(function(worker) {
             this.worker = worker;
@@ -1432,7 +1416,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
 
-          return this.sequelize.sync().bind({}).then(function() {
+          return this.sequelize.sync({force: true}).bind({}).then(function() {
             return Worker.create({id: 1337});
           }).then(function(worker) {
             this.worker = worker;
@@ -1465,8 +1449,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
             return user.setProjects([this.p1, this.p2], { status: 'active' });
           }).then(function() {
             return Promise.all([
-              self.UserProjects.find({ where: { UserId: this.user.id, ProjectId: this.p1.id }}),
-              self.UserProjects.find({ where: { UserId: this.user.id, ProjectId: this.p2.id }})
+              self.UserProjects.findOne({ where: { UserId: this.user.id, ProjectId: this.p1.id }}),
+              self.UserProjects.findOne({ where: { UserId: this.user.id, ProjectId: this.p2.id }})
             ]);
           }).spread(function(up1, up2) {
             expect(up1.status).to.equal('inactive');
@@ -1482,7 +1466,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
 
-          return this.sequelize.sync().then(function() {
+          return this.sequelize.sync({force: true}).then(function() {
             return Promise.all([
               Worker.create(),
               Task.bulkCreate([{}, {}]).then(function() {
@@ -1508,7 +1492,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         Task.belongsToMany(Worker, { through: WorkerTasks });
 
         // Test setup
-        return this.sequelize.sync().then(function() {
+        return this.sequelize.sync({force: true}).then(function() {
           return Sequelize.Promise.all([
             Worker.create({}),
             Task.bulkCreate([{}, {}, {}]).then(function() {
@@ -1538,7 +1522,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         Task.belongsToMany(Worker, { through: WorkerTasks });
 
         // Test setup
-        return this.sequelize.sync().then(function() {
+        return this.sequelize.sync({force: true}).then(function() {
           return Sequelize.Promise.all([
             Worker.create({}),
             Task.bulkCreate([{}, {}, {}, {}, {}]).then(function() {
@@ -1586,7 +1570,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           .save()
           .then(function() { return b1.save(); })
           .then(function() { return a1.setRelation1(b1); })
-          .then(function() { return self.A.find({ where: { name: 'a1' } }); })
+          .then(function() { return self.A.findOne({ where: { name: 'a1' } }); })
           .then(function(a) {
             expect(a.relation1Id).to.be.eq(b1.id);
           });
@@ -1612,7 +1596,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           .save()
           .then(function() { return b1.save(); })
           .then(function() { return b1.setRelation1(a1); })
-          .then(function() { return self.B.find({ where: { name: 'b1' } }); })
+          .then(function() { return self.B.findOne({ where: { name: 'b1' } }); })
           .then(function(b) {
             expect(b.relation1Id).to.be.eq(a1.id);
           });
@@ -1756,7 +1740,18 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).then(function() {
         return Promise.all([
           self.sequelize.model('tasksusers').findAll({ where: { userId: this.user1.id }}),
-          self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }})
+          self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }}),
+          self.User.findOne({
+            where: self.sequelize.or({ username: 'Franz Joseph' }),
+            include: [{
+              model: self.Task,
+              where: {
+                title: {
+                  $ne: 'task'
+                }
+              }
+            }]
+          }),
         ]);
       }).spread(function(tu1, tu2) {
         expect(tu1).to.have.length(0);
@@ -1824,7 +1819,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           );
         }).then(function() {
           return Sequelize.Promise.join(
-            this.user1.destroy().catch (self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
+            this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
             this.task2.destroy()
           );
         }).then(function() {
@@ -1890,8 +1885,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
         var UserProjects = User.belongsToMany(Project, { foreignKey: { name: 'user_id', defaultValue: 42 }, through: 'UserProjects' });
         expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        expect(UserProjects.through.model.rawAttributes.user_id.references).to.equal(User.getTableName());
-        expect(UserProjects.through.model.rawAttributes.user_id.referencesKey).to.equal('uid');
+        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
         expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
       });
     });

@@ -57,12 +57,12 @@ $like: '%hat',         // LIKE '%hat'
 $notLike: '%hat'       // NOT LIKE '%hat'
 $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
 $notILike: '%hat'      // NOT ILIKE '%hat'
-$like: { $any: ['cat', 'hat']} 
+$like: { $any: ['cat', 'hat']}
                        // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
 $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
 $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
 $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
-$any: [2,3]            // ANY ARRAY[2, 3]::INTEGER
+$any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 ```
 
 ### Combinations
@@ -158,7 +158,7 @@ Project.findAll({ offset: 5, limit: 5 })
 `order` takes an array of items to order the query by. Generally you will want to use a tuple/array of either attribute, direction or just direction to ensure proper escaping.
 
 ```js
-something.find({
+something.findOne({
   order: [
     // Will escape username and validate DESC against a list of valid direction parameters
     ['username', 'DESC'],
@@ -169,7 +169,7 @@ something.find({
     // Will order by max(age) DESC
     [sequelize.fn('max', sequelize.col('age')), 'DESC'],
 
-    // Will order by  otherfunction(`col1`, 12, 'lalala') DESC    
+    // Will order by  otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
 
     // Both the following statements will be treated literally so should be treated with care

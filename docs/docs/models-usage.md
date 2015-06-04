@@ -5,18 +5,18 @@ Finder methods are designed to get data from the database&period; The returned d
 ### find - Search for one specific element in the database
 ```js
 // search for known ids
-Project.find(123).then(function(project) {
+Project.findById(123).then(function(project) {
   // project will be an instance of Project and stores the content of the table entry
   // with id 123. if such an entry is not defined you will get null
 })
 
 // search for attributes
-Project.find({ where: {title: 'aProject'} }).then(function(project) {
+Project.findOne({ where: {title: 'aProject'} }).then(function(project) {
   // project will be the first entry of the Projects table with the title 'aProject' || null
 })
 
 
-Project.find({
+Project.findOne({
   where: {title: 'aProject'},
   attributes: ['id', ['name', 'title']]
 }).then(function(project) {
@@ -168,7 +168,7 @@ Project.findAll({
 It's possible to do complex where queries with multiple levels of nested AND, OR and NOT conditions. In order to do that you can use `$or`, `$and` or `$not`:
 
 ```js
-Project.find({
+Project.findOne({
   where: {
     name: 'a project',
     $or: [
@@ -178,7 +178,7 @@ Project.find({
   }
 })
 
-Project.find({
+Project.findOne({
   where: {
     name: 'a project',
     id: {
@@ -206,7 +206,7 @@ LIMIT 1;
 `$not` example:
 
 ```js
-Project.find({
+Project.findOne({
   where: {
     name: 'a project',
     $not: [
@@ -229,7 +229,7 @@ WHERE (
 LIMIT 1;
 ```
 
-### Manipulating the dataset with limit&comma; offset&comma; order and group
+### Manipulating the dataset with limit, offset, order and group
 
 To get more relevant data&comma; you can use limit&comma; offset&comma; order and grouping&colon;
 
@@ -257,7 +257,7 @@ Project.findAll({group: 'name'})
 Notice how in the two examples above&comma; the string provided is inserted verbatim into the query&comma; i&period;e&period; column names are not escaped&period; When you provide a string to order &sol; group&comma; this will always be the case. If you want to escape column names&comma; you should provide an array of arguments&comma; even though you only want to order &sol; group by a single column
 
 ```js
-something.find({
+something.findOne({
   order: [
     'name',
     // will return `name`
@@ -387,7 +387,7 @@ Task.belongsTo(User)
 User.hasMany(Task)
 User.hasMany(Tool, { as: 'Instruments' })
 
-sequelize.sync().done(function() {
+sequelize.sync().then(function() {
   // this is where we continue ...
 })
 ```
@@ -468,6 +468,53 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 })
 ```
 
+When eager loading we can also filter the associated model using `where`. This will return all `User`s in which the `where` clause of `Tool` model matches rows.
+
+```js
+User.findAll({
+    include: [{
+        model: Tool,
+        as: 'Instruments',
+        where: { name: { $like: '%ooth%' } }
+    }]
+}).then(function(users) {
+    console.log(JSON.stringify(users))
+
+    /*
+      [{
+        "name": "John Doe",
+        "id": 1,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "UserId": 1
+        }]
+      }],
+
+      [{
+        "name": "John Smith",
+        "id": 2,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "UserId": 1
+        }]
+      }],
+    */
+  })
+```
+
+When an eager loaded model is filtered using `include.where` then `include.required` is implicitly set to
+`true`. This means that an inner join is done returning parent models with any matching children.
+
 ### Including everything
 
 To include all attributes, you can pass a single object with `all: true`:
@@ -503,7 +550,8 @@ Company.findAll({
 ```
 
 ### Nested eager loading
-You can used nested eager loading to load all related models of a related model: 
+You can use nested eager loading to load all related models of a related model:
+
 ```js
 User.findAll({
   include: [
@@ -535,7 +583,29 @@ User.findAll({
 })
 ```
 
-Include all also supports nested loading: 
+This will produce an outer join. However, a `where` clause on a related model will create an inner join and return only the instances that have matching sub-models. To return all parent instances, you should add `required: false`.
+
+```js
+User.findAll({
+  include: [{
+    model: Tool,
+    as: 'Instruments',
+    include: [{
+      model: Teacher,
+      where: {
+        school: "Woodstock Music School"
+      },
+      required: false
+    }]
+  }]
+}).then(function(users) {
+  /* ... */
+})
+```
+
+The query above will return all users, and all their instruments, but only those teachers associated with `Woodstock Music School`.
+
+Include all also supports nested loading:
 
 ```js
 User.findAll({ include: [{ all: true, nested: true }]});

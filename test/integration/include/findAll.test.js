@@ -70,8 +70,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         User.hasMany(Product);
         Product.belongsTo(User);
 
-        Product.hasMany(Tag);
-        Tag.hasMany(Product);
+        Product.belongsToMany(Tag, {through: 'product_tag'});
+        Tag.belongsToMany(Product, {through: 'product_tag'});
         Product.belongsTo(Tag, {as: 'Category'});
         Product.belongsTo(Company);
 
@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       SubCategory.belongsTo(Category, {foreignKey: 'boundCategory'});
 
       return this.sequelize.sync({force: true}).then(function() {
-        return User.find({
+        return User.findOne({
           include: [
             {
               model: SubscriptionForm,
@@ -271,8 +271,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
       Set.hasMany(Product);
       Product.belongsTo(Set);
-      Product.hasMany(Tag, {through: ProductTag});
-      Tag.hasMany(Product, {through: ProductTag});
+      Product.belongsToMany(Tag, {through: ProductTag});
+      Tag.belongsToMany(Product, {through: ProductTag});
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.join(
@@ -358,8 +358,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       User.hasMany(Product);
       Product.belongsTo(User);
 
-      Product.hasMany(Tag);
-      Tag.hasMany(Product);
+      Product.belongsToMany(Tag, {through: 'product_tag'});
+      Tag.belongsToMany(Product, {through: 'product_tag'});
       Product.belongsTo(Tag, {as: 'Category'});
 
       Product.hasMany(Price);
@@ -749,8 +749,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             priority: DataTypes.INTEGER
         });
 
-      Product.hasMany(Tag, {through: ProductTag});
-      Tag.hasMany(Product, {through: ProductTag});
+      Product.belongsToMany(Tag, {through: ProductTag});
+      Tag.belongsToMany(Product, {through: ProductTag});
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.props({
@@ -1152,8 +1152,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             priority: DataTypes.INTEGER
         });
 
-      Product.hasMany(Tag, {through: ProductTag});
-      Tag.hasMany(Product, {through: ProductTag});
+      Product.belongsToMany(Tag, {through: ProductTag});
+      Tag.belongsToMany(Product, {through: ProductTag});
 
       return this.sequelize.sync({force: true}).then(function() {
         return Promise.props({
@@ -1227,8 +1227,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       User.hasMany(Product);
       Product.belongsTo(User);
 
-      Product.hasMany(Tag);
-      Tag.hasMany(Product);
+      Product.belongsToMany(Tag, {through: 'product_tag'});
+      Tag.belongsToMany(Product, {through: 'product_tag'});
       Product.belongsTo(Tag, {as: 'Category'});
 
       Product.hasMany(Price);
@@ -1637,8 +1637,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           dateField: Sequelize.DATE
         }, {timestamps: false});
 
-      User.hasMany(Group);
-      Group.hasMany(User);
+      User.belongsToMany(Group, {through: 'group_user'});
+      Group.belongsToMany(User, {through: 'group_user'});
 
       return this.sequelize.sync().then(function() {
         return User.create({ dateField: Date.UTC(2014, 1, 20) }).then(function(user) {
@@ -1663,8 +1663,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       var A = this.sequelize.define('a', {name: DataTypes.STRING(40)})
         , B = this.sequelize.define('b', {name: DataTypes.STRING(40)});
 
-      A.hasMany(B);
-      B.hasMany(A);
+      A.belongsToMany(B, {through: 'a_b'});
+      B.belongsToMany(A, {through: 'a_b'});
 
       return this.sequelize
         .sync({force: true})
@@ -1875,6 +1875,49 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             expect(users[2].Company.rank).to.equal(2);
           });
         });
+      });
+    });
+
+    it('should ignore include with attributes: [] (used for aggregates)', function () {
+      var Post = this.sequelize.define('Post', {
+            title: DataTypes.STRING
+          })
+        , Comment = this.sequelize.define('Comment', {
+            content: DataTypes.TEXT
+          });
+
+      Post.Comments = Post.hasMany(Comment, {as: 'comments'});
+
+      return this.sequelize.sync({force: true}).bind(this).then(function () {
+        return Post.create({
+          title: Math.random().toString(),
+          comments: [
+            {content: Math.random().toString()},
+            {content: Math.random().toString()},
+            {content: Math.random().toString()},
+          ]
+        }, {
+          include: [Post.Comments]
+        });
+      }).then(function () {
+        return Post.findAll({
+          attributes: [
+            [this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount']
+          ],
+          include: [
+            {association: Post.Comments, attributes: []}
+          ],
+          group: [
+            'Post.id'
+          ]
+        });
+      }).then(function (posts) {
+        expect(posts.length).to.equal(1);
+
+        var post = posts[0];
+
+        expect(post.get('comments')).not.to.be.ok;
+        expect(parseInt(post.get('commentCount'), 10)).to.equal(3);
       });
     });
   });
