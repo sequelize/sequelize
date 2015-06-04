@@ -21,4 +21,6 @@ then
 
   # Unlock count for HR ( default oracle user) if disable
   .travis/sequelize/user.sh
+
+  npm install oracledb
 fi
