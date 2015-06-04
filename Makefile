@@ -18,9 +18,9 @@ test: codeclimate
 else
 test:
 	@if [ "DIALECT"${DIALECT} = "DIALECToracle" ]; then \
-		make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js \
+		make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js; \
 	else \
-		make jshint && make teaser && make test-unit && make test-integration  \
+		make jshint && make teaser && make test-unit && make test-integration; \
 	fi
 endif
 
