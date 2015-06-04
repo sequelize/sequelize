@@ -17,11 +17,11 @@ ifeq (true,$(COVERAGE))
 test: codeclimate
 else
 	ifeq ('oralce',$(DIALECT))
-	test:
-		make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js
+test:
+	make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js
 	else
-	test:
-		make jshint && make teaser && make test-unit && make test-integration
+test:
+	make jshint && make teaser && make test-unit && make test-integration
 	endif
 endif
 
