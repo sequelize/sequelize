@@ -64,8 +64,8 @@ sequelize.sync({
       return sequelize.query('select * from "Users"', { 
         raw: true
       }).spread(function(results, metadata) {
-        console.log(results)
-      })
+        console.log(results);
+      });
 
       
       // jane[0].birthday= new Date(1983, 6, 20)
@@ -78,10 +78,10 @@ sequelize.sync({
       }, { 
         type: this.sequelize.QueryTypes.SELECT 
       }).then(function(results, metadata) {
-        console.log(results)
+        console.log(results);
       });
       // console.log(obj)
-  })
+  });
 }).error(function(e){
   console.error(e);
 });

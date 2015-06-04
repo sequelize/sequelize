@@ -68,9 +68,9 @@ module.exports = {
 
   oracle: {
     database: process.env.SEQ_ORACLE_DB   || process.env.SEQ_DB   || 'XE',
-    username: process.env.SEQ_ORACLE_USER || process.env.SEQ_USER || 'sequelize',
-    password: process.env.SEQ_ORACLE_PW   || process.env.SEQ_PW   || 'test',
-    host:     process.env.SEQ_ORACLE_HOST || process.env.SEQ_HOST || '192.168.56.101',
+    username: process.env.SEQ_ORACLE_USER || process.env.SEQ_USER || 'hr',
+    password: process.env.SEQ_ORACLE_PW   || process.env.SEQ_PW   || 'welcome',
+    host:     process.env.SEQ_ORACLE_HOST || process.env.SEQ_HOST || 'localhost',
     port:     process.env.SEQ_ORACLE_PORT || process.env.SEQ_PORT || 1521,
     pool:     {
       maxConnections: process.env.SEQ_ORACLE_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
