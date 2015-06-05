@@ -9,7 +9,7 @@
 - [FIXED] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
 - [FIXED] Fix instance.changed regression to not return false negatives for not changed null values [#3812](https://github.com/sequelize/sequelize/issues/3812)
 - [FIXED] Fix isEmail validator to allow args: true [#3770](https://github.com/sequelize/sequelize/issues/3770)
-- [FIXED] Fix some occasions where `options.logging` was not used correctly
+- [FIXED] Fix all occasions where `options.logging` was not used correctly [#3834](https://github.com/sequelize/sequelize/issues/3834)
 - [FIXED] Fix `Model#destroy()` to correctly use `options.transaction`
 - [FIXED] Fix `QueryInterface#showIndex()` to correctly pass on `options.transaction`
 
