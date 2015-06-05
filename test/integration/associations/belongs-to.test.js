@@ -600,6 +600,54 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
       });
     });
+
+    it('should support a non-primary key as the association column', function() {
+      var User = this.sequelize.define('User', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+      User.removeAttribute('id');
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'bob' }).then(function(newUser) {
+          return Task.create({ title: 'some task' }).then(function(newTask) {
+            return newTask.setUser(newUser).then(function() {
+              return Task.findOne({title: 'some task'}).then(function (foundTask) {
+                return foundTask.getUser().then(function (foundUser) {
+                  expect(foundUser.username).to.equal('bob');
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should support a non-primary key as the association column with a field option', function() {
+      var User = this.sequelize.define('User', {
+          username: {
+            type:  DataTypes.STRING,
+            field: 'the_user_name_field'
+          }
+        })
+        , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+      User.removeAttribute('id');
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'bob' }).then(function(newUser) {
+          return Task.create({ title: 'some task' }).then(function(newTask) {
+            return newTask.setUser(newUser).then(function() {
+              return Task.findOne({title: 'some task'}).then(function (foundTask) {
+                return foundTask.getUser().then(function (foundUser) {
+                  expect(foundUser.username).to.equal('bob');
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('Association options', function() {

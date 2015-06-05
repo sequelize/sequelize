@@ -1,4 +1,5 @@
 # Next
+- [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.
 - [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)
 - [FEATURE] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
 - [FEATURE] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
