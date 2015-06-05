@@ -240,11 +240,33 @@ if (current.dialect.supports.transactions) {
         });
       });
 
+      it('static map', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.map(self.User.findAll(), function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
       it('reduce', function () {
         var self = this;
         return this.sequelize.transaction(function () {
           var tid = self.ns.get('transaction').id;
           return self.User.findAll().reduce(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('static reduce', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.reduce(self.User.findAll(), function () {
             expect(self.ns.get('transaction').id).to.be.ok;
             expect(self.ns.get('transaction').id).to.equal(tid);
           });
@@ -262,11 +284,33 @@ if (current.dialect.supports.transactions) {
         });
       });
 
+      it('static filter', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.filter(self.User.findAll(), function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
       it('each', function () {
         var self = this;
         return this.sequelize.transaction(function () {
           var tid = self.ns.get('transaction').id;
           return self.User.findAll().each(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('static each', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.sequelize.Promise.each(self.User.findAll(), function () {
             expect(self.ns.get('transaction').id).to.be.ok;
             expect(self.ns.get('transaction').id).to.equal(tid);
           });
