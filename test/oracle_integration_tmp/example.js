@@ -1,6 +1,6 @@
 'use strict';
 
-var Sequelize=require('sequelize-oracle')
+var Sequelize=require('../../index')
   , uuid = require('node-uuid');
 
 
@@ -84,4 +84,5 @@ sequelize.sync({
   });
 }).error(function(e){
   console.error(e);
+  process.exit(1);
 });

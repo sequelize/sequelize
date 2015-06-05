@@ -68,7 +68,7 @@ test-integration-postgres:
 test-integration-postgres-native:
 	@DIALECT=postgres-native make test-integration
 test-integration-oracle:
-	@DIALECT=oracle make test-integration
+	@DIALECT=oracle node test/oracle_integration_tmp/example.js
 
 
 jshint:
