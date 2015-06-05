@@ -43,8 +43,6 @@ branches:
   only:
     - master-Oracle
     - master-Oracle-dev
-    - 1.7.0-Oracle
-    - 1.7.0-Oracle-dev
 
 matrix:
   fast_finish: true
