@@ -8,11 +8,11 @@ var chai = require('chai')
   , uuid = require('node-uuid');
 
 
-describe(Support.getTestDialectTeaser('Oracle'), function() {
+describe(Support.getTestDialectTeaser('Oracle tests tmp'), function() {
   beforeEach(function () {
   });
 
-  it(' tests tmp', function ()  {
+  it(' divers', function ()  {
     var sequelize=this.sequelize;
 
     var User = this.sequelize.define('User', {
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Oracle'), function() {
       });
     }).then(function(user) {
         expect(user).to.be.ok;
-        expect(user.id).to.equal(1);      
+        expect(user.id === undefined).to.equal(false);      
     }).then(function(user) {
       return User.create({
         username: 'janedoe',
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Oracle'), function() {
       });
     }).then(function(user) {
         expect(user).to.be.ok;
-        expect(user.id).to.equal(2); 
+        expect(user.id === undefined).to.equal(false);  
     }).then(function(user) {
       return User.findAll({
         where: {
@@ -71,17 +71,18 @@ describe(Support.getTestDialectTeaser('Oracle'), function() {
       return sequelize.query('select * from "Users"', { 
         raw: true
       });
-    }).then(function(user) {
-        expect(user).to.be.ok;
+    }).then(function(users) {
+        expect(users.length).to.equal(2); 
     }).then(function(user) {
       return sequelize.query({
         query: 'select ? as "foo", ? as "bar" from dual',  
         values: [1, 2] 
       }, { 
-        type: this.sequelize.QueryTypes.SELECT 
+        type: sequelize.QueryTypes.SELECT 
       });
-    }).then(function(user) {
-        expect(user).to.be.ok;
+    }).then(function(data) {
+        expect(data[0].foo).to.equal(1); 
+        expect(data[0].bar).to.equal(2); 
     });
   });
 });
