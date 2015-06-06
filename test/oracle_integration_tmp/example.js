@@ -1,88 +1,98 @@
 'use strict';
 
-var Sequelize=require('../../index')
+/* jshint -W030 */
+var chai = require('chai')
+  , expect = chai.expect
+  , Support = require(__dirname + '/support')
+  , Sequelize=require('../../index')
   , uuid = require('node-uuid');
 
 
-var sequelize = new Sequelize('XE', 'hr', 'welcome', {
-  host:'localhost',
-  dialect:'oracle',
-  // logging: null,
-  pool:{
-    maxConnections: 5,
-    minConnections: 0,
-    maxIdleTime: 1000
-  }
-});
-
-var User = sequelize.define('User', {
-  username: Sequelize.STRING,
-  birthday: Sequelize.DATEONLY,
-  ch: Sequelize.CHAR(10),
-  // te: Sequelize.TEXT,
-  nu: Sequelize.DECIMAL(3,2),
-  bi: Sequelize.BIGINT,
-  i: Sequelize.INTEGER,
-  fl: Sequelize.FLOAT(11),
-  dou: Sequelize.DOUBLE,
-  da: Sequelize.DATE,
-  u: Sequelize.UUID,
-  b: Sequelize.BOOLEAN
-});
-
-sequelize.sync({
-  force: true
-}).then(function() {
-  return User.create({
-    username: 'janedoe',
-    birthday: new Date(1980, 6, 20),
-    ch: 'abcd',
-    // te: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,;:!ù*$./§µ%£°=)àç_è-("é&€}]@^`|[{#~¹²0987654321',
-    nu: 1.23,
-    bi: 98989898220,
-    i: 321,
-    fl: 1234567.7654321,
-    dou: 1234567890.0987654321,
-    da: new Date(1980, 6, 20),
-    u: uuid.v4(), 
-    b: true
+describe(Support.getTestDialectTeaser('Oracle'), function() {
+  beforeEach(function () {
   });
-}).then(function() {
-  return User.create({
-    username: 'janedoe',
-    birthday: new Date(1982, 6, 20)
-  });
-}).then(function(jane) {
-  return User.findAll({
-    where: {
-      username: 'janedoe'
-    },
-    raw: true
-  }).then(function(jane){
-      // console.log(jane.rows[0])
 
+  it(' tests tmp', function ()  {
+    var sequelize=this.sequelize;
+
+    var User = this.sequelize.define('User', {
+      username: Sequelize.STRING,
+      birthday: Sequelize.DATEONLY,
+      ch: Sequelize.CHAR(10),
+      // te: Sequelize.TEXT,
+      nu: Sequelize.DECIMAL(3,2),
+      bi: Sequelize.BIGINT,
+      i: Sequelize.INTEGER,
+      fl: Sequelize.FLOAT(11),
+      dou: Sequelize.DOUBLE,
+      da: Sequelize.DATE,
+      u: Sequelize.UUID,
+      b: Sequelize.BOOLEAN
+    });
+
+    return User.sync({ 
+      force: true 
+    }).then(function(user) {
+      return User.create({
+        username: 'janedoe',
+        birthday: new Date(1980, 6, 20),
+        ch: 'abcd',
+        // te: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,;:!ù*$./§µ%£°=)àç_è-("é&€}]@^`|[{#~¹²0987654321',
+        nu: 1.23,
+        bi: 98989898220,
+        i: 321,
+        fl: 1234567.7654321,
+        dou: 1234567890.0987654321,
+        da: new Date(1980, 6, 20),
+        u: uuid.v4(), 
+        b: true
+      });
+    }).then(function(user) {
+        expect(user).to.be.ok;
+        expect(user.id).to.equal(1);      
+    }).then(function(user) {
+      return User.create({
+        username: 'janedoe',
+        birthday: new Date(1982, 6, 20)
+      });
+    }).then(function(user) {
+        expect(user).to.be.ok;
+        expect(user.id).to.equal(2); 
+    }).then(function(user) {
+      return User.findAll({
+        where: {
+          username: 'janedoe'
+        },
+        raw: true
+      });
+    }).then(function(user) {
+        expect(user.length).to.equal(2); 
+    }).then(function(user) {
       return sequelize.query('select * from "Users"', { 
         raw: true
-      }).spread(function(results, metadata) {
-        console.log(results);
       });
-
-      
-      // jane[0].birthday= new Date(1983, 6, 20)
-
-      // return jane[0].save();
-  }).then(function(obj){
-    return sequelize.query({
+    }).then(function(user) {
+        expect(user).to.be.ok;
+    }).then(function(user) {
+      return sequelize.query({
         query: 'select ? as "foo", ? as "bar" from dual',  
         values: [1, 2] 
       }, { 
         type: this.sequelize.QueryTypes.SELECT 
-      }).then(function(results, metadata) {
-        console.log(results);
       });
-      // console.log(obj)
+    }).then(function(user) {
+        expect(user).to.be.ok;
+    });
   });
-}).error(function(e){
-  console.error(e);
-  process.exit(1);
 });
+
+// var sequelize = new Sequelize('XE', 'hr', 'welcome', {
+//   host:'localhost',
+//   dialect:'oracle',
+//   // logging: null,
+//   pool:{
+//     maxConnections: 5,
+//     minConnections: 0,
+//     maxIdleTime: 1000
+//   }
+// });

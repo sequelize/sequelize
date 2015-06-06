@@ -17,11 +17,7 @@ ifeq (true,$(COVERAGE))
 test: codeclimate
 else
 test:
-	@if [ "DIALECT"${DIALECT} = "DIALECToracle" ]; then \
-		make jshint && make teaser && make test-unit && node test/oracle_integration_tmp/example.js; \
-	else \
-		make jshint && make teaser && make test-unit && make test-integration; \
-	fi
+	make jshint && make teaser && make test-unit && make test-integration; 
 endif
 
 # Unit tests
@@ -48,9 +44,17 @@ test-unit-oracle:
 # Integration tests
 test-integration:
 	@if [ "$$GREP" ]; then \
-		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		if [ "DIALECT"${DIALECT} = "DIALECToracle" ]; then \
+			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" ./test/oracle_integration_tmp/example.js; \
+		else \
+			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		fi \
 	else \
-		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
+		if [ "DIALECT"${DIALECT} = "DIALECToracle" ]; then \
+			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) ./test/oracle_integration_tmp/example.js; \
+		else \
+			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
+		fi \
 	fi
 
 test-integration-all: test-integration-sqlite test-integration-mysql test-integration-postgres test-integration-postgres-native test-integration-mariadb test-integration-mssql
@@ -68,7 +72,7 @@ test-integration-postgres:
 test-integration-postgres-native:
 	@DIALECT=postgres-native make test-integration
 test-integration-oracle:
-	@DIALECT=oracle node test/oracle_integration_tmp/example.js
+	@DIALECT=oracle make test-integration
 
 
 jshint:
