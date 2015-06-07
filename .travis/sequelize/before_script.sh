@@ -1,16 +1,23 @@
 #!/bin/sh -e
 
-if [ "DIALECT"${DIALECT} = "DIALECToracle" ]
+if [ "COVERAGE"${COVERAGE} = "COVERAGEtrue" ] 
 then
-  #install oracledb only for dialect oracle
-  npm install oracledb
+	mysql -e 'create database sequelize_test;'
+	psql -c 'create database sequelize_test;' -U postgres
+	npm install oracledb
 else
-	if [ "DIALECT"${DIALECT} = "DIALECTmariadb" ] || [ "DIALECT"${DIALECT} = "DIALECTmysql" ]
+	if [ "DIALECT"${DIALECT} = "DIALECToracle" ]
 	then
-		mysql -e 'create database sequelize_test;'
+	  #install oracledb only for dialect oracle
+	  npm install oracledb
 	else
-		if [ "DIALECT"${DIALECT} = "DIALECTpostgres" ] || [ "DIALECT"${DIALECT} = "DIALECTpostgres-native" ]; then
-			psql -c 'create database sequelize_test;' -U postgres
+		if [ "DIALECT"${DIALECT} = "DIALECTmariadb" ] || [ "DIALECT"${DIALECT} = "DIALECTmysql" ]
+		then
+			mysql -e 'create database sequelize_test;'
+		else
+			if [ "DIALECT"${DIALECT} = "DIALECTpostgres" ] || [ "DIALECT"${DIALECT} = "DIALECTpostgres-native" ]; then
+				psql -c 'create database sequelize_test;' -U postgres
+			fi
 		fi
 	fi
 fi

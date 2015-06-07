@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-if [ "DIALECT"${DIALECT} = "DIALECToracle" ]
+if [ "DIALECT"${DIALECT} = "DIALECToracle" ] || [ "COVERAGE"${COVERAGE} = "COVERAGEtrue" ] 
 then
   # Download and install Oracle XE
   export ORACLE_FILE="oracle-xe-11.2.0-1.0.x86_64.rpm.zip"
