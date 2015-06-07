@@ -9,8 +9,7 @@ else
 	then
 		mysql -e 'create database sequelize_test;'
 	else
-		if [ "DIALECT"${DIALECT} = "DIALECToracle" ]
-		then
+		if [ "DIALECT"${DIALECT} = "DIALECTmariadb" ] || [ "DIALECT"${DIALECT} = "DIALECTpostgres" ] || [ "DIALECT"${DIALECT} = "DIALECTpostgres-native" ]; then
 			psql -c 'create database sequelize_test;' -U postgres
 		fi
 	fi
