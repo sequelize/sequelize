@@ -44,13 +44,13 @@ test-unit-oracle:
 # Integration tests
 test-integration:
 	@if [ "$$GREP" ]; then \
-		if [ "DIALECT"${DIALECT} = "DIALECToracle" ]; then \
+		if [ "DIALECT${DIALECT}" = "DIALECToracle" ]; then \
 			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" ./test/oracle_integration_tmp/example.js; \
 		else \
 			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 		fi \
 	else \
-		if [ "DIALECT"${DIALECT} = "DIALECToracle" ]; then \
+		if [ "DIALECT${DIALECT}" = "DIALECToracle" ]; then \
 			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) ./test/oracle_integration_tmp/example.js; \
 		else \
 			$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
@@ -95,8 +95,14 @@ oracle:
 
 # Coverage
 cover:
-	rm -rf coverage \
-	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd $(TESTS); \
+	if [ "DIALECT${DIALECT}" = "DIALECToracle" ]; then \
+		rm -rf coverage \
+		make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd ./test/oracle_integration_tmp/example.js; \
+	else \
+		rm -rf coverage \
+		make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd $(TESTS); \
+	fi
+	
 
 mssql-cover:
 	rm -rf coverage
@@ -143,9 +149,9 @@ postgresn: postgres-native
 
 # test all the dialects \o/
 
-all: sqlite mysql postgres postgres-native mariadb
+all: sqlite mysql postgres postgres-native mariadb oracle
 
-all-cover: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover mssql-cover merge-coverage
+all-cover: sqlite-cover mysql-cover postgres-cover postgres-native-cover mariadb-cover mssql-cover oracle-cover merge-coverage
 codeclimate: all-cover codeclimate-send
 
 .PHONY: sqlite mysql postgres pgsql postgres-native postgresn all test oracle
