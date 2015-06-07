@@ -32,8 +32,6 @@ before_install:
   - . ./.travis/sequelize/before_install.sh
 
 before_script:
-  - "mysql -e 'create database sequelize_test;'"
-  - "psql -c 'create database sequelize_test;' -U postgres"
   - . ./.travis/sequelize/before_script.sh
 
 script:
