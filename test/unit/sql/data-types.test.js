@@ -2,8 +2,13 @@
 
 var Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , Sequelize = Support.Sequelize
+  , chai = require('chai')
+  , util = require('util')
+  , uuid = require('node-uuid')
   , expectsql = Support.expectsql
-  , current   = Support.sequelize;
+  , current   = Support.sequelize
+  , expect = chai.expect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -44,6 +49,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         mssql: 'BINARY(255)',
         postgres: 'BYTEA'
       });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.STRING();
+
+          expect(function () {
+            type.validate(12345);
+          }).to.throw(Sequelize.ValidationError, '12345 is not a valid string');
+        });
+
+        test('should return `true` if `value` is a string', function() {
+          var type = DataTypes.STRING();
+
+          expect(type.validate('foobar')).to.equal(true);
+        });
+      });
     });
 
     suite('TEXT', function () {
@@ -78,6 +99,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         mssql: 'NVARCHAR(MAX)',
         mysql: 'LONGTEXT',
         mariadb: 'LONGTEXT'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.TEXT();
+
+          expect(function () {
+            type.validate(12345);
+          }).to.throw(Sequelize.ValidationError, '12345 is not a valid string');
+        });
+
+        test('should return `true` if `value` is a string', function() {
+          var type = DataTypes.TEXT();
+
+          expect(type.validate('foobar')).to.equal(true);
+        });
       });
     });
 
@@ -114,6 +151,23 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         mysql: 'TINYINT(1)',
         sqlite: 'TINYINT(1)'
       });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.BOOLEAN();
+
+          expect(function () {
+            type.validate(12345);
+          }).to.throw(Sequelize.ValidationError, '12345 is not a valid boolean');
+        });
+
+        test('should return `true` if `value` is a boolean', function() {
+          var type = DataTypes.BOOLEAN();
+
+          expect(type.validate(true)).to.equal(true);
+          expect(type.validate(false)).to.equal(true);
+        });
+      });
     });
 
     suite('DATE', function () {
@@ -123,7 +177,43 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
       });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.DATE();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid date');
+        });
+
+        test('should return `true` if `value` is a date', function() {
+          var type = DataTypes.DATE();
+
+          expect(type.validate(new Date())).to.equal(true);
+        });
+      });
     });
+
+    if (current.dialect.supports.HSTORE) {
+      suite('HSTORE', function () {
+        suite('validate', function () {
+          test('should throw an error if `value` is invalid', function() {
+            var type = DataTypes.HSTORE();
+
+            expect(function () {
+              type.validate('foobar');
+            }).to.throw(Sequelize.ValidationError, 'foobar is not a valid hstore');
+          });
+
+          test('should return `true` if `value` is an hstore', function() {
+            var type = DataTypes.HSTORE();
+
+            expect(type.validate({ foo: 'bar' })).to.equal(true);
+          });
+        });
+      });
+    }
 
     suite('UUID', function () {
       testsql('UUID', DataTypes.UUID, {
@@ -133,12 +223,65 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         sqlite: 'UUID'
       });
 
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.UUID();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid uuid');
+        });
+
+        test('should return `true` if `value` is an uuid', function() {
+          var type = DataTypes.UUID();
+
+          expect(type.validate(uuid.v4())).to.equal(true);
+        });
+      });
+    });
+
+    suite('UUIDV1', function () {
       testsql('UUIDV1', DataTypes.UUIDV1, {
         default: 'UUIDV1'
       });
 
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.UUIDV1();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid uuid');
+        });
+
+        test('should return `true` if `value` is an uuid', function() {
+          var type = DataTypes.UUIDV1();
+
+          expect(type.validate(uuid.v1())).to.equal(true);
+        });
+      });
+    });
+
+    suite('UUIDV4', function () {
       testsql('UUIDV4', DataTypes.UUIDV4, {
         default: 'UUIDV4'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.UUIDV4();
+          var value = uuid.v1();
+
+          expect(function () {
+            type.validate(value);
+          }).to.throw(Sequelize.ValidationError, util.format('%j is not a valid uuidv4', value));
+        });
+
+        test('should return `true` if `value` is an uuid', function() {
+          var type = DataTypes.UUIDV4();
+
+          expect(type.validate(uuid.v4())).to.equal(true);
+        });
       });
     });
 
@@ -205,6 +348,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.INTEGER();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid integer');
+        });
+
+        test('should return `true` if `value` is a valid integer', function() {
+          var type = DataTypes.INTEGER();
+
+          expect(type.validate(12345)).to.equal(true);
+        });
+      });
     });
 
     suite('BIGINT', function () {
@@ -262,6 +421,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         sqlite: 'BIGINT UNSIGNED ZEROFILL(11)',
         postgres: 'BIGINT',
         mssql: 'BIGINT'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.BIGINT();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid bigint');
+        });
+
+        test('should return `true` if `value` is an integer', function() {
+          var type = DataTypes.BIGINT();
+
+          expect(type.validate(12345)).to.equal(true);
+        });
       });
     });
 
@@ -526,6 +701,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: 'FLOAT',
         mssql: 'FLOAT'
       });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.FLOAT();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid float');
+        });
+
+        test('should return `true` if `value` is a float', function() {
+          var type = DataTypes.FLOAT();
+
+          expect(type.validate(1.2)).to.equal(true);
+        });
+      });
     });
 
     if (current.dialect.supports.NUMERIC) {
@@ -560,12 +751,29 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    // TODO: Fix Enums and add more tests
-    // suite('ENUM', function () {
-    //   testsql('ENUM("value 1", "value 2")', DataTypes.ENUM('value 1', 'value 2'), {
-    //     default: 'ENUM'
-    //   });
-    // });
+    suite('ENUM', function () {
+      // TODO: Fix Enums and add more tests
+      // testsql('ENUM("value 1", "value 2")', DataTypes.ENUM('value 1', 'value 2'), {
+      //   default: 'ENUM'
+      // });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.ENUM('foo');
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid choice in ["foo"]');
+        });
+
+        test('should return `true` if `value` is a valid choice', function() {
+          var type = DataTypes.ENUM('foobar', 'foobiz');
+
+          expect(type.validate('foobar')).to.equal(true);
+          expect(type.validate('foobiz')).to.equal(true);
+        });
+      });
+    });
 
     suite('BLOB', function () {
       testsql('BLOB', DataTypes.BLOB, {
@@ -596,6 +804,71 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: 'LONGBLOB',
         mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.BLOB();
+
+          expect(function () {
+            type.validate(12345);
+          }).to.throw(Sequelize.ValidationError, '12345 is not a valid blob');
+        });
+
+        test('should return `true` if `value` is a blob', function() {
+          var type = DataTypes.BLOB();
+
+          expect(type.validate('foobar')).to.equal(true);
+          expect(type.validate(new Buffer('foobar'))).to.equal(true);
+        });
+      });
+    });
+
+    suite('RANGE', function () {
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.RANGE();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid range');
+        });
+
+        test('should throw an error if `value` is not an array with two elements', function() {
+          var type = DataTypes.RANGE();
+
+          expect(function () {
+            type.validate([1]);
+          }).to.throw(Sequelize.ValidationError, 'A range must be an array with two elements');
+        });
+
+        test('should throw an error if `value.inclusive` is invalid', function() {
+          var type = DataTypes.RANGE();
+
+          expect(function () {
+            type.validate({ inclusive: 'foobar' });
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid range');
+        });
+
+        test('should throw an error if `value.inclusive` is not an array with two elements', function() {
+          var type = DataTypes.RANGE();
+
+          expect(function () {
+            type.validate({ inclusive: [1] });
+          }).to.throw(Sequelize.ValidationError, 'A range must be an array with two elements');
+        });
+
+        test('should return `true` if `value` is a range', function() {
+          var type = DataTypes.RANGE();
+
+          expect(type.validate([1, 2])).to.equal(true);
+        });
+
+        test('should return `true` if `value.inclusive` is a range', function() {
+          var type = DataTypes.RANGE();
+
+          expect(type.validate({ inclusive: [1, 2] })).to.equal(true);
+        });
       });
     });
 
@@ -664,6 +937,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: 'JSONB[]'
           });
         }
+
+        suite('validate', function () {
+          test('should throw an error if `value` is invalid', function() {
+            var type = DataTypes.ARRAY();
+
+            expect(function () {
+              type.validate('foobar');
+            }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid array');
+          });
+
+          test('should return `true` if `value` is an array', function() {
+            var type = DataTypes.ARRAY();
+
+            expect(type.validate(['foo', 'bar'])).to.equal(true);
+          });
+        });
       });
     }
 
