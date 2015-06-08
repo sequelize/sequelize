@@ -265,7 +265,7 @@ UPDATE comments SET commentable_id = 42, commentable = 'image'
 The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to etiher `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
 
 #### n:m
-Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several item
+Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several items.
 
 For brevity, the example only shows a Post model, but in reality Tag would be related to several other models.
 
