@@ -223,6 +223,31 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.baz).to.equal('oof');
         });
       });
+
+      it('works with database functions', function() {
+        return this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1')}).bind(this).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).to.be.undefined;
+          } else {
+            expect(created).to.be.ok;
+          }
+          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
+            return this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
+          });
+        }).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).to.be.undefined;
+          } else {
+            expect(created).not.to.be.ok;
+          }
+          return this.User.findById(42);
+        }).then(function(user) {
+          expect(user.createdAt).to.be.ok;
+          expect(user.username).to.equal('doe');
+          expect(user.foo).to.equal('MIXEDCASE2');
+        });
+      });
+
     });
   }
 });
