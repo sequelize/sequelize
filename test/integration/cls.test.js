@@ -317,6 +317,17 @@ if (current.dialect.supports.transactions) {
         });
       });
 
+      it('nodeify', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().nodeify(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
       it('tap', function () {
         var self = this;
         return this.sequelize.transaction(function () {
