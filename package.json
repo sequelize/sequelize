@@ -37,7 +37,7 @@
     "dottie": "^0.3.1",
     "generic-pool": "2.2.0",
     "inflection": "^1.6.0",
-    "lodash": "^3.5.0",
+    "lodash": "^3.9.3",
     "moment": "^2.9.0",
     "moment-timezone": "^0.3.1",
     "node-uuid": "~1.4.1",

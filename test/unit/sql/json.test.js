@@ -25,6 +25,12 @@ if (current.dialect.supports.JSON) {
           });
         });
 
+        test('NULL', function () {
+          expectsql(sql.escape(null, { type: new DataTypes.JSON() }), {
+            default: 'NULL'
+          });
+        });
+
         test('nested object', function () {
           expectsql(sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
             default: '\'{"some":"nested","more":{"nested":true},"answer":42}\''
