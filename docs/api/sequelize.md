@@ -56,7 +56,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.query={}] | Object | Default options for sequelize.query |
 | [options.set={}] | Object | Default options for sequelize.set |
 | [options.sync={}] | Object | Default options for sequelize.sync |
-| [options.timezone='+00:00'] | String | The timezone used when converting a date from the database into a javascript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. |
+| [options.timezone='+00:00'] | String | The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. |
 | [options.logging=console.log] | Function | A function that gets executed everytime Sequelize would log something. |
 | [options.omitNull=false] | Boolean | A flag that defines if null values should be passed to SQL queries or not. |
 | [options.native=false] | Boolean | A flag that defines if native library shall be used or not. Currently only has an effect for postgres |
@@ -446,7 +446,7 @@ For more about validation, see http://docs.sequelizejs.com/en/latest/docs/models
 | attributes.column | String &#124; DataType &#124; Object | The description of a database column |
 | attributes.column.type | String &#124; DataType | A string or a data type |
 | [attributes.column.allowNull=true] | Boolean | If false, the column will have a NOT NULL constraint, and a not null validation will be run before an instance is saved. |
-| [attributes.column.defaultValue=null] | Any | A literal default value, a javascript function, or an SQL function (see `sequelize.fn`) |
+| [attributes.column.defaultValue=null] | Any | A literal default value, a JavaScript function, or an SQL function (see `sequelize.fn`) |
 | [attributes.column.unique=false] | String &#124; Boolean | If true, the column will get a unique constraint. If a string is provided, the column will be part of a composite unique index. If multiple columns have the same string, they will be part of the same unique index |
 | [attributes.column.primaryKey=false] | Boolean |  |
 | [attributes.column.field=null] | String | If set, sequelize will map the attribute name to a different name in the database |

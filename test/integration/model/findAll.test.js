@@ -1,4 +1,4 @@
-  'use strict';
+'use strict';
 
 /* jshint -W030 */
 /* jshint -W110 */
