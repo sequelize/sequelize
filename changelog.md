@@ -1,3 +1,6 @@
+# Next
+- [FIXED] Fix `Promise#nodeify()` and `Promise#done()` not passing CLS context
+
 # 3.2.0
 - [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.
 - [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)

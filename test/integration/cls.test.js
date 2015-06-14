@@ -339,8 +339,45 @@ if (current.dialect.supports.transactions) {
         });
       });
 
+      it('done fulfilled', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return new Promise(function (resolve, reject) {
+            self.User.findAll().done(function () {
+              try {
+                expect(self.ns.get('transaction').id).to.be.ok;
+                expect(self.ns.get('transaction').id).to.equal(tid);
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
+            }, function (err) {
+              reject(err);
+            });
+          });
+        });
+      });
 
-
+      it('done rejected', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return new Promise(function (resolve, reject) {
+            Promise.reject('test rejection handler').done(function () {
+              reject(new Error('Should not have called first done handler'));
+            }, function (err) {
+              try {
+                expect(self.ns.get('transaction').id).to.be.ok;
+                expect(self.ns.get('transaction').id).to.equal(tid);
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
+            });
+          });
+        });
+      });
     });
 
   });
