@@ -186,6 +186,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')'
         });
 
+        testsql('rank', {
+          $or: {
+            $lt: 100,
+            $eq: null
+          }
+        }, {
+          default: '([rank] < 100 OR [rank] IS NULL)'
+        });
+
         testsql('$or', [
           {email: 'maker@mhansen.io'},
           {email: 'janzeh@gmail.com'}
@@ -257,6 +266,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         ], {
           default: "([name] LIKE '%hello' AND [name] LIKE 'hello%')"
+        });
+
+        testsql('rank', {
+          $and: {
+            $ne: 15,
+            $between: [10, 20]
+          }
+        }, {
+          default: '([rank] != 15 AND [rank] BETWEEN 10 AND 20)'
         });
 
         testsql('name', {
