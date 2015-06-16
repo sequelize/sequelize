@@ -1,7 +1,7 @@
 <a name="model"></a>
 # Class Model
 [View code](https://github.com/sequelize/sequelize/blob/cc8687539fe96f7f64887a04ddf5d48f159f5e92/lib/model.js#L24)
-A Model represents a table in the database. Sometimes you might also see it referred to as model, or simply as factory.
+A Model represents a table in the database. Sometimes you might also see it refererred to as model, or simply as factory.
 This class should _not_ be instantiated directly, it is created using `sequelize.define`, and already created models can be loaded using `sequelize.import`
 
 ### Mixes:
