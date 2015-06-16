@@ -1,4 +1,11 @@
 # Next
+- [FIXED] Fix `Promise#nodeify()` and `Promise#done()` not passing CLS context
+- [FIXED] Creating and dropping enums in transaction, only for PostgreSQL [#3782](https://github.com/sequelize/sequelize/issues/3782)
+- [FIXED] $or/$and inside a where clause always expects the input to be an array [#3767](https://github.com/sequelize/sequelize/issues/3767)
+- [ADDED] Unique constraints may now include custom error messages
+
+# 3.2.0
+- [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.
 - [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)
 - [FEATURE] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
 - [FEATURE] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
@@ -8,7 +15,7 @@
 - [FIXED] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
 - [FIXED] Fix instance.changed regression to not return false negatives for not changed null values [#3812](https://github.com/sequelize/sequelize/issues/3812)
 - [FIXED] Fix isEmail validator to allow args: true [#3770](https://github.com/sequelize/sequelize/issues/3770)
-- [FIXED] Fix some occasions where `options.logging` was not used correctly
+- [FIXED] Fix all occasions where `options.logging` was not used correctly [#3834](https://github.com/sequelize/sequelize/issues/3834)
 - [FIXED] Fix `Model#destroy()` to correctly use `options.transaction`
 - [FIXED] Fix `QueryInterface#showIndex()` to correctly pass on `options.transaction`
 
