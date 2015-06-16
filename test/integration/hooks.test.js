@@ -5623,7 +5623,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   });
 
   describe('#addHook', function() {
-    it('should add additinoal hook when previous exists', function() {
+    it('should add additional hook when previous exists', function() {
       var hook1 = sinon.spy()
         , hook2 = sinon.spy()
         , Model;
@@ -5642,6 +5642,29 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         expect(hook1.calledOnce).to.be.ok;
         expect(hook2.calledOnce).to.be.ok;
       });
+    });
+  });
+
+  describe('#removeHook', function() {
+    it('should remove hook', function() {
+      var hook1 = sinon.spy()
+        , Model;
+
+        Model = this.sequelize.define('Model', {
+          name: Sequelize.STRING
+        });
+
+        Model.addHook('beforeCreate', 'myHook', hook1);
+
+        return Model.sync({ force: true }).then(function() {
+          return Model.create({ name: 'sonya' });
+        }).then(function() {
+          expect(hook1.calledOnce).to.be.ok;
+          Model.removeHook('beforeCreate', 'myHook');
+          return Model.create({ name: 'james' });
+        }).then(function() {
+          expect(hook1.calledOnce).to.be.ok;
+        });
     });
   });
 });
