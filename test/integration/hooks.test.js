@@ -812,7 +812,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING,
           mood: {
             type: DataTypes.ENUM,
-            values: ['happy', 'sad', 'neutral']
+            values: ['happy', 'sad', 'neutral', 'angry']
           }
         });
 
@@ -839,6 +839,26 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
                 expect(beforeHook).to.be.true;
                 expect(afterHook).to.be.true;
+              });
+            });
+
+            it('should run hooks with and without name arg', function() {
+              var beforeHook = false
+                , beforeHook2 = false;
+
+              this.User.beforeCreate('myHookBefore', function(user, options, fn) {
+                beforeHook = true;
+                fn();
+              });
+
+              this.User.beforeCreate(function(user, options, fn) {
+                beforeHook2 = true;
+                fn();
+              });
+
+              return this.User.create({username: 'Jack', mood: 'angry'}).then(function() {
+                expect(beforeHook).to.be.true;
+                expect(beforeHook2).to.be.true;
               });
             });
           });
@@ -905,6 +925,36 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               });
 
               this.User.afterCreate(function(user, options, fn) {
+                afterHook = 'hi';
+                fn();
+              });
+
+              this.User.afterCreate(function(user, options, fn) {
+                afterHook = true;
+                fn();
+              });
+
+              return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
+                expect(beforeHook).to.be.true;
+                expect(afterHook).to.be.true;
+              });
+            });
+
+            it('should run all hooks with and without name arg', function() {
+              var beforeHook = false
+                , afterHook = false;
+
+              this.User.beforeCreate('myHookBefore1', function(user, options, fn) {
+                beforeHook = 'hi';
+                fn();
+              });
+
+              this.User.beforeCreate(function(user, options, fn) {
+                beforeHook = true;
+                fn();
+              });
+
+              this.User.afterCreate('myHookBefore2', function(user, options, fn) {
                 afterHook = 'hi';
                 fn();
               });
@@ -1456,6 +1506,29 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                   expect(user.username).to.equal('Chong');
+                });
+              });
+            });
+
+            it('should run hooks with and without name arg', function() {
+              var beforeHook = false
+                , afterHook = false;
+
+              this.User.beforeUpdate(function(user, options, fn) {
+                beforeHook = true;
+                fn();
+              });
+
+              this.User.afterUpdate('myHookAfterUpdate', function(user, options, fn) {
+                afterHook = true;
+                fn();
+              });
+
+              return this.User.create({username: 'John', mood: 'sad'}).then(function(user) {
+                return user.updateAttributes({username: 'Jackie'}).then(function(user) {
+                  expect(beforeHook).to.be.true;
+                  expect(afterHook).to.be.true;
+                  expect(user.username).to.equal('Jackie');
                 });
               });
             });
@@ -2064,6 +2137,28 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 });
               });
             });
+
+            it('should run hooks with and without name arg', function() {
+              var beforeHook = false
+                , afterHook = false;
+
+              this.User.beforeDestroy('myDestroyHook', function(user, options, fn) {
+                beforeHook = true;
+                fn();
+              });
+
+              this.User.afterDestroy(function(user, options, fn) {
+                afterHook = true;
+                fn();
+              });
+
+              return this.User.create({username: 'Jane', mood: 'sad'}).then(function(user) {
+                return user.destroy().then(function() {
+                  expect(beforeHook).to.be.true;
+                  expect(afterHook).to.be.true;
+                });
+              });
+            });
           });
 
           describe('on error', function() {
@@ -2596,6 +2691,29 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 expect(afterBulk).to.be.true;
               });
             });
+
+            it('should run hooks with and without name arg', function() {
+              var beforeBulk = false
+                , afterBulk = false;
+
+              this.User.beforeBulkCreate(function(daos, options, fn) {
+                beforeBulk = true;
+                fn();
+              });
+
+              this.User.afterBulkCreate('onBulkCreateHook', function(daos, options, fn) {
+                afterBulk = true;
+                fn();
+              });
+
+              return this.User.bulkCreate([
+                {username: 'Tamara', mood: 'sad'},
+                {username: 'Don', mood: 'sad'}
+              ]).then(function() {
+                expect(beforeBulk).to.be.true;
+                expect(afterBulk).to.be.true;
+              });
+            });
           });
 
           describe('on error', function() {
@@ -3115,6 +3233,32 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , afterBulk = false;
 
               this.User.beforeBulkUpdate(function(options, fn) {
+                beforeBulk = true;
+                fn();
+              });
+
+              this.User.afterBulkUpdate(function(options, fn) {
+                afterBulk = true;
+                fn();
+              });
+
+              return this.User.bulkCreate([
+                {username: 'Cheech', mood: 'sad'},
+                {username: 'Chong', mood: 'sad'}
+              ]).then(function() {
+                return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(function() {
+                  expect(beforeBulk).to.be.true;
+                  expect(afterBulk).to.be.true;
+                });
+              });
+            });
+
+            it('should run hooks with and without name arg', function() {
+              var self = this
+                , beforeBulk = false
+                , afterBulk = false;
+
+              this.User.beforeBulkUpdate('onBulkUpdateHook', function(options, fn) {
                 beforeBulk = true;
                 fn();
               });
@@ -3706,6 +3850,26 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               });
 
               this.User.afterBulkDestroy(function(options, fn) {
+                afterBulk = true;
+                fn();
+              });
+
+              return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(function() {
+                expect(beforeBulk).to.be.true;
+                expect(afterBulk).to.be.true;
+              });
+            });
+
+            it('should run hooks with and without name arg', function() {
+              var beforeBulk = false
+                , afterBulk = false;
+
+              this.User.beforeBulkDestroy(function(options, fn) {
+                beforeBulk = true;
+                fn();
+              });
+
+              this.User.afterBulkDestroy('onBulkDestroyHook', function(options, fn) {
                 afterBulk = true;
                 fn();
               });

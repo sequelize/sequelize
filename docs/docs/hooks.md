@@ -89,7 +89,7 @@ User.beforeValidate(function(user, options) {
   return sequelize.Promise.resolve(user)
 })
 
-User.afterValidate(function(user, options, fn) {
+User.afterValidate('myHookAfter', function(user, options, fn) {
   user.username = 'Toni'
   fn(null, user)
 })
