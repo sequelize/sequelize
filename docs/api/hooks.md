@@ -47,10 +47,24 @@ Add a hook to the model
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | hooktype | String |  |
-| [name] | String | Provide a name for the hook function. This serves no purpose, other than the ability to be able to order hooks based on some sort of priority system in the future. |
+| [name] | String | Provide a name for the hook function. It can be used to remove the hook later or to order hooks based on some sort of priority system in the future. |
 | fn | Function | The hook function  |
 
 __Aliases:__ hook
+
+***
+
+<a name="removehook"></a>
+## `removeHook(hooktype, name)`
+[View code](https://github.com/sequelize/sequelize/blob/008312999ffa7e2ee462162573b32e7c60e7f9f7/lib/hooks.js#L171)
+Remove a hook from the model
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| hooktype | String |  |
+| name | String | Hook's name you want to remove. |
 
 ***
 
