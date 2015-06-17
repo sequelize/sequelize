@@ -95,6 +95,22 @@ User.afterValidate(function(user, options, fn) {
 })
 ```
 
+## Removing hooks
+
+Only a hook with name param can be removed.
+
+```js
+var Book = sequelize.define('Book', {
+  title: DataTypes.STRING
+})
+
+Book.addHook('afterCreate', 'notifyUsers', function(book, options) {
+  // ...
+})
+
+Book.removeHook('afterCreate', 'notifyUsers')
+```
+
 ### Instance hooks
 
 The following hooks will emit whenever you're editing a single object...
