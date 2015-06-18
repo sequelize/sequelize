@@ -4606,39 +4606,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('#remove', function() {
           it('with no errors', function() {
             var self = this
-              , beforeProject = false
-              , afterProject = false
-              , beforeTask = false
-              , afterTask = false;
+              , beforeProject = sinon.spy()
+              , afterProject = sinon.spy()
+              , beforeTask = sinon.spy()
+              , afterTask = sinon.spy();
 
-            this.Projects.beforeCreate(function(project, options, fn) {
-              beforeProject = true;
-              fn();
-            });
-
-            this.Projects.afterCreate(function(project, options, fn) {
-              afterProject = true;
-              fn();
-            });
-
-            this.Tasks.beforeUpdate(function(task, options, fn) {
-              beforeTask = true;
-              fn();
-            });
-
-            this.Tasks.afterUpdate(function(task, options, fn) {
-              afterTask = true;
-              fn();
-            });
+            this.Projects.beforeCreate(beforeProject);
+            this.Projects.afterCreate(afterProject);
+            this.Tasks.beforeUpdate(beforeTask);
+            this.Tasks.afterUpdate(afterTask);
 
             return this.Projects.create({title: 'New Project'}).then(function(project) {
               return self.Tasks.create({title: 'New Task'}).then(function(task) {
                 return project.addTask(task).then(function() {
                   return project.removeTask(task).then(function() {
-                    expect(beforeProject).to.be.true;
-                    expect(afterProject).to.be.true;
-                    expect(beforeTask).to.be.true;
-                    expect(afterTask).to.be.true;
+                    expect(beforeProject).to.have.been.called;
+                    expect(afterProject).to.have.been.called;
+                    expect(beforeTask).not.to.have.been.called;
+                    expect(afterTask).not.to.have.been.called;
                   });
                 });
               });
@@ -4813,39 +4798,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         describe('#remove', function() {
           it('with no errors', function() {
             var self = this
-              , beforeProject = false
-              , afterProject = false
-              , beforeTask = false
-              , afterTask = false;
+              , beforeProject = sinon.spy()
+              , afterProject = sinon.spy()
+              , beforeTask = sinon.spy()
+              , afterTask = sinon.spy();
 
-            this.Projects.beforeCreate(function(project, options, fn) {
-              beforeProject = true;
-              fn();
-            });
-
-            this.Projects.afterCreate(function(project, options, fn) {
-              afterProject = true;
-              fn();
-            });
-
-            this.Tasks.beforeUpdate(function(task, options, fn) {
-              beforeTask = true;
-              fn();
-            });
-
-            this.Tasks.afterUpdate(function(task, options, fn) {
-              afterTask = true;
-              fn();
-            });
+            this.Projects.beforeCreate(beforeProject);
+            this.Projects.afterCreate(afterProject);
+            this.Tasks.beforeUpdate(beforeTask);
+            this.Tasks.afterUpdate(afterTask);
 
             return this.Projects.create({title: 'New Project'}).then(function(project) {
               return self.Tasks.create({title: 'New Task'}).then(function(task) {
                 return project.addTask(task).then(function() {
                   return project.removeTask(task).then(function() {
-                    expect(beforeProject).to.be.true;
-                    expect(afterProject).to.be.true;
-                    expect(beforeTask).to.be.true;
-                    expect(afterTask).to.be.true;
+                    expect(beforeProject).to.have.been.called;
+                    expect(afterProject).to.have.been.called;
+                    expect(beforeTask).not.to.have.been.called;
+                    expect(afterTask).not.to.have.been.called;
                   });
                 });
               });

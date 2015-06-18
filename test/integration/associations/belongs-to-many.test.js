@@ -844,6 +844,17 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           return this.task.getUsers();
         }).then(function(users) {
           expect(users).to.have.length(3);
+
+          // Re-add user 0's object, this should be harmless
+          // Re-add user 0's id, this should be harmless
+          return Promise.all([
+            expect(this.task.addUsers([this.users[0]])).not.to.be.rejected,
+            expect(this.task.addUsers([this.users[0].id])).not.to.be.rejected
+          ]);
+        }).then(function() {
+          return this.task.getUsers();
+        }).then(function(users) {
+          expect(users).to.have.length(3);
         });
       });
     });
@@ -1065,7 +1076,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           logging: spy
         }).return (user);
       }).then(function(user) {
-        expect(spy.calledOnce).to.be.ok;
+        expect(spy).to.have.been.calledTwice;
         spy.reset();
         return Promise.join(
           user,
@@ -1119,8 +1130,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           logging: spy
         }).return (project);
       }).then(function(project) {
-        expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for REMOVE
-        return self.user.setProjects([project]);
+        expect(spy).to.have.been.calledOnce;
       });
     });
 
@@ -1762,8 +1772,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     if (current.dialect.supports.constraints.restrict) {
 
       it('can restrict deletes both ways', function() {
-        var self = this
-          , spy = sinon.spy();
+        var self = this;
 
         this.User.belongsToMany(this.Task, { onDelete: 'RESTRICT', through: 'tasksusers' });
         this.Task.belongsToMany(this.User, { onDelete: 'RESTRICT', through: 'tasksusers' });
@@ -1786,17 +1795,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           ]);
         }).then(function() {
           return Promise.all([
-            this.user1.destroy().catch (self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
-            this.task2.destroy().catch (self.sequelize.ForeignKeyConstraintError, spy)
+            expect(this.user1.destroy()).to.have.been.rejectedWith(self.sequelize.ForeignKeyConstraintError), // Fails because of RESTRICT constraint
+            expect(this.task2.destroy()).to.have.been.rejectedWith(self.sequelize.ForeignKeyConstraintError)
           ]);
-        }).then(function() {
-          expect(spy).to.have.been.calledTwice;
         });
       });
 
       it('can cascade and restrict deletes', function() {
-        var spy = sinon.spy()
-          , self = this;
+        var self = this;
 
         self.User.belongsToMany(self.Task, { onDelete: 'RESTRICT', through: 'tasksusers' });
         self.Task.belongsToMany(self.User, { onDelete: 'CASCADE', through: 'tasksusers' });
@@ -1819,11 +1825,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           );
         }).then(function() {
           return Sequelize.Promise.join(
-            this.user1.destroy().catch(self.sequelize.ForeignKeyConstraintError, spy), // Fails because of RESTRICT constraint
+            expect(this.user1.destroy()).to.have.been.rejectedWith(self.sequelize.ForeignKeyConstraintError), // Fails because of RESTRICT constraint
             this.task2.destroy()
           );
         }).then(function() {
-          expect(spy).to.have.been.calledOnce;
           return self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }});
         }).then(function(usertasks) {
           // This should not exist because deletes cascade
