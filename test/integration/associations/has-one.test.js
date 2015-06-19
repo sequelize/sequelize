@@ -381,6 +381,21 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
+    it('works when cascading a delete with hooks but there is no associate (i.e. "has zero")', function() {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING });
+
+      User.hasOne(Task, {onDelete: 'cascade', hooks: true});
+
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return user.destroy();
+          });
+        });
+      });
+    });
+
     // NOTE: mssql does not support changing an autoincrement primary key
     if (Support.getTestDialect() !== 'mssql') {
       it('can cascade updates', function() {
