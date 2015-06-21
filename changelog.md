@@ -1,4 +1,4 @@
-# Next
+# 3.3.0
 - [FIXED] Fix `Promise#nodeify()` and `Promise#done()` not passing CLS context
 - [FIXED] Creating and dropping enums in transaction, only for PostgreSQL [#3782](https://github.com/sequelize/sequelize/issues/3782)
 - [FIXED] $or/$and inside a where clause always expects the input to be an array [#3767](https://github.com/sequelize/sequelize/issues/3767)
