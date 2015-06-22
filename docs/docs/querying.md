@@ -21,7 +21,7 @@ Post.findAll({
     status: active
   }
 });
-// SELECT * FROM post WHERE authorId = 12
+// SELECT * FROM post WHERE authorId = 12 AND status = 'active';
 
 Post.destroy({
   where: {
@@ -31,7 +31,7 @@ Post.destroy({
 // DELETE FROM post WHERE status = 'inactive';
 
 Post.update({
-  deletedAt: null,
+  updatedAt: null,
 }, {
   where: {
     deletedAt: {
