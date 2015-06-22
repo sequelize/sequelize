@@ -39,7 +39,7 @@ Post.update({
     }
   }
 });
-// UPDATE post SET updatedAt = null WHERE updatedAt NOT NULL;
+// UPDATE post SET updatedAt = null WHERE deletedAt NOT NULL;
 ```
 
 ### Operators
