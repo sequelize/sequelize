@@ -5,7 +5,7 @@ One-To-One associations are associations between exactly two models connected by
 
 BelongsTo associations are associations where the foreign key for the one-to-one relation exists on the **source model**.
 
-A simple example would be a **User** being part of a team **Team** with the foreign key on user.
+A simple example would be a **Player** being part of a **Team** with the foreign key on the player.
 
 ```js
 var Player = this.sequelize.define('Player', {/* attributes */})
