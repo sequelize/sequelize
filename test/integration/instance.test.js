@@ -427,6 +427,28 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should support updating a subset of attributes', function () {
+      return this.User.create({
+        aNumber: 1,
+        bNumber: 1,
+      }).bind(this).tap(function (user) {
+        return this.User.update({
+          bNumber: 2
+        }, {
+          where: {
+            id: user.get('id')
+          }
+        });
+      }).then(function (user) {
+        return user.reload({
+          attributes: ['bNumber']
+        });
+      }).then(function (user) {
+        expect(user.get('aNumber')).to.equal(1);
+        expect(user.get('bNumber')).to.equal(2);
+      });
+    });
+
     it('should update read only attributes as well (updatedAt)', function() {
       var self = this;
 

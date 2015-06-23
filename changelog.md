@@ -1,3 +1,6 @@
+# 3.3.1
+- [FIXED] regression in `attributes` support for 'reload' [#3976](https://github.com/sequelize/sequelize/issues/3976)
+
 # 3.3.0
 - [FIXED] Fix `Promise#nodeify()` and `Promise#done()` not passing CLS context
 - [FIXED] Creating and dropping enums in transaction, only for PostgreSQL [#3782](https://github.com/sequelize/sequelize/issues/3782)
