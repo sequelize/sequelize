@@ -24,7 +24,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       },
       baz: {
         type: DataTypes.STRING,
-        field: 'zab'
+        field: 'zab',
+        defaultValue: 'BAZ_DEFAULT_VALUE'
       },
       blob: DataTypes.BLOB
     });
@@ -245,6 +246,25 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
           expect(user.foo).to.equal('MIXEDCASE2');
+        });
+      });
+
+      it('does not update using default values', function() {
+        return this.User.create({ id: 42, username: 'john', baz: 'new baz value'}).bind(this).then(function() {
+          return this.User.findById(42);
+        }).then(function(user) {
+          // 'username' should be 'john' since it was set
+          expect(user.username).to.equal('john');
+          // 'baz' should be 'new baz value' since it was set
+          expect(user.baz).to.equal('new baz value');
+          return this.User.upsert({ id: 42, username: 'doe'});
+        }).then(function() {
+          return this.User.findById(42);
+        }).then(function(user) {
+          // 'username' was updated
+          expect(user.username).to.equal('doe');
+          // 'baz' should still be 'new baz value' since it was not updated
+          expect(user.baz).to.equal('new baz value');
         });
       });
 
