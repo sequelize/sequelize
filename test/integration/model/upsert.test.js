@@ -2,6 +2,7 @@
 
 /* jshint -W030 */
 var chai = require('chai')
+  , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -246,6 +247,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
           expect(user.foo).to.equal('MIXEDCASE2');
+        });
+      });
+
+      it('does not overwrite createdAt time on update', function() {
+        var originalCreatedAt;
+        var originalUpdatedAt;
+        var clock = sinon.useFakeTimers();
+        return this.User.create({ id: 42, username: 'john'}).bind(this).then(function() {
+          return this.User.findById(42);
+        }).then(function(user) {
+          originalCreatedAt = user.createdAt;
+          originalUpdatedAt = user.updatedAt;
+          clock.tick(5000);
+          return this.User.upsert({ id: 42, username: 'doe'});
+        }).then(function() {
+          return this.User.findById(42);
+        }).then(function(user) {
+          expect(user.updatedAt).to.be.gt(originalUpdatedAt);
+          expect(user.createdAt).to.deep.equal(originalCreatedAt);
+          clock.restore();
         });
       });
 
