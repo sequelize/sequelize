@@ -6,7 +6,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , current = Support.sequelize;
 
-
 if (current.dialect.supports.tmpTableTrigger) {
   describe(Support.getTestDialectTeaser('Model'), function() {
     describe('trigger', function() {
@@ -32,78 +31,41 @@ if (current.dialect.supports.tmpTableTrigger) {
         },{
           hasTrigger:true
         });
+
+        return User.sync({force: true}).bind(this).then(function () {
+          return this.sequelize.query(triggerQuery,{type:this.sequelize.QueryTypes.RAW});
+        });
       });
 
       it('should return output rows after insert', function() {
-        return User.sync({force: true}).bind(this).then(function () {
-          return this.sequelize.query(triggerQuery,{type:this.sequelize.QueryTypes.RAW});
-        }).then(function(){
-          return User.create({
-            username: 'triggertest'
-          });
+        return User.create({
+          username: 'triggertest'
         }).then(function () {
-          return User.find({username: 'triggertest'}).then(function(user) {
-            expect(user.username).to.equal('triggertest');
-          });
-        });
-
-      });
-
-      it('should return output rows after bulk insert', function() {
-        return User.sync({force: true}).bind(this).then(function () {
-          return this.sequelize.query(triggerQuery,{type:this.sequelize.QueryTypes.RAW});
-        }).then(function(){
-          return User.bulkCreate([
-            {username: 'shak'},
-            {username: 'mike'},
-            {username: 'blah'},
-            {username: 'argh'}]);
-        }).then(function () {
-          return User.findAll().then(function(users) {
-            expect(users.length).to.equal(4);
-          });
+          return expect(User.find({username: 'triggertest'})).to.eventually.have.property('username').which.equals('triggertest');
         });
       });
 
       it('should return output rows after update', function() {
-        return User.sync({force: true}).bind(this).then(function () {
-          return this.sequelize.query(triggerQuery,{type:this.sequelize.QueryTypes.RAW});
-        }).then(function(){
-          return User.create({
-            username: 'triggertest'
-          });
-        })
-        .then(function(user){
+        return User.create({
+          username: 'triggertest'
+        }).then(function(user){
           user.username = 'usernamechanged';
           return user.save();
         })
         .then(function (user) {
-          return User.find({username: 'usernamechanged'}).then(function(user) {
-            expect(user.username).to.equal('usernamechanged');
-          });
+          return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
         });
       });
-
 
       it('should successfully delete with a trigger on the table', function() {
-        return User.sync({force: true}).bind(this).then(function () {
-          return this.sequelize.query(triggerQuery,{type:this.sequelize.QueryTypes.RAW});
-        }).then(function(){
-          return User.create({
-            username: 'triggertest'
-          });
-        })
-        .then(function(user){
+        return User.create({
+          username: 'triggertest'
+        }).then(function(user){
           return user.destroy();
-        })
-        .then(function (user) {
-          return User.find({username: 'triggertest'}).then(function(user) {
-            /* jshint expr:true */
-            expect(user).to.be.null;
-          });
+        }).then(function (user) {
+          return expect(User.find({username: 'triggertest'})).to.eventually.be.null;
         });
       });
-
     });
   });
 }
