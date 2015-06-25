@@ -1,3 +1,6 @@
+# 3.3.2
+- [FIXED] upsert no longer updates with default values each time [#3994](https://github.com/sequelize/sequelize/pull/3994)
+
 # 3.3.1
 - [FIXED] regression in `attributes` support for 'reload' [#3976](https://github.com/sequelize/sequelize/issues/3976)
 
