@@ -1,0 +1,90 @@
+LOG:  database system was shut down at 2015-06-25 07:14:13 EDT
+LOG:  database system is ready to accept connections
+LOG:  autovacuum launcher started
+ERROR:  update or delete on table "tasks" violates foreign key constraint "tasksusers_taskId_fkey" on table "tasksusers"
+DETAIL:  Key (id)=(42) is still referenced from table "tasksusers".
+STATEMENT:  DELETE FROM "tasks" WHERE "id" IN (SELECT "id" FROM "tasks" WHERE "id" = 42 LIMIT 1)
+ERROR:  update or delete on table "users" violates foreign key constraint "tasksusers_userId_fkey" on table "tasksusers"
+DETAIL:  Key (id)=(67) is still referenced from table "tasksusers".
+STATEMENT:  DELETE FROM "users" WHERE "id" IN (SELECT "id" FROM "users" WHERE "id" = 67 LIMIT 1)
+ERROR:  update or delete on table "users" violates foreign key constraint "tasksusers_userId_fkey" on table "tasksusers"
+DETAIL:  Key (id)=(67) is still referenced from table "tasksusers".
+STATEMENT:  DELETE FROM "users" WHERE "id" IN (SELECT "id" FROM "users" WHERE "id" = 67 LIMIT 1)
+ERROR:  update or delete on table "Users" violates foreign key constraint "Tasks_UserId_fkey" on table "Tasks"
+DETAIL:  Key (id)=(1) is still referenced from table "Tasks".
+STATEMENT:  DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE "id" = 1 LIMIT 1)
+ERROR:  update or delete on table "Users" violates foreign key constraint "Tasks_UserId_fkey" on table "Tasks"
+DETAIL:  Key (id)=(1) is still referenced from table "Tasks".
+STATEMENT:  UPDATE "Users" SET "id"=999 WHERE "id" = 1
+ERROR:  update or delete on table "Users" violates foreign key constraint "Tasks_UserId_fkey" on table "Tasks"
+DETAIL:  Key (id)=(1) is still referenced from table "Tasks".
+STATEMENT:  DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE "id" = 1 LIMIT 1)
+ERROR:  update or delete on table "Users" violates foreign key constraint "Tasks_UserId_fkey" on table "Tasks"
+DETAIL:  Key (id)=(1) is still referenced from table "Tasks".
+STATEMENT:  UPDATE "Users" SET "id"=999 WHERE "id" = 1
+ERROR:  update or delete on table "users" violates foreign key constraint "tasksusers_userId_fkey" on table "tasksusers"
+DETAIL:  Key (id)=(67) is still referenced from table "tasksusers".
+STATEMENT:  DELETE FROM "users" WHERE "id" IN (SELECT "id" FROM "users" WHERE "id" = 67 LIMIT 1)
+ERROR:  update or delete on table "tasks" violates foreign key constraint "tasksusers_taskId_fkey" on table "tasksusers"
+DETAIL:  Key (id)=(42) is still referenced from table "tasksusers".
+STATEMENT:  DELETE FROM "tasks" WHERE "id" IN (SELECT "id" FROM "tasks" WHERE "id" = 42 LIMIT 1)
+ERROR:  update or delete on table "users" violates foreign key constraint "tasksusers_userId_fkey" on table "tasksusers"
+DETAIL:  Key (id)=(67) is still referenced from table "tasksusers".
+STATEMENT:  DELETE FROM "users" WHERE "id" IN (SELECT "id" FROM "users" WHERE "id" = 67 LIMIT 1)
+ERROR:  update or delete on table "Users" violates foreign key constraint "Tasks_UserId_fkey" on table "Tasks"
+DETAIL:  Key (id)=(1) is still referenced from table "Tasks".
+STATEMENT:  DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE "id" = 1 LIMIT 1)
+ERROR:  update or delete on table "Users" violates foreign key constraint "Tasks_UserId_fkey" on table "Tasks"
+DETAIL:  Key (id)=(1) is still referenced from table "Tasks".
+STATEMENT:  UPDATE "Users" SET "id"=999 WHERE "id" = 1
+ERROR:  conflicting key value violates exclusion constraint "overlap_period"
+DETAIL:  Key ("roomNo", period)=(1, ("2015-01-02 05:00:00+00","2015-01-05 05:00:00+00")) conflicts with existing key ("roomNo", period)=(1, ("2015-01-01 05:00:00+00","2015-01-03 05:00:00+00")).
+STATEMENT:  INSERT INTO "Bookings" ("roomNo","period","updatedAt","createdAt") VALUES (1,'("2015-01-02T05:00:00.000Z","2015-01-05T05:00:00.000Z")','2015-06-25 13:02:35.474 +00:00','2015-06-25 13:02:35.474 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "users_first_name_last_name_key"
+DETAIL:  Key (first_name, last_name)=(jan, meier) already exists.
+STATEMENT:  INSERT INTO "users" ("first_name","last_name","updatedAt","createdAt") VALUES ('jan','meier','2015-06-25 13:02:41.068 +00:00','2015-06-25 13:02:41.068 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "users_first_name_last_name_key"
+DETAIL:  Key (first_name, last_name)=(jan, meier) already exists.
+STATEMENT:  INSERT INTO "users" ("first_name","last_name","updatedAt","createdAt") VALUES ('jan','meier','2015-06-25 13:02:41.110 +00:00','2015-06-25 13:02:41.110 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "users_name_key"
+DETAIL:  Key (name)=(jan) already exists.
+STATEMENT:  INSERT INTO "users" ("name","updatedAt","createdAt") VALUES ('jan','2015-06-25 13:02:41.159 +00:00','2015-06-25 13:02:41.159 +00:00') RETURNING *;
+ERROR:  invalid input syntax for type boolean: "INCORRECT_VALUE_TYPE" at character 230
+STATEMENT:  INSERT INTO "Users" ("username","uuidv1","uuidv4","touchedAt","isSuperUser","updatedAt","createdAt") VALUES ('a user','82f29fe0-1b3a-11e5-a2f9-11a220a8d169','ea9bcc9a-951d-480a-9c01-fdd2ec53d55f','2015-06-25 13:03:02.000 +00:00','INCORRECT_VALUE_TYPE','2015-06-25 13:03:02.367 +00:00','2015-06-25 13:03:02.367 +00:00') RETURNING *;
+ERROR:  column "asdasdasd" does not exist at character 214
+STATEMENT:  SELECT "id", "username", "uuidv1", "uuidv4", "touchedAt", "aNumber", "bNumber", "aDate", "validateTest", "validateCustom", "dateAllowNullTrue", "isSuperUser", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE asdasdasd LIMIT 1;
+ERROR:  invalid input value for enum "enum_Bar636s_field": "value3" at character 65
+STATEMENT:  INSERT INTO "Bar636s" ("field","updatedAt","createdAt") VALUES ('value3','2015-06-25 13:03:09.128 +00:00','2015-06-25 13:03:09.128 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "models_uniqueName_key"
+DETAIL:  Key ("uniqueName")=(unique name one) already exists.
+STATEMENT:  UPDATE "models" SET "uniqueName"='unique name one',"updatedAt"='2015-06-25 13:03:09.504 +00:00' WHERE "id" = 2
+ERROR:  duplicate key value violates unique constraint "Users_email_key"
+DETAIL:  Key (email)=(hello@sequelize.com) already exists.
+STATEMENT:  INSERT INTO "Users" ("email","updatedAt","createdAt") VALUES ('hello@sequelize.com','2015-06-25 13:03:14.085 +00:00','2015-06-25 13:03:14.085 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "UserWithUniqueUsernames_username_key"
+DETAIL:  Key (username)=(foo) already exists.
+STATEMENT:  INSERT INTO "UserWithUniqueUsernames" ("username","updatedAt","createdAt") VALUES ('foo','2015-06-25 13:03:15.097 +00:00','2015-06-25 13:03:15.097 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "UserWithNonNullSmths_username_key"
+DETAIL:  Key (username)=(foo) already exists.
+STATEMENT:  INSERT INTO "UserWithNonNullSmths" ("id","username","smth","updatedAt","createdAt") VALUES (DEFAULT,'foo','bar','2015-06-25 13:03:15.254 +00:00','2015-06-25 13:03:15.254 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "UserWithUniqueUsernames_username_email_key"
+DETAIL:  Key (username, email)=(tobi, tobi@tobi.me) already exists.
+STATEMENT:  INSERT INTO "UserWithUniqueUsernames" ("id","username","email","updatedAt","createdAt") VALUES (DEFAULT,'tobi','tobi@tobi.me','2015-06-25 13:03:38.261 +00:00','2015-06-25 13:03:38.261 +00:00') RETURNING *;
+ERROR:  duplicate key value violates unique constraint "user_and_email_index"
+DETAIL:  Key (user_id, email)=(1, tobi@tobi.me) already exists.
+STATEMENT:  INSERT INTO "UserWithUniqueUsernames" ("id","user_id","email","updatedAt","createdAt") VALUES (DEFAULT,1,'tobi@tobi.me','2015-06-25 13:03:38.319 +00:00','2015-06-25 13:03:38.319 +00:00') RETURNING *;
+ERROR:  relation "4uth0r5" does not exist
+STATEMENT:  CREATE TABLE IF NOT EXISTS "posts" ("id"   SERIAL , "title" VARCHAR(255), "authorId" INTEGER REFERENCES "4uth0r5" ("id") ON DELETE SET NULL ON UPDATE CASCADE, "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL, "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL, PRIMARY KEY ("id"));
+FATAL:  role "wtf" does not exist
+FATAL:  role "bar" does not exist
+FATAL:  role "user" does not exist
+ERROR:  relation "User" does not exist
+STATEMENT:  CREATE TABLE IF NOT EXISTS "Applications" ("id"   SERIAL , "authorID" BIGINT NOT NULL REFERENCES "User" ("id"), "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL, "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL, PRIMARY KEY ("id"));
+ERROR:  duplicate key value violates unique constraint "Models_name_key"
+DETAIL:  Key (name)=(omnom) already exists.
+STATEMENT:  INSERT INTO "Models" ("id","name") VALUES (DEFAULT,'omnom') RETURNING *;
+ERROR:  FOR UPDATE cannot be applied to the nullable side of an outer join
+STATEMENT:  SELECT "User".*, "Tasks"."id" AS "Tasks.id", "Tasks"."title" AS "Tasks.title", "Tasks"."active" AS "Tasks.active", "Tasks"."createdAt" AS "Tasks.createdAt", "Tasks"."updatedAt" AS "Tasks.updatedAt", "Tasks.UserTasks"."createdAt" AS "Tasks.UserTasks.createdAt", "Tasks.UserTasks"."updatedAt" AS "Tasks.UserTasks.updatedAt", "Tasks.UserTasks"."TaskId" AS "Tasks.UserTasks.TaskId", "Tasks.UserTasks"."UserId" AS "Tasks.UserTasks.UserId" FROM (SELECT "User"."id", "User"."username", "User"."createdAt", "User"."updatedAt" FROM "Users" AS "User" WHERE "User"."username" = 'John' LIMIT 1) AS "User" LEFT OUTER JOIN ("UserTasks" AS "Tasks.UserTasks" INNER JOIN "Tasks" AS "Tasks" ON "Tasks"."id" = "Tasks.UserTasks"."TaskId") ON "User"."id" = "Tasks.UserTasks"."UserId" FOR UPDATE;
+LOG:  unexpected EOF on client connection with an open transaction
+LOG:  unexpected EOF on client connection with an open transaction
+LOG:  unexpected EOF on client connection with an open transaction
