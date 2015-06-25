@@ -225,6 +225,21 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
     });
 
+    it('should throw a ForeignKeyConstraintError if the associated record does not exist', function() {
+      var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
+
+      Task.belongsTo(User);
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(function () {
+          return Task.create({ title: 'task' }).then(function(task) {
+            return expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+          });
+        });
+      });
+    });
+
     it('supports passing the primary key instead of an object', function() {
       var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });

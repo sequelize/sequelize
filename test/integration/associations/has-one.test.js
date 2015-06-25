@@ -182,6 +182,23 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
+    it('should throw a ForeignKeyConstraintError if the associated record does not exist', function() {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING });
+
+      User.hasOne(Task);
+
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(function () {
+            return Task.create({ title: 'task' }).then(function(task) {
+              return expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+            });
+          });
+        });
+      });
+    });
+
     it('supports passing the primary key instead of an object', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
         , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING });
@@ -376,6 +393,21 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
                 });
               });
             });
+          });
+        });
+      });
+    });
+
+    it('works when cascading a delete with hooks but there is no associate (i.e. "has zero")', function() {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING });
+
+      User.hasOne(Task, {onDelete: 'cascade', hooks: true});
+
+      return User.sync({ force: true }).then(function() {
+        return Task.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return user.destroy();
           });
         });
       });

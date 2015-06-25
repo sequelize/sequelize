@@ -299,42 +299,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should be able to return a record with primaryKey being null for new inserts', function() {
-        var Session = this.sequelize.define('Session', {
-            token: { type: DataTypes.TEXT, allowNull: false },
-            lastUpdate: { type: DataTypes.DATE, allowNull: false }
-          }, {
-              charset: 'utf8',
-              collate: 'utf8_general_ci',
-              omitNull: true
-            })
-
-          , User = this.sequelize.define('User', {
-              name: { type: DataTypes.STRING, allowNull: false, unique: true },
-              password: { type: DataTypes.STRING, allowNull: false },
-              isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
-            }, {
-              charset: 'utf8',
-              collate: 'utf8_general_ci'
-            });
-
-        User.hasMany(Session, { as: 'Sessions' });
-        Session.belongsTo(User);
-
-        return this.sequelize.sync({ force: true }).then(function() {
-          return User.create({name: 'Name1', password: '123', isAdmin: false}).then(function(user) {
-            var sess = Session.build({
-              lastUpdate: new Date(),
-              token: '123'
-            });
-
-            return user.addSession(sess).then(function(u) {
-              expect(u.token).to.equal('123');
-            });
-          });
-        });
-      });
-
       it('should be able to find a row between a certain date', function() {
         return this.User.findAll({
           where: {
