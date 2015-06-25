@@ -1,8 +1,15 @@
-# Next
+# 3.3.2
+- [FIXED] upsert no longer updates with default values each time [#3994](https://github.com/sequelize/sequelize/pull/3994)
+
+# 3.3.1
+- [FIXED] regression in `attributes` support for 'reload' [#3976](https://github.com/sequelize/sequelize/issues/3976)
+
+# 3.3.0
 - [FIXED] Fix `Promise#nodeify()` and `Promise#done()` not passing CLS context
 - [FIXED] Creating and dropping enums in transaction, only for PostgreSQL [#3782](https://github.com/sequelize/sequelize/issues/3782)
 - [FIXED] $or/$and inside a where clause always expects the input to be an array [#3767](https://github.com/sequelize/sequelize/issues/3767)
 - [ADDED] Unique constraints may now include custom error messages
+- [ADDED] It's possible now to remove a hook by name
 
 # 3.2.0
 - [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.

@@ -20,7 +20,7 @@ var User = sequelize.define('User', {
   birthday: Sequelize.DATE
 });
 
-return sequelize.sync().then(function() {
+sequelize.sync().then(function() {
   return User.create({
     username: 'janedoe',
     birthday: new Date(1980, 6, 20)

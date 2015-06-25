@@ -5,7 +5,7 @@ One-To-One associations are associations between exactly two models connected by
 
 BelongsTo associations are associations where the foreign key for the one-to-one relation exists on the **source model**.
 
-A simple example would be a **User** being part of a team **Team** with the foreign key on user.
+A simple example would be a **Player** being part of a **Team** with the foreign key on the player.
 
 ```js
 var Player = this.sequelize.define('Player', {/* attributes */})
@@ -200,7 +200,7 @@ UserProjects = sequelize.define('UserProjects', {
 ```
 
 ## Scopes
-This section concerns association scopes. For a definition of assocation scopes vs. scopes on associated models, see [Scopes](docs/scopes).
+This section concerns association scopes. For a definition of assocation scopes vs. scopes on associated models, see [Scopes](scopes).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
