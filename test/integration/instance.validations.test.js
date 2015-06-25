@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       });
     });
 
-    it('should enforce a unque constraint', function() {
+    it('should enforce a unique constraint', function() {
       var Model = this.sequelize.define('model', {
         uniqueName: { type: Sequelize.STRING, unique: true }
       });
@@ -101,6 +101,34 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           expect(err.errors).to.have.length(1);
           expect(err.errors[0].path).to.include('uniqueName');
           expect(err.errors[0].message).to.include('must be unique');
+        });
+    });
+
+    it('should allow a custom unique constraint error message', function() {
+      var Model = this.sequelize.define('model', {
+        uniqueName: {
+          type: Sequelize.STRING,
+          unique: { msg: 'custom unique error message' }
+        }
+      });
+      var records = [
+        { uniqueName: 'unique name one' },
+        { uniqueName: 'unique name two' }
+      ];
+      return Model.sync({ force: true })
+        .then(function() {
+          return Model.create(records[0]);
+        }).then(function(instance) {
+          expect(instance).to.be.ok;
+          return Model.create(records[1]);
+        }).then(function(instance) {
+          expect(instance).to.be.ok;
+          return expect(Model.update(records[0], { where: { id: instance.id } })).to.be.rejected;
+        }).then(function(err) {
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.errors).to.have.length(1);
+          expect(err.errors[0].path).to.include('uniqueName');
+          expect(err.errors[0].message).to.equal('custom unique error message');
         });
     });
   });

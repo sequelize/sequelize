@@ -8,12 +8,12 @@ var Sequelize=require("./lib/sequelize")
   , QueryTypes = require('./lib/query-types');
 
 
-  Sequelize.prototype.authenticate = function() {
+  Sequelize.prototype.authenticate = function(options) {
     var sql='SELECT 1+1 AS result';
     if (this.options.dialect==="oracle"){
   	  sql+=' FROM dual';
     }
-    return this.query(sql, { raw: true, plain: true }).return().catch(function(err) {
+    return this.query(sql, Utils._.assign({ raw: true, plain: true }, options)).return().catch(function(err) {
       throw new Error(err);
     });
   };
@@ -79,15 +79,15 @@ var Sequelize=require("./lib/sequelize")
     }
 
     if (Utils._.isPlainObject(sql)) {
-      if (sql.hasOwnProperty('values')) {
-        if (options.hasOwnProperty('replacements')) {
+      if (sql.values !== undefined) {
+        if (options.replacements !== undefined) {
           throw new Error('Both `sql.values` and `options.replacements` cannot be set at the same time');
         }
 
         options.replacements = sql.values;
       }
 
-      if (sql.hasOwnProperty('query')) {
+      if (sql.query !== undefined) {
         sql = sql.query;
       }
     }

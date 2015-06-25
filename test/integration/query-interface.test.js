@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
               count = 0;
               expect(tableNames).to.have.length(1);
               return self.queryInterface.dropAllTables({logging: log}).then(function() {
-                expect(count).to.be.equal(1);
+                expect(count).to.be.at.least(1);
                 count = 0;
                 return self.queryInterface.showAllTables().then(function(tableNames) {
                   expect(tableNames).to.be.empty;
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     beforeEach(function() {
       var self = this;
       return this.queryInterface.dropTable('Group', {logging: log}).then(function() {
-        expect(count).to.be.equal(1);
+        expect(count).to.be.at.least(1);
         count = 0;
         return self.queryInterface.createTable('Group', {
           username: DataTypes.STRING,
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
       return Users.sync({ force: true }).then(function() {
         return self.queryInterface.describeTable('_Users', {logging: log}).then(function(metadata) {
-          expect(count).to.be.equal(1);
+          expect(count).to.be.at.least(1);
           count = 0;
 
           var username = metadata.username;
