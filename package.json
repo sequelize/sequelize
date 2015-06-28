@@ -43,7 +43,9 @@
     "node-uuid": "~1.4.1",
     "shimmer": "1.0.0",
     "toposort-class": "~0.3.0",
-    "validator": "^3.34.0"
+    "validator": "^3.34.0",
+    "wellknown": "^0.3.1",
+    "wkx": "0.0.7"
   },
   "devDependencies": {
     "chai": "^2.1.2",

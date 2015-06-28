@@ -31,7 +31,8 @@ if (dialect.match(/^postgres/)) {
         course_period: DataTypes.RANGE(DataTypes.DATE),
         acceptable_marks: { type: DataTypes.RANGE(DataTypes.DECIMAL), defaultValue: [0.65, 1] },
         available_amount: DataTypes.RANGE,
-        holidays: DataTypes.ARRAY(DataTypes.RANGE(DataTypes.DATE))
+        holidays: DataTypes.ARRAY(DataTypes.RANGE(DataTypes.DATE)),
+        location: DataTypes.GEOMETRY()
       });
       return this.User.sync({ force: true });
     });
@@ -872,6 +873,35 @@ if (dialect.match(/^postgres/)) {
             expect(user.holidayDates[0].period[0]).to.equalTime(period[0]);
             expect(user.holidayDates[0].period[1]).to.equalTime(period[1]);
           });
+      });
+    });
+
+    it('should save geometry correctly', function() {
+      var point = { type: 'Point', coordinates: [39.807222,-76.984722] };
+      return this.User.create({ username: 'user', email: ['foo@bar.com'], location: point}).then(function(newUser) {
+        expect(newUser.location).to.deep.eql(point);
+      });
+    });
+
+    it('should update geometry correctly', function() {
+      var User = this.User;
+      var point1 = { type: 'Point', coordinates: [39.807222,-76.984722] }
+        , point2 = { type: 'Point', coordinates: [39.828333,-77.232222] };
+      return User.create({ username: 'user', email: ['foo@bar.com'], location: point1}).then(function(oldUser) {
+        return User.update({ location: point2 }, { where: { username: oldUser.username }, returning: true }).spread(function(count, updatedUsers) {
+          expect(updatedUsers[0].location).to.deep.eql(point2);
+        });
+      });
+    });
+
+    it('should read geometry correctly', function() {
+      var User = this.User;
+      var point = { type: 'Point', coordinates: [39.807222,-76.984722] };
+
+      return User.create({ username: 'user', email: ['foo@bar.com'], location: point}).then(function(user) {
+          return User.find({ where: { username: user.username }});
+      }).then(function(user) {
+          expect(user.location).to.deep.eql(point);
       });
     });
 

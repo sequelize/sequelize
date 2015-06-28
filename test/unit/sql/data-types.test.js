@@ -666,5 +666,29 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         }
       });
     }
+
+    if (current.dialect.supports.ARRAY) {
+      suite('GEOMETRY', function () {
+        testsql('GEOMETRY', DataTypes.GEOMETRY, {
+          postgres: 'GEOMETRY'
+        });
+
+        testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
+          postgres: 'GEOMETRY(POINT)'
+        });
+
+        testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LINESTRING'), {
+          postgres: 'GEOMETRY(LINESTRING)',
+        });
+
+        testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('POLYGON'), {
+          postgres: 'GEOMETRY(POLYGON)'
+        });
+
+        testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('POINT', 4326), {
+          postgres: 'GEOMETRY(POINT,4326)'
+        });
+      });
+    }
   });
 });
