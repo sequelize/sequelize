@@ -1,3 +1,7 @@
+# Next
+- [FEATURE] Geometry support for postgres
+- [BUG] Fix wrong count for `findAndCountAll` with required includes [#4016](https://github.com/sequelize/sequelize/pull/4016)
+
 # 3.3.2
 - [FIXED] upsert no longer updates with default values each time [#3994](https://github.com/sequelize/sequelize/pull/3994)
 

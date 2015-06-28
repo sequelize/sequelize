@@ -84,12 +84,12 @@ User
 
 ### findAndCountAll - Search for multiple elements in the database&comma; returns both data and total count
 
-This is a convienience method that combines`findAll`&lpar;&rpar;and `count`&lpar;&rpar;&lpar;see below&rpar;&comma; this is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query&period;
+This is a convienience method that combines`findAll` and `count` (see below) this is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query:
 
-The success handler will always receive an object with two properties&colon;
+The success handler will always receive an object with two properties:
 
-* `count` - an integer&comma; total number records &lpar;matching the where clause&rpar;
-* `rows` - an array of objects&comma; the records &lpar;matching the where clause&rpar; within the limit&sol;offset range
+* `count` - an intege, total number records matching the where clause
+* `rows` - an array of objects, the records matching the where clause, within the limit and offset range
 ```js
 Project
   .findAndCountAll({
@@ -107,7 +107,33 @@ Project
   });
 ```
 
-The options &lsqb;object&rsqb; that you pass to`findAndCountAll`&lpar;&rpar;is the same as for`findAll`&lpar;&rpar;&lpar;described below&rpar;&period;
+`findAndCountAll` also supports includes. Only the includes that are marked as `required` will be added to the count part:
+
+Suppose you want to find all users who have a profile attached:
+```js
+User.findAndCountAll({
+  include: [
+     { model: Profile, required: true}
+  ],
+  limit 3
+});
+```
+
+Because the include for `Profile` has `required` set it will result in an inner join, and only the users who have a profile will be counted. If we remove `required` from the include, both users with and without profiles will be counted. Adding a `where` clause to the include automatically makes it required:
+
+```js
+User.findAndCountAll({
+  include: [
+     { model: Profile, where: { active: true }}
+  ],
+  limit 3
+});
+```
+
+The query above will only count users who have an active profile, because `required` is implicitly set to true when you add a where clause to the include.
+
+
+The options object that you pass to `findAndCountAll` is the same as for `findAll` (described below).
 
 ### findAll - Search for multiple elements in the database
 ```js

@@ -181,40 +181,29 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
-    it.only('should return the correct count and rows when using a required belongsTo with a where condition and a limit', function() {
-      var s = this.sequelize
-        , Foo = s.define('Foo', {})
-        , Bar = s.define('Bar', {m: DataTypes.STRING(40)});
+    it('should return the correct count and rows when using a required belongsTo with a where condition and a limit', function() {
+      var Foo = this.sequelize.define('Foo', {})
+        , Bar = this.sequelize.define('Bar', {m: DataTypes.STRING(40)});
 
       Foo.hasMany(Bar);
       Bar.belongsTo(Foo);
 
-      return s.sync({ force: true }).then(function() {
-        // Make five instances of Foo
+      return this.sequelize.sync({ force: true }).then(function() {
         return Foo.bulkCreate([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}]);
       }).then(function() {
-        // Make four instances of Bar, related to the last four instances of Foo
+        // Make four instances of Bar, related to the first two instances of Foo
         return Bar.bulkCreate([{'FooId': 1, m:'yes'}, {'FooId': 1, m:'yes'}, {'FooId': 1, m: 'no'}, {'FooId': 2, m: 'yes'}]);
       }).then(function() {
         // Query for the first instance of Foo which have related Bars with m === 'yes'
         return Foo.findAndCountAll({
-          include: [{ model: Bar, required: true, where: { m: 'yes' } }],
+          include: [{ model: Bar, where: { m: 'yes' } }],
           limit: 1
-        }).tap(function() {
-          // Check for what should be returned as the `count` of the result
-          return Foo.findAll({
-            include: [{ model: Bar, required: true, where: { m: 'yes' } }]
-          }).then(function(items) {
-            expect(items.length).to.equal(2);
-          });
         });
       }).then(function(result) {
-        // There should be 2 instances matching the query (Instances 1 and 2),
-        // see the findAll statement
+        // There should be 2 instances matching the query (Instances 1 and 2), see the findAll statement
         expect(result.count).to.equal(2);
 
-        // The first one of those should be returned due to the limit (Foo
-        // instance 1)
+        // The first one of those should be returned due to the limit (Foo instance 1)
         expect(result.rows.length).to.equal(1);
       });
     });
