@@ -88,7 +88,7 @@ This is a convienience method that combines`findAll` and `count` (see below) thi
 
 The success handler will always receive an object with two properties:
 
-* `count` - an intege, total number records matching the where clause
+* `count` - an integer, total number records matching the where clause
 * `rows` - an array of objects, the records matching the where clause, within the limit and offset range
 ```js
 Project
