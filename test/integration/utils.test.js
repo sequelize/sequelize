@@ -111,8 +111,8 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
 
   describe('cloneDeep', function() {
     it('should clone objects', function() {
-      var obj = {foo: 1},
-          clone = Utils.cloneDeep(obj);
+      var obj = {foo: 1}
+        , clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
