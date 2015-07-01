@@ -1641,6 +1641,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
     });
+
     it('returns multiple rows when using group', function() {
       var self = this;
       return this.User.bulkCreate([
@@ -1662,6 +1663,44 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return this.User.count(options).then(function() {
         expect(options).to.deep.equal({ where: ['username = ?', 'user1']});
+      });
+    });
+
+    describe("options sent to aggregate", function () {
+      var options, aggregateSpy;
+
+      beforeEach(function () {
+        options = { where: ['username = ?', 'user1']};
+
+        aggregateSpy = sinon.spy(this.User, "aggregate");
+      });
+
+      afterEach(function () {
+        var optsArg = aggregateSpy.args[0][2];
+
+        expect(optsArg.where).to.deep.equal(['username = ?', 'user1']);
+
+        aggregateSpy.restore();
+      });
+
+      it('modifies option "limit" by setting it to null', function() {
+        options.limit = 5;
+
+        return this.User.count(options).then(function() {
+          var optsArg = aggregateSpy.args[0][2];
+
+          expect(optsArg.limit).to.equal(null);
+        });
+      });
+
+      it('modifies option "order" by setting it to null', function() {
+        options.order = "username";
+
+        return this.User.count(options).then(function() {
+          var optsArg = aggregateSpy.args[0][2];
+
+          expect(optsArg.order).to.equal(null);
+        });
       });
     });
 
