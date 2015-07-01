@@ -1693,6 +1693,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('modifies option "offset" by setting it to null', function() {
+        options.offset = 10;
+
+        return this.User.count(options).then(function() {
+          var optsArg = aggregateSpy.args[0][2];
+
+          expect(optsArg.offset).to.equal(null);
+        });
+      });
+
       it('modifies option "order" by setting it to null', function() {
         options.order = "username";
 
