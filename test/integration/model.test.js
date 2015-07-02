@@ -1670,15 +1670,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var options, aggregateSpy;
 
       beforeEach(function () {
-        options = { where: ['username = ?', 'user1']};
+        options = { where: { username: 'user1'}};
 
         aggregateSpy = sinon.spy(this.User, "aggregate");
       });
 
       afterEach(function () {
-        var optsArg = aggregateSpy.args[0][2];
-
-        expect(optsArg.where).to.deep.equal(['username = ?', 'user1']);
+        expect(aggregateSpy).to.have.been.calledWith(
+          sinon.match.any, sinon.match.any,
+          sinon.match.object.and(sinon.match.has('where', { username: 'user1'})));
 
         aggregateSpy.restore();
       });
@@ -1687,9 +1687,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         options.limit = 5;
 
         return this.User.count(options).then(function() {
-          var optsArg = aggregateSpy.args[0][2];
-
-          expect(optsArg.limit).to.equal(null);
+          expect(aggregateSpy).to.have.been.calledWith(
+            sinon.match.any, sinon.match.any,
+            sinon.match.object.and(sinon.match.has('limit', null)));
         });
       });
 
@@ -1697,9 +1697,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         options.offset = 10;
 
         return this.User.count(options).then(function() {
-          var optsArg = aggregateSpy.args[0][2];
-
-          expect(optsArg.offset).to.equal(null);
+          expect(aggregateSpy).to.have.been.calledWith(
+            sinon.match.any, sinon.match.any,
+            sinon.match.object.and(sinon.match.has('offset', null)));
         });
       });
 
@@ -1707,9 +1707,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         options.order = "username";
 
         return this.User.count(options).then(function() {
-          var optsArg = aggregateSpy.args[0][2];
-
-          expect(optsArg.order).to.equal(null);
+          expect(aggregateSpy).to.have.been.calledWith(
+            sinon.match.any, sinon.match.any,
+            sinon.match.object.and(sinon.match.has('order', null)));
         });
       });
     });
