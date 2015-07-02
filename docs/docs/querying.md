@@ -141,6 +141,17 @@ JSONB can be queried in three different ways.
 }
 ```
 
+### Relations / Associations
+```js
+// Find all projects with a least one task where task.state === project.task
+Project.findAll({
+    include: [{
+        model: Task,
+        where: { state: Sequelize.col('project.state') }
+    }]
+})
+ ```
+
 ## Pagination / Limiting
 ```js
 // Fetch 10 instances/rows
