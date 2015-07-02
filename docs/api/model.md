@@ -53,7 +53,7 @@ Drop the table represented by this Model
 ***
 
 <a name="schema"></a>
-## `schema(schema, [options])` -> `hi`
+## `schema(schema, [options])` -> `this`
 [View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/model.js#L914)
 Apply a schema to this model. For postgres, this will actually place the schema in front of the table name - `"schema"."tableName"`,
 while the schema will be prepended to the table name for mysql and sqlite - `'schema.tablename'`.
