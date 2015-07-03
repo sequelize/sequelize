@@ -1957,8 +1957,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         expect(posts.length).to.equal(1);
 
         var post = posts[0];
-
-        console.log("** " + JSON.stringify(post));
         expect(post.id).not.to.be.ok;
         expect(parseInt(post["comments.commentCount"], 10)).to.equal(3);
       });
