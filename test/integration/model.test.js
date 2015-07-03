@@ -2698,42 +2698,36 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     before(function () {
       Sequelize.cls = namespace;
-      return Support.prepareTransactionTest(this.sequelize).bind(this).then(function (sequelize) {
-        this.sequelize = sequelize;
-
-        this.ns = cls.getNamespace('sequelize');
-
-        this.User = this.sequelize.define('user', {
-          name: Sequelize.STRING
-        });
-
-        return this.sequelize.sync({ force: true });
-      });
     });
 
     after(function () {
       delete Sequelize.cls;
     });
 
-    beforeEach(function(){
+    it('should be able to query data using unmanaged transaction', function(){
       var self = this;
-      return this.sequelize.transaction().then(function(t){
-        namespace.set('transaction', t);
-      }).then(function(){
-        return self.User.findOrCreate({
-          where: { name: 'John' },
-          defaults: { name: 'John' }
+
+      return Support.prepareTransactionTest(this.sequelize).bind(this).then(function (sequelize) {
+        this.sequelize = sequelize;
+        this.User = this.sequelize.define('user', {
+          name: Sequelize.STRING
         });
-      });
-    });
-
-    afterEach(function(){
-      return namespace.get('transaction').rollback();
-    });
-
-    it('should be able to query data created using findOrCreate without explict transaction', function(){
-      return this.User.find({ where: { name: 'John' } }).then(function(user){
-        expect(user.name).to.equal('John');
+        return this.sequelize.sync({ force: true });
+      }).then(function(){
+        return this.sequelize.transaction().then(function(t){
+          namespace.set('transaction', t);
+        }).then(function(){
+          return self.User.findOrCreate({
+            where: { name: 'John' },
+            defaults: { name: 'John' }
+          });
+        });
+      }).then(function(){
+        return this.User.find({ where: { name: 'John' } }).then(function(user){
+          expect(user.name).to.equal('John');
+        });
+      }).then(function(){
+        return namespace.get('transaction').rollback();
       });
     });
   });
