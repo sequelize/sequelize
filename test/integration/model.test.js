@@ -11,7 +11,8 @@ var chai = require('chai')
   , sinon = require('sinon')
   , _ = require('lodash')
   , moment = require('moment')
-  , current = Support.sequelize;
+  , current = Support.sequelize
+  , cls = require('continuation-local-storage');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
@@ -2687,6 +2688,46 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       })
       .catch(function(errors) {
         expect(errors).to.be.instanceof(Array);
+      });
+    });
+  });
+
+  describe('CLS with unmanaged transaction using findOrCreate', function () {
+
+    var namespace = cls.createNamespace('sequelize');
+
+    before(function () {
+      Sequelize.cls = namespace;
+    });
+
+    after(function () {
+      delete Sequelize.cls;
+    });
+
+    it('should be able to query data using unmanaged transaction', function(){
+      var self = this;
+
+      return Support.prepareTransactionTest(this.sequelize).bind(this).then(function (sequelize) {
+        this.sequelize = sequelize;
+        this.User = this.sequelize.define('user', {
+          name: Sequelize.STRING
+        });
+        return this.sequelize.sync({ force: true });
+      }).then(function(){
+        return this.sequelize.transaction().then(function(t){
+          namespace.set('transaction', t);
+        }).then(function(){
+          return self.User.findOrCreate({
+            where: { name: 'John' },
+            defaults: { name: 'John' }
+          });
+        });
+      }).then(function(){
+        return this.User.find({ where: { name: 'John' } }).then(function(user){
+          expect(user.name).to.equal('John');
+        });
+      }).then(function(){
+        return namespace.get('transaction').rollback();
       });
     });
   });
