@@ -3,8 +3,8 @@
 /* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , current   = Support.sequelize
+  , Support = require(__dirname + '/../support')
+  , current = Support.sequelize
   , cls = require('continuation-local-storage')
   , sinon = require('sinon')
   , stub = sinon.stub
@@ -36,16 +36,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('should use transaction from cls if available', function () {
+      var self = this;
 
-      var options = {
-        where : {
-          name : '123'
-        }
-      };
+      current.constructor.cls.run(function () {
+        current.constructor.cls.set('transaction', { id: 123 });
 
-      this.User.findOrCreate(options);
+        var options = {
+          where : {
+            name : 'John'
+          }
+        };
 
-      expect(options).to.have.any.keys('transaction');
+        self.User.findOrCreate(options);
+
+        expect(options.transaction).to.have.property('id', 123);
+      });
     });
   });
 });
