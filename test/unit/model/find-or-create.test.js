@@ -22,16 +22,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       delete current.constructor.cls;
     });
 
-    beforeEach(function(){
+    beforeEach(function () {
       this.User = current.define('User', {}, {
         name: 'John'
       });
 
       this.stub = stub(this.User.sequelize, 'transaction');
-      this.stub.returns(new Promise(function(){}));
+      this.stub.returns(new Promise(function () {}));
     });
 
-    afterEach(function(){
+    afterEach(function () {
       this.stub.restore();
     });
 
