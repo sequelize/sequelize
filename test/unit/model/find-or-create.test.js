@@ -27,30 +27,43 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         name: 'John'
       });
 
-      this.stub = stub(this.User.sequelize, 'transaction');
-      this.stub.returns(new Promise(function () {}));
+      this.transactionStub = stub(this.User.sequelize, 'transaction');
+      this.transactionStub.returns(new Promise(function () {}));
+
+      this.clsStub = stub(current.constructor.cls, 'get');
+      this.clsStub.returns({ id: 123 });
     });
 
     afterEach(function () {
-      this.stub.restore();
+      this.transactionStub.restore();
+      this.clsStub.restore();
     });
 
     it('should use transaction from cls if available', function () {
-      var self = this;
 
-      current.constructor.cls.run(function () {
-        current.constructor.cls.set('transaction', { id: 123 });
+      var options = {
+        where : {
+          name : 'John'
+        }
+      };
 
-        var options = {
-          where : {
-            name : 'John'
-          }
-        };
+      this.User.findOrCreate(options);
 
-        self.User.findOrCreate(options);
+      expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
+    });
 
-        expect(options.transaction).to.have.property('id', 123);
-      });
+    it('should not use transaction from cls if provided as argument', function () {
+
+      var options = {
+        where : {
+          name : 'John'
+        },
+        transaction : { id : 123 }
+      };
+
+      this.User.findOrCreate(options);
+
+      expect(this.clsStub.called).to.equal(false);
     });
   });
 });
