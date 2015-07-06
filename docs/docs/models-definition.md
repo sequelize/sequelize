@@ -72,7 +72,7 @@ The comment option can also be used on a table, see [model configuration][0]
 
 ## Data types
 
-Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](api/datatypes).
+Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](../api/datatypes).
 
 ```js
 Sequelize.STRING                      // VARCHAR(255)
@@ -212,7 +212,7 @@ Employee
 
 ### Defining as part of the model options
 
-Below is an example of defining the getters and setters in the model options. The `fullName` getter,  is an example of how you can define pseudo properties on your models - attributes which are not actually part of your database schema. In fact, pseudo properties can be defined in two ways: using model getters, or by using a column with the [`VIRTUAL` datatype](api/datatypes#virtual). Virtual datatypes can have validations, while getters for virtual attributes cannot.
+Below is an example of defining the getters and setters in the model options. The `fullName` getter,  is an example of how you can define pseudo properties on your models - attributes which are not actually part of your database schema. In fact, pseudo properties can be defined in two ways: using model getters, or by using a column with the [`VIRTUAL` datatype](../api/datatypes#virtual). Virtual datatypes can have validations, while getters for virtual attributes cannot.
 
 Note that the `this.firstname` and `this.lastname` references in the `fullName` getter function will trigger a call to the respective getter functions. If you do not want that then use the `getDataValue()` method to access the raw value (see below).
 
