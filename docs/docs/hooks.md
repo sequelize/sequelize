@@ -73,7 +73,7 @@ User.beforeCreate(function(user, options) {
   });
 })
 
-User.afterValidate(function(user, options) {
+User.afterValidate('myHookAfter', function(user, options, fn) {
   user.username = 'Toni'
 })
 ```

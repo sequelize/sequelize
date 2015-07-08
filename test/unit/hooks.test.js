@@ -208,20 +208,26 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
   describe('#removeHook', function() {
     it('should remove hook', function() {
-      var hook1 = sinon.spy();
+      var hook1 = sinon.spy()
+        , hook2 = sinon.spy();
 
       this.Model.addHook('beforeCreate', 'myHook', hook1);
+      this.Model.beforeCreate('myHook2', hook2);
 
       return this.Model.runHooks('beforeCreate').bind(this).then(function() {
         expect(hook1).to.have.been.calledOnce;
+        expect(hook2).to.have.been.calledOnce;
 
         hook1.reset();
+        hook2.reset();
 
         this.Model.removeHook('beforeCreate', 'myHook');
+        this.Model.removeHook('beforeCreate', 'myHook2');
 
         return this.Model.runHooks('beforeCreate');
       }).then(function() {
         expect(hook1).not.to.have.been.called;
+        expect(hook2).not.to.have.been.called;
       });
     });
   });

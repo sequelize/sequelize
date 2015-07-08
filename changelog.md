@@ -16,6 +16,7 @@
 - [FIXED] $or/$and inside a where clause always expects the input to be an array [#3767](https://github.com/sequelize/sequelize/issues/3767)
 - [ADDED] Unique constraints may now include custom error messages
 - [ADDED] It's possible now to remove a hook by name
+- [ADDED] Hook name can be passed via the direct method [#3901](https://github.com/sequelize/sequelize/issues/3901)
 
 # 3.2.0
 - [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.
