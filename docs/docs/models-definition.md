@@ -339,7 +339,7 @@ isIn: {
 
 When using custom validator functions the error message will be whatever message the thrown`Error`object holds&period;
 
-See [the validator.js project][4] for more details on the built in validation methods&period;
+See [the validator.js project][3] for more details on the built in validation methods&period;
 
 **Hint&colon; **You can also define a custom function for the logging part&period; Just pass a function&period; The first parameter will be the string that is logged&period;
 
@@ -642,6 +642,5 @@ sequelize.define('User', {}, {
 
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
-[4]: https://github.com/chriso/validator.js
 [5]: /docs/latest/misc#asynchronicity
 [6]: https://github.com/petkaantonov/bluebird/blob/master/API.md#spreadfunction-fulfilledhandler--function-rejectedhandler----promise
