@@ -264,7 +264,7 @@ Model validations, allow you to specify format&sol;content&sol;inheritance valid
 
 Validations are automatically run on `create`, `update` and `save`. You can also call `validate()` to manually validate an instance.
 
-The validations are implemented by [validator][3].
+The validations are implemented by [validator.js][3].
 
 ```js
 var ValidateMe = sequelize.define('Foo', {
@@ -320,7 +320,7 @@ var ValidateMe = sequelize.define('Foo', {
 
 Note that where multiple arguments need to be passed to the built-in validation functions&comma; the arguments to be passed must be in an array&period; But if a single array argument is to be passed&comma; for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument&period; To work around this pass a single-length array of arguments&comma; such as `[['one', 'two']]` as shown above&period;
 
-To use a custom error message instead of that provided by node-validator&comma; use an object instead of the plain value or array of arguments&comma; for example a validator which needs no argument can be given a custom message with
+To use a custom error message instead of that provided by validator.js&comma; use an object instead of the plain value or array of arguments&comma; for example a validator which needs no argument can be given a custom message with
 
 ```js
 isInt: {
@@ -339,7 +339,7 @@ isIn: {
 
 When using custom validator functions the error message will be whatever message the thrown`Error`object holds&period;
 
-See [the node-validator project][4]for more details on the built in validation methods&period;
+See [the validator.js project][4] for more details on the built in validation methods&period;
 
 **Hint&colon; **You can also define a custom function for the logging part&period; Just pass a function&period; The first parameter will be the string that is logged&period;
 
@@ -642,6 +642,6 @@ sequelize.define('User', {}, {
 
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
-[4]: https://github.com/chriso/node-validator
+[4]: https://github.com/chriso/validator.js
 [5]: /docs/latest/misc#asynchronicity
 [6]: https://github.com/petkaantonov/bluebird/blob/master/API.md#spreadfunction-fulfilledhandler--function-rejectedhandler----promise
