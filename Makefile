@@ -82,7 +82,7 @@ postgres-native:
 # Coverage
 cover:
 	rm -rf coverage \
-	make teaser && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd $(TESTS); \
+	make teaser && COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd $(TESTS); \
 
 mssql-cover:
 	rm -rf coverage
