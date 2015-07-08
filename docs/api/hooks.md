@@ -111,7 +111,7 @@ A hook that is run after validation
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instance, options, callback(err) |
+| fn | Function | A callback function that is called with instance, options |
 
 
 ***
@@ -126,7 +126,7 @@ A hook that is run before creating a single instance
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with attributes, options, callback(err) |
+| fn | Function | A callback function that is called with attributes, options |
 
 
 ***
@@ -141,7 +141,7 @@ A hook that is run after creating a single instance
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with attributes, options, callback(err) |
+| fn | Function | A callback function that is called with attributes, options |
 
 
 ***
@@ -156,7 +156,7 @@ A hook that is run before destroying a single instance
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instance, options, callback(err)  |
+| fn | Function | A callback function that is called with instance, options |
 
 __Aliases:__ beforeDelete
 
@@ -172,7 +172,7 @@ A hook that is run after destroying a single instance
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instance, options, callback(err)  |
+| fn | Function | A callback function that is called with instance, options |
 
 __Aliases:__ afterDelete
 
@@ -188,7 +188,7 @@ A hook that is run before updating a single instance
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instance, options, callback(err) |
+| fn | Function | A callback function that is called with instance, options |
 
 
 ***
@@ -203,7 +203,7 @@ A hook that is run after updating a single instance
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instance, options, callback(err) |
+| fn | Function | A callback function that is called with instance, options |
 
 
 ***
@@ -218,7 +218,7 @@ A hook that is run before creating instances in bulk
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instances, options, callback(err) |
+| fn | Function | A callback function that is called with instances, options |
 
 
 ***
@@ -233,7 +233,7 @@ A hook that is run after creating instances in bulk
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instances, options, callback(err) |
+| fn | Function | A callback function that is called with instances, options |
 
 
 ***
@@ -248,7 +248,7 @@ A hook that is run before destroying instances in bulk
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with options, callback(err)  |
+| fn | Function | A callback function that is called with options |
 
 __Aliases:__ beforeBulkDelete
 
@@ -264,7 +264,7 @@ A hook that is run after destroying instances in bulk
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with options, callback(err)  |
+| fn | Function | A callback function that is called with options |
 
 __Aliases:__ afterBulkDelete
 
@@ -280,7 +280,7 @@ A hook that is run after updating instances in bulk
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with options, callback(err) |
+| fn | Function | A callback function that is called with options |
 
 
 ***
@@ -295,7 +295,7 @@ A hook that is run after updating instances in bulk
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with options, callback(err) |
+| fn | Function | A callback function that is called with options |
 
 
 ***
@@ -310,7 +310,7 @@ A hook that is run before a find (select) query
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with options, callback(err) |
+| fn | Function | A callback function that is called with options |
 
 
 ***
@@ -325,7 +325,7 @@ A hook that is run before a find (select) query, after any { include: {all: ...}
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with options, callback(err) |
+| fn | Function | A callback function that is called with options |
 
 
 ***
@@ -340,7 +340,7 @@ A hook that is run before a find (select) query, after all option parsing is com
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with options, callback(err) |
+| fn | Function | A callback function that is called with options |
 
 
 ***
@@ -355,7 +355,7 @@ A hook that is run after a find (select) query
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with instance(s), options, callback(err) |
+| fn | Function | A callback function that is called with instance(s), option |
 
 
 ***
@@ -370,7 +370,7 @@ A hook that is run before a define call
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with attributes, options, callback(err) |
+| fn | Function | A callback function that is called with attributes, options |
 
 
 ***
@@ -385,7 +385,7 @@ A hook that is run after a define call
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with factory, callback(err) |
+| fn | Function | A callback function that is called with factory |
 
 
 ***
@@ -400,7 +400,7 @@ A hook that is run before Sequelize() call
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with config, options, callback(err) |
+| fn | Function | A callback function that is called with config, options |
 
 
 ***
@@ -415,7 +415,7 @@ A hook that is run after Sequelize() call
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | name | String |  |
-| fn | Function | A callback function that is called with sequelize, callback(err) |
+| fn | Function | A callback function that is called with sequelize |
 
 
 ***
