@@ -6,6 +6,7 @@ var fs = require('fs')
   , Sequelize = require(__dirname + '/../index')
   , DataTypes = require(__dirname + '/../lib/data-types')
   , Config = require(__dirname + '/config/config')
+  , supportShim = require(__dirname + '/supportShim')
   , chai = require('chai')
   , expect = chai.expect;
 
@@ -26,6 +27,9 @@ Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {
   throw e;
 });
 Sequelize.Promise.longStackTraces();
+
+// shim all Sequelize methods for testing for correct `options.logging` passing
+if (!process.env.COVERAGE) supportShim(Sequelize);
 
 var Support = {
   Sequelize: Sequelize,

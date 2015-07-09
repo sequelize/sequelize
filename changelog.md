@@ -1,3 +1,9 @@
+# Next
+- [FEATURE] Geometry support for postgres
+- [BUG] Fix wrong count for `findAndCountAll` with required includes [#4016](https://github.com/sequelize/sequelize/pull/4016)
+- [BUG] Fix problems related to parsing of unique constraint errors [#4017](https://github.com/sequelize/sequelize/issues/4017) and [#4012](https://github.com/sequelize/sequelize/issues/4012)
+- [BUG] Fix postgres path variable being surrounded by quotes to often in unique constraint errors [#4034](https://github.com/sequelize/sequelize/pull/4034)
+
 # 3.3.2
 - [FIXED] upsert no longer updates with default values each time [#3994](https://github.com/sequelize/sequelize/pull/3994)
 
@@ -10,6 +16,7 @@
 - [FIXED] $or/$and inside a where clause always expects the input to be an array [#3767](https://github.com/sequelize/sequelize/issues/3767)
 - [ADDED] Unique constraints may now include custom error messages
 - [ADDED] It's possible now to remove a hook by name
+- [ADDED] Hook name can be passed via the direct method [#3901](https://github.com/sequelize/sequelize/issues/3901)
 
 # 3.2.0
 - [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.

@@ -1,5 +1,7 @@
 Hooks (also known as callbacks or lifecycle events), are functions which are called before and after calls in sequelize are executed. For example, if you want to always set a value on a model before saving it, you can add a `beforeUpdate` hook.
 
+For a full list of hooks, see [Hooks API](/api/hooks).
+
 ## Order of Operations
 
 ```
@@ -32,9 +34,9 @@ Hooks (also known as callbacks or lifecycle events), are functions which are cal
 ```
 
 ## Declaring Hooks
+Arguments to hooks are passed by reference. This means, that you can change the values, and this will be reflected in the insert / update statement. A hook may contain async actions - in this case the hook function should return a promise.
 
-There are currently three ways to programmatically add hooks. A hook function always runs asynchronousĺy, and can be resolved either by calling a callback (passed as the last argument),
-or by returning a promise.
+There are currently three ways to programmatically add hooks:
 
 ```js
 // Method 1 via the .define() method
@@ -46,29 +48,18 @@ var User = sequelize.define('User', {
   }
 }, {
   hooks: {
-    beforeValidate: function(user, options, fn) {
+    beforeValidate: function(user, options) {
       user.mood = 'happy'
-      fn(null, user)
     },
-    afterValidate: function(user, options, fn) {
+    afterValidate: function(user, options) {
       user.username = 'Toni'
-      fn(null, user)
     }
   }
 })
 
 // Method 2 via the .hook() method
-var User = sequelize.define('User', {
-  username: DataTypes.STRING,
-  mood: {
-    type: DataTypes.ENUM,
-    values: ['happy', 'sad', 'neutral']
-  }
-})
-
-User.hook('beforeValidate', function(user, options, fn) {
+User.hook('beforeValidate', function(user, options) {
   user.mood = 'happy'
-  fn(null, user)
 })
 
 User.hook('afterValidate', function(user, options) {
@@ -76,22 +67,14 @@ User.hook('afterValidate', function(user, options) {
 })
 
 // Method 3 via the direct method
-var User = sequelize.define('User', {
-  username: DataTypes.STRING,
-  mood: {
-    type: DataTypes.ENUM,
-    values: ['happy', 'sad', 'neutral']
-  }
+User.beforeCreate(function(user, options) {
+  return hashPassword(user.password).then(function (hashedPw) {
+    user.password = hashedPw;
+  });
 })
 
-User.beforeValidate(function(user, options) {
-  user.mood = 'happy'
-  return sequelize.Promise.resolve(user)
-})
-
-User.afterValidate(function(user, options, fn) {
+User.afterValidate('myHookAfter', function(user, options, fn) {
   user.username = 'Toni'
-  fn(null, user)
 })
 ```
 
@@ -111,9 +94,68 @@ Book.addHook('afterCreate', 'notifyUsers', function(book, options) {
 Book.removeHook('afterCreate', 'notifyUsers')
 ```
 
+## Global / universal hooks
+Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
+
+### Sequelize.options.define (default hook)
+```js
+var sequelize = new Sequelize(..., {
+    define: {
+        hooks: {
+            beforeCreate: function () {
+                // Do stuff
+            }
+        }
+    }
+});
+```
+
+This adds a default hook to all models, which is run if the model does not define its own `beforeCreate` hook:
+
+```js
+var User = sequelize.define('user');
+var Project = sequelize.define('project', {}, {
+    hooks: {
+        beforeCreate: function () {
+            // Do other stuff
+        }
+    }
+});
+
+User.create() // Runs the global hook
+Project.create() // Runs its own hook (because the global hook is overwritten)
+```
+
+### Sequelize.addHook (permanent hook)
+```js
+sequelize.addHook('beforeCreate', function () {
+    // Do stuff
+});
+```
+
+This hooks is always run before create, regardless of whether the model specifies its own `beforeCreate` hook:
+
+
+```js
+var User = sequelize.define('user');
+var Project = sequelize.define('project', {}, {
+    hooks: {
+        beforeCreate: function () {
+            // Do other stuff
+        }
+    }
+});
+
+User.create() // Runs the global hook
+Project.create() // Runs its own hook, followed by the global hook
+```
+
+Local hooks are always run before global hooks.
+
+
 ### Instance hooks
 
-The following hooks will emit whenever you're editing a single object...
+The following hooks will emit whenever you're editing a single object
 
 ```
 beforeValidate
@@ -169,7 +211,7 @@ Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: tru
 Some model hooks have two or three parameters sent to each hook depending on it's type.
 
 ```js
-Model.beforeBulkCreate(function(records, fields, fn) {
+Model.beforeBulkCreate(function(records, fields) {
   // records = the first argument sent to .bulkCreate
   // fields = the second argument sent to .bulkCreate
 })
@@ -179,14 +221,14 @@ Model.bulkCreate([
   {username: 'Tobi'} // part of records argument
 ], ['username'] /* part of fields argument */)
 
-Model.beforeBulkUpdate(function(attributes, where, fn) {
+Model.beforeBulkUpdate(function(attributes, where) {
   // attributes = first argument sent to Model.update
   // where = second argument sent to Model.update
 })
 
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
 
-Model.beforeBulkDestroy(function(whereClause, fn) {
+Model.beforeBulkDestroy(function(whereClause) {
   // whereClause = first argument sent to Model.destroy
 })
 
@@ -197,8 +239,9 @@ Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 
 For the most part hooks will work the same for instances when being associated except a few things
 
-1. When using add/set\[s\] functions the beforeUpdate/afterUpdate hooks will run.
+1. When using add/set functions the beforeUpdate/afterUpdate hooks will run.
 2. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
+
 ```js
 var Projects = sequelize.define('Projects', {
   title: DataTypes.STRING
@@ -208,41 +251,17 @@ var Tasks = sequelize.define('Tasks', {
   title: DataTypes.STRING
 })
 
-Projects.hasMany(Tasks, {onDelete: 'cascade', hooks: true})
+Projects.hasMany(Tasks, { onDelete: 'cascade', hooks: true })
 Tasks.belongsTo(Projects)
 ```
 
-This code will run beforeDestroy/afterDestroy on the Tasks table. Sequelize, by default, will try to optimize your queries as much as possible. 
-When calling cascade on delete, Sequelize will simply execute a
+This code will run beforeDestroy/afterDestroy on the Tasks table. Sequelize, by default, will try to optimize your queries as much as possible. When calling cascade on delete, Sequelize will simply execute a
 
 ```sql
 DELETE FROM `table` WHERE associatedIdentifiier = associatedIdentifier.primaryKey
 ```
 
 However, adding `hooks: true` explicitly tells Sequelize that optimization is not of your concern and will perform a `SELECT` on the associated objects and destroy each instance one by one in order to be able to call the hooks with the right parameters.
-
-## Promises and callbacks
-
-Sequelize will look at the function length of your hook callback to determine whether or not you're using callbacks or promises.
-
-```js
-// Will stall if the condition isn't met since the callback is never called
-User.beforeCreate(function(user, options, callback) {
-  if (user.accessLevel > 10 && user.username !== "Boss") {
-    return callback("You can't grant this user an access level above 10!");
-  }
-});
-
-// Will never stall since returning undefined will act as a resolved promise with an undefined value
-User.beforeCreate(function(user, options) {
-  if (user.accessLevel > 10 && user.username !== "Boss") {
-    return throw new Error("You can't grant this user an access level above 10!");
-  }
-  if (something) {
-    return Promise.reject();
-  }
-});
-```
 
 ## A Note About Transactions
 

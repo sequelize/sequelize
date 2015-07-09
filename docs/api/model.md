@@ -53,7 +53,7 @@ Drop the table represented by this Model
 ***
 
 <a name="schema"></a>
-## `schema(schema, [options])` -> `hi`
+## `schema(schema, [options])` -> `this`
 [View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/model.js#L914)
 Apply a schema to this model. For postgres, this will actually place the schema in front of the table name - `"schema"."tableName"`,
 while the schema will be prepended to the table name for mysql and sqlite - `'schema.tablename'`.
@@ -240,7 +240,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.limit] | Number |  |
 | [options.offset] | Number |  |
 | [options.transaction] | Transaction | Transaction to run query under |
-| [options.lock] | String &#124; Object | Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE. Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model locks with joins. See [transaction.LOCK for an example](api/transaction#lock) |
+| [options.lock] | String &#124; Object | Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE. Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model locks with joins. See [transaction.LOCK for an example](transaction#lock) |
 | [options.raw] | Boolean | Return raw result. See sequelize.query for more information. |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.having] | Object |  |

@@ -220,5 +220,29 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
         expect(spy).to.have.been.calledOnce;
       });
     });
+
+    it('Works when unique keys are not defined in sequelize', function () {
+      var User = this.sequelize.define('user', {
+        name: {
+          type: Sequelize.STRING,
+          unique: 'unique \n unique',
+        }
+      }, { timestamps: false });
+
+      return this.sequelize.sync({ force: true }).bind(this).then(function () {
+        // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
+        User = this.sequelize.define('user', {
+          name: Sequelize.STRING
+        }, { timestamps: false });
+
+        return User.create({ name: 'jan' });
+      }).then(function () {
+        // It should work even though the unique key is not defined in the model
+        return expect(User.create({ name: 'jan' })).to.be.rejectedWith(this.sequelize.UniqueConstraintError);
+      }).then(function () {
+        // And when the model is not passed at all
+        return expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(this.sequelize.UniqueConstraintError);
+      });
+    });
   });
 });

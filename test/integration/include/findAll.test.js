@@ -1920,5 +1920,46 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         expect(parseInt(post.get('commentCount'), 10)).to.equal(3);
       });
     });
+
+    it('should not add primary key when including and aggregating with raw: true', function () {
+      var Post = this.sequelize.define('Post', {
+          title: DataTypes.STRING
+        })
+        , Comment = this.sequelize.define('Comment', {
+          content: DataTypes.TEXT
+        });
+
+      Post.Comments = Post.hasMany(Comment, {as: 'comments'});
+
+      return this.sequelize.sync({force: true}).bind(this).then(function () {
+        return Post.create({
+          title: Math.random().toString(),
+          comments: [
+            {content: Math.random().toString()},
+            {content: Math.random().toString()},
+            {content: Math.random().toString()},
+          ]
+        }, {
+          include: [Post.Comments]
+        });
+      }).then(function () {
+        return Post.findAll({
+          attributes: [],
+          include: [
+            {
+              association: Post.Comments,
+              attributes: [[this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount']]
+            }
+          ],
+          raw: true
+        });
+      }).then(function (posts) {
+        expect(posts.length).to.equal(1);
+
+        var post = posts[0];
+        expect(post.id).not.to.be.ok;
+        expect(parseInt(post["comments.commentCount"], 10)).to.equal(3);
+      });
+    });
   });
 });
