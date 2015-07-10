@@ -45,12 +45,29 @@ if (current.dialect.supports.tmpTableTrigger) {
         });
       });
 
-      it('should return output rows after update', function() {
+      it('should return output rows after instance update', function() {
         return User.create({
           username: 'triggertest'
         }).then(function(user){
           user.username = 'usernamechanged';
           return user.save();
+        })
+        .then(function (user) {
+          return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
+        });
+      });
+
+      it('should return output rows after Model update', function() {
+        return User.create({
+          username: 'triggertest'
+        }).then(function(user){
+          return User.update({
+            username: 'usernamechanged'
+          }, {
+            where: {
+              id: user.get('id')
+            }
+          });
         })
         .then(function (user) {
           return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
