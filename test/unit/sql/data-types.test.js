@@ -667,7 +667,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
 
-    // if (current.dialect.supports.GEOMETRY) {
+    if (current.dialect.supports.GEOMETRY) {
       suite('GEOMETRY', function () {
         testsql('GEOMETRY', DataTypes.GEOMETRY, {
           default: 'GEOMETRY'
@@ -693,6 +693,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           mysql: 'POINT'
         });
       });
-    // }
+    }
   });
 });
