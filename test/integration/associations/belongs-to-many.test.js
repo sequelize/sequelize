@@ -860,6 +860,56 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
   });
 
+  describe('through model validations', function () {
+    beforeEach(function () {
+      var Project = this.sequelize.define('Project', {
+        name: Sequelize.STRING
+      });
+
+      var Employee = this.sequelize.define('Employee', {
+        name: Sequelize.STRING
+      });
+
+      var Participation = this.sequelize.define('Participation', {
+        role: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          validate: {
+            len: {
+              args: [2, 50],
+              msg: 'too bad'
+            }
+          }
+        }
+      });
+
+      Project.belongsToMany(Employee, { as: 'Participants', through: Participation });
+      Employee.belongsToMany(Project, { as: 'Participations', through: Participation });
+
+      return this.sequelize.sync({ force: true }).bind(this).then(function () {
+        return Promise.all([
+          Project.create({ name: 'project 1' }),
+          Employee.create({ name: 'employee 1' })
+        ]).bind(this).spread(function (project, employee) {
+          this.project = project;
+          this.employee = employee;
+        });
+      });
+    });
+
+    it('runs on add', function () {
+      return expect(this.project.addParticipant(this.employee, { role: ''})).to.be.rejected;
+    });
+
+    it('runs on set', function () {
+      return expect(this.project.setParticipants([this.employee], { role: ''})).to.be.rejected;
+    });
+
+    it('runs on create', function () {
+      return expect(this.project.createParticipant({ name: 'employee 2'}, { role: ''})).to.be.rejected;
+    });
+  });
+
   describe('optimizations using bulk create, destroy and update', function() {
     beforeEach(function() {
       this.User = this.sequelize.define('User', { username: DataTypes.STRING }, {timestamps: false});
