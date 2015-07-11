@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var dox = require('dox')
   , program = require('commander')
@@ -24,10 +24,14 @@ if (program.file) {
     {file:'lib/instance.js', output: 'instance'},
     {file:'lib/model.js', output: 'model'},
     {file:'lib/hooks.js', output: 'hooks'},
-    {file:'lib/associations/mixin.js', output: 'associations'},
+    {file:'lib/associations/mixin.js', output: 'associations/index'},
     {file:'lib/transaction.js', output: 'transaction'},
     {file:'lib/data-types.js', output: 'datatypes'},
-    {file:'lib/deferrable.js', output: 'deferrable'}
+    {file:'lib/deferrable.js', output: 'deferrable'},
+    {file:'lib/associations/belongs-to-many.js', output: 'associations/belongs-to-many'},
+    {file:'lib/associations/has-many.js', output: 'associations/has-many'},
+    {file:'lib/associations/has-one.js', output: 'associations/has-one'},
+    {file:'lib/associations/belongs-to.js', output: 'associations/belongs-to'}
   ];
 }
 

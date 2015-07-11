@@ -1,6 +1,6 @@
 <a name="transaction"></a>
 # Class Transaction
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/transaction.js#L19)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/transaction.js#L19)
 The transaction object is used to identify a running transaction. It is created by calling `Sequelize.transaction()`.
 
 To run a query under a transaction, you should pass the transaction in the options object.
@@ -20,7 +20,7 @@ To run a query under a transaction, you should pass the transaction in the optio
 
 <a name="isolation_levels"></a>
 ## `ISOLATION_LEVELS`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/transaction.js#L71)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/transaction.js#L71)
 Isolations levels can be set per-transaction by passing `options.isolationLevel` to `sequelize.transaction`.
 Default to `REPEATABLE_READ` but you can override the default isolation level by passing `options.isolationLevel` in `new Sequelize`.
 
@@ -56,7 +56,7 @@ return sequelize.transaction({
 
 <a name="lock"></a>
 ## `LOCK`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/transaction.js#L115)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/transaction.js#L115)
 Possible options for row locking. Used in conjuction with `find` calls:
 
 ```js
@@ -96,7 +96,7 @@ UserModel will be locked but TaskModel won't!
 
 <a name="commit"></a>
 ## `commit()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/transaction.js#L127)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/transaction.js#L127)
 Commit the transaction
 
 
@@ -104,7 +104,7 @@ Commit the transaction
 
 <a name="rollback"></a>
 ## `rollback()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/transaction.js#L148)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/transaction.js#L148)
 Rollback (abort) the transaction
 
 

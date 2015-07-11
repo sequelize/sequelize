@@ -4,6 +4,7 @@ repo_url: https://github.com/sequelize/sequelize
 site_favicon: favicon.ico
 site_url: http://docs.sequelizejs.com
 markdown_extensions: [gfm]
+theme: readthedocs
 extra_css:
 - css/custom.css
 extra_javascript:
@@ -29,7 +30,12 @@ pages:
   - 'Sequelize': 'api/sequelize.md'
   - 'Model': 'api/model.md'
   - 'Instance': 'api/instance.md'
-  - 'Associations': 'api/associations.md'
+  - Associations:
+    - Overview: 'api/associations/index.md'
+    - 'BelongsTo (1:1)': 'api/associations/belongs-to.md'
+    - 'HasOne (1:1)': 'api/associations/has-one.md'
+    - 'HasMany (1:m)': 'api/associations/has-many.md'
+    - 'BelongsToMany (n:m)': 'api/associations/belongs-to-many.md'
   - 'Hooks': 'api/hooks.md'
   - 'Transaction': 'api/transaction.md'
   - 'Datatypes': 'api/datatypes.md'

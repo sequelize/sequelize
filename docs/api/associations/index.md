@@ -1,8 +1,7 @@
 <a name="mixin"></a>
 # Mixin Mixin
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/associations/mixin.js#L96)
-Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions
-on a model (the source), and providing another model as the first argument to the function (the target).
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/associations/mixin.js#L87)
+Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions on a model (the source), and providing another model as the first argument to the function (the target).
 
 * hasOne - adds a foreign key to target
 * belongsTo - add a foreign key to source
@@ -10,11 +9,9 @@ on a model (the source), and providing another model as the first argument to th
 
 Creating an association will add a foreign key constraint to the attributes. All associations use `CASCADE` on update and `SET NULL` on delete, except for n:m, which also uses `CASCADE` on delete.
 
-When creating associations, you can provide an alias, via the `as` option. This is useful if the same model
-is associated twice, or you want your association to be called something other than the name of the target model.
-As an example, consider the case where users have many pictures, one of which is their profile picture. All pictures
-have a `userId`, but in addition the user model also has a `profilePictureId`, to be able to easily load the user's profile
-picture.
+When creating associations, you can provide an alias, via the `as` option. This is useful if the same model is associated twice, or you want your association to be called something other than the name of the target model.
+
+As an example, consider the case where users have many pictures, one of which is their profile picture. All pictures have a `userId`, but in addition the user model also has a `profilePictureId`, to be able to easily load the user's profile picture.
 
 ```js
 User.hasMany(Picture)
@@ -49,8 +46,7 @@ User.hasMany(Picture, {
 })
 ```
 
-This specifies that the `uid` column can not be null. In most cases this will already be covered by the foreign key costraints, which sequelize creates automatically,
-but can be usefull in case where the foreign keys are disabled, e.g. due to circular references (see `constraints: false` below).
+This specifies that the `uid` column can not be null. In most cases this will already be covered by the foreign key costraints, which sequelize creates automatically, but can be useful in case where the foreign keys are disabled, e.g. due to circular references (see `constraints: false` below).
 
 When fetching associated models, you can limit your query to only load some models. These queries are written in the same way as queries to `find`/`findAll`. To only get pictures in JPG, you can do:
 
@@ -75,32 +71,19 @@ You don't have to pass in a complete object to the association functions, if you
 user.addPicture(req.query.pid) // Here pid is just an integer, representing the primary key of the picture
 ```
 
-In the example above we have specified that a user belongs to his profile picture. Conceptually, this might not make sense,
-but since we want to add the foreign key to the user model this is the way to do it.
-Note how we also specified `constraints: false` for profile picture. This is because we add a foreign key from
-user to picture (profilePictureId), and from picture to user (userId). If we were to add foreign keys to both, it would
-create a cyclic dependency, and sequelize would not know which table to create first, since user depends on picture, and picture
-depends on user. These kinds of problems are detected by sequelize before the models are synced to the database, and you will
-get an error along the lines of `Error: Cyclic dependency found. 'users' is dependent of itself`. If you encounter this,
-you should either disable some constraints, or rethink your associations completely.
+In the example above we have specified that a user belongs to his profile picture. Conceptually, this might not make sense, but since we want to add the foreign key to the user model this is the way to do it.
+
+Note how we also specified `constraints: false` for profile picture. This is because we add a foreign key from user to picture (profilePictureId), and from picture to user (userId). If we were to add foreign keys to both, it would create a cyclic dependency, and sequelize would not know which table to create first, since user depends on picture, and picture depends on user. These kinds of problems are detected by sequelize before the models are synced to the database, and you will get an error along the lines of `Error: Cyclic dependency found. 'users' is dependent of itself`. If you encounter this, you should either disable some constraints, or rethink your associations completely.
 
 
 ***
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/associations/mixin.js#L146)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/associations/mixin.js#L129)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
-
-The following methods are injected on the source:
-
-* get[AS] - for example getProfile(finder). The finder object is passed to `target.find`.
-* set[AS] - for example setProfile(instance, options). Options are passed to `target.save`
-* create[AS] - for example createProfile(value, options). Builds and saves a new instance of the associated model. Values and options are passed on to `target.create`
-
-All methods return a promise
 
 
 **Params:**
@@ -121,18 +104,10 @@ All methods return a promise
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/associations/mixin.js#L172)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/associations/mixin.js#L147)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
-
-The following methods are injected on the source:
-
-* get[AS] - for example getUser(finder). The finder object is passed to `target.find`.
-* set[AS] - for example setUser(instance, options). Options are passed to this.save
-* create[AS] - for example createUser(value, options). Builds and saves a new instance of the associated model. Values and options are passed on to target.create
-
-All methods return a promise
 
 
 **Params:**
@@ -154,7 +129,7 @@ All methods return a promise
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/associations/mixin.js#L247)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/associations/mixin.js#L207)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -168,22 +143,7 @@ Project.hasMany(User)
 ```
 By default, the name of the join table will be source+target, so in this case projectsusers. This can be overridden by providing either a string or a Model as `through` in the options.
 
-The following methods are injected on the source:
-
-* get[AS] - for example getPictures(finder). The finder object is passed to `target.find`.
-* set[AS] - for example setPictures(instances, defaultAttributes|options). Update the associations. All currently associated models that are not in instances will be removed.
-* add[AS] - for example addPicture(instance, defaultAttributes|options). Add another associated object.
-* add[AS] [plural] - for example addPictures([instance1, instance2], defaultAttributes|options). Add some more associated objects.
-* create[AS] - for example createPicture(values, options). Build and save a new association.
-* remove[AS] - for example removePicture(instance). Remove a single association.
-* remove[AS] [plural] - for example removePictures(instance). Remove multiple association.
-* has[AS] - for example hasPicture(instance). Is source associated to this target?
-* has[AS] [plural] - for example hasPictures(instances). Is source associated to all these targets?
-
-All methods return a promise
-
-If you use a through model with custom attributes, these attributes can be set when adding / setting new associations in two ways. Consider users and projects from before
-with a join table that stores whether the project has been started yet:
+If you use a through model with custom attributes, these attributes can be set when adding / setting new associations in two ways. Consider users and projects from before with a join table that stores whether the project has been started yet:
 ```js
 var UserProjects = sequelize.define('userprojects', {
   started: Sequelize.BOOLEAN
@@ -237,7 +197,7 @@ user.getProjects().then(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/2c4a9f3cf9887fb33c31e397e758dd4aa3374d01/lib/associations/mixin.js#L341)
+[View code](https://github.com/sequelize/sequelize/blob/e1de2e37b2301ec55af21f17cf0ac3dbf5d60179/lib/associations/mixin.js#L287)
 Create an N:M association with a join table
 
 ```js
@@ -245,20 +205,6 @@ User.belongsToMany(Project)
 Project.belongsToMany(User)
 ```
 By default, the name of the join table will be source+target, so in this case projectsusers. This can be overridden by providing either a string or a Model as `through` in the options.
-
-The following methods are injected on the source:
-
-* get[AS] - for example getPictures(finder). The finder object is passed to `target.find`.
-* set[AS] - for example setPictures(instances, defaultAttributes|options). Update the associations. All currently associated models that are not in instances will be removed.
-* add[AS] - for example addPicture(instance, defaultAttributes|options). Add another associated object.
-* add[AS] [plural] - for example addPictures([instance1, instance2], defaultAttributes|options). Add some more associated objects.
-* create[AS] - for example createPicture(values, options). Build and save a new association.
-* remove[AS] - for example removePicture(instance). Remove a single association.
-* remove[AS] [plural] - for example removePictures(instance). Remove multiple association.
-* has[AS] - for example hasPicture(instance). Is source associated to this target?
-* has[AS] [plural] - for example hasPictures(instances). Is source associated to all these targets?
-
-All methods return a promise
 
 If you use a through model with custom attributes, these attributes can be set when adding / setting new associations in two ways. Consider users and projects from before
 with a join table that stores whether the project has been started yet:
