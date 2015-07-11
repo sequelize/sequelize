@@ -43,7 +43,7 @@ The foreign key column in Picture will now be called `uid` instead of the defaul
 ```js
 User.hasMany(Picture, {
   foreignKey: {
-    name: 'uid'
+    name: 'uid',
     allowNull: false
   }
 })
