@@ -42,9 +42,9 @@ test-unit-postgres-native:
 # Integration tests
 test-integration:
 	@if [ "$$GREP" ]; then \
-		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
+		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 30000 --reporter $(REPORTER) -g "$$GREP" $(TESTS); \
 	else \
-		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) $(TESTS); \
+		$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 30000 --reporter $(REPORTER) $(TESTS); \
 	fi
 
 test-integration-all: test-integration-sqlite test-integration-mysql test-integration-postgres test-integration-postgres-native test-integration-mariadb test-integration-mssql
@@ -82,7 +82,7 @@ postgres-native:
 # Coverage
 cover:
 	rm -rf coverage \
-	make teaser && COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 15000 --ui tdd $(TESTS); \
+	make teaser && COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -t 30000 --ui tdd $(TESTS); \
 
 mssql-cover:
 	rm -rf coverage
