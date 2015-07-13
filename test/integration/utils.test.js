@@ -109,6 +109,43 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
     });
   });
 
+  describe('cloneDeep', function() {
+    it('should clone objects', function() {
+      var obj = {foo: 1}
+        , clone = Utils.cloneDeep(obj);
+
+      expect(obj).to.not.equal(clone);
+    });
+
+    it('should clone nested objects', function() {
+      var obj = {foo: {bar: 1}}
+        , clone = Utils.cloneDeep(obj);
+
+      expect(obj.foo).to.not.equal(clone.foo);
+    });
+
+    it('should not call clone methods on plain objects', function() {
+      expect(function() {
+        Utils.cloneDeep({
+          clone: function() {
+            throw new Error('clone method called');
+          }
+        });
+      }).to.not.throw();
+    });
+
+    it('should not call clone methods on arrays', function() {
+      expect(function() {
+        var arr = [];
+        arr.clone = function() {
+          throw new Error('clone method called');
+        };
+
+        Utils.cloneDeep(arr);
+      }).to.not.throw();
+    });
+  });
+
   describe('validateParameter', function() {
     describe('method signature', function() {
       it('throws an error if the value is not defined', function() {
