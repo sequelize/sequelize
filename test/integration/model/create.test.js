@@ -1407,6 +1407,64 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should save associated instances', function() {
+      var Organization = this.sequelize.define('Organization', {
+        name: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          validate: {
+            notEmpty: true
+          }
+        }
+      });
+
+      var Member = this.sequelize.define('Member', {
+        name: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          validate: {
+            notEmpty: true
+          }
+        }
+      });
+
+      Organization.hasMany(Member);
+      Member.belongsTo(Organization);
+
+      var org = Organization.build({name: 'ABCD Foundation'});
+
+      var members = Member.build([
+        { name: 'alice' },
+        { name: 'bob' },
+        { name: 'carol' }
+      ]);
+
+      return Organization.sync({force: true}).then(function() {
+        return Member.sync({force: true});
+      }).then(function() {
+        return Promise.all(members.map(function(member) {
+          return member.setOrganization(org, { save: false });
+        }));
+      }).then(function() {
+        return org.save();
+      }).then(function() {
+        return Member.bulkCreate(members, {
+          validate: true,
+          individualHooks: true
+        });
+      }).then(function() {
+        return Organization.findOne();
+      }).then(function(_org) {
+        return _org.getMembers();
+      }).then(function(_members) {
+        expect(_members.length).to.equal(3);
+
+        expect(_members[0].get('name')).to.equal('alice');
+        expect(_members[1].get('name')).to.equal('bob');
+        expect(_members[2].get('name')).to.equal('carol');
+      });
+    });
+
     it('properly handles disparate field lists', function() {
       var self = this
         , data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },
