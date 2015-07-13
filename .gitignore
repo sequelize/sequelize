@@ -11,3 +11,4 @@ test/dialects/sqlite/test.sqlite
 test/sqlite/test.sqlite
 coverage-*
 site
+docs/api/tmp.md
