@@ -1374,6 +1374,39 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should save instances', function() {
+      var User = this.sequelize.define('User', {
+        username: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          validate: {
+            notEmpty: true
+          }
+        }
+      });
+
+      var instances = User.build([
+        { username: 'alice' },
+        { username: 'bob' },
+        { username: 'carol' }
+      ]);
+
+      return User.bulkCreate(instances, {
+        validate: true,
+        individualHooks: true
+      }).then(function(users) {
+        expect(users[0].get('username')).to.equal('alice');
+        expect(users[1].get('username')).to.equal('bob');
+        expect(users[2].get('username')).to.equal('carol');
+
+        return User.findAll({order: 'username ASC'});
+      }).then(function(users) {
+        expect(users[0].get('username')).to.equal('alice');
+        expect(users[1].get('username')).to.equal('bob');
+        expect(users[2].get('username')).to.equal('carol');
+      });
+    });
+
     it('properly handles disparate field lists', function() {
       var self = this
         , data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },
