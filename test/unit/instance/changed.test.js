@@ -62,6 +62,22 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(user.changed('birthdate')).to.equal(true);
     });
 
+    it('should return false for two instances with same value', function () {
+      var milliseconds = 1436921941088;
+      var firstDate = new Date(milliseconds);
+      var secondDate = new Date(milliseconds);
+
+      var user = this.User.build({
+        birthdate: firstDate
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.set('birthdate', secondDate);
+      expect(user.changed('birthdate')).to.equal(false);
+    });
+
     it('should return true for changed JSON with same object', function () {
       var user = this.User.build({
         meta: {
