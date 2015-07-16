@@ -1,10 +1,11 @@
 # Next
-- [FEATURE] Geometry support for postgres
-- [BUG] Fix wrong count for `findAndCountAll` with required includes [#4016](https://github.com/sequelize/sequelize/pull/4016)
-- [BUG] Fix problems related to parsing of unique constraint errors [#4017](https://github.com/sequelize/sequelize/issues/4017) and [#4012](https://github.com/sequelize/sequelize/issues/4012)
-- [BUG] Fix postgres path variable being surrounded by quotes to often in unique constraint errors [#4034](https://github.com/sequelize/sequelize/pull/4034)
-- [BUG] Fix `removeAttributes(id)` not setting `this.primaryKeys` to null
-- [BUG] Run validations on the through model during add, set and create for `belongsToMany`
+- [ADDED] `countAssociations` for hasMany and belongsToMany
+- [ADDED] Geometry support for postgres
+- [FIXED] Fix wrong count for `findAndCountAll` with required includes [#4016](https://github.com/sequelize/sequelize/pull/4016)
+- [FIXED] Fix problems related to parsing of unique constraint errors [#4017](https://github.com/sequelize/sequelize/issues/4017) and [#4012](https://github.com/sequelize/sequelize/issues/4012)
+- [FIXED] Fix postgres path variable being surrounded by quotes to often in unique constraint errors [#4034](https://github.com/sequelize/sequelize/pull/4034)
+- [FIXED] Fix `removeAttributes(id)` not setting `this.primaryKeys` to null
+- [FIXED] Run validations on the through model during add, set and create for `belongsToMany`
 
 # 3.3.2
 - [FIXED] upsert no longer updates with default values each time [#3994](https://github.com/sequelize/sequelize/pull/3994)
@@ -21,11 +22,11 @@
 - [ADDED] Hook name can be passed via the direct method [#3901](https://github.com/sequelize/sequelize/issues/3901)
 
 # 3.2.0
-- [FEATURE] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.
-- [FEATURE] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)
-- [FEATURE] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
-- [FEATURE] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
-- [FEATURE] Provide warnings if you misuse data types. [#3839](https://github.com/sequelize/sequelize/pull/3839)
+- [ADDED] Add support for new option `targetKey` in a belongs-to relationship for situations where the target key is not the id field.
+- [ADDED] Add support for keyword `after` in options of a field (useful for migrations), only for MySQL. [#3166](https://github.com/sequelize/sequelize/pull/3166)
+- [ADDED] There's a new sequelize.truncate function to truncate all tables defined through the sequelize models [#2671](https://github.com/sequelize/sequelize/pull/2671)
+- [ADDED] Add support for MySQLs TINYTEXT, MEDIUMTEXT and LONGTEXT. [#3836](https://github.com/sequelize/sequelize/pull/3836)
+- [ADDED] Provide warnings if you misuse data types. [#3839](https://github.com/sequelize/sequelize/pull/3839)
 - [FIXED] Fix a case where Postgres arrays containing JSONB type was being generated as JSON type.
 - [FIXED] Fix a case where `type` in `sequelize.query` was not being set to raw. [#3800](https://github.com/sequelize/sequelize/pull/3800)
 - [FIXED] Fix an issue where include all was not being properly expanded for self-references [#3804](https://github.com/sequelize/sequelize/issues/3804)
@@ -72,13 +73,13 @@
 - [REMOVED] `instance.increment/decrement` now longer takes a number as it's second argument.
 - [REMOVED/SECURITY] findOne no longer takes a string / integer / binary argument to represent a primaryKey. Use findById instead
 - [REMOVED/SECURITY] `where: "raw query"` is no longer legal, you must now explicitely use `where: ["raw query", [replacements]]`
-- [BUG] Fix showIndexQuery so appropriate indexes are returned when a schema is used
-- [BUG] Fix addIndexQuery error when the model has a schema
-- [BUG] Fix app crash in sqlite while running in special unique constraint errors [#3730](https://github.com/sequelize/sequelize/pull/3730)
-- [BUG] Fix bulkCreate: do not insert NULL for undefined values [#3729](https://github.com/sequelize/sequelize/pull/3729)
-- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting resulting in an unhandled rejection [#3726](https://github.com/sequelize/sequelize/pull/3726)
-- [BUG] Fix regression in beforeUpdate hook where `instance.changed()` would always be false [#3727](https://github.com/sequelize/sequelize/pull/3727)
-- [BUG] Fix trying to roll back a comitted transaction if an error occured while comitting
+- [FIXED] Fix showIndexQuery so appropriate indexes are returned when a schema is used
+- [FIXED] Fix addIndexQuery error when the model has a schema
+- [FIXED] Fix app crash in sqlite while running in special unique constraint errors [#3730](https://github.com/sequelize/sequelize/pull/3730)
+- [FIXED] Fix bulkCreate: do not insert NULL for undefined values [#3729](https://github.com/sequelize/sequelize/pull/3729)
+- [FIXED] Fix trying to roll back a comitted transaction if an error occured while comitting resulting in an unhandled rejection [#3726](https://github.com/sequelize/sequelize/pull/3726)
+- [FIXED] Fix regression in beforeUpdate hook where `instance.changed()` would always be false [#3727](https://github.com/sequelize/sequelize/pull/3727)
+- [FIXED] Fix trying to roll back a comitted transaction if an error occured while comitting
 
 #### Backwards compatibility changes
 - Most of the changes in 3.0.0 are BC breaking, read the changelog for 3.0.0 carefully.
