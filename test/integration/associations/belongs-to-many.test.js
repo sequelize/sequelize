@@ -486,12 +486,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.Task.create().then(function (task) {
           return user.addTask(task, {
             started: true
-          })
+          });
         }),
         this.Task.create().then(function (task) {
           return user.addTask(task, {
             started: true
-          })
+          });
         })
       ).then(function () {
         return expect(user.countStartedTasks({})).to.eventually.equal(2);
