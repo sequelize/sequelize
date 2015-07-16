@@ -1,4 +1,4 @@
-# Next
+# 3.4.0
 - [ADDED] `countAssociations` for hasMany and belongsToMany
 - [ADDED] Geometry support for postgres
 - [FIXED] Fix wrong count for `findAndCountAll` with required includes [#4016](https://github.com/sequelize/sequelize/pull/4016)
