@@ -846,7 +846,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           logging: function(sql) {
             test = true;
             expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+            expect(sql.indexOf('ARRAY[]::VARCHAR(255)[]')).to.be.above(-1);
           }
         });
       }).then(function() {
@@ -874,7 +874,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             logging: function(sql) {
               test = true;
               expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-              expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+              expect(sql.indexOf('ARRAY[]::VARCHAR(255)[]')).to.be.above(-1);
             }
           });
         });

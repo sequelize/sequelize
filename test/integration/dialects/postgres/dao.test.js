@@ -659,8 +659,8 @@ if (dialect.match(/^postgres/)) {
         return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
           // Check to see if the default value for a range field works
           expect(newUser.acceptable_marks.length).to.equal(2);
-          expect(newUser.acceptable_marks[0]).to.equal(0.65); // lower bound
-          expect(newUser.acceptable_marks[1]).to.equal(1); // upper bound
+          expect(newUser.acceptable_marks[0]).to.equal('0.65'); // lower bound
+          expect(newUser.acceptable_marks[1]).to.equal('1'); // upper bound
           expect(newUser.acceptable_marks.inclusive).to.deep.equal([false, false]); // not inclusive
           expect(newUser.course_period[0] instanceof Date).to.be.ok; // lower bound
           expect(newUser.course_period[1] instanceof Date).to.be.ok; // upper bound
@@ -731,8 +731,8 @@ if (dialect.match(/^postgres/)) {
         return User.create({ username: 'user', email: ['foo@bar.com'], course_period: period }).then(function(newUser) {
           // Check to see if the default value for a range field works
           expect(newUser.acceptable_marks.length).to.equal(2);
-          expect(newUser.acceptable_marks[0]).to.equal(0.65); // lower bound
-          expect(newUser.acceptable_marks[1]).to.equal(1); // upper bound
+          expect(newUser.acceptable_marks[0]).to.equal('0.65'); // lower bound
+          expect(newUser.acceptable_marks[1]).to.equal('1'); // upper bound
           expect(newUser.acceptable_marks.inclusive).to.deep.equal([false, false]); // not inclusive
           expect(newUser.course_period[0] instanceof Date).to.be.ok;
           expect(newUser.course_period[1] instanceof Date).to.be.ok;
