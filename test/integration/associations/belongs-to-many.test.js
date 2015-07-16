@@ -423,6 +423,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         active: DataTypes.BOOLEAN
       });
       this.UserTask = this.sequelize.define('UserTask', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
         started: {
           type: DataTypes.BOOLEAN,
           defaultValue: false
