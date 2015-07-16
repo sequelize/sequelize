@@ -634,6 +634,54 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
     });
 
+    describe('countAssociations', function () {
+      beforeEach(function() {
+        var self = this;
+
+        this.User = this.sequelize.define('User', { username: DataTypes.STRING });
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
+
+        this.User.hasMany(self.Task, {
+          foreignKey: 'userId'
+        });
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return Promise.all([
+            self.User.create({ username: 'John'}),
+            self.Task.create({ title: 'Get rich', active: true}),
+            self.Task.create({ title: 'Die trying', active: false})
+          ]);
+        }).spread(function(john, task1, task2) {
+          self.user = john;
+          return john.setTasks([task1, task2]);
+        });
+      });
+
+      it('should count all associations', function () {
+        return expect(this.user.countTasks({})).to.eventually.equal(2);
+      });
+
+      it('should count filtered associations', function () {
+        return expect(this.user.countTasks({
+          where: {
+            active: true
+          }
+        })).to.eventually.equal(1);
+      });
+
+      it('should count scoped associations', function () {
+        this.User.hasMany(this.Task, {
+          foreignKey: 'userId',
+          as: 'activeTasks',
+          scope: {
+            active: true
+          }
+        });
+
+        return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
+      });
+    });
+
     describe('selfAssociations', function() {
       it('should work with alias', function() {
         var Person = this.sequelize.define('Group', {});

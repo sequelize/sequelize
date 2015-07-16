@@ -415,11 +415,22 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     beforeEach(function() {
       var self = this;
 
-      this.User = this.sequelize.define('User', { username: DataTypes.STRING });
-      this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING
+      });
+      this.Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING,
+        active: DataTypes.BOOLEAN
+      });
+      this.UserTask = this.sequelize.define('UserTask', {
+        started: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false
+        }
+      });
 
-      this.User.belongsToMany(this.Task, { through: 'UserTasks' });
-      this.Task.belongsToMany(this.User, { through: 'UserTasks' });
+      this.User.belongsToMany(this.Task, { through: this.UserTask });
+      this.Task.belongsToMany(this.User, { through: this.UserTask });
 
       return this.sequelize.sync({ force: true }).then(function() {
         return Promise.all([
@@ -449,13 +460,42 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     it('should count scoped associations', function () {
       this.User.belongsToMany(this.Task, {
         as: 'activeTasks',
-        through: 'UserTasks',
+        through: this.UserTask,
         scope: {
           active: true
         }
       });
 
       return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
+    });
+
+    it('should count scoped through associations', function () {
+      var user = this.user;
+
+      this.User.belongsToMany(this.Task, {
+        as: 'startedTasks',
+        through: {
+          model: this.UserTask,
+          scope: {
+            started: true
+          }
+        }
+      });
+
+      return Promise.join(
+        this.Task.create().then(function (task) {
+          return user.addTask(task, {
+            started: true
+          })
+        }),
+        this.Task.create().then(function (task) {
+          return user.addTask(task, {
+            started: true
+          })
+        })
+      ).then(function () {
+        return expect(user.countStartedTasks({})).to.eventually.equal(2);
+      });
     });
   });
 
