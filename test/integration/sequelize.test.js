@@ -927,7 +927,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         it("doesn't save an instance if value is not in the range of enums", function() {
           return this.Review.create({status: 'fnord'}).catch(function(err) {
             expect(err).to.be.instanceOf(Error);
-            expect(err.get('status')[0].message).to.equal('Value "fnord" for ENUM status is out of allowed scope. Allowed values: scheduled, active, finished');
+            expect(err.message).to.equal('"fnord" is not a valid choice in ["scheduled","active","finished"]');
           });
         });
       });

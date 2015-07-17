@@ -16,9 +16,9 @@ if (dialect.match(/^postgres/)) {
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
-        email: {type: DataTypes.ARRAY(DataTypes.TEXT)},
-        numbers: {type: DataTypes.ARRAY(DataTypes.FLOAT)},
-        document: {type: DataTypes.HSTORE, defaultValue: '"default"=>"value"'}
+        email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
+        numbers: { type: DataTypes.ARRAY(DataTypes.FLOAT) },
+        document: { type: DataTypes.HSTORE, defaultValue: { default: '"value"' } }
       });
       return this.User.sync({ force: true });
     });
