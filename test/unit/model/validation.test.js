@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   describe('datatype validations', function () {
-    describe.only('should throw validationerror', function () {
+    describe('should throw validationerror', function () {
       var User = current.define('user', {
         age: Sequelize.INTEGER
       });
