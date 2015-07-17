@@ -2,7 +2,7 @@
 - [FIXED] Fix findOrCreate regression trying to add a transaction even if there is none
 
 # 3.4.1
-- [FIXED] Fix belongs-to-many ambigious id when through model has id
+- [FIXED] Fix belongs-to-many `countAssociations` - ambigious id when through model has id
 
 # 3.4.0
 - [ADDED] `countAssociations` for hasMany and belongsToMany
