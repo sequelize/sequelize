@@ -1446,8 +1446,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return member.setOrganization(org, { save: false });
         }));
       }).then(function() {
+        console.log(org, "----------------------", members);
         return org.save();
       }).then(function() {
+        console.log("----------------------", org, "----------------------", members);
+
         return Member.bulkCreate(members, {
           validate: true,
           individualHooks: true

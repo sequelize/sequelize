@@ -31,11 +31,6 @@ before_script:
 script:
   - "make test"
 
-branches:
-  only:
-    - master
-    - 1.7.0
-
 matrix:
   fast_finish: true
   include:
