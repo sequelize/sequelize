@@ -118,6 +118,11 @@ if (current.dialect.supports.transactions) {
         return this.User.findOrCreate({
           where: {
             name: 'Kafka'
+          },
+          logging: function (sql) {
+            if (/default/.test(sql)) {
+              throw new Error('The transaction was not properly assigned');
+            }
           }
         }).then(function () {
           return self.User.findAll();
