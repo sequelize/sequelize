@@ -495,25 +495,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
   });
 
-  it('skips validation when asked', function() {
-    var values = ['value1', 'value2'];
-    var Bar = this.sequelize.define('Bar' + config.rand(), {
-      field: {
-        type: Sequelize.ENUM,
-        values: values,
-        validate: {
-          isIn: [values]
-        }
-      }
-    });
-
-    return Bar.sync({force: true}).then(function() {
-      return Bar.create({ field: 'value3' }, {validate: false})
-        .catch(Sequelize.DatabaseError, function() {
-        });
-    });
-  });
-
   it('raises an error if saving a different value into an immutable field', function() {
     var User = this.sequelize.define('User', {
       name: {

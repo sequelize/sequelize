@@ -6,6 +6,7 @@ var chai = require('chai')
   , expect = chai.expect
   , Sequelize = require(__dirname + '/../../../index')
   , Support = require(__dirname + '/../support')
+  , current = Support.sequelize
   , config = require(__dirname + '/../../config/config');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
@@ -262,5 +263,42 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           }
         }
       }
+  });
+
+  describe('datatype validations', function () {
+    describe.only('should throw validationerror', function () {
+      var User = current.define('user', {
+        age: Sequelize.INTEGER
+      });
+
+      describe('create', function () {
+        it('should throw when passing string', function () {
+          return expect(User.create({
+            age: 'jan'
+          })).to.be.rejectedWith(current.ValidationError);
+        });
+
+        it('should throw when passing decimal', function () {
+          return expect(User.create({
+            age: 4.5
+          })).to.be.rejectedWith(current.ValidationError);
+        });
+      });
+
+      describe('update', function () {
+        it('should throw when passing string', function () {
+          return expect(User.update({
+            age: 'jan'
+          }, { where : {}})).to.be.rejectedWith(current.ValidationError);
+        });
+
+        it('should throw when passing decimal', function () {
+          return expect(User.update({
+            age: 4.5
+          }, { where : {}})).to.be.rejectedWith(current.ValidationError);
+        });
+      });
+
+    });
   });
 });
