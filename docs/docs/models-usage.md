@@ -174,6 +174,7 @@ Project.findAll({
       $between: [6, 10],     // BETWEEN 6 AND 10
       $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
       $in: [1, 2],           // IN [1, 2]
+      $notIn: [1, 2],        // NOT IN [1, 2]
       $like: '%hat',         // LIKE '%hat'
       $notLike: '%hat'       // NOT LIKE '%hat'
       $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
