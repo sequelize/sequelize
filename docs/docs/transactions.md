@@ -114,17 +114,17 @@ sequelize.transaction(function (t1) {
 The possible isolations levels to use when starting a transaction:
 
 ```js
-Sequelize.Transaction.READ_UNCOMMITTED // "READ UNCOMMITTED"
-Sequelize.Transaction.READ_COMMITTED // "READ COMMITTED"
-Sequelize.Transaction.REPEATABLE_READ  // "REPEATABLE READ"
-Sequelize.Transaction.SERIALIZABLE // "SERIALIZABLE"
+Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED // "READ UNCOMMITTED"
+Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED // "READ COMMITTED"
+Sequelize.Transaction.ISOLATION_LEVELS.REPEATABLE_READ  // "REPEATABLE READ"
+Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE // "SERIALIZABLE"
 ```
 
 By default, sequelize uses "REPEATABLE READ". If you want to use a different isolation level, pass in the desired level as the first argument:
 
 ```js
 return sequelize.transaction({
-  isolationLevel: Sequelize.Transaction.SERIALIZABLE
+  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
   }, function (t) {
 
   // your transactions
