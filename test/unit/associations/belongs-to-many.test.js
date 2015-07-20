@@ -117,10 +117,12 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
         , Invite = current.define('invite', {});
 
       User.Followers = User.belongsToMany(User, {
-        through: UserFollowers
+        as: 'Followers',
+        through: UserFollowers,
       });
 
       User.Invites = User.belongsToMany(User, {
+        as: 'Invites',
         foreignKey: 'InviteeId',
         through: Invite
       });
@@ -129,6 +131,29 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
       expect(User.Invites.paired).not.to.be.ok;
 
       expect(User.Followers.otherKey).not.to.equal(User.Invites.foreignKey);
+    });
+
+    it('correctly generates a foreign/other key when none are defined', function () {
+      var User = current.define('user', {})
+        , UserFollowers = current.define('userFollowers', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            }
+          }, {
+            timestamps: false
+          });
+
+      User.Followers = User.belongsToMany(User, {
+        as: 'Followers',
+        through: UserFollowers
+      });
+
+      expect(User.Followers.foreignKey).to.be.ok;
+      expect(User.Followers.otherKey).to.be.ok;
+
+      expect(Object.keys(UserFollowers.rawAttributes).length).to.equal(3);
     });
 
     it('works with singular and plural name for self-associations', function () {
