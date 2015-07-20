@@ -102,7 +102,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
     it('only get objects that fulfill the options', function() {
       return this.User.find({where: {username: 'John'}}).then(function(john) {
-        return john.getTasks({where: {active: true}});
+        return john.getTasks({
+          where: {
+            active: true
+          }
+        });
       }).then(function(tasks) {
         expect(tasks).to.have.length(1);
       });

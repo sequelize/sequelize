@@ -314,6 +314,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('$raw', function () {
+      testsql('rank', {
+        $raw: 'AGHJZ'
+      }, {
+        default: '[rank] = AGHJZ'
+      });
+    });
+
     suite('$like', function () {
       testsql('username', {
         $like: '%swagger'

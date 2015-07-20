@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    it('include (left outer join)', function () {
+    it.skip('include (left outer join)', function () {
       var User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    it('include (left outer join)', function () {
+    it.skip('include (left outer join)', function () {
       var User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
