@@ -11,7 +11,7 @@ var chai = require('chai')
   , Promise   = current.Promise;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), function() {
-   describe('optimizations using bulk create, destroy and update', function() {
+  describe('optimizations using bulk create, destroy and update', function() {
     var User = current.define('User', { username: DataTypes.STRING })
       , Task = current.define('Task', { title: DataTypes.STRING })
       , UserTasks = current.define('UserTasks', {});
@@ -63,27 +63,47 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
         expect(this.destroy).to.have.been.calledOnce;
       });
     });
+  });
 
-    describe('belongsToMany', function () {
-      it('works with singular and plural name for self-associations', function () {
-        // Models taken from https://github.com/sequelize/sequelize/issues/3796
-        var Service = current.define('service', {})
-          , Instance = Service.Instance;
+  describe('self-associations', function () {
+    it('does not pair multiple self associations with different through arguments', function () {
+      var User = current.define('user', {})
+        , UserFollowers = current.define('userFollowers', {})
+        , Invite = current.define('invite', {});
 
-        Service.belongsToMany(Service, {through: 'Supplements', as: 'supplements'});
-        Service.belongsToMany(Service, {through: 'Supplements', as: {singular: 'supplemented', plural: 'supplemented'}});
-
-        expect(Instance.prototype).to.have.property('getSupplements').which.is.a.function;
-
-        expect(Instance.prototype).to.have.property('addSupplement').which.is.a.function;
-        expect(Instance.prototype).to.have.property('addSupplements').which.is.a.function;
-
-        expect(Instance.prototype).to.have.property('getSupplemented').which.is.a.function;
-        expect(Instance.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
-
-        expect(Instance.prototype).to.have.property('addSupplemented').which.is.a.function;
-        expect(Instance.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
+      User.Followers = User.belongsToMany(User, {
+        through: UserFollowers
       });
+
+      User.Invites = User.belongsToMany(User, {
+        foreignKey: 'InviteeId',
+        through: Invite
+      });
+
+      expect(User.Followers.paired).not.to.be.ok;
+      expect(User.Invites.paired).not.to.be.ok;
+
+      expect(User.Followers.otherKey).not.to.equal(User.Invites.foreignKey);
+    });
+
+    it('works with singular and plural name for self-associations', function () {
+      // Models taken from https://github.com/sequelize/sequelize/issues/3796
+      var Service = current.define('service', {})
+        , Instance = Service.Instance;
+
+      Service.belongsToMany(Service, {through: 'Supplements', as: 'supplements'});
+      Service.belongsToMany(Service, {through: 'Supplements', as: {singular: 'supplemented', plural: 'supplemented'}});
+
+      expect(Instance.prototype).to.have.property('getSupplements').which.is.a.function;
+
+      expect(Instance.prototype).to.have.property('addSupplement').which.is.a.function;
+      expect(Instance.prototype).to.have.property('addSupplements').which.is.a.function;
+
+      expect(Instance.prototype).to.have.property('getSupplemented').which.is.a.function;
+      expect(Instance.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
+
+      expect(Instance.prototype).to.have.property('addSupplemented').which.is.a.function;
+      expect(Instance.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
     });
   });
 });
