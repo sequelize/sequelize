@@ -65,6 +65,51 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
     });
   });
 
+  describe('foreign keys', function() {
+    it('should infer otherKey from paired BTM relationship with a through string defined', function () {
+      var User = this.sequelize.define('User', {});
+      var Place = this.sequelize.define('Place', {});
+
+      var Places = User.belongsToMany(Place, { through: 'user_places', foreignKey: 'user_id' });
+      var Users = Place.belongsToMany(User, { through: 'user_places', foreignKey: 'place_id' });
+
+      expect(Places.paired).to.equal(Users);
+      expect(Users.paired).to.equal(Places);
+
+      expect(Places.foreignKey).to.equal('user_id');
+      expect(Users.foreignKey).to.equal('place_id');
+
+      expect(Places.otherKey).to.equal('place_id');
+      expect(Users.otherKey).to.equal('user_id');
+    });
+
+    it('should infer otherKey from paired BTM relationship with a through model defined', function () {
+      var User = this.sequelize.define('User', {});
+      var Place = this.sequelize.define('User', {});
+      var UserPlace = this.sequelize.define('UserPlace', {
+        id: {
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+          autoIncrement: true
+        }
+      }, {timestamps: false});
+
+      var Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id' });
+      var Users = Place.belongsToMany(User, { through: UserPlace, foreignKey: 'place_id' });
+
+      expect(Places.paired).to.equal(Users);
+      expect(Users.paired).to.equal(Places);
+
+      expect(Places.foreignKey).to.equal('user_id');
+      expect(Users.foreignKey).to.equal('place_id');
+
+      expect(Places.otherKey).to.equal('place_id');
+      expect(Users.otherKey).to.equal('user_id');
+
+      expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
+    });
+  });
+
   describe('self-associations', function () {
     it('does not pair multiple self associations with different through arguments', function () {
       var User = current.define('user', {})
