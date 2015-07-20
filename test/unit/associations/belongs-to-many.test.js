@@ -11,7 +11,7 @@ var chai = require('chai')
   , Promise   = current.Promise;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), function() {
-   describe('optimizations using bulk create, destroy and update', function() {
+  describe('optimizations using bulk create, destroy and update', function() {
     var User = current.define('User', { username: DataTypes.STRING })
       , Task = current.define('Task', { title: DataTypes.STRING })
       , UserTasks = current.define('UserTasks', {});
@@ -63,27 +63,117 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
         expect(this.destroy).to.have.been.calledOnce;
       });
     });
+  });
 
-    describe('belongsToMany', function () {
-      it('works with singular and plural name for self-associations', function () {
-        // Models taken from https://github.com/sequelize/sequelize/issues/3796
-        var Service = current.define('service', {})
-          , Instance = Service.Instance;
+  describe('foreign keys', function() {
+    it('should infer otherKey from paired BTM relationship with a through string defined', function () {
+      var User = this.sequelize.define('User', {});
+      var Place = this.sequelize.define('Place', {});
 
-        Service.belongsToMany(Service, {through: 'Supplements', as: 'supplements'});
-        Service.belongsToMany(Service, {through: 'Supplements', as: {singular: 'supplemented', plural: 'supplemented'}});
+      var Places = User.belongsToMany(Place, { through: 'user_places', foreignKey: 'user_id' });
+      var Users = Place.belongsToMany(User, { through: 'user_places', foreignKey: 'place_id' });
 
-        expect(Instance.prototype).to.have.property('getSupplements').which.is.a.function;
+      expect(Places.paired).to.equal(Users);
+      expect(Users.paired).to.equal(Places);
 
-        expect(Instance.prototype).to.have.property('addSupplement').which.is.a.function;
-        expect(Instance.prototype).to.have.property('addSupplements').which.is.a.function;
+      expect(Places.foreignKey).to.equal('user_id');
+      expect(Users.foreignKey).to.equal('place_id');
 
-        expect(Instance.prototype).to.have.property('getSupplemented').which.is.a.function;
-        expect(Instance.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
+      expect(Places.otherKey).to.equal('place_id');
+      expect(Users.otherKey).to.equal('user_id');
+    });
 
-        expect(Instance.prototype).to.have.property('addSupplemented').which.is.a.function;
-        expect(Instance.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
+    it('should infer otherKey from paired BTM relationship with a through model defined', function () {
+      var User = this.sequelize.define('User', {});
+      var Place = this.sequelize.define('User', {});
+      var UserPlace = this.sequelize.define('UserPlace', {
+        id: {
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+          autoIncrement: true
+        }
+      }, {timestamps: false});
+
+      var Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id' });
+      var Users = Place.belongsToMany(User, { through: UserPlace, foreignKey: 'place_id' });
+
+      expect(Places.paired).to.equal(Users);
+      expect(Users.paired).to.equal(Places);
+
+      expect(Places.foreignKey).to.equal('user_id');
+      expect(Users.foreignKey).to.equal('place_id');
+
+      expect(Places.otherKey).to.equal('place_id');
+      expect(Users.otherKey).to.equal('user_id');
+
+      expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
+    });
+  });
+
+  describe('self-associations', function () {
+    it('does not pair multiple self associations with different through arguments', function () {
+      var User = current.define('user', {})
+        , UserFollowers = current.define('userFollowers', {})
+        , Invite = current.define('invite', {});
+
+      User.Followers = User.belongsToMany(User, {
+        as: 'Followers',
+        through: UserFollowers,
       });
+
+      User.Invites = User.belongsToMany(User, {
+        as: 'Invites',
+        foreignKey: 'InviteeId',
+        through: Invite
+      });
+
+      expect(User.Followers.paired).not.to.be.ok;
+      expect(User.Invites.paired).not.to.be.ok;
+
+      expect(User.Followers.otherKey).not.to.equal(User.Invites.foreignKey);
+    });
+
+    it('correctly generates a foreign/other key when none are defined', function () {
+      var User = current.define('user', {})
+        , UserFollowers = current.define('userFollowers', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            }
+          }, {
+            timestamps: false
+          });
+
+      User.Followers = User.belongsToMany(User, {
+        as: 'Followers',
+        through: UserFollowers
+      });
+
+      expect(User.Followers.foreignKey).to.be.ok;
+      expect(User.Followers.otherKey).to.be.ok;
+
+      expect(Object.keys(UserFollowers.rawAttributes).length).to.equal(3);
+    });
+
+    it('works with singular and plural name for self-associations', function () {
+      // Models taken from https://github.com/sequelize/sequelize/issues/3796
+      var Service = current.define('service', {})
+        , Instance = Service.Instance;
+
+      Service.belongsToMany(Service, {through: 'Supplements', as: 'supplements'});
+      Service.belongsToMany(Service, {through: 'Supplements', as: {singular: 'supplemented', plural: 'supplemented'}});
+
+      expect(Instance.prototype).to.have.property('getSupplements').which.is.a.function;
+
+      expect(Instance.prototype).to.have.property('addSupplement').which.is.a.function;
+      expect(Instance.prototype).to.have.property('addSupplements').which.is.a.function;
+
+      expect(Instance.prototype).to.have.property('getSupplemented').which.is.a.function;
+      expect(Instance.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
+
+      expect(Instance.prototype).to.have.property('addSupplemented').which.is.a.function;
+      expect(Instance.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
     });
   });
 });
