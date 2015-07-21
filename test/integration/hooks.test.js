@@ -1936,7 +1936,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         return User.sync({ force: true }).then(function() {
           return User.create({ username: 'bob' }).then(function(user) {
-            return user.save({ username: 'bawb' }).then(function() {
+            user.username = 'bawb';
+            return user.save({ fields: ['username'] }).then(function() {
               expect(beforeHooked).to.be.true;
               expect(afterHooked).to.be.true;
             });

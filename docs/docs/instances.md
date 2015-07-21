@@ -104,6 +104,8 @@ task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['tit
 })
 ```
 
+When you call `save` without changing any attribute, this method will execute nothing;
+
 ## Destroying / Deleting persistent instances
 
 Once you created an object and got a reference to it&comma; you can delete it from the database&period; The relevant method is `destroy`&colon;

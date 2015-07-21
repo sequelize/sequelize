@@ -981,6 +981,30 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    describe('when nothing changed', function() {
+
+      beforeEach(function () {
+        this.clock = sinon.useFakeTimers();
+      });
+
+      afterEach(function () {
+        this.clock.restore();
+      });
+
+      it('does not update timestamps', function() {
+        var self = this;
+        return self.User.create({ username: 'John' }).then(function() {
+          return self.User.findOne({ username: 'John' }).then(function(user) {
+            var updatedAt = user.updatedAt;
+            self.clock.tick(2000);
+            return user.save().then(function(newlySavedUser) {
+              expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
+            });
+          });
+        });
+      });
+    });
+
     it('updates with function and column value', function() {
       var self = this;
 
