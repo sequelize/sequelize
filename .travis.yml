@@ -18,6 +18,7 @@ env:
   - DIALECT=postgres-native
   - DIALECT=sqlite
   - DIALECT=mariadb
+  - DIALECT=mssql
 
 addons:
   postgresql: "9.4"
@@ -40,13 +41,9 @@ matrix:
   include:
     - node_js: "0.10"
       env: COVERAGE=true
-    - node_js: "0.12"
-      env: DIALECT=mssql
   allow_failures:
     - node_js: "0.10"
       env: COVERAGE=true
-    - node_js: "0.12"
-      env: DIALECT=mssql
 
 notifications:
   hipchat:
