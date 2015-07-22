@@ -7,6 +7,9 @@ var chai = require('chai')
   , stub = sinon.stub
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , BelongsTo = require(__dirname + '/../../../lib/associations/belongs-to')
+  , HasMany = require(__dirname + '/../../../lib/associations/has-many')
+  , HasOne = require(__dirname + '/../../../lib/associations/has-one')
   , current   = Support.sequelize
   , Promise   = current.Promise;
 
@@ -107,6 +110,230 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
       expect(Users.otherKey).to.equal('user_id');
 
       expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
+    });
+  });
+
+  describe('pseudo associations', function () {
+    it('should setup belongsTo relations to source and target from join model with defined foreign/other keys', function () {
+      var Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING
+        })
+      , Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING
+        })
+      , ProductTag = this.sequelize.define('ProductTag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          priority: DataTypes.INTEGER
+        }, {
+          timestamps: false
+        });
+
+      Product.Tags = Product.belongsToMany(Tag, {through: ProductTag, foreignKey: 'productId', otherKey: 'tagId'});
+      Tag.Products = Tag.belongsToMany(Product, {through: ProductTag, foreignKey: 'tagId', otherKey: 'productId'});
+
+      expect(Product.Tags.toSource).to.be.an.instanceOf(BelongsTo);
+      expect(Product.Tags.toTarget).to.be.an.instanceOf(BelongsTo);
+
+      expect(Tag.Products.toSource).to.be.an.instanceOf(BelongsTo);
+      expect(Tag.Products.toTarget).to.be.an.instanceOf(BelongsTo);
+
+      expect(Product.Tags.toSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.toTarget.foreignKey).to.equal(Product.Tags.otherKey);
+
+      expect(Tag.Products.toSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.toTarget.foreignKey).to.equal(Tag.Products.otherKey);
+
+      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
+      expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'productId', 'tagId']);
+    });
+
+    it('should setup hasOne relations to source and target from join model with defined foreign/other keys', function () {
+      var Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING
+        })
+      , Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING
+        })
+      , ProductTag = this.sequelize.define('ProductTag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          priority: DataTypes.INTEGER
+        }, {
+          timestamps: false
+        });
+
+      Product.Tags = Product.belongsToMany(Tag, {through: ProductTag, foreignKey: 'productId', otherKey: 'tagId'});
+      Tag.Products = Tag.belongsToMany(Product, {through: ProductTag, foreignKey: 'tagId', otherKey: 'productId'});
+
+      expect(Product.Tags.manyFromSource).to.be.an.instanceOf(HasMany);
+      expect(Product.Tags.manyFromTarget).to.be.an.instanceOf(HasMany);
+
+      expect(Tag.Products.manyFromSource).to.be.an.instanceOf(HasMany);
+      expect(Tag.Products.manyFromTarget).to.be.an.instanceOf(HasMany);
+
+      expect(Product.Tags.manyFromSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.manyFromTarget.foreignKey).to.equal(Product.Tags.otherKey);
+
+      expect(Tag.Products.manyFromSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.manyFromTarget.foreignKey).to.equal(Tag.Products.otherKey);
+
+      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
+      expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'productId', 'tagId']);
+    });
+
+    it('should setup hasOne relations to source and target from join model with defined foreign/other keys', function () {
+      var Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING
+        })
+      , Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING
+        })
+      , ProductTag = this.sequelize.define('ProductTag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          priority: DataTypes.INTEGER
+        }, {
+          timestamps: false
+        });
+
+      Product.Tags = Product.belongsToMany(Tag, {through: ProductTag, foreignKey: 'productId', otherKey: 'tagId'});
+      Tag.Products = Tag.belongsToMany(Product, {through: ProductTag, foreignKey: 'tagId', otherKey: 'productId'});
+
+      expect(Product.Tags.oneFromSource).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.oneFromTarget).to.be.an.instanceOf(HasOne);
+
+      expect(Tag.Products.oneFromSource).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.oneFromTarget).to.be.an.instanceOf(HasOne);
+
+      expect(Product.Tags.oneFromSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.oneFromTarget.foreignKey).to.equal(Product.Tags.otherKey);
+
+      expect(Tag.Products.oneFromSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.oneFromTarget.foreignKey).to.equal(Tag.Products.otherKey);
+
+      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
+      expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'productId', 'tagId']);
+    });
+
+    it('should setup belongsTo relations to source and target from join model with only foreign keys defined', function () {
+      var Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING
+        })
+      , Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING
+        })
+      , ProductTag = this.sequelize.define('ProductTag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          priority: DataTypes.INTEGER
+        }, {
+          timestamps: false
+        });
+
+      Product.Tags = Product.belongsToMany(Tag, {through: ProductTag, foreignKey: 'product_ID'});
+      Tag.Products = Tag.belongsToMany(Product, {through: ProductTag, foreignKey: 'tag_ID'});
+
+      expect(Product.Tags.toSource).to.be.ok;
+      expect(Product.Tags.toTarget).to.be.ok;
+
+      expect(Tag.Products.toSource).to.be.ok;
+      expect(Tag.Products.toTarget).to.be.ok;
+
+      expect(Product.Tags.toSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.toTarget.foreignKey).to.equal(Product.Tags.otherKey);
+
+      expect(Tag.Products.toSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.toTarget.foreignKey).to.equal(Tag.Products.otherKey);
+
+      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
+      expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID']);
+    });
+
+    it('should setup hasOne relations to source and target from join model with only foreign keys defined', function () {
+      var Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING
+        })
+      , Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING
+        })
+      , ProductTag = this.sequelize.define('ProductTag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          priority: DataTypes.INTEGER
+        }, {
+          timestamps: false
+        });
+
+      Product.Tags = Product.belongsToMany(Tag, {through: ProductTag, foreignKey: 'product_ID'});
+      Tag.Products = Tag.belongsToMany(Product, {through: ProductTag, foreignKey: 'tag_ID'});
+
+      expect(Product.Tags.oneFromSource).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.oneFromTarget).to.be.an.instanceOf(HasOne);
+
+      expect(Tag.Products.oneFromSource).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.oneFromTarget).to.be.an.instanceOf(HasOne);
+
+      expect(Product.Tags.oneFromSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.oneFromTarget.foreignKey).to.equal(Product.Tags.otherKey);
+
+      expect(Tag.Products.oneFromSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.oneFromTarget.foreignKey).to.equal(Tag.Products.otherKey);
+
+      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
+      expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID']);
+    });
+
+    it('should setup belongsTo relations to source and target from join model with no foreign keys defined', function () {
+      var Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING
+        })
+      , Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING
+        })
+      , ProductTag = this.sequelize.define('ProductTag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          priority: DataTypes.INTEGER
+        }, {
+          timestamps: false
+        });
+
+      Product.Tags = Product.belongsToMany(Tag, {through: ProductTag});
+      Tag.Products = Tag.belongsToMany(Product, {through: ProductTag});
+
+      expect(Product.Tags.toSource).to.be.ok;
+      expect(Product.Tags.toTarget).to.be.ok;
+
+      expect(Tag.Products.toSource).to.be.ok;
+      expect(Tag.Products.toTarget).to.be.ok;
+
+      expect(Product.Tags.toSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.toTarget.foreignKey).to.equal(Product.Tags.otherKey);
+
+      expect(Tag.Products.toSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.toTarget.foreignKey).to.equal(Tag.Products.otherKey);
+
+      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
+      expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'ProductId', 'TagId']);
     });
   });
 
