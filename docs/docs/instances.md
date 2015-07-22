@@ -66,7 +66,7 @@ Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(fun
 It is also possible to define which attributes can be set via the create method&period; This can be especially very handy if you create database entries based on a form which can be filled by a user&period; Using that would for example allow you to restrict the `User` model to set only a username and an address but not an admin flag&colon;
 
 ```js
-User.create({ username: 'barfooz', isAdmin: true }, [ 'username' ]).then(function(user) {
+User.create({ username: 'barfooz', isAdmin: true }, { fields: [ 'username' ] }).then(function(user) {
   // let's assume the default of isAdmin is false:
   console.log(user.get({
     plain: true
