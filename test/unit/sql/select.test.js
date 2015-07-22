@@ -3,6 +3,7 @@
 /* jshint -W110 */
 var Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , Model = require(__dirname + '/../../../lib/model')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
   , sql       = current.dialect.QueryGenerator;
@@ -25,7 +26,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    it.skip('include (left outer join)', function () {
+    it('include (left outer join)', function () {
       var User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -40,21 +41,20 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         freezeTableName: true
       });
 
+      User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
+
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: [ {
-          model: Post,
-          attributes: ['title'],
-          association: {
-            source: User,
-            target: Post,
-            identifier: 'user_id'
-          },
-          as: 'Post'
-        } ],
-        tableAs: 'User'
-      }), {
-        default: 'SELECT [User].[name], [User].[age], [Post].[title] AS [Post.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Post] ON [User].[id] = [Post].[user_id];'
+        include: Model.$validateIncludedElements({
+          include: [{
+            attributes: ['title'],
+            association: User.Posts
+          }],
+          model: User
+        }).include,
+        model: User
+      }, User), {
+        default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
       });
     });
   });
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    it.skip('include (left outer join)', function () {
+    it('include (left outer join)', function () {
       var User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -98,22 +98,21 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         freezeTableName: true
       });
 
+      User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
+
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: [ {
-          model: Post,
-          attributes: ['title'],
-          association: {
-            source: Post,
-            target: User,
-            identifier: 'user_id'
-          },
-          as: 'Post'
-        } ],
-        tableAs: 'User'
-      }), {
-        default: 'SELECT [User].[name], [User].[age], [Post].[title] AS [Post.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Post] ON [User].[id] = [Post].[user_id];',
-        postgres: 'SELECT User.name, User.age, Post.title AS "Post.title" FROM User AS User LEFT OUTER JOIN Post AS Post ON User.id = Post.user_id;'
+        include: Model.$validateIncludedElements({
+          include: [{
+            attributes: ['title'],
+            association: User.Posts
+          }],
+          model: User
+        }).include,
+        model: User
+      }, User), {
+        default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        postgres: 'SELECT User.name, User.age, Posts.id AS "Posts.id", Posts.title AS "Posts.title" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;'
       });
     });
 
