@@ -7,11 +7,12 @@ var chai = require('chai')
   , stub = sinon.stub
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , HasMany   = require(__dirname + '/../../../lib/associations/has-many')
   , current   = Support.sequelize
   , Promise   = current.Promise;
 
 describe(Support.getTestDialectTeaser('hasMany'), function() {
-   describe('optimizations using bulk create, destroy and update', function() {
+  describe('optimizations using bulk create, destroy and update', function() {
     var User = current.define('User', { username: DataTypes.STRING })
       , Task = current.define('Task', { title: DataTypes.STRING });
 
@@ -59,6 +60,29 @@ describe(Support.getTestDialectTeaser('hasMany'), function() {
         expect(this.findAll).to.have.been.calledTwice;
         expect(this.update).to.have.been.calledOnce;
       });
+    });
+  });
+
+  describe('mixin', function () {
+    var User = current.define('User')
+      , Task = current.define('Task');
+
+    it('should mixin association methods', function () {
+      var as = Math.random().toString()
+        , association = new HasMany(User, Task, {as: as})
+        , obj = {};
+
+      association.mixin(obj);
+
+      expect(obj[association.accessors.get]).to.be.an('function');
+      expect(obj[association.accessors.set]).to.be.an('function');
+      expect(obj[association.accessors.addMultiple]).to.be.an('function');
+      expect(obj[association.accessors.add]).to.be.an('function');
+      expect(obj[association.accessors.remove]).to.be.an('function');
+      expect(obj[association.accessors.removeMultiple]).to.be.an('function');
+      expect(obj[association.accessors.hasSingle]).to.be.an('function');
+      expect(obj[association.accessors.hasAll]).to.be.an('function');
+      expect(obj[association.accessors.count]).to.be.an('function');
     });
   });
 });
