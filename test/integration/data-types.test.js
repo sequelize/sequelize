@@ -6,18 +6,14 @@ var chai = require('chai')
   , Sequelize = require('../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
-  , DataTypes = require(__dirname + '/../../lib/data-types')
-  , dialect = Support.getTestDialect()
   , sinon = require('sinon')
-  , _ = require('lodash')
+  , dataTypes = require('../../lib/data-types')
   , moment = require('moment')
-  , current = Support.sequelize;
+  , current = Support.sequelize
+  , dialect = Support.getTestDialect();
 
 describe.only(Support.getTestDialectTeaser('DataTypes'), function() {
-  it('allows me to use a custom parse function', function () {
-    // var parseStub = sinon.stub(this.sequelize.DATE, 'parse', function (value) {
-    //   new moment(value);
-    // });
+  it('allows me to return values from a custom parse function', function () {
     var parse = Sequelize.DATE.parse = sinon.spy(function (value) {
       return moment(value, 'YYYY-MM-DD HH:mm:ss Z');
     });
@@ -29,15 +25,15 @@ describe.only(Support.getTestDialectTeaser('DataTypes'), function() {
       return value.format('YYYY-MM-DD HH:mm:ss Z');
     });
 
-    this.sequelize.refreshTypes();
+    current.refreshTypes();
 
-    var User = this.sequelize.define('user', {
+    var User = current.define('user', {
       dateField: Sequelize.DATE
     }, {
       timestamps: false
     });
 
-    return this.sequelize.sync({ force: true }).then(function () {
+    return current.sync({ force: true }).then(function () {
       return User.create({
         dateField: moment("2011 10 31", 'YYYY MM DD')
       });
@@ -51,25 +47,26 @@ describe.only(Support.getTestDialectTeaser('DataTypes'), function() {
     });
   });
 
-  var testType = function (Type, value) {
-    it((new Type()).toSql(), function () {
-      var parse = Type.parse = sinon.spy(function (value) {
+  var testType = function (Type, value, options) {
+    options = options || {};
+    it('calls parse and stringify for ' + Type.toSql(), function () {
+      var parse = Type.constructor.parse = sinon.spy(options.parse || function (value) {
         return value;
       });
 
-      var stringify = Type.prototype.stringify = sinon.spy(function (value) {
+      var stringify = Type.constructor.prototype.stringify = sinon.spy(options.$stringify || function (value) {
         return value;
       });
 
-      this.sequelize.refreshTypes();
+      current.refreshTypes();
 
-      var User = this.sequelize.define('user', {
-        field: new Type()
+      var User = current.define('user', {
+        field: Type
       }, {
         timestamps: false
       });
 
-      return this.sequelize.sync({ force: true }).then(function () {
+      return current.sync({ force: true }).then(function () {
         return User.create({
           field: value
         });
@@ -82,11 +79,23 @@ describe.only(Support.getTestDialectTeaser('DataTypes'), function() {
     });
   };
 
-  [Sequelize.TEXT, Sequelize.STRING, Sequelize.CHAR].forEach(function (Type) {
-   testType(Type, 'foobar');
-  });
+  // [new Sequelize.TEXT(), new Sequelize.STRING(), new Sequelize.CHAR(), new Sequelize.CHAR().BINARY].forEach(function (Type) {
+  //  testType(Type, 'foobar');
+  // });
 
-  [Sequelize.BOOLEAN, Sequelize.DOUBLE, Sequelize.REAL, Sequelize.INTEGER].forEach(function (Type) {
-   testType(Type, 1);
-  });
+  // [new Sequelize.BOOLEAN(), new Sequelize.DOUBLE(), new Sequelize.REAL(), new Sequelize.INTEGER(), new Sequelize.DECIMAL()].forEach(function (Type) {
+  //  testType(Type, 1);
+  // });
+
+  // [new Sequelize.REAL(), new Sequelize.FLOAT()].forEach(function (Type) {
+  //   testType(Type, 1);
+  // });
+
+  var blobStringify = ('BLOB' in dataTypes[dialect]) ? dataTypes[dialect].BLOB : dataTypes.BLOB;
+  blobStringify = blobStringify.prototype.$stringify;
+  // testType(new Sequelize.BLOB(), new Buffer('hej'), { $stringify: blobStringify });
+  testType(new Sequelize.STRING().BINARY, 'foo');
+
+  var stringBinary = new Sequelize.STRING().BINARY;
+  testType(stringBinary, new Buffer('foo'), { $stringify: blobStringify.bind(stringBinary)});
 });
