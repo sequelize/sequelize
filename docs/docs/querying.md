@@ -151,9 +151,10 @@ Project.findAll({
         where: { state: Sequelize.col('project.state') }
     }]
 })
- ```
+```
 
 ## Pagination / Limiting
+
 ```js
 // Fetch 10 instances/rows
 Project.findAll({ limit: 10 })
