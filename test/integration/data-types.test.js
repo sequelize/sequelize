@@ -12,7 +12,7 @@ var chai = require('chai')
   , current = Support.sequelize
   , dialect = Support.getTestDialect();
 
-describe.only(Support.getTestDialectTeaser('DataTypes'), function() {
+describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('allows me to return values from a custom parse function', function () {
     var parse = Sequelize.DATE.parse = sinon.spy(function (value) {
       return moment(value, 'YYYY-MM-DD HH:mm:ss Z');
