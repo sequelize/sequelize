@@ -27,6 +27,49 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
   });
 
   describe('(1:N)', function() {
+    describe('get', function () {
+      describe('multiple', function () {
+        it('should fetch associations for multiple instances', function () {
+          var User = this.sequelize.define('User', {})
+            , Task = this.sequelize.define('Task', {});
+
+          User.Tasks = User.hasMany(Task, {as: 'tasks'});
+
+          return this.sequelize.sync({force: true}).then(function () {
+            return Promise.join(
+              User.create({
+                id: 1,
+                tasks: [
+                  {},
+                  {},
+                  {}
+                ]
+              }, {
+                include: [User.Tasks]
+              }),
+              User.create({
+                id: 2,
+                tasks: [
+                  {}
+                ]
+              }, {
+                include: [User.Tasks]
+              }),
+              User.create({
+                id: 3
+              })
+            );
+          }).then(function (users) {
+            return User.Tasks.get(users).then(function (result) {
+              expect(result[users[0].id].length).to.equal(3);
+              expect(result[users[1].id].length).to.equal(1);
+              expect(result[users[2].id].length).to.equal(0);
+            });
+          });
+        });
+      });
+    });
+
     describe('hasSingle', function() {
       beforeEach(function() {
         this.Article = this.sequelize.define('Article', { 'title': DataTypes.STRING });

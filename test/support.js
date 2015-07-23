@@ -29,7 +29,7 @@ Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {
 Sequelize.Promise.longStackTraces();
 
 // shim all Sequelize methods for testing for correct `options.logging` passing
-if (!process.env.COVERAGE) supportShim(Sequelize);
+if (!process.env.COVERAGE && false) supportShim(Sequelize);
 
 var Support = {
   Sequelize: Sequelize,

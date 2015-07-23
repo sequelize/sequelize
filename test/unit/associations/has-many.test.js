@@ -85,4 +85,81 @@ describe(Support.getTestDialectTeaser('hasMany'), function() {
       expect(obj[association.accessors.count]).to.be.an('function');
     });
   });
+
+  describe('get', function () {
+    var User = current.define('User', {})
+      , Task = current.define('Task', {})
+      , idA = Math.random().toString()
+      , idB = Math.random().toString()
+      , idC = Math.random().toString()
+      , foreignKey = 'user_id';
+
+    it('should fetch associations for a single instance', function () {
+      var findAll = stub(Task, 'findAll').returns(Promise.resolve([
+            Task.build({}),
+            Task.build({})
+          ]))
+        , where = {}
+        , actual;
+
+      User.Tasks = User.hasMany(Task, {foreignKey: foreignKey});
+      actual = User.Tasks.get(User.build({id: idA}));
+
+      where[foreignKey] = idA;
+
+      expect(findAll).to.have.been.calledOnce;
+      expect(findAll.firstCall.args[0].where).to.deep.equal(where);
+
+      return actual.then(function (results) {
+        expect(results).to.be.an('array');
+        expect(results.length).to.equal(2);
+      }).finally(function () {
+        findAll.restore();
+      });
+    });
+
+    it('should fetch associations for multiple source instances', function () {
+      var findAll = stub(Task, 'findAll').returns(Promise.resolve([
+            Task.build({
+              'user_id': idA
+            }),
+            Task.build({
+              'user_id': idA
+            }),
+            Task.build({
+              'user_id': idA
+            }),
+            Task.build({
+              'user_id': idB
+            })
+          ]))
+        , where = {}
+        , actual;
+
+      User.Tasks = User.hasMany(Task, {foreignKey: foreignKey});
+      actual = User.Tasks.get([
+        User.build({id: idA}),
+        User.build({id: idB}),
+        User.build({id: idC})
+      ]);
+
+      where[foreignKey] = {
+        $in: [idA, idB, idC]
+      };
+
+      expect(findAll).to.have.been.calledOnce;
+      expect(findAll.firstCall.args[0].where).to.deep.equal(where);
+
+      return actual.then(function (result) {
+        expect(result).to.be.an('object');
+        expect(Object.keys(result)).to.deep.equal([idA, idB, idC]);
+
+        expect(result[idA].length).to.equal(3);
+        expect(result[idB].length).to.equal(1);
+        expect(result[idC].length).to.equal(0);
+      }).finally(function () {
+        findAll.restore();
+      });
+    });
+  });
 });
