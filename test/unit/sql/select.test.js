@@ -60,11 +60,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }
     }, {
-      default: 'SELECT * FROM ('+
+      default: 'SELECT [User].* FROM ('+
         [
-          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC LIMIT 3)',
-          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC LIMIT 3)'
-        ].join(' UNION ALL ')
+          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+        ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
       +') AS [User];'
     });
 
@@ -132,11 +132,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ]
         }
       }, {
-        default: 'SELECT * FROM ('+
+        default: 'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM ('+
           [
-            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] WHERE [users].[companyId] = 1 ORDER BY [last_name] ASC LIMIT 3)',
-            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] WHERE [users].[companyId] = 5 ORDER BY [last_name] ASC LIMIT 3)'
-          ].join(' UNION ALL ')
+            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];'
       });
     })();

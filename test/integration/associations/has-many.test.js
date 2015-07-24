@@ -26,8 +26,8 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
     });
   });
 
-  describe('(1:N)', function() {
-    describe('get', function () {
+  describe('get', function () {
+    if (current.dialect.supports.groupedLimit) {
       describe('multiple', function () {
         it('should fetch associations for multiple instances', function () {
           var User = this.sequelize.define('User', {})
@@ -67,8 +67,118 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
             });
           });
         });
+
+        it('should fetch associations for multiple instances with limit and order', function () {
+          var User = this.sequelize.define('User', {})
+            , Task = this.sequelize.define('Task', {
+                title: DataTypes.STRING
+              });
+
+          User.Tasks = User.hasMany(Task, {as: 'tasks'});
+
+          return this.sequelize.sync({force: true}).then(function () {
+            return Promise.join(
+              User.create({
+                tasks: [
+                  {title: 'b'},
+                  {title: 'd'},
+                  {title: 'c'},
+                  {title: 'a'}
+                ]
+              }, {
+                include: [User.Tasks]
+              }),
+              User.create({
+                tasks: [
+                  {title: 'a'},
+                  {title: 'c'},
+                  {title: 'b'}
+                ]
+              }, {
+                include: [User.Tasks]
+              })
+            );
+          }).then(function (users) {
+            return User.Tasks.get(users, {
+              limit: 2,
+              order: [
+                ['title', 'ASC']
+              ]
+            }).then(function (result) {
+              expect(result[users[0].id].length).to.equal(2);
+              expect(result[users[0].id][0].title).to.equal('a');
+              expect(result[users[0].id][1].title).to.equal('b');
+
+              expect(result[users[1].id].length).to.equal(2);
+              expect(result[users[1].id][0].title).to.equal('a');
+              expect(result[users[1].id][1].title).to.equal('b');
+            });
+          });
+        });
+
+        it('should fetch associations for multiple instances with limit and order and a belongsTo relation', function () {
+          var User = this.sequelize.define('User', {})
+            , Task = this.sequelize.define('Task', {
+                title: DataTypes.STRING,
+                categoryId: {
+                  type: DataTypes.INTEGER,
+                  field: 'category_id'
+                }
+              })
+            , Category = this.sequelize.define('Category', {});
+
+          User.Tasks = User.hasMany(Task, {as: 'tasks'});
+          Task.Category = Task.belongsTo(Category, {as: 'category', foreignKey: 'categoryId'});
+
+          return this.sequelize.sync({force: true}).then(function () {
+            return Promise.join(
+              User.create({
+                tasks: [
+                  {title: 'b', category: {}},
+                  {title: 'd', category: {}},
+                  {title: 'c', category: {}},
+                  {title: 'a', category: {}}
+                ]
+              }, {
+                include: [{association: User.Tasks, include: [Task.Category]}]
+              }),
+              User.create({
+                tasks: [
+                  {title: 'a', category: {}},
+                  {title: 'c', category: {}},
+                  {title: 'b', category: {}}
+                ]
+              }, {
+                include: [{association: User.Tasks, include: [Task.Category]}]
+              })
+            );
+          }).then(function (users) {
+            return User.Tasks.get(users, {
+              limit: 2,
+              order: [
+                ['title', 'ASC']
+              ],
+              include: [Task.Category],
+            }).then(function (result) {
+              expect(result[users[0].id].length).to.equal(2);
+              expect(result[users[0].id][0].title).to.equal('a');
+              expect(result[users[0].id][0].category).to.be.ok;
+              expect(result[users[0].id][1].title).to.equal('b');
+              expect(result[users[0].id][1].category).to.be.ok;
+
+              expect(result[users[1].id].length).to.equal(2);
+              expect(result[users[1].id][0].title).to.equal('a');
+              expect(result[users[1].id][0].category).to.be.ok;
+              expect(result[users[1].id][1].title).to.equal('b');
+              expect(result[users[1].id][1].category).to.be.ok;
+            });
+          });
+        });
       });
-    });
+    }
+  });
+
+  describe('(1:N)', function() {
 
     describe('hasSingle', function() {
       beforeEach(function() {
