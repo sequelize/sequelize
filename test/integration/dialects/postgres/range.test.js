@@ -57,8 +57,9 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle date values', function () {
-        expect(range.stringify([new Date(Date.UTC(2000, 1, 1)),
-                                new Date(Date.UTC(2000, 1, 2))])).to.equal('("2000-02-01T00:00:00.000Z","2000-02-02T00:00:00.000Z")');
+        var Range = new DataTypes.postgres.RANGE(DataTypes.DATE);
+        expect(Range.stringify([new Date(Date.UTC(2000, 1, 1)),
+                                new Date(Date.UTC(2000, 1, 2))], { timezone: '+02:00' })).to.equal('\'("2000-02-01 02:00:00.000 +02:00","2000-02-02 02:00:00.000 +02:00")\'');
       });
     });
 
@@ -80,8 +81,12 @@ if (dialect.match(/^postgres/)) {
         var testRange = [5,10];
         testRange.inclusive = [true, true];
 
-        expect(range.parse(range.stringify(testRange), DataTypes.RANGE(DataTypes.INTEGER))).to.deep.equal(testRange);
-        expect(range.parse(range.stringify(range.parse(range.stringify(testRange), DataTypes.RANGE(DataTypes.INTEGER))), DataTypes.RANGE(DataTypes.INTEGER))).to.deep.equal(testRange);
+        var Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
+
+        var stringified = Range.stringify(testRange, {});
+        stringified = stringified.substr(1, stringified.length - 2); // Remove the escaping ticks
+
+        expect(DataTypes.postgres.RANGE.parse(stringified, 3904, function () { return DataTypes.postgres.INTEGER.parse; })).to.deep.equal(testRange);
       });
     });
   });

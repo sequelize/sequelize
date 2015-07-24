@@ -20,6 +20,7 @@ if (dialect.match(/^postgres/)) {
         numbers: { type: DataTypes.ARRAY(DataTypes.FLOAT) },
         document: { type: DataTypes.HSTORE, defaultValue: { default: '"value"' } }
       });
+
       return this.User.sync({ force: true });
     });
 
@@ -548,7 +549,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {data: new Buffer('Sequelize') }],
           expectation: "INSERT INTO \"myTable\" (\"data\") VALUES (E'\\\\x53657175656c697a65');"
         }, {
-          arguments: ['myTable', {name: 'foo', numbers: new Uint8Array([1, 2, 3])}],
+          arguments: ['myTable', {name: 'foo', numbers: [1, 2, 3]}],
           expectation: "INSERT INTO \"myTable\" (\"name\",\"numbers\") VALUES ('foo',ARRAY[1,2,3]);"
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
@@ -601,7 +602,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00');",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['myTable', {name: 'foo', numbers: new Uint8Array([1, 2, 3])}],
+          arguments: ['myTable', {name: 'foo', numbers: [1, 2, 3]}],
           expectation: "INSERT INTO myTable (name,numbers) VALUES ('foo',ARRAY[1,2,3]);",
           context: {options: {quoteIdentifiers: false}}
         }, {
@@ -744,7 +745,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}, { returning: true }],
           expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\" = 'foo' RETURNING *"
         }, {
-          arguments: ['myTable', {numbers: new Uint8Array([1, 2, 3])}, {name: 'foo'}],
+          arguments: ['myTable', {numbers: [1, 2, 3]}, {name: 'foo'}],
           expectation: "UPDATE \"myTable\" SET \"numbers\"=ARRAY[1,2,3] WHERE \"name\" = 'foo'"
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
@@ -802,7 +803,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "UPDATE myTable SET bar=2 WHERE name = 'foo'",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['myTable', {numbers: new Uint8Array([1, 2, 3])}, {name: 'foo'}],
+          arguments: ['myTable', {numbers: [1, 2, 3]}, {name: 'foo'}],
           expectation: "UPDATE myTable SET numbers=ARRAY[1,2,3] WHERE name = 'foo'",
           context: {options: {quoteIdentifiers: false}}
         }, {
@@ -942,11 +943,12 @@ if (dialect.match(/^postgres/)) {
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             var context = test.context || {options: {}};
+
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
-            QueryGenerator.options = context.options;
+            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
