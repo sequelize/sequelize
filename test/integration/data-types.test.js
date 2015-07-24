@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
           types.setTypeParser(oid, 'text', converter);
         });
 
-        this.sequelize.connectionManager.refreshTypes(DataTypes.postgres); // Reload custom parsers for hstore and geometry
+        this.sequelize.connectionManager.refreshTypeParser(DataTypes.postgres); // Reload custom parsers for hstore and geometry
         break;
       default:
         this.sequelize.connectionManager.$clearTypeParser();
@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('calls parse and stringify for GEOMETRY', function () {
     var Type = new Sequelize.GEOMETRY();
 
-    if (['postgres', 'mysql'].indexOf(dialect) !== -1) {
+    if (['postgres', 'mysql', 'mariadb'].indexOf(dialect) !== -1) {
       return testSuccess(Type, { type: "Point", coordinates: [125.6, 10.1] });
     } else {
       // Not implemented yet
