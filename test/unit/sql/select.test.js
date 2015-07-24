@@ -19,7 +19,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       test(util.inspect(options, {depth: 2}), function () {
         return expectsql(
           sql.selectQuery(
-            options.table || option.model && option.model.getTableName(),
+            options.table || model && model.getTableName(),
             options,
             options.model
           ),
@@ -33,10 +33,113 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       attributes: [
         'email',
         ['first_name', 'firstName']
-      ]
+      ],
+      where: {
+        email: 'jon.snow@gmail.com'
+      }
     }, {
-      default: 'SELECT [email], [first_name] AS [firstName] FROM [User];'
+      default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com';"
     });
+
+    testsql({
+      table: 'User',
+      attributes: [
+        'email',
+        ['first_name', 'firstName'],
+        ['last_name', 'lastName']
+      ],
+      order: [
+        ['last_name', 'ASC']
+      ],
+      groupedLimit: {
+        limit: 3,
+        on: 'companyId',
+        values: [
+          1,
+          5
+        ]
+      }
+    }, {
+      default: 'SELECT * FROM ('+
+        [
+          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC LIMIT 3)',
+          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC LIMIT 3)'
+        ].join(' UNION ALL ')
+      +') AS [User];'
+    });
+
+    (function () {
+      var User = Support.sequelize.define('user', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          field: 'id_user'
+        },
+        email: DataTypes.STRING,
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'first_name'
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          field: 'last_name'
+        }
+      },
+      {
+        tableName: 'users'
+      });
+      var Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING,
+        userId: {
+          type: DataTypes.INTEGER,
+          field: 'user_id'
+        }
+      },
+      {
+        tableName: 'post'
+      });
+
+      User.Posts = User.hasMany(Post, {foreignKey: 'userId', as: 'POSTS'});
+
+      var include = Model.$validateIncludedElements({
+        include: [{
+          attributes: ['title'],
+          association: User.Posts
+        }],
+        model: User
+      }).include;
+
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        include: include,
+        attributes: [
+          ['id_user', 'id'],
+          'email',
+          ['first_name', 'firstName'],
+          ['last_name', 'lastName']
+        ],
+        order: [
+          ['last_name', 'ASC']
+        ],
+        groupedLimit: {
+          limit: 3,
+          on: 'companyId',
+          values: [
+            1,
+            5
+          ]
+        }
+      }, {
+        default: 'SELECT * FROM ('+
+          [
+            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] WHERE [users].[companyId] = 1 ORDER BY [last_name] ASC LIMIT 3)',
+            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] WHERE [users].[companyId] = 5 ORDER BY [last_name] ASC LIMIT 3)'
+          ].join(' UNION ALL ')
+        +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];'
+      });
+    })();
 
     it('include (left outer join)', function () {
       var User = Support.sequelize.define('User', {
