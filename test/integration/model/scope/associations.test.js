@@ -37,8 +37,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             includeActiveProjects: function(){
               return {
                 include: [{
-                  model: sequelize.models.Company,
-                  include: [sequelize.models.Project.scope('active')]
+                  model: sequelize.models.company,
+                  include: [sequelize.models.project.scope('active')]
                 }]
               };
             }
@@ -299,7 +299,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should apply scope conditions', function() {
-          return this.ScopeMe.scope('includeActiveProjects').findById(1).then(function(user) {
+          return this.ScopeMe.scope('includeActiveProjects').findOne({ where: { id: 1 }}).then(function(user) {
             expect(user.company.projects).to.have.length(1);
           });
         });
