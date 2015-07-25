@@ -63,6 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   Company = current.define('company', {}, {
     defaultScope: {
+      include: [Project],
       where: { active: true }
     },
     scopes: scopes
@@ -70,7 +71,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('.scope', function () {
     it('should apply default scope', function () {
-      expect(Company.$scope).to.deep.equal({ where: { active: true }});
+      expect(Company.$scope).to.deep.equal({
+        include: [{ model: Project }],
+        where: { active: true }
+      });
     });
 
     it('should be able to unscope', function () {
@@ -125,6 +129,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('should be able to combine default with another scope', function () {
       expect(Company.scope(['defaultScope', {method: ['actualValue', 11]}]).$scope).to.deep.equal({
+        include: [{ model: Project }],
         where: {
           active: true,
           other_value: 11
@@ -140,6 +145,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('should override the default scope', function () {
       expect(Company.scope(['defaultScope', {method: ['complexFunction', 'qux']}]).$scope).to.deep.equal({
+        include: [{ model: Project }],
         where: [ 'qux IN (SELECT foobar FROM some_sql_function(foo.bar))' ]
       });
     });

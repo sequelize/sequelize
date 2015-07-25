@@ -2,6 +2,7 @@
 - [FIXED] Fix findOrCreate regression trying to add a transaction even if there is none
 - [FEATURE] Added default validation based on attribute types. [#3472](https://github.com/sequelize/sequelize/pull/3472). The validation _cannot_ be disabled. If you really want to completely disable it, you can remove the `validate` function from the corresponding datatype, but know that this permanently disables the validation.
 - [FIXED] Fix save to be noop when nothing changed
+- [FIXED] Call `conformOptions` on default scope [#4157](https://github.com/sequelize/sequelize/issues/4157)
 
 # 3.4.1
 - [FIXED] Fix belongs-to-many `countAssociations` - ambigious id when through model has id
