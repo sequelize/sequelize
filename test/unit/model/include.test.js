@@ -32,6 +32,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         title: Sequelize.STRING
       });
       this.Company = this.sequelize.define('Company', {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          field: 'field_id'
+        },
         name: Sequelize.STRING
       });
 
@@ -39,6 +45,27 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       this.User.Company = this.User.belongsTo(this.Company);
       this.Company.Employees = this.Company.hasMany(this.User);
       this.Company.Owner = this.Company.belongsTo(this.User, {as: 'Owner', foreignKey: 'ownerId'});
+    });
+
+    describe('attributes', function () {
+      it('should not inject the aliassed PK again, if its already there', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [
+            {
+              model: this.Company,
+              attributes: ['name']
+            }
+          ]
+        });
+
+        expect(options.include[0].attributes).to.deep.equal([['field_id', 'id'], 'name']);
+
+        options = Sequelize.Model.$validateIncludedElements(options);
+
+        // Calling validate again shouldn't add the pk again
+        expect(options.include[0].attributes).to.deep.equal([['field_id', 'id'], 'name']);
+      });
     });
 
     describe('duplicating', function () {
@@ -247,6 +274,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(options.subQuery).to.equal(false);
         expect(options.include[0].subQuery).to.equal(false);
       });
-    });  
+    });
   });
 });
