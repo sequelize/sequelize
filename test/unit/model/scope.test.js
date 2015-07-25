@@ -157,6 +157,61 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
   });
 
+  describe('addScope', function () {
+    it('allows me to add a new scope', function ()  {
+      expect(function () {
+        Company.scope('newScope');
+      }).to.throw('Invalid scope newScope called.');
+
+      Company.addScope('newScope', {
+        where: {
+          this: 'that'
+        },
+        include: [Project]
+      });
+
+      expect(Company.scope('newScope').$scope).to.deep.equal({
+        where: { this: 'that' },
+        include: [{ model: Project }]
+      });
+    });
+
+    it('warns me when overriding an existing scope', function () {
+      expect(function () {
+        Company.addScope('somethingTrue', {});
+      }).to.throw('The scope somethingTrue already exists. Pass { override: true } as options to silence this error');
+    });
+
+    it('allows me to override an existing scope', function () {
+      Company.addScope('somethingTrue', {
+        where: {
+          something: false
+        }
+      }, { override: true });
+
+      expect(Company.scope('somethingTrue').$scope).to.deep.equal({
+        where: { something: false },
+      });
+    });
+
+    it('warns me when overriding an existing default scope', function () {
+      expect(function () {
+        Company.addScope('defaultScope', {});
+      }).to.throw('The scope defaultScope already exists. Pass { override: true } as options to silence this error');
+    });
+
+    it('allows me to override a default scope', function () {
+      Company.addScope('defaultScope', {
+        include: [Project]
+      }, { override: true });
+
+      console.log(Company.$scope);
+      expect(Company.$scope).to.deep.equal({
+        include: [{ model: Project }]
+      });
+    });
+  });
+
   describe('$injectScope', function () {
     it('should be able to merge scope and where', function () {
       var scope = {

@@ -5,6 +5,7 @@
 - [FIXED] Call `conformOptions` on default scope [#4157](https://github.com/sequelize/sequelize/issues/4157)
 - [FIXED] Call `conformOptions` on scopes returned by functions [#3991](https://github.com/sequelize/sequelize/issues/3991)
 - [FIXED] Calling `validateIncludedElements` should not add an aliassed primary key multiple times [#4127](https://github.com/sequelize/sequelize/issues/4127)
+- [FEATURE] `addScope` [#3963](https://github.com/sequelize/sequelize/issues/3963)
 
 # 3.4.1
 - [FIXED] Fix belongs-to-many `countAssociations` - ambigious id when through model has id

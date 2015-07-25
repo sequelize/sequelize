@@ -43,6 +43,8 @@ var Project = sequelize.define('project', {
 });
 ```
 
+You can also add scopes after a model has been defined by calling `addScope`. This is especially useful for scopes with includes, where the model in the include might not be defined at the time the other model is being defined.
+
 The default scope is always applied. This means, that with the model definition above, `Project.findAll()` will create the following query:
 
 ```sql
