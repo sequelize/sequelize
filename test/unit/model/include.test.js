@@ -68,6 +68,67 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    describe('scope', function () {
+      beforeEach(function () {
+        this.Project = this.sequelize.define('project', {}, {
+          defaultScope: {
+            where: {
+              active: true
+            }
+          }, scopes: {
+            this: {
+              where: { this: true}
+            },
+            that: {
+              where: { that: false },
+              limit: 12
+            }
+          }
+        });
+
+        this.User.hasMany(this.Project);
+
+        this.User.hasMany(this.Project.scope('this'), { as: 'thisProject' });
+      });
+
+      it('adds the default scope to where', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [{ model: this.Project }]
+        });
+
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ active: true });
+      });
+
+      it('adds the where from a scoped model', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [{ model: this.Project.scope('that') }]
+        });
+
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ that: false });
+        expect(options.include[0]).to.have.property('limit').which.equals(12);
+      });
+
+      it('merges where with the where from a scoped model', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [{ where: { active: false }, model: this.Project.scope('that') }]
+        });
+
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ active: false, that: false });
+      });
+
+      it('add the where from a scoped associated model', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [{ model: this.Project, as: 'thisProject' }]
+        });
+
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ this: true });
+      });
+    });
+
     describe('duplicating', function () {
       it('should tag a hasMany association as duplicating: true if undefined', function () {
         var options = Sequelize.Model.$validateIncludedElements({

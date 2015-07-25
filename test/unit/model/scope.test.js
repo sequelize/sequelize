@@ -205,7 +205,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [Project]
       }, { override: true });
 
-      console.log(Company.$scope);
       expect(Company.$scope).to.deep.equal({
         include: [{ model: Project }]
       });
