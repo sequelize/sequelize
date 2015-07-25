@@ -12,6 +12,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('scope', function () {
     describe('associations', function () {
       beforeEach(function () {
+        var sequelize = this.sequelize;
+
         this.ScopeMe = this.sequelize.define('ScopeMe', {
           username: Sequelize.STRING,
           email: Sequelize.STRING,
@@ -32,10 +34,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 username: 'tony'
               }
             },
+            includeActiveProjects: function(){
+              return {
+                include: [{
+                  model: sequelize.models.Company,
+                  include: [sequelize.models.Project.scope('active')]
+                }]
+              };
+            }
           }
         });
 
-        this.Project = this.sequelize.define('project');
+        this.Project = this.sequelize.define('project', {
+          active: Sequelize.BOOLEAN
+        }, {
+          scopes: {
+            active: {
+              where: {
+                active: true
+              }
+            }
+          }
+        });
 
         this.Company = this.sequelize.define('company', {
           active: Sequelize.BOOLEAN
@@ -84,11 +104,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             this.ScopeMe.create({ id: 2, username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, parent_id: 2}),
             this.ScopeMe.create({ id: 3, username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7, parent_id: 1}),
             this.ScopeMe.create({ id: 4, username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7, parent_id: 1}),
+            this.ScopeMe.create({ id: 5, username: 'bob', email: 'bob@foobar.com', access_level: 1, other_value: 9, parent_id: 5}),
             this.Company.create({ id: 1, active: true}),
             this.Company.create({ id: 2, active: false}),
-            this.ScopeMe.create({ id: 5, username: 'bob', email: 'bob@foobar.com', access_level: 1, other_value: 9, parent_id: 5}),
           ]);
-        }).spread(function (u1, u2, u3, u4, c1, c2, u5) {
+        }).spread(function (u1, u2, u3, u4, u5, c1, c2) {
           return Promise.all([
             c1.setUsers([u1, u2, u3, u4]),
             c2.setUsers([u5]),
@@ -259,6 +279,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(companies[0].id).to.equal(2);
               expect(companies[1].id).to.equal(1);
             });
+          });
+        });
+      });
+
+      describe('scope with includes', function() {
+        beforeEach(function () {
+          return Promise.all([
+            this.Company.findById(1),
+            this.Project.create({ id: 1, active: true}),
+            this.Project.create({ id: 2, active: false}),
+          ]).spread(function (c, p1, p2) {
+            return c.setProjects([p1, p2]);
+          });
+        });
+
+        it('should scope columns properly', function () {
+          return expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
+        });
+
+        it('should apply scope conditions', function() {
+          return this.ScopeMe.scope('includeActiveProjects').findById(1).then(function(user) {
+            expect(user.company.projects).to.have.length(1);
           });
         });
       });
