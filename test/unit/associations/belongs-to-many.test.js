@@ -14,6 +14,39 @@ var chai = require('chai')
   , Promise   = current.Promise;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), function() {
+  describe('timestamps', function () {
+    it('follows the global timestamps true option', function () {
+      var User = current.define('User', {})
+      , Task = current.define('Task', {});
+
+      User.belongsToMany(Task, { through: 'user_task1' });
+
+      expect(current.models.user_task1.rawAttributes).to.contain.all.keys(['createdAt', 'updatedAt']);
+    });
+
+    it('allows me to override the global timestamps option', function () {
+      var User = current.define('User', {})
+      , Task = current.define('Task', {});
+
+      User.belongsToMany(Task, { through: 'user_task2', timestamps: false });
+
+      expect(current.models.user_task2.rawAttributes).not.to.contain.all.keys(['createdAt', 'updatedAt']);
+    });
+
+    it('follows the global timestamps false option', function () {
+      var current = Support.createSequelizeInstance({
+        timestamps: false
+      });
+
+      var User = current.define('User', {})
+      , Task = current.define('Task', {});
+
+      User.belongsToMany(Task, { through: 'user_task3' });
+
+      expect(current.models.user_task3.rawAttributes).not.to.have.all.keys(['createdAt', 'updatedAt']);
+    });
+  });
+
   describe('optimizations using bulk create, destroy and update', function() {
     var User = current.define('User', { username: DataTypes.STRING })
       , Task = current.define('Task', { title: DataTypes.STRING })
