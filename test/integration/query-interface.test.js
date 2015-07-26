@@ -159,9 +159,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           expect(count).to.be.at.least(1);
           count = 0;
 
+          var id = metadata.id;
           var username = metadata.username;
           var isAdmin = metadata.isAdmin;
           var enumVals = metadata.enumVals;
+
+          expect(id.primaryKey).to.be.ok;
 
           var assertVal = 'VARCHAR(255)';
           switch (dialect) {

@@ -7,6 +7,7 @@
 - [FIXED] Calling `validateIncludedElements` should not add an aliassed primary key multiple times [#4127](https://github.com/sequelize/sequelize/issues/4127)
 - [FEATURE] `addScope` [#3963](https://github.com/sequelize/sequelize/issues/3963)
 - [FIXED] Handle scoped model in includes properly [#3700](https://github.com/sequelize/sequelize/issues/3700)
+- [FEATURE] `describeTable`  now marks the primary key (Reroll of [#3703](https://github.com/sequelize/sequelize/pull/3703))
 
 # 3.4.1
 - [FIXED] Fix belongs-to-many `countAssociations` - ambigious id when through model has id
