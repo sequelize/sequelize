@@ -70,29 +70,29 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('underscore', function() {
     describe('underscoredIf', function() {
       it('is defined', function() {
-        expect(Utils._.underscoredIf).to.be.ok;
+        expect(Utils.underscoredIf).to.be.ok;
       });
 
       it('underscores if second param is true', function() {
-        expect(Utils._.underscoredIf('fooBar', true)).to.equal('foo_bar');
+        expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
 
       it('doesn\'t underscore if second param is false', function() {
-        expect(Utils._.underscoredIf('fooBar', false)).to.equal('fooBar');
+        expect(Utils.underscoredIf('fooBar', false)).to.equal('fooBar');
       });
     });
 
     describe('camelizeIf', function() {
       it('is defined', function() {
-        expect(Utils._.camelizeIf).to.be.ok;
+        expect(Utils.camelizeIf).to.be.ok;
       });
 
       it('camelizes if second param is true', function() {
-        expect(Utils._.camelizeIf('foo_bar', true)).to.equal('fooBar');
+        expect(Utils.camelizeIf('foo_bar', true)).to.equal('fooBar');
       });
 
       it('doesn\'t camelize if second param is false', function() {
-        expect(Utils._.underscoredIf('fooBar', true)).to.equal('foo_bar');
+        expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
     });
   });
