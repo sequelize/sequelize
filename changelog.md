@@ -8,6 +8,9 @@
 - [FEATURE] `addScope` [#3963](https://github.com/sequelize/sequelize/issues/3963)
 - [FIXED] Handle scoped model in includes properly [#3700](https://github.com/sequelize/sequelize/issues/3700)
 - [FEATURE] `describeTable`  now marks the primary key (Reroll of [#3703](https://github.com/sequelize/sequelize/pull/3703))
+- [FEATURE] Automatically determine the version of the database upon first connection [#4192](https://github.com/sequelize/sequelize/pull/4192). This will be useful going forward in order to provide support for older database versions.
+- [FIXED] Enum naming with schemas [#3171](https://github.com/sequelize/sequelize/issues/3171) and [#3563](https://github.com/sequelize/sequelize/issues/3563)
+- [FIXED] Prevent polution of the lodash object by using `runInContext` [#2281](https://github.com/sequelize/sequelize/issues/2281)
 
 # 3.4.1
 - [FIXED] Fix belongs-to-many `countAssociations` - ambigious id when through model has id
