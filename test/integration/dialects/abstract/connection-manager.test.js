@@ -83,6 +83,8 @@ describe('Connction Manager', function() {
     });
 
     var connectStub = sandbox.stub(connectionManager, '$connect').returns(resolvedPromise);
+    sandbox.stub(connectionManager, '$disconnect').returns(resolvedPromise);
+    sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
     connectionManager.initPools();
 
     var queryOptions = {
@@ -97,11 +99,13 @@ describe('Connction Manager', function() {
       .then(_getConnection)
       .then(_getConnection)
       .then(function checkPoolHosts() {
-        chai.expect(connectStub.calledThrice).to.be.true;
+        chai.expect(connectStub.callCount).to.equal(4);
+
+        // First call is the get connection for DB versions - ignore
         var calls = connectStub.getCalls();
-        chai.expect(calls[0].args[0].host).to.eql('slave1');
-        chai.expect(calls[1].args[0].host).to.eql('slave2');
-        chai.expect(calls[2].args[0].host).to.eql('slave1');
+        chai.expect(calls[1].args[0].host).to.eql('slave1');
+        chai.expect(calls[2].args[0].host).to.eql('slave2');
+        chai.expect(calls[3].args[0].host).to.eql('slave1');
       });
   });
 
@@ -125,6 +129,8 @@ describe('Connction Manager', function() {
     });
 
     var connectStub = sandbox.stub(connectionManager, '$connect').returns(resolvedPromise);
+    sandbox.stub(connectionManager, '$disconnect').returns(resolvedPromise);
+    sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
     connectionManager.initPools();
 
     var queryOptions = {
@@ -135,9 +141,9 @@ describe('Connction Manager', function() {
 
     return connectionManager.getConnection(queryOptions)
       .then(function checkPoolHosts() {
-        chai.expect(connectStub.calledOnce).to.be.true;
+        chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
         var calls = connectStub.getCalls();
-        chai.expect(calls[0].args[0].host).to.eql('the-boss');
+        chai.expect(calls[1].args[0].host).to.eql('the-boss');
       });
   });
 
