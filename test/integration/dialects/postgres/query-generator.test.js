@@ -204,7 +204,7 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title enum_myTable_title, name VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title "enum_myTable_title", name VARCHAR(255));',
           context: {options: {quoteIdentifiers: false}}
         },
         {
