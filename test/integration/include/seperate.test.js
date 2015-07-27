@@ -59,6 +59,25 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
+      it('should not break a nested include with null values', function () {
+        var User = this.sequelize.define('User', {})
+          , Team = this.sequelize.define('Team', {})
+          , Company = this.sequelize.define('Company', {});
+
+        User.Team = User.belongsTo(Team);
+        Team.Company = Team.belongsTo(Company);
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return User.create({});
+        }).then(function () {
+          return User.findAll({
+            include: [
+              {association: User.Team, include: [Team.Company]}
+            ]
+          });
+        });
+      });
+
       it('should run a hasMany association with limit in a separate query', function () {
         var User = this.sequelize.define('User', {})
           , Task = this.sequelize.define('Task', {})

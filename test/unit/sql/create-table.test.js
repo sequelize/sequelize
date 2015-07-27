@@ -9,7 +9,7 @@ var Support   = require(__dirname + '/../support')
 
 
 describe(Support.getTestDialectTeaser('SQL'), function() {
-  describe.only('createTable', function () {
+  describe('createTable', function () {
     describe('with enums', function () {
       var FooUser = current.define('user', {
         mood: DataTypes.ENUM('happy', 'sad')
