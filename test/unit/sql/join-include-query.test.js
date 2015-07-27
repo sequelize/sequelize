@@ -103,6 +103,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
+      groupedLimit: {},
+      include: Sequelize.Model.$validateIncludedElements({
+        limit: 3,
+        model: User,
+        include: [
+          User.Company
+        ]
+      }).include[0]
+    }, {
+      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]"
+    });
+
+    testsql({
+      model: User,
+      subQuery: true,
       include: Sequelize.Model.$validateIncludedElements({
         limit: 3,
         model: User,
@@ -197,6 +212,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }).include[0]
     }, {
       default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]"
+    });
+
+    testsql({
+      model: User,
+      subQuery: true,
+      include: Sequelize.Model.$validateIncludedElements({
+        limit: 3,
+        model: User,
+        include: [
+          User.Tasks
+        ]
+      }).include[0]
+    }, {
+      // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
+      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]"
     });
 
     testsql({

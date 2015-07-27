@@ -39,6 +39,9 @@
     "afterEach",
     "suite",
     "setup",
+    "teardown",
+    "suiteSetup",
+    "suiteTeardown",
     "test"
   ]
 }
