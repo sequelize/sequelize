@@ -1,14 +1,15 @@
 # NEXT
+- [ADDED] `include.seperate` with `include.limit` support for HasMany associations.
+- [ADDED] Added default validation based on attribute types. [#3472](https://github.com/sequelize/sequelize/pull/3472). The validation _cannot_ be disabled. If you really want to completely disable it, you can remove the `validate` function from the corresponding datatype, but know that this permanently disables the validation.
+- [ADDED] `describeTable`  now marks the primary key (Reroll of [#3703](https://github.com/sequelize/sequelize/pull/3703))
+- [ADDED] Automatically determine the version of the database upon first connection [#4192](https://github.com/sequelize/sequelize/pull/4192). This will be useful going forward in order to provide support for older database versions.
+- [ADDED] `addScope` [#3963](https://github.com/sequelize/sequelize/issues/3963)
 - [FIXED] Fix findOrCreate regression trying to add a transaction even if there is none
-- [FEATURE] Added default validation based on attribute types. [#3472](https://github.com/sequelize/sequelize/pull/3472). The validation _cannot_ be disabled. If you really want to completely disable it, you can remove the `validate` function from the corresponding datatype, but know that this permanently disables the validation.
 - [FIXED] Fix save to be noop when nothing changed
 - [FIXED] Call `conformOptions` on default scope [#4157](https://github.com/sequelize/sequelize/issues/4157)
 - [FIXED] Call `conformOptions` on scopes returned by functions [#3991](https://github.com/sequelize/sequelize/issues/3991)
 - [FIXED] Calling `validateIncludedElements` should not add an aliassed primary key multiple times [#4127](https://github.com/sequelize/sequelize/issues/4127)
-- [FEATURE] `addScope` [#3963](https://github.com/sequelize/sequelize/issues/3963)
 - [FIXED] Handle scoped model in includes properly [#3700](https://github.com/sequelize/sequelize/issues/3700)
-- [FEATURE] `describeTable`  now marks the primary key (Reroll of [#3703](https://github.com/sequelize/sequelize/pull/3703))
-- [FEATURE] Automatically determine the version of the database upon first connection [#4192](https://github.com/sequelize/sequelize/pull/4192). This will be useful going forward in order to provide support for older database versions.
 - [FIXED] Enum naming with schemas [#3171](https://github.com/sequelize/sequelize/issues/3171) and [#3563](https://github.com/sequelize/sequelize/issues/3563)
 - [FIXED] Prevent polution of the lodash object by using `runInContext` [#2281](https://github.com/sequelize/sequelize/issues/2281)
 
