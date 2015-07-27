@@ -1,4 +1,4 @@
-# NEXT
+# 3.5.0
 - [ADDED] `include.seperate` with `include.limit` support for HasMany associations.
 - [ADDED] Added default validation based on attribute types. [#3472](https://github.com/sequelize/sequelize/pull/3472). The validation _cannot_ be disabled. If you really want to completely disable it, you can remove the `validate` function from the corresponding datatype, but know that this permanently disables the validation.
 - [ADDED] `describeTable`  now marks the primary key (Reroll of [#3703](https://github.com/sequelize/sequelize/pull/3703))
