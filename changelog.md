@@ -1,3 +1,6 @@
+# Next
+- [FIXED] Map column names with `.field` in scopes with includes. [#4210](https://github.com/sequelize/sequelize/issues/4210)
+
 # 3.5.1
 - [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
 

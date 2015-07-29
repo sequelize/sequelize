@@ -70,7 +70,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     describe('scope', function () {
       beforeEach(function () {
-        this.Project = this.sequelize.define('project', {}, {
+        this.Project = this.sequelize.define('project', {
+          bar: {
+            type: Sequelize.STRING,
+            field: 'foo'
+          }
+        }, {
           defaultScope: {
             where: {
               active: true
@@ -82,6 +87,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             that: {
               where: { that: false },
               limit: 12
+            },
+            foobar: {
+              where: {
+                bar: 42
+              }
             }
           }
         });
@@ -126,6 +136,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         expect(options.include[0]).to.have.property('where').which.deep.equals({ this: true });
+      });
+
+      it('handles a scope with an aliased column (.field)', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [{ model: this.Project.scope('foobar') }]
+        });
+
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ foo: 42 });
       });
     });
 
