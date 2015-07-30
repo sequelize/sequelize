@@ -25,6 +25,10 @@ tr:nth-child(2n) {
   background-color: #f8f8f8;
 }
 
+.docutils tr > td:first-child {
+  white-space: nowrap;
+}
+
 #teaser-home {
   height: 250px;
   position: relative;
