@@ -220,7 +220,7 @@ A virtual value that is not stored in the DB. This could for example be useful i
 You could also use it to validate a value before permuting and storing it. Checking password length before hashing it for example:
 ```js
 sequelize.define('user', {
-  password_hash: DataTypes.STRING
+  password_hash: DataTypes.STRING,
   password: {
     type: DataTypes.VIRTUAL,
     set: function (val) {
