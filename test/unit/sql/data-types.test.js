@@ -63,7 +63,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           var type = DataTypes.STRING();
 
           expect(type.validate('foobar')).to.equal(true);
+          /*jshint -W053 */
           expect(type.validate(new String('foobar'))).to.equal(true);
+          /*jshint +W053 */
         });
       });
     });
