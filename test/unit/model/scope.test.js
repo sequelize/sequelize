@@ -158,6 +158,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   describe('addScope', function () {
+    it('works if the model does not have any initial scopes', function () {
+      var Model = current.define('model');
+
+      expect(function () {
+        Model.addScope('anything', {});
+      }).not.to.throw();
+    });
+
     it('allows me to add a new scope', function ()  {
       expect(function () {
         Company.scope('newScope');
