@@ -1,6 +1,8 @@
 # Next
 - [FIXED] Map column names with `.field` in scopes with includes. [#4210](https://github.com/sequelize/sequelize/issues/4210)
 - [FIXED] `addScope` when the model does not have any initial scopes [#4243](https://github.com/sequelize/sequelize/issues/4243)
+- [FIXED] Fixed destroy with limit in PG when the primary key is aliassed [#4027](https://github.com/sequelize/sequelize/pull/4027)
+- [FIXED] Clone the options object in `increment`, `decrement`, `destroy`, `reload`, `restore`, and `save`. [#4023](https://github.com/sequelize/sequelize/pull/4023)
 
 # 3.5.1
 - [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
