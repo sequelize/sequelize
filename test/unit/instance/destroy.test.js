@@ -8,20 +8,7 @@ var chai = require('chai')
   , sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('save', function () {
-    it('should disallow saves if no primary key values is present', function () {
-      var Model = current.define('User', {
-
-      })
-        , instance;
-
-      instance = Model.build({}, {isNewRecord: false});
-
-      expect(function () {
-        instance.save();
-      }).to.throw();
-    });
-
+  describe('destroy', function () {
     describe('options tests', function() {
       var stub
         , Model = current.define('User', {
@@ -46,17 +33,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         stub.restore();
       });
 
-      it('should allow saves even if options are not given', function () {
-        instance = Model.build({});
+      it('should allow destroies even if options are not given', function () {
+        instance = Model.build({id: 1}, {isNewRecord: false});
         expect(function () {
-          instance.save();
+          instance.destroy();
         }).to.not.throw();
       });
 
-      it('should not modify options when it given to save', function () {
-        instance = Model.build({});
+      it('should not modify options when it given to destroy', function () {
+        instance = Model.build({id: 1}, {isNewRecord: false});
         var options = { transaction: null };
-        instance.save(options);
+        instance.destroy(options);
         expect(options).to.deep.equal({ transaction: null });
       });
     });

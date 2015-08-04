@@ -8,20 +8,7 @@ var chai = require('chai')
   , sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('save', function () {
-    it('should disallow saves if no primary key values is present', function () {
-      var Model = current.define('User', {
-
-      })
-        , instance;
-
-      instance = Model.build({}, {isNewRecord: false});
-
-      expect(function () {
-        instance.save();
-      }).to.throw();
-    });
-
+  describe('restore', function () {
     describe('options tests', function() {
       var stub
         , Model = current.define('User', {
@@ -29,15 +16,20 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             type:          Sequelize.BIGINT,
             primaryKey:    true,
             autoIncrement: true,
+          },
+          deletedAt: {
+            type:          Sequelize.DATE,
           }
+        }, {
+          paranoid: true
         })
         , instance;
 
       before(function() {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve({
-            _previousDataValues: {},
-            dataValues: {id: 1}
+            _previousDataValues: {id: 1},
+            dataValues: {id: 2}
           })
         );
       });
@@ -46,19 +38,20 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         stub.restore();
       });
 
-      it('should allow saves even if options are not given', function () {
-        instance = Model.build({});
+      it('should allow restores even if options are not given', function () {
+        instance = Model.build({id: 1}, {isNewRecord: false});
         expect(function () {
-          instance.save();
+          instance.restore();
         }).to.not.throw();
       });
 
-      it('should not modify options when it given to save', function () {
-        instance = Model.build({});
+      it('should not modify options when it given to restore', function () {
+        instance = Model.build({id: 1}, {isNewRecord: false});
         var options = { transaction: null };
-        instance.save(options);
+        instance.restore(options);
         expect(options).to.deep.equal({ transaction: null });
       });
     });
   });
+
 });
