@@ -76,6 +76,13 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should not alter options', function() {
+      var options = {};
+      return this.User.build({ username: 'user' }).save(options).then(function() {
+        expect(options).to.be.deep.equal({});
+      });
+    });
+
     it('returns false for created objects', function() {
       return this.User.create({ username: 'user' }).then(function(user) {
         expect(user.isNewRecord).to.not.be.ok;
@@ -147,6 +154,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(0);
           });
+        });
+      });
+    });
+
+    it('should not alter options', function() {
+      var self = this;
+      return this.User.findById(1).then(function(user1) {
+        var options = { by: 2, where: { bNumber: 1 } };
+        var optionsToCheck = { by: 2, where: { bNumber: 1 } };
+        return user1.increment(['aNumber'], options).then(function() {
+          expect(options).to.be.deep.equal(optionsToCheck);
         });
       });
     });
@@ -289,6 +307,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should not alter options', function() {
+      var self = this;
+      return this.User.findById(1).then(function(user1) {
+        var options = { by: 2 };
+        var optionsToCheck = { by: 2 };
+        return user1.decrement(['aNumber'], options).then(function() {
+          expect(options).to.be.deep.equal(optionsToCheck);
+        });
+      });
+    });
+
     it('with single field', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
@@ -406,6 +435,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return originalUser.updateAttributes({ username: 'Doe John' }).then(function() {
           return originalUser.reload().then(function(updatedUser) {
             expect(originalUser === updatedUser).to.be.true;
+          });
+        });
+      });
+    });
+
+    it('should not alter options', function() {
+      return this.User.create({ username: 'John Doe' }).then(function(originalUser) {
+        return originalUser.updateAttributes({ username: 'Doe John' }).then(function() {
+          var options = {};
+          return originalUser.reload(options).then(function() {
+            expect(options).to.be.deep.equal({});
           });
         });
       });
@@ -977,6 +1017,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           }).then(function(user1) {
             expect(user1.updatedAt).to.equalDate(updatedAt);
           });
+        });
+      });
+    });
+
+    it('should not alter options', function() {
+      return this.User.create({ username: 'user' }).then(function(user) {
+        var options = {};
+        return user.update({
+          username: 'userman'
+        }, options).then(function() {
+          expect(options).to.be.deep.equal({});
         });
       });
     });
@@ -1560,6 +1611,18 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return self.ParanoidUser.findAll().then(function(users) {
           return users[0].destroy().then(function(user) {
             expect(user.deletedAt.getMonth).to.exist;
+          });
+        });
+      });
+    });
+
+    it('should not alter options', function() {
+      var self = this;
+      return this.ParanoidUser.create({ username: 'fnord' }).then(function() {
+        return self.ParanoidUser.findAll().then(function(users) {
+          var options = {};
+          return users[0].destroy(options).then(function() {
+            expect(options).to.be.deep.equal({});
           });
         });
       });
