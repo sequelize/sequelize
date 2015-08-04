@@ -8,20 +8,7 @@ var chai = require('chai')
   , sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('save', function () {
-    it('should disallow saves if no primary key values is present', function () {
-      var Model = current.define('User', {
-
-      })
-        , instance;
-
-      instance = Model.build({}, {isNewRecord: false});
-
-      expect(function () {
-        instance.save();
-      }).to.throw();
-    });
-
+  describe('decrement', function () {
     describe('options tests', function() {
       var stub
         , Model = current.define('User', {
@@ -36,7 +23,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       before(function() {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve({
-            _previousDataValues: {},
+            _previousDataValues: {id: 3},
             dataValues: {id: 1}
           })
         );
@@ -46,18 +33,18 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         stub.restore();
       });
 
-      it('should allow saves even if options are not given', function () {
-        instance = Model.build({});
+      it('should allow decrements even if options are not given', function () {
+        instance = Model.build({id: 3}, {isNewRecord: false});
         expect(function () {
-          instance.save();
+          instance.decrement(['id']);
         }).to.not.throw();
       });
 
-      it('should not modify options when it given to save', function () {
-        instance = Model.build({});
-        var options = { transaction: null };
-        instance.save(options);
-        expect(options).to.deep.equal({ transaction: null });
+      it('should not modify options when it given to decrement', function () {
+        instance = Model.build({id: 3}, {isNewRecord: false});
+        var options = { by: 2 };
+        instance.decrement(['id'], options);
+        expect(options).to.deep.equal({ by: 2 });
       });
     });
   });
