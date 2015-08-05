@@ -106,6 +106,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             });
         });
 
+        it('triggers an actual RangeError or ConnectionError', function() {
+          return this
+            .sequelizeWithInvalidConnection
+            .authenticate()
+            .catch(function(err) {
+              expect(
+                err instanceof RangeError ||
+                err instanceof Sequelize.ConnectionError
+              ).to.be.ok;
+            });
+        });
+
         it('triggers the actual adapter error', function() {
           return this
             .sequelizeWithInvalidConnection
@@ -114,10 +126,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               expect(
                 err.message.match(/connect ECONNREFUSED/) ||
                 err.message.match(/invalid port number/) ||
-                err.message.match(/RangeError: Port should be > 0 and < 65536/) ||
-                err.message.match(/RangeError: port should be > 0 and < 65536/) ||
-                err.message.match(/RangeError: port should be >= 0 and < 65536: 99999/) ||
-                err.message.match(/ConnectionError: Login failed for user/)
+                err.message.match(/Port should be > 0 and < 65536/) ||
+                err.message.match(/port should be > 0 and < 65536/) ||
+                err.message.match(/port should be >= 0 and < 65536: 99999/) ||
+                err.message.match(/Login failed for user/)
               ).to.be.ok;
             });
         });
@@ -134,6 +146,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             .authenticate()
             .catch(function(err) {
               expect(err).to.not.be.null;
+            });
+        });
+
+        it('triggers an actual sequlize error', function() {
+          return this
+            .sequelizeWithInvalidCredentials
+            .authenticate()
+            .catch(function(err) {
+              expect(err).to.be.instanceof(Sequelize.Error);
             });
         });
 
