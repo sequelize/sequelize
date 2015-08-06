@@ -68,5 +68,16 @@ module.exports = {
       maxConnections: process.env.SEQ_MYSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
       maxIdleTime:    process.env.SEQ_MYSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
     }
+  },
+
+  oracle: {
+    database: process.env.SEQ_ORACLE_DB   || process.env.SEQ_DB   || 'sequelize_test',
+    username: process.env.SEQ_ORACLE_USER || process.env.SEQ_USER || 'system',
+    password: process.env.SEQ_ORACLE_PW   || process.env.SEQ_PW   || 'system_234',
+    host:     process.env.SEQ_ORACLE_HOST || process.env.SEQ_HOST || 'localhost:1521/orcl',
+    pool:     {
+      maxConnections: process.env.SEQ_ORACLE_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+      maxIdleTime:    process.env.SEQ_ORACLE_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+    }
   }
 };
