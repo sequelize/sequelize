@@ -370,6 +370,28 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
     });
   });
 
+  describe('associations on the join table', function () {
+    beforeEach(function() {
+      this.User = this.sequelize.define('User', {});
+      this.Project = this.sequelize.define('Project', {});
+      this.UserProjects = this.sequelize.define('UserProjects', {});
+
+      this.UserProjects.belongsTo(this.User);
+
+      this.User.belongsToMany(this.Project, { through: this.UserProjects });
+      this.Project.belongsToMany(this.User, { through: this.UserProjects });
+
+      this.UserProjects.belongsTo(this.Project);
+    });
+
+    it('should work for belongsTo associations defined before belongsToMany', function () {
+      expect(this.UserProjects.Instance.prototype.getUser).to.be.ok;
+    });
+    it('should work for belongsTo associations defined after belongsToMany', function () {
+      expect(this.UserProjects.Instance.prototype.getProject).to.be.ok;
+    });
+  });
+
   describe('self-associations', function () {
     it('does not pair multiple self associations with different through arguments', function () {
       var User = current.define('user', {})
