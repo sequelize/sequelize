@@ -382,8 +382,6 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
       this.Project.belongsToMany(this.User, { through: this.UserProjects });
 
       this.UserProjects.belongsTo(this.Project);
-
-      return this.sequelize.sync();
     });
 
     it('should work for belongsTo associations defined before belongsToMany', function () {
