@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      describe('Get shared associated data via include', function() {
+      describe('Get associated data in public schema via include', function() {
         beforeEach(function() {
           var Location = this.Location;
 
@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      describe('Get account specific associated data via include', function() {
+      describe('Get schema specific associated data via include', function() {
         beforeEach(function() {
           var Employee = this.Employee;
           return Employee.sync({force: true, searchPath: SEARCH_PATH_ONE})
