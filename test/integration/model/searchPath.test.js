@@ -75,6 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       describe('Add data via model.create, retrieve via model.findOne', function() {
         it('should be able to insert data into the table in schema_one using create', function() {
           var Restaurant = this.Restaurant;
+          var restaurantId;
 
           return Restaurant.create({
             foo: 'one',
@@ -85,6 +86,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             }).then(function(obj) {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('one');
+              restaurantId = obj.id;
+              return Restaurant.findById(restaurantId, {searchPath: SEARCH_PATH_ONE}).then(function(obj) {
+                expect(obj).to.not.be.null;
+                expect(obj.foo).to.equal('one');
+              });
             });
           });
         });
@@ -102,6 +108,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('should be able to insert data into the table in schema_two using create', function() {
           var Restaurant = this.Restaurant;
+          var restaurantId;
 
           return Restaurant.create({
             foo: 'two',
@@ -112,6 +119,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             }).then(function(obj) {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('two');
+              restaurantId = obj.id;
+              return Restaurant.findById(restaurantId, {searchPath: SEARCH_PATH_TWO}).then(function(obj) {
+                expect(obj).to.not.be.null;
+                expect(obj.foo).to.equal('two');
+              });
             });
           });
         });
@@ -129,6 +141,110 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           return Restaurant.findOne({where: {foo: 'two'}, searchPath: SEARCH_PATH_ONE}).then(function(RestaurantObj) {
             expect(RestaurantObj).to.be.null;
+          });
+        });
+      });
+
+      describe('Add data via instance.save, retrieve via model.findAll', function() {
+        it('should be able to insert data into both schemas using instance.save and retrieve it via findAll', function() {
+          var Restaurant = this.Restaurant;
+
+          var restaurauntModel = Restaurant.build({bar: 'one.1'});
+
+          return restaurauntModel.save({searchPath: SEARCH_PATH_ONE}).then(function() {
+            restaurauntModel = Restaurant.build({bar: 'one.2'});
+            return restaurauntModel.save({searchPath: SEARCH_PATH_ONE}).then(function() {
+              restaurauntModel = Restaurant.build({bar: 'two.1'});
+              return restaurauntModel.save({searchPath: SEARCH_PATH_TWO}).then(function() {
+                restaurauntModel = Restaurant.build({bar: 'two.2'});
+                return restaurauntModel.save({searchPath: SEARCH_PATH_TWO}).then(function() {
+                  restaurauntModel = Restaurant.build({bar: 'two.3'});
+                  return restaurauntModel.save({searchPath: SEARCH_PATH_TWO}).then(function() {
+                    return Restaurant.findAll({searchPath: SEARCH_PATH_ONE}).then(function(restaurantsOne) {
+                      expect(restaurantsOne).to.not.be.null;
+                      expect(restaurantsOne.length).to.equal(2);
+                      restaurantsOne.forEach(function(restaurant) {
+                        expect(restaurant.bar).to.contain('one');
+                      });
+                      return Restaurant.findAndCountAll({searchPath: SEARCH_PATH_ONE}).then(function(restaurantsOne) {
+                        expect(restaurantsOne).to.not.be.null;
+                        expect(restaurantsOne.rows.length).to.equal(2);
+                        expect(restaurantsOne.count).to.equal(2);
+                        restaurantsOne.rows.forEach(function(restaurant) {
+                          expect(restaurant.bar).to.contain('one');
+                        });
+                        return Restaurant.findAll({searchPath: SEARCH_PATH_TWO}).then(function(restaurantsTwo) {
+                          expect(restaurantsTwo).to.not.be.null;
+                          expect(restaurantsTwo.length).to.equal(3);
+                          restaurantsTwo.forEach(function(restaurant) {
+                            expect(restaurant.bar).to.contain('two');
+                          });
+                          return Restaurant.findAndCountAll({searchPath: SEARCH_PATH_TWO}).then(function(restaurantsTwo) {
+                            expect(restaurantsTwo).to.not.be.null;
+                            expect(restaurantsTwo.rows.length).to.equal(3);
+                            expect(restaurantsTwo.count).to.equal(3);
+                            restaurantsTwo.rows.forEach(function(restaurant) {
+                              expect(restaurant.bar).to.contain('two');
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+
+      describe('Add data via instance.save, retrieve via model.count and model.find', function() {
+        it('should be able to insert data into both schemas using instance.save count it and retrieve it via findAll with where', function() {
+          var Restaurant = this.Restaurant;
+
+          var restaurauntModel = Restaurant.build({bar: 'one.1'});
+
+          return restaurauntModel.save({searchPath: SEARCH_PATH_ONE}).then(function() {
+            restaurauntModel = Restaurant.build({bar: 'one.2'});
+            return restaurauntModel.save({searchPath: SEARCH_PATH_ONE}).then(function() {
+              restaurauntModel = Restaurant.build({bar: 'two.1'});
+              return restaurauntModel.save({searchPath: SEARCH_PATH_TWO}).then(function() {
+                restaurauntModel = Restaurant.build({bar: 'two.2'});
+                return restaurauntModel.save({searchPath: SEARCH_PATH_TWO}).then(function() {
+                  restaurauntModel = Restaurant.build({bar: 'two.3'});
+                  return restaurauntModel.save({searchPath: SEARCH_PATH_TWO}).then(function() {
+                    return Restaurant.findAll({
+                      where: {bar: {$like: 'one%'}},
+                      searchPath: SEARCH_PATH_ONE
+                    }).then(function(restaurantsOne) {
+                      expect(restaurantsOne).to.not.be.null;
+                      expect(restaurantsOne.length).to.equal(2);
+                      restaurantsOne.forEach(function(restaurant) {
+                        expect(restaurant.bar).to.contain('one');
+                      });
+                      return Restaurant.count({searchPath: SEARCH_PATH_ONE}).then(function(count) {
+                        expect(count).to.not.be.null;
+                        expect(count).to.equal(2);
+                        return Restaurant.findAll({
+                          where: {bar: {$like: 'two%'}},
+                          searchPath: SEARCH_PATH_TWO
+                        }).then(function(restaurantsTwo) {
+                          expect(restaurantsTwo).to.not.be.null;
+                          expect(restaurantsTwo.length).to.equal(3);
+                          restaurantsTwo.forEach(function(restaurant) {
+                            expect(restaurant.bar).to.contain('two');
+                            return Restaurant.count({searchPath: SEARCH_PATH_TWO}).then(function(count) {
+                              expect(count).to.not.be.null;
+                              expect(count).to.equal(3);
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
           });
         });
       });
@@ -241,14 +357,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   expect(obj.employees).to.not.be.null;
                   expect(obj.employees.length).to.equal(1);
                   expect(obj.employees[0].last_name).to.equal('one');
-                  return Employee.findOne({
-                    where: {last_name: 'one'}, searchPath: SEARCH_PATH_ONE, include: [{
-                      model: Restaurant, as: 'restaurant'
-                    }]
-                  }).then(function(obj) {
-                    expect(obj).to.not.be.null;
-                    expect(obj.restaurant).to.not.be.null;
-                    expect(obj.restaurant.foo).to.equal('one');
+                  return obj.getEmployees({searchPath: SEARCH_PATH_ONE}).then(function(employees) {
+                    expect(employees.length).to.equal(1);
+                    expect(employees[0].last_name).to.equal('one');
+                    return Employee.findOne({
+                      where: {last_name: 'one'}, searchPath: SEARCH_PATH_ONE, include: [{
+                        model: Restaurant, as: 'restaurant'
+                      }]
+                    }).then(function(obj) {
+                      expect(obj).to.not.be.null;
+                      expect(obj.restaurant).to.not.be.null;
+                      expect(obj.restaurant.foo).to.equal('one');
+                      return obj.getRestaurant({searchPath: SEARCH_PATH_ONE}).then(function(restaurant) {
+                        expect(restaurant).to.not.be.null;
+                        expect(restaurant.foo).to.equal('one');
+                      });
+                    });
                   });
                 });
               });
@@ -284,14 +408,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   expect(obj.employees).to.not.be.null;
                   expect(obj.employees.length).to.equal(1);
                   expect(obj.employees[0].last_name).to.equal('two');
-                  return Employee.findOne({
-                    where: {last_name: 'two'}, searchPath: SEARCH_PATH_TWO, include: [{
-                      model: Restaurant, as: 'restaurant'
-                    }]
-                  }).then(function(obj) {
-                    expect(obj).to.not.be.null;
-                    expect(obj.restaurant).to.not.be.null;
-                    expect(obj.restaurant.foo).to.equal('two');
+                  return obj.getEmployees({searchPath: SEARCH_PATH_TWO}).then(function(employees) {
+                    expect(employees.length).to.equal(1);
+                    expect(employees[0].last_name).to.equal('two');
+                    return Employee.findOne({
+                      where: {last_name: 'two'}, searchPath: SEARCH_PATH_TWO, include: [{
+                        model: Restaurant, as: 'restaurant'
+                      }]
+                    }).then(function(obj) {
+                      expect(obj).to.not.be.null;
+                      expect(obj.restaurant).to.not.be.null;
+                      expect(obj.restaurant.foo).to.equal('two');
+                      return obj.getRestaurant({searchPath: SEARCH_PATH_TWO}).then(function(restaurant) {
+                        expect(restaurant).to.not.be.null;
+                        expect(restaurant.foo).to.equal('two');
+                      });
+                    });
                   });
                 });
               });
