@@ -51,6 +51,8 @@ test-integration:
 
 test-integration-all: test-integration-sqlite test-integration-mysql test-integration-postgres test-integration-postgres-native test-integration-mariadb test-integration-mssql
 
+test-integration-oracle:
+	@DIALECT=oracle make test-integration
 test-integration-mariadb:
 	@DIALECT=mariadb make test-integration
 test-integration-sqlite:
