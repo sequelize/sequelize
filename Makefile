@@ -26,6 +26,8 @@ test-unit:
 
 test-unit-all: test-unit-sqlite test-unit-mysql test-unit-postgres test-unit-postgres-native test-unit-mariadb test-unit-mssql
 
+test-unit-oracle:
+	@DIALECT=oracle make test-unit
 test-unit-mariadb:
 	@DIALECT=mariadb make test-unit
 test-unit-sqlite:
@@ -78,6 +80,8 @@ postgres:
 	@DIALECT=postgres make test
 postgres-native:
 	@DIALECT=postgres-native make test
+oracle:
+	@DIALECT=oracle make test
 
 # Coverage
 cover:
@@ -108,6 +112,10 @@ postgres-native-cover:
 	rm -rf coverage
 	@DIALECT=postgres-native make cover
 	mv coverage coverage-postgresnative
+oracle-cover:
+	rm -rf coverage
+	@DIALECT=oracle make cover
+	mv coverage coverage-oracle
 
 merge-coverage:
 	rm -rf coverage
