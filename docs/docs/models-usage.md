@@ -443,7 +443,7 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
 })
 ```
 
-Notice that the accessor is singular as the association is one-to-something&period;
+Notice that the accessor (the `User` property in the resulting instance) is singular because the association is one-to-something&period;
 
 Next thing&colon; Loading of data with many-to-something associations&excl;
 
@@ -469,7 +469,8 @@ User.findAll({ include: [ Task ] }).then(function(users) {
 })
 ```
 
-Notice that the accessor is plural&period; This is because the association is many-to-something&period;
+Notice that the accessor (the `Tasks` property in the resulting instance) is plural because the association is many-to-something&period;
+
 
 If an association is aliased (using the `as` option), you must specify this alias when including the model&period; Notice how the user's `Tool`s are aliased as `Instruments` above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
 
