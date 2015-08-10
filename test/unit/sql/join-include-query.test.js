@@ -83,7 +83,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0]
     }, {
-      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]"
+      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]",
+      oracle: 'LEFT OUTER JOIN "company" "Company" ON "User"."company_id" = "Company"."id"'
     });
 
     testsql({
@@ -97,7 +98,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0]
     }, {
-      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]"
+      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]",
+      oracle: 'LEFT OUTER JOIN "company" "Company" ON "User"."company_id" = "Company"."id"'
     });
 
     testsql({
@@ -112,7 +114,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0]
     }, {
-      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]"
+      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]",
+      oracle: 'LEFT OUTER JOIN "company" "Company" ON "User"."companyId" = "Company"."id"'
     });
 
     testsql({
@@ -129,7 +132,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0]
     }, {
-      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'"
+      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
+      oracle: 'LEFT OUTER JOIN "company" "Company" ON "User"."companyId" = "Company"."id" AND "Company"."name" = \'ABC\''
     });
 
     testsql({
@@ -145,7 +149,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0].include[0]
     }, {
-      default: "LEFT OUTER JOIN [user] AS [Company.Owner] ON [Company].[owner_id] = [Company.Owner].[id_user]"
+      default: "LEFT OUTER JOIN [user] AS [Company.Owner] ON [Company].[owner_id] = [Company.Owner].[id_user]",
+      oracle: 'LEFT OUTER JOIN "user" "Company.Owner" ON "Company"."owner_id" = "Company.Owner"."id_user"'
     });
 
     testsql({
@@ -163,7 +168,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0].include[0].include[0]
     }, {
-      default: "LEFT OUTER JOIN [profession] AS [Company.Owner.Profession] ON [Company.Owner].[professionId] = [Company.Owner.Profession].[id]"
+      default: "LEFT OUTER JOIN [profession] AS [Company.Owner.Profession] ON [Company.Owner].[professionId] = [Company.Owner.Profession].[id]",
+      oracle: 'LEFT OUTER JOIN "profession" "Company.Owner.Profession" ON "Company.Owner"."professionId" = "Company.Owner.Profession"."id"'
     });
 
     testsql({
@@ -180,7 +186,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0].include[0]
     }, {
-      default: "LEFT OUTER JOIN [user] AS [Company.Owner] ON [Company.ownerId] = [Company.Owner].[id_user]"
+      default: "LEFT OUTER JOIN [user] AS [Company.Owner] ON [Company.ownerId] = [Company.Owner].[id_user]",
+      oracle: 'LEFT OUTER JOIN "user" "Company.Owner" ON "Company.ownerId" = "Company.Owner"."id_user"'
     });
 
     testsql({
@@ -194,7 +201,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0]
     }, {
-      default: "INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]"
+      default: "INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]",
+      oracle: 'INNER JOIN "company" "Company" ON "User"."company_id" = "Company"."id"'
     });
 
     /*
@@ -211,7 +219,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0]
     }, {
-      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]"
+      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]",
+      oracle: 'LEFT OUTER JOIN "task" "Tasks" ON "User"."id_user" = "Tasks"."user_id"'
     });
 
     testsql({
@@ -226,7 +235,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }).include[0]
     }, {
       // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
-      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]"
+      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]",
+      oracle: 'LEFT OUTER JOIN "task" "Tasks" ON "User"."id" = "Tasks"."user_id"'
     });
 
     testsql({
@@ -241,7 +251,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }).include[0]
     }, {
       // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
-      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]"
+      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]",
+      oracle: 'LEFT OUTER JOIN "task" "Tasks" ON "User"."id" = "Tasks"."user_id"'
     });
   });
 });
