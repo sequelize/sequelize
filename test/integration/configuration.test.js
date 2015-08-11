@@ -6,7 +6,7 @@ var chai = require('chai')
   , config = require(__dirname + '/../config/config')
   , Support = require(__dirname + '/support')
   , dialect = Support.getTestDialect()
-  , Sequelize = require(__dirname + '/../../index')
+  , Sequelize = Support.Sequelize
   , sqlite3 = require('sqlite3')
   , fs = require('fs')
   , path = require('path');
@@ -154,6 +154,17 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
         var createTableFoo = 'CREATE TABLE foo (faz TEXT);';
         var createTableBar = 'CREATE TABLE bar (baz TEXT);';
 
+        var testAccess = Sequelize.Promise.method(function() {
+          if (fs.access) {
+            return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
+          } else { // Node v0.10 and older don't have fs.access
+            return Sequelize.Promise.promisify(fs.open)(p, 'r+')
+            .then(function(fd) {
+              return Sequelize.Promise.promisify(fs.close)(fd);
+            });
+          }
+        });
+
         return Sequelize.Promise.promisify(fs.unlink)(p)
         .catch(function(err) {
           expect(err.code).to.equal('ENOENT');
@@ -189,9 +200,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
           });
           return sequelize.query(createTableFoo);
         })
-        .then(function() {
-          return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
-        })
+        .then(testAccess)
         .then(function() {
           var sequelizeReadOnly = new Sequelize('sqlite://foo', {
             storage: p,
