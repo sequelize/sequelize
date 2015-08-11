@@ -577,6 +577,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([data]#>>'{nested, attribute}') = 'value'"
         });
 
+        testsql('data.nested.attribute', 4, {
+          model: {
+            rawAttributes: {
+              data: {
+                type: new DataTypes.JSONB()
+              }
+            }
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::double precision = 4"
+        });
+
         testsql('data.nested.attribute', {
           $in: [3, 7]
         }, {
