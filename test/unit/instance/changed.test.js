@@ -94,5 +94,21 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       user.set('meta', meta);
       expect(user.changed('meta')).to.equal(true);
     });
+
+    it('should return true if it happenned that original value is not of Date type', function () {
+      var firstDate = '2015-08-01';
+      var secondDate = new Date(1436921941099);
+
+      var user = this.User.build({
+        birthdate: firstDate
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.set('birthdate', secondDate);
+      expect(user.changed('birthdate')).to.equal(true);
+    });
+
   });
 });
