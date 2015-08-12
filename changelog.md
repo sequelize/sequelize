@@ -1,4 +1,5 @@
 # Next
+- [FIXED] Custom field names in json queries
 - [FIXED] JSON cast key using the equality operator. [#3824](https://github.com/sequelize/sequelize/issues/3824)
 - [FIXED] Map column names with `.field` in scopes with includes. [#4210](https://github.com/sequelize/sequelize/issues/4210)
 - [FIXED] `addScope` when the model does not have any initial scopes [#4243](https://github.com/sequelize/sequelize/issues/4243)
