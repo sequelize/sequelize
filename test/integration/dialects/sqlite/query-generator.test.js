@@ -177,7 +177,7 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: [['id', 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
-          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
+          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `id` DESC;',
           context: QueryGenerator,
           needsSequelize: true
         }, {
