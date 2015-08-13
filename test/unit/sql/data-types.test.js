@@ -189,7 +189,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('DATE', function () {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        oracle: 'TIMESTAMP WITH TIME ZONE',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         mssql: 'DATETIME2',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
