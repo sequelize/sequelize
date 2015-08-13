@@ -7,6 +7,8 @@
 - [FIXED] Clone the options object in `increment`, `decrement`, `destroy`, `reload`, `restore`, and `save`. [#4023](https://github.com/sequelize/sequelize/pull/4023)
 - [FIXED] Throw a `Sequelize.Error` when `authenticate` fails [#4209](https://github.com/sequelize/sequelize/pull/4209)
 - [FIXED] BTM would remove any previously added association getters [#4268](https://github.com/sequelize/sequelize/pull/4268)
+- [FIXED] Pass through connection mode options to sqlite
+[#4288](https://github.com/sequelize/sequelize/issues/4288)
 
 # 3.5.1
 - [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
