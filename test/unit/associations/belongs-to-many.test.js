@@ -14,6 +14,32 @@ var chai = require('chai')
   , Promise   = current.Promise;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), function() {
+  it('should not inherit scopes from parent to join table', function () {
+    var A = current.define('a')
+      , B = current.define('b', {}, {
+        defaultScope: {
+          where: {
+            foo: 'bar'
+          }
+        },
+        scopes: {
+          baz: {
+            where: {
+              fooz: 'zab'
+            }
+          }
+        }
+      })
+      , AB;
+
+    B.belongsToMany(A, { through: 'AB' });
+
+    AB = current.model('AB');
+
+    expect(AB.options.defaultScope).not.to.be.ok;
+    expect(AB.options.scopes).to.have.length(0);
+  });
+
   describe('timestamps', function () {
     it('follows the global timestamps true option', function () {
       var User = current.define('User', {})
@@ -367,6 +393,28 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'ProductId', 'TagId']);
+    });
+  });
+
+  describe('associations on the join table', function () {
+    beforeEach(function() {
+      this.User = this.sequelize.define('User', {});
+      this.Project = this.sequelize.define('Project', {});
+      this.UserProjects = this.sequelize.define('UserProjects', {});
+
+      this.UserProjects.belongsTo(this.User);
+
+      this.User.belongsToMany(this.Project, { through: this.UserProjects });
+      this.Project.belongsToMany(this.User, { through: this.UserProjects });
+
+      this.UserProjects.belongsTo(this.Project);
+    });
+
+    it('should work for belongsTo associations defined before belongsToMany', function () {
+      expect(this.UserProjects.Instance.prototype.getUser).to.be.ok;
+    });
+    it('should work for belongsTo associations defined after belongsToMany', function () {
+      expect(this.UserProjects.Instance.prototype.getProject).to.be.ok;
     });
   });
 

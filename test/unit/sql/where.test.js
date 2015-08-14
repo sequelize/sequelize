@@ -581,6 +581,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([data]#>>'{nested, attribute}') = 'value'"
         });
 
+        testsql('data.nested.attribute', 4, {
+          model: {
+            rawAttributes: {
+              data: {
+                type: new DataTypes.JSONB()
+              }
+            }
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::double precision = 4"
+        });
+
         testsql('data.nested.attribute', {
           $in: [3, 7]
         }, {
@@ -648,6 +660,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         }, {
           default: '[data] @> \'{"company":"Magnafone"}\''
+        });
+
+        testsql('metaData.nested.attribute', 'value', {
+          model: {
+            rawAttributes: {
+              metaData: {
+                field: 'meta_data',
+                fieldName: 'metaData',
+                type: new DataTypes.JSONB()
+              }
+            }
+          }
+        }, {
+          default: "([meta_data]#>>'{nested, attribute}') = 'value'"
         });
       });
     }
