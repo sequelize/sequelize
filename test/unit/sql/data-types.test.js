@@ -238,7 +238,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         mssql: 'CHAR(36)',
         mysql: 'CHAR(36) BINARY',
         sqlite: 'UUID',
-        oracle: 'RAW(16) DEFAULT SYS_GUID()'
+        oracle: 'CHAR(36)'
       });
 
       suite('validate', function () {
