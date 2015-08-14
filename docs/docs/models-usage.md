@@ -320,7 +320,7 @@ To recap&comma; the elements of the order &sol; group array can be the following
 Sometimes you might be expecting a massive dataset that you just want to display, without manipulation. For each row you select, Sequelize creates an instance with functions for update, delete, get associations etc. If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
 
 ```js
-// Are you expecting a masssive dataset from the DB,
+// Are you expecting a massive dataset from the DB,
 // and don't want to spend the time building DAOs for each entry?
 // You can pass an extra query option to get the raw data instead:
 Project.findAll({ where: ... }, { raw: true })
@@ -397,7 +397,7 @@ Project.sum('age').then(function(sum) {
 })
 
 Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
-  // wil be 50
+  // will be 50
 })
 ```
 
