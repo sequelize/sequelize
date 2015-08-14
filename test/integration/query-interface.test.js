@@ -107,32 +107,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
-    it('adds, reads and removes a named functional index to the table', function() {
-      var self = this;
-      return this.queryInterface.addIndex('Group', [this.sequelize.fn('lower', this.sequelize.col('username'))], {
-        name: 'group_username_lower',
-        logging: log
-      }).then(function() {
-        expect(count).to.be.equal(1);
-        count = 0;
-        return self.queryInterface.showIndex('Group', {logging: log}).then(function(indexes) {
-          expect(count).to.be.equal(1);
-          count = 0;
-
-          var indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
-          expect(indexColumns).to.include('group_username_lower');
-          return self.queryInterface.removeIndex('Group', 'group_username_lower', {logging: log}).then(function() {
-            expect(count).to.be.equal(1);
-            count = 0;
-            return self.queryInterface.showIndex('Group').then(function(indexes) {
-              indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
-              expect(indexColumns).to.be.empty;
-            });
-          });
-        });
-      });
-    });
-
     it('works with schemas', function() {
       var self = this;
       return self.sequelize.dropAllSchemas({logging: log}).then(function() {
