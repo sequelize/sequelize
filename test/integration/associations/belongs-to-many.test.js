@@ -151,8 +151,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('only gets objects that fulfill options with a formatted value', function() {
+      var wherestr = '';
+      if (current.dialect.name === 'oracle') {
+        wherestr = '"active" = ?';  // oracle requests that user specify where condition using double quotes to have same as column name (oracle default is big letters)
+      } else {
+        wherestr = 'active = ?';
+      }
       return this.User.find({where: {username: 'John'}}).then(function(john) {
-        return john.getTasks({where: ['active = ?', true]});
+        return john.getTasks({where: [wherestr, true]});
       }).then(function(tasks) {
         expect(tasks).to.have.length(1);
       });
@@ -298,7 +304,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         tableName: 'tbl_group'
       });
 
-      var User_has_Group = this.sequelize.define('User_has_Group', {
+      var User_has_Group = this.sequelize.define('usr_has_gr', {
 
       }, {
         tableName: 'tbl_user_has_group'
@@ -364,7 +370,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         tableName: 'tbl_group'
       });
 
-      var Company_has_Group = this.sequelize.define('Company_has_Group', {
+      var Company_has_Group = this.sequelize.define('chg', {
 
       }, {
         tableName: 'tbl_company_has_group'
