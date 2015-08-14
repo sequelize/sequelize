@@ -1,4 +1,5 @@
 # Next
+- [FIXED] Show indexes query on Postgres fails to return functional indexes [#3911](https://github.com/sequelize/sequelize/issues/3911)
 - [FIXED] Custom field names in json queries
 - [FIXED] JSON cast key using the equality operator. [#3824](https://github.com/sequelize/sequelize/issues/3824)
 - [FIXED] Map column names with `.field` in scopes with includes. [#4210](https://github.com/sequelize/sequelize/issues/4210)
