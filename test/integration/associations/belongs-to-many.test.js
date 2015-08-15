@@ -544,8 +544,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('should be able to set twice with custom primary keys', function() {
-      var User = this.sequelize.define('User', { uid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING })
-        , Task = this.sequelize.define('Task', { tid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING });
+      var User = this.sequelize.define('User', { myuid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING })
+        , Task = this.sequelize.define('Task', { mytid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING });
 
       User.belongsToMany(Task, { through: 'UserTasks' });
       Task.belongsToMany(User, { through: 'UserTasks' });
