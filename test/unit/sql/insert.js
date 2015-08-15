@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       {
         mssql:'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp VALUES (\'triggertest\');select * from @tmp;',
         postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
-        oracle: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING "id" INTO :rid',
+        oracle: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING "id" INTO :id',
         default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');",
       });
     });
