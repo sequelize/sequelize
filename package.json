@@ -46,7 +46,7 @@
     "toposort-class": "^1.0.1",
     "validator": "^4.0.2",
     "wellknown": "^0.3.1",
-    "wkx": "0.0.7"
+    "wkx": "0.1.0"
   },
   "devDependencies": {
     "chai": "^3.0.0",
