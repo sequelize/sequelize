@@ -52,7 +52,7 @@
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
     "chai-datetime": "~1.4.0",
-    "chai-spies": "~0.6.0",
+    "chai-spies": "~0.7.0",
     "coffee-script": "~1.9.1",
     "commander": "^2.6.0",
     "continuation-local-storage": "^3.1.4",
