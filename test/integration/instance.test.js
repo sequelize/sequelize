@@ -142,7 +142,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     if (current.dialect.supports.returnValues.returning) {
       it('supports returning', function() {
-        var self = this;
         return this.User.findById(1).then(function(user1) {
           return user1.increment('aNumber', { by: 2 }).then(function() {
             expect(user1.aNumber).to.be.equal(2);
