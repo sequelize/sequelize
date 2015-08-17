@@ -10,10 +10,6 @@
 - [FIXED] BTM would remove any previously added association getters [#4268](https://github.com/sequelize/sequelize/pull/4268)
 - [FIXED] Pass through connection mode options to sqlite
 [#4288](https://github.com/sequelize/sequelize/issues/4288)
-- [INTERNALS] Updated dependencies [#4332](https://github.com/sequelize/sequelize/pull/4332)
-    + toposort-class@1.0.1
-    + validator@4.0.2
-    + wkx@0.1.0
 
 # 3.5.1
 - [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
