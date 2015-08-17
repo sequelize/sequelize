@@ -43,10 +43,10 @@
     "node-uuid": "~1.4.1",
     "semver": "^5.0.1",
     "shimmer": "1.0.0",
-    "toposort-class": "~0.3.0",
-    "validator": "^3.34.0",
+    "toposort-class": "^1.0.1",
+    "validator": "^4.0.4",
     "wellknown": "^0.3.1",
-    "wkx": "0.0.7"
+    "wkx": "0.1.0"
   },
   "devDependencies": {
     "chai": "^3.0.0",
