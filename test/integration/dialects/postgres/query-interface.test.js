@@ -32,7 +32,6 @@ if (dialect.match(/^postgres/)) {
           enum2: {type: DataTypes.ENUM, values: ['3', '4']}
         }).then(function () {
           var listEnumsSQL = self.queryInterface.QueryGenerator.pgListEnums();
-          console.log(listEnumsSQL);
           return self.sequelize.query(listEnumsSQL, {raw: true, type: QueryTypes.SELECT}).then(function (result) {
             expect(result.length).to.equal(1);
             expect(result[0]['enum_name']).to.equal('enum_Group_enum1');
