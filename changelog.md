@@ -12,8 +12,12 @@
 [#4288](https://github.com/sequelize/sequelize/issues/4288)
 - [INTERNALS] Updated dependencies [#4332](https://github.com/sequelize/sequelize/pull/4332)
     + toposort-class@1.0.1
-    + validator@4.0.2
+    + validator@4.0.4
     + wkx@0.1.0
+- [INTERNALS] Updated devDependencies [#4336](https://github.com/sequelize/sequelize/pull/4336)
+    + chai-spies@0.7.0
+    + dox@0.8.0
+    + mysql@2.8.0
 
 # 3.5.1
 - [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
