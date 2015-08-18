@@ -7,7 +7,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , Sequelize = require(__dirname + '/../../../index')
   , current = Support.sequelize
-  , Promise = Sequelize.Promise;
+  , Promise = Sequelize.Promise
+  , _ = require('lodash');
 
 if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), function() {
@@ -250,12 +251,16 @@ if (current.dialect.supports.groupedLimit) {
               logging: sqlSpy
             });
           }).then(function (users) {
-            expect(users[0].get('projects')).to.be.ok;
-            expect(users[0].get('projects')[0].get('tasks')).to.be.ok;
-            expect(users[0].get('projects')[1].get('tasks')).to.be.ok;
-            expect(users[0].get('projects').length).to.equal(2);
-            expect(users[0].get('projects')[0].get('tasks').length).to.equal(3);
-            expect(users[0].get('projects')[1].get('tasks').length).to.equal(1);
+            var u1projects = users[0].get('projects');
+
+            expect(u1projects).to.be.ok;
+            expect(u1projects[0].get('tasks')).to.be.ok;
+            expect(u1projects[1].get('tasks')).to.be.ok;
+            expect(u1projects.length).to.equal(2);
+
+            // WTB ES2015 syntax ...
+            expect(_.find(u1projects, function (p) { return p.id === 1; }).get('tasks').length).to.equal(3);
+            expect(_.find(u1projects, function (p) { return p.id === 2; }).get('tasks').length).to.equal(1);
 
             expect(users[1].get('projects')).to.be.ok;
             expect(users[1].get('projects')[0].get('tasks')).to.be.ok;
