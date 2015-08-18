@@ -34,10 +34,10 @@ if (dialect.match(/^postgres/)) {
           var listEnumsSQL = self.queryInterface.QueryGenerator.pgListEnums();
           return self.sequelize.query(listEnumsSQL, {raw: true, type: QueryTypes.SELECT}).then(function (result) {
             expect(result.length).to.equal(1);
-            expect(result[0]['enum_name']).to.equal('enum_Group_enum1');
-          })
+            expect(result[0].enum_name).to.equal('enum_Group_enum1');
+          });
         });
-      })
+      });
     });
 
     describe('indexes', function () {
