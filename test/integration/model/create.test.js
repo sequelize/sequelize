@@ -458,6 +458,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
   });
 
+  describe('findCreateFind', function () {
+    (dialect !== 'sqlite' ? it : it.skip)('should work with multiple concurrent calls', function () {
+      return Promise.join(
+        this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
+        this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
+        this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
+        function(first, second, third) {
+          var firstInstance = first[0]
+            , firstCreated = first[1]
+            , secondInstance = second[0]
+            , secondCreated = second[1]
+            , thirdInstance = third[0]
+            , thirdCreated = third[1];
+
+          expect([firstCreated, secondCreated, thirdCreated].filter(function (value) {
+            return value;
+          }).length).to.equal(1);
+
+          expect(firstInstance).to.be.ok;
+          expect(secondInstance).to.be.ok;
+          expect(thirdInstance).to.be.ok;
+
+          expect(firstInstance.id).to.equal(secondInstance.id);
+          expect(secondInstance.id).to.equal(thirdInstance.id);
+        }
+      );
+    });
+  });
+
   describe('create', function() {
     it('works with non-integer primary keys with a default value', function() {
       var User = this.sequelize.define('User', {
