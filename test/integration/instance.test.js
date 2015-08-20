@@ -512,6 +512,36 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
       });
     });
+
+    it('should set an association to null after deletion, 1-1', function() {
+      var Shoe = this.sequelize.define('Shoe', { brand: DataTypes.STRING })
+        , Player = this.sequelize.define('Player', { name: DataTypes.STRING });
+
+      Player.hasOne(Shoe);
+      Shoe.belongsTo(Player);
+
+      return Player.sync({force: true}).then(function() {
+        return Shoe.sync({force: true}).then(function() {
+          return Shoe.create({ brand: 'the brand' }).then(function(team) {
+            return Player.create({ name: 'the player' }).then(function(player) {
+              return player.setShoe(team).then(function() {
+                return Player.findOne({
+                  where: { id: player.id },
+                  include: [Shoe]
+                }).then(function(lePlayer) {
+                  expect(lePlayer.Shoe).not.to.be.null;
+                  return lePlayer.Shoe.destroy().then(function() {
+                    return lePlayer.reload().then(function(lePlayer) {
+                      expect(lePlayer.Shoe).to.be.null;
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('default values', function() {
