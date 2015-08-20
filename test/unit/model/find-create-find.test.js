@@ -6,7 +6,6 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , UniqueConstraintError = require(__dirname + '/../../../lib/errors').UniqueConstraintError
   , current = Support.sequelize
-  , cls = require('continuation-local-storage')
   , sinon = require('sinon')
   , Promise = require('bluebird');
 
@@ -38,8 +37,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should create if first find call is empty', function () {
       var result = {}
         , where = {prop: Math.random().toString()}
-        , findSpy = this.sinon.stub(Model, 'findOne').returns(Promise.resolve(null))
         , createSpy = this.sinon.stub(Model, 'create').returns(Promise.resolve(result));
+
+      this.sinon.stub(Model, 'findOne').returns(Promise.resolve(null));
 
       return expect(Model.findCreateFind({
         where: where
@@ -51,8 +51,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should do a second find if create failed do to unique constraint', function () {
       var result = {}
         , where = {prop: Math.random().toString()}
-        , findSpy = this.sinon.stub(Model, 'findOne')
-        , createSpy = this.sinon.stub(Model, 'create').returns(Promise.reject(new UniqueConstraintError()));
+        , findSpy = this.sinon.stub(Model, 'findOne');
+
+      this.sinon.stub(Model, 'create').returns(Promise.reject(new UniqueConstraintError()));
 
       findSpy.onFirstCall().returns(Promise.resolve(null));
       findSpy.onSecondCall().returns(Promise.resolve(result));
