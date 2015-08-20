@@ -1,4 +1,4 @@
-# Next
+# 3.6.0
 - [ADDED] Model.findCreateFind: A more performant findOrCreate that will not work under a transaction (atleast not in postgres)
 - [FIXED] Show indexes query on Postgres fails to return functional indexes [#3911](https://github.com/sequelize/sequelize/issues/3911)
 - [FIXED] Custom field names in json queries
