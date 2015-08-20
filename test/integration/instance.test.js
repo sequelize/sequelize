@@ -542,6 +542,106 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
       });
     });
+
+    it('should set an association to empty after all deletion, 1-N', function() {
+      var Team = this.sequelize.define('Team', { name: DataTypes.STRING })
+        , Player = this.sequelize.define('Player', { name: DataTypes.STRING });
+
+      Team.hasMany(Player);
+      Player.belongsTo(Team);
+
+      return Team.sync({force: true}).then(function() {
+        return Player.sync({force: true}).then(function() {
+          return Team.create({ name: 'the team' }).then(function(team) {
+            return Player.create({ name: 'the player1' }).then(function(player1) {
+              return Player.create({ name: 'the player2' }).then(function(player2) {
+                return team.setPlayers([player1, player2]).then(function() {
+                  return Team.findOne({
+                    where: { id: team.id },
+                    include: [Player]
+                  }).then(function(leTeam) {
+                    expect(leTeam.Players).not.to.be.empty;
+                    return player1.destroy().then(function() {
+                      return player2.destroy().then(function() {
+                        return leTeam.reload().then(function(leTeam) {
+                          expect(leTeam.Players).to.be.empty;
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should update the associations after first element deleted, 1-N', function() {
+      var Team = this.sequelize.define('Team', { name: DataTypes.STRING })
+        , Player = this.sequelize.define('Player', { name: DataTypes.STRING });
+
+      Team.hasMany(Player);
+      Player.belongsTo(Team);
+
+      return Team.sync({force: true}).then(function() {
+        return Player.sync({force: true}).then(function() {
+          return Team.create({ name: 'the team' }).then(function(team) {
+            return Player.create({ name: 'the player1' }).then(function(player1) {
+              return Player.create({ name: 'the player2' }).then(function(player2) {
+                return team.setPlayers([player1, player2]).then(function() {
+                  return Team.findOne({
+                    where: { id: team.id },
+                    include: [Player]
+                  }).then(function(leTeam) {
+                    expect(leTeam.Players).to.have.length(2);
+                    return player2.destroy().then(function() {
+                      return leTeam.reload().then(function(leTeam) {
+                        expect(leTeam.Players).to.have.length(1);
+                        expect(leTeam.Players[0].name).to.equal('the player1');
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should update the associations after not-first element deleted, 1-N', function() {
+      var Team = this.sequelize.define('Team', { name: DataTypes.STRING })
+        , Player = this.sequelize.define('Player', { name: DataTypes.STRING });
+
+      Team.hasMany(Player);
+      Player.belongsTo(Team);
+
+      return Team.sync({force: true}).then(function() {
+        return Player.sync({force: true}).then(function() {
+          return Team.create({ name: 'the team' }).then(function(team) {
+            return Player.create({ name: 'the player1' }).then(function(player1) {
+              return Player.create({ name: 'the player2' }).then(function(player2) {
+                return team.setPlayers([player1, player2]).then(function() {
+                  return Team.findOne({
+                    where: { id: team.id },
+                    include: [Player]
+                  }).then(function(leTeam) {
+                    expect(leTeam.Players).to.have.length(2);
+                    return player1.destroy().then(function() {
+                      return leTeam.reload().then(function(leTeam) {
+                        expect(leTeam.Players).to.have.length(1);
+                        expect(leTeam.Players[0].name).to.equal('the player2');
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('default values', function() {
