@@ -39,7 +39,7 @@ Pass in the desired level as the first argument:
 
 ```js
 return sequelize.transaction({
-  isolationLevel: Sequelize.Transaction.SERIALIZABLE
+  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
 }, function (t) {
 
  // your transactions
