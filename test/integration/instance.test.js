@@ -1662,8 +1662,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(function() {
         return self.ParanoidUser.findAll().then(function(users) {
-          return users[0].destroy().then(function(user) {
-            expect(user.deletedAt.getMonth).to.exist;
+          return users[0].destroy().then(function() {
+            expect(users[0].deletedAt.getMonth).to.exist;
+
+            return users[0].reload({ paranoid: false }).then(function(user) {
+              expect(user.deletedAt.getMonth).to.exist;
+            });
           });
         });
       });
@@ -1788,6 +1792,29 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
       });
     }
+
+    it('does not set the deletedAt date in subsequent destroys if dao is paranoid', function() {
+      var UserDestroy = this.sequelize.define('UserDestroy', {
+        name: Support.Sequelize.STRING,
+        bio: Support.Sequelize.TEXT
+      }, { paranoid: true });
+
+      return UserDestroy.sync({ force: true }).then(function() {
+        return UserDestroy.create({name: 'hallo', bio: 'welt'}).then(function(user) {
+          return user.destroy().then(function() {
+            return user.reload({ paranoid: false }).then(function() {
+              var deletedAt = user.deletedAt;
+
+              return user.destroy().then(function() {
+                return user.reload({ paranoid: false }).then(function() {
+                  expect(user.deletedAt).to.eql(deletedAt);
+                });
+              });
+            });
+          });
+        });
+      });
+    });
 
     it('deletes a record from the database if dao is not paranoid', function() {
       var UserDestroy = this.sequelize.define('UserDestroy', {
