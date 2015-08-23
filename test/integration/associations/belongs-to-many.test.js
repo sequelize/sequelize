@@ -1190,7 +1190,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
       // doubly linked has many
       this.User.belongsToMany(this.Project, {
-        through: 'user_projects',
+        through: 'up',
         as: 'Projects',
         foreignKey: {
           field: 'user_id',
@@ -1202,7 +1202,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }
       });
       this.Project.belongsToMany(this.User, {
-        through: 'user_projects',
+        through: 'up',
         as: 'Users',
         foreignKey: {
           field: 'project_id',
@@ -1293,7 +1293,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       this.Group = this.sequelize.define('Group', { groupName: DataTypes.STRING});
 
       this.Group.belongsToMany(this.User, {
-        through: 'group_users',
+        through: 'gu',
         as: 'Users',
         foreignKey: {
           field: 'group_id',
@@ -1305,7 +1305,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }
       });
       this.User.belongsToMany(this.Group, {
-        through: 'group_users',
+        through: 'gu',
         as: 'Groups',
         foreignKey: {
           field: 'user_id',
