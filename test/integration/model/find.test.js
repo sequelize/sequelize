@@ -10,7 +10,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , config = require(__dirname + '/../../config/config')
-  , current = Support.sequelize;
+  , current = Support.sequelize
+  , dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
@@ -108,7 +109,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }
 
       it('does not modify the passed arguments', function() {
-        var options = { where: ['specialkey = ?', 'awesome']};
+        if (dialect.name === 'oracle') {
+          var options = { where: ['"specialkey" = ?', 'awesome']};
+        } else {
+          var options = { where: ['specialkey = ?', 'awesome']};
+        }
 
         return this.UserPrimary.findOne(options).then(function() {
           expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']});
@@ -117,8 +122,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('treats questionmarks in an array', function() {
         var test = false;
+        var wherestr = '';
+        if (dialect.name === 'oracle') {
+          wherestr = '"specialkey" = ?';
+        } else {
+          wherestr = 'specialkey = ?';
+        }
         return this.UserPrimary.findOne({
-          where: ['specialkey = ?', 'awesome'],
+          where: [wherestr, 'awesome'],
           logging: function(sql) {
             test = true;
             expect(sql).to.contain("WHERE specialkey = 'awesome'");

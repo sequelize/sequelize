@@ -8,7 +8,8 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
-  , current = Support.sequelize;
+  , current = Support.sequelize
+  , dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsTo'), function() {
   describe('Model.associations', function() {
@@ -93,7 +94,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         ]);
       }).spread(function(userA, userB, task) {
         return task.setUserXYZ(userA).then(function() {
-          return task.getUserXYZ({where: ['gender = ?', 'female']});
+          if (current.dialect.name === 'oracle') {
+            return task.getUserXYZ({where: ['"gender" = ?', 'female']});
+          } else {
+            return task.getUserXYZ({where: ['gender = ?', 'female']});
+          }
         });
       }).then(function(user) {
         expect(user).to.be.null;

@@ -1659,10 +1659,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('does not modify the passed arguments', function() {
-      var options = { where: ['username = ?', 'user1']};
+      var wherestr = '';
+      if (dialect.name === 'oracle') {
+        wherestr = '"username" = ?';
+      } else {
+        wherestr = 'username = ?';
+      }
+      var options = { where: [wherestr, 'user1']};
 
       return this.User.count(options).then(function() {
-        expect(options).to.deep.equal({ where: ['username = ?', 'user1']});
+        expect(options).to.deep.equal({ where: [wherestr, 'user1']});
       });
     });
 
