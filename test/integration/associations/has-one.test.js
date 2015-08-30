@@ -421,7 +421,8 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    // Oracle does not support cascade updates at all.
+    if ((Support.getTestDialect() !== 'mssql')&&(Support.getTestDialect() !== 'oracle')) {
       it('can cascade updates', function() {
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING });

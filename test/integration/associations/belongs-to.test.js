@@ -565,7 +565,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
     }
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    if ((Support.getTestDialect() !== 'mssql')&&(Support.getTestDialect() !== 'oracle')) {
       it('can cascade updates', function() {
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });
