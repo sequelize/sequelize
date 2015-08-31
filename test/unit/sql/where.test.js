@@ -647,6 +647,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         testsql('data', {
+          nested: {
+            attribute: true
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::boolean = true"
+        });
+
+        testsql('data', {
           $contains: {
             company: 'Magnafone'
           }
