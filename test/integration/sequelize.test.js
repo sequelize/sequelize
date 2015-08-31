@@ -956,8 +956,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     describe('table', function() {
       [
-        { id: { type: DataTypes.BIGINT } },
-        { id: { type: DataTypes.STRING, allowNull: true } },
+        { id: { type: DataTypes.BIGINT, primaryKey: true } },
+        { id: { type: DataTypes.STRING, allowNull: true, primaryKey: true } },
         { id: { type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true } }
       ].forEach(function(customAttributes) {
 
