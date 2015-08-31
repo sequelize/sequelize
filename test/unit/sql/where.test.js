@@ -682,4 +682,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
   });
+
+  suite('getWhereConditions', function () {
+    var testsql = function (value, expectation) {
+      var User = current.define('user', {});
+
+      test(util.inspect(value, {depth: 10}), function () {
+        return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
+      });
+    };
+
+    testsql(current.where(current.fn('lower', current.col('name')), null), {
+      default: "lower([name]) IS NULL"
+    });
+  });
 });
