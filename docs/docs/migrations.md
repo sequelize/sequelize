@@ -21,7 +21,7 @@ $ sequelize migration:create  # Generates a new migration file.
 $ sequelize version           # Prints the version number.
 ```
 
-Further and more detailled information about the available commands
+Further and more detailed information about the available commands
 can be obtained via the help command:
 
 ```bash

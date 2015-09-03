@@ -14,6 +14,32 @@ var chai = require('chai')
   , Promise   = current.Promise;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), function() {
+  it('should not inherit scopes from parent to join table', function () {
+    var A = current.define('a')
+      , B = current.define('b', {}, {
+        defaultScope: {
+          where: {
+            foo: 'bar'
+          }
+        },
+        scopes: {
+          baz: {
+            where: {
+              fooz: 'zab'
+            }
+          }
+        }
+      })
+      , AB;
+
+    B.belongsToMany(A, { through: 'AB' });
+
+    AB = current.model('AB');
+
+    expect(AB.options.defaultScope).not.to.be.ok;
+    expect(AB.options.scopes).to.have.length(0);
+  });
+
   describe('timestamps', function () {
     it('follows the global timestamps true option', function () {
       var User = current.define('User', {})

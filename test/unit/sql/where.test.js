@@ -577,6 +577,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "([data]#>>'{nested, attribute}') = 'value'"
         });
 
+        testsql('data.nested.attribute', 4, {
+          model: {
+            rawAttributes: {
+              data: {
+                type: new DataTypes.JSONB()
+              }
+            }
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::double precision = 4"
+        });
+
         testsql('data.nested.attribute', {
           $in: [3, 7]
         }, {
@@ -635,6 +647,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         testsql('data', {
+          nested: {
+            attribute: true
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::boolean = true"
+        });
+
+        testsql('data', {
           $contains: {
             company: 'Magnafone'
           }
@@ -645,6 +669,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         }, {
           default: '[data] @> \'{"company":"Magnafone"}\''
         });
+
+        testsql('metaData.nested.attribute', 'value', {
+          model: {
+            rawAttributes: {
+              metaData: {
+                field: 'meta_data',
+                fieldName: 'metaData',
+                type: new DataTypes.JSONB()
+              }
+            }
+          }
+        }, {
+          default: "([meta_data]#>>'{nested, attribute}') = 'value'"
+        });
       });
     }
 
@@ -654,6 +692,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "WHERE [name] = LOWER('DERP')"
         });
       });
+    });
+  });
+
+  suite('getWhereConditions', function () {
+    var testsql = function (value, expectation) {
+      var User = current.define('user', {});
+
+      test(util.inspect(value, {depth: 10}), function () {
+        return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
+      });
+    };
+
+    testsql(current.where(current.fn('lower', current.col('name')), null), {
+      default: "lower([name]) IS NULL"
     });
   });
 });

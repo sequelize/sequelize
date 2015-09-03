@@ -1,10 +1,31 @@
-# Next
+# 3.7.0
+- [ADDED] Define field dependencies for VIRTUAL types that are automatically pulled into `attributes` [#4420](https://github.com/sequelize/sequelize/pull/4420)
+- [FIXED] Fall back to a default version when parsing the DB version fails [#4368](https://github.com/sequelize/sequelize/issues/4368)
+- [FIXED] Fix a bug where passing null as the second parameter to `sequelize.where` would fail [#4334](https://github.com/sequelize/sequelize/issues/4334)
+- [FIXED] An error is thrown if a column called `id` is added, but not marked as primary key, and no other pk is present. [#4139](https://github.com/sequelize/sequelize/issues/4139)
+- [FIXED] Cast to boolean when querying JSON [#4257](https://github.com/sequelize/sequelize/issues/4257)
+
+# 3.6.0
+- [ADDED] Model.findCreateFind: A more performant findOrCreate that will not work under a transaction (atleast not in postgres)
+- [FIXED] Show indexes query on Postgres fails to return functional indexes [#3911](https://github.com/sequelize/sequelize/issues/3911)
+- [FIXED] Custom field names in json queries
+- [FIXED] JSON cast key using the equality operator. [#3824](https://github.com/sequelize/sequelize/issues/3824)
 - [FIXED] Map column names with `.field` in scopes with includes. [#4210](https://github.com/sequelize/sequelize/issues/4210)
 - [FIXED] `addScope` when the model does not have any initial scopes [#4243](https://github.com/sequelize/sequelize/issues/4243)
 - [FIXED] Fixed destroy with limit in PG when the primary key is aliassed [#4027](https://github.com/sequelize/sequelize/pull/4027)
 - [FIXED] Clone the options object in `increment`, `decrement`, `destroy`, `reload`, `restore`, and `save`. [#4023](https://github.com/sequelize/sequelize/pull/4023)
 - [FIXED] Throw a `Sequelize.Error` when `authenticate` fails [#4209](https://github.com/sequelize/sequelize/pull/4209)
 - [FIXED] BTM would remove any previously added association getters [#4268](https://github.com/sequelize/sequelize/pull/4268)
+- [FIXED] Pass through connection mode options to sqlite
+[#4288](https://github.com/sequelize/sequelize/issues/4288)
+- [INTERNALS] Updated dependencies [#4332](https://github.com/sequelize/sequelize/pull/4332)
+    + toposort-class@1.0.1
+    + validator@4.0.4
+    + wkx@0.1.0
+- [INTERNALS] Updated devDependencies [#4336](https://github.com/sequelize/sequelize/pull/4336)
+    + chai-spies@0.7.0
+    + dox@0.8.0
+    + mysql@2.8.0
 
 # 3.5.1
 - [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
