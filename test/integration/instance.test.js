@@ -1668,6 +1668,37 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(user.get({ plain: true })).to.deep.equal({ username: 'foo', id: null });
       });
     });
+
+    it('gets plain object without unrequested attributes', function() {
+      var ConnectionPlan = current.define('ConnectionPlan', {
+        title : DataTypes.TEXT,
+        price : DataTypes.INTEGER
+      }, {
+        getterMethods : {
+          printedPrice : function () {
+            return 'i_should_be_in_plain';
+          }
+        }
+      });
+
+      return ConnectionPlan.sync({force : true})
+        .then(function () {
+          return ConnectionPlan.create({
+              title: 'Lite Plan',
+              price: 100
+          });
+        })
+        .then(function () {
+          return ConnectionPlan.find({
+            attributes: ['id', 'title']
+          });
+        })
+        .then(function (plan) {
+          var plained = plan.get({plain : true});
+          expect(plained.printedPrice).to.equal('i_should_be_in_plain');
+          expect(plained.price).not.to.exist;
+        });
+    });
   });
 
   describe('destroy', function() {
