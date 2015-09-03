@@ -52,6 +52,34 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
         ]
       ]);
     });
+
+    test('multiple calls', function () {
+      var Model = this.sequelize.define('User', {
+        createdAt: {
+          type: DataTypes.DATE,
+          field: 'created_at'
+        },
+        active: {
+          type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt'])
+        }
+      });
+
+      expect(
+        Utils.mapFinderOptions(
+          Utils.mapFinderOptions({
+            attributes: [
+              'active'
+            ]
+          }, Model),
+          Model
+        ).attributes
+      ).to.eql([
+        [
+          'created_at',
+          'createdAt'
+        ]
+      ]);
+    });
   });
 
   suite('mapOptionFieldNames', function () {
