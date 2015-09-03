@@ -253,7 +253,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         beforeEach(function() {
           var Location = this.Location;
 
-          return Location.sync({force: true, searchPath: 'public'})
+          return Location.sync({force: true})
             .then(function() {
               return Location.create({name: 'HQ'}).then(function() {
                 return Location.findOne({where: {name: 'HQ'}}).then(function(obj) {
