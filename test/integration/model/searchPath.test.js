@@ -236,14 +236,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(restaurantsTwo.length).to.equal(3);
             restaurantsTwo.forEach(function(restaurant) {
               expect(restaurant.bar).to.contain('two');
-              return Restaurant.count({searchPath: SEARCH_PATH_TWO});
-            }).then(function(count) {
-              expect(count).to.not.be.null;
-              expect(count).to.equal(3);
             });
+            return Restaurant.count({searchPath: SEARCH_PATH_TWO});
+          }).then(function(count) {
+            expect(count).to.not.be.null;
+            expect(count).to.equal(3);
           });
         });
       });
+
 
       describe('Get associated data in public schema via include', function() {
         beforeEach(function() {
