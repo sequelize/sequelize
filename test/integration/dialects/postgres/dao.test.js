@@ -48,7 +48,7 @@ if (dialect.match(/^postgres/)) {
         },
         attributes: ['id','username','email','settings','document','phones','emergency_contact','friends'],
         logging: function (sql) {
-          expect(sql).to.equal('Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
+          expect(sql).to.equal('Executing (default): SET search_path to DEFAULT;SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
         }
       });
     });
