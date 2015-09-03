@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           var Employee = this.Employee;
           return Employee.sync({force: true, searchPath: SEARCH_PATH_ONE})
             .then(function() {
-              return Employee.sync({force: true, searchPath: SEARCH_PATH_TWO})
+              return Employee.sync({force: true, searchPath: SEARCH_PATH_TWO});
             })
             .catch(function(err) {
               expect(err).to.be.null;
