@@ -166,6 +166,8 @@ Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
 Project.findAll({
   where: {
     id: {
+      $and: {a: 5}           // AND (a = 5)
+      $or: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
       $gt: 6,                // id > 6
       $gte: 6,               // id >= 6
       $lt: 10,               // id < 10
@@ -182,6 +184,7 @@ Project.findAll({
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+      $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
     },
     status: {
       $not: false,           // status NOT FALSE
@@ -320,7 +323,7 @@ To recap&comma; the elements of the order &sol; group array can be the following
 Sometimes you might be expecting a massive dataset that you just want to display, without manipulation. For each row you select, Sequelize creates an instance with functions for update, delete, get associations etc. If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
 
 ```js
-// Are you expecting a masssive dataset from the DB,
+// Are you expecting a massive dataset from the DB,
 // and don't want to spend the time building DAOs for each entry?
 // You can pass an extra query option to get the raw data instead:
 Project.findAll({ where: ... }, { raw: true })
@@ -397,7 +400,7 @@ Project.sum('age').then(function(sum) {
 })
 
 Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
-  // wil be 50
+  // will be 50
 })
 ```
 
@@ -443,7 +446,7 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
 })
 ```
 
-Notice that the accessor is singular as the association is one-to-something&period;
+Notice that the accessor (the `User` property in the resulting instance) is singular because the association is one-to-something&period;
 
 Next thing&colon; Loading of data with many-to-something associations&excl;
 
@@ -469,7 +472,8 @@ User.findAll({ include: [ Task ] }).then(function(users) {
 })
 ```
 
-Notice that the accessor is plural&period; This is because the association is many-to-something&period;
+Notice that the accessor (the `Tasks` property in the resulting instance) is plural because the association is many-to-something&period;
+
 
 If an association is aliased (using the `as` option), you must specify this alias when including the model&period; Notice how the user's `Tool`s are aliased as `Instruments` above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
 

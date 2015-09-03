@@ -15,7 +15,7 @@ if (current.dialect.name !== 'sqlite') {
           schema: 'archive',
           tableName: 'user'
         }, 'email'), {
-          mssql: 'ALTER TABLE [archive].[user] DROP [email];',
+          mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
           mysql: 'ALTER TABLE `archive.user` DROP `email`;',
           postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
         });
