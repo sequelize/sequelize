@@ -326,7 +326,7 @@ Sometimes you might be expecting a massive dataset that you just want to display
 // Are you expecting a massive dataset from the DB,
 // and don't want to spend the time building DAOs for each entry?
 // You can pass an extra query option to get the raw data instead:
-Project.findAll({ where: ... }, { raw: true })
+Project.findAll({ where: { ... }, raw: true })
 ```
 
 ### count - Count the occurences of elements in the database
