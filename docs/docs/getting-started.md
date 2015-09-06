@@ -14,7 +14,7 @@ $ npm install --save tedious // MSSQL
 
 ## Setting up a connection
 
-Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per application.
+Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database.
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -77,7 +77,7 @@ var sequelize = new Sequelize('connectionUri', {
 });
 
 var User = sequelize.define('user', {}); // timestamps is false by default
-var Post = sequelize.define('user', {}, {
+var Post = sequelize.define('post', {}, {
   timestamps: true // timestamps will now be true
 });
 ```

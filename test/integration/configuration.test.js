@@ -6,7 +6,12 @@ var chai = require('chai')
   , config = require(__dirname + '/../config/config')
   , Support = require(__dirname + '/support')
   , dialect = Support.getTestDialect()
-  , Sequelize = require(__dirname + '/../../index');
+  , Sequelize = Support.Sequelize
+  , sqlite3 = require('sqlite3')
+  , fs = require('fs')
+  , path = require('path');
+
+
 
 describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Connections problems should fail with a nice message', function() {
@@ -107,7 +112,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     });
   });
 
-  describe('Intantiation with arguments', function() {
+  describe('Instantiation with arguments', function() {
     it('should accept two parameters (database, username)', function() {
       var sequelize = new Sequelize('dbname', 'root');
       var config = sequelize.config;
@@ -142,6 +147,85 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
       expect(config.dialectOptions.supportBigNumbers).to.be.true;
       expect(config.dialectOptions.bigNumberStrings).to.be.true;
     });
+
+    if (dialect === 'sqlite') {
+      it('should respect READONLY / READWRITE connection modes', function() {
+        var p = path.join(__dirname, '../tmp', 'foo.sqlite');
+        var createTableFoo = 'CREATE TABLE foo (faz TEXT);';
+        var createTableBar = 'CREATE TABLE bar (baz TEXT);';
+
+        var testAccess = Sequelize.Promise.method(function() {
+          if (fs.access) {
+            return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
+          } else { // Node v0.10 and older don't have fs.access
+            return Sequelize.Promise.promisify(fs.open)(p, 'r+')
+            .then(function(fd) {
+              return Sequelize.Promise.promisify(fs.close)(fd);
+            });
+          }
+        });
+
+        return Sequelize.Promise.promisify(fs.unlink)(p)
+        .catch(function(err) {
+          expect(err.code).to.equal('ENOENT');
+        })
+        .then(function() {
+          var sequelizeReadOnly = new Sequelize('sqlite://foo', {
+            storage: p,
+            dialectOptions: {
+              mode: sqlite3.OPEN_READONLY
+            }
+          });
+          var sequelizeReadWrite = new Sequelize('sqlite://foo', {
+            storage: p,
+            dialectOptions: {
+              mode: sqlite3.OPEN_READWRITE
+            }
+          });
+
+          expect(sequelizeReadOnly.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
+          expect(sequelizeReadWrite.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
+
+          return Sequelize.Promise.join(
+            sequelizeReadOnly.query(createTableFoo)
+              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
+            sequelizeReadWrite.query(createTableFoo)
+              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file')
+          );
+        })
+        .then(function() {
+          // By default, sqlite creates a connection that's READWRITE | CREATE
+          var sequelize = new Sequelize('sqlite://foo', {
+            storage: p
+          });
+          return sequelize.query(createTableFoo);
+        })
+        .then(testAccess)
+        .then(function() {
+          var sequelizeReadOnly = new Sequelize('sqlite://foo', {
+            storage: p,
+            dialectOptions: {
+              mode: sqlite3.OPEN_READONLY
+            }
+          });
+          var sequelizeReadWrite = new Sequelize('sqlite://foo', {
+            storage: p,
+            dialectOptions: {
+              mode: sqlite3.OPEN_READWRITE
+            }
+          });
+
+          return Sequelize.Promise.join(
+            sequelizeReadOnly.query(createTableBar)
+              .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
+            sequelizeReadWrite.query(createTableBar)
+          );
+        })
+        .finally(function() {
+          return Sequelize.Promise.promisify(fs.unlink)(p);
+        });
+      });
+    }
   });
 
 });

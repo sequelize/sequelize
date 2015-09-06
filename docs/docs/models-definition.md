@@ -37,6 +37,12 @@ var Foo = sequelize.define('Foo', {
  someUnique: {type: Sequelize.STRING, unique: true},
  uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
  uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
+ 
+ // The unique property is simply a shorthand to create a unique index.
+ someUnique: {type: Sequelize.STRING, unique: true}
+ // It's exactly the same as creating the index in the model's options.
+ {someUnique: {type: Sequelize.STRING}},
+ {indexes: [{unique: true, fields: ['someUnique']}]}
 
  // Go on reading for further information about primary keys
  identifier: { type: Sequelize.STRING, primaryKey: true},
