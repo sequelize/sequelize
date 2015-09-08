@@ -520,25 +520,24 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       Player.hasOne(Shoe);
       Shoe.belongsTo(Player);
 
-      return Player.sync({force: true}).then(function() {
-        return Shoe.sync({force: true}).then(function() {
-          return Shoe.create({ brand: 'the brand' }).then(function(team) {
-            return Player.create({ name: 'the player' }).then(function(player) {
-              return player.setShoe(team).then(function() {
-                return Player.findOne({
-                  where: { id: player.id },
-                  include: [Shoe]
-                }).then(function(lePlayer) {
-                  expect(lePlayer.Shoe).not.to.be.null;
-                  return lePlayer.Shoe.destroy().then(function() {
-                    return lePlayer.reload().then(function(lePlayer) {
-                      expect(lePlayer.Shoe).to.be.null;
-                    });
-                  });
-                });
-              });
-            });
-          });
+      return this.sequelize.sync({force: true}).then(function() {
+        return Shoe.create({
+          brand: 'the brand',
+          Player: {
+            name: 'the player'
+          }
+        }, {include: [Player]});
+      }).then(function(shoe) {
+        return Player.findOne({
+          where: { id: shoe.Player.id },
+          include: [Shoe]
+        }).then(function(lePlayer) {
+          expect(lePlayer.Shoe).not.to.be.null;
+          return lePlayer.Shoe.destroy().return(lePlayer);
+        }).then(function(lePlayer) {
+          return lePlayer.reload();
+        }).then(function(lePlayer) {
+          expect(lePlayer.Shoe).to.be.null;
         });
       });
     });
@@ -550,95 +549,60 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       Team.hasMany(Player);
       Player.belongsTo(Team);
 
-      return Team.sync({force: true}).then(function() {
-        return Player.sync({force: true}).then(function() {
-          return Team.create({ name: 'the team' }).then(function(team) {
-            return Player.create({ name: 'the player1' }).then(function(player1) {
-              return Player.create({ name: 'the player2' }).then(function(player2) {
-                return team.setPlayers([player1, player2]).then(function() {
-                  return Team.findOne({
-                    where: { id: team.id },
-                    include: [Player]
-                  }).then(function(leTeam) {
-                    expect(leTeam.Players).not.to.be.empty;
-                    return player1.destroy().then(function() {
-                      return player2.destroy().then(function() {
-                        return leTeam.reload().then(function(leTeam) {
-                          expect(leTeam.Players).to.be.empty;
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
+      return this.sequelize.sync({force: true}).then(function() {
+        return Team.create({
+          name: 'the team',
+          Players: [{
+            name: 'the player1'
+          }, {
+            name: 'the player2'
+          }]
+        }, {include: [Player]});
+      }).then(function(team) {
+        return Team.findOne({
+          where: { id: team.id },
+          include: [Player]
+        }).then(function(leTeam) {
+          expect(leTeam.Players).not.to.be.empty;
+          return leTeam.Players[1].destroy().then(function() {
+            return leTeam.Players[0].destroy();
+          }).return(leTeam);
+        }).then(function(leTeam) {
+          return leTeam.reload();
+        }).then(function(leTeam) {
+          expect(leTeam.Players).to.be.empty;
         });
       });
     });
 
-    it('should update the associations after first element deleted, 1-N', function() {
+    it('should update the associations after one element deleted', function() {
       var Team = this.sequelize.define('Team', { name: DataTypes.STRING })
         , Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Team.hasMany(Player);
       Player.belongsTo(Team);
 
-      return Team.sync({force: true}).then(function() {
-        return Player.sync({force: true}).then(function() {
-          return Team.create({ name: 'the team' }).then(function(team) {
-            return Player.create({ name: 'the player1' }).then(function(player1) {
-              return Player.create({ name: 'the player2' }).then(function(player2) {
-                return team.setPlayers([player1, player2]).then(function() {
-                  return Team.findOne({
-                    where: { id: team.id },
-                    include: [Player]
-                  }).then(function(leTeam) {
-                    expect(leTeam.Players).to.have.length(2);
-                    return player2.destroy().then(function() {
-                      return leTeam.reload().then(function(leTeam) {
-                        expect(leTeam.Players).to.have.length(1);
-                        expect(leTeam.Players[0].name).to.equal('the player1');
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    });
 
-    it('should update the associations after not-first element deleted, 1-N', function() {
-      var Team = this.sequelize.define('Team', { name: DataTypes.STRING })
-        , Player = this.sequelize.define('Player', { name: DataTypes.STRING });
-
-      Team.hasMany(Player);
-      Player.belongsTo(Team);
-
-      return Team.sync({force: true}).then(function() {
-        return Player.sync({force: true}).then(function() {
-          return Team.create({ name: 'the team' }).then(function(team) {
-            return Player.create({ name: 'the player1' }).then(function(player1) {
-              return Player.create({ name: 'the player2' }).then(function(player2) {
-                return team.setPlayers([player1, player2]).then(function() {
-                  return Team.findOne({
-                    where: { id: team.id },
-                    include: [Player]
-                  }).then(function(leTeam) {
-                    expect(leTeam.Players).to.have.length(2);
-                    return player1.destroy().then(function() {
-                      return leTeam.reload().then(function(leTeam) {
-                        expect(leTeam.Players).to.have.length(1);
-                        expect(leTeam.Players[0].name).to.equal('the player2');
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
+      return this.sequelize.sync({force: true}).then(function() {
+        return Team.create({
+          name: 'the team',
+          Players: [{
+            name: 'the player1'
+          }, {
+            name: 'the player2'
+          }]
+        }, {include: [Player]});
+      }).then(function(team) {
+        return Team.findOne({
+          where: { id: team.id },
+          include: [Player]
+        }).then(function(leTeam) {
+          expect(leTeam.Players).to.have.length(2);
+          return leTeam.Players[0].destroy().return(leTeam);
+        }).then(function(leTeam) {
+          return leTeam.reload();
+        }).then(function(leTeam) {
+          expect(leTeam.Players).to.have.length(1);
         });
       });
     });
