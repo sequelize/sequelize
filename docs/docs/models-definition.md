@@ -173,7 +173,7 @@ Sequelize.Deferrable.NOT
 ```
 
 The last option is the default in PostgreSQL and won't allow you to dynamically change
-the rule in a transaction. See [the transaction section](docs/transactions/#options) for further information.
+the rule in a transaction. See [the transaction section](transactions/#options) for further information.
 
 ## Getters & setters
 
