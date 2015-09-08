@@ -1,3 +1,6 @@
+# Next
+- [FIXED] Reload doesn't synchronize a null include [#4353](https://github.com/sequelize/sequelize/issues/4353)
+
 # 3.7.0
 - [ADDED] Define field dependencies for VIRTUAL types that are automatically pulled into `attributes` [#4420](https://github.com/sequelize/sequelize/pull/4420)
 - [FIXED] Fall back to a default version when parsing the DB version fails [#4368](https://github.com/sequelize/sequelize/issues/4368)
