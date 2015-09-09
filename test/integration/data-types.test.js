@@ -34,12 +34,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         require('../../node_modules/pg/node_modules/pg-types/lib/textParsers').init(function (oid, converter) {
           types.setTypeParser(oid, 'text', converter);
         });
-
-        this.sequelize.connectionManager.refreshTypeParser(DataTypes.postgres); // Reload custom parsers for hstore and geometry
         break;
       default:
         this.sequelize.connectionManager.$clearTypeParser();
     }
+
+    this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
   });
 
   it('allows me to return values from a custom parse function', function () {

@@ -18,9 +18,9 @@ var chai = require('chai')
 
 
 var qq = function(str) {
-  if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+  if (dialect === 'postgres' || dialect === 'mssql') {
     return '"' + str + '"';
-  } else if (Support.dialectIsMySQL()) {
+  } else if (Support.dialectIsMySQL() || dialect === 'sqlite') {
     return '`' + str + '`';
   } else {
     return str;
