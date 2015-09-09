@@ -1,4 +1,20 @@
 # Next
+- [ADDED] beforeRestore/afterRestore hooks [#4371](https://github.com/sequelize/sequelize/issues/4371)
+- [INTERNALS] `options` has been renamed to `$options` in instance.js [#4429](https://github.com/sequelize/sequelize/pull/4429)
+- [FIXED] Reload doesn't synchronize a null include [#4353](https://github.com/sequelize/sequelize/issues/4353)
+
+# 3.8.0
+- [ADDED] `version` on `Sequelize` returning the current npm/package.json version [#4459](https://github.com/sequelize/sequelize/pull/4459)
+
+# 3.7.0
+- [ADDED] Define field dependencies for VIRTUAL types that are automatically pulled into `attributes` [#4420](https://github.com/sequelize/sequelize/pull/4420)
+- [FIXED] Fall back to a default version when parsing the DB version fails [#4368](https://github.com/sequelize/sequelize/issues/4368)
+- [FIXED] Fix a bug where passing null as the second parameter to `sequelize.where` would fail [#4334](https://github.com/sequelize/sequelize/issues/4334)
+- [FIXED] An error is thrown if a column called `id` is added, but not marked as primary key, and no other pk is present. [#4139](https://github.com/sequelize/sequelize/issues/4139)
+- [FIXED] Cast to boolean when querying JSON [#4257](https://github.com/sequelize/sequelize/issues/4257)
+
+# 3.6.0
+- [ADDED] Model.findCreateFind: A more performant findOrCreate that will not work under a transaction (atleast not in postgres)
 - [FIXED] Show indexes query on Postgres fails to return functional indexes [#3911](https://github.com/sequelize/sequelize/issues/3911)
 - [FIXED] Custom field names in json queries
 - [FIXED] JSON cast key using the equality operator. [#3824](https://github.com/sequelize/sequelize/issues/3824)

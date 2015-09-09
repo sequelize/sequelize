@@ -647,6 +647,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         testsql('data', {
+          nested: {
+            attribute: true
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::boolean = true"
+        });
+
+        testsql('data', {
           $contains: {
             company: 'Magnafone'
           }
@@ -680,6 +692,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "WHERE [name] = LOWER('DERP')"
         });
       });
+    });
+  });
+
+  suite('getWhereConditions', function () {
+    var testsql = function (value, expectation) {
+      var User = current.define('user', {});
+
+      test(util.inspect(value, {depth: 10}), function () {
+        return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
+      });
+    };
+
+    testsql(current.where(current.fn('lower', current.col('name')), null), {
+      default: "lower([name]) IS NULL"
     });
   });
 });

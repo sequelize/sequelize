@@ -45,6 +45,8 @@ Post.update({
 ### Operators
 
 ```js
+$and: {a: 5}           // AND (a = 5)
+$or: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
 $gt: 6,                // id > 6
 $gte: 6,               // id >= 6
 $lt: 10,               // id < 10
