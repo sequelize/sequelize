@@ -7,7 +7,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/../../support')
   , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , sequelize = require(__dirname + '/../../../../lib/sequelize');
+  , sequelize = require(__dirname + '/../../../../lib/sequelize')
+  , semver = require('semver');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] DAO', function() {
@@ -390,14 +391,23 @@ if (dialect.match(/^postgres/)) {
           return User.sync({
             logging: function (sql) {
               if (sql.indexOf('neutral') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'")).to.not.be.equal(-1);
+                var cmd = semver.gte(this.sequelize.options.databaseVersion, '9.3.0')
+                            ? "ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE IF NOT EXISTS 'neutral' BEFORE 'happy'"
+                            : "ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'"
+                expect(sql.indexOf(cmd)).to.not.be.equal(-1);
                 count++;
               }
               else if (sql.indexOf('ecstatic') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'")).to.not.be.equal(-1);
+                var cmd = semver.gte(this.sequelize.options.databaseVersion, '9.3.0')
+                            ? "ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE IF NOT EXISTS 'ecstatic' BEFORE 'meh'"
+                            : "ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'"
+                expect(sql.indexOf(cmd)).to.not.be.equal(-1);
                 count++;
               }
               else if (sql.indexOf('joyful') > -1) {
+                var cmd = semver.gte(this.sequelize.options.databaseVersion, '9.3.0')
+                            ? "ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE IF NOT EXISTS 'joyful' AFTER 'meh'"
+                            : "ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'"
                 expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'")).to.not.be.equal(-1);
                 count++;
               }
