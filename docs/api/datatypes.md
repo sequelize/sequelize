@@ -1,7 +1,7 @@
 <a name="datatypes"></a>
 # Class DataTypes
 [View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/data-types.js#L39)
-A convenience class holding commonly used data types. The datatypes are used when definining a new model using `Sequelize.define`, like this:
+A convenience class holding commonly used data types. The datatypes are used when defining a new model using `Sequelize.define`, like this:
 ```js
 sequelize.define('model', {
   column: DataTypes.INTEGER
