@@ -1215,4 +1215,55 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
   });
+
+  describe('paranoid deletedAt non-null default value', function() {
+    it('should use defaultValue of deletedAt in paranoid clause and restore', function() {
+      var epochObj = new Date(0)
+        , epoch = Number(epochObj);
+      var User = this.sequelize.define('user', {
+        username: DataTypes.STRING,
+        deletedAt: {
+          type: DataTypes.DATE,
+          defaultValue: epochObj
+        }
+      }, {
+        paranoid: true,
+      });
+
+      return this.sequelize.sync({force: true}).bind(this).then(function () {
+        return User.create({username: 'user1'}).then(function(user) {
+          expect(Number(user.deletedAt)).to.equal(epoch);
+          return User.findOne({
+            where: {
+              username: 'user1'
+            }
+          }).then(function (user) {
+            expect(user).to.exist;
+            expect(Number(user.deletedAt)).to.equal(epoch);
+            return user.destroy();
+          }).then(function(destroyedUser) {
+            expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
+            return destroyedUser.restore();
+          }).then(function(restoredUser) {
+            expect(Number(restoredUser.deletedAt)).to.equal(epoch);
+            return User.destroy({where: {
+              username: 'user1'
+            }});
+          }).then(function() {
+            return User.count();
+          }).then(function(count) {
+            expect(count).to.equal(0);
+            return User.restore();
+          }).then(function() {
+            return User.findAll();
+          }).then(function(nonDeletedUsers) {
+            expect(nonDeletedUsers.length).to.equal(1);
+            nonDeletedUsers.forEach(function(u) {
+              expect(Number(u.deletedAt)).to.equal(epoch);
+            });
+          });
+        });
+      });
+    });
+  });
 });
