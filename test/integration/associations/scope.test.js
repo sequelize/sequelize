@@ -8,7 +8,7 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise;
 
-describe.only(Support.getTestDialectTeaser('associations'), function() {
+describe(Support.getTestDialectTeaser('associations'), function() {
   describe('scope', function() {
     beforeEach(function() {
       this.Post = this.sequelize.define('post');
