@@ -11,7 +11,7 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('associations'), function() {
   describe('scope', function() {
     beforeEach(function() {
-      this.Post = this.sequelize.define('post');
+      this.Post = this.sequelize.define('post', {});
       this.Image = this.sequelize.define('image', {});
       this.Question = this.sequelize.define('question', {});
       this.Comment = this.sequelize.define('comment', {
