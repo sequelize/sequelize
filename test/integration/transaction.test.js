@@ -134,6 +134,42 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     ).to.eventually.be.rejected;
   });
 
+  it('does not allow commits after commit', function () {
+    var self = this;
+    return expect(self.sequelize.transaction().then(function (t) {
+      return t.commit().then(function () {
+        return t.commit();
+      });
+    })).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: commit');
+  });
+
+  it('does not allow commits after rollback', function () {
+    var self = this;
+    return expect(self.sequelize.transaction().then(function (t) {
+      return t.rollback().then(function () {
+        return t.commit();
+      });
+    })).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: rollback');
+  });
+
+  it('does not allow rollbacks after commit', function () {
+    var self = this;
+    return expect(self.sequelize.transaction().then(function (t) {
+      return t.commit().then(function () {
+        return t.rollback();
+      });
+    })).to.be.rejectedWith('Error: Transaction cannot be rolled back because it has been finished with state: commit');
+  });
+
+  it('does not allow rollbacks after rollback', function () {
+    var self = this;
+    return expect(self.sequelize.transaction().then(function (t) {
+      return t.rollback().then(function () {
+        return t.rollback();
+      });
+    })).to.be.rejectedWith('Error: Transaction cannot be rolled back because it has been finished with state: rollback');
+  });
+
   if (dialect === 'sqlite'){
     it('provides persistent transactions', function () {
       var sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'})
