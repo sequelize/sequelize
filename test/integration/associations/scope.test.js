@@ -26,6 +26,9 @@ describe(Support.getTestDialectTeaser('associations'), function() {
         }
       });
 
+      this.Post.addScope('withComments', {
+        include: [this.Comment]
+      });
       this.Post.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         scope: {
@@ -139,6 +142,31 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           expect(image.comments[0].get('title')).to.equal('I am a image comment');
           expect(question.comments.length).to.equal(1);
           expect(question.comments[0].get('title')).to.equal('I am a question comment');
+        });
+      });
+      it('should make the same query if called multiple time (#4470)', function () {
+        var self = this;
+        var logs = [];
+        var logging = function (log) {
+          logs.push(log);
+        };
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return self.Post.create();
+        }).then(function (post) {
+          return post.createComment({
+            title: 'I am a post comment'
+          });
+        }).then(function() {
+          return self.Post.scope('withComments').findAll({
+            logging: logging
+          });
+        }).then(function () {
+          return self.Post.scope('withComments').findAll({
+            logging: logging
+          });
+        }).then(function () {
+          expect(logs[0]).to.equal(logs[1]);
         });
       });
     });
