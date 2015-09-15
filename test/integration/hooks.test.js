@@ -2133,4 +2133,156 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
   });
+
+  describe('Model#sync', function() {
+    describe('on success', function() {
+      it('should run hooks', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(beforeHook);
+        this.User.afterSync(afterHook);
+
+        return this.User.sync().then(function() {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+
+      it('should not run hooks when "hooks = false" option passed', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(beforeHook);
+        this.User.afterSync(afterHook);
+
+        return this.User.sync({ hooks: false }).then(function() {
+          expect(beforeHook).to.not.have.been.called;
+          expect(afterHook).to.not.have.been.called;
+        });
+      });
+
+    });
+
+    describe('on error', function() {
+      it('should return an error from before', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(function(options) {
+          beforeHook();
+          throw new Error('Whoops!');
+        });
+        this.User.afterSync(afterHook);
+
+        return expect(this.User.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).not.to.have.been.called;
+        });
+      });
+
+      it('should return an error from after', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(beforeHook);
+        this.User.afterSync(function(options) {
+          afterHook();
+          throw new Error('Whoops!');
+        });
+
+        return expect(this.User.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+    });
+  });
+
+  describe('sequelize#sync', function() {
+    describe('on success', function() {
+      it('should run hooks', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy()
+          , modelBeforeHook = sinon.spy()
+          , modelAfterHook = sinon.spy();
+
+        this.sequelize.beforeBulkSync(beforeHook);
+        this.User.beforeSync(modelBeforeHook);
+        this.User.afterSync(modelAfterHook);
+        this.sequelize.afterBulkSync(afterHook);
+
+        return this.sequelize.sync().then(function() {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(modelBeforeHook).to.have.been.calledOnce;
+          expect(modelAfterHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+
+      it('should not run hooks if "hooks = false" option passed', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy()
+          , modelBeforeHook = sinon.spy()
+          , modelAfterHook = sinon.spy();
+
+        this.sequelize.beforeBulkSync(beforeHook);
+        this.User.beforeSync(modelBeforeHook);
+        this.User.afterSync(modelAfterHook);
+        this.sequelize.afterBulkSync(afterHook);
+
+        return this.sequelize.sync({ hooks: false }).then(function() {
+          expect(beforeHook).to.not.have.been.called;
+          expect(modelBeforeHook).to.not.have.been.called;
+          expect(modelAfterHook).to.not.have.been.called;
+          expect(afterHook).to.not.have.been.called;
+        });
+      });
+
+      afterEach(function() {
+        this.sequelize.options.hooks = {};
+      });
+
+    });
+
+    describe('on error', function() {
+
+      it('should return an error from before', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+        this.sequelize.beforeBulkSync(function(options) {
+          beforeHook();
+          throw new Error('Whoops!');
+        });
+        this.sequelize.afterBulkSync(afterHook);
+
+        return expect(this.sequelize.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).not.to.have.been.called;
+        });
+      });
+
+      it('should return an error from after', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.sequelize.beforeBulkSync(beforeHook);
+        this.sequelize.afterBulkSync(function(options) {
+          afterHook();
+          throw new Error('Whoops!');
+        });
+
+        return expect(this.sequelize.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+
+      afterEach(function() {
+        this.sequelize.options.hooks = {};
+      });
+
+    });
+  });
+
 });
