@@ -19,7 +19,7 @@ Built instances will automatically get default values when they were defined&col
 
 ```js
 // first define the model
-var Task = sequelize.define('Project', {
+var Task = sequelize.define('Task', {
   title: Sequelize.STRING,
   rating: { type: Sequelize.STRING, defaultValue: 3 }
 })
