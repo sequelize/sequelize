@@ -61,6 +61,44 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
+      it('should run a belongsToMany association in a separate query', function () {
+        var User = this.sequelize.define('User', {})
+          , Group = this.sequelize.define('Group', {})
+          , sqlSpy = sinon.spy();
+
+        User.Groups = User.belongsToMany(Group, {as: 'groups', through: 'UserGroup'});
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return Promise.join(
+            User.bulkCreate([1, 2].map(function(id) {
+              return {id: id};
+            })),
+            Group.bulkCreate([1, 2].map(function(id) {
+              return {id: id};
+            }))
+          ).then(_.spread(function (users, groups) {
+            return Promise.join(
+              users[0].addGroup(groups[0]),
+              users[1].addGroups(groups)
+            );
+          })).then(function () {
+            return User.findAll({
+              include: [
+                {association: User.Groups, separate: true}
+              ],
+              logging: sqlSpy
+            });
+          }).then(function (users) {
+            expect(users[0].groups).to.be.ok;
+            expect(users[0].groups.length).to.equal(1);
+            expect(users[1].groups).to.be.ok;
+            expect(users[1].groups.length).to.equal(2);
+            expect(users[1].groups).to.include(users[0].groups[0]);
+            expect(sqlSpy).to.have.been.calledThrice;
+          });
+        });
+      });
+
       it('should work even if the id was not included', function () {
         var User = this.sequelize.define('User', {
             name: DataTypes.STRING
