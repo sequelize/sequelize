@@ -178,7 +178,7 @@ var num  = 1
 #### 6.3. Semicolons ####
 Yes
 
-# Publishing to NPM
+# Publishing a release
 
 1. Ensure that latest build on master is green
 2. Ensure your local code is up to date (`git pull origin master`)
