@@ -177,3 +177,13 @@ var num  = 1
 
 #### 6.3. Semicolons ####
 Yes
+
+# Publishing a release
+
+1. Ensure that latest build on master is green
+2. Ensure your local code is up to date (`git pull origin master`)
+3. `npm version patch|minor|major` (see SemVer)
+4. Update changelog to match version number, commit changelog
+5. `git push --tags origin master`
+6. `npm publish .`
+7. Copy changelog for version to release notes for version on github 

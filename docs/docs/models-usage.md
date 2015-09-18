@@ -1,6 +1,8 @@
 ## Data retrieval / Finders
 
-Finder methods are designed to get data from the database&period; The returned data isn't just a plain object&comma; but instances of one of the defined classes&period; Check the next major chapter about instances for further information&period; But as those things are instances&comma; you can e&period;g&period; use the just describe expanded instance methods&period; So&comma; here is what you can do&colon;
+Finder methods are intended to query data from the database&period; They do *not* return plain objects but instead return model instances&period; Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](http://docs.sequelizejs.com/en/latest/docs/instances/)&period;
+
+In this document we'll explore what finder methods can do&colon;
 
 ### find - Search for one specific element in the database
 ```js

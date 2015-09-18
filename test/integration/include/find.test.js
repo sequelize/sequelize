@@ -97,6 +97,43 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should include a model with a where clause when the PK field name and attribute name are different', function() {
+      var User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          field: 'main_id',
+          primaryKey: true
+        }
+      })
+        , Task = this.sequelize.define('Task', {
+          searchString: { type: DataTypes.STRING }
+        });
+
+      User.hasMany(Task, {foreignKey: 'userId'});
+      Task.belongsTo(User, {foreignKey: 'userId'});
+
+      return this.sequelize.sync({
+        force: true
+      }).then(function() {
+        return User.create();
+      }).then(function(user) {
+        return Task.bulkCreate([
+          {userId: user.get('id'), searchString: 'one'},
+          {userId: user.get('id'), searchString: 'two'},
+        ]);
+      }).then(function() {
+        return User.find({
+          include: [
+            {model: Task, where: {searchString: 'one'} }
+          ]
+        });
+      }).then(function(user) {
+        expect(user).to.be.ok;
+        expect(user.Tasks.length).to.equal(1);
+      });
+    });
+
     it('should still pull the main record when an included model is not required and has where restrictions without matches', function() {
       var A = this.sequelize.define('a', {
           name: DataTypes.STRING(40)

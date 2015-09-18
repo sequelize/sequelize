@@ -225,11 +225,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING
+        username: DataTypes.STRING,
+        emailAddress: {
+          type: DataTypes.STRING,
+          field: 'email_address'
+        }
       });
 
-      this.insertQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, ' + qq('createdAt') + ', ' +
-        qq('updatedAt') + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')";
+      this.insertQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, email_address, ' +
+        qq('createdAt') + ', ' + qq('updatedAt') +
+        ") VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')";
 
       return this.User.sync({ force: true });
     });
@@ -311,6 +316,29 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         });
       }).then(function(users) {
         expect(users[0].Model).to.equal(this.User);
+      });
+    });
+
+    it('maps the field names to attributes based on the passed model', function() {
+      return this.sequelize.query(this.insertQuery).bind(this).then(function() {
+        return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', {
+          model: this.User,
+          mapToModel: true
+        });
+      }).then(function(users) {
+        expect(users[0].emailAddress).to.be.equal('john@gmail.com');
+      });
+    });
+
+    it('arbitrarily map the field names', function() {
+      return this.sequelize.query(this.insertQuery).bind(this).then(function() {
+        return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', {
+          type: 'SELECT',
+          fieldMap: {username: 'userName', email_address: 'email'}
+        });
+      }).then(function(users) {
+        expect(users[0].userName).to.be.equal('john');
+        expect(users[0].email).to.be.equal('john@gmail.com');
       });
     });
 

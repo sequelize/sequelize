@@ -1,6 +1,11 @@
 # Next
-- [ADDED] beforeRestore/afterRestore hooks [#4371](https://github.com/sequelize/sequelize/issues/4371)
 - [ADDED] beforeSync/afterSync/beforeBulkSync/afterBulksync hooks [#4479](https://github.com/sequelize/sequelize/issues/4479)
+- [FIXED] Calling set with dot.separated key on a JSON/JSONB attribute will not flag the entire object as changed [#4379](https://github.com/sequelize/sequelize/pull/4379)
+
+# 3.9.0
+- [ADDED] beforeRestore/afterRestore hooks [#4371](https://github.com/sequelize/sequelize/issues/4371)
+- [ADDED] Map raw fields back to attributes names when using `mapToModel` or `returning` [#3995](https://github.com/sequelize/sequelize/pull/3995)
+- [ADDED] `skip` now supports filtering out modewl validators [#4528](https://github.com/sequelize/sequelize/pull/4528)
 - [INTERNALS] `options` has been renamed to `$options` in instance.js [#4429](https://github.com/sequelize/sequelize/pull/4429)
 - [FIXED] Reload doesn't synchronize a null include [#4353](https://github.com/sequelize/sequelize/issues/4353)
 - [FIXED] commit/rollback multiple times on same transaction [#4491](https://github.com/sequelize/sequelize/issues/4491)
