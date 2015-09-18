@@ -14,6 +14,10 @@ module.exports = function(Sequelize) {
   shimAll(Sequelize.Model.prototype);
   shimAll(Sequelize.Instance.prototype);
   shimAll(QueryInterface.prototype);
+  shimAll(Sequelize.Association.prototype);
+  _.forIn(Sequelize.Association, function(Association) {
+    shimAll(Association.prototype);
+  });
 
   // Shim Model.prototype to then shim getter/setter methods
   ['hasOne', 'belongsTo', 'hasMany', 'belongsToMany'].forEach(function(type) {
