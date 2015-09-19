@@ -1450,6 +1450,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should set isNewRecord = false', function() {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
+                  { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+
+      return this.User.bulkCreate(data).then(function() {
+        return self.User.findAll({order: 'id'}).then(function(users) {
+          expect(users.length).to.equal(2);
+          users.forEach(function (user) {
+            expect(user.isNewRecord).to.equal(false);
+          });
+        });
+      });
+    });
+
     it('saves data with single quote', function() {
       var self = this
         , quote = "Single'Quote"
