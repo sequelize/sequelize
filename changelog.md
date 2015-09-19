@@ -1,5 +1,6 @@
 # Next
 - [ADDED] beforeRestore/afterRestore hooks [#4371](https://github.com/sequelize/sequelize/issues/4371)
+- [ADDED] beforeSync/afterSync/beforeBulkSync/afterBulksync hooks [#4479](https://github.com/sequelize/sequelize/issues/4479)
 - [INTERNALS] `options` has been renamed to `$options` in instance.js [#4429](https://github.com/sequelize/sequelize/pull/4429)
 - [FIXED] Reload doesn't synchronize a null include [#4353](https://github.com/sequelize/sequelize/issues/4353)
 - [FIXED] commit/rollback multiple times on same transaction [#4491](https://github.com/sequelize/sequelize/issues/4491)
