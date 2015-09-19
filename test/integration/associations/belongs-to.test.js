@@ -463,6 +463,25 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
     });
 
+    it('sets to NO ACTION if allowNull: false', function() {
+      var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+        , User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+      Task.belongsTo(User, { foreignKey: { allowNull: false }}); // defaults to NO ACTION
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'foo' }).then(function(user) {
+          return Task.create({ title: 'task', UserId: user.id }).then(function(task) {
+            return expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(function () {
+              return Task.findAll().then(function(tasks) {
+                expect(tasks).to.have.length(1);
+              });
+            });
+          });
+        });
+      });
+    });
+
     it('should be possible to disable them', function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING });
