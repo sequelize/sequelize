@@ -1,6 +1,7 @@
 # Next
 - [FIXED] Calling set with dot.separated key on a JSON/JSONB attribute will not flag the entire object as changed [#4379](https://github.com/sequelize/sequelize/pull/4379)
 - [ADDED] Expose Association constructor as `Sequelize.Association`
+- [FIXED] Tests shim all methods to test for correct passing of `options.logging`
 
 # 3.9.0
 - [ADDED] beforeRestore/afterRestore hooks [#4371](https://github.com/sequelize/sequelize/issues/4371)
