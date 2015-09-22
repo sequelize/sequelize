@@ -29,7 +29,7 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   afterUpdate(instance, options, fn)
 (6)
   afterBulkCreate(instances, options, fn)
-  afterBulkDestory(instances, options, fn)
+  afterBulkDestroy(instances, options, fn)
   afterBulkUpdate(instances, options, fn)
 ```
 
