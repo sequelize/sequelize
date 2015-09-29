@@ -3,6 +3,7 @@ language: node_js
 node_js:
   - "0.10"
   - "0.12"
+  - "4.0"
   - "iojs-v1"
   - "iojs-v2"
 
@@ -34,7 +35,6 @@ script:
 branches:
   only:
     - master
-    - 1.7.0
 
 matrix:
   fast_finish: true
