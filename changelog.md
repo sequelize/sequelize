@@ -1,3 +1,12 @@
+# 3.xx.x
+- [INTERNALS] Updated dependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
+    + bluebird@2.10.1
+    + dottie@1.0.0
+    + wellknown@0.4.0
+- [INTERNALS] Updated devDependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
+    + mysql@2.9.0
+    - coffee-script
+
 # 3.10.0
 - [ADDED] support `search_path` for postgres with lots of schemas [#4534](https://github.com/sequelize/sequelize/pull/4534)
 - [ADDED] Expose Association constructor as `Sequelize.Association`
