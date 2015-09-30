@@ -1,6 +1,6 @@
 <a name="associations"></a>
 # Mixin Associations
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/mixin.js#L88)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L88)
 Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions on a model (the source), and providing another model as the first argument to the function (the target).
 
 * hasOne - adds a foreign key to target
@@ -80,7 +80,7 @@ Note how we also specified `constraints: false` for profile picture. This is bec
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/mixin.js#L130)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L130)
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
@@ -95,7 +95,7 @@ Example: `User.hasOne(Profile)`. This will add userId to the profile table.
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
 | [options.as] | string | The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the singularized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the target table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
-| [options.onDelete='SET&nbsp;NULL'] | string |  |
+| [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | SET NULL if foreignKey allows nulls, CASCADE if otherwise |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
 
@@ -104,7 +104,7 @@ Example: `User.hasOne(Profile)`. This will add userId to the profile table.
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/mixin.js#L148)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L148)
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
@@ -120,7 +120,7 @@ Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
 | [options.as] | string | The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting assocated models. Defaults to the singularized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the source table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of target + primary key of target |
 | [options.targetKey] | string | The name of the field to use as the key for the association in the target table. Defaults to the primary key of the target table |
-| [options.onDelete='SET&nbsp;NULL'] | string |  |
+| [options.onDelete='SET&nbsp;NULL &#124; NO&nbsp;ACTION'] | string | SET NULL if foreignKey allows nulls, NO ACTION if otherwise |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
 
@@ -129,7 +129,7 @@ Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/mixin.js#L208)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L204)
 Create an association that is either 1:m or n:m.
 
 ```js
@@ -181,14 +181,10 @@ user.getProjects().then(function (projects) {
 | target | Model |  |
 | [options] | object |  |
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
-| [options.through] | Model &#124; string &#124; object | The name of the table that is used to join source and target in n:m associations. Can also be a sequelize model if you want to define the junction table yourself and add extra attributes to it. |
-| [options.through.model] | Model | The model used to join both sides of the N:M association. |
-| [options.through.scope] | object | A key/value set that will be used for association create and find defaults on the through model. (Remember to add the attributes to the through model) |
-| [options.through.unique=true] | boolean | If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes) |
 | [options.as] | string &#124; object | The alias of this model. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the pluralized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the target table / join table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
-| [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
+| [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | SET NULL if foreignKey allows nulls, CASCADE if otherwise |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
 
@@ -197,7 +193,7 @@ user.getProjects().then(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/mixin.js#L287)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L283)
 Create an N:M association with a join table
 
 ```js
@@ -252,6 +248,7 @@ user.getProjects().then(function (projects) {
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the join table (representing the source model) or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
 | [options.otherKey] | string &#124; object | The name of the foreign key in the join table (representing the target model) or an object representing the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of target |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
+| [options.timestamps=sequelize.options.timestamps] | boolean | Should the join model have timestamps |
 | [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |

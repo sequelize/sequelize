@@ -1,6 +1,6 @@
 <a name="hasone"></a>
 # Mixin HasOne
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/has-one.js#L16)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/has-one.js#L16)
 One-to-one association
 
 In the API reference below, replace `Assocation(s)` with the actual name of your association, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
@@ -10,7 +10,7 @@ In the API reference below, replace `Assocation(s)` with the actual name of your
 
 <a name="getassociation"></a>
 ## `getAssociation([options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/has-one.js#L79)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/has-one.js#L75)
 Get the associated instance
 
 
@@ -26,7 +26,7 @@ Get the associated instance
 
 <a name="setassociation"></a>
 ## `setAssociation([newAssociations], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/has-one.js#L88)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/has-one.js#L84)
 Set the associated model
 
 
@@ -42,7 +42,7 @@ Set the associated model
 
 <a name="createassociation"></a>
 ## `createAssociation([values], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/associations/has-one.js#L97)
+[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/has-one.js#L93)
 Create a new instance of the associated model and associate it with this.
 
 
