@@ -186,10 +186,10 @@ something.findOne({
 
     // Will order by  otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
-
-    // Both the following statements will be treated literally so should be treated with care
-    'name',
-    'username DESC'
   ]
+  // All the following statements will be treated literally so should be treated with care
+  order: 'convert(user_name using gbk)'
+  order: 'username DESC'
+  order: sequelize.literal('convert(user_name using gbk)')
 })
 ```
