@@ -1,4 +1,4 @@
-# Next
+# 3.10.0
 - [ADDED] support `search_path` for postgres with lots of schemas [#4534](https://github.com/sequelize/sequelize/pull/4534)
 - [ADDED] Expose Association constructor as `Sequelize.Association`
 - [ADDED] beforeSync/afterSync/beforeBulkSync/afterBulksync hooks [#4479](https://github.com/sequelize/sequelize/issues/4479)
