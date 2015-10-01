@@ -8,6 +8,7 @@
     - coffee-script
 - [FIXED] Add limit to `findOne` when using queries like `{ id: { $gt ...` [#4416](https://github.com/sequelize/sequelize/issues/4416)
 - [FIXED] Include all with scopes [#4584](https://github.com/sequelize/sequelize/issues/4584)
+- [INTERNALS] Corrected spelling seperate -> separate
 
 # 3.10.0
 - [ADDED] support `search_path` for postgres with lots of schemas [#4534](https://github.com/sequelize/sequelize/pull/4534)
@@ -62,7 +63,7 @@
     + mysql@2.8.0
 
 # 3.5.1
-- [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
+- [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeparate.
 
 # 3.5.0
 - [ADDED] `include.separate` with `include.limit` support for HasMany associations.
