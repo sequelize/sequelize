@@ -181,8 +181,8 @@ Project.findAll({
       $notIn: [1, 2],        // NOT IN [1, 2]
       $like: '%hat',         // LIKE '%hat'
       $notLike: '%hat'       // NOT LIKE '%hat'
-      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
-      $notILike: '%hat'      // NOT ILIKE '%hat'
+      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)  (PG only)
+      $notILike: '%hat'      // NOT ILIKE '%hat'  (PG only)
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
