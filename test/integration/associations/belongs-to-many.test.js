@@ -206,7 +206,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return self.sequelize.dropAllSchemas().then(function() {
         return self.sequelize.createSchema('acme');
       }).then(function() {
-        return self.sequelize.sync({force: true});
+        return Promise.all([
+          AcmeUser.sync({force: true}),
+          AcmeProject.sync({force: true})
+        ]);
+      }).then(function() {
+        return AcmeProjectUsers.sync({force: true});
       }).bind({}).then(function() {
         return AcmeUser.create();
       }).then(function(u) {

@@ -110,7 +110,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       return self.sequelize.dropAllSchemas().then(function() {
         return self.sequelize.createSchema('archive');
       }).then(function() {
-        return self.sequelize.sync({force: true });
+        return User.sync({force: true });
+      }).then(function() {
+        return Task.sync({force: true });
       }).then(function() {
         return Promise.all([
           User.create({ username: 'foo', gender: 'male' }),
