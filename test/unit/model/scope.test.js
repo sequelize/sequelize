@@ -315,5 +315,48 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
       expect(options.include[1]).to.deep.equal({ model: Project, where: { something: false }});
     });
+
+    describe('include all', function () {
+      it('scope with all', function () {
+        var scope = {
+          include: [
+            { all: true }
+          ]
+        };
+
+        var options = {
+          include: [
+            { model: User, where: { something: true }}
+          ]
+        };
+
+        current.Model.$injectScope(scope, options);
+
+        expect(options.include).to.have.length(2);
+        expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
+        expect(options.include[1]).to.deep.equal({ all: true });
+      });
+
+
+      it('options with all', function () {
+        var scope = {
+          include: [
+            { model: User, where: { something: true }}
+          ]
+        };
+
+        var options = {
+          include: [
+            { all: true }
+          ]
+        };
+
+        current.Model.$injectScope(scope, options);
+
+        expect(options.include).to.have.length(2);
+        expect(options.include[0]).to.deep.equal({ all: true });
+        expect(options.include[1]).to.deep.equal({ model: User, where: { something: true }});
+      });
+    });
   });
 });

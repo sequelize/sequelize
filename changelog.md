@@ -7,6 +7,7 @@
     + mysql@2.9.0
     - coffee-script
 - [FIXED] Add limit to `findOne` when using queries like `{ id: { $gt ...` [#4416](https://github.com/sequelize/sequelize/issues/4416)
+- [FIXED] Include all with scopes [#4584](https://github.com/sequelize/sequelize/issues/4584)
 
 # 3.10.0
 - [ADDED] support `search_path` for postgres with lots of schemas [#4534](https://github.com/sequelize/sequelize/pull/4534)
