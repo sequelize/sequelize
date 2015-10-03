@@ -1,6 +1,5 @@
 # Next
-- [FIXED] Partial rollback of datatype validations by hiding it behind the `validation` flag.
-
+- [FIXED] Partial rollback of datatype validations by hiding it behind the `typeValidation` flag.
 
 # 3.11.0
 - [INTERNALS] Updated dependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)

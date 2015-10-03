@@ -270,7 +270,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
   describe('datatype validations', function () {
     current = Support.createSequelizeInstance({
-      validation: true
+      typeValidation: true
     });
 
     var User = current.define('user', {
@@ -305,6 +305,26 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           return expect(User.create({
             number: '12.6'
           })).not.to.be.rejected;
+        });
+
+        it('should allow decimal big numbers as a string', function () {
+          return expect(User.create({
+            number: '2321312301230128391820831289123012'
+          })).not.to.be.rejected;
+        });
+
+        it('should allow decimal as scientific notation', function () {
+          return Promise.join(
+            expect(User.create({
+              number: '2321312301230128391820e219'
+            })).not.to.be.rejected,
+            expect(User.create({
+              number: '2321312301230128391820e+219'
+            })).not.to.be.rejected,
+            expect(User.create({
+              number: '2321312301230128391820f219'
+            })).to.be.rejected
+          );
         });
 
         it('should allow string as a number', function () {
