@@ -109,10 +109,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }
 
       it('does not modify the passed arguments', function() {
+        var options;
         if (dialect.name === 'oracle') {
-          var options = { where: ['"specialkey" = ?', 'awesome']};
+          options = { where: ['"specialkey" = ?', 'awesome']};
         } else {
-          var options = { where: ['specialkey = ?', 'awesome']};
+          options = { where: ['specialkey = ?', 'awesome']};
         }
 
         return this.UserPrimary.findOne(options).then(function() {

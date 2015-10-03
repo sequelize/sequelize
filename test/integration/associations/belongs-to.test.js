@@ -8,8 +8,7 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
-  , current = Support.sequelize
-  , dialect = Support.getTestDialect();
+  , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('BelongsTo'), function() {
   describe('Model.associations', function() {
