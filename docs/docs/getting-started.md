@@ -81,3 +81,25 @@ var Post = sequelize.define('post', {}, {
   timestamps: true // timestamps will now be true
 });
 ```
+
+## Promises
+Sequelize uses promises to control async control-flow. If you are unfamilar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them)
+
+Basically a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
+
+```js
+// DON'T DO THIS
+user = User.findAll()
+
+console.log(user.name);
+```
+
+_will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
+
+```js
+User.findAll().then(function (user) {
+    console.log(user.name);
+});
+```
+
+Once you've got the hang of what promises are and how they work, use the [bluebird API reference](https://github.com/petkaantonov/bluebird/blob/master/API.md) as your go to tool. In particular, you'll probably be using [`.all`](https://github.com/petkaantonov/bluebird/blob/master/API.md#all---promise) a lot.  
