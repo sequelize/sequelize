@@ -66,6 +66,75 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         // Calling validate again shouldn't add the pk again
         expect(options.include[0].attributes).to.deep.equal([['field_id', 'id'], 'name']);
       });
+
+      describe('include / exclude', function () {
+        it('allows me to include additional attributes', function () {
+          var options = Sequelize.Model.$validateIncludedElements({
+            model: this.User,
+            include: [
+              {
+                model: this.Company,
+                attributes: {
+                  include: ['foobar']
+                }
+              }
+            ]
+          });
+
+          expect(options.include[0].attributes).to.deep.equal([
+            ['field_id', 'id'],
+            'name',
+            'createdAt',
+            'updatedAt',
+            'ownerId',
+            'foobar'
+          ]);
+        });
+
+        it('allows me to exclude attributes', function () {
+          var options = Sequelize.Model.$validateIncludedElements({
+            model: this.User,
+            include: [
+              {
+                model: this.Company,
+                attributes: {
+                  exclude: ['name']
+                }
+              }
+            ]
+          });
+
+          expect(options.include[0].attributes).to.deep.equal([
+            ['field_id', 'id'],
+            'createdAt',
+            'updatedAt',
+            'ownerId'
+          ]);
+        });
+
+        it('include takes precendence over exclude', function () {
+          var options = Sequelize.Model.$validateIncludedElements({
+            model: this.User,
+            include: [
+              {
+                model: this.Company,
+                attributes: {
+                  exclude: ['name'],
+                  include: ['name']
+                }
+              }
+            ]
+          });
+
+          expect(options.include[0].attributes).to.deep.equal([
+            ['field_id', 'id'],
+            'createdAt',
+            'updatedAt',
+            'ownerId',
+            'name'
+          ]);
+        });
+      });
     });
 
     describe('scope', function () {

@@ -1,3 +1,69 @@
+## Attributes
+
+To select only some attributes, you can use the `attributes` option. Most often, you pass an array:
+
+```js
+Model.findAll({
+  attributes: ['foo', 'bar']
+});
+```
+```sql
+SELECT foo, bar ...
+```
+
+Attributes can be renamed using a nested array:
+
+```js
+Model.findAll({
+  attributes: ['foo', ['bar', 'baz']]
+});
+```
+```sql
+SELECT foo, bar AS baz ...
+```
+
+You can use `sequelize.fn` to do aggregations:
+
+```js
+Model.findAll({
+  attributes: [sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']
+});
+```
+```sql
+SELECT COUNT(hats) AS no_hats ...
+```
+
+When using aggregation function, you must give it an alias to be able to access it from the model. In the example above you can get the number of hats with `instance.get('no_hats')`.
+
+Sometimes it may be tiresome to list all the attributes of the model if you only want to add an aggregation:
+
+```js
+// This is a tiresome way of getting the number of hats...
+Model.findAll({
+  attributes: ['id', 'foo', 'bar', 'baz', 'quz', sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']
+});
+
+// This is shorter, and less error prone because it still works if you add / remove attributes
+Model.findAll({
+  attributes: { include: [sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']] }
+});
+```
+```sql
+SELECT id, foo, bar, baz, quz, COUNT(hats) AS no_hats ...
+```
+
+Similarly, its also possible to remove a selected few attributes:
+
+```js
+Model.findAll({
+  attributes: { exclude: ['baz'] }
+});
+```
+```sql
+SELECT id, foo, bar, quz ...
+```
+
+
 ## Where
 
 Whether you are querying with findAll/find or doing bulk updates/destroys you can pass a `where` object to filter the query.
