@@ -6,22 +6,24 @@ node_js:
   - "iojs-v1"
   - "iojs-v2"
 
-sudo: false
+sudo: required
 
 cache:
   directories:
     - node_modules
 
 env:
-  - DIALECT=mysql
-  - DIALECT=postgres
-  - DIALECT=postgres-native
-  - DIALECT=sqlite
-  - DIALECT=mariadb
-  - DIALECT=mssql
+  - DIALECT=oracle
+  - ORACLE_FILE=oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+  - ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
+  - ORACLE_SID=XE
 
 addons:
   postgresql: "9.4"
+
+before_install:
+  - .travis/oracle/download.sh
+  - .travis/oracle/install.sh
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"
