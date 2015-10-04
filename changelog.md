@@ -1,4 +1,4 @@
-# 3.xx.x
+# 3.11.0
 - [INTERNALS] Updated dependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
     + bluebird@2.10.1
     + dottie@1.0.0
