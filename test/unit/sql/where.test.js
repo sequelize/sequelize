@@ -131,7 +131,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $not: true
       }, {
         default: '[deleted] IS NOT true',
-        mssql: "[deleted] IS NOT 'true'",
+        mssql: "[deleted] IS NOT 1",
         sqlite: '`deleted` IS NOT 1'
       });
 
