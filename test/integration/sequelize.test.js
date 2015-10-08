@@ -945,6 +945,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     ].forEach(function(status) {
       describe('enum', function() {
         beforeEach(function() {
+          this.sequelize = Support.createSequelizeInstance({
+            typeValidation: true
+          });
+
           this.Review = this.sequelize.define('review', { status: status });
           return this.Review.sync({ force: true });
         });
