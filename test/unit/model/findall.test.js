@@ -68,6 +68,25 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           ]);
         });
       });
+
+      it('works for models without PK #4607', function () {
+        var Model = current.define('model', {}, { timestamps: false });
+        var Foo = current.define('foo');
+        Model.hasOne(Foo);
+
+        Model.removeAttribute('id');
+
+        return Model.findAll({
+          attributes: {
+            include: ['name']
+          },
+          include: [Foo]
+        }).bind(this).then(function () {
+          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
+            'name'
+          ]);
+        });
+      });
     });
   });
 });

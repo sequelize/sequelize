@@ -1,5 +1,6 @@
 # Next
 - [FIXED] Partial rollback of datatype validations by hiding it behind the `typeValidation` flag.
+- [FIXED] Don't try to select the primary key for models without primary key [#4607](https://github.com/sequelize/sequelize/issues/4607)
 
 # 3.11.0
 - [INTERNALS] Updated dependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
