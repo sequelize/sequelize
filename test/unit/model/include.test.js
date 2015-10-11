@@ -157,6 +157,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               where: { that: false },
               limit: 12
             },
+            attr: {
+              attributes: ['baz']
+            },
             foobar: {
               where: {
                 bar: 42
@@ -187,6 +190,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(options.include[0]).to.have.property('where').which.deep.equals({ that: false });
         expect(options.include[0]).to.have.property('limit').which.equals(12);
+      });
+
+      it('adds the attributes from a scoped model', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [{ model: this.Project.scope('attr') }]
+        });
+
+        expect(options.include[0]).to.have.property('attributes').which.deep.equals(['baz']);
       });
 
       it('merges where with the where from a scoped model', function () {

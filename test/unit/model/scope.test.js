@@ -217,6 +217,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{ model: Project }]
       });
     });
+
+    it('works with exclude and include attributes', function () {
+      Company.addScope('newIncludeScope', {
+        attributes: {
+          include: ['foobar'],
+          exclude: ['createdAt']
+        }
+      });
+
+      expect(Company.scope('newIncludeScope').$scope).to.deep.equal({
+        attributes: ['id', 'updatedAt', 'foobar']
+      });
+    });
+
   });
 
   describe('$injectScope', function () {
