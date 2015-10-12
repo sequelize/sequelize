@@ -1,18 +1,18 @@
 <a name="belongsto"></a>
 # Mixin BelongsTo
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/belongs-to.js#L17)
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/belongs-to.js#L17)
+
 One-to-one association
 
 In the API reference below, replace `Assocation` with the actual name of your association, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
-
 
 ***
 
 <a name="getassociation"></a>
 ## `getAssociation([options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/belongs-to.js#L82)
-Get the associated instance
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/belongs-to.js#L83)
 
+Get the associated instance.
 
 **Params:**
 
@@ -20,15 +20,16 @@ Get the associated instance
 | ---- | ---- | ----------- |
 | [options] | Object |  |
 | [options.scope] | String &#124; Boolean | Apply a scope on the related model, or remove its default scope by passing false. |
+| [options.schema] | String | Apply a schema on the related model |
 
 
 ***
 
 <a name="setassociation"></a>
 ## `setAssociation([newAssociation], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/belongs-to.js#L92)
-Set the associated model
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/belongs-to.js#L93)
 
+Set the associated model.
 
 **Params:**
 
@@ -43,9 +44,9 @@ Set the associated model
 
 <a name="createassociation"></a>
 ## `createAssociation([values], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/belongs-to.js#L101)
-Create a new instance of the associated model and associate it with this.
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/belongs-to.js#L102)
 
+Create a new instance of the associated model and associate it with this.
 
 **Params:**
 

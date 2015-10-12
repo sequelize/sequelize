@@ -1,11 +1,13 @@
 <a name="associations"></a>
 # Mixin Associations
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L88)
-Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany functions on a model (the source), and providing another model as the first argument to the function (the target).
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L89)
 
-* hasOne - adds a foreign key to target
-* belongsTo - add a foreign key to source
-* hasMany - adds a foreign key to target, unless you also specify that target hasMany source, in which case a junction table is created with sourceId and targetId
+Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
+
+* hasOne - adds a foreign key to the target and singular association mixins to the source.
+* belongsTo - add a foreign key and singular association mixins to the source.
+* hasMany - adds a foreign key to target and plural association mixins to the source.
+* belongsToMany - creates an N:M association with a join table and adds plural association mixins to the source. The junction table is created with sourceId and targetId.
 
 Creating an association will add a foreign key constraint to the attributes. All associations use `CASCADE` on update and `SET NULL` on delete, except for n:m, which also uses `CASCADE` on delete.
 
@@ -75,16 +77,15 @@ In the example above we have specified that a user belongs to his profile pictur
 
 Note how we also specified `constraints: false` for profile picture. This is because we add a foreign key from user to picture (profilePictureId), and from picture to user (userId). If we were to add foreign keys to both, it would create a cyclic dependency, and sequelize would not know which table to create first, since user depends on picture, and picture depends on user. These kinds of problems are detected by sequelize before the models are synced to the database, and you will get an error along the lines of `Error: Cyclic dependency found. 'users' is dependent of itself`. If you encounter this, you should either disable some constraints, or rethink your associations completely.
 
-
 ***
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L130)
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L131)
+
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
 Example: `User.hasOne(Profile)`. This will add userId to the profile table.
-
 
 **Params:**
 
@@ -104,11 +105,11 @@ Example: `User.hasOne(Profile)`. This will add userId to the profile table.
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L148)
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L149)
+
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
 Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
-
 
 **Params:**
 
@@ -129,50 +130,11 @@ Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L204)
-Create an association that is either 1:m or n:m.
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L166)
 
-```js
-// Create a 1:m association between user and project
-User.hasMany(Project)
-```
-```js
-// Create a n:m association between user and project
-User.hasMany(Project)
-Project.hasMany(User)
-```
-By default, the name of the join table will be source+target, so in this case projectsusers. This can be overridden by providing either a string or a Model as `through` in the options.
+Creates a 1:m association between this (the source) and the provided target. The foreign key is added on the target.
 
-If you use a through model with custom attributes, these attributes can be set when adding / setting new associations in two ways. Consider users and projects from before with a join table that stores whether the project has been started yet:
-```js
-var UserProjects = sequelize.define('userprojects', {
-  started: Sequelize.BOOLEAN
-})
-User.hasMany(Project, { through: UserProjects })
-Project.hasMany(User, { through: UserProjects })
-```
-```js
-jan.addProject(homework, { started: false }) // The homework project is not started yet
-jan.setProjects([makedinner, doshopping], { started: true}) // Both shopping and dinner have been started
-```
-
-If you want to set several target instances, but with different attributes you have to set the attributes on the instance, using a property with the name of the through model:
-
-```js
-p1.userprojects {
-  started: true
-}
-user.setProjects([p1, p2], {started: false}) // The default value is false, but p1 overrides that.
-```
-
-Similarily, when fetching through a join table with custom attributes, these attributes will be available as an object with the name of the through model.
-```js
-user.getProjects().then(function (projects) {
-  var p1 = projects[0]
-  p1.userprojects.started // Is this project started yet?
-})
-```
-
+Example: `User.hasMany(Profile)`. This will add userId to the profile table.
 
 **Params:**
 
@@ -182,7 +144,7 @@ user.getProjects().then(function (projects) {
 | [options] | object |  |
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
 | [options.as] | string &#124; object | The alias of this model. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the pluralized name of target |
-| [options.foreignKey] | string &#124; object | The name of the foreign key in the target table / join table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
+| [options.foreignKey] | string &#124; object | The name of the foreign key in the target table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
 | [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | SET NULL if foreignKey allows nulls, CASCADE if otherwise |
 | [options.onUpdate='CASCADE'] | string |  |
@@ -193,18 +155,19 @@ user.getProjects().then(function (projects) {
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/95f8fc2783814cd61ec1a8d623b23cd6a7cd5e17/lib/associations/mixin.js#L283)
-Create an N:M association with a join table
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L245)
+
+Create an N:M association with a join table.
 
 ```js
-User.belongsToMany(Project)
-Project.belongsToMany(User)
+User.belongsToMany(Project, { through: 'UserProjects' })
+Project.belongsToMany(User, { through: 'UserProjects' })
 ```
-By default, the name of the join table will be source+target, so in this case projectsusers. This can be overridden by providing either a string or a Model as `through` in the options.
+Defining `through` is required. Sequelize would previously attempt to auto generate names but that would not always lead to the most logical setups.
 
-If you use a through model with custom attributes, these attributes can be set when adding / setting new associations in two ways. Consider users and projects from before with a join table that stores whether the project has been started yet:
+If you define a through model with custom attributes, these attributes can be set when adding / setting new associations in two ways. Consider users and projects from before with a join table that stores whether the project has been started yet:
 ```js
-var UserProjects = sequelize.define('userprojects', {
+var UserProjects = sequelize.define('UserProjects', {
   started: Sequelize.BOOLEAN
 })
 User.belongsToMany(Project, { through: UserProjects })
@@ -218,7 +181,7 @@ jan.setProjects([makedinner, doshopping], { started: true}) // Both shopping and
 If you want to set several target instances, but with different attributes you have to set the attributes on the instance, using a property with the name of the through model:
 
 ```js
-p1.userprojects {
+p1.UserProjects = {
   started: true
 }
 user.setProjects([p1, p2], {started: false}) // The default value is false, but p1 overrides that.
@@ -228,10 +191,9 @@ Similarily, when fetching through a join table with custom attributes, these att
 ```js
 user.getProjects().then(function (projects) {
   var p1 = projects[0]
-  p1.userprojects.started // Is this project started yet?
+  p1.UserProjects.started // Is this project started yet?
 })
 ```
-
 
 **Params:**
 
