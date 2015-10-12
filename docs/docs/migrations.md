@@ -205,17 +205,9 @@ queryInterface.removeColumn('Person', 'signature')
 
 ### changeColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&comma; options&rpar;
 
-This method changes the meta data of an attribute&period; It is possible to change the default value&comma; allowance of null or the data type&period; Please make sure&comma; that you are completely describing the new data type&period; Missing information are expected to be defaults&period;
+This method changes the meta data of an attribute. It is possible to change the default value, allowance of null or the data type. Please make sure, that you are completely describing the new data type.
 
-```js
-queryInterface.changeColumn(
-  'nameOfAnExistingTable',
-  'nameOfAnExistingAttribute',
-  Sequelize.STRING
-)
- 
-// or
- 
+```js 
 queryInterface.changeColumn(
   'nameOfAnExistingTable',
   'nameOfAnExistingAttribute',
