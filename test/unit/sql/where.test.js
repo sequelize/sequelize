@@ -306,11 +306,34 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('$col', function () {
+      testsql('userId', '$user.id$', {
+        default: '[userId] = [user].[id]'
+      });
+
+      testsql('$or', [
+        {'ownerId': '$user.id$'},
+        {'ownerId': '$organization.id$'}
+      ], {
+        default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
+      });
+
+      testsql('$organization.id$', '$user.organizationId$', {
+        default: '[organization].[id] = [user].[organizationId]'
+      });
+    });
+
     suite('$gt', function () {
       testsql('rank', {
         $gt: 2
       }, {
         default: '[rank] > 2'
+      });
+
+      testsql('created_at', {
+        $lt: '$updated_at$'
+      }, {
+        default: '[created_at] < [updated_at]'
       });
     });
 

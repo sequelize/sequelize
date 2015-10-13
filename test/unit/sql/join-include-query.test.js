@@ -53,6 +53,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       ownerId: {
         type: Sequelize.INTEGER,
         field: 'owner_id'
+      },
+      public: {
+        type: Sequelize.BOOLEAN
       }
     }, {
       tableName: 'company'
@@ -84,6 +87,19 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }).include[0]
     }, {
       default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]"
+    });
+
+    testsql({
+      model: User,
+      subQuery: false,
+      include: Sequelize.Model.$validateIncludedElements({
+        model: User,
+        include: [
+          {association: User.Company, where: {public: true}, or: true}
+        ]
+      }).include[0]
+    }, {
+      default: "INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true"
     });
 
     testsql({
@@ -242,6 +258,37 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }, {
       // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
       default: "LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]"
+    });
+
+    testsql({
+      model: User,
+      subQuery: false,
+      include: Sequelize.Model.$validateIncludedElements({
+        model: User,
+        include: [
+          {association: User.Tasks, on: {
+            $or: [
+              {'$User.id_user$': '$Tasks.user_id$'},
+              {'$Tasks.user_id$': 2}
+            ]
+          }}
+        ]
+      }).include[0]
+    }, {
+      default: "LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2)"
+    });
+
+    testsql({
+      model: User,
+      subQuery: false,
+      include: Sequelize.Model.$validateIncludedElements({
+        model: User,
+        include: [
+          {association: User.Tasks, on: {'user_id': '$User.alternative_id$'}}
+        ]
+      }).include[0]
+    }, {
+      default: "LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]"
     });
   });
 });
