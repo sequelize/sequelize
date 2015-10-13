@@ -450,6 +450,23 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
     });
 
     describe('previous', function() {
+      it('should return an object with the previous values', function() {
+        var User = this.sequelize.define('User', {
+          name: { type: DataTypes.STRING },
+          title: { type: DataTypes.STRING }
+        });
+
+        var user = User.build({
+          name: 'Jan Meier',
+          title: 'Mr'
+        });
+
+        user.set('name', 'Mick Hansen');
+        user.set('title', 'Dr');
+
+        expect(user.previous()).to.eql({ name: 'Jan Meier', title: 'Mr' });
+      });
+
       it('should return the previous value', function() {
         var User = this.sequelize.define('User', {
           name: {type: DataTypes.STRING}
