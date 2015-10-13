@@ -85,8 +85,9 @@
   "main": "index",
   "scripts": {
     "test": "make all",
-    "test-docker": "sudo docker-compose run sequelize /bin/sh -c \"make all\"",
-    "build-docker": "sudo docker-compose build",
+    "test-docker": "docker-compose run sequelize /bin/sh -c \"make all\"",
+    "test-docker-unit": "docker-compose run sequelize /bin/sh -c \"make test-unit-all\"",
+    "build-docker": "docker-compose build",
     "docs": "node docs/docs-generator.js"
   },
   "engines": {
