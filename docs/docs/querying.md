@@ -40,12 +40,12 @@ Sometimes it may be tiresome to list all the attributes of the model if you only
 ```js
 // This is a tiresome way of getting the number of hats...
 Model.findAll({
-  attributes: ['id', 'foo', 'bar', 'baz', 'quz', sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']
+  attributes: ['id', 'foo', 'bar', 'baz', 'quz', [sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']]
 });
 
 // This is shorter, and less error prone because it still works if you add / remove attributes
 Model.findAll({
-  attributes: { include: [sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']] }
+  attributes: { include: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']] }
 });
 ```
 ```sql
