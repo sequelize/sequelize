@@ -1,3 +1,6 @@
+# Next
+- [Fixed] Mark postgres connection as invalid if the connection is reset [#4661](https://github.com/sequelize/sequelize/pull/4661)
+
 # 3.12.0
 - [ADDED] Preliminary support for `include.on`.
 - [FIXED] Partial rollback of datatype validations by hiding it behind the `typeValidation` flag.
