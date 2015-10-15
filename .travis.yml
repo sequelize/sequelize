@@ -13,22 +13,28 @@ cache:
     - node_modules
 
 env:
-  - DIALECT=oracle
-  - ORACLE_FILE=oracle-xe-11.2.0-1.0.x86_64.rpm.zip
-  - ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
-  - ORACLE_SID=XE
+  global:
+    - ORACLE_FILE=oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+    - ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
+    - ORACLE_SID=XE
+  matrix:
+    - DIALECT=oracle
 
 addons:
   postgresql: "9.4"
 
 before_install:
+  - wget 'https://github.com/cbandy/travis-oracle/archive/v1.1.0.tar.gz'
+  - mkdir -p .travis/oracle
+  - tar --extract --gzip --strip-components 1 --directory .travis/oracle --file v1.1.0.tar.gz
   - .travis/oracle/download.sh
   - .travis/oracle/install.sh
 
 before_script:
-  - "mysql -e 'create database sequelize_test;'"
-  - "psql -c 'create database sequelize_test;' -U postgres"
-  - "psql sequelize_test -c 'create extension postgis;' -U postgres"
+  - >
+    { echo "CREATE USER williamgueiros IDENTIFIED BY tiger;";
+      echo "GRANT CONNECT, RESOURCE to williamgueiros;";
+    } | "$ORACLE_HOME/bin/sqlplus" -L -S / AS SYSDBA
 
 script:
   - "make test"
