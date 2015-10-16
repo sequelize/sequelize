@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('format', function() {
     it('should format where clause correctly when the value is truthy', function() {
       var where = [];
-      if (dialect.name === 'oracle') {
+      if (dialect === 'oracle') {
         where = ['"foo" = ?', 1];
       } else {
         where = ['foo = ?', 1];
@@ -111,10 +111,10 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
 
     it('should format where clause correctly when the value is false', function() {
       var where = [];
-      if (dialect.name === 'oracle') {
-        where = ['"foo" = ?', 1];
+      if (dialect === 'oracle') {
+        where = ['"foo" = ?', 0];
       } else {
-        where = ['foo = ?', 1];
+        where = ['foo = ?', 0];
       }
       expect(Utils.format(where)).to.equal('foo = 0');
     });
