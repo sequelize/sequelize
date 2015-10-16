@@ -221,7 +221,7 @@ A default unique universal identifier generated following the UUID v1 standard
 ## `UUIDV4()`
 [View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/data-types.js#L621)
 
-A default unique universal identifier generated following the UUID v2 standard
+A default unique universal identifier generated following the UUID v4 standard
 
 ***
 
