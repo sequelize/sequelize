@@ -1,4 +1,60 @@
 # Next
+- [Fixed] Mark postgres connection as invalid if the connection is reset [#4661](https://github.com/sequelize/sequelize/pull/4661)
+
+# 3.12.0
+- [ADDED] Preliminary support for `include.on`.
+- [FIXED] Partial rollback of datatype validations by hiding it behind the `typeValidation` flag.
+- [FIXED] Don't try to select the primary key for models without primary key [#4607](https://github.com/sequelize/sequelize/issues/4607)
+- [FIXED] Apply `attributes` when including a scoped model. [#4625](https://github.com/sequelize/sequelize/issues/4625)
+- [FIXED] Use bits instead of strings for mssql booleans. [#4621](https://github.com/sequelize/sequelize/pull/4621)
+- [FIXED] BulkCreate validation fails for properties with `field` [#3787](https://github.com/sequelize/sequelize/issues/3787)
+
+# 3.11.0
+- [INTERNALS] Updated dependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
+    + bluebird@2.10.1
+    + dottie@1.0.0
+    + wellknown@0.4.0
+- [INTERNALS] Updated devDependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
+    + mysql@2.9.0
+    - coffee-script
+- [FIXED] Add limit to `findOne` when using queries like `{ id: { $gt ...` [#4416](https://github.com/sequelize/sequelize/issues/4416)
+- [FIXED] Include all with scopes [#4584](https://github.com/sequelize/sequelize/issues/4584)
+- [INTERNALS] Corrected spelling seperate -> separate
+- [ADDED] Added `include` and `exclude` to `options.attributes`. [#4074](https://github.com/sequelize/sequelize/issues/4074)
+- [FIXED/INTERNALS] Only recurse on plain objects in `mapOptionFieldNames`. [#4596](https://github.com/sequelize/sequelize/issues/4596) 
+
+# 3.10.0
+- [ADDED] support `search_path` for postgres with lots of schemas [#4534](https://github.com/sequelize/sequelize/pull/4534)
+- [ADDED] Expose Association constructor as `Sequelize.Association`
+- [ADDED] beforeSync/afterSync/beforeBulkSync/afterBulksync hooks [#4479](https://github.com/sequelize/sequelize/issues/4479)
+- [FIXED] Calling set with dot.separated key on a JSON/JSONB attribute will not flag the entire object as changed [#4379](https://github.com/sequelize/sequelize/pull/4379)
+- [FIXED] instances returned from `bulkCreate` now has `isNewRecord: false` and should be updateable if using `returning: true` with dialects that support it.
+- [FIXED] Find with Include with a where clause generates wrong SQL [#3940](https://github.com/sequelize/sequelize/issues/3940)
+- [FIXED] ON DELETE constraint should default to CASCADE if foreignKey has allowNull: false] [#2831](https://github.com/sequelize/sequelize/issues/2831)
+- [FIXED] sqlite file handle leak
+
+# 3.9.0
+- [ADDED] beforeRestore/afterRestore hooks [#4371](https://github.com/sequelize/sequelize/issues/4371)
+- [ADDED] Map raw fields back to attributes names when using `mapToModel` or `returning` [#3995](https://github.com/sequelize/sequelize/pull/3995)
+- [ADDED] `skip` now supports filtering out modewl validators [#4528](https://github.com/sequelize/sequelize/pull/4528)
+- [INTERNALS] `options` has been renamed to `$options` in instance.js [#4429](https://github.com/sequelize/sequelize/pull/4429)
+- [FIXED] Reload doesn't synchronize a null include [#4353](https://github.com/sequelize/sequelize/issues/4353)
+- [FIXED] commit/rollback multiple times on same transaction [#4491](https://github.com/sequelize/sequelize/issues/4491)
+- [FIXED] memory leak / options mangle for scopes with include [#4470](https://github.com/sequelize/sequelize/issues/4470)
+- [FIXED] custom `targetKey` for belongsTo on a target with a primary key will now correctly create foreign key constraints [#4455](https://github.com/sequelize/sequelize/issues/4455)
+
+# 3.8.0
+- [ADDED] `version` on `Sequelize` returning the current npm/package.json version [#4459](https://github.com/sequelize/sequelize/pull/4459)
+
+# 3.7.0
+- [ADDED] Define field dependencies for VIRTUAL types that are automatically pulled into `attributes` [#4420](https://github.com/sequelize/sequelize/pull/4420)
+- [FIXED] Fall back to a default version when parsing the DB version fails [#4368](https://github.com/sequelize/sequelize/issues/4368)
+- [FIXED] Fix a bug where passing null as the second parameter to `sequelize.where` would fail [#4334](https://github.com/sequelize/sequelize/issues/4334)
+- [FIXED] An error is thrown if a column called `id` is added, but not marked as primary key, and no other pk is present. [#4139](https://github.com/sequelize/sequelize/issues/4139)
+- [FIXED] Cast to boolean when querying JSON [#4257](https://github.com/sequelize/sequelize/issues/4257)
+
+# 3.6.0
+- [ADDED] Model.findCreateFind: A more performant findOrCreate that will not work under a transaction (atleast not in postgres)
 - [FIXED] Show indexes query on Postgres fails to return functional indexes [#3911](https://github.com/sequelize/sequelize/issues/3911)
 - [FIXED] Custom field names in json queries
 - [FIXED] JSON cast key using the equality operator. [#3824](https://github.com/sequelize/sequelize/issues/3824)
@@ -10,9 +66,17 @@
 - [FIXED] BTM would remove any previously added association getters [#4268](https://github.com/sequelize/sequelize/pull/4268)
 - [FIXED] Pass through connection mode options to sqlite
 [#4288](https://github.com/sequelize/sequelize/issues/4288)
+- [INTERNALS] Updated dependencies [#4332](https://github.com/sequelize/sequelize/pull/4332)
+    + toposort-class@1.0.1
+    + validator@4.0.4
+    + wkx@0.1.0
+- [INTERNALS] Updated devDependencies [#4336](https://github.com/sequelize/sequelize/pull/4336)
+    + chai-spies@0.7.0
+    + dox@0.8.0
+    + mysql@2.8.0
 
 # 3.5.1
-- [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
+- [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeparate.
 
 # 3.5.0
 - [ADDED] `include.separate` with `include.limit` support for HasMany associations.

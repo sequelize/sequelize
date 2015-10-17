@@ -21,7 +21,7 @@ $ sequelize migration:create  # Generates a new migration file.
 $ sequelize version           # Prints the version number.
 ```
 
-Further and more detailled information about the available commands
+Further and more detailed information about the available commands
 can be obtained via the help command:
 
 ```bash
@@ -55,55 +55,55 @@ The following skeleton shows a typical migration file&period; All migrations are
 
 ```js
 module.exports = {
-  up: function(migration, DataTypes) {
+  up: function(queryInterface, Sequelize) {
     // logic for transforming into the new state
   },
  
-  down: function(migration, DataTypes) {
+  down: function(queryInterface, Sequelize) {
     // logic for reverting the changes
   }
 }
 ```
 
-The passed `migration` object can be used to modify the database&period; The `DataTypes` object stores the available data types such as `STRING` or `INTEGER`&period; The third parameter is a callback function which needs to be called once everything was executed&period; The first parameter of the callback function can be used to pass a possible error&period; In that case&comma; the migration will be marked as failed&period; Here is some code&colon;
+The passed `queryInterface` object can be used to modify the database&period; The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`&period; The third parameter is a callback function which needs to be called once everything was executed&period; The first parameter of the callback function can be used to pass a possible error&period; In that case&comma; the migration will be marked as failed&period; Here is some code&colon;
 
 ```js
 module.exports = {
-  up: function(migration, DataTypes) {
-    return migration.dropAllTables();
+  up: function(queryInterface, Sequelize) {
+    return queryInterface.dropAllTables();
   }
 }
 ```
 
-The available methods of the migration object are the following&period;
+The available methods of the queryInterface object are the following&period;
 
 ## Functions
 
-Using the `migration` object describe before&comma; you will have access to most of already introduced functions&period; Furthermore there are some other methods&comma; which are designed to actually change the database schema&period;
+Using the `queryInterface` object describe before&comma; you will have access to most of already introduced functions&period; Furthermore there are some other methods&comma; which are designed to actually change the database schema&period;
 
 ### createTable&lpar;tableName&comma; attributes&comma; options&rpar;
 
 This method allows creation of new tables&period; It is allowed to pass simple or complex attribute definitions&period; You can define the encoding of the table and the table's engine via options
 
 ```js
-migration.createTable(
+queryInterface.createTable(
   'nameOfTheNewTable',
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
     createdAt: {
-      type: DataTypes.DATE
+      type: Sequelize.DATE
     },
     updatedAt: {
-      type: DataTypes.DATE
+      type: Sequelize.DATE
     },
-    attr1: DataTypes.STRING,
-    attr2: DataTypes.INTEGER,
+    attr1: Sequelize.STRING,
+    attr2: Sequelize.INTEGER,
     attr3: {
-      type: DataTypes.BOOLEAN,
+      type: Sequelize.BOOLEAN,
       defaultValue: false,
       allowNull: false
     }
@@ -120,7 +120,7 @@ migration.createTable(
 This method allows deletion of an existing table&period;
 
 ```js
-migration.dropTable('nameOfTheExistingTable')
+queryInterface.dropTable('nameOfTheExistingTable')
 ```
 
 ### dropAllTables&lpar;options&rpar;
@@ -128,7 +128,7 @@ migration.dropTable('nameOfTheExistingTable')
 This method allows deletion of all existing tables in the database&period;
 
 ```js
-migration.dropAllTables()
+queryInterface.dropAllTables()
 ```
 
 ### renameTable&lpar;before&comma; after&comma; options&rpar;
@@ -136,7 +136,7 @@ migration.dropAllTables()
 This method allows renaming of an existing table&period;
 
 ```js
-migration.renameTable('Person', 'User')
+queryInterface.renameTable('Person', 'User')
 ```
 
 ### showAllTables&lpar;options&rpar;
@@ -144,7 +144,7 @@ migration.renameTable('Person', 'User')
 This method returns the name of all existing tables in the database&period;
 
 ```js
-migration.showAllTables().then(function(tableNames) {})
+queryInterface.showAllTables().then(function(tableNames) {})
 ```
 
 ### describeTable&lpar;tableName&comma; options&rpar;
@@ -152,7 +152,7 @@ migration.showAllTables().then(function(tableNames) {})
 This method returns an array of hashes containing information about all attributes in the table&period;
 
 ```js
-migration.describeTable('Person').then(function(attributes) {
+queryInterface.describeTable('Person').then(function(attributes) {
   /*
     attributes will be something like:
  
@@ -177,19 +177,19 @@ migration.describeTable('Person').then(function(attributes) {
 This method allows adding columns to an existing table&period; The data type can be simple or complex&period;
 
 ```js
-migration.addColumn(
+queryInterface.addColumn(
   'nameOfAnExistingTable',
   'nameOfTheNewAttribute',
-  DataTypes.STRING
+  Sequelize.STRING
 )
  
 // or
  
-migration.addColumn(
+queryInterface.addColumn(
   'nameOfAnExistingTable',
   'nameOfTheNewAttribute',
   {
-    type: DataTypes.STRING,
+    type: Sequelize.STRING,
     allowNull: false
   }
 )
@@ -200,27 +200,19 @@ migration.addColumn(
 This method allows deletion of a specific column of an existing table&period;
 
 ```js
-migration.removeColumn('Person', 'signature')
+queryInterface.removeColumn('Person', 'signature')
 ```
 
 ### changeColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&comma; options&rpar;
 
-This method changes the meta data of an attribute&period; It is possible to change the default value&comma; allowance of null or the data type&period; Please make sure&comma; that you are completely describing the new data type&period; Missing information are expected to be defaults&period;
+This method changes the meta data of an attribute. It is possible to change the default value, allowance of null or the data type. Please make sure, that you are completely describing the new data type.
 
-```js
-migration.changeColumn(
-  'nameOfAnExistingTable',
-  'nameOfAnExistingAttribute',
-  DataTypes.STRING
-)
- 
-// or
- 
-migration.changeColumn(
+```js 
+queryInterface.changeColumn(
   'nameOfAnExistingTable',
   'nameOfAnExistingAttribute',
   {
-    type: DataTypes.FLOAT,
+    type: Sequelize.FLOAT,
     allowNull: false,
     default: 0.0
   }
@@ -232,7 +224,7 @@ migration.changeColumn(
 This methods allows renaming attributes&period;
 
 ```js
-migration.renameColumn('Person', 'signature', 'sig')
+queryInterface.renameColumn('Person', 'signature', 'sig')
 ```
 
 ### addIndex&lpar;tableName&comma; attributes&comma; options&rpar;
@@ -241,7 +233,7 @@ This methods creates indexes for specific attributes of a table&period; The inde
 
 ```js
 // This example will create the index person_firstname_lastname
-migration.addIndex('Person', ['firstname', 'lastname'])
+queryInterface.addIndex('Person', ['firstname', 'lastname'])
 
 // This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
 // Possible options:
@@ -250,7 +242,7 @@ migration.addIndex('Person', ['firstname', 'lastname'])
 // - parser: For FULLTEXT columns set your parser
 // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
 // - logging: A function that receives the sql query, e.g. console.log
-migration.addIndex(
+queryInterface.addIndex(
   'Person',
   ['firstname', 'lastname'],
   {
@@ -265,11 +257,11 @@ migration.addIndex(
 This method deletes an existing index of a table&period;
 
 ```js
-migration.removeIndex('Person', 'SuperDuperIndex')
+queryInterface.removeIndex('Person', 'SuperDuperIndex')
  
 // or
  
-migration.removeIndex('Person', ['firstname', 'lastname'])
+queryInterface.removeIndex('Person', ['firstname', 'lastname'])
 ```
 
 ## Programmatic use

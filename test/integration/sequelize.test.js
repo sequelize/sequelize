@@ -225,11 +225,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING
+        username: DataTypes.STRING,
+        emailAddress: {
+          type: DataTypes.STRING,
+          field: 'email_address'
+        }
       });
 
-      this.insertQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, ' + qq('createdAt') + ', ' +
-        qq('updatedAt') + ") VALUES ('john', '2012-01-01 10:10:10', '2012-01-01 10:10:10')";
+      this.insertQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, email_address, ' +
+        qq('createdAt') + ', ' + qq('updatedAt') +
+        ") VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')";
 
       return this.User.sync({ force: true });
     });
@@ -311,6 +316,29 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         });
       }).then(function(users) {
         expect(users[0].Model).to.equal(this.User);
+      });
+    });
+
+    it('maps the field names to attributes based on the passed model', function() {
+      return this.sequelize.query(this.insertQuery).bind(this).then(function() {
+        return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', {
+          model: this.User,
+          mapToModel: true
+        });
+      }).then(function(users) {
+        expect(users[0].emailAddress).to.be.equal('john@gmail.com');
+      });
+    });
+
+    it('arbitrarily map the field names', function() {
+      return this.sequelize.query(this.insertQuery).bind(this).then(function() {
+        return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', {
+          type: 'SELECT',
+          fieldMap: {username: 'userName', email_address: 'email'}
+        });
+      }).then(function(users) {
+        expect(users[0].userName).to.be.equal('john');
+        expect(users[0].email).to.be.equal('john@gmail.com');
       });
     });
 
@@ -917,6 +945,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     ].forEach(function(status) {
       describe('enum', function() {
         beforeEach(function() {
+          this.sequelize = Support.createSequelizeInstance({
+            typeValidation: true
+          });
+
           this.Review = this.sequelize.define('review', { status: status });
           return this.Review.sync({ force: true });
         });
@@ -956,8 +988,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     describe('table', function() {
       [
-        { id: { type: DataTypes.BIGINT } },
-        { id: { type: DataTypes.STRING, allowNull: true } },
+        { id: { type: DataTypes.BIGINT, primaryKey: true } },
+        { id: { type: DataTypes.STRING, allowNull: true, primaryKey: true } },
         { id: { type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true } }
       ].forEach(function(customAttributes) {
 
@@ -1212,6 +1244,57 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       return this.sequelize.databaseVersion().then(function(version) {
         expect(typeof version).to.equal('string');
         expect(version).to.be.ok;
+      });
+    });
+  });
+
+  describe('paranoid deletedAt non-null default value', function() {
+    it('should use defaultValue of deletedAt in paranoid clause and restore', function() {
+      var epochObj = new Date(0)
+        , epoch = Number(epochObj);
+      var User = this.sequelize.define('user', {
+        username: DataTypes.STRING,
+        deletedAt: {
+          type: DataTypes.DATE,
+          defaultValue: epochObj
+        }
+      }, {
+        paranoid: true,
+      });
+
+      return this.sequelize.sync({force: true}).bind(this).then(function () {
+        return User.create({username: 'user1'}).then(function(user) {
+          expect(Number(user.deletedAt)).to.equal(epoch);
+          return User.findOne({
+            where: {
+              username: 'user1'
+            }
+          }).then(function (user) {
+            expect(user).to.exist;
+            expect(Number(user.deletedAt)).to.equal(epoch);
+            return user.destroy();
+          }).then(function(destroyedUser) {
+            expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
+            return destroyedUser.restore();
+          }).then(function(restoredUser) {
+            expect(Number(restoredUser.deletedAt)).to.equal(epoch);
+            return User.destroy({where: {
+              username: 'user1'
+            }});
+          }).then(function() {
+            return User.count();
+          }).then(function(count) {
+            expect(count).to.equal(0);
+            return User.restore();
+          }).then(function() {
+            return User.findAll();
+          }).then(function(nonDeletedUsers) {
+            expect(nonDeletedUsers.length).to.equal(1);
+            nonDeletedUsers.forEach(function(u) {
+              expect(Number(u.deletedAt)).to.equal(epoch);
+            });
+          });
+        });
       });
     });
   });

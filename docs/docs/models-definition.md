@@ -37,6 +37,12 @@ var Foo = sequelize.define('Foo', {
  someUnique: {type: Sequelize.STRING, unique: true},
  uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
  uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
+ 
+ // The unique property is simply a shorthand to create a unique index.
+ someUnique: {type: Sequelize.STRING, unique: true}
+ // It's exactly the same as creating the index in the model's options.
+ {someUnique: {type: Sequelize.STRING}},
+ {indexes: [{unique: true, fields: ['someUnique']}]}
 
  // Go on reading for further information about primary keys
  identifier: { type: Sequelize.STRING, primaryKey: true},
@@ -167,7 +173,7 @@ Sequelize.Deferrable.NOT
 ```
 
 The last option is the default in PostgreSQL and won't allow you to dynamically change
-the rule in a transaction. See [the transaction section](docs/transactions/#options) for further information.
+the rule in a transaction. See [the transaction section](transactions/#options) for further information.
 
 ## Getters & setters
 
@@ -353,7 +359,7 @@ Validations can also be defined to check the model after the field-specific vali
 
 Model validator methods are called with the model object's context and are deemed to fail if they throw an error&comma; otherwise pass&period; This is just the same as with custom field-specific validators&period;
 
-Any error messages collected are put in the validation result object alongside the field validation errors&comma; with keys named after the failed validation method's key in the `validate` option object&period; Even though there can only be one error message for each model validation method at any one time&comma; it is presented as a single string error in an array&comma; to maximize consistency with the field errors&period; &lpar;Note that the structure of `validate()`'s output is scheduled to change in `v2.0`to avoid this awkward situation&period; In the mean time&comma; an error is issued if a field exists with the same name as a custom model validation&period;&rpar;
+Any error messages collected are put in the validation result object alongside the field validation errors&comma; with keys named after the failed validation method's key in the `validate` option object&period; Even though there can only be one error message for each model validation method at any one time&comma; it is presented as a single string error in an array&comma; to maximize consistency with the field errors&period;
 
 An example&colon;
 

@@ -1,6 +1,8 @@
 ## Data retrieval / Finders
 
-Finder methods are designed to get data from the database&period; The returned data isn't just a plain object&comma; but instances of one of the defined classes&period; Check the next major chapter about instances for further information&period; But as those things are instances&comma; you can e&period;g&period; use the just describe expanded instance methods&period; So&comma; here is what you can do&colon;
+Finder methods are intended to query data from the database&period; They do *not* return plain objects but instead return model instances&period; Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](http://docs.sequelizejs.com/en/latest/docs/instances/)&period;
+
+In this document we'll explore what finder methods can do&colon;
 
 ### find - Search for one specific element in the database
 ```js
@@ -166,6 +168,8 @@ Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
 Project.findAll({
   where: {
     id: {
+      $and: {a: 5}           // AND (a = 5)
+      $or: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
       $gt: 6,                // id > 6
       $gte: 6,               // id >= 6
       $lt: 10,               // id < 10
@@ -177,11 +181,12 @@ Project.findAll({
       $notIn: [1, 2],        // NOT IN [1, 2]
       $like: '%hat',         // LIKE '%hat'
       $notLike: '%hat'       // NOT LIKE '%hat'
-      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
-      $notILike: '%hat'      // NOT ILIKE '%hat'
+      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)  (PG only)
+      $notILike: '%hat'      // NOT ILIKE '%hat'  (PG only)
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+      $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
     },
     status: {
       $not: false,           // status NOT FALSE
@@ -320,10 +325,10 @@ To recap&comma; the elements of the order &sol; group array can be the following
 Sometimes you might be expecting a massive dataset that you just want to display, without manipulation. For each row you select, Sequelize creates an instance with functions for update, delete, get associations etc. If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
 
 ```js
-// Are you expecting a masssive dataset from the DB,
+// Are you expecting a massive dataset from the DB,
 // and don't want to spend the time building DAOs for each entry?
 // You can pass an extra query option to get the raw data instead:
-Project.findAll({ where: ... }, { raw: true })
+Project.findAll({ where: { ... }, raw: true })
 ```
 
 ### count - Count the occurences of elements in the database
@@ -397,7 +402,7 @@ Project.sum('age').then(function(sum) {
 })
 
 Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
-  // wil be 50
+  // will be 50
 })
 ```
 

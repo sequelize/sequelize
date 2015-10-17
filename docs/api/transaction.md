@@ -1,6 +1,7 @@
 <a name="transaction"></a>
 # Class Transaction
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/transaction.js#L19)
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L19)
+
 The transaction object is used to identify a running transaction. It is created by calling `Sequelize.transaction()`.
 
 To run a query under a transaction, you should pass the transaction in the options object.
@@ -20,7 +21,8 @@ To run a query under a transaction, you should pass the transaction in the optio
 
 <a name="isolation_levels"></a>
 ## `ISOLATION_LEVELS`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/transaction.js#L71)
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L71)
+
 Isolations levels can be set per-transaction by passing `options.isolationLevel` to `sequelize.transaction`.
 Default to `REPEATABLE_READ` but you can override the default isolation level by passing `options.isolationLevel` in `new Sequelize`.
 
@@ -51,12 +53,12 @@ return sequelize.transaction({
 });
 ```
 
-
 ***
 
 <a name="lock"></a>
 ## `LOCK`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/transaction.js#L115)
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L115)
+
 Possible options for row locking. Used in conjuction with `find` calls:
 
 ```js
@@ -91,22 +93,21 @@ UserModel.findAll({
 ```
 UserModel will be locked but TaskModel won't!
 
-
 ***
 
 <a name="commit"></a>
-## `commit()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/transaction.js#L127)
-Commit the transaction
+## `commit()` -> `Promise`
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L127)
 
+Commit the transaction
 
 ***
 
 <a name="rollback"></a>
-## `rollback()` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/f678009d7514b81a6f87e12b86360e9a597e3ca8/lib/transaction.js#L148)
-Rollback (abort) the transaction
+## `rollback()` -> `Promise`
+[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L154)
 
+Rollback (abort) the transaction
 
 ***
 

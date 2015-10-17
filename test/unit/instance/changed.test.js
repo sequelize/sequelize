@@ -94,5 +94,61 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       user.set('meta', meta);
       expect(user.changed('meta')).to.equal(true);
     });
+
+    it('should return true for JSON dot.separated key with changed values', function() {
+      var user = this.User.build({
+        meta: {
+          city: 'Stockholm'
+        }
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.set('meta.city', 'Gothenburg');
+      expect(user.changed('meta')).to.equal(true);
+    });
+
+    it('should return false for JSON dot.separated key with same value', function() {
+      var user = this.User.build({
+        meta: {
+          city: 'Gothenburg'
+        }
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.set('meta.city', 'Gothenburg');
+      expect(user.changed('meta')).to.equal(false);
+    });
+
+    it('should return true for JSON dot.separated key with object', function() {
+      var user = this.User.build({
+        meta: {
+          address: { street: 'Main street', number: '40' }
+        }
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.set('meta.address', { street: 'Second street', number: '1' } );
+      expect(user.changed('meta')).to.equal(true);
+    });
+
+    it('should return false for JSON dot.separated key with same object', function() {
+      var user = this.User.build({
+        meta: {
+          address: { street: 'Main street', number: '40' }
+        }
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.set('meta.address', { street: 'Main street', number: '40' } );
+      expect(user.changed('meta')).to.equal(false);
+    });
   });
 });

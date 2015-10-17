@@ -870,6 +870,25 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         });
       });
 
+      it('sets to CASCADE if allowNull: false', function() {
+        var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+          , User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+        User.hasMany(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return Task.create({ title: 'task', UserId: user.id }).then(function() {
+              return user.destroy().then(function() {
+                return Task.findAll();
+              });
+            });
+          }).then(function(tasks) {
+            expect(tasks).to.be.empty;
+          });
+        });
+      });
+
       it('should be possible to remove all constraints', function() {
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });

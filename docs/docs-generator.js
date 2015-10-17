@@ -180,6 +180,7 @@ var parseComments = function (comments, file) {
       }
 
       comment.putLine('[View code](' + comment.githubLink() + ')');
+      comment.putLine();
       comment.putLine(comment.data.description.full);
 
       if ((mixes = comment.getTags('mixes')).length) {

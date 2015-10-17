@@ -180,8 +180,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserTable.create({aNumber: 4}).then(function(user) {
           expect(user.updatedOn).to.exist;
           expect(user.dateCreated).to.exist;
-          return user.destroy().then(function(user) {
-            expect(user.deletedAtThisTime).to.exist;
+          return user.destroy().then(function() {
+            return user.reload({ paranoid: false }).then(function() {
+              expect(user.deletedAtThisTime).to.exist;
+            });
           });
         });
       });
@@ -208,8 +210,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           user.name = 'heho';
           return user.save().then(function(user) {
             expect(user.updatedAt).not.to.exist;
-            return user.destroy().then(function(user) {
-              expect(user.deletedAtThisTime).to.exist;
+            return user.destroy().then(function() {
+              return user.reload({ paranoid: false }).then(function() {
+                expect(user.deletedAtThisTime).to.exist;
+              });
             });
           });
         });
@@ -1324,6 +1328,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
         expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
+      });
+    });
+
+    it('does not set deletedAt for previously destroyed instances if paranoid is true', function() {
+      var User = this.sequelize.define('UserCol', {
+        secretValue: Sequelize.STRING,
+        username: Sequelize.STRING
+      }, { paranoid: true });
+
+      return User.sync({ force: true }).then(function() {
+        return User.bulkCreate([
+          { username: 'Toni', secretValue: '42' },
+          { username: 'Tobi', secretValue: '42' },
+          { username: 'Max', secretValue: '42' }
+        ]).then(function() {
+          return User.findById(1).then(function(user) {
+            return user.destroy().then(function() {
+              return user.reload({ paranoid: false }).then(function() {
+                var deletedAt = user.deletedAt;
+
+                return User.destroy({ where: { secretValue: '42' } }).then(function() {
+                  return user.reload({ paranoid: false }).then(function() {
+                    expect(user.deletedAt).to.eql(deletedAt);
+                  });
+                });
+              });
+            });
+          });
+        });
       });
     });
 

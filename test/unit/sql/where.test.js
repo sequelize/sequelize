@@ -134,8 +134,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $not: true
       }, {
         default: '[deleted] IS NOT true',
-        mssql: "[deleted] IS NOT 'true'",
-        sqlite: '`deleted` IS NOT 1',
+        mssql: "[deleted] IS NOT 1",
+        sqlite: '`deleted` IS NOT 1'
         oracle: '"deleted" IS NOT \'Y\''
       });
 
@@ -310,11 +310,34 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('$col', function () {
+      testsql('userId', '$user.id$', {
+        default: '[userId] = [user].[id]'
+      });
+
+      testsql('$or', [
+        {'ownerId': '$user.id$'},
+        {'ownerId': '$organization.id$'}
+      ], {
+        default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
+      });
+
+      testsql('$organization.id$', '$user.organizationId$', {
+        default: '[organization].[id] = [user].[organizationId]'
+      });
+    });
+
     suite('$gt', function () {
       testsql('rank', {
         $gt: 2
       }, {
         default: '[rank] > 2'
+      });
+
+      testsql('created_at', {
+        $lt: '$updated_at$'
+      }, {
+        default: '[created_at] < [updated_at]'
       });
     });
 
@@ -651,6 +674,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         testsql('data', {
+          nested: {
+            attribute: true
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: "([data]#>>'{nested, attribute}')::boolean = true"
+        });
+
+        testsql('data', {
           $contains: {
             company: 'Magnafone'
           }
@@ -684,6 +719,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           default: "WHERE [name] = LOWER('DERP')"
         });
       });
+    });
+  });
+
+  suite('getWhereConditions', function () {
+    var testsql = function (value, expectation) {
+      var User = current.define('user', {});
+
+      test(util.inspect(value, {depth: 10}), function () {
+        return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
+      });
+    };
+
+    testsql(current.where(current.fn('lower', current.col('name')), null), {
+      default: "lower([name]) IS NULL"
     });
   });
 });

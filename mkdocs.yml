@@ -3,7 +3,6 @@ site_description: Sequelize is an ORM for Node.js and io.js. It supports the dia
 repo_url: https://github.com/sequelize/sequelize
 site_favicon: favicon.ico
 site_url: http://docs.sequelizejs.com
-markdown_extensions: [gfm]
 theme: readthedocs
 extra_css:
 - css/custom.css

@@ -154,7 +154,7 @@ This will create a new model called UserProject with with the equivalent foreign
 
 Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
-This will add methods `getUsers`, `setUsers`, `addUsers` to `Project`, and `getProjects`, `setProjects` and `addProject` to `User`.
+This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects` and `addProject`, `addProjects` to `User`.
 
 Sometimes you may want to rename your models when using them in associations. Let's define users as workers and projects as tasks by using the alias (`as`) option. We will also manually define the foreign keys to use:
 ```js
@@ -635,6 +635,104 @@ Series.hasOne(Video);
 Trainer.hasMany(Series);
 ```
 
+## Creating with associations
 
+An instance can be created with nested association in one step, provided all elements are new.
+
+### Creating elements of a "BelongsTo" or "HasOne" association
+
+Consider the following models:
+
+```js
+var Product = this.sequelize.define('Product', {
+  title: Sequelize.STRING
+});
+var User = this.sequelize.define('User', {
+  first_name: Sequelize.STRING,
+  last_name: Sequelize.STRING
+});
+
+Product.belongsTo(User);
+// Also works for `hasOne`
+```
+
+A new `Product` and `User` can be created in one step in the following way:
+
+```js
+return Product.create({
+  title: 'Chair',
+  User: {
+    first_name: 'Mick',
+    last_name: 'Broadstone'
+  }
+}, {
+  include: [ User ]
+});
+```
+
+### Creating elements of a "BelongsTo" association with an alias
+
+The previous example can be extended to support an association alias.
+
+```js
+var Creator = Product.belongsTo(User, {as: 'creator'});
+
+return Product.create({
+  title: 'Chair',
+  creator: {
+    first_name: 'Matt',
+    last_name: 'Hansen'
+  }
+}, {
+  include: [ Creator ]
+});
+```
+
+### Creating elements of a "HasMany" or "BelongsToMany" association
+
+Let's introduce the ability to associate a project with many tags. Setting up the models could look like:
+
+```js
+var Tag = this.sequelize.define('Tag', {
+  name: Sequelize.STRING
+});
+
+Product.hasMany(Tag);
+// Also works for `belongsToMany`.
+```
+
+Now we can create a project with multiple tags in the following way:
+
+```js
+Product.create({
+  id: 1,
+  title: 'Chair',
+  Tags: [
+    { name: 'Alpha'},
+    { name: 'Beta'}
+  ]
+}, {
+  include: [ Tag ]
+})
+```
+
+And, we can modify this example to support an alias as well:
+
+```js
+var Categories = Product.hasMany(Tag, {as: 'categories'});
+
+Product.create({
+  id: 1,
+  title: 'Chair',
+  categories: [
+    {id: 1, name: 'Alpha'},
+    {id: 2, name: 'Beta'}
+  ]
+}, {
+  include: [ Categories ]
+})
+```
+
+***
 
 [0]: https://www.npmjs.org/package/inflection

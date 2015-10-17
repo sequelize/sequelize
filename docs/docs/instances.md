@@ -19,7 +19,7 @@ Built instances will automatically get default values when they were defined&col
 
 ```js
 // first define the model
-var Task = sequelize.define('Project', {
+var Task = sequelize.define('Task', {
   title: Sequelize.STRING,
   rating: { type: Sequelize.STRING, defaultValue: 3 }
 })
@@ -84,12 +84,12 @@ task.title = 'a very different title now'
 task.save().then(function() {})
  
 // way 2
-task.updateAttributes({
+task.update({
   title: 'a very different title now'
 }).then(function() {})
 ```
 
-It's also possible to define which attributes should be saved when calling `save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `updateAttributes`&period; This is how it looks like&colon;
+It's also possible to define which attributes should be saved when calling `save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `update`&period; This is how it looks like&colon;
 
 ```js
 task.title = 'foooo'
@@ -98,8 +98,8 @@ task.save({fields: ['title']}).then(function() {
  // title will now be 'foooo' but description is the very same as before
 })
  
-// The equivalent call using updateAttributes looks like this:
-task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(function() {
+// The equivalent call using update looks like this:
+task.update({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(function() {
  // title will now be 'foooo' but description is the very same as before
 })
 ```

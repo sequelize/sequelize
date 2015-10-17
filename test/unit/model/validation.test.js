@@ -3,11 +3,14 @@
 /* jshint -W030 */
 /* jshint -W110 */
 var chai = require('chai')
+  , sinon = require('sinon')
   , expect = chai.expect
   , Sequelize = require(__dirname + '/../../../index')
   , Support = require(__dirname + '/../support')
   , current = Support.sequelize
+  , Promise = current.Promise
   , config = require(__dirname + '/../../config/config');
+
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   describe('validations', function() {
@@ -266,10 +269,115 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   describe('datatype validations', function () {
-    describe('should throw validationerror', function () {
-      var User = current.define('user', {
-        age: Sequelize.INTEGER
+    current = Support.createSequelizeInstance({
+      typeValidation: true
+    });
+
+    var User = current.define('user', {
+      age: Sequelize.INTEGER,
+      name: Sequelize.STRING,
+      awesome: Sequelize.BOOLEAN,
+      number: Sequelize.DECIMAL,
+      uid: Sequelize.UUID
+    });
+
+    before(function () {
+      this.stub = sinon.stub(current, 'query', function () {
+        return new Promise(function (resolve) {
+          resolve(User.build({}));
+        });
       });
+    });
+
+    after(function () {
+      this.stub.restore();
+    });
+
+    describe('should not throw', function () {
+      describe('create', function () {
+        it('should allow number as a string', function () {
+          return expect(User.create({
+            age: '12'
+          })).not.to.be.rejected;
+        });
+
+        it('should allow decimal as a string', function () {
+          return expect(User.create({
+            number: '12.6'
+          })).not.to.be.rejected;
+        });
+
+        it('should allow decimal big numbers as a string', function () {
+          return expect(User.create({
+            number: '2321312301230128391820831289123012'
+          })).not.to.be.rejected;
+        });
+
+        it('should allow decimal as scientific notation', function () {
+          return Promise.join(
+            expect(User.create({
+              number: '2321312301230128391820e219'
+            })).not.to.be.rejected,
+            expect(User.create({
+              number: '2321312301230128391820e+219'
+            })).not.to.be.rejected,
+            expect(User.create({
+              number: '2321312301230128391820f219'
+            })).to.be.rejected
+          );
+        });
+
+        it('should allow string as a number', function () {
+          return expect(User.create({
+            name: 12
+          })).not.to.be.rejected;
+        });
+
+        it('should allow 0/1 as a boolean', function () {
+          return expect(User.create({
+            awesome: 1
+          })).not.to.be.rejected;
+        });
+
+        it('should allow 0/1 string as a boolean', function () {
+          return expect(User.create({
+            awesome: '1'
+          })).not.to.be.rejected;
+        });
+
+        it('should allow true/false string as a boolean', function () {
+          return expect(User.create({
+            awesome: 'true'
+          })).not.to.be.rejected;
+        });
+      });
+
+      describe('findAll', function () {
+        it('should allow $in', function () {
+          return expect(User.all({
+            where: {
+              name: {
+                $like: {
+                  $any: ['foo%', 'bar%']
+                }
+              }
+            }
+          })).not.to.be.rejected;
+        });
+
+        it('should allow $like for uuid', function () {
+          return expect(User.all({
+            where: {
+              uid: {
+                $like: '12345678%'
+              }
+            }
+          })).not.to.be.rejected;
+        });
+      });
+    });
+
+    describe('should throw validationerror', function () {
 
       describe('create', function () {
         it('should throw when passing string', function () {
