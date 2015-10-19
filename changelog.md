@@ -1,6 +1,7 @@
-# Next
-- [Fixed] Mark postgres connection as invalid if the connection is reset [#4661](https://github.com/sequelize/sequelize/pull/4661)
+# 3.12.1
+- [FIXED] Mark postgres connection as invalid if the connection is reset [#4661](https://github.com/sequelize/sequelize/pull/4661)
 - [FIXED] Remove usage of "limit" in cases where it's unnecessary, which fixes some of the cases mentioned in [#4404] (https://github.com/sequelize/sequelize/issues/4404)
+- [SECURITY] Security concern with `$model.field$`, refactored to now require `$col: 'model.field'`
 
 # 3.12.0
 - [ADDED] Preliminary support for `include.on`.
