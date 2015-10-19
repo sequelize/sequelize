@@ -133,7 +133,7 @@ $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
 $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
 $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 
-$eq: '$user.organization_id$' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+$col: '$user.organization_id$' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
 ```
 
 ### Combinations

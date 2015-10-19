@@ -270,7 +270,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         include: [
           {association: User.Tasks, on: {
             $or: [
-              {'$User.id_user$': '$Tasks.user_id$'},
+              {'$User.id_user$': {$col: 'Tasks.user_id'}},
               {'$Tasks.user_id$': 2}
             ]
           }}
@@ -286,7 +286,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       include: Sequelize.Model.$validateIncludedElements({
         model: User,
         include: [
-          {association: User.Tasks, on: {'user_id': '$User.alternative_id$'}}
+          {association: User.Tasks, on: {'user_id': {$col: 'User.alternative_id'}}}
         ]
       }).include[0]
     }, {

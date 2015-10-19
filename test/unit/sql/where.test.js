@@ -307,18 +307,38 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
 
     suite('$col', function () {
-      testsql('userId', '$user.id$', {
+      testsql('userId', {
+        $col: 'user.id'
+      }, {
         default: '[userId] = [user].[id]'
       });
 
+      testsql('userId', {
+        $eq: {
+          $col: 'user.id'
+        }
+      }, {
+        default: '[userId] = [user].[id]'
+      });
+
+      testsql('userId', {
+        $gt: {
+          $col: 'user.id'
+        }
+      }, {
+        default: '[userId] > [user].[id]'
+      });
+
       testsql('$or', [
-        {'ownerId': '$user.id$'},
-        {'ownerId': '$organization.id$'}
+        {'ownerId': {$col: 'user.id'}},
+        {'ownerId': {$col: 'organization.id'}}
       ], {
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
 
-      testsql('$organization.id$', '$user.organizationId$', {
+      testsql('$organization.id$', {
+        $col: 'user.organizationId'
+      }, {
         default: '[organization].[id] = [user].[organizationId]'
       });
     });
@@ -331,7 +351,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
 
       testsql('created_at', {
-        $lt: '$updated_at$'
+        $lt: {
+          $col: 'updated_at'
+        }
       }, {
         default: '[created_at] < [updated_at]'
       });
@@ -510,6 +532,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }, {
             postgres: "\"userId\" LIKE ANY ARRAY['foo','bar','baz']"
           });
+
           testsql('userId', {
             $iLike: {
               $any: ['foo', 'bar', 'baz']
@@ -517,6 +540,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }, {
             postgres: "\"userId\" ILIKE ANY ARRAY['foo','bar','baz']"
           });
+
           testsql('userId', {
             $notLike: {
               $any: ['foo', 'bar', 'baz']
@@ -524,12 +548,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }, {
             postgres: "\"userId\" NOT LIKE ANY ARRAY['foo','bar','baz']"
           });
+
           testsql('userId', {
             $notILike: {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" NOT ILIKE ANY ARRAY['foo','bar','baz']"
+          });
+
+          testsql('userId', {
+            $notILike: {
+              $all: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" NOT ILIKE ALL ARRAY['foo','bar','baz']"
           });
         });
       });
