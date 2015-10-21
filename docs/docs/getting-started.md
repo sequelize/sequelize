@@ -89,7 +89,7 @@ Basically a promise represents a value which will be present at some point - "I 
 
 ```js
 // DON'T DO THIS
-user = User.findAll()
+user = User.findOne()
 
 console.log(user.name);
 ```
@@ -97,7 +97,7 @@ console.log(user.name);
 _will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
 
 ```js
-User.findAll().then(function (user) {
+User.findOne().then(function (user) {
     console.log(user.name);
 });
 ```
