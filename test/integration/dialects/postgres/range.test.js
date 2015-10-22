@@ -5,18 +5,28 @@ var chai    = require('chai')
   , Support = require(__dirname + '/../../support')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , dialect = Support.getTestDialect()
-  , range   = require('../../../../lib/dialects/postgres/range');
+  , range   = require('../../../../lib/dialects/postgres/range')
+  , _       = require(__dirname + '/../../support').Sequelize.Utils._;
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] range datatype', function () {
     describe('stringify', function () {
       it('should handle empty objects correctly', function () {
-        expect(range.stringify([])).to.equal('');
+        expect(range.stringify([])).to.equal('empty');
       });
 
-      it('should return empty string when either of boundaries is null', function () {
-        expect(range.stringify([null, 'test'])).to.equal('');
-        expect(range.stringify([123, null])).to.equal('');
+      it('should handle null as empty bound', function () {
+        expect(range.stringify([null, 1])).to.equal('(,1)');
+        expect(range.stringify([1, null])).to.equal('(1,)');
+        expect(range.stringify([null, null])).to.equal('(,)');
+      });
+
+      it('should handle Infinity/-Infinity as infinity/-infinity bounds', function () {
+        expect(range.stringify([Infinity, 1])).to.equal('(infinity,1)');
+        expect(range.stringify([1, Infinity])).to.equal('(1,infinity)');
+        expect(range.stringify([-Infinity, 1])).to.equal('(-infinity,1)');
+        expect(range.stringify([1, -Infinity])).to.equal('(1,-infinity)');
+        expect(range.stringify([-Infinity, Infinity])).to.equal('(-infinity,infinity)');
       });
 
       it('should return empty string when boundaries array of invalid size', function () {
@@ -67,8 +77,22 @@ if (dialect.match(/^postgres/)) {
         expect(range.parse(null)).to.equal(null);
       });
 
-      it('should handle empty string correctly', function () {
-        expect(range.parse('')).to.deep.equal('');
+      it('should handle empty range string correctly', function () {
+        expect(range.parse('empty')).to.deep.equal(_.extend([], { inclusive: [] }));
+      });
+
+      it('should handle empty bounds correctly', function () {
+        expect(range.parse('(1,)', 'int4range')).to.deep.equal(_.extend([1, null], { inclusive: [false, false] }));
+        expect(range.parse('(,1)', 'int4range')).to.deep.equal(_.extend([null, 1], { inclusive: [false, false] }));
+        expect(range.parse('(,)', 'int4range')).to.deep.equal(_.extend([null, null], { inclusive: [false, false] }));
+      });
+
+      it('should handle infinity/-infinity bounds correctly', function () {
+        expect(range.parse('(infinity,1)', 'int4range')).to.deep.equal(_.extend([Infinity, 1], { inclusive: [false, false] }));
+        expect(range.parse('(1,infinity)', 'int4range')).to.deep.equal(_.extend([1, Infinity], { inclusive: [false, false] }));
+        expect(range.parse('(-infinity,1)', 'int4range')).to.deep.equal(_.extend([-Infinity, 1], { inclusive: [false, false] }));
+        expect(range.parse('(1,-infinity)', 'int4range')).to.deep.equal(_.extend([1, -Infinity], { inclusive: [false, false] }));
+        expect(range.parse('(-infinity,infinity)', 'int4range')).to.deep.equal(_.extend([-Infinity, Infinity], { inclusive: [false, false] }));
       });
 
       it('should return raw value if not range is returned', function () {
