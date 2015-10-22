@@ -37,7 +37,7 @@ var Foo = sequelize.define('Foo', {
  someUnique: {type: Sequelize.STRING, unique: true},
  uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
  uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
- 
+
  // The unique property is simply a shorthand to create a unique index.
  someUnique: {type: Sequelize.STRING, unique: true}
  // It's exactly the same as creating the index in the model's options.
@@ -118,6 +118,14 @@ Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
 Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other options are medium and long)
 
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
+
+Sequelize.RANGE(Sequelize.INTEGER)    // Defines int4range range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.BIGINT)     // Defined int8range range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.DATE)       // Defines tstzrange range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.DATEONLY)   // Defines daterange range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.DECIMAL)    // Defines numrange range. PostgreSQL only.
+
+Sequelize.ARRAY(Sequelize.RANGE(Sequelize.DATE)) // Defines array of tstzrange ranges. PostgreSQL only.
 ```
 
 The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column. that data will always be returned as a buffer.
