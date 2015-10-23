@@ -534,7 +534,7 @@ Because synchronizing and dropping all of your tables might be a lot of lines to
 // Sync all models that aren't already in the database
 sequelize.sync()
 
-// Force sync all modes
+// Force sync all models
 sequelize.sync({force: true})
 
 // Drop all tables
