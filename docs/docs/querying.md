@@ -26,7 +26,7 @@ You can use `sequelize.fn` to do aggregations:
 
 ```js
 Model.findAll({
-  attributes: [sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']
+  attributes: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']]
 });
 ```
 ```sql
