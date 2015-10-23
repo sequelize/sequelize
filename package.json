@@ -58,7 +58,7 @@
     "dox": "~0.8.0",
     "git": "^0.1.5",
     "hints": "^0.2.0",
-    "istanbul": "^0.3.0",
+    "istanbul": "^0.4.0",
     "jshint": "^2.8.0",
     "lcov-result-merger": "^1.0.0",
     "mocha": "^2.2.1",
