@@ -387,7 +387,7 @@ project.setTasks([task1, task2]).then(function() {
   // saved!
 })
  
-// ok now they are save... how do I get them later on?
+// ok, now they are saved... how do I get them later on?
 project.getTasks().then(function(associatedTasks) {
   // associatedTasks is an array of tasks
 })
