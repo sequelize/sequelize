@@ -1,5 +1,6 @@
 # NEXT
 - [FIXED] Mark unscoped model as `.scoped`, to prevent injection of default scope on includes [#4663](https://github.com/sequelize/sequelize/issues/4663)
+- [ADDED] `.previous` now returns and object of previous values when called without `key`. This brings the API in line with `.changed`
 
 # 3.12.1
 - [FIXED] Mark postgres connection as invalid if the connection is reset [#4661](https://github.com/sequelize/sequelize/pull/4661)
