@@ -506,22 +506,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
-    it('binds named parameters with the passed object and ignore numeric $1', function() {
-      var typeCast = (dialect === 'postgres') ? '::int' : '';
-      var logSql;
-      return this.sequelize.query('select $one'+typeCast+' as foo, $two'+typeCast+' as bar, \'$1\' as baz', { raw: true, bind: { one: 1, two: 2 }, logging: function(s) { logSql = s; } }).then(function(result) {
-        expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: '$1' }]);
-      });
-    });
-
-    it('binds named parameters with the passed array and ignore $alpha', function() {
-      var typeCast = (dialect === 'postgres') ? '::int' : '';
-      var logSql;
-      return this.sequelize.query('select $1'+typeCast+' as foo, $2'+typeCast+' as bar, \'$foo\' as baz', { raw: true, bind: [1, 2], logging: function(s) { logSql = s; } }).then(function(result) {
-        expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: '$foo' }]);
-      });
-    });
-
     it('binds named parameters with the passed object using the same key twice', function() {
       var typeCast = (dialect === 'postgres') ? '::int' : '';
       var logSql;
@@ -546,8 +530,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     it('binds named parameters array handles escaped $$', function() {
       var typeCast = (dialect === 'postgres') ? '::int' : '';
       var logSql;
-      return this.sequelize.query('select $1'+typeCast+' as foo, \'$$\' as bar', { raw: true, bind: [1 ], logging: function(s) { logSql = s; } }).then(function(result) {
-        expect(result[0]).to.deep.equal([{ foo: 1, bar: '$' }]);
+      return this.sequelize.query('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar', { raw: true, bind: [1 ], logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
         if ((dialect === 'postgres') || (dialect === 'sqlite')) {
           expect(logSql.indexOf('$1')).to.be.above(-1);
         }
@@ -557,11 +541,43 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     it('binds named parameters object handles escaped $$', function() {
       var typeCast = (dialect === 'postgres') ? '::int' : '';
       var logSql;
-      return this.sequelize.query('select $one'+typeCast+' as foo, \'$$\' as bar', { raw: true, bind: { one: 1 }, logging: function(s) { logSql = s; } }).then(function(result) {
-        expect(result[0]).to.deep.equal([{ foo: 1, bar: '$' }]);
+      return this.sequelize.query('select $one'+typeCast+' as foo, \'$$ / $$one\' as bar', { raw: true, bind: { one: 1 }, logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
       });
     });
     
+    it('throw an exception when binds passed with object and numeric $1 is also present', function() {
+      var self = this;
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      expect(function() {
+        self.sequelize.query('select $one'+typeCast+' as foo, $two'+typeCast+' as bar, \'$1\' as baz', {  raw: true, bind: { one: 1, two: 2 }, logging: function(s) { logSql = s; } });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);      
+    });
+
+    it('throw an exception when binds passed as array and $alpha is also present', function() {
+      var self = this;
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      expect(function() {
+        self.sequelize.query('select $1'+typeCast+' as foo, $2'+typeCast+' as bar, \'$foo\' as baz', { raw: true, bind: [1, 2], logging: function(s) { logSql = s; } });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception when bind key is $0 with the passed array', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $1 as foo, $0 as bar, $3 as baz', { raw: true, bind: [1, 2] });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception when bind key is $01 with the passed array', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $1 as foo, $01 as bar, $3 as baz', { raw: true, bind: [1, 2] });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
     it('throw an exception when bind key is missing in the passed array', function() {
       var self = this;
       expect(function() {
