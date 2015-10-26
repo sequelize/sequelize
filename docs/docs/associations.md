@@ -400,7 +400,7 @@ project.getTasks({ where: 'id > 10' }).then(function(tasks) {
  
 // You can also only retrieve certain fields of a associated object.
 project.getTasks({attributes: ['title']}).then(function(tasks) {
-    // retreive tasks with the attributes "title" and "id"
+    // retrieve tasks with the attributes "title" and "id"
 })
 ```
 
