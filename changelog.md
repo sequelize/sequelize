@@ -1,4 +1,4 @@
-# NEXT
+# 3.13.0
 - [FIXED] timestamp columns are no longer undefined for associations loaded with `separate`. [#4740](https://github.com/sequelize/sequelize/issues/4740)
 - [FIXED] Mark unscoped model as `.scoped`, to prevent injection of default scope on includes [#4663](https://github.com/sequelize/sequelize/issues/4663)
 - [ADDED] `.previous` now returns and object of previous values when called without `key`. This brings the API in line with `.changed`
