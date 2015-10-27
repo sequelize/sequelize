@@ -67,7 +67,7 @@
     "pg-hstore": "^2.3.1",
     "pg-native": "^1.8.0",
     "sinon": "^1.14.1",
-    "sinon-chai": "^2.7.0",
+    "sinon-chai": "^2.8.0",
     "sqlite3": "^3.0.6",
     "tedious": "^1.7.0",
     "watchr": "~2.4.11"
