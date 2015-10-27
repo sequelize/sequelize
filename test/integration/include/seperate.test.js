@@ -56,6 +56,10 @@ if (current.dialect.supports.groupedLimit) {
             expect(users[0].get('tasks').length).to.equal(3);
             expect(users[1].get('tasks')).to.be.ok;
             expect(users[1].get('tasks').length).to.equal(1);
+
+            expect(users[0].get('tasks')[0].createdAt).to.be.ok;
+            expect(users[0].get('tasks')[0].updatedAt).to.be.ok;
+
             expect(sqlSpy).to.have.been.calledTwice;
           });
         });
