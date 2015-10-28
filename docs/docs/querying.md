@@ -106,6 +106,11 @@ Post.update({
   }
 });
 // UPDATE post SET updatedAt = null WHERE deletedAt NOT NULL;
+
+Post.findAll({
+  where: sequelize.where(sequelize.fn('char_length', sequelize.col('status')), 6)
+});
+// SELECT * FROM post WHERE char_length(status) = 6;
 ```
 
 ### Operators
