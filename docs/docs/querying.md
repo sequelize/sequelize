@@ -254,6 +254,15 @@ something.findOne({
 
     // Will order by  otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
+    
+    // Will order by name on an associated User
+    [User, 'name', 'DESC'],
+    
+    // Will order by name on an associated User aliased as Friend
+    [{model: User, as: 'Friend'}, 'name', 'DESC'],
+    
+    // Will order by name on a nested associated Company of an associated User
+    [User, Company, 'name', 'DESC'],
   ]
   // All the following statements will be treated literally so should be treated with care
   order: 'convert(user_name using gbk)'
