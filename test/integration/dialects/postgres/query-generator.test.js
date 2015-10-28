@@ -58,6 +58,16 @@ if (dialect.match(/^postgres/)) {
           expectation: {id: 'INTEGER UNIQUE'}
         },
 
+        // Comments
+        {
+          arguments: [{id: {type: 'INTEGER', comment: 'Test Comment'}}],
+          expectation: {id: 'INTEGER COMMENT \'Test Comment\''}
+        },
+        {
+          arguments: [{id: {type: 'INTEGER', primaryKey: true, autoIncrement: true, comment: 'Test Comment'}}],
+          expectation: {id: 'INTEGER SERIAL PRIMARY KEY COMMENT \'Test Comment\''}
+        },
+
         // Old references style
         {
           arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
@@ -189,6 +199,16 @@ if (dialect.match(/^postgres/)) {
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION'}],
           expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255), \"otherId\" INTEGER REFERENCES \"otherTable\" (\"id\") ON DELETE CASCADE ON UPDATE NO ACTION);'
+        },
+
+        // Comments
+        {
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {title: 'VARCHAR(255) COMMENT \'Title Comment\'', name: 'VARCHAR(255) COMMENT \'Name Comment\''}],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255)); COMMENT ON COLUMN \"mySchema\".\"myTable\".\"title\" IS \'Title Comment\'; COMMENT ON COLUMN \"mySchema\".\"myTable\".\"name\" IS \'Name Comment\';'
+        },
+        {
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, {title: 'VARCHAR(255) COMMENT \'Title Comment\'', name: 'VARCHAR(255)'}, {comment: 'Table Comment'}],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255)); COMMENT ON TABLE \"mySchema\".\"myTable\" IS \'Table Comment\'; COMMENT ON COLUMN \"mySchema\".\"myTable\".\"title\" IS \'Title Comment\';'
         },
 
         // Variants when quoteIdentifiers is false
@@ -926,6 +946,17 @@ if (dialect.match(/^postgres/)) {
           arguments: ['User', 'mySchema.user_foo_bar'],
           expectation: 'DROP INDEX IF EXISTS mySchema.user_foo_bar',
           context: {options: {quoteIdentifiers: false}}
+        }
+      ],
+
+      addColumnQuery: [
+        {
+          arguments: ['myTable', 'title', {type: 'VARCHAR(255)', allowNull: false}],
+          expectation: 'ALTER TABLE \"myTable\" ADD COLUMN "title" VARCHAR(255) NOT NULL;'
+        },
+        {
+          arguments: [{tableName: 'myTable', schema: 'mySchema'}, 'title', {type: 'VARCHAR(255)', comment: 'Test Comment'}],
+          expectation: 'ALTER TABLE \"mySchema\".\"myTable\" ADD COLUMN "title" VARCHAR(255); COMMENT ON COLUMN \"mySchema\".\"myTable\"."title" IS \'Test Comment\';',
         }
       ]
     };
