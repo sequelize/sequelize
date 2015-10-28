@@ -84,7 +84,7 @@ Post.findAll({
 Post.findAll({
   where: {
     authorId: 12,
-    status: active
+    status: 'active'
   }
 });
 // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
