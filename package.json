@@ -32,7 +32,7 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "bluebird": "^2.10.1",
+    "bluebird": "^3.0.0",
     "depd": "^1.0.0",
     "dottie": "^1.0.0",
     "generic-pool": "2.2.0",
