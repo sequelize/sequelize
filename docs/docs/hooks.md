@@ -263,9 +263,9 @@ DELETE FROM `table` WHERE associatedIdentifiier = associatedIdentifier.primaryKe
 
 However, adding `hooks: true` explicitly tells Sequelize that optimization is not of your concern and will perform a `SELECT` on the associated objects and destroy each instance one by one in order to be able to call the hooks with the right parameters.
 
-If your association is of type `n:m`, you may be interested in firing events when using the `remove` call. Internally, sequelize is using `Model.destroy` resulting in calling the `bulkDestroy` instead of the `before/afterDestroy` hooks.
+If your association is of type `n:m`, you may be interested in firing hooks on the through model when using the `remove` call. Internally, sequelize is using `Model.destroy` resulting in calling the `bulkDestroy` instead of the `before/afterDestroy` hooks on each through instance.
 
-This can be simply solved by passing `{individualHooks: true}` to the `remove` call, resulting on each hook to be called on each removed association object.
+This can be simply solved by passing `{individualHooks: true}` to the `remove` call, resulting on each hook to be called on each removed through instance object.
 
 
 ## A Note About Transactions
