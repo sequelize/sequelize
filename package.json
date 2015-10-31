@@ -42,7 +42,7 @@
     "moment-timezone": "^0.4.1",
     "node-uuid": "~1.4.1",
     "semver": "^5.0.1",
-    "shimmer": "1.0.0",
+    "shimmer": "1.1.0",
     "toposort-class": "^1.0.1",
     "validator": "^4.0.4",
     "wellknown": "^0.4.0",
