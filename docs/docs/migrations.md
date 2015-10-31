@@ -207,7 +207,7 @@ queryInterface.removeColumn('Person', 'signature')
 
 This method changes the meta data of an attribute. It is possible to change the default value, allowance of null or the data type. Please make sure, that you are completely describing the new data type.
 
-```js 
+```js
 queryInterface.changeColumn(
   'nameOfAnExistingTable',
   'nameOfAnExistingAttribute',
