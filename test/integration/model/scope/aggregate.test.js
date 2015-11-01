@@ -68,10 +68,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('should be able to merge scopes with where', function () {
         return expect(this.ScopeMe.scope('lowAccess').aggregate( '*', 'count', { where: { username: 'dan'}})).to.eventually.equal(1);
       });
-
-      it('should ignore the order option if it is found within the scope', function () {
-        return expect(this.ScopeMe.scope('withOrder').aggregate( '*', 'count' )).to.eventually.equal(4);
-      });
     });
   });
 });
