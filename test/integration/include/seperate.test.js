@@ -56,6 +56,10 @@ if (current.dialect.supports.groupedLimit) {
             expect(users[0].get('tasks').length).to.equal(3);
             expect(users[1].get('tasks')).to.be.ok;
             expect(users[1].get('tasks').length).to.equal(1);
+
+            expect(users[0].get('tasks')[0].createdAt).to.be.ok;
+            expect(users[0].get('tasks')[0].updatedAt).to.be.ok;
+
             expect(sqlSpy).to.have.been.calledTwice;
           });
         });
@@ -223,6 +227,61 @@ if (current.dialect.supports.groupedLimit) {
             expect(users[1].get('company').get('tasks')).to.be.ok;
             expect(users[1].get('company').get('tasks').length).to.equal(1);
             expect(sqlSpy).to.have.been.calledTwice;
+          });
+        });
+      });
+
+      it('should work having a separate include between a parent and child include', function () {
+        var User = this.sequelize.define('User', {})
+          , Project = this.sequelize.define('Project')
+          , Company = this.sequelize.define('Company')
+          , Task = this.sequelize.define('Task', {})
+          , sqlSpy = sinon.spy();
+
+        Company.Users = Company.hasMany(User, {as: 'users'});
+        User.Tasks = User.hasMany(Task, {as: 'tasks'});
+        Task.Project = Task.belongsTo(Project, {as: 'project'});
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return Promise.join(
+            Company.create({
+              id: 1,
+              users: [
+                {
+                  tasks: [
+                    {project: {}},
+                    {project: {}},
+                    {project: {}}
+                  ]
+                }
+              ]
+            }, {
+              include: [
+                {association: Company.Users, include: [
+                  {association: User.Tasks, include: [
+                    Task.Project
+                  ]}
+                ]}
+              ]
+            })
+          ).then(function () {
+            return Company.findAll({
+              include: [
+                {association: Company.Users, include: [
+                  {association: User.Tasks, separate: true, include: [
+                    Task.Project
+                  ]}
+                ]}
+              ],
+              order: [
+                ['id', 'ASC']
+              ],
+              logging: sqlSpy
+            });
+          }).then(function (companies) {
+            expect(sqlSpy).to.have.been.calledTwice;
+
+            expect(companies[0].users[0].tasks[0].project).to.be.ok;
           });
         });
       });

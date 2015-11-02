@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS/io.js",
-  "version": "3.12.2",
+  "version": "3.13.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -32,17 +32,17 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "bluebird": "^2.10.1",
+    "bluebird": "^3.0.0",
     "depd": "^1.0.0",
     "dottie": "^1.0.0",
-    "generic-pool": "2.2.0",
+    "generic-pool": "2.2.1",
     "inflection": "^1.6.0",
     "lodash": "^3.9.3",
     "moment": "^2.9.0",
-    "moment-timezone": "^0.4.0",
+    "moment-timezone": "^0.4.1",
     "node-uuid": "~1.4.1",
     "semver": "^5.0.1",
-    "shimmer": "1.0.0",
+    "shimmer": "1.1.0",
     "toposort-class": "^1.0.1",
     "validator": "^4.0.4",
     "wellknown": "^0.4.0",
@@ -58,7 +58,7 @@
     "dox": "~0.8.0",
     "git": "^0.1.5",
     "hints": "^0.2.0",
-    "istanbul": "^0.3.0",
+    "istanbul": "^0.4.0",
     "jshint": "^2.8.0",
     "lcov-result-merger": "^1.0.0",
     "mocha": "^2.2.1",
@@ -67,9 +67,9 @@
     "pg-hstore": "^2.3.1",
     "pg-native": "^1.8.0",
     "sinon": "^1.14.1",
-    "sinon-chai": "^2.7.0",
+    "sinon-chai": "^2.8.0",
     "sqlite3": "^3.0.6",
-    "tedious": "^1.7.0",
+    "tedious": "^1.13.1",
     "watchr": "~2.4.11"
   },
   "keywords": [
