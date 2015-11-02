@@ -1122,7 +1122,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             title: DataTypes.STRING
           });
 
-          this.Projects.hasOne(this.Tasks, {onDelete: 'cascade', hooks: true});
+          this.Projects.hasOne(this.Tasks, {onDelete: 'CASCADE', hooks: true});
           this.Tasks.belongsTo(this.Projects);
 
           return this.sequelize.sync({ force: true });
