@@ -68,7 +68,7 @@
     "pg-native": "^1.8.0",
     "sinon": "^1.14.1",
     "sinon-chai": "^2.8.0",
-    "sqlite3": "^3.0.6",
+    "sqlite3": "^3.1.1",
     "tedious": "^1.13.1",
     "watchr": "~2.4.11"
   },
