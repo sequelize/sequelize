@@ -6,7 +6,7 @@ var chai    = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , dialect = Support.getTestDialect()
   , range   = require('../../../../lib/dialects/postgres/range')
-  , _       = require(__dirname + '/../../support').Sequelize.Utils._;
+  , _       = require('lodash');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] range datatype', function () {
@@ -29,15 +29,15 @@ if (dialect.match(/^postgres/)) {
         expect(range.stringify([-Infinity, Infinity])).to.equal('(-infinity,infinity)');
       });
 
-      it('should return empty string when boundaries array of invalid size', function () {
-        expect(range.stringify([1])).to.equal('');
-        expect(range.stringify([1, 2, 3])).to.equal('');
+      it('should throw error when array length is no 0 or 2', function () {
+        expect(function () { range.stringify([1]) }).to.throw();
+        expect(function () { range.stringify([1, 2, 3]) }).to.throw();
       });
 
-      it('should return empty string when non-array parameter is passed', function () {
-        expect(range.stringify({})).to.equal('');
-        expect(range.stringify('test')).to.equal('');
-        expect(range.stringify(undefined)).to.equal('');
+      it('should throw error when non-array parameter is passed', function () {
+        expect(function () { range.stringify({}) }).to.throw();
+        expect(function () { range.stringify('test') }).to.throw();
+        expect(function () { range.stringify(undefined) }).to.throw();
       });
 
       it('should handle array of objects with `inclusive` and `value` properties', function () {
@@ -98,6 +98,11 @@ if (dialect.match(/^postgres/)) {
       it('should return raw value if not range is returned', function () {
         expect(range.parse('some_non_array')).to.deep.equal('some_non_array');
       });
+
+      it('should handle native postgres timestamp format', function () {
+        expect(range.parse('(2016-01-01 08:00:00-04,)', 'tstzrange')[0].toISOString()).to.equal('2016-01-01T12:00:00.000Z');
+      });
+
     });
     describe('stringify and parse', function () {
       it('should stringify then parse back the same structure', function () {
