@@ -30,14 +30,14 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should throw error when array length is no 0 or 2', function () {
-        expect(function () { range.stringify([1]) }).to.throw();
-        expect(function () { range.stringify([1, 2, 3]) }).to.throw();
+        expect(function () { range.stringify([1]); }).to.throw();
+        expect(function () { range.stringify([1, 2, 3]); }).to.throw();
       });
 
       it('should throw error when non-array parameter is passed', function () {
-        expect(function () { range.stringify({}) }).to.throw();
-        expect(function () { range.stringify('test') }).to.throw();
-        expect(function () { range.stringify(undefined) }).to.throw();
+        expect(function () { range.stringify({}); }).to.throw();
+        expect(function () { range.stringify('test'); }).to.throw();
+        expect(function () { range.stringify(undefined); }).to.throw();
       });
 
       it('should handle array of objects with `inclusive` and `value` properties', function () {
