@@ -232,4 +232,54 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
 
   });
+  if (Support.sequelize.dialect.supports.GEOMETRY) {
+    suite('GEOMETRY column', function () {
+      test('include with GEOMETRY columns', function () {
+        var User = Support.sequelize.define('User', {
+          name: DataTypes.STRING
+        },
+        {
+          freezeTableName: true
+        });
+        var Home = Support.sequelize.define('Home', {
+          location: DataTypes.GEOMETRY
+        },
+        {
+          freezeTableName: true
+        });
+
+        Home.User = Home.belongsTo(User, {foreignKey: 'user_id'});
+        User.Homes = Home.hasMany(Home, {foreignKey: 'user_id'});
+
+        expectsql(sql.selectQuery('Home', {
+          attributes: ['location'],
+          include: Model.$validateIncludedElements({
+            include: [{
+              attributes: ['name'],
+              association: Home.User
+            }],
+            model: Home
+          }).include,
+          model: User
+        }, Home), {
+          default: 'SELECT [Home].[location], [User].[id] AS [User.id], [User].[name] AS [User.name] FROM [Home] AS [Home] LEFT OUTER JOIN [User] AS [User] ON [Home].[user_id] = [User].[id];',
+          mysql: 'SELECT AsText(`Home`.`location`) AS `location`, `User`.`id` AS `User.id`, `User`.`name` AS `User.name` FROM `Home` AS `Home` LEFT OUTER JOIN `User` AS `User` ON `Home`.`user_id` = `User`.`id`;'
+        });
+        expectsql(sql.selectQuery('User', {
+          attributes: ['name'],
+          include: Model.$validateIncludedElements({
+            include: [{
+              attributes: ['location'],
+              association: User.Homes
+            }],
+            model: User
+          }).include,
+          model: Home
+        }, User), {
+          default: 'SELECT [User].[name], [Homes].[id] AS [Homes.id], [Homes].[location] AS [Homes.location] FROM [User] AS [User] LEFT OUTER JOIN [Home] AS [Homes] ON [User].[id] = [Homes].[user_id];',
+          mysql: 'SELECT `User`.`name`, `Homes`.`id` AS `Homes.id`, AsText(`Homes`.`location`) AS `Homes.location` FROM `User` AS `User` LEFT OUTER JOIN `Home` AS `Homes` ON `User`.`id` = `Homes`.`user_id`;'
+        });
+      });
+    });
+  }
 });
