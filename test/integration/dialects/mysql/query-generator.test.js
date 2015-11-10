@@ -566,7 +566,7 @@ if (Support.dialectIsMySQL()) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
-            QueryGenerator.options = context.options;
+            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
