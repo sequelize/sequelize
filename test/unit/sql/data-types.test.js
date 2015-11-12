@@ -174,6 +174,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         sqlite: 'DATETIME'
       });
 
+      testsql('DATE(6)', DataTypes.DATE(6), {
+        postgres: 'TIMESTAMP WITH TIME ZONE',
+        mssql: 'DATETIME2',
+        mysql: 'DATETIME(6)',
+        sqlite: 'DATETIME'
+      });
+
       suite('validate', function () {
         test('should throw an error if `value` is invalid', function() {
           var type = DataTypes.DATE();
