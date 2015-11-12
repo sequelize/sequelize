@@ -74,9 +74,9 @@ Associate several instances with this.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [newAssociations] | Array.&lt;Instance &#124; String &#124; Number&gt; | An array of instances or primary key of instances to associate with this. Pass `null` or `undefined` to remove all associations. |
-| [options] | Object | Options passed to `through.findAll`, `bulkCreate`, and `update` `destroy`. Can also hold additional attributes for the join table |
-| [options.validate] | Object | Run validation for the join model |
+| [newAssociations] | Array.&lt;Instance &#124; String &#124; Number&gt; | An array of instances or primary key of instances to associate with this. |
+| [options] | Object | Options passed to `through.findAll`, `bulkCreate` and `update`. Can also hold additional attributes for the join table. |
+| [options.validate] | Object | Run validation for the join model. |
 
 
 ***
@@ -85,15 +85,15 @@ Associate several instances with this.
 ## `addAssociation([newAssociation], [options])` -> `Promise`
 [View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/belongs-to-many.js#L239)
 
-Associate several instances with this.
+Associate one instance with this.
 
 **Params:**
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [newAssociation] | Instance &#124; String &#124; Number | An array of instances or primary key of instances to associate with this. Pass `null` or `undefined` to remove all associations. |
-| [options] | Object | Options passed to `through.findAll`, `bulkCreate` and `update`. Can also hold additional attributes for the join table |
-| [options.validate] | Object | Run validation for the join model |
+| [newAssociation] | Instance &#124; String &#124; Number | An instance or primary key of instance to associate with this. |
+| [options] | Object | Options passed to `through.findAll`, `bulkCreate` and `update`. Can also hold additional attributes for the join table. |
+| [options.validate] | Object | Run validation for the join model. |
 
 
 ***
