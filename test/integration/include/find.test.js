@@ -172,6 +172,30 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         });
     });
 
+    it('should include a model when the PK field name and foreign key name match', function() {
+      var A = this.sequelize.define('a', {
+        id: {
+          type: DataTypes.INTEGER,
+          field: 'a_id',
+          primaryKey: true
+        }
+      })
+      , B = this.sequelize.define('b', {});
+
+      A.hasOne(B);
+      B.belongsTo(A);
+
+      return this.sequelize
+        .sync({force: true})
+        .then(function() {
+          return A.create({ B: {} }, { include: [B] });
+        })
+        .then(function(a) {
+          expect(a).to.not.equal(null);
+          expect(a.get('b')).to.not.equal(null);
+        });
+    });
+
 
     it('should still pull the main record when an included model is not required and has where restrictions without matches', function() {
       var A = this.sequelize.define('a', {
