@@ -40,7 +40,7 @@
     "lodash": "^3.9.3",
     "moment": "^2.9.0",
     "moment-timezone": "^0.4.1",
-    "node-uuid": "~1.4.1",
+    "node-uuid": "~1.4.4",
     "semver": "^5.0.1",
     "shimmer": "1.1.0",
     "toposort-class": "^1.0.1",
