@@ -152,7 +152,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('equipment', {
         $notIn: []
       }, {
-        default: '[equipment] NOT IN (NULL)'
+        default: ''
       });
 
       testsql('equipment', {
