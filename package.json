@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS/io.js",
-  "version": "3.13.0",
+  "version": "3.14.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -32,7 +32,7 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "bluebird": "^3.0.0",
+    "bluebird": "^3.0.5",
     "depd": "^1.0.0",
     "dottie": "^1.0.0",
     "generic-pool": "2.2.1",
