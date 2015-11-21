@@ -1878,6 +1878,54 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should be able to order when using custom field names', function () {
+      var User = this.sequelize.define('User', {
+        lastName: { field: 'last_name', type: DataTypes.STRING }
+      });
+      var Company = this.sequelize.define('Company', {
+        combinedRank: { field: 'combined_rank', type: DataTypes.INTEGER }
+      });
+
+      User.belongsTo(Company);
+      Company.hasMany(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          User.create({lastName: 'Albertsen'}),
+          User.create({lastName: 'Zenith'}),
+          User.create({lastName: 'Hansen'}),
+          Company.create({combinedRank: 1}),
+          Company.create({combinedRank: 2})
+        ).spread(function (albertsen, zenith, hansen, company1, company2) {
+          return Promise.join(
+            albertsen.setCompany(company1),
+            zenith.setCompany(company2),
+            hansen.setCompany(company2)
+          );
+        }).then(function () {
+          return User.findAll({
+            include: [
+              {model: Company}
+            ],
+            order: [
+              [Company, 'combinedRank', 'ASC'],
+              ['lastName', 'DESC']
+            ],
+            limit: 5
+          }).then(function (users) {
+            expect(users[0].lastName).to.equal('Albertsen');
+            expect(users[0].Company.combinedRank).to.equal(1);
+
+            expect(users[1].lastName).to.equal('Zenith');
+            expect(users[1].Company.combinedRank).to.equal(2);
+
+            expect(users[2].lastName).to.equal('Hansen');
+            expect(users[2].Company.combinedRank).to.equal(2);
+          });
+        });
+      });
+    });
+
     it('should ignore include with attributes: [] (used for aggregates)', function () {
       var Post = this.sequelize.define('Post', {
             title: DataTypes.STRING
