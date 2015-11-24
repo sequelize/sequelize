@@ -238,7 +238,9 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         });
       });
     });
-    
+  }
+  
+  if (current.dialect.supports.transactionOptions.type) {
     describe('transaction types', function() {
       it('should support default transaction type DEFERRED', function() {
         return this.sequelize.transaction({
