@@ -238,6 +238,30 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         });
       });
     });
+    
+    describe('transaction types', function() {
+      it('should support default transaction type DEFERRED', function() {
+        return this.sequelize.transaction({
+        }).bind(this).then(function (t) {
+          return t.rollback().bind(this).then(function() {
+            expect(t.options.type).to.equal('DEFERRED');
+          });
+        });
+      });
+      
+      Object.keys(Transaction.TYPES).forEach(function(key) {
+        it('should allow specification of ' + key + ' type', function() {
+          return this.sequelize.transaction({
+            type: key
+          }).bind(this).then(function (t) {
+            return t.rollback().bind(this).then(function() {
+              expect(t.options.type).to.equal(Transaction.TYPES[key]);
+            });
+          });
+        });
+      });
+      
+    });
   }
 
    if (current.dialect.supports.lock) {
