@@ -53,7 +53,8 @@ sequelize
   .authenticate()
   .then(function(err) {
     console.log('Connection has been established successfully.');
-  }, function (err) { 
+  })
+  .catch(function (err) {
     console.log('Unable to connect to the database:', err);
   });
 ```
