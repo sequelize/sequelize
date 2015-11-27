@@ -1,3 +1,9 @@
+# Next
+- [FIXED] Don't overwrite options.foreignKey in associations [#4927](https://github.com/sequelize/sequelize/pull/4927)
+
+# 3.14.1
+- [FIXED] Issue with transaction options leaking and certain queries running outside of the transaction connection.
+
 # 3.14.0
 - [FIXED] Apply scopes to `aggregate` [#4764](https://github.com/sequelize/sequelize/issues/4764)
 - [FIXED] Improved postgres enum schema handling [#4796](https://github.com/sequelize/sequelize/issues/4796)

@@ -13,6 +13,14 @@ var chai = require('chai')
 if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser('Transaction'), function() {
+  beforeEach(function () {
+    this.sinon = sinon.sandbox.create();
+  });
+
+  afterEach(function () {
+    this.sinon.restore();
+  });
+
   this.timeout(5000);
   describe('constructor', function() {
     it('stores options', function() {
@@ -126,7 +134,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     return expect(
       this.sequelize.transaction().then(function(t) {
         return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
-          return t.commit();
+          return t.rollback();
         }).then(function() {
           return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
         });
@@ -168,6 +176,38 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         return t.rollback();
       });
     })).to.be.rejectedWith('Error: Transaction cannot be rolled back because it has been finished with state: rollback');
+  });
+
+  it('works even if a transaction: null option is passed', function () {
+    this.sinon.spy(this.sequelize, 'query');
+
+    return this.sequelize.transaction({
+      transaction: null
+    }).bind(this).then(function (t) {
+      return t.commit().bind(this).then(function () {
+        expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+
+        for (var i = 0; i < this.sequelize.query.callCount; i++) {
+          expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+        }
+      });
+    });
+  });
+
+  it('works even if a transaction: undefined option is passed', function () {
+    this.sinon.spy(this.sequelize, 'query');
+
+    return this.sequelize.transaction({
+      transaction: undefined
+    }).bind(this).then(function (t) {
+      return t.commit().bind(this).then(function () {
+        expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+
+        for (var i = 0; i < this.sequelize.query.callCount; i++) {
+          expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+        }
+      });
+    });
   });
 
   if (dialect === 'sqlite'){
