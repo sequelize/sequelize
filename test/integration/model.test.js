@@ -11,6 +11,7 @@ var chai = require('chai')
   , sinon = require('sinon')
   , _ = require('lodash')
   , moment = require('moment')
+  , Promise = require('bluebird')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
@@ -1997,9 +1998,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         value: Sequelize.DECIMAL(10, 3)
       });
 
-      return this.UserWithAge.sync({ force: true }).then(function() {
-        return self.UserWithDec.sync({ force: true });
+      this.UserWithFields = this.sequelize.define('UserWithFields', {
+        age: {
+          type: Sequelize.INTEGER,
+          field: 'user_age'
+        },
+        order: Sequelize.INTEGER,
+        gender: {
+          type: Sequelize.ENUM('male', 'female'),
+          field: 'male_female'
+        }
       });
+
+      return Promise.join(
+        this.UserWithAge.sync({ force: true }),
+        this.UserWithDec.sync({ force: true }),
+        this.UserWithFields.sync({ force: true })
+      );
     });
 
     it('should return the sum of the values for a field named the same as an SQL reserved keyword', function() {
@@ -2037,6 +2052,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return self.UserWithAge.sum('age', options).then(function(sum) {
           expect(sum).to.equal(2);
         });
+      });
+    });
+
+    it('should accept a where clause with custom fields', function() {
+      return this.UserWithFields.bulkCreate([
+        {age: 2, gender: 'male'},
+        {age: 3, gender: 'female'}
+      ], {
+        logging: console.log
+      }).bind(this).then(function() {
+        return expect(this.UserWithFields.sum('age', {
+          where: { 'gender': 'male' }
+        })).to.eventually.equal(2);
       });
     });
 
