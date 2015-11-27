@@ -1,3 +1,6 @@
+# Next
+- [FIXED] Don't overwrite options.foreignKey in associations [#4927](https://github.com/sequelize/sequelize/pull/4927)
+
 # 3.14.1
 - [FIXED] Issue with transaction options leaking and certain queries running outside of the transaction connection.
 
