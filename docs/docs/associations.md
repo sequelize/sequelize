@@ -510,12 +510,12 @@ Project.create({ /* */ }).then(function(project) {
 // check if all associated objects are as expected:
 // let's assume we have already a project and two users
 project.setUsers([user1, user2]).then(function() {
-  return project.hasUsers([user1]).then(function(result) {
-    // result would be false
-    return project.hasUsers([user1, user2]).then(function(result) {
-      // result would be true
-    })
-  })
+  return project.hasUsers([user1]);
+}).then(function(result) {
+  // result would be false
+  return project.hasUsers([user1, user2]);
+}).then(function(result) {
+  // result would be true
 })
 ```
 
