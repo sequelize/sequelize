@@ -1483,8 +1483,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             expect(Number(user.deletedAt)).to.equal(epoch);
             return user.destroy();
           }).then(function(destroyedUser) {
+            expect(destroyedUser.deletedAt).to.exist;
             expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
-            return destroyedUser.restore();
+            return User.findById(destroyedUser.id, { paranoid: false });
+          }).then(function(fetchedDestroyedUser) {
+            expect(fetchedDestroyedUser.deletedAt).to.exist;
+            expect(Number(fetchedDestroyedUser.deletedAt)).not.to.equal(epoch);
+            return fetchedDestroyedUser.restore();
           }).then(function(restoredUser) {
             expect(Number(restoredUser.deletedAt)).to.equal(epoch);
             return User.destroy({where: {
