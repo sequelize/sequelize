@@ -146,7 +146,7 @@ $col: 'user.organization_id' // = "user"."organization_id", with dialect specifi
 {
   rank: {
     $or: {
-      $lt: 100,
+      $lt: 1000,
       $eq: null
     }
   }
