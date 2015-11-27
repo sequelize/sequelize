@@ -1987,7 +1987,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('sum', function() {
     beforeEach(function() {
-      var self = this;
       this.UserWithAge = this.sequelize.define('UserWithAge', {
         age: Sequelize.INTEGER,
         order: Sequelize.INTEGER,

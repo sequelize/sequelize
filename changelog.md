@@ -1,6 +1,7 @@
 # Next
 - [FIXED] Model.aggregate methods now support attributes and where conditions with fields. [#4935](https://github.com/sequelize/sequelize/issues/4935)
 - [FIXED] Don't overwrite options.foreignKey in associations [#4927](https://github.com/sequelize/sequelize/pull/4927)
+- [FIXED] Support nested `$col` keys. [#4849](https://github.com/sequelize/sequelize/issues/4849)
 
 # 3.14.1
 - [FIXED] Issue with transaction options leaking and certain queries running outside of the transaction connection.
