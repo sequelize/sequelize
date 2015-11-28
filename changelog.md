@@ -1,4 +1,4 @@
-# 3.14.2
+# NEXT
  - [FIXED] Model.destroy({ truncate: true }) fails when using postgres and schemas
 
 # 3.14.2
