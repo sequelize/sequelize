@@ -840,10 +840,10 @@ if (dialect.match(/^postgres/)) {
       deleteQuery: [
         {
           arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\" = 'foo' LIMIT 1)"
+          expectation: "DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"public\".\"myTable\" WHERE \"name\" = 'foo' LIMIT 1)"
         }, {
           arguments: ['myTable', 1],
-          expectation: 'DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"id\" = 1 LIMIT 1)'
+          expectation: 'DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"public\".\"myTable\" WHERE \"id\" = 1 LIMIT 1)'
         }, {
           arguments: ['myTable', undefined, {truncate: true}],
           expectation: 'TRUNCATE \"public\".\"myTable\"'
@@ -855,16 +855,16 @@ if (dialect.match(/^postgres/)) {
           expectation: 'TRUNCATE \"public\".\"myTable\"'
         }, {
           arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"id\" = 1 LIMIT 10)'
+          expectation: 'DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"public\".\"myTable\" WHERE \"id\" = 1 LIMIT 10)'
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\" = 'foo'';DROP TABLE myTable;' LIMIT 10)"
+          expectation: "DELETE FROM \"public\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"public\".\"myTable\" WHERE \"name\" = 'foo'';DROP TABLE myTable;' LIMIT 10)"
         }, {
           arguments: ['mySchema.myTable', {name: 'foo'}],
-          expectation: "DELETE FROM \"public\".\"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\" = 'foo' LIMIT 1)"
+          expectation: "DELETE FROM \"mySchema\".\"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\" = 'foo' LIMIT 1)"
         }, {
           arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM \"public\".\"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
+          expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
         }, {
           arguments: ['myTable', {name: 'foo'}, {limit: null}],
           expectation: "DELETE FROM \"public\".\"myTable\" WHERE \"name\" = 'foo'"
@@ -873,19 +873,19 @@ if (dialect.match(/^postgres/)) {
         // Variants when quoteIdentifiers is false
         {
           arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM public.myTable WHERE id IN (SELECT id FROM myTable WHERE name = 'foo' LIMIT 1)",
+          expectation: "DELETE FROM public.myTable WHERE id IN (SELECT id FROM public.myTable WHERE name = 'foo' LIMIT 1)",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', 1],
-          expectation: 'DELETE FROM public.myTable WHERE id IN (SELECT id FROM myTable WHERE id = 1 LIMIT 1)',
+          expectation: 'DELETE FROM public.myTable WHERE id IN (SELECT id FROM public.myTable WHERE id = 1 LIMIT 1)',
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM public.myTable WHERE id IN (SELECT id FROM myTable WHERE id = 1 LIMIT 10)',
+          expectation: 'DELETE FROM public.myTable WHERE id IN (SELECT id FROM public.myTable WHERE id = 1 LIMIT 10)',
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM public.myTable WHERE id IN (SELECT id FROM myTable WHERE name = 'foo'';DROP TABLE myTable;' LIMIT 10)",
+          expectation: "DELETE FROM public.myTable WHERE id IN (SELECT id FROM public.myTable WHERE name = 'foo'';DROP TABLE myTable;' LIMIT 10)",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['mySchema.myTable', {name: 'foo'}],
