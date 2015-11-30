@@ -369,6 +369,11 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', {where: {field: {ne: null}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
           context: QueryGenerator
+        }, {
+          title: 'raw argument array',
+          arguments: ['myTable', {having: ['field IN (?)', [1, 'test', "foo';DROP TABLE myTable;"]]}],
+          expectation: "SELECT * FROM `myTable` HAVING field IN (1,'test','foo\\';DROP TABLE myTable;');",
+          context: QueryGenerator
         }
       ],
 
