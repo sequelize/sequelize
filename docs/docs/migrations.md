@@ -51,7 +51,7 @@ OPTIONS
 
 ## Skeleton
 
-The following skeleton shows a typical migration file&period; All migrations are expected to be located in a folder called `migrations` at the very top of the project&period; The sequelize binary can generate a migration skeleton&period; See the aboves section for more details&period;
+The following skeleton shows a typical migration file. All migrations are expected to be located in a folder called `migrations` at the very top of the project. The sequelize binary can generate a migration skeleton. See the above section for more details.
 
 ```js
 module.exports = {
@@ -65,7 +65,7 @@ module.exports = {
 }
 ```
 
-The passed `queryInterface` object can be used to modify the database&period; The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`&period; The third parameter is a callback function which needs to be called once everything was executed&period; The first parameter of the callback function can be used to pass a possible error&period; In that case&comma; the migration will be marked as failed&period; Here is some code&colon;
+The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. The third parameter is a callback function which needs to be called once everything was executed. The first parameter of the callback function can be used to pass a possible error. In that case, the migration will be marked as failed. Here is some code:
 
 ```js
 module.exports = {
@@ -75,15 +75,15 @@ module.exports = {
 }
 ```
 
-The available methods of the queryInterface object are the following&period;
+The available methods of the queryInterface object are the following.
 
 ## Functions
 
-Using the `queryInterface` object describe before&comma; you will have access to most of already introduced functions&period; Furthermore there are some other methods&comma; which are designed to actually change the database schema&period;
+Using the `queryInterface` object describe before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
 
-### createTable&lpar;tableName&comma; attributes&comma; options&rpar;
+### createTable(tableName, attributes, options)
 
-This method allows creation of new tables&period; It is allowed to pass simple or complex attribute definitions&period; You can define the encoding of the table and the table's engine via options
+This method allows creation of new tables. It is allowed to pass simple or complex attribute definitions. You can define the encoding of the table and the table's engine via options
 
 ```js
 queryInterface.createTable(
@@ -115,41 +115,41 @@ queryInterface.createTable(
 )
 ```
 
-### dropTable&lpar;tableName&comma; options&rpar;
+### dropTable(tableName, options)
 
-This method allows deletion of an existing table&period;
+This method allows deletion of an existing table.
 
 ```js
 queryInterface.dropTable('nameOfTheExistingTable')
 ```
 
-### dropAllTables&lpar;options&rpar;
+### dropAllTables(options)
 
-This method allows deletion of all existing tables in the database&period;
+This method allows deletion of all existing tables in the database.
 
 ```js
 queryInterface.dropAllTables()
 ```
 
-### renameTable&lpar;before&comma; after&comma; options&rpar;
+### renameTable(before, after, options)
 
-This method allows renaming of an existing table&period;
+This method allows renaming of an existing table.
 
 ```js
 queryInterface.renameTable('Person', 'User')
 ```
 
-### showAllTables&lpar;options&rpar;
+### showAllTables(options)
 
-This method returns the name of all existing tables in the database&period;
+This method returns the name of all existing tables in the database.
 
 ```js
 queryInterface.showAllTables().then(function(tableNames) {})
 ```
 
-### describeTable&lpar;tableName&comma; options&rpar;
+### describeTable(tableName, options)
 
-This method returns an array of hashes containing information about all attributes in the table&period;
+This method returns an array of hashes containing information about all attributes in the table.
 
 ```js
 queryInterface.describeTable('Person').then(function(attributes) {
@@ -172,9 +172,9 @@ queryInterface.describeTable('Person').then(function(attributes) {
 })
 ```
 
-### addColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&comma; options&rpar;
+### addColumn(tableName, attributeName, dataTypeOrOptions, options)
 
-This method allows adding columns to an existing table&period; The data type can be simple or complex&period;
+This method allows adding columns to an existing table. The data type can be simple or complex.
 
 ```js
 queryInterface.addColumn(
@@ -195,15 +195,15 @@ queryInterface.addColumn(
 )
 ```
 
-### removeColumn&lpar;tableName&comma; attributeName&comma; options&rpar;
+### removeColumn(tableName, attributeName, options)
 
-This method allows deletion of a specific column of an existing table&period;
+This method allows deletion of a specific column of an existing table.
 
 ```js
 queryInterface.removeColumn('Person', 'signature')
 ```
 
-### changeColumn&lpar;tableName&comma; attributeName&comma; dataTypeOrOptions&comma; options&rpar;
+### changeColumn(tableName, attributeName, dataTypeOrOptions, options)
 
 This method changes the meta data of an attribute. It is possible to change the default value, allowance of null or the data type. Please make sure, that you are completely describing the new data type.
 
@@ -219,17 +219,17 @@ queryInterface.changeColumn(
 )
 ```
 
-### renameColumn&lpar;tableName&comma; attrNameBefore&comma; attrNameAfter&comma; options&rpar;
+### renameColumn(tableName, attrNameBefore, attrNameAfter, options)
 
-This methods allows renaming attributes&period;
+This methods allows renaming attributes.
 
 ```js
 queryInterface.renameColumn('Person', 'signature', 'sig')
 ```
 
-### addIndex&lpar;tableName&comma; attributes&comma; options&rpar;
+### addIndex(tableName, attributes, options)
 
-This methods creates indexes for specific attributes of a table&period; The index name will be automatically generated if it is not passed via in the options &lpar;see below&rpar;&period;
+This methods creates indexes for specific attributes of a table. The index name will be automatically generated if it is not passed via in the options (see below).
 
 ```js
 // This example will create the index person_firstname_lastname
@@ -252,9 +252,9 @@ queryInterface.addIndex(
 )
 ```
 
-### removeIndex&lpar;tableName&comma; indexNameOrAttributes&comma; options&rpar;
+### removeIndex(tableName, indexNameOrAttributes, options)
 
-This method deletes an existing index of a table&period;
+This method deletes an existing index of a table.
 
 ```js
 queryInterface.removeIndex('Person', 'SuperDuperIndex')

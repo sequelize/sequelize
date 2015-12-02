@@ -150,7 +150,7 @@ Sequelize.INTEGER(11).ZEROFILL.UNSIGNED // INTEGER(11) UNSIGNED ZEROFILL
 Sequelize.INTEGER(11).UNSIGNED.ZEROFILL // INTEGER(11) UNSIGNED ZEROFILL
 ```
 
-_The examples above only show integer&comma; but the same can be done with bigint and float_
+_The examples above only show integer, but the same can be done with bigint and float_
 
 Usage in object notation:
 
@@ -274,7 +274,7 @@ function(title) {
 
 ## Validations
 
-Model validations, allow you to specify format&sol;content&sol;inheritance validations for each attribute of the model&period;
+Model validations, allow you to specify format/content/inheritance validations for each attribute of the model.
 
 Validations are automatically run on `create`, `update` and `save`. You can also call `validate()` to manually validate an instance.
 
@@ -332,9 +332,9 @@ var ValidateMe = sequelize.define('Foo', {
 })
 ```
 
-Note that where multiple arguments need to be passed to the built-in validation functions&comma; the arguments to be passed must be in an array&period; But if a single array argument is to be passed&comma; for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument&period; To work around this pass a single-length array of arguments&comma; such as `[['one', 'two']]` as shown above&period;
+Note that where multiple arguments need to be passed to the built-in validation functions, the arguments to be passed must be in an array. But if a single array argument is to be passed, for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument. To work around this pass a single-length array of arguments, such as `[['one', 'two']]` as shown above.
 
-To use a custom error message instead of that provided by validator.js&comma; use an object instead of the plain value or array of arguments&comma; for example a validator which needs no argument can be given a custom message with
+To use a custom error message instead of that provided by validator.js, use an object instead of the plain value or array of arguments, for example a validator which needs no argument can be given a custom message with
 
 ```js
 isInt: {
@@ -342,7 +342,7 @@ isInt: {
 }
 ```
 
-or if arguments need to also be passed add an`args`property&colon;
+or if arguments need to also be passed add an`args`property:
 
 ```js
 isIn: {
@@ -351,25 +351,25 @@ isIn: {
 }
 ```
 
-When using custom validator functions the error message will be whatever message the thrown`Error`object holds&period;
+When using custom validator functions the error message will be whatever message the thrown`Error`object holds.
 
-See [the validator.js project][3] for more details on the built in validation methods&period;
+See [the validator.js project][3] for more details on the built in validation methods.
 
-**Hint&colon; **You can also define a custom function for the logging part&period; Just pass a function&period; The first parameter will be the string that is logged&period;
+**Hint: **You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.
 
 ### Validators and `allowNull`
 
-If a particular field of a model is set to allow null &lpar;with `allowNull: true`&rpar; and that value has been set to `null` &comma; its validators do not run&period; This means you can&comma; for instance&comma; have a string field which validates its length to be at least 5 characters&comma; but which also allows`null`&period;
+If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run. This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows`null`.
 
 ### Model validations
 
-Validations can also be defined to check the model after the field-specific validators&period; Using this you could&comma; for example&comma; ensure either neither of `latitude` and `longitude` are set or both&comma; and fail if one but not the other is set&period;
+Validations can also be defined to check the model after the field-specific validators. Using this you could, for example, ensure either neither of `latitude` and `longitude` are set or both, and fail if one but not the other is set.
 
-Model validator methods are called with the model object's context and are deemed to fail if they throw an error&comma; otherwise pass&period; This is just the same as with custom field-specific validators&period;
+Model validator methods are called with the model object's context and are deemed to fail if they throw an error, otherwise pass. This is just the same as with custom field-specific validators.
 
-Any error messages collected are put in the validation result object alongside the field validation errors&comma; with keys named after the failed validation method's key in the `validate` option object&period; Even though there can only be one error message for each model validation method at any one time&comma; it is presented as a single string error in an array&comma; to maximize consistency with the field errors&period;
+Any error messages collected are put in the validation result object alongside the field validation errors, with keys named after the failed validation method's key in the `validate` option object. Even though there can only be one error message for each model validation method at any one time, it is presented as a single string error in an array, to maximize consistency with the field errors.
 
-An example&colon;
+An example:
 
 ```js
 var Pub = Sequelize.define('Pub', {
@@ -398,7 +398,7 @@ var Pub = Sequelize.define('Pub', {
 })
 ```
 
-In this simple case an object fails validation if either latitude or longitude is given&comma; but not both&period; If we try to build one with an out-of-range latitude and nolongitude, `raging_bullock_arms.validate()` might return
+In this simple case an object fails validation if either latitude or longitude is given, but not both. If we try to build one with an out-of-range latitude and no longitude, `raging_bullock_arms.validate()` might return
 
 ```js
 {
@@ -409,7 +409,7 @@ In this simple case an object fails validation if either latitude or longitude i
 
 ## Configuration
 
-You can also influence the way Sequelize handles your column names&colon;
+You can also influence the way Sequelize handles your column names:
 
 ```js
 var Bar = sequelize.define('Bar', { /* bla */ }, {
@@ -425,7 +425,7 @@ var Bar = sequelize.define('Bar', { /* bla */ }, {
   // so updatedAt will be updated_at
   underscored: true,
 
-  // disable the modification of tablenames; By default, sequelize will automatically
+  // disable the modification of table names; By default, sequelize will automatically
   // transform all passed model names (first parameter of define) into plural.
   // if you don't want that, set the following
   freezeTableName: true,
@@ -454,7 +454,7 @@ var Foo = sequelize.define('Foo',  { /* bla */ }, {
 })
 ```
 
-You can also change the database engine&comma; e&period;g&period; to MyISAM&period; InnoDB is the default.
+You can also change the database engine, e.g. to MyISAM. InnoDB is the default.
 
 ```js
 var Person = sequelize.define('Person', { /* attributes */ }, {
@@ -467,7 +467,7 @@ var sequelize = new Sequelize(db, user, pw, {
 })
 ```
 
-Finaly you can specify a comment for the table in MySQL and PG
+Finally you can specify a comment for the table in MySQL and PG
 
 ```js
 var Person = sequelize.define('Person', { /* attributes */ }, {
@@ -477,7 +477,7 @@ var Person = sequelize.define('Person', { /* attributes */ }, {
 
 ## Import
 
-You can also store your model definitions in a single file using the `import` method&period; The returned object is exactly the same as defined in the imported file's function&period; Since `v1:5.0` of Sequelize the import is cached&comma; so you won't run into troubles when calling the import of a file twice or more often&period;
+You can also store your model definitions in a single file using the `import` method. The returned object is exactly the same as defined in the imported file's function. Since `v1:5.0` of Sequelize the import is cached, so you won't run into troubles when calling the import of a file twice or more often.
 
 ```js
 // in your server file - e.g. app.js
@@ -493,7 +493,7 @@ module.exports = function(sequelize, DataTypes) {
 }
 ```
 
-The `import` method can also accept a callback as an argument&period;
+The `import` method can also accept a callback as an argument.
 
 ```js
 sequelize.import('Project', function(sequelize, DataTypes) {
@@ -506,7 +506,7 @@ sequelize.import('Project', function(sequelize, DataTypes) {
 
 ## Database synchronization
 
-When starting a new project you won't have a database structure and using Sequelize you won't need to&period; Just specify your model structures and let the library do the rest&period; Currently supported is the creation and deletion of tables&colon;
+When starting a new project you won't have a database structure and using Sequelize you won't need to. Just specify your model structures and let the library do the rest. Currently supported is the creation and deletion of tables:
 
 ```js
 // Create the tables:
@@ -528,7 +528,7 @@ Project.[sync|drop]().then(function() {
 })
 ```
 
-Because synchronizing and dropping all of your tables might be a lot of lines to write&comma; you can also let Sequelize do the work for you&colon;
+Because synchronizing and dropping all of your tables might be a lot of lines to write, you can also let Sequelize do the work for you:
 
 ```js
 // Sync all models that aren't already in the database
@@ -559,7 +559,7 @@ sequelize.sync({ force: true, match: /_test$/ });
 
 ## Expansion of models
 
-Sequelize allows you to pass custom methods to a model and its instances&period; Just do the following&colon;
+Sequelize allows you to pass custom methods to a model and its instances. Just do the following:
 
 ```js
 var Foo = sequelize.define('Foo', { /* attributes */}, {
@@ -576,7 +576,7 @@ Foo.method1()
 Foo.build().method2()
 ```
 
-Of course you can also access the instance's data and generate virtual getters&colon;
+Of course you can also access the instance's data and generate virtual getters:
 
 ```js
 var User = sequelize.define('User', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
@@ -591,7 +591,7 @@ var User = sequelize.define('User', { firstname: Sequelize.STRING, lastname: Seq
 User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
 ```
 
-You can also set custom methods to all of your models during the instantiation&colon;
+You can also set custom methods to all of your models during the instantiation:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
