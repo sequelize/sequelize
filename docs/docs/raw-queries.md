@@ -32,7 +32,7 @@ sequelize.query('SELECT * FROM projects', { model: Projects }).then(function(pro
 Replacements in a query can be done in two different ways, either using named parameters (starting with `:`), or unnamed, represented by a `?`. Replacements are passed in the options object.
 
 * If an array is passed, `?` will be replaced in the order that they appear in the array
-* If an object is passed, `:key` will be replaced with the keys from that object. If the object contains keys not found in the query or vice verca, an exception will be thrown.
+* If an object is passed, `:key` will be replaced with the keys from that object. If the object contains keys not found in the query or vice versa, an exception will be thrown.
 
 ```js
 sequelize.query('SELECT * FROM projects WHERE status = ?',
@@ -49,9 +49,9 @@ sequelize.query('SELECT * FROM projects WHERE status = :status ',
 ```
 
 # Bind Parameter
-Bind parameters are like replacemnets. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the sql query text. A query can have either bind parameters or replacments.
+Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements.
 
-Only Sqlite and Postgresql support bind parameters. Other dialects will insert them into the sql query in the same way it is done for replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.
+Only SQLite and PostgreSQL support bind parameters. Other dialects will insert them into the SQL query in the same way it is done for replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.
 
 * If an array is passed, `$1` will be bound to the 1st element in the array (`bind[0]`)
 * If an object is passed, `$key` will be bound to `object['key']`. Each key must have a none numeric char. `$1` is not a valid key, even if `object['1']` exists.
@@ -59,7 +59,7 @@ Only Sqlite and Postgresql support bind parameters. Other dialects will insert t
 
 All bound values must be present in the array/object or an exception will be thrown. This applies even to cases in which the database may ignore the bound parameter.
 
-The database may add further restrictions to this. Bind parameters can not be sql keywords, nor table or column names. They are also ignored in quoted text/data. In Postgresql it may also be needed to typecast them, if the type can not be inferred from the context `$1::varchar`.
+The database may add further restrictions to this. Bind parameters cannot be SQL keywords, nor table or column names. They are also ignored in quoted text/data. In PostgreSQL it may also be needed to typecast them, if the type cannot be inferred from the context `$1::varchar`.
 
 ```js
 sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $1',
