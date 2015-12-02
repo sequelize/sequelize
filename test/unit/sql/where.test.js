@@ -341,6 +341,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, {
         default: '[organization].[id] = [user].[organizationId]'
       });
+
+      testsql('$offer.organization.id$', {
+        $col: 'offer.user.organizationId'
+      }, {
+        default: '[offer.organization].[id] = [offer.user].[organizationId]'
+      });
     });
 
     suite('$gt', function () {
