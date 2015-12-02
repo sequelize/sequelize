@@ -1,3 +1,6 @@
+# NEXT
+ - [FIXED] Model.destroy({ truncate: true }) fails when using postgres and schemas
+
 # 3.14.2
 - [FIXED] Model.aggregate methods now support attributes and where conditions with fields. [#4935](https://github.com/sequelize/sequelize/issues/4935)
 - [FIXED] Don't overwrite options.foreignKey in associations [#4927](https://github.com/sequelize/sequelize/pull/4927)
