@@ -238,6 +238,42 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         });
       });
     });
+
+    it('automatically retries on SQLITE_BUSY failure', function () {
+      return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        return User.sync({ force: true }).then(function() {
+          var newTransactionFunc = function() {
+            return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE}).then(function(t){
+              return User.create({}, {transaction:t}).then(function( ) {
+                return t.commit();
+              });
+            });
+          };
+          return Promise.join(newTransactionFunc(), newTransactionFunc()).then(function(results) {
+            return User.findAll().then(function(users) {
+              expect(users.length).to.equal(2);
+            });
+          });
+        });
+      });
+    });
+
+    it('fails with SQLITE_BUSY when retry.match is changed', function () {
+      return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        return User.sync({ force: true }).then(function() {
+          var newTransactionFunc = function() {
+            return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: {match: ['NO_MATCH']}}).then(function(t){
+              return User.create({}, {transaction:t}).then(function( ) {
+                return t.commit();
+              });
+            });
+          };
+          return expect(Promise.join(newTransactionFunc(), newTransactionFunc())).to.be.rejectedWith('SQLITE_BUSY: database is locked');
+        });
+      });
+    });
   }
   
   if (current.dialect.supports.transactionOptions.type) {
