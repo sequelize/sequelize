@@ -238,7 +238,6 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
         });
       });
     });
-<<<<<<< HEAD
 
     it('automatically retries on SQLITE_BUSY failure', function () {
       return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
