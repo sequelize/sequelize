@@ -14,6 +14,8 @@ var chai = require('chai')
   , moment = require('moment')
   , Transaction = require(__dirname + '/../../lib/transaction')
   , sinon = require('sinon')
+  , babel = require('babel-core')
+  , fs = require('fs')
   , current = Support.sequelize;
 
 
@@ -545,14 +547,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
       });
     });
-    
+
     it('throw an exception when binds passed with object and numeric $1 is also present', function() {
       var self = this;
       var typeCast = (dialect === 'postgres') ? '::int' : '';
       var logSql;
       expect(function() {
         self.sequelize.query('select $one'+typeCast+' as foo, $two'+typeCast+' as bar, \'$1\' as baz', {  raw: true, bind: { one: 1, two: 2 }, logging: function(s) { logSql = s; } });
-      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);      
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
     it('throw an exception when binds passed as array and $alpha is also present', function() {
@@ -619,7 +621,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         self.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: new Date()});
       }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
-    
+
     it('handles AS in conjunction with functions just fine', function() {
       var datetime = (dialect === 'sqlite' ? 'date(\'now\')' : 'NOW()');
       if (dialect === 'mssql') {
@@ -1132,8 +1134,21 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('import', function() {
     it('imports a dao definition from a file absolute path', function() {
       var Project = this.sequelize.import(__dirname + '/assets/project');
-
       expect(Project).to.exist;
+    });
+
+    it('imports a dao definition from a file compiled with babel', function () {
+      var es6project = babel.transformFileSync(__dirname + '/assets/es6project.es6', {
+        presets: ['es2015']
+      }).code;
+      fs.writeFileSync(__dirname + '/assets/es6project.js', es6project);
+      var Project = this.sequelize.import(__dirname + '/assets/es6project');
+      expect(Project).to.exist;
+
+    });
+
+    after(function(){
+      fs.unlink(__dirname + '/assets/es6project.js');
     });
 
     it('imports a dao definition from a function', function() {

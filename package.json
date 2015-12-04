@@ -49,6 +49,8 @@
     "wkx": "0.1.0"
   },
   "devDependencies": {
+    "babel-core": "^6.2.0",
+    "babel-preset-es2015": "^6.1.18",
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
     "chai-datetime": "^1.4.0",
