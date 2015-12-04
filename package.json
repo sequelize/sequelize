@@ -46,7 +46,7 @@
     "toposort-class": "^1.0.1",
     "validator": "^4.0.4",
     "wellknown": "^0.4.0",
-    "wkx": "0.1.0"
+    "wkx": "0.2.0"
   },
   "devDependencies": {
     "babel-core": "^6.2.0",
