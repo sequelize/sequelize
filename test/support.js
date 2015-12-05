@@ -110,6 +110,14 @@ var Support = {
     return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
   },
 
+  getConnectionOptions: function(options) {
+    var config = Config[this.getTestDialect()];
+
+    delete config.pool;
+
+    return config;
+  },
+
   getSequelizeInstance: function(db, user, pass, options) {
     options = options || {};
     options.dialect = options.dialect || this.getTestDialect();
