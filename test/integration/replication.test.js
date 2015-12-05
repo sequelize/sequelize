@@ -14,7 +14,6 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
   beforeEach(function () {
     this.sequelize = Support.getSequelizeInstance(null, null, null, {
       replication: {
-        // Just need empty objects, sequelize will copy in defaults
         write: Support.getConnectionOptions(),
         read: [Support.getConnectionOptions()]
       }
