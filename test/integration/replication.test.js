@@ -3,15 +3,10 @@
 /* jshint -W030 */
 /* jshint -W110 */
 var chai = require('chai')
-  , Sequelize = require('../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , sinon = require('sinon')
-  , _ = require('lodash')
-  , moment = require('moment')
-  , Promise = require('bluebird');
+  , dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Replication'), function() {
   if (dialect === 'sqlite') return;
