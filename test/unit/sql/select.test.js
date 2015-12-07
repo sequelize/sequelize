@@ -237,9 +237,10 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     test('raw replacements', function () {
       expectsql(sql.selectQuery('User', {
         attributes: ['*'],
-        having: ['name IN (?)', [1, 'test', "foo';DROP TABLE myTable;"]]
+        having: ['name IN (?)', [1, 'test', 3, "derp"]]
       }), {
-        default: "SELECT * FROM [User] HAVING name IN ([1,'test','foo\\';DROP TABLE myTable;']);",
+        default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');",
+        postgres: "SELECT * FROM \"User\" HAVING name IN (ARRAY[1,'test',3,'derp']);"
       });
     });
   });
