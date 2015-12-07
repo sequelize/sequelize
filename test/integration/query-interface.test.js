@@ -545,6 +545,107 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
   });
 
+  describe('removeColumn', function() {
+    describe('(without a schema)', function() {
+      beforeEach(function() {
+        return this.queryInterface.createTable('users', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          firstName: {
+            type: DataTypes.STRING,
+            defaultValue: 'Someone'
+          },
+          lastName: {
+            type: DataTypes.STRING
+          }
+        });
+      });
+
+      it('should be able to remove a column with a default value', function() {
+        return this.queryInterface.removeColumn('users', 'firstName', {
+          logging: log
+        }).bind(this).then(function() {
+          expect(count).to.be.at.least(1);
+          count = 0;
+          return this.queryInterface.describeTable('users');
+        }).then(function(table) {
+            expect(table).to.not.have.property('firstName');
+        });
+      });
+
+      it('should be able to remove a column without default value', function() {
+        return this.queryInterface.removeColumn('users', 'lastName', {
+          logging: log
+        }).bind(this).then(function() {
+          expect(count).to.be.at.least(1);
+          count = 0;
+          return this.queryInterface.describeTable('users');
+        }).then(function(table) {
+          expect(table).to.not.have.property('lastName');
+        });
+      });
+    });
+
+    describe('(with a schema)', function() {
+      beforeEach(function() {
+        return this.queryInterface.createTable({
+          tableName: 'users',
+          schema: 'archive'
+        }, {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          firstName: {
+            type: DataTypes.STRING,
+            defaultValue: 'Someone'
+          },
+          lastName: {
+            type: DataTypes.STRING
+          }
+        });
+      });
+
+      it('should be able to remove a column with a default value', function() {
+        return this.queryInterface.removeColumn({
+            tableName: 'users',
+            schema: 'archive'
+          }, 'firstName', {logging: log}
+        ).bind(this).then(function() {
+            expect(count).to.be.at.least(1);
+            count = 0;
+            return this.queryInterface.describeTable({
+              tableName: 'users',
+              schema: 'archive'
+            });
+          }).then(function(table) {
+            expect(table).to.not.have.property('firstName');
+          });
+      });
+
+      it('should be able to remove a column without default value', function() {
+        return this.queryInterface.removeColumn({
+            tableName: 'users',
+            schema: 'archive'
+          }, 'lastName', {logging: log}
+        ).bind(this).then(function() {
+            expect(count).to.be.at.least(1);
+            count = 0;
+            return this.queryInterface.describeTable({
+              tableName: 'users',
+              schema: 'archive'
+            });
+          }).then(function(table) {
+            expect(table).to.not.have.property('lastName');
+          });
+      });
+    });
+  });
+
   describe('describeForeignKeys', function() {
     beforeEach(function() {
       return this.queryInterface.createTable('users', {
