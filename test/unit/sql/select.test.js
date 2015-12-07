@@ -236,13 +236,10 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
   suite('raw query', function () {
     test('raw replacements', function () {
       expectsql(sql.selectQuery('User', {
-        attributes: ['name'],
+        attributes: ['*'],
         having: ['name IN (?)', [1, 'test', "foo';DROP TABLE myTable;"]]
       }), {
-        default: "SELECT [User].[name] FROM [User] HAVING [User].[name] IN ([1,'test','foo\\';DROP TABLE myTable;']);",
-        postgres: "SELECT User.name FROM User HAVING User.name IN (1,'test','foo\\';DROP TABLE myTable;');",
-        mysql: "SELECT User.name FROM User HAVING User.name IN (1,'test','foo\\';DROP TABLE myTable;');",
-        mariadb: "SELECT User.name FROM User HAVING User.name IN (1,'test','foo\\';DROP TABLE myTable;');"
+        default: "SELECT * FROM [User] HAVING name IN ([1,'test','foo\\';DROP TABLE myTable;']);",
       });
     });
   });
