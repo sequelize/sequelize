@@ -1,11 +1,11 @@
 ## Basic usage
 
-To get the ball rollin' you first have to create an instance of Sequelize&period; Use it the following way&colon;
+To get the ball rollin' you first have to create an instance of Sequelize. Use it the following way:
 
 ```js
 var sequelize = new Sequelize('database', 'username'[, 'password'])
 ```
-This will save the passed database credentials and provide all further methods&period; Furthermore you can specify a non-default host&sol;port&colon;
+This will save the passed database credentials and provide all further methods. Furthermore you can specify a non-default host/port:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -14,7 +14,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
-If you just don't have a password&colon;
+If you just don't have a password:
 
 ```js
 var sequelize = new Sequelize('database', 'username')
@@ -22,7 +22,7 @@ var sequelize = new Sequelize('database', 'username')
 var sequelize = new Sequelize('database', 'username', null)
 ```
 
-You can also use a connection string&colon;
+You can also use a connection string:
 
 ```js
 var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname', {
@@ -32,7 +32,7 @@ var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname', {
 
 ## Options
 
-Besides the host and the port&comma; Sequelize comes with a whole bunch of options&period; Here they are&colon;
+Besides the host and the port, Sequelize comes with a whole bunch of options. Here they are:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -96,7 +96,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
     timestamps: true
   },
  
-  // similiar for sync: you can define this to always force sync for models
+  // similar for sync: you can define this to always force sync for models
   sync: { force: true },
  
   // sync after each association (see below). If set to false, you need to sync manually after setting all associations. Default: true
@@ -120,11 +120,11 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
-**Hint&colon;** You can also define a custom function for the logging part&period; Just pass a function&period; The first parameter will be the string that is logged&period;
+**Hint:** You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.
 
 ## Read replication
 
-Sequelize supports read replication&comma; i&period;e&period; having multiple servers that you can connect to when you want to do a SELECT query&period; When you do read replication&comma; you specify one or more servers to act as read replicas&comma; and one server to act as the write master&comma; which handles all writes and updates and propagates them to the replicas &lpar;note that the actual replication process is **not** handled by Sequelize&comma; but should be set up in MySql&rpar;&period;
+Sequelize supports read replication, i.e. having multiple servers that you can connect to when you want to do a SELECT query. When you do read replication, you specify one or more servers to act as read replicas, and one server to act as the write master, which handles all writes and updates and propagates them to the replicas (note that the actual replication process is **not** handled by Sequelize, but should be set up in MySql).
 
 ```js
 var sequelize = new Sequelize('database', null, null, {
@@ -144,9 +144,9 @@ var sequelize = new Sequelize('database', null, null, {
 })
 ```
 
-If you have any general settings that apply to all replicas you do not need to provide them for each instance&period; In the code above&comma; database name and port is propagated to all replicas&period; The same will happen for user and password&comma; if you leave them out for any of the replicas&period; Each replica has the following options&colon;`host`&comma;`port`&comma;`username`&comma;`password`&comma;`database`.
+If you have any general settings that apply to all replicas you do not need to provide them for each instance. In the code above, database name and port is propagated to all replicas. The same will happen for user and password, if you leave them out for any of the replicas. Each replica has the following options:`host`,`port`,`username`,`password`,`database`.
 
-Sequelize uses a pool to manage connections to your replicas&period; The default options are&colon;
+Sequelize uses a pool to manage connections to your replicas. The default options are:
 
 ```js
 {
@@ -156,22 +156,22 @@ Sequelize uses a pool to manage connections to your replicas&period; The default
 }
 ```
 
-If you want to modify these&comma; you can pass pool as an options when instantiating Sequelize&comma; as shown above&period;
+If you want to modify these, you can pass pool as an options when instantiating Sequelize, as shown above.
 
-**Note&colon;** Read replication only works for MySQL at the moment&excl;
+**Note:** Read replication only works for MySQL at the moment!
 
 ## Dialects
 
-With the release of Sequelize`1.6.0`&comma; the library got independent from specific dialects&period; This means&comma; that you'll have to add the respective connector library to your project yourself. Version 1.7.0 stable has been released in bundles with the connector libraries (sequelize-mysql, sequelize-postgres etc.) but these bundles are not maintained, and will not be released for 2.0.0 upwards.
+With the release of Sequelize`1.6.0`, the library got independent from specific dialects. This means, that you'll have to add the respective connector library to your project yourself. Version 1.7.0 stable has been released in bundles with the connector libraries (sequelize-mysql, sequelize-postgres etc.) but these bundles are not maintained, and will not be released for 2.0.0 upwards.
 
 ### MySQL
 
-In order to get Sequelize working nicely together with MySQL&comma; you'll need to install`mysql@~2.5.0`or higher. Once that's done you can use it like this&colon;
+In order to get Sequelize working nicely together with MySQL, you'll need to install`mysql@~2.5.0`or higher. Once that's done you can use it like this:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
   // mysql is the default dialect, but you know...
-  // for demo purporses we are defining it nevertheless :)
+  // for demo purposes we are defining it nevertheless :)
   // so: we want mysql!
   dialect: 'mysql'
 })
@@ -194,7 +194,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ### SQLite
 
-For SQLite compatibility you'll need`sqlite3@~3.0.0`. Configure Sequelize like this&colon;
+For SQLite compatibility you'll need`sqlite3@~3.0.0`. Configure Sequelize like this:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -209,7 +209,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ### PostgreSQL
 
-The library for PostgreSQL is`pg@~3.6.0` You'll just need to define the dialect&colon;
+The library for PostgreSQL is`pg@~3.6.0` You'll just need to define the dialect:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -220,7 +220,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ### MSSQL
 
-The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect&colon;
+The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -230,7 +230,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 ## Executing raw SQL queries
 
-As there are often use cases in which it is just easier to execute raw &sol; already prepared SQL queries, you can utilize the function `sequelize.query`.
+As there are often use cases in which it is just easier to execute raw / already prepared SQL queries, you can utilize the function `sequelize.query`.
 
 Here is how it works:
 
@@ -244,7 +244,7 @@ sequelize.query("SELECT * FROM myTable").then(function(myTableRows) {
 })
 
 // If you want to return sequelize instances use the model options.
-// This allows you to easily map a query to a predefined model for sequelizejs e.g:
+// This allows you to easily map a query to a predefined model for sequelize e.g:
 sequelize
   .query('SELECT * FROM projects', { model: Projects })
   .then(function(projects){
@@ -286,7 +286,7 @@ The syntax used depends on the replacements option passed to the function:
 
 * If an array is passed, `?` will be replaced in the order that they appear in the array
 * If an object is passed, `:key` will be replaced with the keys from that object.
-If the object contains keys not found in the query or vice verca, an exception
+If the object contains keys not found in the query or vice versa, an exception
 will be thrown.
 
 ```js

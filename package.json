@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS/io.js",
-  "version": "3.13.0",
+  "version": "3.14.2",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -46,9 +46,11 @@
     "toposort-class": "^1.0.1",
     "validator": "^4.0.4",
     "wellknown": "^0.4.0",
-    "wkx": "0.1.0"
+    "wkx": "0.2.0"
   },
   "devDependencies": {
+    "babel-core": "^6.2.0",
+    "babel-preset-es2015": "^6.1.18",
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
     "chai-datetime": "^1.4.0",

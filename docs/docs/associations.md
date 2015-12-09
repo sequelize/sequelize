@@ -202,7 +202,7 @@ UserProjects = sequelize.define('UserProjects', {
 ```
 
 ## Scopes
-This section concerns association scopes. For a definition of assocation scopes vs. scopes on associated models, see [Scopes](scopes).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](scopes).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
@@ -264,7 +264,7 @@ image.addComment(comment);
 UPDATE comments SET commentable_id = 42, commentable = 'image'
 ```
 
-The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to etiher `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
+The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
 
 #### n:m
 Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several items.
@@ -510,12 +510,12 @@ Project.create({ /* */ }).then(function(project) {
 // check if all associated objects are as expected:
 // let's assume we have already a project and two users
 project.setUsers([user1, user2]).then(function() {
-  return project.hasUsers([user1]).then(function(result) {
-    // result would be false
-    return project.hasUsers([user1, user2]).then(function(result) {
-      // result would be true
-    })
-  })
+  return project.hasUsers([user1]);
+}).then(function(result) {
+  // result would be false
+  return project.hasUsers([user1, user2]);
+}).then(function(result) {
+  // result would be true
 })
 ```
 
