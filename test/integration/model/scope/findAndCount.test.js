@@ -9,7 +9,9 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('scope', function () {
-    describe('count', function () {
+
+    describe('findAndCount', function () {
+
       beforeEach(function () {
         this.ScopeMe = this.sequelize.define('ScopeMe', {
           username: Sequelize.STRING,
@@ -51,27 +53,47 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should apply defaultScope', function () {
-        return expect(this.ScopeMe.count()).to.eventually.equal(2);
+        return this.ScopeMe.findAndCount().then(function(result) {
+          expect(result.count).to.equal(2);
+          expect(result.rows.length).to.equal(2);
+        });
       });
 
       it('should be able to override default scope', function () {
-        return expect(this.ScopeMe.count({ where: { access_level: { gt: 5 }}})).to.eventually.equal(1);
+        return this.ScopeMe.findAndCount({ where: { access_level: { gt: 5 }}})
+          .then(function(result) {
+            expect(result.count).to.equal(1);
+            expect(result.rows.length).to.equal(1);
+          });
       });
 
       it('should be able to unscope', function () {
-        return expect(this.ScopeMe.unscoped().count()).to.eventually.equal(4);
+        return this.ScopeMe.unscoped().findAndCount({ limit: 1 })
+          .then(function(result) {
+            expect(result.count).to.equal(4);
+            expect(result.rows.length).to.equal(1);
+          });
       });
 
       it('should be able to apply other scopes', function () {
-        return expect(this.ScopeMe.scope('lowAccess').count()).to.eventually.equal(3);
+        return this.ScopeMe.scope('lowAccess').findAndCount()
+          .then(function(result) {
+            expect(result.count).to.equal(3);
+          });
       });
 
       it('should be able to merge scopes with where', function () {
-        return expect(this.ScopeMe.scope('lowAccess').count({ where: { username: 'dan'}})).to.eventually.equal(1);
+        return this.ScopeMe.scope('lowAccess')
+          .findAndCount({ where: { username: 'dan'}}).then(function(result) {
+            expect(result.count).to.equal(1);
+          });
       });
 
       it('should ignore the order option if it is found within the scope', function () {
-        return expect(this.ScopeMe.scope('withOrder').count()).to.eventually.equal(4);
+        return this.ScopeMe.scope('withOrder').findAndCount()
+          .then(function(result) {
+            expect(result.count).to.equal(4);
+          });
       });
     });
   });
