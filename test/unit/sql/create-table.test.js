@@ -29,4 +29,3 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
     });
   });
 });
-
