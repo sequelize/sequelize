@@ -232,4 +232,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
 
   });
+
+  suite('raw query', function () {
+    test('raw replacements', function () {
+      expectsql(sql.selectQuery('User', {
+        attributes: ['*'],
+        having: ['name IN (?)', [1, 'test', 3, "derp"]]
+      }), {
+        default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');"
+      });
+    });
+  });
 });
