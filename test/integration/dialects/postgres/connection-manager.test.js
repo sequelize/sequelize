@@ -5,12 +5,11 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
   , dialect = Support.getTestDialect()
-  , config = require(__dirname + '/../../../config/config')
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , _ = require('lodash');
 
 if (dialect.match(/^postgres/)) {
-  describe('[POSTGRES Specific] Sequelize', function() {
+  describe('[POSTGRES] Sequelize', function() {
     it('should correctly parse the moment based timezone', function() {
       var options = _.extend(this.sequelize.options, { timezone: 'Asia/Kolkata', timestamps: true });
       var sequelize = Support.createSequelizeInstance(options);
@@ -19,10 +18,8 @@ if (dialect.match(/^postgres/)) {
       return tzTable.sync({force: true}).then(function() {
         return tzTable.create({foo: 'test'}).then(function(row) {
           expect(row).to.be.not.null;
-        }).catch(function(e) {
-          expect(e).to.be.null;
         });
-      })
+      });
     });
   });
 }
