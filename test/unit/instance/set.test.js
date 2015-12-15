@@ -8,6 +8,22 @@ var chai = require('chai')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
+  it('sets over non-date originalValue', function() {
+    var User = current.define('User', {
+      date: DataTypes.DATE
+    });
+    var user = User.build({
+      date: ' '
+    }, {
+      isNewRecord: false,
+      raw: true
+    });
+
+    user.set('date', new Date());
+    expect(user.get('date')).to.be.an.instanceof(Date);
+    expect(user.get('date')).not.to.be.NaN;
+  })
+
   describe('set', function () {
     it('sets nested keys in JSON objects', function () {
       var User = current.define('User', {
