@@ -38,7 +38,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         email: 'jon.snow@gmail.com'
       }
     }, {
-      default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com';"
+      default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com';",
+      mssql: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N'jon.snow@gmail.com';"
     });
 
     testsql({

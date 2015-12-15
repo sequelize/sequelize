@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       };
       expectsql(sql.updateQuery(User.tableName,{user_name: 'triggertest'},{id:2},options,User.rawAttributes),
       {
-        mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));UPDATE [users] SET [user_name]=\'triggertest\' OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = 2;select * from @tmp',
+        mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));UPDATE [users] SET [user_name]=N\'triggertest\' OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = 2;select * from @tmp',
         postgres:'UPDATE "users" SET "user_name"=\'triggertest\' WHERE "id" = 2 RETURNING *',
         default: "UPDATE `users` SET `user_name`=\'triggertest\' WHERE `id` = 2",
       });
