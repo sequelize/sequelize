@@ -292,8 +292,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         //This case throw unhandled exception
         return User.findAll();
       }).then(function(users){
-        //it contains the null GEOMETRY data
-        expect(users[0].field).to.be.null;
+        if (dialect === 'mysql') {
+          // MySQL will return NULL, becuase they lack EMPTY geometry data support.
+          expect(users[0].field).to.be.eql(null);
+        } else {
+          //it contains the null GEOMETRY data
+          expect(users[0].field).to.be.deep.eql(point);
+        }
       });
    }
  });
