@@ -1,4 +1,5 @@
 # Future
+- [FIXED] Postgres issue when using named timezone  [#4307](https://github.com/sequelize/sequelize/issues/4307)
 - [ADDED] Improve support for pg range type to handle unbound ranges, +/-infinity bounds and empty ranges
 - [FIXED] Add support for Babel/ES6 imports [#4881](https://github.com/sequelize/sequelize/issues/4881)
 # 3.14.2
