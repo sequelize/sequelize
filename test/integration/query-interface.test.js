@@ -182,7 +182,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }
           expect(username.type).to.equal(assertVal);
           expect(username.allowNull).to.be.true;
-          expect(username.defaultValue).to.be.null;
+
+          switch (dialect) {
+            case 'sqlite':
+              expect(username.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(username.defaultValue).to.be.null;
+          }
 
           switch (dialect) {
             case 'sqlite':
@@ -201,7 +208,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }
           expect(isAdmin.type).to.equal(assertVal);
           expect(isAdmin.allowNull).to.be.true;
-          expect(isAdmin.defaultValue).to.be.null;
+          switch (dialect) {
+            case 'sqlite':
+              expect(isAdmin.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(isAdmin.defaultValue).to.be.null;
+          }
 
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             expect(enumVals.special).to.be.instanceof(Array);
