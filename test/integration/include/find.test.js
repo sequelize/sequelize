@@ -380,7 +380,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
-    it.only('should work with a belongsTo and a hasMany when specifying attributes for model', function () {
+    it('should work with a belongsTo and a hasMany when specifying attributes for model', function () {
       var User = this.sequelize.define('User', {
             name: DataTypes.STRING
           })
