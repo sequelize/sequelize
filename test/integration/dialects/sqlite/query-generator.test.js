@@ -50,6 +50,10 @@ if (dialect === 'sqlite') {
           expectation: {id: 'INTEGER DEFAULT 0'}
         },
         {
+          arguments: [{id: {type: 'INTEGER', defaultValue: undefined}}],
+          expectation: {id: 'INTEGER'}
+        },
+        {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },
