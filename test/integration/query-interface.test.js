@@ -150,6 +150,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       var self = this;
       var Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING,
+        city: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
         isAdmin: DataTypes.BOOLEAN,
         enumVals: DataTypes.ENUM('hello', 'world')
       }, { freezeTableName: true });
@@ -161,6 +165,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
           var id = metadata.id;
           var username = metadata.username;
+          var city = metadata.city;
           var isAdmin = metadata.isAdmin;
           var enumVals = metadata.enumVals;
 
@@ -177,7 +182,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }
           expect(username.type).to.equal(assertVal);
           expect(username.allowNull).to.be.true;
-          expect(username.defaultValue).to.be.null;
+
+          switch (dialect) {
+            case 'sqlite':
+              expect(username.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(username.defaultValue).to.be.null;
+          }
+
+          switch (dialect) {
+            case 'sqlite':
+              expect(city.defaultValue).to.be.null;
+              break;
+          }
 
           assertVal = 'TINYINT(1)';
           switch (dialect) {
@@ -190,7 +208,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }
           expect(isAdmin.type).to.equal(assertVal);
           expect(isAdmin.allowNull).to.be.true;
-          expect(isAdmin.defaultValue).to.be.null;
+          switch (dialect) {
+            case 'sqlite':
+              expect(isAdmin.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(isAdmin.defaultValue).to.be.null;
+          }
 
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             expect(enumVals.special).to.be.instanceof(Array);
