@@ -1079,7 +1079,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           }, {
             silent: true
           }).then(function(user1) {
-            expect(user1.updatedAt).to.equalDate(updatedAt);
+            expect(user1.updatedAt).to.equalTime(updatedAt);
           });
         });
       });
