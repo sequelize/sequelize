@@ -258,7 +258,7 @@ SELECT * FROM comments WHERE commentable_id = 42 AND commentable = 'image';
 image.createComment({
   title: 'Awesome!'
 })
-INSERT INTO comments (title, commentable_id, commentable) VALUES ('Awesome!', 'image', 42);
+INSERT INTO comments (title, commentable_id, commentable) VALUES ('Awesome!', 42, 'image');
 
 image.addComment(comment);
 UPDATE comments SET commentable_id = 42, commentable = 'image'
