@@ -76,6 +76,84 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('should create data for BelongsTo relations with alias and foreignKey constraint', function() {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        });
+        var User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        });
+
+        var Creator = Product.belongsTo(User, {as: 'creator',foreignKey: { allowNull: false }});
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return Product.create({
+            title: 'Chair',
+            creator: {
+              first_name: 'Matt',
+              last_name: 'Hansen'
+            }
+          }, {
+            include: [ Creator ]
+          }).then(function(savedProduct) {
+            return Product.findOne({
+              where: { id: savedProduct.id },
+              include: [ Creator ]
+            }).then(function(persistedProduct) {
+              expect(persistedProduct.creator).to.be.ok;
+              expect(persistedProduct.creator.first_name).to.be.equal('Matt');
+              expect(persistedProduct.creator.last_name).to.be.equal('Hansen');
+            });
+          });
+        });
+      });
+
+
+
+      it('should create data for double-nested BelongsTo relations with alias', function() {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        });
+        var User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        });
+        var Address = this.sequelize.define('Address', {
+          city: Sequelize.STRING
+        });
+
+        var Creator = Product.belongsTo(User, {as: 'creator'});
+        var PrimaryAddress = User.belongsTo(Address, {as: 'primaryAdress'});
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return Product.create({
+            title: 'Chair',
+            creator: {
+              first_name: 'Matt',
+              last_name: 'Hansen',
+              primaryAddress: {
+                  city: 'Alphatown'
+              }
+            }
+          }, {
+              include: [ {
+                  association: Creator,
+                  include: [PrimaryAddress]
+                }]
+          }).then(function(savedProduct) {
+            return Product.findOne({
+              where: { id: savedProduct.id },
+              include: [ Creator ]
+            }).then(function(persistedProduct) {
+              expect(persistedProduct.creator).to.be.ok;
+              expect(persistedProduct.creator.first_name).to.be.equal('Matt');
+              expect(persistedProduct.creator.last_name).to.be.equal('Hansen');
+            });
+          });
+        });
+      });
+
       it('should create data for HasMany relations', function() {
         var Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
@@ -107,6 +185,46 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       });
+
+      it('should create data for nested HasMany + BelongsTo relations + foreignKey constraints', function() {
+        var Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        });
+        var Tag = this.sequelize.define('Tag', {
+          name: Sequelize.STRING
+        });
+        var TagColor = this.sequelize.define('TagColor', {
+          color: Sequelize.STRING
+        });
+
+        Product.hasMany(Tag);
+        var PrimaryColor = Tag.belongsTo(TagColor, {as: 'PrimaryColor', foreignKey: { allowNull: false }});
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return Product.create({
+            id: 1,
+            title: 'Chair',
+            Tags: [
+              {id: 1, name: 'Alpha', PrimaryColor: {color: 'Blue'}},
+              {id: 2, name: 'Beta', PrimaryColor: {color: 'Red'}}
+            ]
+          }, {
+              include: [ {
+                  model: Tag,
+                  include: [PrimaryColor]
+              }]
+          }).then(function(savedProduct) {
+            return Product.find({
+              where: { id: savedProduct.id },
+              include: [ Tag ]
+            }).then(function(persistedProduct) {
+              expect(persistedProduct.Tags).to.be.ok;
+              expect(persistedProduct.Tags.length).to.equal(2);
+            });
+          });
+        });
+      });
+
 
       it('should create data for HasMany relations with alias', function() {
         var Product = this.sequelize.define('Product', {
