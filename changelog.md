@@ -1,4 +1,5 @@
 # Future
+- [FIXED] nested belongsTo create with foreignKey constraints [#5089](https://github.com/sequelize/sequelize/pull/5089)
 - [FIXED] calling Model.update() modifies passed values  [#4520](https://github.com/sequelize/sequelize/issues/4520)
 - [FIXED] Instance can be chained on .set() and other methods [#4702](https://github.com/sequelize/sequelize/issues/4702)
 
