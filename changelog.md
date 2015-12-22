@@ -1,5 +1,6 @@
 # Future
 - [FIXED] calling Model.update() modifies passed values  [#4520](https://github.com/sequelize/sequelize/issues/4520)
+- [FIXED] Instance can be chained on .set() and other methods [#4702](https://github.com/sequelize/sequelize/issues/4702)
 
 # 3.15.0
 - [ADDED] Improve support for pg range type to handle unbound ranges, +/-infinity bounds and empty ranges
