@@ -226,4 +226,31 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
       expect(Utils.singularize('status')).to.equal('status');
     });
   });
+
+  describe('formatNamedParameters', function() {
+    it('should escape named param values by default', function() {
+      Utils.formatNamedParameters('SELECT * FROM Users WHERE name IN (:names)', {
+        names: "'leia', 'luke', 'skywalker'"
+      }, {
+        escapeValues: true
+      })
+      .should.equal("SELECT * FROM Users WHERE name IN ('\\'leia\\', \\'luke\\', \\'skywalker\\'')");
+    });
+    it('should not escape named param values by default', function() {
+      Utils.formatNamedParameters('SELECT * FROM Users WHERE name IN (:names)', {
+        names: "'leia', 'luke', 'skywalker'"
+      }, {
+        escapeValues: false
+      })
+      .should.equal("SELECT * FROM Users WHERE name IN ('leia', 'luke', 'skywalker')");
+    });
+    it('should escape named param values by default', function() {
+      Utils.formatNamedParameters('SELECT * FROM Users WHERE name IN (:names)', {
+        names: ["'leia'", "'luke'", "'skywalker'"]
+      }, {
+        escapeValues: false
+      })
+      .should.equal("SELECT * FROM Users WHERE name IN ('leia','luke','skywalker')");
+    });
+  });
 });
