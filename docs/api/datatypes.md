@@ -28,6 +28,20 @@ sequelize.define('model', {
   }
 })
 ```
+There may be times when you want to generate your own UUID conforming to some other algorithm. This is accomplised
+using the defaultValue property as well, but instead of specifying one of the supplied UUID types, you return a value 
+from a function.
+```js
+sequelize.define('model', {
+  uuid: {
+    type: DataTypes.UUID,
+    defaultValue: function() {
+      return generateMyId()
+    },
+    primaryKey: true
+  }
+})
+```
 
 ***
 
