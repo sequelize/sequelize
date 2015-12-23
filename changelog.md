@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Support Unicode strings in mssql [#3752](https://github.com/sequelize/sequelize/issues/3752)
+- [FIXED] Using scope on findAndCountAll() throws error [#4986](https://github.com/sequelize/sequelize/issues/4986)
 
 # 3.15.1
 - [FIXED] calling Model.update() modifies passed values  [#4520](https://github.com/sequelize/sequelize/issues/4520)
