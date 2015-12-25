@@ -147,7 +147,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }).include[0]
     }, {
-      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'"
+      default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
+      mssql: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'"
     });
 
     testsql({

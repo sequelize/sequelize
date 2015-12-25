@@ -712,7 +712,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         intVal: this.sequelize.cast('1', type)
       }, {
         logging: function(sql) {
-          expect(sql).to.match(new RegExp("CAST\\('1' AS " + type.toUpperCase() + '\\)'));
+          expect(sql).to.match(new RegExp("CAST\\(N?'1' AS " + type.toUpperCase() + '\\)'));
           match = true;
         }
       }).then(function(user) {

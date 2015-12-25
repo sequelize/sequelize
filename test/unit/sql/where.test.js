@@ -51,7 +51,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         { id: { $gt: 10 } }
       ]
     }, {
-      default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)"
+      default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)",
+      mssql: "WHERE [name] = N'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)"
     });
 
     testsql({
@@ -63,7 +64,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       }
     }, {
-      default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)"
+      default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)",
+      mssql: "WHERE [name] = N'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)"
     });
   });
 
@@ -174,7 +176,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('email', {
         $ne: 'jack.bauer@gmail.com'
       }, {
-        default: "[email] != 'jack.bauer@gmail.com'"
+        default: "[email] != 'jack.bauer@gmail.com'",
+        mssql: "[email] != N'jack.bauer@gmail.com'"
       });
     });
 
@@ -183,7 +186,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         testsql('email', {
           $or: ['maker@mhansen.io', 'janzeh@gmail.com']
         }, {
-          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')'
+          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
+          mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')'
         });
 
         testsql('rank', {
@@ -199,14 +203,16 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           {email: 'maker@mhansen.io'},
           {email: 'janzeh@gmail.com'}
         ], {
-          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')'
+          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
+          mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')'
         });
 
         testsql('$or', {
           email: 'maker@mhansen.io',
           name: 'Mick Hansen'
         }, {
-          default: '([email] = \'maker@mhansen.io\' OR [name] = \'Mick Hansen\')'
+          default: '([email] = \'maker@mhansen.io\' OR [name] = \'Mick Hansen\')',
+          mssql: '([email] = N\'maker@mhansen.io\' OR [name] = N\'Mick Hansen\')'
         });
 
         testsql('$or', {
@@ -226,7 +232,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: 'CLIENT'
           }
         ], {
-          default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))"
+          default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))",
+          mssql: "([roleName] = N'NEW' OR ([roleName] = N'CLIENT' AND [type] = N'CLIENT'))"
         });
 
         test('sequelize.or({group_id: 1}, {user_id: 2})', function () {
@@ -237,7 +244,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
         test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
-            default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))"
+            default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
+            mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
         });
       });
@@ -265,7 +273,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         ], {
-          default: "([name] LIKE '%hello' AND [name] LIKE 'hello%')"
+          default: "([name] LIKE '%hello' AND [name] LIKE 'hello%')",
+          mssql: "([name] LIKE N'%hello' AND [name] LIKE N'hello%')"
         });
 
         testsql('rank', {
@@ -283,7 +292,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               {like : '%someValue2%'}
             ]
         }, {
-          default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')"
+          default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",
+          mssql: "([name] LIKE N'%someValue1%' AND [name] LIKE N'%someValue2%')"
         });
 
         test('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function () {
@@ -377,7 +387,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('username', {
         $like: '%swagger'
       }, {
-        default: "[username] LIKE '%swagger'"
+        default: "[username] LIKE '%swagger'",
+        mssql: "[username] LIKE N'%swagger'"
       });
     });
 
@@ -385,14 +396,16 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('date', {
         $between: ['2013-01-01', '2013-01-11']
       }, {
-        default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'"
+        default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
+        mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
 
       testsql('date', {
         between: ['2012-12-10', '2013-01-02'],
         nbetween: ['2013-01-04', '2013-01-20']
       }, {
-        default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')"
+        default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
+        mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
       });
     });
 
@@ -400,7 +413,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('date', {
         $notBetween: ['2013-01-01', '2013-01-11']
       }, {
-        default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'"
+        default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'",
+        mssql: "[date] NOT BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
     });
 
@@ -751,7 +765,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('fn', function () {
       test('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function () {
         expectsql(sql.whereQuery({name: this.sequelize.fn('LOWER', 'DERP')}), {
-          default: "WHERE [name] = LOWER('DERP')"
+          default: "WHERE [name] = LOWER('DERP')",
+          mssql: "WHERE [name] = LOWER(N'DERP')"
         });
       });
     });
