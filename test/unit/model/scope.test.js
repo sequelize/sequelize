@@ -254,6 +254,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       };
 
       current.Model.$injectScope(scope, options);
+      delete options._scopeInjected;
 
       expect(options).to.deep.equal({
         where: {
