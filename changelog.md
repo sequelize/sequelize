@@ -1,4 +1,5 @@
 # Future
+- [ADDED] PostgreSQL tsrange (Range of timestamp without time zone) data type support.
 - [FIXED] Support Unicode strings in mssql [#3752](https://github.com/sequelize/sequelize/issues/3752)
 
 # 3.15.1
