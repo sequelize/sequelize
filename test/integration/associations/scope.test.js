@@ -18,7 +18,10 @@ describe(Support.getTestDialectTeaser('associations'), function() {
         title: Sequelize.STRING,
         commentable: Sequelize.STRING,
         commentable_id: Sequelize.INTEGER,
-        isMain: Sequelize.BOOLEAN
+        isMain: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        }
       }, {
         instanceMethods: {
           getItem: function() {
@@ -97,18 +100,22 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           return post.createComment({
             title: 'I am a post comment'
           });
-        }).then(function() {
-          return self.Post.scope('withMainComment').findById(this.post.id);
+        }).then(function(comment) {
+          expect(comment.get('commentable')).to.equal('post');
+          expect(comment.get('isMain')).to.be.false;
+          return self.Post.scope('withMainComment').findById(this.post.get('id'));
         }).then(function(post) {
           expect(post.mainComment).to.be.null;
-          return Promise.join(
-            post.createMainComment({
-              title: 'I am a main post comment'
-            }),
-            self.Post.scope('withMainComment').findById(this.post.id)
-          );
-        }).spread(function(mainComment, post) {
-          expect(post.mainComment.id).to.equal(mainComment.id);
+          return post.createMainComment({
+            title: 'I am a main post comment'
+          });
+        }).then(function(comment) {
+          this.mainComment = comment;
+          expect(comment.get('commentable')).to.equal('post');
+          expect(comment.get('isMain')).to.be.true;
+          return self.Post.scope('withMainComment').findById(this.post.id);
+        }).then(function (post) {
+          expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
         });
       });
     });
