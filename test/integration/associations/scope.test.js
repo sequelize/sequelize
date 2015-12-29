@@ -17,7 +17,8 @@ describe(Support.getTestDialectTeaser('associations'), function() {
       this.Comment = this.sequelize.define('comment', {
         title: Sequelize.STRING,
         commentable: Sequelize.STRING,
-        commentable_id: Sequelize.INTEGER
+        commentable_id: Sequelize.INTEGER,
+        isMain: Sequelize.BOOLEAN
       }, {
         instanceMethods: {
           getItem: function() {
@@ -29,10 +30,24 @@ describe(Support.getTestDialectTeaser('associations'), function() {
       this.Post.addScope('withComments', {
         include: [this.Comment]
       });
+      this.Post.addScope('withMainComment', {
+          include: [{
+            model: this.Comment,
+            as: 'mainComment'
+          }]
+      });
       this.Post.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         scope: {
           commentable: 'post'
+        }
+      });
+      this.Post.hasOne(this.Comment, {
+        foreignKey: 'commentable_id',
+        as: 'mainComment',
+        scope: {
+          commentable: 'post',
+          isMain: true
         }
       });
       this.Comment.belongsTo(this.Post, {
@@ -60,6 +75,41 @@ describe(Support.getTestDialectTeaser('associations'), function() {
       this.Comment.belongsTo(this.Question, {
         foreignKey: 'commentable_id',
         as: 'question'
+      });
+    });
+
+    describe('1:1', function() {
+      it('should create, find and include associations with scope values', function() {
+        var self = this;
+        return this.sequelize.sync({force: true}).then(function() {
+          return Promise.join(
+            self.Post.create(),
+            self.Comment.create({
+              title: 'I am a comment'
+            }),
+            self.Comment.create({
+              title: 'I am a main comment',
+              isMain: true
+            })
+          );
+        }).bind(this).spread(function(post) {
+          this.post = post;
+          return post.createComment({
+            title: 'I am a post comment'
+          });
+        }).then(function() {
+          return self.Post.scope('withMainComment').findById(this.post.id);
+        }).then(function(post) {
+          expect(post.mainComment).to.be.null;
+          return Promise.join(
+            post.createMainComment({
+              title: 'I am a main post comment'
+            }),
+            self.Post.scope('withMainComment').findById(this.post.id)
+          );
+        }).spread(function(mainComment, post) {
+          expect(post.mainComment.id).to.equal(mainComment.id);
+        });
       });
     });
 
