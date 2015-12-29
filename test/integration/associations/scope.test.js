@@ -103,19 +103,34 @@ describe(Support.getTestDialectTeaser('associations'), function() {
         }).then(function(comment) {
           expect(comment.get('commentable')).to.equal('post');
           expect(comment.get('isMain')).to.be.false;
-          return self.Post.scope('withMainComment').findById(this.post.get('id'));
+          return this.Post.scope('withMainComment').findById(this.post.get('id'));
         }).then(function(post) {
           expect(post.mainComment).to.be.null;
           return post.createMainComment({
-            title: 'I am a main post comment'
+              title: 'I am a main post comment'
           });
-        }).then(function(comment) {
-          this.mainComment = comment;
-          expect(comment.get('commentable')).to.equal('post');
-          expect(comment.get('isMain')).to.be.true;
-          return self.Post.scope('withMainComment').findById(this.post.id);
+        }).then(function(mainComment) {
+          this.mainComment = mainComment;
+          expect(mainComment.get('commentable')).to.equal('post');
+          expect(mainComment.get('isMain')).to.be.true;
+          return this.Post.scope('withMainComment').findById(this.post.id);
         }).then(function (post) {
           expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
+          return post.getMainComment();
+        }).then(function (mainComment, post) {
+          expect(mainComment.get('commentable')).to.equal('post');
+          expect(mainComment.get('isMain')).to.be.true;
+          return this.Comment.create({
+            title: 'I am a future main comment'
+          });
+        }).then(function (comment) {
+          return this.post.setMainComment(comment);
+        }).then( function () {
+          return this.post.getMainComment();
+        }).then(function (mainComment) {
+          expect(mainComment.get('commentable')).to.equal('post');
+          expect(mainComment.get('isMain')).to.be.true;
+          expect(mainComment.get('title')).to.equal('I am a future main comment');
         });
       });
     });
