@@ -764,6 +764,14 @@ describe(Support.getTestDialectTeaser('Include'), function() {
     User.hasOne(Item);
     Item.belongsTo(User);
 
+    //Test scope to test findAndCountAll working
+    User.addScope('testScope', {
+      include: [{
+        model: Item,
+        where: { test: 'def' }
+      }]
+    });
+
     this.User = User;
     this.Item = Item;
 
@@ -831,6 +839,16 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       }).then(function(result) {
         expect(result.count).to.eql(1);
 
+        expect(result.rows.length).to.eql(1);
+        expect(result.rows[0].Item.test).to.eql('def');
+      });
+    });
+
+    it('should include associations to findAndCountAll with scopes', function() {
+      return createUsersAndItems.bind(this)().bind(this).then(function () {
+        return this.User.scope('testScope').findAndCountAll();
+      }).then(function(result) {
+        expect(result.count).to.eql(1);
         expect(result.rows.length).to.eql(1);
         expect(result.rows[0].Item.test).to.eql('def');
       });
