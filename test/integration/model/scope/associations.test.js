@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               where: {
                 active: false
               }
-            },
+            }
           }
         });
 
@@ -106,12 +106,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             this.ScopeMe.create({ id: 4, username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7, parent_id: 1}),
             this.ScopeMe.create({ id: 5, username: 'bob', email: 'bob@foobar.com', access_level: 1, other_value: 9, parent_id: 5}),
             this.Company.create({ id: 1, active: true}),
-            this.Company.create({ id: 2, active: false}),
+            this.Company.create({ id: 2, active: false})
           ]);
         }).spread(function (u1, u2, u3, u4, u5, c1, c2) {
           return Promise.all([
             c1.setUsers([u1, u2, u3, u4]),
-            c2.setUsers([u5]),
+            c2.setUsers([u5])
           ]);
         });
       });
@@ -178,8 +178,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               return this.ScopeMe.findById(1);
             }).then(function (user) {
               return user.getProfile({ scope: false });
-            }).then(function (project) {
-              expect(project).to.be.ok;
+            }).then(function (profile) {
+              expect(profile).to.be.ok;
             });
           });
 
@@ -217,8 +217,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               return this.ScopeMe.findById(1);
             }).then(function (user) {
               return user.getProfile();
-            }).then(function (project) {
-              expect(project).not.to.be.ok;
+            }).then(function (profile) {
+              expect(profile).not.to.be.ok;
             });
           });
 
@@ -258,8 +258,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               return this.ScopeMe.findById(1);
             }).then(function (user) {
               return user.getProfile({ scope: 'notActive' });
-            }).then(function (project) {
-              expect(project).not.to.be.ok;
+            }).then(function (profile) {
+              expect(profile).not.to.be.ok;
             });
           });
 
