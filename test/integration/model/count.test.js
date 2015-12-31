@@ -37,11 +37,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should counts rows', function () {
+    it('should count rows', function () {
       return expect(this.User.count()).to.eventually.equal(2);
     });
 
-    it('should supports include', function () {
+    it('should support include', function () {
       return expect(this.User.count({
         include: [{
           model: this.Project,
