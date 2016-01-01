@@ -35,7 +35,7 @@
     "bluebird": "^3.1.0",
     "depd": "^1.0.0",
     "dottie": "^1.0.0",
-    "generic-pool": "2.2.1",
+    "generic-pool": "2.3.0",
     "inflection": "^1.6.0",
     "lodash": "^3.9.3",
     "moment": "^2.9.0",
