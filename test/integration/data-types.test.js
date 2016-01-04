@@ -292,11 +292,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         //This case throw unhandled exception
         return User.findAll();
       }).then(function(users){
-        if (dialect === 'mysql') {
+        if (Support.dialectIsMySQL()) {
           // MySQL will return NULL, becuase they lack EMPTY geometry data support.
           expect(users[0].field).to.be.eql(null);
+        } else if (dialect === 'postgres' || dialect === 'postgres-native') {
+          //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
+          expect(users[0].field).to.be.deep.eql({ type: "Point", coordinates: [0,0] });
         } else {
-          //it contains the null GEOMETRY data
           expect(users[0].field).to.be.deep.eql(point);
         }
       });
