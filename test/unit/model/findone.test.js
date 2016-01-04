@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('properly clones options values', function() {
       var options = { where: { id: { $gt: 42 }}}
-        , optionsClones = _.clone(options)
+        , optionsClones = _.cloneDeep(options)
         , Model = current.define('model');
 
       return Model.findOne(options).bind(this).then(function () {

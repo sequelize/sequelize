@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             include: ['name']
           }
         };
-        var optionsClones = _.clone(options);
+        var optionsClones = _.cloneDeep(options);
         return Model.findAll(options).bind(this).then(function () {
           expect(options).to.deep.equal(optionsClones);
         });
