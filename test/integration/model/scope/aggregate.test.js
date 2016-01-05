@@ -5,12 +5,16 @@
 var chai = require('chai')
   , Sequelize = require('../../../../index')
   , expect = chai.expect
-  , Support = require(__dirname + '/../../support');
+  , Support = require(__dirname + '/../../support')
+  , Promise = require(__dirname + '/../../../../lib/promise');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('scope', function () {
     describe('aggregate', function () {
       beforeEach(function () {
+        this.Child = this.sequelize.define('Child', {
+          priority: Sequelize.INTEGER
+        });
         this.ScopeMe = this.sequelize.define('ScopeMe', {
           username: Sequelize.STRING,
           email: Sequelize.STRING,
@@ -34,9 +38,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             withOrder: {
               order: 'username'
+            },
+            withInclude: {
+              include: [{
+                model: this.Child,
+                where: {
+                  priority: 1
+                }
+              }]
             }
           }
         });
+        this.Child.belongsTo(this.ScopeMe);
+        this.ScopeMe.hasMany(this.Child);
 
         return this.sequelize.sync({force: true}).then(function() {
           var records = [
@@ -46,7 +60,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7}
           ];
           return this.ScopeMe.bulkCreate(records);
-        }.bind(this));
+        }.bind(this)).then(function () {
+          return this.ScopeMe.findAll();
+        }.bind(this)).then(function (records) {
+          return Promise.all([
+            records[0].createChild({
+              priority: 1
+            }),
+            records[1].createChild({
+              priority: 2
+            })
+          ]);
+        });
       });
 
       it('should apply defaultScope', function () {
@@ -67,6 +92,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('should be able to merge scopes with where', function () {
         return expect(this.ScopeMe.scope('lowAccess').aggregate( '*', 'count', { where: { username: 'dan'}})).to.eventually.equal(1);
+      });
+
+      it('should be able to use where on include', function () {
+        return expect(this.ScopeMe.scope('withInclude').aggregate( 'ScopeMe.id', 'count', {
+          plain: true,
+          dataType: new Sequelize.INTEGER(),
+          includeIgnoreAttributes: false,
+          limit: null,
+          offset: null,
+          order: null,
+          attributes: []
+        })).to.eventually.equal(1);
       });
     });
   });

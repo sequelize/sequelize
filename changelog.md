@@ -3,6 +3,8 @@
 - [ADDED] hasOne scope support [#5113](https://github.com/sequelize/sequelize/pull/5113)
 - [FIXED] attributes from multiple scopes does not merge  [#4856](https://github.com/sequelize/sequelize/issues/4856)
 - [FIXED] Support Unicode strings in mssql [#3752](https://github.com/sequelize/sequelize/issues/3752)
+- [FIXED] Do not inject include twice in `options.include` [#5106](https://github.com/sequelize/sequelize/pull/5106)
+- [FIXED] Expand and validate include in `aggregate` [#5106](https://github.com/sequelize/sequelize/pull/5106)
 
 # 3.15.1
 - [FIXED] calling Model.update() modifies passed values  [#4520](https://github.com/sequelize/sequelize/issues/4520)
