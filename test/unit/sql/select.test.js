@@ -36,10 +36,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       ],
       where: {
         email: 'jon.snow@gmail.com'
-      }
+      },
+      order: [
+        ['email', 'DESC']
+      ],
+      limit: 10
     }, {
-      default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com';",
-      mssql: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N'jon.snow@gmail.com';"
+      default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com' ORDER BY [email] DESC LIMIT 10;",
+      mssql: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N'jon.snow@gmail.com' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;"
     });
 
     testsql({
