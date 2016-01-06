@@ -1,3 +1,8 @@
+# Future
+- [CRITICAL] Fixed injection vulnerability for order/limit
+- [FIXED] MySQL throws error when null GEOMETRY data results in empty buffer [#4953](https://github.com/sequelize/sequelize/issues/4953)
+- [ADDED] Support for benchmarking the execution time for SQL queries [#488](https://github.com/sequelize/sequelize/issues/488)
+
 # 3.13.0
 - [FIXED] timestamp columns are no longer undefined for associations loaded with `separate`. [#4740](https://github.com/sequelize/sequelize/issues/4740)
 - [FIXED] Mark unscoped model as `.scoped`, to prevent injection of default scope on includes [#4663](https://github.com/sequelize/sequelize/issues/4663)
