@@ -1,4 +1,5 @@
 # Future
+- [CRITICAL] Fixed injection vulnerability for order/limit
 - [FIXED] MySQL throws error when null GEOMETRY data results in empty buffer [#4953](https://github.com/sequelize/sequelize/issues/4953)
 - [ADDED] Support for benchmarking the execution time for SQL queries [#488](https://github.com/sequelize/sequelize/issues/488)
 
