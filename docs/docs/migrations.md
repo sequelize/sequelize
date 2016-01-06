@@ -214,7 +214,7 @@ queryInterface.changeColumn(
   {
     type: Sequelize.FLOAT,
     allowNull: false,
-    default: 0.0
+    defaultValue: 0.0
   }
 )
 ```
