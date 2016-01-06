@@ -2,8 +2,6 @@
 
 /* jshint -W110 */
 var Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Model = require(__dirname + '/../../../lib/model')
   , util = require('util')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
