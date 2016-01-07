@@ -65,7 +65,7 @@ module.exports = {
 }
 ```
 
-The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. The third parameter is a callback function which needs to be called once everything was executed. The first parameter of the callback function can be used to pass a possible error. In that case, the migration will be marked as failed. Here is some code:
+The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Here is some code:
 
 ```js
 module.exports = {
@@ -214,7 +214,7 @@ queryInterface.changeColumn(
   {
     type: Sequelize.FLOAT,
     allowNull: false,
-    default: 0.0
+    defaultValue: 0.0
   }
 )
 ```

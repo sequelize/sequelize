@@ -1,3 +1,23 @@
+# 3.17.1
+- [FIXED] Reverted benchmarking feature since it does not compile on Node v4.0
+
+# 3.17.0
+- [CRITICAL] Fixed injection vulnerability for order/limit
+- [FIXED] MySQL throws error when null GEOMETRY data results in empty buffer [#4953](https://github.com/sequelize/sequelize/issues/4953)
+
+# 3.16.0
+- [ADDED] PostgreSQL tsrange (Range of timestamp without time zone) data type support.
+- [ADDED] hasOne scope support [#5113](https://github.com/sequelize/sequelize/pull/5113)
+- [FIXED] attributes from multiple scopes does not merge  [#4856](https://github.com/sequelize/sequelize/issues/4856)
+- [FIXED] Support Unicode strings in mssql [#3752](https://github.com/sequelize/sequelize/issues/3752)
+- [FIXED] Do not inject include twice in `options.include` [#5106](https://github.com/sequelize/sequelize/pull/5106)
+- [FIXED] Expand and validate include in `aggregate`
+
+# 3.15.1
+- [FIXED] calling Model.update() modifies passed values  [#4520](https://github.com/sequelize/sequelize/issues/4520)
+- [FIXED] Instance can be chained on .set() and other methods [#4702](https://github.com/sequelize/sequelize/issues/4702)
+- [FIXED] includes nested from a `separate` include now work properly [#5080](https://github.com/sequelize/sequelize/pull/5080)
+
 # 3.15.0
 - [ADDED] Improve support for pg range type to handle unbound ranges, +/-infinity bounds and empty ranges
 - [FIXED] Postgres issue when using named timezone  [#4307](https://github.com/sequelize/sequelize/issues/4307)

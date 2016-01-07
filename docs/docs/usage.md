@@ -90,7 +90,9 @@ var sequelize = new Sequelize('database', 'username', 'password', {
     freezeTableName: false,
     syncOnAssociation: true,
     charset: 'utf8',
-    collate: 'utf8_general_ci',
+    dialectOptions: {
+      collate: 'utf8_general_ci'
+    },
     classMethods: {method1: function() {}},
     instanceMethods: {method2: function() {}},
     timestamps: true

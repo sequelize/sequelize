@@ -332,7 +332,7 @@ if (Support.dialectIsMySQL()) {
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', {offset: 2}],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 18440000000000000000;',
+          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
           context: QueryGenerator
         }, {
           title: 'multiple where arguments',
