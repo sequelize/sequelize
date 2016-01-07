@@ -41,6 +41,7 @@
     "moment": "^2.11.1",
     "moment-timezone": "^0.5.0",
     "node-uuid": "~1.4.4",
+    "retry-as-promised": "^2.0.0",
     "semver": "^5.0.1",
     "shimmer": "1.1.0",
     "toposort-class": "^1.0.1",
