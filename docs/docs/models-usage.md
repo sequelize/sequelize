@@ -436,8 +436,8 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
       "id": 1,
       "createdAt": "2013-03-20T20:31:40.000Z",
       "updatedAt": "2013-03-20T20:31:40.000Z",
-      "UserId": 1,
-      "User": {
+      "userId": 1,
+      "user": {
         "name": "John Doe",
         "id": 1,
         "createdAt": "2013-03-20T20:31:45.000Z",
@@ -462,12 +462,12 @@ User.findAll({ include: [ Task ] }).then(function(users) {
       "id": 1,
       "createdAt": "2013-03-20T20:31:45.000Z",
       "updatedAt": "2013-03-20T20:31:45.000Z",
-      "Tasks": [{
+      "tasks": [{
         "name": "A Task",
         "id": 1,
         "createdAt": "2013-03-20T20:31:40.000Z",
         "updatedAt": "2013-03-20T20:31:40.000Z",
-        "UserId": 1
+        "userId": 1
       }]
     }]
   */
@@ -494,7 +494,7 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
         "id": 1,
         "createdAt": null,
         "updatedAt": null,
-        "UserId": 1
+        "userId": 1
       }]
     }]
   */
@@ -524,7 +524,7 @@ User.findAll({
           "id": 1,
           "createdAt": null,
           "updatedAt": null,
-          "UserId": 1
+          "userId": 1
         }]
       }],
 
@@ -538,7 +538,7 @@ User.findAll({
           "id": 1,
           "createdAt": null,
           "updatedAt": null,
-          "UserId": 1
+          "userId": 1
         }]
       }],
     */
@@ -606,7 +606,7 @@ User.findAll({
         "id": 1,
         "createdAt": null,
         "updatedAt": null,
-        "UserId": 1,
+        "userId": 1,
         "Teacher": { // 1:1 association
           "name": "Jimi Hendrix"
         }
