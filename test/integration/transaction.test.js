@@ -287,12 +287,15 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
 
     it('fails with SQLITE_BUSY when retry.match is changed', function () {
       return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
-        var User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        var User = sequelize.define('User', { id: {type: Support.Sequelize.INTEGER, primaryKey: true}, username: Support.Sequelize.STRING });
         return User.sync({ force: true }).then(function() {
           var newTransactionFunc = function() {
             return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: {match: ['NO_MATCH']}}).then(function(t){
-              return User.create({}, {transaction:t}).then(function() {
-                return t.commit();
+              // introduce delay to force the busy state race condition to fail
+              return Promise.delay(1000).then(function () {
+                return User.create({id: null, username: "test " + t.id}, {transaction:t}).then(function() {
+                  return t.commit();
+                });
               });
             });
           };
