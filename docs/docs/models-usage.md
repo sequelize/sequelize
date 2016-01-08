@@ -411,9 +411,9 @@ Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
 When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that, is the use of the attribute `include` when you are calling `find` or `findAll`. Lets assume the following setup:
 
 ```js
-var User = sequelize.define('User', { name: Sequelize.STRING })
-  , Task = sequelize.define('Task', { name: Sequelize.STRING })
-  , Tool = sequelize.define('Tool', { name: Sequelize.STRING })
+var User = sequelize.define('user', { name: Sequelize.STRING })
+  , Task = sequelize.define('task', { name: Sequelize.STRING })
+  , Tool = sequelize.define('tool', { name: Sequelize.STRING })
 
 Task.belongsTo(User)
 User.hasMany(Task)
