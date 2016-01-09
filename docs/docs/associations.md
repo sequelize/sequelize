@@ -150,7 +150,7 @@ Project.belongsToMany(User, {through: 'UserProject'});
 User.belongsToMany(Project, {through: 'UserProject'});
 ```
 
-This will create a new model called UserProject with with the equivalent foreign keys `ProjectId` and `UserId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
+This will create a new model called UserProject with the equivalent foreign keys `ProjectId` and `UserId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
 
 Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
@@ -202,7 +202,7 @@ UserProjects = sequelize.define('UserProjects', {
 ```
 
 ## Scopes
-This section concerns association scopes. For a definition of assocation scopes vs. scopes on associated models, see [Scopes](scopes).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](scopes).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
@@ -258,13 +258,13 @@ SELECT * FROM comments WHERE commentable_id = 42 AND commentable = 'image';
 image.createComment({
   title: 'Awesome!'
 })
-INSERT INTO comments (title, commentable_id, commentable) VALUES ('Awesome!', 'image', 42);
+INSERT INTO comments (title, commentable_id, commentable) VALUES ('Awesome!', 42, 'image');
 
 image.addComment(comment);
 UPDATE comments SET commentable_id = 42, commentable = 'image'
 ```
 
-The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to etiher `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
+The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
 
 #### n:m
 Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several items.
@@ -387,7 +387,7 @@ project.setTasks([task1, task2]).then(function() {
   // saved!
 })
  
-// ok now they are save... how do I get them later on?
+// ok, now they are saved... how do I get them later on?
 project.getTasks().then(function(associatedTasks) {
   // associatedTasks is an array of tasks
 })
@@ -399,9 +399,8 @@ project.getTasks({ where: 'id > 10' }).then(function(tasks) {
 })
  
 // You can also only retrieve certain fields of a associated object.
-// This example will retrieve the attributes "title" and "id"
 project.getTasks({attributes: ['title']}).then(function(tasks) {
-  // tasks with an id greater than 10 :)
+    // retrieve tasks with the attributes "title" and "id"
 })
 ```
 
@@ -511,12 +510,12 @@ Project.create({ /* */ }).then(function(project) {
 // check if all associated objects are as expected:
 // let's assume we have already a project and two users
 project.setUsers([user1, user2]).then(function() {
-  return project.hasUsers([user1]).then(function(result) {
-    // result would be false
-    return project.hasUsers([user1, user2]).then(function(result) {
-      // result would be true
-    })
-  })
+  return project.hasUsers([user1]);
+}).then(function(result) {
+  // result would be false
+  return project.hasUsers([user1, user2]);
+}).then(function(result) {
+  // result would be true
 })
 ```
 

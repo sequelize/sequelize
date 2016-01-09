@@ -23,6 +23,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('works with aliases fields', function () {
+        var Pub = this.sequelize.define('Pub', {
+          location: {field: 'coordinates', type: DataTypes.GEOMETRY}
+        })
+          , point = {type: 'Point', coordinates: [39.807222, -76.984722]};
+
+        return Pub.sync({ force: true }).then(function () {
+          return Pub.create({location: point});
+        }).then(function (pub) {
+          expect(pub).not.to.be.null;
+          expect(pub.location).to.be.deep.eql(point);
+        });
+      });
+
       it('should create a geometry object', function() {
         var User = this.User;
         var point = { type: 'Point', coordinates: [39.807222,-76.984722]};

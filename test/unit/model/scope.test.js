@@ -80,6 +80,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should be able to unscope', function () {
       expect(Company.scope(null).$scope).to.be.empty;
       expect(Company.unscoped().$scope).to.be.empty;
+      // Yes, being unscoped is also a scope - this prevents inject defaultScope, when including a scoped model, see #4663
+      expect(Company.unscoped().scoped).to.be.ok;
     });
 
     it('should be able to merge scopes', function() {
@@ -251,7 +253,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         limit: 9
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options).to.deep.equal({
         where: {
@@ -273,7 +277,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       var options = {};
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -288,7 +294,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -303,7 +311,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({model: User, as: 'otherUser'});
@@ -323,7 +333,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         ]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
@@ -344,7 +356,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           ]
         };
 
-        current.Model.$injectScope(scope, options);
+        current.Model.prototype.$injectScope.call({
+          $scope: scope
+        }, options);
 
         expect(options.include).to.have.length(2);
         expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
@@ -365,7 +379,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           ]
         };
 
-        current.Model.$injectScope(scope, options);
+        current.Model.prototype.$injectScope.call({
+          $scope: scope
+        }, options);
 
         expect(options.include).to.have.length(2);
         expect(options.include[0]).to.deep.equal({ all: true });

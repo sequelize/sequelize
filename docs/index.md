@@ -28,6 +28,6 @@ sequelize.sync().then(function() {
 }).then(function(jane) {
   console.log(jane.get({
     plain: true
-  }))
+  }));
 });
 ```

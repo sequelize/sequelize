@@ -390,15 +390,15 @@ if (dialect.match(/^postgres/)) {
           return User.sync({
             logging: function (sql) {
               if (sql.indexOf('neutral') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'")).to.not.be.equal(-1);
+                expect(sql.indexOf("ALTER TYPE \"public\".\"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'")).to.not.be.equal(-1);
                 count++;
               }
               else if (sql.indexOf('ecstatic') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'")).to.not.be.equal(-1);
+                expect(sql.indexOf("ALTER TYPE \"public\".\"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'")).to.not.be.equal(-1);
                 count++;
               }
               else if (sql.indexOf('joyful') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'")).to.not.be.equal(-1);
+                expect(sql.indexOf("ALTER TYPE \"public\".\"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'")).to.not.be.equal(-1);
                 count++;
               }
             }
@@ -658,6 +658,7 @@ if (dialect.match(/^postgres/)) {
         var period = [new Date(2015, 0, 1), new Date(2015, 11, 31)];
         return this.User.create({ username: 'user', email: ['foo@bar.com'], course_period: period}).then(function(newUser) {
           // Check to see if the default value for a range field works
+
           expect(newUser.acceptable_marks.length).to.equal(2);
           expect(newUser.acceptable_marks[0]).to.equal(0.65); // lower bound
           expect(newUser.acceptable_marks[1]).to.equal(1); // upper bound

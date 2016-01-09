@@ -26,7 +26,7 @@ You can use `sequelize.fn` to do aggregations:
 
 ```js
 Model.findAll({
-  attributes: [sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']
+  attributes: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']]
 });
 ```
 ```sql
@@ -84,7 +84,7 @@ Post.findAll({
 Post.findAll({
   where: {
     authorId: 12,
-    status: active
+    status: 'active'
   }
 });
 // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
@@ -106,6 +106,11 @@ Post.update({
   }
 });
 // UPDATE post SET updatedAt = null WHERE deletedAt NOT NULL;
+
+Post.findAll({
+  where: sequelize.where(sequelize.fn('char_length', sequelize.col('status')), 6)
+});
+// SELECT * FROM post WHERE char_length(status) = 6;
 ```
 
 ### Operators
@@ -133,7 +138,7 @@ $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
 $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
 $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 
-$eq: '$user.organization_id$' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+$col: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
 ```
 
 ### Combinations
@@ -141,7 +146,7 @@ $eq: '$user.organization_id$' // = "user"."organization_id", with dialect specif
 {
   rank: {
     $or: {
-      $lt: 100,
+      $lt: 1000,
       $eq: null
     }
   }
@@ -254,6 +259,15 @@ something.findOne({
 
     // Will order by  otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
+    
+    // Will order by name on an associated User
+    [User, 'name', 'DESC'],
+    
+    // Will order by name on an associated User aliased as Friend
+    [{model: User, as: 'Friend'}, 'name', 'DESC'],
+    
+    // Will order by name on a nested associated Company of an associated User
+    [User, Company, 'name', 'DESC'],
   ]
   // All the following statements will be treated literally so should be treated with care
   order: 'convert(user_name using gbk)'

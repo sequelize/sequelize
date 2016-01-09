@@ -83,13 +83,13 @@ var Post = sequelize.define('post', {}, {
 ```
 
 ## Promises
-Sequelize uses promises to control async control-flow. If you are unfamilar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them)
+Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them)
 
 Basically a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
 
 ```js
 // DON'T DO THIS
-user = User.findAll()
+user = User.findOne()
 
 console.log(user.name);
 ```
@@ -97,7 +97,7 @@ console.log(user.name);
 _will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
 
 ```js
-User.findAll().then(function (user) {
+User.findOne().then(function (user) {
     console.log(user.name);
 });
 ```
