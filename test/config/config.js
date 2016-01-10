@@ -75,7 +75,7 @@ module.exports = {
     username: process.env.SEQ_ORACLE_USER || process.env.SEQ_USER || 'sequelize_test',
     password: process.env.SEQ_ORACLE_PW   || process.env.SEQ_PW   || 'sequelize_test_234',
     pool:     {
-      maxConnections: process.env.SEQ_ORACLE_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+      maxConnections: process.env.SEQ_ORACLE_POOL_MAX  || process.env.SEQ_POOL_MAX  || 1,
       maxIdleTime:    process.env.SEQ_ORACLE_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
     }
   }

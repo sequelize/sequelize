@@ -2143,7 +2143,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         this.User.beforeSync(beforeHook);
         this.User.afterSync(afterHook);
 
-        return this.User.sync().then(function() {
+        return this.User.sync({ force: true }).then(function() {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
         });
@@ -2156,7 +2156,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         this.User.beforeSync(beforeHook);
         this.User.afterSync(afterHook);
 
-        return this.User.sync({ hooks: false }).then(function() {
+        return this.User.sync({ hooks: false, force: true }).then(function() {
           expect(beforeHook).to.not.have.been.called;
           expect(afterHook).to.not.have.been.called;
         });
@@ -2175,7 +2175,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
         this.User.afterSync(afterHook);
 
-        return expect(this.User.sync()).to.be.rejected.then(function(err) {
+        return expect(this.User.sync({force: true})).to.be.rejected.then(function(err) {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).not.to.have.been.called;
         });
@@ -2191,7 +2191,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.sync()).to.be.rejected.then(function(err) {
+        return expect(this.User.sync({force: true})).to.be.rejected.then(function(err) {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
         });
@@ -2212,7 +2212,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         this.User.afterSync(modelAfterHook);
         this.sequelize.afterBulkSync(afterHook);
 
-        return this.sequelize.sync().then(function() {
+        return this.sequelize.sync({ force: true }).then(function() {
           expect(beforeHook).to.have.been.calledOnce;
           expect(modelBeforeHook).to.have.been.calledOnce;
           expect(modelAfterHook).to.have.been.calledOnce;
@@ -2231,7 +2231,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         this.User.afterSync(modelAfterHook);
         this.sequelize.afterBulkSync(afterHook);
 
-        return this.sequelize.sync({ hooks: false }).then(function() {
+        return this.sequelize.sync({ hooks: false, force: true }).then(function() {
           expect(beforeHook).to.not.have.been.called;
           expect(modelBeforeHook).to.not.have.been.called;
           expect(modelAfterHook).to.not.have.been.called;
@@ -2256,7 +2256,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
         this.sequelize.afterBulkSync(afterHook);
 
-        return expect(this.sequelize.sync()).to.be.rejected.then(function(err) {
+        return expect(this.sequelize.sync( { force: true } )).to.be.rejected.then(function(err) {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).not.to.have.been.called;
         });
@@ -2272,7 +2272,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           throw new Error('Whoops!');
         });
 
-        return expect(this.sequelize.sync()).to.be.rejected.then(function(err) {
+        return expect(this.sequelize.sync({ force: true })).to.be.rejected.then(function(err) {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
         });
@@ -2286,3 +2286,4 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   });
 
 });
+
