@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
           return User.create({ username: 'foo' }).then(function(user) {
             return Task.create({ title: 'task', status: 'inactive' }).then(function(task) {
               return user.setTaskXYZ(task).then(function() {
-                if (dialect.name === 'oracle') {
+                if (dialect === 'oracle') {
                   return user.getTaskXYZ({where: ['"status" = ?', 'active']}).then(function(task) {
                     expect(task).to.be.null;
                   });

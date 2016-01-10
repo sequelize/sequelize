@@ -135,7 +135,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, {
         default: '[deleted] IS NOT true',
         mssql: "[deleted] IS NOT 1",
-        sqlite: '`deleted` IS NOT 1'
+        sqlite: '`deleted` IS NOT 1',
         oracle: '"deleted" IS NOT \'Y\''
       });
 
