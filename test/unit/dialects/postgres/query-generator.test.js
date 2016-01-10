@@ -13,17 +13,6 @@ var chai = require('chai')
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
-    beforeEach(function() {
-      this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
-        email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
-        numbers: { type: DataTypes.ARRAY(DataTypes.FLOAT) },
-        document: { type: DataTypes.HSTORE, defaultValue: { default: '"value"' } }
-      });
-
-      return this.User.sync({ force: true });
-    });
-
     var suites = {
       attributesToSQL: [
         {
