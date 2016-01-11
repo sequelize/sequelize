@@ -113,10 +113,9 @@ Once you created an object and got a reference to it&comma; you can delete it fr
 ```js
 Task.create({ title: 'a task' }).then(function(task) {
   // now you see me...
- 
-  task.destroy().then(function() {
-    // now i'm gone :)
-  })
+  return task.destroy();
+}).then(function() {
+ // now i'm gone :)
 })
 ```
 
@@ -144,9 +143,9 @@ User.bulkCreate([
   { username: 'foo', isAdmin: true },
   { username: 'bar', isAdmin: false }
 ]).then(function() { // Notice: There are no arguments here, as of right now you'll have to...
-  User.findAll().then(function(users) {
-    console.log(users) // ... in order to get the array of user objects
-  })
+  return User.findAll();
+}).then(function(users) {
+  console.log(users) // ... in order to get the array of user objects
 })
 ```
 
@@ -158,15 +157,15 @@ Task.bulkCreate([
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
 ]).then(function() {
-  Task.update(
-    { status: 'inactive' } /* set attributes' value */,
+  return Task.update(
+    { status: 'inactive' }, /* set attributes' value */,
     { where: { subject: 'programming' }} /* where criteria */
-  ).then(function(affectedRows) {
-    // affectedRows will be 2
-    Task.findAll().then(function(tasks) {
-      console.log(tasks) // the 'programming' tasks will both have a status of 'inactive'
-    })
-  })
+  );
+}).then(function(affectedRows) {
+  // affectedRows will be 2
+  return Task.findAll();
+}).then(function(tasks) {
+  console.log(tasks) // the 'programming' tasks will both have a status of 'inactive'
 })
 ```
 
@@ -178,17 +177,17 @@ Task.bulkCreate([
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
 ]).then(function() {
-  Task.destroy({
+  return Task.destroy({
     where: {
       subject: 'programming'
     },
     truncate: true /* this will ignore where and truncate the table instead */
-  }).then(function(affectedRows) {
-    // affectedRows will be 2
-    Task.findAll().then(function(tasks) {
-      console.log(tasks) // no programming, just reading :(
-    })
-  })
+  });
+}).then(function(affectedRows) {
+  // affectedRows will be 2
+  return Task.findAll();
+}).then(function(tasks) {
+  console.log(tasks) // no programming, just reading :(
 })
 ```
 
@@ -294,27 +293,27 @@ First of all you can define a field and the value you want to add to it&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment('my-integer-field', {by: 2}).then(/* ... */)
-})
+  return user.increment('my-integer-field', {by: 2})
+}).then(/* ... */)
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment([ 'my-integer-field', 'my-very-other-field' ], {by: 2}).then(/* ... */)
-})
+  return user.increment([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
+}).then(/* ... */)
 ```
 
 Third&comma; you can define an object containing fields and its increment values&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment({
+  return user.increment({
     'my-integer-field':    2,
     'my-very-other-field': 3
-  }).then(/* ... */)
-})
+  })
+}).then(/* ... */)
 ```
 
 ## Decrementing certain values of an instance
@@ -325,25 +324,25 @@ First of all you can define a field and the value you want to add to it&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement('my-integer-field', {by: 2}).then(/* ... */)
-})
+  return user.decrement('my-integer-field', {by: 2})
+}).then(/* ... */)
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement([ 'my-integer-field', 'my-very-other-field' ], {by: 2}).then(/* ... */)
-})
+  return user.decrement([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
+}).then(/* ... */)
 ```
 
 Third&comma; you can define an object containing fields and its decrement values&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement({
+  return user.decrement({
     'my-integer-field':    2,
     'my-very-other-field': 3
-  }).then(/* ... */)
-})
+  })
+}).then(/* ... */)
 ```

@@ -45,9 +45,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
-          return self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }, transaction: t }).then(function() {
+          return self.User.findOrCreate({
+            where: {
+              username: 'Username'
+            },
+            defaults: {
+              data: 'some data'
+            },
+            transaction: t
+          }).then(function() {
             return self.User.count().then(function(count) {
-              expect(count).to.equal(0);
+             expect(count).to.equal(0);
               return t.commit().then(function() {
                 return self.User.count().then(function(count) {
                   expect(count).to.equal(1);
@@ -704,7 +712,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         intVal: this.sequelize.cast('1', type)
       }, {
         logging: function(sql) {
-          expect(sql).to.match(new RegExp("CAST\\('1' AS " + type.toUpperCase() + '\\)'));
+          expect(sql).to.match(new RegExp("CAST\\(N?'1' AS " + type.toUpperCase() + '\\)'));
           match = true;
         }
       }).then(function(user) {

@@ -15,54 +15,54 @@ if (!Support.sequelize.dialect.supports.deferrableConstraints) {
 }
 
 describe(Support.getTestDialectTeaser('Sequelize'), function() {
-  beforeEach(function () {
-    this.run = function (deferrable, options) {
-      options = options || {};
-
-      var taskTableName      = options.taskTableName || 'tasks_' + config.rand();
-      var transactionOptions = _.extend({ deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
-      var userTableName      = 'users_' + config.rand();
-
-      var User = this.sequelize.define(
-        'User', { name: Sequelize.STRING }, { tableName: userTableName }
-      );
-
-      var Task = this.sequelize.define(
-        'Task', {
-          title: Sequelize.STRING,
-          user_id: {
-            allowNull: false,
-            type: Sequelize.INTEGER,
-            references: {
-              model: userTableName,
-              key: 'id',
-              deferrable: deferrable
-            }
-          }
-        }, {
-          tableName: taskTableName
-        }
-      );
-
-      return User.sync({ force: true }).bind(this).then(function () {
-        return Task.sync({ force: true });
-      }).then(function () {
-        return this.sequelize.transaction(transactionOptions, function (t) {
-          return Task
-            .create({ title: 'a task', user_id: -1 }, { transaction: t })
-            .then(function (task) {
-              return [task, User.create({}, { transaction: t })];
-            })
-            .spread(function (task, user) {
-              task.user_id = user.id;
-              return task.save({ transaction: t });
-            });
-        });
-      });
-    };
-  });
-
   describe('Deferrable', function () {
+    beforeEach(function () {
+      this.run = function (deferrable, options) {
+        options = options || {};
+
+        var taskTableName      = options.taskTableName || 'tasks_' + config.rand();
+        var transactionOptions = _.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
+        var userTableName      = 'users_' + config.rand();
+
+        var User = this.sequelize.define(
+          'User', { name: Sequelize.STRING }, { tableName: userTableName }
+        );
+
+        var Task = this.sequelize.define(
+          'Task', {
+            title: Sequelize.STRING,
+            user_id: {
+              allowNull: false,
+              type: Sequelize.INTEGER,
+              references: {
+                model: userTableName,
+                key: 'id',
+                deferrable: deferrable
+              }
+            }
+          }, {
+            tableName: taskTableName
+          }
+        );
+
+        return User.sync({ force: true }).bind(this).then(function () {
+          return Task.sync({ force: true });
+        }).then(function () {
+          return this.sequelize.transaction(transactionOptions, function (t) {
+            return Task
+              .create({ title: 'a task', user_id: -1 }, { transaction: t })
+              .then(function (task) {
+                return [task, User.create({}, { transaction: t })];
+              })
+              .spread(function (task, user) {
+                task.user_id = user.id;
+                return task.save({ transaction: t });
+              });
+          });
+        });
+      };
+    });
+
     describe('NOT', function () {
       it('does not allow the violation of the foreign key constraint', function () {
         return expect(this.run(Sequelize.Deferrable.NOT)).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);

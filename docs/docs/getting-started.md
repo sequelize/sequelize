@@ -83,7 +83,7 @@ var Post = sequelize.define('post', {}, {
 ```
 
 ## Promises
-Sequelize uses promises to control async control-flow. If you are unfamilar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them)
+Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them)
 
 Basically a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
 

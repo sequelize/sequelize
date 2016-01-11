@@ -253,7 +253,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         limit: 9
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options).to.deep.equal({
         where: {
@@ -275,7 +277,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       var options = {};
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -290,7 +294,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -305,7 +311,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({model: User, as: 'otherUser'});
@@ -325,7 +333,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         ]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
@@ -346,7 +356,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           ]
         };
 
-        current.Model.$injectScope(scope, options);
+        current.Model.prototype.$injectScope.call({
+          $scope: scope
+        }, options);
 
         expect(options.include).to.have.length(2);
         expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
@@ -367,7 +379,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           ]
         };
 
-        current.Model.$injectScope(scope, options);
+        current.Model.prototype.$injectScope.call({
+          $scope: scope
+        }, options);
 
         expect(options.include).to.have.length(2);
         expect(options.include[0]).to.deep.equal({ all: true });

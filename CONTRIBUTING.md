@@ -33,7 +33,7 @@ We're glad to get pull request if any functionality is missing or something is b
 Still interested? Coolio! Here is how to get started:
 
 ### 1. Prepare your environment
-Here comes a little surprise: You need [Node.JS](http://nodejs.org). In order to be a productive developer, I would recommend the latest v0.10.
+Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 ### 2. Install the dependencies
 

@@ -1,7 +1,41 @@
+# 3.17.1
+- [FIXED] Reverted benchmarking feature since it does not compile on Node v4.0
+
+# 3.17.0
+- [CRITICAL] Fixed injection vulnerability for order/limit
+- [FIXED] MySQL throws error when null GEOMETRY data results in empty buffer [#4953](https://github.com/sequelize/sequelize/issues/4953)
+
+# 3.16.0
+- [ADDED] PostgreSQL tsrange (Range of timestamp without time zone) data type support.
+- [ADDED] hasOne scope support [#5113](https://github.com/sequelize/sequelize/pull/5113)
+- [FIXED] attributes from multiple scopes does not merge  [#4856](https://github.com/sequelize/sequelize/issues/4856)
+- [FIXED] Support Unicode strings in mssql [#3752](https://github.com/sequelize/sequelize/issues/3752)
+- [FIXED] Do not inject include twice in `options.include` [#5106](https://github.com/sequelize/sequelize/pull/5106)
+- [FIXED] Expand and validate include in `aggregate`
+
+# 3.15.1
+- [FIXED] calling Model.update() modifies passed values  [#4520](https://github.com/sequelize/sequelize/issues/4520)
+- [FIXED] Instance can be chained on .set() and other methods [#4702](https://github.com/sequelize/sequelize/issues/4702)
+- [FIXED] includes nested from a `separate` include now work properly [#5080](https://github.com/sequelize/sequelize/pull/5080)
+
+# 3.15.0
+- [ADDED] Improve support for pg range type to handle unbound ranges, +/-infinity bounds and empty ranges
+- [FIXED] Postgres issue when using named timezone  [#4307](https://github.com/sequelize/sequelize/issues/4307)
+- [FIXED] Add support for Babel/ES6 imports [#4881](https://github.com/sequelize/sequelize/issues/4881)
+
+# 3.14.2
+- [FIXED] Model.aggregate methods now support attributes and where conditions with fields. [#4935](https://github.com/sequelize/sequelize/issues/4935)
+- [FIXED] Don't overwrite options.foreignKey in associations [#4927](https://github.com/sequelize/sequelize/pull/4927)
+- [FIXED] Support nested `$col` keys. [#4849](https://github.com/sequelize/sequelize/issues/4849)
+
+# 3.14.1
+- [FIXED] Issue with transaction options leaking and certain queries running outside of the transaction connection.
+
 # 3.14.0
 - [FIXED] Apply scopes to `aggregate` [#4764](https://github.com/sequelize/sequelize/issues/4764)
 - [FIXED] Improved postgres enum schema handling [#4796](https://github.com/sequelize/sequelize/issues/4796)
 - [ADDED/FIXED] Lower case `onDelete` option to allow the use of `onDelete: 'CASCADE', hooks: true`.
+- [FIXED] Ignore attributes in `count` [#4566](https://github.com/sequelize/sequelize/issues/4566)
 
 # 3.13.0
 - [FIXED] timestamp columns are no longer undefined for associations loaded with `separate`. [#4740](https://github.com/sequelize/sequelize/issues/4740)
@@ -33,7 +67,7 @@
 - [FIXED] Include all with scopes [#4584](https://github.com/sequelize/sequelize/issues/4584)
 - [INTERNALS] Corrected spelling seperate -> separate
 - [ADDED] Added `include` and `exclude` to `options.attributes`. [#4074](https://github.com/sequelize/sequelize/issues/4074)
-- [FIXED/INTERNALS] Only recurse on plain objects in `mapOptionFieldNames`. [#4596](https://github.com/sequelize/sequelize/issues/4596) 
+- [FIXED/INTERNALS] Only recurse on plain objects in `mapOptionFieldNames`. [#4596](https://github.com/sequelize/sequelize/issues/4596)
 
 # 3.10.0
 - [ADDED] support `search_path` for postgres with lots of schemas [#4534](https://github.com/sequelize/sequelize/pull/4534)

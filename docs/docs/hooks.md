@@ -258,7 +258,7 @@ Tasks.belongsTo(Projects)
 This code will run beforeDestroy/afterDestroy on the Tasks table. Sequelize, by default, will try to optimize your queries as much as possible. When calling cascade on delete, Sequelize will simply execute a
 
 ```sql
-DELETE FROM `table` WHERE associatedIdentifiier = associatedIdentifier.primaryKey
+DELETE FROM `table` WHERE associatedIdentifier = associatedIdentifier.primaryKey
 ```
 
 However, adding `hooks: true` explicitly tells Sequelize that optimization is not of your concern and will perform a `SELECT` on the associated objects and destroy each instance one by one in order to be able to call the hooks with the right parameters.

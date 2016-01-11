@@ -6,11 +6,20 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , Promise = require(__dirname + '/../../lib/promise')
   , Transaction = require(__dirname + '/../../lib/transaction')
+  , sinon = require('sinon')
   , current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
+  beforeEach(function () {
+    this.sinon = sinon.sandbox.create();
+  });
+
+  afterEach(function () {
+    this.sinon.restore();
+  });
+
   describe('then', function() {
     it('gets triggered once a transaction has been successfully committed', function() {
       var called = false;

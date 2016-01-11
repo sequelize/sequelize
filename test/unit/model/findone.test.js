@@ -7,7 +7,8 @@ var chai = require('chai')
   , current = Support.sequelize
   , sinon = require('sinon')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Promise = require('bluebird');
+  , Promise = require('bluebird')
+  , _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('method findOne', function () {
@@ -67,5 +68,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
       });
     });
+
+    it('properly clones options values', function() {
+      var options = { where: { id: { $gt: 42 }}}
+        , optionsClones = _.cloneDeep(options)
+        , Model = current.define('model');
+
+      return Model.findOne(options).bind(this).then(function () {
+        expect(options).to.deep.equal(optionsClones);
+      });
+    });
+
   });
 });
