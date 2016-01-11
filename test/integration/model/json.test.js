@@ -310,6 +310,38 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       });
+
+      it('should be possible to destroy with where', function () {
+        return Promise.join(
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Elliot',
+                last: 'Alderson'
+              },
+              employment: 'Hacker'
+            }
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Christian',
+                last: 'Slater'
+              },
+              employment: 'Hacker'
+            }
+          })
+        ).bind(this).then(function () {
+          return this.Event.destroy({
+            where: {
+              data: {
+                employment : 'Hacker'
+              }
+            }
+          });
+        });
+      });
+
     });
   }
 });
