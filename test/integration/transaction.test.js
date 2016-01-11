@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
             return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: {match: ['NO_MATCH']}}).then(function(t){
               // introduce delay to force the busy state race condition to fail
               return Promise.delay(1000).then(function () {
-                return User.create({id: null, username: "test " + t.id}, {transaction:t}).then(function() {
+                return User.create({id: null, username: 'test ' + t.id}, {transaction:t}).then(function() {
                   return t.commit();
                 });
               });
