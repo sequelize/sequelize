@@ -1,3 +1,6 @@
+# [FUTURE]
+- [ADDED] Sqlite now retrys database queries that return SQL_BUSY as the status.  The default is 5 retries with a backoff function.  `retry` object can be passed to options with max: 0 to turn off this behavior.
+
 # 3.17.3
 - [FIXED] Regression with array values from security fix in 3.17.2
 
