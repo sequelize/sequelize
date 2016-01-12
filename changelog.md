@@ -1,3 +1,5 @@
+- [ADDED] validationFailed hook [#1626](https://github.com/sequelize/sequelize/issues/1626)
+
 # 3.17.1
 - [FIXED] Reverted benchmarking feature since it does not compile on Node v4.0
 

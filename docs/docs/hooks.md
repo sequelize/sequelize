@@ -15,6 +15,8 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   validate
 (3)
   afterValidate(instance, options, fn)
+  - or -
+  validationFailed(instance, options, error, fn)
 (4)
   beforeCreate(instance, options, fn)
   beforeDestroy(instance, options, fn)
@@ -159,7 +161,7 @@ The following hooks will emit whenever you're editing a single object
 
 ```
 beforeValidate
-afterValidate
+afterValidate or validationFailed
 beforeCreate / beforeUpdate  / beforeDestroy
 afterCreate / afterUpdate / afterDestroy
 ```
