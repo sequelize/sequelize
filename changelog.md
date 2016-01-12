@@ -1,3 +1,6 @@
+# 3.17.2
+- [ADDED] Sqlite now retrys database queries that return SQL_BUSY as the status.  The default is 5 retries with a backoff function.  `retry` object can be passed to options with max: 0 to turn off this behavior.
+
 # 3.17.1
 - [FIXED] Reverted benchmarking feature since it does not compile on Node v4.0
 
