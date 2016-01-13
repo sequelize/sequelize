@@ -978,6 +978,99 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
   });
 
+  describe('#count', function() {
+    beforeEach(function() {
+      return this.User.bulkCreate([
+        {username: 'adam', mood: 'happy'},
+        {username: 'joe', mood: 'sad'},
+        {username: 'joe', mood: 'happy'}
+      ]);
+    });
+
+    describe('on success', function() {
+      it('hook runs', function() {
+        var beforeHook = false;
+        this.User.beforeCount(function() {
+          beforeHook = true;
+        });
+
+        return this.User.count().then(function(count) {
+          expect(count).to.equal(3);
+          expect(beforeHook).to.be.true;
+        });
+      });
+
+      it('beforeCount hook can change options', function() {
+        this.User.beforeCount(function(options) {
+          options.where.username = 'adam';
+        });
+
+        return this.User.count({where: {username: 'joe'}}).then(function(count) {
+          expect(count).to.equal(1);
+        });
+      });
+    });
+
+    describe('on error', function() {
+      it('in beforeCount hook returns error', function() {
+        this.User.beforeCount(function() {
+          throw new Error('Oops!');
+        });
+
+        return this.User.find({where: {username: 'adam'}}).catch (function(err) {
+          expect(err.message).to.equal('Oops!');
+        });
+      });
+    });
+  });
+
+  describe('#count', function() {
+    beforeEach(function() {
+      return this.User.bulkCreate([
+        {username: 'adam', mood: 'happy'},
+        {username: 'joe', mood: 'sad'},
+        {username: 'joe', mood: 'happy'}
+      ]);
+    });
+
+    describe('on success', function() {
+      it('hook runs', function() {
+        var beforeHook = false;
+
+        this.User.beforeCount(function() {
+          beforeHook = true;
+        });
+
+        return this.User.count().then(function(count) {
+          expect(count).to.equal(3);
+          expect(beforeHook).to.be.true;
+        });
+      });
+
+      it('beforeCount hook can change options', function() {
+        this.User.beforeCount(function(options) {
+          options.where.username = 'adam';
+        });
+
+        return this.User.count({where: {username: 'joe'}}).then(function(count) {
+          expect(count).to.equal(1);
+        });
+      });
+    });
+
+    describe('on error', function() {
+      it('in beforeCount hook returns error', function() {
+        this.User.beforeCount(function() {
+          throw new Error('Oops!');
+        });
+
+        return this.User.find({where: {username: 'adam'}}).catch (function(err) {
+          expect(err.message).to.equal('Oops!');
+        });
+      });
+    });
+  });
+
   describe('#define', function() {
     before(function() {
       this.sequelize.addHook('beforeDefine', function(attributes, options) {
