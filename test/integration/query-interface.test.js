@@ -410,6 +410,42 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         });
       });
     });
+
+    it('should be able to change to foreign key reference', function() {
+      return this.queryInterface.createTable('level', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      }).bind(this).then(function() {
+        this.queryInterface.createTable('users', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          level_id: {
+            type: DataTypes.INTEGER
+          }
+        });
+      })
+      .bind(this).then(function() {
+        return this.queryInterface.changeColumn('users', 'level_id', {
+          type: DataTypes.INTEGER,
+          references: {
+            model: 'level',
+            key:   'id'
+          },
+          onUpdate: 'cascade',
+          onDelete: 'set null'
+        }, {logging: log});
+      }).then(function() {
+        expect(count).to.be.equal(1);
+        count = 0;
+      });
+    });
+
   });
 
   describe('addColumn', function() {
