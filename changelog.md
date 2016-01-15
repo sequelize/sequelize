@@ -1,3 +1,6 @@
+# 3.17.3
+- [FIXED] Regression with array values from security fix in 3.17.2
+
 # 3.17.2
 - [SECURITY] Force non-buffer blob values to string, https://github.com/nodejs/node/issues/4660
 
