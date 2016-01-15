@@ -312,6 +312,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should be possible to destroy with where', function () {
+        var conditionSearch = {
+          where: {
+            data: {
+              employment : 'Hacker'
+            }
+          }
+        };
+
         return Promise.join(
           this.Event.create({
             data: {
@@ -330,16 +338,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               },
               employment: 'Hacker'
             }
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: ' Tyrell',
+                last: 'Wellick'
+              },
+              employment: 'CTO'
+            }
           })
         ).bind(this).then(function () {
-          return this.Event.destroy({
-            where: {
-              data: {
-                employment : 'Hacker'
-              }
-            }
+            return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
+          }).then(function() {
+            return this.Event.destroy(conditionSearch);
+          }).then(function(){
+            return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
           });
-        });
       });
 
     });
