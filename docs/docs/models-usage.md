@@ -411,9 +411,9 @@ Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
 When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that, is the use of the attribute `include` when you are calling `find` or `findAll`. Lets assume the following setup:
 
 ```js
-var User = sequelize.define('User', { name: Sequelize.STRING })
-  , Task = sequelize.define('Task', { name: Sequelize.STRING })
-  , Tool = sequelize.define('Tool', { name: Sequelize.STRING })
+var User = sequelize.define('user', { name: Sequelize.STRING })
+  , Task = sequelize.define('task', { name: Sequelize.STRING })
+  , Tool = sequelize.define('tool', { name: Sequelize.STRING })
 
 Task.belongsTo(User)
 User.hasMany(Task)
@@ -436,8 +436,8 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
       "id": 1,
       "createdAt": "2013-03-20T20:31:40.000Z",
       "updatedAt": "2013-03-20T20:31:40.000Z",
-      "UserId": 1,
-      "User": {
+      "userId": 1,
+      "user": {
         "name": "John Doe",
         "id": 1,
         "createdAt": "2013-03-20T20:31:45.000Z",
@@ -462,12 +462,12 @@ User.findAll({ include: [ Task ] }).then(function(users) {
       "id": 1,
       "createdAt": "2013-03-20T20:31:45.000Z",
       "updatedAt": "2013-03-20T20:31:45.000Z",
-      "Tasks": [{
+      "tasks": [{
         "name": "A Task",
         "id": 1,
         "createdAt": "2013-03-20T20:31:40.000Z",
         "updatedAt": "2013-03-20T20:31:40.000Z",
-        "UserId": 1
+        "userId": 1
       }]
     }]
   */
@@ -494,7 +494,7 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
         "id": 1,
         "createdAt": null,
         "updatedAt": null,
-        "UserId": 1
+        "userId": 1
       }]
     }]
   */
@@ -524,7 +524,7 @@ User.findAll({
           "id": 1,
           "createdAt": null,
           "updatedAt": null,
-          "UserId": 1
+          "userId": 1
         }]
       }],
 
@@ -538,7 +538,7 @@ User.findAll({
           "id": 1,
           "createdAt": null,
           "updatedAt": null,
-          "UserId": 1
+          "userId": 1
         }]
       }],
     */
@@ -606,7 +606,7 @@ User.findAll({
         "id": 1,
         "createdAt": null,
         "updatedAt": null,
-        "UserId": 1,
+        "userId": 1,
         "Teacher": { // 1:1 association
           "name": "Jimi Hendrix"
         }

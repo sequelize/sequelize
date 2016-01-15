@@ -21,7 +21,7 @@ TODO - a link to bluebird + general promise syntax + catch / error handling
 Now that your computer is prepared and your coffee sits next to your keyboard,
 we can finally get started. First things first: create a directory and initialize it with NPM!
 
-```bash 
+```bash
 $ mkdir my-project
 $ cd my-project
 $ npm init
@@ -29,7 +29,7 @@ $ npm init
 
 NPM will ask you a couple of questions. Answer them or just hit the return key until it's satisfied.
 Once done, you can install Sequelize and the connector for your database of choice.
-   
+
 ```bash
 $ npm install --save sequelize
 $ npm install --save pg       # for postgres
@@ -72,15 +72,15 @@ As this article is for beginners, we will skip migrations for now and take a clo
 ### Defining a model
 
 In order to let Sequelize create schemas in the database, you need to describe what kind of data you want to store. This can be done with `sequelize.define`:
-    
+
 ```js
-var User = sequelize.define('User', {
+var User = sequelize.define('user', {
   username: Sequelize.STRING,
   password: Sequelize.STRING
 });
 ```
 
-This will define a user model that has a username and password. Furthermore, Sequelize will automatically add the columns `id`, `createdAt` and `updatedAt`. `createdAt` and `updatedAt` are controlled by Sequelize - when you `create` a model through Sequelize, `createdAt` will be set, and whenever you call `updateAttributes` / `save` on a model, `updatedAt` will be set. 
+This will define a user model that has a username and password. Furthermore, Sequelize will automatically add the columns `id`, `createdAt` and `updatedAt`. `createdAt` and `updatedAt` are controlled by Sequelize - when you `create` a model through Sequelize, `createdAt` will be set, and whenever you call `updateAttributes` / `save` on a model, `updatedAt` will be set.
 
 ### Synchronizing the schema
 
@@ -91,7 +91,7 @@ sequelize
   .sync({ force: true })
   .then(function(err) {
     console.log('It worked!');
-  }, function (err) { 
+  }, function (err) {
     console.log('An error occurred while creating the table:', err);
   });
 ```
@@ -109,9 +109,9 @@ Please note, that `{ force: true }` will drop the `Users` table and re-create it
 ### Configuration
 
 You might not need the timestamps or you might not want the plural of the model's name as table name, right? Luckily there are configuration possibilities for that:
-    
+
 ```js
-var User = sequelize.define('User', {
+var User = sequelize.define('user', {
   username: Sequelize.STRING,
   password: Sequelize.STRING
 }, {
@@ -121,9 +121,9 @@ var User = sequelize.define('User', {
 ```
 
 And just in case you want to customize the timestamp field names, you can do it like this:
-    
+
 ```js
-var User = sequelize.define('User', {
+var User = sequelize.define('user', {
   username: Sequelize.STRING,
   password: Sequelize.STRING
 }, {
@@ -135,7 +135,7 @@ var User = sequelize.define('User', {
 Furthermore you can introduce a `deletedAt` timestamp so models are not actually deleted when you call `destroy`. Adding a `deletedAt` timestamp is called making the model 'paranoid':
 
 ```js
-var User = sequelize.define('User', {
+var User = sequelize.define('user', {
   username: Sequelize.STRING,
   password: Sequelize.STRING
 }, {
@@ -146,8 +146,8 @@ var User = sequelize.define('User', {
 ## Creating and persisting instances
 
 Sequelize allows the creation of instances in two ways. You can either `build` an object and `save` it afterwards. Or you can directly `create` an instance in the database:
-   
-```js 
+
+```js
 var user = User.build({
   username: 'john-doe',
   password: generatePasswordHash('i-am-so-great')
@@ -159,7 +159,7 @@ user.save().then(function() {
 ```
 
 This persists the instance in a two step way. If you want to do everything at once, use the following approach:
-    
+
 ```js
 User.create({
   username: 'john-doe',
@@ -172,7 +172,7 @@ User.create({
 ## Reading data from the database
 
 Every defined model has finder methods, with which you can read the database. Searching for a single item can be done with `Model.find`. Retrieval of multiple items needs the use of `Model.findAll`.
-    
+
 ```js
 User
   .find({ where: { username: 'john-doe' } })
@@ -199,10 +199,10 @@ Before taking a closer look at the code, it is critical to understand some detai
 An association between one source and one target is called "one to one" or 1:1 association. It consists of a source that **has one** target and a target that **belongs to** a source.
 
 Sequelize expects a foreign key in the target's schema. That means that there has to be an attribute respectively a column in the target's table.
-    
+
 ```js
-var Source = sequelize.define('Source', {})
-  , Target = sequelize.define('Target', {})
+var Source = sequelize.define('source', {})
+  , Target = sequelize.define('target', {})
 
 Source.hasOne(Target)
 Target.belongsTo(Source)
@@ -220,10 +220,10 @@ sequelize
 An association between one source and many target is called "one to many" or 1:N association. It consists of a source that **has many** targets and some targets which **belong to** a source.
 
 Sequelize expects a foreign key in the target's schema. That means that there has to be an attribute respectively a column in the target's table.
-    
+
 ```js
-var Source = sequelize.define('Source', {})
-  , Target = sequelize.define('Target', {})
+var Source = sequelize.define('source', {})
+  , Target = sequelize.define('target', {})
 
 Source.hasMany(Target)
 Target.belongsTo(Source)
@@ -241,10 +241,10 @@ sequelize
 An association between many sources and many targets is called "many to many" or N:M association. It consists of sources which **have many** targets and some targets which **have many** sources.
 
 Sequelize expects a junction table which contains a foreign key to the source table and a foreign key to the target table. A row in the table connects a source with a target.
-    
+
 ```js
-var Source = sequelize.define('Source', {})
-  , Target = sequelize.define('Target', {})
+var Source = sequelize.define('source', {})
+  , Target = sequelize.define('target', {})
 
 Source.hasMany(Target)
 Target.hasMany(Source)
@@ -260,10 +260,10 @@ sequelize
 ### Getting/Setting associations
 
 Defining associations is nice, but won't give you any advantage if you cannot read or set associations. Of course Sequelize will add respective functions to your models. Depending on the type of association you will find different methods:
-    
+
 ```js
-var Source = sequelize.define('Source', {})
-  , Target = sequelize.define('Target', {});
+var Source = sequelize.define('source', {})
+  , Target = sequelize.define('target', {});
 
 Source.hasOne(Target);
 Target.belongsTo(Source);
@@ -295,7 +295,7 @@ sequelize.Promise.all([
 ### Clearing associations
 
 Assuming we already defined the models (as in the previous code example) and synced the schema with the database, we can clear the associations like this:
-    
+
 ```js
 source.setTarget(null).then(function() {
   return source.getTarget();
@@ -307,10 +307,10 @@ source.setTarget(null).then(function() {
 ### Adding / removing associations
 
 For 1:N and N:M associations it makes sense to not only set the associations, but also to add or remove associations. Furthermore checking for an association can be handy.
-    
+
 ```js
-var Source = sequelize.define('Source', {})
-  , Target = sequelize.define('Target', {});
+var Source = sequelize.define('source', {})
+  , Target = sequelize.define('target', {});
 
 Source.hasMany(Target);
 Target.belongsTo(Source);
@@ -356,11 +356,11 @@ return sequelize.Promise.all([
 ## A combined example
 
 Now that you know the basics of Sequelize, you might want to see everything in a single program:
-    
+
 ```js
 var Sequelize = require('sequelize')
   , sequelize = new Sequelize('database_name', 'username', 'password')
-  , User      = sequelize.define('User', {
+  , User      = sequelize.define('user', {
                   username: Sequelize.STRING,
                   password: Sequelize.STRING
                 });
