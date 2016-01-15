@@ -1,8 +1,11 @@
+# 3.17.2
+- [SECURITY] Force non-buffer blob values to string, https://github.com/nodejs/node/issues/4660
+
 # 3.17.1
 - [FIXED] Reverted benchmarking feature since it does not compile on Node v4.0
 
 # 3.17.0
-- [CRITICAL] Fixed injection vulnerability for order/limit
+- [SECURITY] Fixed injection vulnerability for order/limit
 - [FIXED] MySQL throws error when null GEOMETRY data results in empty buffer [#4953](https://github.com/sequelize/sequelize/issues/4953)
 
 # 3.16.0
