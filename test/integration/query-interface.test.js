@@ -123,20 +123,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           schema: 'schema'
         });
       }).then(function() {
-          return self.queryInterface.addIndex({
+        return self.queryInterface.addIndex({
+          schema: 'schema',
+          tableName: 'table'
+        }, ['name', 'isAdmin'], {
+          logging: log
+        }, 'schema_table').then(function() {
+          return self.queryInterface.showIndex({
             schema: 'schema',
             tableName: 'table'
-          }, ['name', 'isAdmin'], {
-            logging: log
-          }, 'schema_table').then(function() {
-            return self.queryInterface.showIndex({
-              schema: 'schema',
-              tableName: 'table'
-            }, {logging: log}).then(function(indexes) {
-              expect(indexes.length).to.eq(1);
-              count = 0;
-            });
+          }, {logging: log}).then(function(indexes) {
+            expect(indexes.length).to.eq(1);
+            count = 0;
           });
+        });
       });
     });
 
@@ -151,8 +151,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       var Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING,
         city: {
-            type: DataTypes.STRING,
-            defaultValue: null
+          type: DataTypes.STRING,
+          defaultValue: null
         },
         isAdmin: DataTypes.BOOLEAN,
         enumVals: DataTypes.ENUM('hello', 'world')
@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       return Users.sync({ force: true }).then(function() {
         return self.queryInterface.renameColumn('_Users', 'username', 'pseudo', {logging: log}).then(function() {
           if (dialect === 'sqlite')
-            count++;
+          count++;
           expect(count).to.be.equal(2);
           count = 0;
         });
@@ -411,41 +411,49 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
-    it('should be able to change to foreign key reference', function() {
-      return this.queryInterface.createTable('level', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true
-        }
-      }).bind(this).then(function() {
-        this.queryInterface.createTable('users', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-          },
-          level_id: {
-            type: DataTypes.INTEGER
-          }
+    //SQlite navitely doesnt support ALTER Foreign key
+    if (dialect !== 'sqlite') {
+      describe('should support foreign keys', function() {
+        beforeEach(function() {
+          return this.queryInterface.createTable('users', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            },
+            level_id: {
+              type: DataTypes.INTEGER,
+              allowNull: false
+            }
+          })
+          .bind(this).then(function() {
+            return this.queryInterface.createTable('level', {
+              id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+              }
+            });
+          });
         });
-      })
-      .bind(this).then(function() {
-        return this.queryInterface.changeColumn('users', 'level_id', {
-          type: DataTypes.INTEGER,
-          references: {
-            model: 'level',
-            key:   'id'
-          },
-          onUpdate: 'cascade',
-          onDelete: 'set null'
-        }, {logging: log});
-      }).then(function() {
-        expect(count).to.be.equal(1);
-        count = 0;
-      });
-    });
 
+        it('able to change column to foreign key', function() {
+          return this.queryInterface.changeColumn('users', 'level_id', {
+            type: DataTypes.INTEGER,
+            references: {
+              model: 'level',
+              key:   'id'
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade'
+          }, {logging: log}).then(function() {
+            expect(count).to.be.equal(1);
+            count = 0;
+          });
+        });
+
+      });
+    }
   });
 
   describe('addColumn', function() {
@@ -565,8 +573,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         expect(fks).to.have.length(3);
         count = 0;
         var keys = Object.keys(fks[0]),
-          keys2 = Object.keys(fks[1]),
-          keys3 = Object.keys(fks[2]);
+            keys2 = Object.keys(fks[1]),
+            keys3 = Object.keys(fks[2]);
 
         if (dialect === 'postgres' || dialect === 'postgres-native') {
           expect(keys).to.have.length(6);
