@@ -40,7 +40,7 @@ There are currently three ways to programmatically add hooks:
 
 ```js
 // Method 1 via the .define() method
-var User = sequelize.define('User', {
+var User = sequelize.define('user', {
   username: DataTypes.STRING,
   mood: {
     type: DataTypes.ENUM,
@@ -83,7 +83,7 @@ User.afterValidate('myHookAfter', function(user, options, fn) {
 Only a hook with name param can be removed.
 
 ```js
-var Book = sequelize.define('Book', {
+var Book = sequelize.define('book', {
   title: DataTypes.STRING
 })
 
@@ -243,11 +243,11 @@ For the most part hooks will work the same for instances when being associated e
 2. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
 
 ```js
-var Projects = sequelize.define('Projects', {
+var Projects = sequelize.define('projects', {
   title: DataTypes.STRING
 })
 
-var Tasks = sequelize.define('Tasks', {
+var Tasks = sequelize.define('tasks', {
   title: DataTypes.STRING
 })
 

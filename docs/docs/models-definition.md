@@ -4,12 +4,12 @@ To define mappings between a model and a table, use the `define` method. Sequeli
 
 
 ```js
-var Project = sequelize.define('Project', {
+var Project = sequelize.define('project', {
   title: Sequelize.STRING,
   description: Sequelize.TEXT
 })
 
-var Task = sequelize.define('Task', {
+var Task = sequelize.define('task', {
   title: Sequelize.STRING,
   description: Sequelize.TEXT,
   deadline: Sequelize.DATE
@@ -19,7 +19,7 @@ var Task = sequelize.define('Task', {
 You can also set some options on each column:
 
 ```js
-var Foo = sequelize.define('Foo', {
+var Foo = sequelize.define('foo', {
  // instantiating will automatically set the flag to true if not set
  flag: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
 
@@ -197,7 +197,7 @@ Getters and Setters can be defined in 2 ways (you can mix and match these 2 appr
 ### Defining as part of a property
 
 ```js
-var Employee = sequelize.define('Employee', {
+var Employee = sequelize.define('employee', {
   name:  {
     type     : Sequelize.STRING,
     allowNull: false,
@@ -231,7 +231,7 @@ Below is an example of defining the getters and setters in the model options. Th
 Note that the `this.firstname` and `this.lastname` references in the `fullName` getter function will trigger a call to the respective getter functions. If you do not want that then use the `getDataValue()` method to access the raw value (see below).
 
 ```js
-var Foo = sequelize.define('Foo', {
+var Foo = sequelize.define('foo', {
   firstname: Sequelize.STRING,
   lastname: Sequelize.STRING
 }, {
@@ -281,7 +281,7 @@ Validations are automatically run on `create`, `update` and `save`. You can also
 The validations are implemented by [validator.js][3].
 
 ```js
-var ValidateMe = sequelize.define('Foo', {
+var ValidateMe = sequelize.define('foo', {
   foo: {
     type: Sequelize.STRING,
     validate: {
@@ -372,7 +372,7 @@ Any error messages collected are put in the validation result object alongside t
 An example:
 
 ```js
-var Pub = Sequelize.define('Pub', {
+var Pub = Sequelize.define('pub', {
   name: { type: Sequelize.STRING },
   address: { type: Sequelize.STRING },
   latitude: {
@@ -412,7 +412,7 @@ In this simple case an object fails validation if either latitude or longitude i
 You can also influence the way Sequelize handles your column names:
 
 ```js
-var Bar = sequelize.define('Bar', { /* bla */ }, {
+var Bar = sequelize.define('bar', { /* bla */ }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
 
@@ -438,7 +438,7 @@ var Bar = sequelize.define('Bar', { /* bla */ }, {
 If you want sequelize to handle timestamps, but only want some of them, or want your timestamps to be called something else, you can override each column individually:
 
 ```js
-var Foo = sequelize.define('Foo',  { /* bla */ }, {
+var Foo = sequelize.define('foo',  { /* bla */ }, {
   // don't forget to enable timestamps!
   timestamps: true,
 
@@ -457,7 +457,7 @@ var Foo = sequelize.define('Foo',  { /* bla */ }, {
 You can also change the database engine, e.g. to MyISAM. InnoDB is the default.
 
 ```js
-var Person = sequelize.define('Person', { /* attributes */ }, {
+var Person = sequelize.define('person', { /* attributes */ }, {
   engine: 'MYISAM'
 })
 
@@ -470,7 +470,7 @@ var sequelize = new Sequelize(db, user, pw, {
 Finally you can specify a comment for the table in MySQL and PG
 
 ```js
-var Person = sequelize.define('Person', { /* attributes */ }, {
+var Person = sequelize.define('person', { /* attributes */ }, {
   comment: "I'm a table comment!"
 })
 ```
@@ -486,7 +486,7 @@ var Project = sequelize.import(__dirname + "/path/to/models/project")
 // The model definition is done in /path/to/models/project.js
 // As you might notice, the DataTypes are the very same as explained above
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define("Project", {
+  return sequelize.define("project", {
     name: DataTypes.STRING,
     description: DataTypes.TEXT
   })
@@ -496,8 +496,8 @@ module.exports = function(sequelize, DataTypes) {
 The `import` method can also accept a callback as an argument.
 
 ```js
-sequelize.import('Project', function(sequelize, DataTypes) {
-  return sequelize.define("Project", {
+sequelize.import('project', function(sequelize, DataTypes) {
+  return sequelize.define("project", {
     name: DataTypes.STRING,
     description: DataTypes.TEXT
   })
@@ -562,7 +562,7 @@ sequelize.sync({ force: true, match: /_test$/ });
 Sequelize allows you to pass custom methods to a model and its instances. Just do the following:
 
 ```js
-var Foo = sequelize.define('Foo', { /* attributes */}, {
+var Foo = sequelize.define('foo', { /* attributes */}, {
   classMethods: {
     method1: function(){ return 'smth' }
   },
@@ -579,7 +579,7 @@ Foo.build().method2()
 Of course you can also access the instance's data and generate virtual getters:
 
 ```js
-var User = sequelize.define('User', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
+var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
   instanceMethods: {
     getFullname: function() {
       return [this.firstname, this.lastname].join(' ')
@@ -608,7 +608,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 })
 
 // Example:
-var Foo = sequelize.define('Foo', { /* attributes */});
+var Foo = sequelize.define('foo', { /* attributes */});
 Foo.method1()
 Foo.method2()
 Foo.build().method3()
@@ -618,7 +618,7 @@ Foo.build().method3()
 Sequelize supports adding indexes to the model definition which will be created during `Model.sync()` or `sequelize.sync`.
 
 ```js
-sequelize.define('User', {}, {
+sequelize.define('user', {}, {
   indexes: [
     // Create a unique index on email
     {
