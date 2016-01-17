@@ -1,4 +1,7 @@
 # Future
+- [FIXED] Prevent race condition after transaction finished [#5222](https://github.com/sequelize/sequelize/issues/5222)
+
+# Future
 - [FIXED] Fixed Instance.reload issues ([#4844](https://github.com/sequelize/sequelize/issues/4844) and [#4452](https://github.com/sequelize/sequelize/issues/4452))
 
 # 3.18.0
