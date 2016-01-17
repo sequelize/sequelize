@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Fix Model.destroy() returning undefined in MSSQL #5239
+
 # 3.17.3
 - [FIXED] Regression with array values from security fix in 3.17.2
 
