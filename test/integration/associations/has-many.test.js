@@ -131,6 +131,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           return this.sequelize.sync({force: true}).then(function() {
             return Promise.join(
               User.create({
+                id: 1,
                 tasks: [
                   {title: 'b', subtasks: [
                     {title:'c'},
@@ -152,6 +153,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
                 include: [{association: User.Tasks, include: [Task.SubTasks]}]
               }),
               User.create({
+                id: 2,
                 tasks: [
                   {title: 'a', subtasks: [
                     {title:'b'},
@@ -171,17 +173,26 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
               })
             );
           }).then(function(users) {
-            return User.findAll(
-              {
-                include: [{
-                  association: User.Tasks,
-                  limit: 2,
-                  order: [['title', 'ASC']],
-                  separate: true,
-                  as: 'tasks',
-                  include: [{association: Task.SubTasks, order: [['title', 'DESC']], separate: true, as: 'subtasks'}]
-                }]
-              }).then(function(users) {
+            return User.findAll({
+              include: [{
+                association: User.Tasks,
+                limit: 2,
+                order: [['title', 'ASC']],
+                separate: true,
+                as: 'tasks',
+                include: [
+                  {
+                    association: Task.SubTasks,
+                    order: [['title', 'DESC']],
+                    separate: true,
+                    as: 'subtasks'
+                  }
+                ]
+              }],
+              order: [
+                ['id', 'ASC']
+              ]
+            }).then(function(users) {
               expect(users[0].tasks.length).to.equal(2);
 
               expect(users[0].tasks[0].title).to.equal('a');
