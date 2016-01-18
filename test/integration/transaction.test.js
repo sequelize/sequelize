@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       var t;
       return (expect(this.sequelize.transaction(function(transaction) {
         t = transaction;
-        return Promise.reject('Swag');
+        return Promise.reject(new Error('Swag'));
       })).to.eventually.be.rejected).then(function() {
         expect(t.finished).to.be.equal('rollback');
       });
