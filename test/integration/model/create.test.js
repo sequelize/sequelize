@@ -1571,13 +1571,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           {name: 'bar', code: '1'}
         ], { validate: true }).catch(function(errors) {
           expect(errors).to.not.be.null;
-          expect(errors).to.be.an('Array');
-          expect(errors).to.have.length(2);
-          expect(errors[0].record.code).to.equal('1234');
-          expect(errors[0].errors.get('name')[0].type).to.equal('notNull Violation');
-          expect(errors[1].record.name).to.equal('bar');
-          expect(errors[1].record.code).to.equal('1');
-          expect(errors[1].errors.get('code')[0].message).to.equal('Validation len failed');
+          expect(errors.errors).to.have.length(2);
+          expect(errors.errors[0].record.code).to.equal('1234');
+          expect(errors.errors[0].errors.get('name')[0].type).to.equal('notNull Violation');
+          expect(errors.errors[1].record.name).to.equal('bar');
+          expect(errors.errors[1].record.code).to.equal('1');
+          expect(errors.errors[1].errors.get('code')[0].message).to.equal('Validation len failed');
         });
       });
     });

@@ -2744,9 +2744,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return user.bulkCreate(data, {
         validate: true,
         individualHooks: true
-      })
-      .catch(function(errors) {
-        expect(errors).to.be.instanceof(Array);
+      }).catch(function(errors) {
+        expect(errors.errors).to.be.instanceof(Array);
       });
     });
   });
