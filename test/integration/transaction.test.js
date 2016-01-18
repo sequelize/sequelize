@@ -90,14 +90,14 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                 field: 'value'
               }
             })
+          , self = this
           , transTest = function (val) {
               return self.sequelize.transaction({isolationLevel: 'SERIALIZABLE'}, function(t) {
                 return SumSumSum.sum('value', {transaction: t}).then(function (balance) {
                   return SumSumSum.create({value: -val}, {transaction: t});
                 });
               });
-            }
-          , self = this;
+            };
         // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
         return SumSumSum.sync({force: true}).then(function () {
           return (expect(Promise.join(transTest(80), transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions'));
@@ -239,7 +239,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       });
     });
   }
-  
+
   if (current.dialect.supports.transactionOptions.type) {
     describe('transaction types', function() {
       it('should support default transaction type DEFERRED', function() {
@@ -250,7 +250,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
           });
         });
       });
-      
+
       Object.keys(Transaction.TYPES).forEach(function(key) {
         it('should allow specification of ' + key + ' type', function() {
           return this.sequelize.transaction({
@@ -262,7 +262,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
           });
         });
       });
-      
+
     });
   }
 
