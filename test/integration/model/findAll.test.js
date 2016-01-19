@@ -1389,4 +1389,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(spy.called).to.be.ok;
     });
   });
+
+
+  it('should support query commenting', function () {
+    var spy = sinon.spy();
+
+    return this.User.findAll({
+      where: {},
+      logging: spy,
+      queryComment: 'interesting statement here'
+    }).then(function () {
+      expect(spy.called).to.be.ok;
+      expect(spy.args[0][0]).to.match(/interesting statement here/);
+    });
+  });
 });
