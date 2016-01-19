@@ -1085,6 +1085,37 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('does not update timestamps when passing silent=true in a bulk update', function() {
+      var self = this
+        , updatedAtPeter
+        , updatedAtPaul
+        , data = [
+          { username: 'Paul' },
+          { username: 'Peter' }
+        ];
+
+      return this.User.bulkCreate(data).then(function() {
+        return self.User.findAll();
+      }).then(function(users) {
+        updatedAtPaul = users[0].updatedAt;
+        updatedAtPeter = users[1].updatedAt;
+      })
+      .then(function() {
+        return self.sequelize.Promise.delay(150);
+      })
+      .then(function() {
+        return self.User.update(
+          { aNumber: 1 },
+          { where: {}, silent: true }
+        );
+      }).then(function() {
+        return self.User.findAll();
+      }).then(function(users) {
+        expect(users[0].updatedAt).to.equalTime(updatedAtPeter);
+        expect(users[1].updatedAt).to.equalTime(updatedAtPaul);
+      });
+    });
+
     describe('when nothing changed', function() {
 
       beforeEach(function () {
