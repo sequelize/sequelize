@@ -1161,7 +1161,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               , afterProject = false
               , beforeTask = false
               , afterTask = false
-              , VeryCustomError = function() {};
+              , CustomErrorText = 'Whoops!';
 
             this.Projects.beforeCreate(function(project, options, fn) {
               beforeProject = true;
@@ -1175,7 +1175,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeDestroy(function(task, options, fn) {
               beforeTask = true;
-              fn(new VeryCustomError('Whoops!'));
+              fn(new Error(CustomErrorText));
             });
 
             this.Tasks.afterDestroy(function(task, options, fn) {
@@ -1186,7 +1186,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             return this.Projects.create({title: 'New Project'}).then(function(project) {
               return self.Tasks.create({title: 'New Task'}).then(function(task) {
                 return project.setTask(task).then(function() {
-                  return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
+                  return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function () {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
@@ -1921,7 +1921,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , afterTask = false
                 , beforeMiniTask = false
                 , afterMiniTask = false
-                , VeryCustomError = function() {};
+                , CustomErrorText = 'Whoops!';
 
               this.Projects.beforeCreate(function() {
                 beforeProject = true;
@@ -1933,7 +1933,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
               this.Tasks.beforeDestroy(function() {
                 beforeTask = true;
-                throw new VeryCustomError('Whoops!');
+                throw new Error(CustomErrorText);
               });
 
               this.Tasks.afterDestroy(function() {
@@ -1958,7 +1958,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   project.addTask(task)
                 ]).return(project);
               }).then(function(project) {
-                return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
+                return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function () {
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
                   expect(beforeTask).to.be.true;
