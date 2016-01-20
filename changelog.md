@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Fixed Instance.reload issues ([#4844](https://github.com/sequelize/sequelize/issues/4844) and [#4452](https://github.com/sequelize/sequelize/issues/4452))
+
 # 3.18.0
 - [ADDED] Support silent: true in bulk update [#5200](https://github.com/sequelize/sequelize/issues/5200)
 - [ADDED] `retry` object now part of global settings and can be overridden per call.  The default is 5 retries with a backoff function.  `retry` object can be passed to options with max: 0 to turn off this behavior.

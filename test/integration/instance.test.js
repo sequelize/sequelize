@@ -513,6 +513,49 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    it('should update internal options of the instance', function() {
+      var Book = this.sequelize.define('Book', { title: DataTypes.STRING })
+        , Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
+
+      Book.hasMany(Page);
+      Page.belongsTo(Book);
+
+      return Book.sync({force: true}).then(function() {
+        return Page.sync({force: true}).then(function() {
+          return Book.create({ title: 'A very old book' }).then(function(book) {
+            return Page.create().then(function(page) {
+              return book.setPages([page]).then(function() {
+                return Book.findOne({
+                  where: { id: book.id }
+                }).then(function(leBook) {
+                  var oldOptions = leBook.$options;
+                  return leBook.reload({
+                    include: [Page]
+                  }).then(function(leBook) {
+                    expect(oldOptions).not.to.equal(leBook.$options);
+                    expect(leBook.$options.include.length).to.equal(1);
+                    expect(leBook.Pages.length).to.equal(1);
+                    expect(leBook.get({plain: true}).Pages.length).to.equal(1);
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should return an error when reload fails', function() {
+      return this.User.create({ username: 'John Doe' }).then(function(user) {
+        return user.destroy().then(function () {
+          return expect(user.reload()).to.be.rejectedWith(
+            Sequelize.InstanceError,
+            'Instance could not be reloaded because it does not exist anymore (find call returned null)'
+          );
+        });
+      });
+    });
+
     it('should set an association to null after deletion, 1-1', function() {
       var Shoe = this.sequelize.define('Shoe', { brand: DataTypes.STRING })
         , Player = this.sequelize.define('Player', { name: DataTypes.STRING });
