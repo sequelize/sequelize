@@ -264,6 +264,49 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       });
 
     });
+
+  }
+
+  if (dialect === 'sqlite') {
+    it('automatically retries on SQLITE_BUSY failure', function () {
+      return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        return User.sync({ force: true }).then(function() {
+          var newTransactionFunc = function() {
+            return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE}).then(function(t){
+              return User.create({}, {transaction:t}).then(function( ) {
+                return t.commit();
+              });
+            });
+          };
+          return Promise.join(newTransactionFunc(), newTransactionFunc()).then(function(results) {
+            return User.findAll().then(function(users) {
+              expect(users.length).to.equal(2);
+            });
+          });
+        });
+      });
+    });
+
+    it('fails with SQLITE_BUSY when retry.match is changed', function () {
+      return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+        var User = sequelize.define('User', { id: {type: Support.Sequelize.INTEGER, primaryKey: true}, username: Support.Sequelize.STRING });
+        return User.sync({ force: true }).then(function() {
+          var newTransactionFunc = function() {
+            return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: {match: ['NO_MATCH']}}).then(function(t){
+              // introduce delay to force the busy state race condition to fail
+              return Promise.delay(1000).then(function () {
+                return User.create({id: null, username: 'test ' + t.id}, {transaction:t}).then(function() {
+                  return t.commit();
+                });
+              });
+            });
+          };
+          return expect(Promise.join(newTransactionFunc(), newTransactionFunc())).to.be.rejectedWith('SQLITE_BUSY: database is locked');
+        });
+      });
+    });
+
   }
 
    if (current.dialect.supports.lock) {

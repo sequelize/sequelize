@@ -1,5 +1,7 @@
 # Future
 - [ADDED] Support silent: true in bulk update [#5200](https://github.com/sequelize/sequelize/issues/5200)
+- [ADDED] `retry` object now part of global settings and can be overridden per call.  The default is 5 retries with a backoff function.  `retry` object can be passed to options with max: 0 to turn off this behavior.
+- [ADDED] Sqlite now retries database queries that return SQL_BUSY as the status.
 - [FIXED] Postgres destroy with `where` fails on JSONB data [#5092](https://github.com/sequelize/sequelize/issues/5092)
 
 # 3.17.3
