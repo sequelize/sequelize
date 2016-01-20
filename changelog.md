@@ -1,5 +1,6 @@
-# FUTURE
+# Future
 - [ADDED] Support silent: true in bulk update [#5200](https://github.com/sequelize/sequelize/issues/5200)
+- [FIXED] Postgres destroy with `where` fails on JSONB data [#5092](https://github.com/sequelize/sequelize/issues/5092)
 
 # 3.17.3
 - [FIXED] Regression with array values from security fix in 3.17.2
