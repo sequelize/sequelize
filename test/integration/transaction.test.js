@@ -265,6 +265,9 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
 
     });
 
+  }
+
+  if (dialect === 'sqlite') {
     it('automatically retries on SQLITE_BUSY failure', function () {
       return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
         var User = sequelize.define('User', { username: Support.Sequelize.STRING });
