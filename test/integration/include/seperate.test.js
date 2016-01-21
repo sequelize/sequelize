@@ -124,10 +124,15 @@ if (current.dialect.supports.groupedLimit) {
 
       it('should run a hasMany association with limit in a separate query', function () {
         var User = this.sequelize.define('User', {})
-          , Task = this.sequelize.define('Task', {})
+          , Task = this.sequelize.define('Task', {
+              userId: {
+                type: DataTypes.INTEGER,
+                field: 'user_id'
+              }
+            })
           , sqlSpy = sinon.spy();
 
-        User.Tasks = User.hasMany(Task, {as: 'tasks'});
+        User.Tasks = User.hasMany(Task, {as: 'tasks', foreignKey: 'userId'});
 
         return this.sequelize.sync({force: true}).then(function () {
           return Promise.join(
