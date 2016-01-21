@@ -36,6 +36,30 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
 
   });
 
+  describe('dates', function () {
+    it('formats the date correctly when inserting', function () {
+      var timezoneSequelize = Support.createSequelizeInstance({
+        timezone: Support.getTestDialect() === 'sqlite' ? '+00:00' : 'CET'
+      });
+
+      var User = timezoneSequelize.define('user', {
+        date: {
+          type: DataTypes.DATE
+        }
+      },{
+        timestamps:false
+      });
+
+      expectsql(timezoneSequelize.dialect.QueryGenerator.insertQuery(User.tableName, {date: new Date(Date.UTC(2015, 0, 20))}, User.rawAttributes, {}),
+        {
+          postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 01:00:00.000 +01:00\');',
+          sqlite: 'INSERT INTO `users` (`date`) VALUES (\'2015-01-20 00:00:00.000 +00:00\');',
+          mssql: 'INSERT INTO [users] ([date]) VALUES (N\'2015-01-20 01:00:00.000\');',
+          mysql: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 01:00:00');"
+        });
+    });
+  });
+
   describe('bulkCreate', function () {
     it('bulk create with onDuplicateKeyUpdate', function () {
       // Skip mssql for now, it seems broken
