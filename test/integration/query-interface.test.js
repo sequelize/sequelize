@@ -411,6 +411,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
+    it('should change columns', function() {
+        return this.queryInterface.createTable({
+          tableName: 'users',
+        }, {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          currency: DataTypes.INTEGER
+        }).bind(this).then(function() {
+          return this.queryInterface.changeColumn('users', 'currency', {
+            type: DataTypes.FLOAT,
+            allowNull: true
+          }, {
+            logging: log
+          }).then(function() {
+            expect(count).to.be.equal(1);
+            count = 0;
+          });
+        });
+    });
+
     //SQlite navitely doesnt support ALTER Foreign key
     if (dialect !== 'sqlite') {
       describe('should support foreign keys', function() {
