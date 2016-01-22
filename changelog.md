@@ -10,6 +10,7 @@
 - [ADDED] Add `IF EXIST` to postgres alter enum [#4464](https://github.com/sequelize/sequelize/pull/4464)
 - [FIXED] Postgres destroy with `where` fails on JSONB data [#5092](https://github.com/sequelize/sequelize/issues/5092)
 - [FIXED] hasMany.separate with foreign keys having `field`
+- [ADDED] Geography support for postgres
 
 # 3.17.3
 - [FIXED] Regression with array values from security fix in 3.17.2
