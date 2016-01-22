@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         });
 
         it('logs an empty string as info event', function() {
-          this.sequelize.log();
+          this.sequelize.log('');
           expect(this.spy.calledOnce).to.be.true;
         });
       });
