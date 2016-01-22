@@ -2,6 +2,7 @@
 - [FIXED] Confirmed that values modified in validation hooks are preserved [#3534](https://github.com/sequelize/sequelize/issues/3534)
 - [FIXED] Support lower case type names in SQLite [#5482](https://github.com/sequelize/sequelize/issues/5482)
 - [INTERNALS] Removed dependency on wellknown in favor of terraformer-wkt-parser
+- [ADDED] Benchmarking feature [#2494](https://github.com/sequelize/sequelize/issues/2494)
 
 # 3.20.0
 - [ADDED] rejectOnEmpty mode [#272](https://github.com/sequelize/sequelize/issues/272) [#5480](https://github.com/sequelize/sequelize/issues/5480)
