@@ -129,6 +129,20 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     ).to.eventually.be.rejected;
   });
 
+  it('does not allow queries immediatly after commit call', function() {
+    var self = this;
+    return expect(
+      this.sequelize.transaction().then(function(t) {
+        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
+          return Promise.join(
+            expect(t.commit()).to.eventually.be.fulfilled,
+            expect(self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})).to.eventually.be.rejectedWith(/commit has been called on this transaction\([^)]+\), you can no longer use it/)
+          );
+        });
+      })
+    ).to.be.eventually.fulfilled;
+  });
+
   it('does not allow queries after rollback', function() {
     var self = this;
     return expect(
@@ -142,13 +156,27 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     ).to.eventually.be.rejected;
   });
 
+  it('does not allow queries immediatly after rollback call', function() {
+    var self = this;
+    return expect(
+      this.sequelize.transaction().then(function(t) {
+        return Promise.join(
+          expect(t.rollback()).to.eventually.be.fulfilled,
+          expect(self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})).to.eventually.be.rejectedWith(/rollback has been called on this transaction\([^)]+\), you can no longer use it/)
+        );
+      })
+    ).to.eventually.be.fulfilled;
+  });
+
   it('does not allow commits after commit', function () {
     var self = this;
-    return expect(self.sequelize.transaction().then(function (t) {
-      return t.commit().then(function () {
-        return t.commit();
-      });
-    })).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: commit');
+    return expect(
+      self.sequelize.transaction().then(function (t) {
+        return t.commit().then(function () {
+          return t.commit();
+        });
+      })
+    ).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: commit');
   });
 
   it('does not allow commits after rollback', function () {
