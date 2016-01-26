@@ -287,4 +287,55 @@ An array of `type`, e.g. `DataTypes.ARRAY(DataTypes.DECIMAL)`. Only available in
 
 ***
 
+<a name="geometry"></a>
+## `GEOMETRY()`
+[View code](https://github.com/sequelize/sequelize/blob/4651cfbe69b3ac9194b9313bcde38b13e9a6fa55/lib/data-types.js#L818)
+
+[View code (mysql dialect)](https://github.com/sequelize/sequelize/blob/0514149fce09a3747743244b81c70d9813c35f4b/lib/dialects/mysql/data-types.js#L48)
+
+[View code (postgres dialect)](https://github.com/sequelize/sequelize/blob/a4d56f30ff241d806a63ac5c369ee31e5af1b906/lib/dialects/postgres/data-types.js#L240)
+
+A column storing Geometry information.  Only available in PostgreSQL (with PostGIS) or MySQL.  In MySQL, allowable Geometry types are 'POINT', 'LINESTRING', 'POLYGON'.
+
+When using, GeoJSON is accepted as input and returned as output.  In PostGIS, the GeoJSON is parsed using the PostGIS function `ST_GeomFromGeoJSON`.  In MySQL it is parsed using the function `GeomFromText`.  Therefore, one can just follow the [GeoJSON spec](http://geojson.org/geojson-spec.html) for handling geometry objects.  See the following examples:
+
+```js
+// Create a new point:
+var point = { type: 'Point', coordinates: [39.807222,-76.984722]};
+
+User.create({username: 'username', geometry: point }).then(function(newUser) {
+...
+});
+
+// Create a new linestring:
+var line = { type: 'LineString', 'coordinates': [ [100.0, 0.0], [101.0, 1.0] ] };
+
+User.create({username: 'username', geometry: line }).then(function(newUser) {
+...
+});
+
+// Create a new polygon:
+var polygon = { type: 'Polygon', coordinates: [
+             [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+               [100.0, 1.0], [100.0, 0.0] ]
+             ]};
+
+User.create({username: 'username', geometry: polygon }).then(function(newUser) {
+...
+});
+
+// Create a new point with a custom SRID:
+var point = { 
+  type: 'Point', 
+  coordinates: [39.807222,-76.984722],
+  crs: { type: 'name', properties: { name: 'EPSG:4326'} }
+};
+
+User.create({username: 'username', geometry: point }).then(function(newUser) {
+...
+});
+```
+
+***
+
 _This document is automatically generated based on source code comments. Please do not edit it directly, as your changes will be ignored. Please write on <a href="irc://irc.freenode.net/#sequelizejs">IRC</a>, open an issue or a create a pull request if you feel something can be improved. For help on how to write source code documentation see [JSDoc](http://usejsdoc.org) and [dox](https://github.com/tj/dox)_
