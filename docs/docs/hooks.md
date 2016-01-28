@@ -193,6 +193,27 @@ Model.beforeBulkDestroy(function(whereClause, fn) {
 Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 ```
 
+If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes made in the hook to fields that aren't given in the `updatesOnDuplicate` array will not be persisted to the database. However it is possible to change the updatesOnDuplicate option inside the hook if this is what you want.
+
+```
+// Bulk updating existing users with updatesOnDuplicate option
+Users.bulkCreate({ id: 1, isMemeber: true}, 
+                 { id: 2, isMember: false}], 
+                 { updatesOnDuplicate: ['isMember']} )
+
+User.beforeBulkCreate(function (users, options) {
+  users.forEach(function (user) {
+    if (user.isMember) {
+      user.memberSince = new Date()
+    }
+  })
+
+  // Add memberSince to updatesOnDuplicate otherwise the memberSince date wont be
+  // saved to the database
+  options.updatesOnDuplicate.push('memberSince')
+})
+```
+
 ## Associations
 
 For the most part hooks will work the same for instances when being associated except a few things
