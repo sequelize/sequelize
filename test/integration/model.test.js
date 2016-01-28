@@ -1050,6 +1050,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should properly set data when individualHooks are true', function() {
+      var self = this;
+
+      self.User.beforeUpdate(function(instance) {
+         instance.set('intVal', 1);
+      });
+
+      return self.User.create({ username: 'Peter' }).then(function (user) {
+        return self.User.update({ data: 'test' }, { where: { id: user.id }, individualHooks: true }).then(function () {
+          return self.User.findById(user.id).then(function (userUpdated){
+            expect(userUpdated.intVal).to.be.equal(1);
+          });
+        });
+      });
+    });
+
     it('sets updatedAt to the current timestamp', function() {
       var data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
