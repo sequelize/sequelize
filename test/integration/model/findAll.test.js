@@ -380,6 +380,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('should be able to find a row using equal with dates', function() {
+        return this.User.findAll({
+          where: {
+            theDate: '2013-01-10 12:00'
+          }
+        }).then(function(users) {
+          expect(users.length).to.equal(1);
+          expect(users[0].username).to.equal('boo2');
+          expect(users[0].intVal).to.equal(10);
+        });
+      });
+
       it('should be able to find a row using greater than or equal to', function() {
         return this.User.find({
           where: {
