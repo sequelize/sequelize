@@ -15,6 +15,14 @@ var chai = require('chai')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
+  before(function () {
+    this.clock = sinon.useFakeTimers();
+  });
+
+  after(function () {
+    this.clock.restore();
+  });
+
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -1080,9 +1088,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(this.updatedAt).to.equalTime(users[2].updatedAt); // All users should have the same updatedAt
 
         // Pass the time so we can actually see a change
-        return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-          return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
-        });
+        this.clock.tick(1000);
+        return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
       }).then(function() {
         return this.User.findAll({order: 'id'});
       }).then(function(users) {
