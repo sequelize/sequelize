@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return self.queryInterface.dropAllTables({skip: ['skipme']}).then(function() {
           return self.queryInterface.showAllTables().then(function(tableNames) {
             if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-              tableNames = _.pluck(tableNames, 'tableName');
+              tableNames = _.map(tableNames, 'tableName');
             }
             expect(tableNames).to.contain('skipme');
           });

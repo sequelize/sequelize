@@ -899,7 +899,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       return Photo.sync({ force: true }).then(function() {
         return self.sequelize.getQueryInterface().showAllTables().then(function(tableNames) {
           if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-            tableNames = _.pluck(tableNames, 'tableName');
+            tableNames = _.map(tableNames, 'tableName');
           }
           expect(tableNames).to.include('photos');
         });
