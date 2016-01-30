@@ -31,6 +31,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       blob: DataTypes.BLOB
     });
 
+    this.ModelWithFieldPK = this.sequelize.define('ModelWithFieldPK', {
+      userId: {
+        field: 'user_id',
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+      },
+      foo:{
+        type: DataTypes.STRING,
+        unique: true
+      }
+    });
+
     return this.sequelize.sync({ force: true });
   });
 
@@ -223,6 +236,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return this.User.findById(42);
         }).then(function(user) {
           expect(user.baz).to.equal('oof');
+        });
+      });
+
+      it('works with primary key using .field', function () {
+        return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' }).bind(this).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).to.be.undefined;
+          } else {
+            expect(created).to.be.ok;
+          }
+
+          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
+            return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
+          });
+        }).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).to.be.undefined;
+          } else {
+            expect(created).not.to.be.ok;
+          }
+
+          return this.ModelWithFieldPK.findOne({ userId: 42 });
+        }).then(function(instance) {
+          expect(instance.foo).to.equal('second');
         });
       });
 
