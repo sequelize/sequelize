@@ -70,6 +70,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   describe('.scope', function () {
+    it('defaultScope should be an empty object if not overriden', function () {
+      var Foo = current.define('foo', {}, {});
+
+      expect(Foo.scope('defaultScope').$scope).to.deep.equal({});
+    });
+
     it('should apply default scope', function () {
       expect(Company.$scope).to.deep.equal({
         include: [{ model: Project }],
