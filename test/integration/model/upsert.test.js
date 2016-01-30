@@ -12,6 +12,10 @@ var chai = require('chai')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
+  before(function () {
+    this.clock = sinon.useFakeTimers();
+  });
+
   beforeEach(function() {
     this.User = this.sequelize.define('user', {
       username: DataTypes.STRING,
@@ -47,6 +51,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     return this.sequelize.sync({ force: true });
   });
 
+  after(function () {
+    this.clock.restore();
+  });
+
   if (current.dialect.supports.upserts) {
     describe('upsert', function() {
       it('works with upsert on id', function() {
@@ -57,9 +65,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).to.be.ok;
           }
 
-          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-            return this.User.upsert({ id: 42, username: 'doe' });
-          });
+          this.clock.tick(1000);
+          return this.User.upsert({ id: 42, username: 'doe' });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -83,9 +90,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).to.be.ok;
           }
 
-          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-            return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
-          });
+          this.clock.tick(1000);
+          return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -149,10 +155,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created2).to.be.ok;
           }
 
-          return Promise.delay(1000).bind(this).then(function() {
-            // Update the first one
-            return User.upsert({ a: 'a', b: 'b', username: 'doe' });
-          });
+
+          this.clock.tick(1000);
+          // Update the first one
+          return User.upsert({ a: 'a', b: 'b', username: 'doe' });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -196,9 +202,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).to.be.ok;
           }
 
-          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-            return this.User.upsert({ id: 42, username: 'doe', blob: new Buffer('andrea') });
-          });
+
+          this.clock.tick(1000);
+          return this.User.upsert({ id: 42, username: 'doe', blob: new Buffer('andrea') });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -223,9 +229,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).to.be.ok;
           }
 
-          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-            return this.User.upsert({ id: 42, baz: 'oof' });
-          });
+          return this.User.upsert({ id: 42, baz: 'oof' });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -247,9 +251,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).to.be.ok;
           }
 
-          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-            return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
-          });
+
+          this.clock.tick(1000);
+          return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -270,9 +274,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           } else {
             expect(created).to.be.ok;
           }
-          return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-            return this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
-          });
+
+
+          this.clock.tick(1000);
+          return this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
