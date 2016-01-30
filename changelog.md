@@ -2,6 +2,7 @@
 - [FIXED] Prevent race condition after transaction finished [#5222](https://github.com/sequelize/sequelize/issues/5222)
 - [FIXED] Fixed Instance.reload issues ([#4844](https://github.com/sequelize/sequelize/issues/4844) and [#4452](https://github.com/sequelize/sequelize/issues/4452))
 - [FIXED] Fix upsert when primary key contains `.field` (internal API change for `queryInterface.upsert`) [#4755](https://github.com/sequelize/sequelize/issues/4755)
+- [ADDED] Geography support for postgres
 
 # 3.18.0
 - [ADDED] Support silent: true in bulk update [#5200](https://github.com/sequelize/sequelize/issues/5200)
