@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "bluebird": "^3.1.0",
-    "depd": "^1.0.0",
+    "depd": "^1.1.0",
     "dottie": "^1.0.0",
     "generic-pool": "2.4.0",
     "inflection": "^1.6.0",
