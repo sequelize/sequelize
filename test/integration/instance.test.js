@@ -1114,15 +1114,25 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     it('does not update timestamps when passing silent=true', function() {
+      var self = this;
+
       return this.User.create({ username: 'user' }).then(function(user) {
         var updatedAt = user.updatedAt;
         return this.sequelize.Promise.delay(2000).then(function() {
+
+          user.set({
+            updatedAt: new Date(Date.now() - 7200000)
+          }, { raw: true });
+
           return user.update({
             username: 'userman'
           }, {
             silent: true
           }).then(function(user1) {
             expect(user1.updatedAt).to.equalTime(updatedAt);
+            return self.User.findById(user1.id);
+          }).then(function(user2) {
+            expect(user2.updatedAt).to.equalTime(updatedAt);
           });
         });
       });
