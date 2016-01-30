@@ -21,7 +21,6 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     this.sinon.restore();
   });
 
-  this.timeout(5000);
   describe('constructor', function() {
     it('stores options', function() {
       var transaction = new Transaction(this.sequelize);
