@@ -444,6 +444,18 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" = E'\\\\x53657175656c697a65';",
           context: QueryGenerator
         },
+        {
+          title: 'use IS if field is null',
+          arguments: ['myTable', {where: {field: null}}],
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."field" IS NULL;',
+          context: QueryGenerator
+        },
+        {
+          title: 'use IS if field is undefined',
+          arguments: ['myTable', {where: {field: undefined}}],
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."field" IS NULL;',
+          context: QueryGenerator
+        },
 
         // Variants when quoteIdentifiers is false
         {
