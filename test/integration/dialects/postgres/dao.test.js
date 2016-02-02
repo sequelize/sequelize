@@ -375,37 +375,22 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
-      it('should be able to add enum types', function() {
-        var self = this
-          , User = this.sequelize.define('UserEnums', {
-              mood: DataTypes.ENUM('happy', 'sad', 'meh')
-            })
-          , count = 0;
+      it('should be able to add values to enum types', function() {
+        var User = this.sequelize.define('UserEnums', {
+            mood: DataTypes.ENUM('happy', 'sad', 'meh')
+          });
 
-        return User.sync({ force: true }).then(function() {
-          User = self.sequelize.define('UserEnums', {
+        return User.sync({ force: true }).bind(this).then(function() {
+          User = this.sequelize.define('UserEnums', {
             mood: DataTypes.ENUM('neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful')
           });
 
-          return User.sync({
-            logging: function (sql) {
-              if (sql.indexOf('neutral') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"public\".\"enum_UserEnums_mood\" ADD VALUE 'neutral' BEFORE 'happy'")).to.not.be.equal(-1);
-                count++;
-              }
-              else if (sql.indexOf('ecstatic') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"public\".\"enum_UserEnums_mood\" ADD VALUE 'ecstatic' BEFORE 'meh'")).to.not.be.equal(-1);
-                count++;
-              }
-              else if (sql.indexOf('joyful') > -1) {
-                expect(sql.indexOf("ALTER TYPE \"public\".\"enum_UserEnums_mood\" ADD VALUE 'joyful' AFTER 'meh'")).to.not.be.equal(-1);
-                count++;
-              }
-            }
-          }).then(function() {
-            expect(User.rawAttributes.mood.values).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
-            expect(count).to.equal(3);
-          });
+          return User.sync();
+        }).then(function() {
+          return this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+        }).then(function (enums) {
+          expect(enums).to.have.length(1);
+          expect(enums[0].enum_value).to.equal("{neutral,happy,sad,ecstatic,meh,joyful}");
         });
       });
     });

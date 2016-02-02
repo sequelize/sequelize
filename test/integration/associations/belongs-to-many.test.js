@@ -1795,7 +1795,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-          result = _.pluck(result, 'tableName');
+          result = _.map(result, 'tableName');
         }
         expect(result.indexOf('group_user')).not.to.equal(-1);
       });
@@ -1814,7 +1814,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-          result = _.pluck(result, 'tableName');
+          result = _.map(result, 'tableName');
         }
 
         expect(result.indexOf('user_groups')).not.to.equal(-1);

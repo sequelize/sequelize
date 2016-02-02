@@ -14,6 +14,14 @@ var chai = require('chai')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
+  before(function () {
+    this.clock = sinon.useFakeTimers();
+  });
+
+  after(function () {
+    this.clock.restore();
+  });
+
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
@@ -242,19 +250,18 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with timestamps set to true', function() {
       var User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER
-      }, { timestamps: true });
+      }, { timestamps: true })
+        , oldDate;
 
-      return User.sync({ force: true }).then(function() {
-        return User.create({aNumber: 1}).then(function(user) {
-          var oldDate = user.updatedAt;
-          return this.sequelize.Promise.delay(1000).then(function() {
-            return user.increment('aNumber', { by: 1 }).then(function() {
-              return User.findById(1).then(function(user) {
-                expect(user.updatedAt).to.be.afterTime(oldDate);
-              });
-            });
-          });
-        });
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({aNumber: 1});
+      }).then(function(user) {
+        oldDate = user.updatedAt;
+
+        this.clock.tick(1000);
+        return user.increment('aNumber', {by: 1});
+      }).then(function() {
+        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
     });
   });
@@ -369,19 +376,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with timestamps set to true', function() {
       var User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER
-      }, { timestamps: true });
+      }, { timestamps: true })
+        , oldDate;
 
-      return User.sync({ force: true }).then(function() {
-        return User.create({aNumber: 1}).then(function(user) {
-          var oldDate = user.updatedAt;
-          return this.sequelize.Promise.delay(1000).then(function() {
-            return user.decrement('aNumber', { by: 1 }).then(function() {
-              return User.findById(1).then(function(user) {
-                expect(user.updatedAt).to.be.afterTime(oldDate);
-              });
-            });
-          });
-        });
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({aNumber: 1});
+      }).then(function(user) {
+        oldDate = user.updatedAt;
+        this.clock.tick(1000);
+        return user.decrement('aNumber', {by: 1});
+      }).then(function() {
+        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
     });
   });
@@ -460,22 +465,21 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     it('should update read only attributes as well (updatedAt)', function() {
-      var self = this;
-
-      return this.User.create({ username: 'John Doe' }).then(function(originalUser) {
-        var originallyUpdatedAt = originalUser.updatedAt;
+      return this.User.create({ username: 'John Doe' }).bind(this).then(function(originalUser) {
+        this.originallyUpdatedAt = originalUser.updatedAt;
+        this.originalUser = originalUser;
 
         // Wait for a second, so updatedAt will actually be different
-        return this.sequelize.Promise.delay(1000).then(function() {
-          return self.User.findById(originalUser.id).then(function(updater) {
-            return updater.updateAttributes({ username: 'Doe John' }).then(function() {
-              return originalUser.reload().then(function(updatedUser) {
-                expect(originalUser.updatedAt).to.be.above(originallyUpdatedAt);
-                expect(updatedUser.updatedAt).to.be.above(originallyUpdatedAt);
-              });
-            });
-          });
-        });
+        this.clock.tick(1000);
+        return this.User.findById(originalUser.id);
+      }).then(function(updater) {
+        return updater.updateAttributes({username: 'Doe John'});
+      }).then(function(updatedUser) {
+        this.updatedUser = updatedUser;
+        return this.originalUser.reload();
+      }).then(function() {
+        expect(this.originalUser.updatedAt).to.be.above(this.originallyUpdatedAt);
+        expect(this.updatedUser.updatedAt).to.be.above(this.originallyUpdatedAt);
       });
     });
 
@@ -509,6 +513,49 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
               });
             });
           });
+        });
+      });
+    });
+
+    it('should update internal options of the instance', function() {
+      var Book = this.sequelize.define('Book', { title: DataTypes.STRING })
+        , Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
+
+      Book.hasMany(Page);
+      Page.belongsTo(Book);
+
+      return Book.sync({force: true}).then(function() {
+        return Page.sync({force: true}).then(function() {
+          return Book.create({ title: 'A very old book' }).then(function(book) {
+            return Page.create().then(function(page) {
+              return book.setPages([page]).then(function() {
+                return Book.findOne({
+                  where: { id: book.id }
+                }).then(function(leBook) {
+                  var oldOptions = leBook.$options;
+                  return leBook.reload({
+                    include: [Page]
+                  }).then(function(leBook) {
+                    expect(oldOptions).not.to.equal(leBook.$options);
+                    expect(leBook.$options.include.length).to.equal(1);
+                    expect(leBook.Pages.length).to.equal(1);
+                    expect(leBook.get({plain: true}).Pages.length).to.equal(1);
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should return an error when reload fails', function() {
+      return this.User.create({ username: 'John Doe' }).then(function(user) {
+        return user.destroy().then(function () {
+          return expect(user.reload()).to.be.rejectedWith(
+            Sequelize.InstanceError,
+            'Instance could not be reloaded because it does not exist anymore (find call returned null)'
+          );
         });
       });
     });
@@ -1057,31 +1104,53 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     it('updates the timestamps', function() {
-      var now = Date.now()
-        , user = null
-        , User = this.User;
+      var now = new Date()
+        , user = null;
 
-      // timeout is needed, in order to check the update of the timestamp
-      return this.sequelize.Promise.delay(1000).then(function() {
-        user = User.build({ username: 'user' });
-        return user.save().then(function() {
-          expect(now).to.be.below(user.updatedAt.getTime());
-        });
-      });
+      user = this.User.build({ username: 'user' });
+      this.clock.tick(1000);
+      return expect(user.save()).to.eventually.have.property('updatedAt').afterTime(now);
     });
 
     it('does not update timestamps when passing silent=true', function() {
-      return this.User.create({ username: 'user' }).then(function(user) {
+      return this.User.create({ username: 'user' }).bind(this).then(function(user) {
         var updatedAt = user.updatedAt;
-        return this.sequelize.Promise.delay(2000).then(function() {
-          return user.update({
-            username: 'userman'
-          }, {
-            silent: true
-          }).then(function(user1) {
-            expect(user1.updatedAt).to.equalTime(updatedAt);
-          });
-        });
+
+        this.clock.tick(1000);
+        return expect(user.update({
+          username: 'userman'
+        }, {
+          silent: true
+        })).to.eventually.have.property('updatedAt').equalTime(updatedAt);
+      });
+    });
+
+    it('does not update timestamps when passing silent=true in a bulk update', function() {
+      var self = this
+        , updatedAtPeter
+        , updatedAtPaul
+        , data = [
+          { username: 'Paul' },
+          { username: 'Peter' }
+        ];
+
+      return this.User.bulkCreate(data).bind(this).then(function() {
+        return this.User.findAll();
+      }).then(function(users) {
+        updatedAtPaul = users[0].updatedAt;
+        updatedAtPeter = users[1].updatedAt;
+      })
+      .then(function() {
+        this.clock.tick(150);
+        return this.User.update(
+          { aNumber: 1 },
+          { where: {}, silent: true }
+        );
+      }).then(function() {
+        return self.User.findAll();
+      }).then(function(users) {
+        expect(users[0].updatedAt).to.equalTime(updatedAtPeter);
+        expect(users[1].updatedAt).to.equalTime(updatedAtPaul);
       });
     });
 
@@ -1142,9 +1211,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     describe('with custom timestamp options', function() {
-      var now = Date.now();
-
       it('updates the createdAt column if updatedAt is disabled', function() {
+        var now = new Date();
+        this.clock.tick(1000);
+
         var User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING
         }, { updatedAt: false });
@@ -1152,12 +1222,15 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return User2.sync().then(function() {
           return User2.create({ username: 'john doe' }).then(function(johnDoe) {
             expect(johnDoe.updatedAt).to.be.undefined;
-            expect(now).to.be.below(johnDoe.createdAt.getTime());
+            expect(now).to.be.beforeTime(johnDoe.createdAt);
           });
         });
       });
 
       it('updates the updatedAt column if createdAt is disabled', function() {
+        var now = new Date();
+        this.clock.tick(1000);
+
         var User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING
         }, { createdAt: false });
@@ -1165,7 +1238,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return User2.sync().then(function() {
           return User2.create({ username: 'john doe' }).then(function(johnDoe) {
             expect(johnDoe.createdAt).to.be.undefined;
-            expect(now).to.be.below(johnDoe.updatedAt.getTime());
+            expect(now).to.be.beforeTime(johnDoe.updatedAt);
           });
         });
       });

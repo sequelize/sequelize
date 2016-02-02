@@ -186,6 +186,241 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
         }
       });
     });
+    test('string field order', function() {
+      expect(Utils.mapOptionFieldNames({
+       order: 'firstName DESC'
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'first_name'
+        }
+      }))).to.eql({
+        order: 'firstName DESC'
+      });
+    });
+    test('string in array order', function() {
+      expect(Utils.mapOptionFieldNames({
+        order: ['firstName DESC']
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'first_name'
+        }
+      }))).to.eql({
+        order: ['firstName DESC']
+      });
+    });
+    test('single field alias order', function() {
+      expect(Utils.mapOptionFieldNames({
+        order: [['firstName', 'DESC']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'first_name'
+        }
+      }))).to.eql({
+        order: [['first_name', 'DESC']]
+      });
+    });
+    test('multi field alias order', function() {
+      expect(Utils.mapOptionFieldNames({
+        order: [['firstName', 'DESC'], ['lastName', 'ASC']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'first_name'
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          field: 'last_name'
+        }
+      }))).to.eql({
+        order: [['first_name', 'DESC'], ['last_name', 'ASC']]
+      });
+    });
+    test('multi field alias no direction order', function() {
+      expect(Utils.mapOptionFieldNames({
+        order: [['firstName'], ['lastName']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'first_name'
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          field: 'last_name'
+        }
+      }))).to.eql({
+        order: [['first_name'], ['last_name']]
+      });
+    });
+    test('field alias to another field order', function() {
+      expect(Utils.mapOptionFieldNames({
+        order: [['firstName', 'DESC']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'lastName'
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          field: 'firstName'
+        }
+      }))).to.eql({
+        order: [['lastName', 'DESC']]
+      });
+    });
+    test('multi field no alias order', function() {
+      expect(Utils.mapOptionFieldNames({
+        order: [['firstName', 'DESC'], ['lastName', 'ASC']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING
+        },
+        lastName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [['firstName', 'DESC'], ['lastName', 'ASC']]
+      });
+    });
+    test('multi field alias sub model order', function() {
+      var Location = this.sequelize.define('Location', {
+        latLong: {
+          type: DataTypes.STRING,
+          field: 'lat_long'
+        }
+      });
+      var Item = this.sequelize.define('Item', {
+        fontColor: {
+          type: DataTypes.STRING,
+          field: 'font_color'
+        }
+      });
+      expect(Utils.mapOptionFieldNames({
+        order: [[Item, Location, 'latLong', 'DESC'], ['lastName', 'ASC']]
+      }, this.sequelize.define('User', {
+        lastName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [[Item, Location, 'lat_long', 'DESC'], ['lastName', 'ASC']]
+      });
+    });
+    test('multi field alias sub model no direction order', function() {
+      var Location = this.sequelize.define('Location', {
+        latLong: {
+          type: DataTypes.STRING,
+          field: 'lat_long'
+        }
+      });
+      var Item = this.sequelize.define('Item', {
+        fontColor: {
+          type: DataTypes.STRING,
+          field: 'font_color'
+        }
+      });
+      expect(Utils.mapOptionFieldNames({
+        order: [[Item, Location, 'latLong'], ['lastName', 'ASC']]
+      }, this.sequelize.define('User', {
+        lastName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [[Item, Location, 'lat_long'], ['lastName', 'ASC']]
+      });
+    });
+    test('function order', function() {
+      var fn = this.sequelize.fn('otherfn', 123);
+      expect(Utils.mapOptionFieldNames({
+        order: [[fn, 'ASC']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [[fn, 'ASC']]
+      });
+    });
+    test('function no direction order', function() {
+      var fn = this.sequelize.fn('otherfn', 123);
+      expect(Utils.mapOptionFieldNames({
+        order: [[fn]]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [[fn]]
+      });
+    });
+    test('string no direction order', function() {
+      expect(Utils.mapOptionFieldNames({
+        order: [['firstName']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          field: 'first_name'
+        }
+      }))).to.eql({
+        order: [['first_name']]
+      });
+    });
+    test('model alias order', function() {
+      var Item = this.sequelize.define('Item', {
+        fontColor: {
+          type: DataTypes.STRING,
+          field: 'font_color'
+        }
+      });
+      expect(Utils.mapOptionFieldNames({
+        order: [[{ model: Item, as: 'another'}, 'fontColor', 'ASC']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING
+        },
+        lastName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [[{ model: Item, as: 'another'}, 'font_color', 'ASC']]
+      });
+    });
+    test('model alias no direction order', function() {
+      var Item = this.sequelize.define('Item', {
+        fontColor: {
+          type: DataTypes.STRING,
+          field: 'font_color'
+        }
+      });
+      expect(Utils.mapOptionFieldNames({
+        order: [[{ model: Item, as: 'another'}, 'fontColor']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [[{ model: Item, as: 'another'}, 'font_color']]
+      });
+    });
+    test('model alias wrong field order', function() {
+      var Item = this.sequelize.define('Item', {
+        fontColor: {
+          type: DataTypes.STRING,
+          field: 'font_color'
+        }
+      });
+      expect(Utils.mapOptionFieldNames({
+        order: [[{ model: Item, as: 'another'}, 'firstName', 'ASC']]
+      }, this.sequelize.define('User', {
+        firstName: {
+          type: DataTypes.STRING
+        }
+      }))).to.eql({
+        order: [[{ model: Item, as: 'another'}, 'firstName', 'ASC']]
+      });
+    });
+
   });
 
   suite('stack', function() {

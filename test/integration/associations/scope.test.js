@@ -43,7 +43,8 @@ describe(Support.getTestDialectTeaser('associations'), function() {
         foreignKey: 'commentable_id',
         scope: {
           commentable: 'post'
-        }
+        },
+        constraints: false
       });
       this.Post.hasOne(this.Comment, {
         foreignKey: 'commentable_id',
@@ -51,33 +52,39 @@ describe(Support.getTestDialectTeaser('associations'), function() {
         scope: {
           commentable: 'post',
           isMain: true
-        }
+        },
+        constraints: false
       });
       this.Comment.belongsTo(this.Post, {
         foreignKey: 'commentable_id',
-        as: 'post'
+        as: 'post',
+        constraints: false
       });
 
       this.Image.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         scope: {
           commentable: 'image'
-        }
+        },
+        constraints: false
       });
       this.Comment.belongsTo(this.Image, {
         foreignKey: 'commentable_id',
-        as: 'image'
+        as: 'image',
+        constraints: false
       });
 
       this.Question.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         scope: {
           commentable: 'question'
-        }
+        },
+        constraints: false
       });
       this.Comment.belongsTo(this.Question, {
         foreignKey: 'commentable_id',
-        as: 'question'
+        as: 'question',
+        constraints: false
       });
     });
 

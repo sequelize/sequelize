@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       this.Model.beforeCreate(function () {
         this.hook1();
 
-        return Promise.reject('No!');
+        return Promise.reject(new Error('No!'));
       }.bind(this));
       this.Model.beforeCreate(this.hook2);
 

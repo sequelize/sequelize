@@ -1,8 +1,30 @@
+# 3.19.0
+- [ADDED] Geography support for postgres
+- [FIXED] Migrations failed to add foreign key [#966](https://github.com/sequelize/sequelize/issues/966)
+- [FIXED] Prevent race condition after transaction finished [#5222](https://github.com/sequelize/sequelize/issues/5222)
+- [FIXED] Fixed Instance.reload issues ([#4844](https://github.com/sequelize/sequelize/issues/4844) and [#4452](https://github.com/sequelize/sequelize/issues/4452))
+- [FIXED] Fix upsert when primary key contains `.field` (internal API change for `queryInterface.upsert`) [#4755](https://github.com/sequelize/sequelize/issues/4755)
+- [FIXED] Default value for `defaultScope` is now an empty object. This fixes calling `.scope('defaultScope')` when no scope is explicitly defined, see [#5277](https://github.com/sequelize/sequelize/issues/5277)
+
+# 3.18.0
+- [ADDED] Support silent: true in bulk update [#5200](https://github.com/sequelize/sequelize/issues/5200)
+- [ADDED] `retry` object now part of global settings and can be overridden per call.  The default is 5 retries with a backoff function.  `retry` object can be passed to options with max: 0 to turn off this behavior.
+- [ADDED] Sqlite now retries database queries that return SQL_BUSY as the status.
+- [ADDED] Add `IF EXIST` to postgres alter enum [#4464](https://github.com/sequelize/sequelize/pull/4464)
+- [FIXED] Postgres destroy with `where` fails on JSONB data [#5092](https://github.com/sequelize/sequelize/issues/5092)
+- [FIXED] hasMany.separate with foreign keys having `field`
+
+# 3.17.3
+- [FIXED] Regression with array values from security fix in 3.17.2
+
+# 3.17.2
+- [SECURITY] Force non-buffer blob values to string, https://github.com/nodejs/node/issues/4660
+
 # 3.17.1
 - [FIXED] Reverted benchmarking feature since it does not compile on Node v4.0
 
 # 3.17.0
-- [CRITICAL] Fixed injection vulnerability for order/limit
+- [SECURITY] Fixed injection vulnerability for order/limit
 - [FIXED] MySQL throws error when null GEOMETRY data results in empty buffer [#4953](https://github.com/sequelize/sequelize/issues/4953)
 
 # 3.16.0
