@@ -22,7 +22,7 @@ endif
 
 # Unit tests
 test-unit:
-	$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) ./test/unit/*.js ./test/unit/**/*.js
+	$(MOCHA) --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter $(REPORTER) ./test/unit/*.js "./test/unit/**/*.js"
 
 test-unit-all: test-unit-sqlite test-unit-mysql test-unit-postgres test-unit-postgres-native test-unit-mariadb test-unit-mssql
 
