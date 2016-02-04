@@ -71,5 +71,21 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('id')).not.to.be.undefined;
       expect(instance.get('id')).to.be.ok;
     });
+
+    it('should clone the default values', function () {
+      var Model = current.define('Model', {
+        data: {
+          type: DataTypes.JSONB,
+          defaultValue: { foo: 'bar' }
+        }
+      })
+        , instance;
+
+      instance = Model.build();
+      instance.data.foo = 'biz';
+
+      expect(instance.get('data')).to.eql({ foo: 'biz' });
+      expect(Model.build().get('data')).to.eql({ foo: 'bar' });
+    });
   });
 });
