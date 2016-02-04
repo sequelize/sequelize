@@ -206,7 +206,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return self.sequelize.dropAllSchemas().then(function() {
         return self.sequelize.createSchema('acme');
       }).then(function() {
-        return self.sequelize.sync({force: true});
+        return Promise.all([
+          AcmeUser.sync({force: true}),
+          AcmeProject.sync({force: true})
+        ]);
+      }).then(function() {
+        return AcmeProjectUsers.sync({force: true});
       }).bind({}).then(function() {
         return AcmeUser.create();
       }).then(function(u) {
@@ -1775,7 +1780,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-          result = _.pluck(result, 'tableName');
+          result = _.map(result, 'tableName');
         }
 
         expect(result.indexOf('group_user')).not.to.equal(-1);
@@ -1795,7 +1800,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-          result = _.pluck(result, 'tableName');
+          result = _.map(result, 'tableName');
         }
 
         expect(result.indexOf('user_groups')).not.to.equal(-1);

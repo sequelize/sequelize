@@ -13,13 +13,25 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   if (current.dialect.supports.GEOMETRY) {
     describe('GEOMETRY', function() {
       beforeEach(function() {
-        return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
-          this.User = this.sequelize.define('User', {
-            username: DataTypes.STRING,
-            geometry: DataTypes.GEOMETRY
-          });
+        this.User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          geometry: DataTypes.GEOMETRY
+        });
 
-          return this.User.sync({ force: true });
+        return this.User.sync({ force: true });
+      });
+
+      it('works with aliases fields', function () {
+        var Pub = this.sequelize.define('Pub', {
+          location: {field: 'coordinates', type: DataTypes.GEOMETRY}
+        })
+          , point = {type: 'Point', coordinates: [39.807222, -76.984722]};
+
+        return Pub.sync({ force: true }).then(function () {
+          return Pub.create({location: point});
+        }).then(function (pub) {
+          expect(pub).not.to.be.null;
+          expect(pub.location).to.be.deep.eql(point);
         });
       });
 
@@ -51,14 +63,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     describe('GEOMETRY(POINT)', function() {
       beforeEach(function() {
-        return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
-          this.User = this.sequelize.define('User', {
-            username: DataTypes.STRING,
-            geometry: DataTypes.GEOMETRY('POINT')
-          });
-
-          return this.User.sync({ force: true });
+        this.User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          geometry: DataTypes.GEOMETRY('POINT')
         });
+
+        return this.User.sync({ force: true });
       });
 
       it('should create a geometry object', function() {
@@ -89,14 +99,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     describe('GEOMETRY(LINESTRING)', function() {
       beforeEach(function() {
-        return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
-          this.User = this.sequelize.define('User', {
-            username: DataTypes.STRING,
-            geometry: DataTypes.GEOMETRY('LINESTRING')
-          });
-
-          return this.User.sync({ force: true });
+        this.User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          geometry: DataTypes.GEOMETRY('LINESTRING')
         });
+
+        return this.User.sync({ force: true });
       });
 
       it('should create a geometry object', function() {
@@ -127,14 +135,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     describe('GEOMETRY(POLYGON)', function() {
       beforeEach(function() {
-        return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
-          this.User = this.sequelize.define('User', {
-            username: DataTypes.STRING,
-            geometry: DataTypes.GEOMETRY('POLYGON')
-          });
-
-          return this.User.sync({ force: true });
+        this.User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          geometry: DataTypes.GEOMETRY('POLYGON')
         });
+
+        return this.User.sync({ force: true });
       });
 
       it('should create a geometry object', function() {

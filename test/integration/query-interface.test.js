@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return self.queryInterface.dropAllTables({skip: ['skipme']}).then(function() {
           return self.queryInterface.showAllTables().then(function(tableNames) {
             if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-              tableNames = _.pluck(tableNames, 'tableName');
+              tableNames = _.map(tableNames, 'tableName');
             }
             expect(tableNames).to.contain('skipme');
           });
@@ -123,20 +123,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           schema: 'schema'
         });
       }).then(function() {
-          return self.queryInterface.addIndex({
+        return self.queryInterface.addIndex({
+          schema: 'schema',
+          tableName: 'table'
+        }, ['name', 'isAdmin'], {
+          logging: log
+        }, 'schema_table').then(function() {
+          return self.queryInterface.showIndex({
             schema: 'schema',
             tableName: 'table'
-          }, ['name', 'isAdmin'], {
-            logging: log
-          }, 'schema_table').then(function() {
-            return self.queryInterface.showIndex({
-              schema: 'schema',
-              tableName: 'table'
-            }, {logging: log}).then(function(indexes) {
-              expect(indexes.length).to.eq(1);
-              count = 0;
-            });
+          }, {logging: log}).then(function(indexes) {
+            expect(indexes.length).to.eq(1);
+            count = 0;
           });
+        });
       });
     });
 
@@ -150,6 +150,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       var self = this;
       var Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING,
+        city: {
+          type: DataTypes.STRING,
+          defaultValue: null
+        },
         isAdmin: DataTypes.BOOLEAN,
         enumVals: DataTypes.ENUM('hello', 'world')
       }, { freezeTableName: true });
@@ -161,6 +165,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
           var id = metadata.id;
           var username = metadata.username;
+          var city = metadata.city;
           var isAdmin = metadata.isAdmin;
           var enumVals = metadata.enumVals;
 
@@ -177,7 +182,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }
           expect(username.type).to.equal(assertVal);
           expect(username.allowNull).to.be.true;
-          expect(username.defaultValue).to.be.null;
+
+          switch (dialect) {
+            case 'sqlite':
+              expect(username.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(username.defaultValue).to.be.null;
+          }
+
+          switch (dialect) {
+            case 'sqlite':
+              expect(city.defaultValue).to.be.null;
+              break;
+          }
 
           assertVal = 'TINYINT(1)';
           switch (dialect) {
@@ -190,7 +208,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }
           expect(isAdmin.type).to.equal(assertVal);
           expect(isAdmin.allowNull).to.be.true;
-          expect(isAdmin.defaultValue).to.be.null;
+          switch (dialect) {
+            case 'sqlite':
+              expect(isAdmin.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(isAdmin.defaultValue).to.be.null;
+          }
 
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             expect(enumVals.special).to.be.instanceof(Array);
@@ -282,7 +306,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       return Users.sync({ force: true }).then(function() {
         return self.queryInterface.renameColumn('_Users', 'username', 'pseudo', {logging: log}).then(function() {
           if (dialect === 'sqlite')
-            count++;
+          count++;
           expect(count).to.be.equal(2);
           count = 0;
         });
@@ -386,6 +410,73 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         });
       });
     });
+
+    it('should change columns', function() {
+        return this.queryInterface.createTable({
+          tableName: 'users',
+        }, {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          currency: DataTypes.INTEGER
+        }).bind(this).then(function() {
+          return this.queryInterface.changeColumn('users', 'currency', {
+            type: DataTypes.FLOAT,
+            allowNull: true
+          }, {
+            logging: log
+          }).then(function() {
+            expect(count).to.be.equal(1);
+            count = 0;
+          });
+        });
+    });
+
+    //SQlite navitely doesnt support ALTER Foreign key
+    if (dialect !== 'sqlite') {
+      describe('should support foreign keys', function() {
+        beforeEach(function() {
+          return this.queryInterface.createTable('users', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            },
+            level_id: {
+              type: DataTypes.INTEGER,
+              allowNull: false
+            }
+          })
+          .bind(this).then(function() {
+            return this.queryInterface.createTable('level', {
+              id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+              }
+            });
+          });
+        });
+
+        it('able to change column to foreign key', function() {
+          return this.queryInterface.changeColumn('users', 'level_id', {
+            type: DataTypes.INTEGER,
+            references: {
+              model: 'level',
+              key:   'id'
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade'
+          }, {logging: log}).then(function() {
+            expect(count).to.be.equal(1);
+            count = 0;
+          });
+        });
+
+      });
+    }
   });
 
   describe('addColumn', function() {
@@ -505,8 +596,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         expect(fks).to.have.length(3);
         count = 0;
         var keys = Object.keys(fks[0]),
-          keys2 = Object.keys(fks[1]),
-          keys3 = Object.keys(fks[2]);
+            keys2 = Object.keys(fks[1]),
+            keys3 = Object.keys(fks[2]);
 
         if (dialect === 'postgres' || dialect === 'postgres-native') {
           expect(keys).to.have.length(6);

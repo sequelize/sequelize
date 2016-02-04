@@ -51,14 +51,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
 
       suite('validate', function () {
-        test('should throw an error if `value` is invalid', function() {
-          var type = DataTypes.STRING();
-
-          expect(function () {
-            type.validate(12345);
-          }).to.throw(Sequelize.ValidationError, '12345 is not a valid string');
-        });
-
         test('should return `true` if `value` is a string', function() {
           var type = DataTypes.STRING();
 
@@ -66,6 +58,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           /*jshint -W053 */
           expect(type.validate(new String('foobar'))).to.equal(true);
           /*jshint +W053 */
+          expect(type.validate(12)).to.equal(true);
         });
       });
     });
@@ -178,6 +171,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIME2',
         mysql: 'DATETIME',
+        sqlite: 'DATETIME'
+      });
+
+      testsql('DATE(6)', DataTypes.DATE(6), {
+        postgres: 'TIMESTAMP WITH TIME ZONE',
+        mssql: 'DATETIME2',
+        mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'
       });
 

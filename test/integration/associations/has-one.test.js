@@ -352,6 +352,25 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
+    it('sets to CASCADE if allowNull: false', function() {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING });
+
+      User.hasOne(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'foo' }).then(function(user) {
+          return Task.create({ title: 'task', UserId: user.id }).then(function() {
+            return user.destroy().then(function() {
+              return Task.findAll();
+            });
+          });
+        }).then(function(tasks) {
+          expect(tasks).to.be.empty;
+        });
+      });
+    });
+
     it('should be possible to disable them', function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING });

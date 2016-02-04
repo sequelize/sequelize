@@ -1,6 +1,8 @@
 ## Data retrieval / Finders
 
-Finder methods are designed to get data from the database&period; The returned data isn't just a plain object&comma; but instances of one of the defined classes&period; Check the next major chapter about instances for further information&period; But as those things are instances&comma; you can e&period;g&period; use the just describe expanded instance methods&period; So&comma; here is what you can do&colon;
+Finder methods are intended to query data from the database. They do *not* return plain objects but instead return model instances. Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](http://docs.sequelizejs.com/en/latest/docs/instances/).
+
+In this document we'll explore what finder methods can do:
 
 ### find - Search for one specific element in the database
 ```js
@@ -27,7 +29,7 @@ Project.findOne({
 
 ### findOrCreate - Search for a specific element or create it if not available
 
-The method `findOrCreate` can be used to check if a certain element already exists in the database&period; If that is the case the method will result in a respective instance&period; If the element does not yet exist&comma; it will be created.
+The method `findOrCreate` can be used to check if a certain element already exists in the database. If that is the case the method will result in a respective instance. If the element does not yet exist, it will be created.
 
 Let's assume we have an empty database with a `User` model which has a `username` and a `job`.
 
@@ -53,7 +55,7 @@ User
   })
 ```
 
-The code created a new instance&period; So when we already have an instance &period;&period;&period;
+The code created a new instance. So when we already have an instance ...
 ```js
 User
   .create({ username: 'fnord', job: 'omnomnom' })
@@ -80,11 +82,11 @@ User
   })
 ```
 
-&period;&period;&period; the existing entry will not be changed&period; See the `job` of the second user&comma; and the fact that created was false&period;
+... the existing entry will not be changed. See the `job` of the second user, and the fact that created was false.
 
-### findAndCountAll - Search for multiple elements in the database&comma; returns both data and total count
+### findAndCountAll - Search for multiple elements in the database, returns both data and total count
 
-This is a convienience method that combines`findAll` and `count` (see below) this is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query:
+This is a convenience method that combines`findAll` and `count` (see below) this is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query:
 
 The success handler will always receive an object with two properties:
 
@@ -179,8 +181,8 @@ Project.findAll({
       $notIn: [1, 2],        // NOT IN [1, 2]
       $like: '%hat',         // LIKE '%hat'
       $notLike: '%hat'       // NOT LIKE '%hat'
-      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)
-      $notILike: '%hat'      // NOT ILIKE '%hat'
+      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)  (PG only)
+      $notILike: '%hat'      // NOT ILIKE '%hat'  (PG only)
       $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
@@ -261,7 +263,7 @@ LIMIT 1;
 
 ### Manipulating the dataset with limit, offset, order and group
 
-To get more relevant data&comma; you can use limit&comma; offset&comma; order and grouping&colon;
+To get more relevant data, you can use limit, offset, order and grouping:
 
 ```js
 // limit the results of the query
@@ -274,7 +276,7 @@ Project.findAll({ offset: 10 })
 Project.findAll({ offset: 10, limit: 2 })
 ```
 
-The syntax for grouping and ordering are equal&comma; so below it is only explained with a single example for group&comma; and the rest for order&period; Everything you see below can also be done for group
+The syntax for grouping and ordering are equal, so below it is only explained with a single example for group, and the rest for order. Everything you see below can also be done for group
 
 ```js
 Project.findAll({order: 'title DESC'})
@@ -284,7 +286,7 @@ Project.findAll({group: 'name'})
 // yields GROUP BY name
 ```
 
-Notice how in the two examples above&comma; the string provided is inserted verbatim into the query&comma; i&period;e&period; column names are not escaped&period; When you provide a string to order &sol; group&comma; this will always be the case. If you want to escape column names&comma; you should provide an array of arguments&comma; even though you only want to order &sol; group by a single column
+Notice how in the two examples above, the string provided is inserted verbatim into the query, i.e. column names are not escaped. When you provide a string to order/group, this will always be the case. If you want to escape column names, you should provide an array of arguments, even though you only want to order/group by a single column
 
 ```js
 something.findOne({
@@ -309,29 +311,29 @@ something.findOne({
 })
 ```
 
-To recap&comma; the elements of the order &sol; group array can be the following&colon;
+To recap, the elements of the order/group array can be the following:
 
 * String - will be quoted
-* Array - first element will be qouted&comma; second will be appended verbatim
+* Array - first element will be quoted, second will be appended verbatim
 * Object -
   * Raw will be added verbatim without quoting
-  * Everything else is ignored&comma; and if raw is not set&comma; the query will fail
-* Sequelize&period;fn and Sequelize&period;col returns functions and quoted cools
+  * Everything else is ignored, and if raw is not set, the query will fail
+* Sequelize.fn and Sequelize.col returns functions and quoted cools
 
 ### Raw queries
 
-Sometimes you might be expecting a massive dataset that you just want to display, without manipulation. For each row you select, Sequelize creates an instance with functions for update, delete, get associations etc. If you have thousands of rows&comma; this might take some time&period; If you only need the raw data and don't want to update anything&comma; you can do like this to get the raw data&period;
+Sometimes you might be expecting a massive dataset that you just want to display, without manipulation. For each row you select, Sequelize creates an instance with functions for update, delete, get associations etc. If you have thousands of rows, this might take some time. If you only need the raw data and don't want to update anything, you can do like this to get the raw data.
 
 ```js
 // Are you expecting a massive dataset from the DB,
 // and don't want to spend the time building DAOs for each entry?
 // You can pass an extra query option to get the raw data instead:
-Project.findAll({ where: ... }, { raw: true })
+Project.findAll({ where: { ... }, raw: true })
 ```
 
-### count - Count the occurences of elements in the database
+### count - Count the occurrences of elements in the database
 
-There is also a method for counting database objects&colon;
+There is also a method for counting database objects:
 
 ```js
 Project.count().then(function(c) {
@@ -345,7 +347,7 @@ Project.count({ where: ["id > ?", 25] }).then(function(c) {
 
 ### max - Get the greatest value of a specific attribute within a specific table
 
-And here is a method for getting the max value of an attribute&colon;f
+And here is a method for getting the max value of an attribute:f
 
 ```js
 /*
@@ -365,7 +367,7 @@ Project.max('age', { where: { age: { lt: 20 } } }).then(function(max) {
 
 ### min - Get the least value of a specific attribute within a specific table
 
-And here is a method for getting the min value of an attribute&colon;
+And here is a method for getting the min value of an attribute:
 
 ```js
 /*
@@ -409,9 +411,9 @@ Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
 When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that, is the use of the attribute `include` when you are calling `find` or `findAll`. Lets assume the following setup:
 
 ```js
-var User = sequelize.define('User', { name: Sequelize.STRING })
-  , Task = sequelize.define('Task', { name: Sequelize.STRING })
-  , Tool = sequelize.define('Tool', { name: Sequelize.STRING })
+var User = sequelize.define('user', { name: Sequelize.STRING })
+  , Task = sequelize.define('task', { name: Sequelize.STRING })
+  , Tool = sequelize.define('tool', { name: Sequelize.STRING })
 
 Task.belongsTo(User)
 User.hasMany(Task)
@@ -422,7 +424,7 @@ sequelize.sync().then(function() {
 })
 ```
 
-OK&period; So&comma; first of all&comma; let's load all tasks with their associated user&period;
+OK. So, first of all, let's load all tasks with their associated user.
 
 ```js
 Task.findAll({ include: [ User ] }).then(function(tasks) {
@@ -434,8 +436,8 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
       "id": 1,
       "createdAt": "2013-03-20T20:31:40.000Z",
       "updatedAt": "2013-03-20T20:31:40.000Z",
-      "UserId": 1,
-      "User": {
+      "userId": 1,
+      "user": {
         "name": "John Doe",
         "id": 1,
         "createdAt": "2013-03-20T20:31:45.000Z",
@@ -446,9 +448,9 @@ Task.findAll({ include: [ User ] }).then(function(tasks) {
 })
 ```
 
-Notice that the accessor (the `User` property in the resulting instance) is singular because the association is one-to-something&period;
+Notice that the accessor (the `User` property in the resulting instance) is singular because the association is one-to-something.
 
-Next thing&colon; Loading of data with many-to-something associations&excl;
+Next thing: Loading of data with many-to-something associations!
 
 ```js
 User.findAll({ include: [ Task ] }).then(function(users) {
@@ -460,22 +462,22 @@ User.findAll({ include: [ Task ] }).then(function(users) {
       "id": 1,
       "createdAt": "2013-03-20T20:31:45.000Z",
       "updatedAt": "2013-03-20T20:31:45.000Z",
-      "Tasks": [{
+      "tasks": [{
         "name": "A Task",
         "id": 1,
         "createdAt": "2013-03-20T20:31:40.000Z",
         "updatedAt": "2013-03-20T20:31:40.000Z",
-        "UserId": 1
+        "userId": 1
       }]
     }]
   */
 })
 ```
 
-Notice that the accessor (the `Tasks` property in the resulting instance) is plural because the association is many-to-something&period;
+Notice that the accessor (the `Tasks` property in the resulting instance) is plural because the association is many-to-something.
 
 
-If an association is aliased (using the `as` option), you must specify this alias when including the model&period; Notice how the user's `Tool`s are aliased as `Instruments` above&period; In order to get that right you have to specify the model you want to load&comma; as well as the alias&colon;
+If an association is aliased (using the `as` option), you must specify this alias when including the model. Notice how the user's `Tool`s are aliased as `Instruments` above. In order to get that right you have to specify the model you want to load, as well as the alias:
 
 ```js
 User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(users) {
@@ -492,7 +494,7 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
         "id": 1,
         "createdAt": null,
         "updatedAt": null,
-        "UserId": 1
+        "userId": 1
       }]
     }]
   */
@@ -522,7 +524,7 @@ User.findAll({
           "id": 1,
           "createdAt": null,
           "updatedAt": null,
-          "UserId": 1
+          "userId": 1
         }]
       }],
 
@@ -536,7 +538,7 @@ User.findAll({
           "id": 1,
           "createdAt": null,
           "updatedAt": null,
-          "UserId": 1
+          "userId": 1
         }]
       }],
     */
@@ -604,7 +606,7 @@ User.findAll({
         "id": 1,
         "createdAt": null,
         "updatedAt": null,
-        "UserId": 1,
+        "userId": 1,
         "Teacher": { // 1:1 association
           "name": "Jimi Hendrix"
         }

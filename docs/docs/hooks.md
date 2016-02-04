@@ -29,7 +29,7 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   afterUpdate(instance, options, fn)
 (6)
   afterBulkCreate(instances, options, fn)
-  afterBulkDestory(instances, options, fn)
+  afterBulkDestroy(instances, options, fn)
   afterBulkUpdate(instances, options, fn)
 ```
 
@@ -40,7 +40,7 @@ There are currently three ways to programmatically add hooks:
 
 ```js
 // Method 1 via the .define() method
-var User = sequelize.define('User', {
+var User = sequelize.define('user', {
   username: DataTypes.STRING,
   mood: {
     type: DataTypes.ENUM,
@@ -83,7 +83,7 @@ User.afterValidate('myHookAfter', function(user, options, fn) {
 Only a hook with name param can be removed.
 
 ```js
-var Book = sequelize.define('Book', {
+var Book = sequelize.define('book', {
   title: DataTypes.STRING
 })
 
@@ -235,6 +235,27 @@ Model.beforeBulkDestroy(function(whereClause) {
 Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 ```
 
+If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes made in the hook to fields that aren't given in the `updatesOnDuplicate` array will not be persisted to the database. However it is possible to change the updatesOnDuplicate option inside the hook if this is what you want.
+
+```
+// Bulk updating existing users with updatesOnDuplicate option
+Users.bulkCreate([{ id: 1, isMemeber: true}, 
+                 { id: 2, isMember: false}], 
+                 { updatesOnDuplicate: ['isMember']})
+
+User.beforeBulkCreate(function (users, options) {
+  users.forEach(function (user) {
+    if (user.isMember) {
+      user.memberSince = new Date()
+    }
+  })
+
+  // Add memberSince to updatesOnDuplicate otherwise the memberSince date wont be
+  // saved to the database
+  options.updatesOnDuplicate.push('memberSince')
+})
+```
+
 ## Associations
 
 For the most part hooks will work the same for instances when being associated except a few things
@@ -243,11 +264,11 @@ For the most part hooks will work the same for instances when being associated e
 2. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
 
 ```js
-var Projects = sequelize.define('Projects', {
+var Projects = sequelize.define('projects', {
   title: DataTypes.STRING
 })
 
-var Tasks = sequelize.define('Tasks', {
+var Tasks = sequelize.define('tasks', {
   title: DataTypes.STRING
 })
 
@@ -258,10 +279,15 @@ Tasks.belongsTo(Projects)
 This code will run beforeDestroy/afterDestroy on the Tasks table. Sequelize, by default, will try to optimize your queries as much as possible. When calling cascade on delete, Sequelize will simply execute a
 
 ```sql
-DELETE FROM `table` WHERE associatedIdentifiier = associatedIdentifier.primaryKey
+DELETE FROM `table` WHERE associatedIdentifier = associatedIdentifier.primaryKey
 ```
 
 However, adding `hooks: true` explicitly tells Sequelize that optimization is not of your concern and will perform a `SELECT` on the associated objects and destroy each instance one by one in order to be able to call the hooks with the right parameters.
+
+If your association is of type `n:m`, you may be interested in firing hooks on the through model when using the `remove` call. Internally, sequelize is using `Model.destroy` resulting in calling the `bulkDestroy` instead of the `before/afterDestroy` hooks on each through instance.
+
+This can be simply solved by passing `{individualHooks: true}` to the `remove` call, resulting on each hook to be called on each removed through instance object.
+
 
 ## A Note About Transactions
 

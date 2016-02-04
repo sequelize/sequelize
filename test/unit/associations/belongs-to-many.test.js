@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
 
     AB = current.model('AB');
 
-    expect(AB.options.defaultScope).not.to.be.ok;
+    expect(AB.options.defaultScope).to.deep.equal({});
     expect(AB.options.scopes).to.have.length(0);
   });
 

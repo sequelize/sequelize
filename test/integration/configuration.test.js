@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     it('when we don\'t have a valid dialect.', function() {
       expect(function() {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: undefined});
-      }).to.throw(Error, 'The dialect undefined is not supported.');
+      }).to.throw(Error, 'The dialect undefined is not supported. Supported dialects: mariadb, mssql, mysql, postgres, and sqlite.');
     });
   });
 

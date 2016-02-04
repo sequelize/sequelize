@@ -19,7 +19,7 @@ Built instances will automatically get default values when they were defined&col
 
 ```js
 // first define the model
-var Task = sequelize.define('Project', {
+var Task = sequelize.define('task', {
   title: Sequelize.STRING,
   rating: { type: Sequelize.STRING, defaultValue: 3 }
 })
@@ -84,12 +84,12 @@ task.title = 'a very different title now'
 task.save().then(function() {})
  
 // way 2
-task.updateAttributes({
+task.update({
   title: 'a very different title now'
 }).then(function() {})
 ```
 
-It's also possible to define which attributes should be saved when calling `save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `updateAttributes`&period; This is how it looks like&colon;
+It's also possible to define which attributes should be saved when calling `save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `update`&period; This is how it looks like&colon;
 
 ```js
 task.title = 'foooo'
@@ -98,8 +98,8 @@ task.save({fields: ['title']}).then(function() {
  // title will now be 'foooo' but description is the very same as before
 })
  
-// The equivalent call using updateAttributes looks like this:
-task.updateAttributes({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(function() {
+// The equivalent call using update looks like this:
+task.update({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(function() {
  // title will now be 'foooo' but description is the very same as before
 })
 ```
@@ -113,10 +113,9 @@ Once you created an object and got a reference to it&comma; you can delete it fr
 ```js
 Task.create({ title: 'a task' }).then(function(task) {
   // now you see me...
- 
-  task.destroy().then(function() {
-    // now i'm gone :)
-  })
+  return task.destroy();
+}).then(function() {
+ // now i'm gone :)
 })
 ```
 
@@ -144,9 +143,9 @@ User.bulkCreate([
   { username: 'foo', isAdmin: true },
   { username: 'bar', isAdmin: false }
 ]).then(function() { // Notice: There are no arguments here, as of right now you'll have to...
-  User.findAll().then(function(users) {
-    console.log(users) // ... in order to get the array of user objects
-  })
+  return User.findAll();
+}).then(function(users) {
+  console.log(users) // ... in order to get the array of user objects
 })
 ```
 
@@ -158,15 +157,15 @@ Task.bulkCreate([
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
 ]).then(function() {
-  Task.update(
-    { status: 'inactive' } /* set attributes' value */,
+  return Task.update(
+    { status: 'inactive' }, /* set attributes' value */,
     { where: { subject: 'programming' }} /* where criteria */
-  ).then(function(affectedRows) {
-    // affectedRows will be 2
-    Task.findAll().then(function(tasks) {
-      console.log(tasks) // the 'programming' tasks will both have a status of 'inactive'
-    })
-  })
+  );
+}).then(function(affectedRows) {
+  // affectedRows will be 2
+  return Task.findAll();
+}).then(function(tasks) {
+  console.log(tasks) // the 'programming' tasks will both have a status of 'inactive'
 })
 ```
 
@@ -178,17 +177,17 @@ Task.bulkCreate([
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
 ]).then(function() {
-  Task.destroy({
+  return Task.destroy({
     where: {
       subject: 'programming'
     },
     truncate: true /* this will ignore where and truncate the table instead */
-  }).then(function(affectedRows) {
-    // affectedRows will be 2
-    Task.findAll().then(function(tasks) {
-      console.log(tasks) // no programming, just reading :(
-    })
-  })
+  });
+}).then(function(affectedRows) {
+  // affectedRows will be 2
+  return Task.findAll();
+}).then(function(tasks) {
+  console.log(tasks) // no programming, just reading :(
 })
 ```
 
@@ -206,7 +205,7 @@ User.bulkCreate([
 `bulkCreate` was originally made to be a mainstream&sol;fast way of inserting records&comma; however&comma; sometimes you want the luxury of being able to insert multiple rows at once without sacrificing model validations even when you explicitly tell Sequelize which columns to sift through&period; You can do by adding a `validate: true` property to the options object.
 
 ```js
-var Tasks = sequelize.define('Task', {
+var Tasks = sequelize.define('task', {
   name: {
     type: Sequelize.STRING,
     validate: {
@@ -294,27 +293,27 @@ First of all you can define a field and the value you want to add to it&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment('my-integer-field', {by: 2}).then(/* ... */)
-})
+  return user.increment('my-integer-field', {by: 2})
+}).then(/* ... */)
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment([ 'my-integer-field', 'my-very-other-field' ], {by: 2}).then(/* ... */)
-})
+  return user.increment([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
+}).then(/* ... */)
 ```
 
 Third&comma; you can define an object containing fields and its increment values&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.increment({
+  return user.increment({
     'my-integer-field':    2,
     'my-very-other-field': 3
-  }).then(/* ... */)
-})
+  })
+}).then(/* ... */)
 ```
 
 ## Decrementing certain values of an instance
@@ -325,25 +324,25 @@ First of all you can define a field and the value you want to add to it&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement('my-integer-field', {by: 2}).then(/* ... */)
-})
+  return user.decrement('my-integer-field', {by: 2})
+}).then(/* ... */)
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement([ 'my-integer-field', 'my-very-other-field' ], {by: 2}).then(/* ... */)
-})
+  return user.decrement([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
+}).then(/* ... */)
 ```
 
 Third&comma; you can define an object containing fields and its decrement values&period;
 
 ```js
 User.findById(1).then(function(user) {
-  user.decrement({
+  return user.decrement({
     'my-integer-field':    2,
     'my-very-other-field': 3
-  }).then(/* ... */)
-})
+  })
+}).then(/* ... */)
 ```

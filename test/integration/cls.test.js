@@ -176,7 +176,7 @@ if (current.dialect.supports.transactions) {
         var self = this;
         return this.sequelize.transaction(function () {
           var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.reject('test rejection handler').then(null,function () {
+          return self.sequelize.Promise.reject(new Error('test rejection handler')).then(null,function () {
             expect(self.ns.get('transaction').id).to.be.ok;
             expect(self.ns.get('transaction').id).to.equal(tid);
           });
@@ -369,7 +369,7 @@ if (current.dialect.supports.transactions) {
         return this.sequelize.transaction(function () {
           var tid = self.ns.get('transaction').id;
           return new Promise(function (resolve, reject) {
-            Promise.reject('test rejection handler').done(function () {
+            Promise.reject(new Error('test rejection handler')).done(function () {
               reject(new Error('Should not have called first done handler'));
             }, function (err) {
               try {

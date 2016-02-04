@@ -116,6 +116,111 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           });
         });
 
+        it('should fetch multiple layers of associations with limit and order with separate=true', function () {
+          var User = this.sequelize.define('User', {})
+            , Task = this.sequelize.define('Task', {
+                title: DataTypes.STRING
+              })
+            , SubTask = this.sequelize.define('SubTask', {
+                title: DataTypes.STRING
+              });
+
+          User.Tasks = User.hasMany(Task, {as: 'tasks'});
+          Task.SubTasks = Task.hasMany(SubTask, {as: 'subtasks'});
+
+          return this.sequelize.sync({force: true}).then(function() {
+            return Promise.join(
+              User.create({
+                id: 1,
+                tasks: [
+                  {title: 'b', subtasks: [
+                    {title:'c'},
+                    {title:'a'}
+                  ]},
+                  {title: 'd'},
+                  {title: 'c', subtasks: [
+                    {title:'b'},
+                    {title:'a'},
+                    {title:'c'}
+                  ]},
+                  {title: 'a', subtasks: [
+                    {title:'c'},
+                    {title:'a'},
+                    {title:'b'}
+                  ]}
+                ]
+              }, {
+                include: [{association: User.Tasks, include: [Task.SubTasks]}]
+              }),
+              User.create({
+                id: 2,
+                tasks: [
+                  {title: 'a', subtasks: [
+                    {title:'b'},
+                    {title:'a'},
+                    {title:'c'}
+                  ]},
+                  {title: 'c', subtasks: [
+                    {title:'a'}
+                  ]},
+                  {title: 'b', subtasks: [
+                    {title:'a'},
+                    {title:'b'}
+                  ]}
+                ]
+              }, {
+                include: [{association: User.Tasks, include: [Task.SubTasks]}]
+              })
+            );
+          }).then(function(users) {
+            return User.findAll({
+              include: [{
+                association: User.Tasks,
+                limit: 2,
+                order: [['title', 'ASC']],
+                separate: true,
+                as: 'tasks',
+                include: [
+                  {
+                    association: Task.SubTasks,
+                    order: [['title', 'DESC']],
+                    separate: true,
+                    as: 'subtasks'
+                  }
+                ]
+              }],
+              order: [
+                ['id', 'ASC']
+              ]
+            }).then(function(users) {
+              expect(users[0].tasks.length).to.equal(2);
+
+              expect(users[0].tasks[0].title).to.equal('a');
+              expect(users[0].tasks[0].subtasks.length).to.equal(3);
+              expect(users[0].tasks[0].subtasks[0].title).to.equal('c');
+              expect(users[0].tasks[0].subtasks[1].title).to.equal('b');
+              expect(users[0].tasks[0].subtasks[2].title).to.equal('a');
+
+              expect(users[0].tasks[1].title).to.equal('b');
+              expect(users[0].tasks[1].subtasks.length).to.equal(2);
+              expect(users[0].tasks[1].subtasks[0].title).to.equal('c');
+              expect(users[0].tasks[1].subtasks[1].title).to.equal('a');
+
+              expect(users[1].tasks.length).to.equal(2);
+              expect(users[1].tasks[0].title).to.equal('a');
+              expect(users[1].tasks[0].subtasks.length).to.equal(3);
+              expect(users[1].tasks[0].subtasks[0].title).to.equal('c');
+              expect(users[1].tasks[0].subtasks[1].title).to.equal('b');
+              expect(users[1].tasks[0].subtasks[2].title).to.equal('a');
+
+              expect(users[1].tasks[1].title).to.equal('b');
+              expect(users[1].tasks[1].subtasks.length).to.equal(2);
+              expect(users[1].tasks[1].subtasks[0].title).to.equal('b');
+              expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
+            });
+          });
+        });
+
         it('should fetch associations for multiple instances with limit and order and a belongsTo relation', function () {
           var User = this.sequelize.define('User', {})
             , Task = this.sequelize.define('Task', {
@@ -867,6 +972,25 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           });
         }).then(function(task) {
           expect(task.UserId).to.equal(null);
+        });
+      });
+
+      it('sets to CASCADE if allowNull: false', function() {
+        var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+          , User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+        User.hasMany(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          return User.create({ username: 'foo' }).then(function(user) {
+            return Task.create({ title: 'task', UserId: user.id }).then(function() {
+              return user.destroy().then(function() {
+                return Task.findAll();
+              });
+            });
+          }).then(function(tasks) {
+            expect(tasks).to.be.empty;
+          });
         });
       });
 

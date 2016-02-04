@@ -31,7 +31,7 @@ Next step: Deploy the application to Heroku.
 
 ## Deployment to Heroku
 
-First of all, we need to add the right version of Node.JS and NPM to the `package.json`. The file should look similiar to this:
+First of all, we need to add the right version of Node.JS and NPM to the `package.json`. The file should look similar to this:
     
 ```js
 {

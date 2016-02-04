@@ -1,3 +1,126 @@
+# 3.19.0
+- [ADDED] Geography support for postgres
+- [FIXED] Migrations failed to add foreign key [#966](https://github.com/sequelize/sequelize/issues/966)
+- [FIXED] Prevent race condition after transaction finished [#5222](https://github.com/sequelize/sequelize/issues/5222)
+- [FIXED] Fixed Instance.reload issues ([#4844](https://github.com/sequelize/sequelize/issues/4844) and [#4452](https://github.com/sequelize/sequelize/issues/4452))
+- [FIXED] Fix upsert when primary key contains `.field` (internal API change for `queryInterface.upsert`) [#4755](https://github.com/sequelize/sequelize/issues/4755)
+- [FIXED] Default value for `defaultScope` is now an empty object. This fixes calling `.scope('defaultScope')` when no scope is explicitly defined, see [#5277](https://github.com/sequelize/sequelize/issues/5277)
+
+# 3.18.0
+- [ADDED] Support silent: true in bulk update [#5200](https://github.com/sequelize/sequelize/issues/5200)
+- [ADDED] `retry` object now part of global settings and can be overridden per call.  The default is 5 retries with a backoff function.  `retry` object can be passed to options with max: 0 to turn off this behavior.
+- [ADDED] Sqlite now retries database queries that return SQL_BUSY as the status.
+- [ADDED] Add `IF EXIST` to postgres alter enum [#4464](https://github.com/sequelize/sequelize/pull/4464)
+- [FIXED] Postgres destroy with `where` fails on JSONB data [#5092](https://github.com/sequelize/sequelize/issues/5092)
+- [FIXED] hasMany.separate with foreign keys having `field`
+
+# 3.17.3
+- [FIXED] Regression with array values from security fix in 3.17.2
+
+# 3.17.2
+- [SECURITY] Force non-buffer blob values to string, https://github.com/nodejs/node/issues/4660
+
+# 3.17.1
+- [FIXED] Reverted benchmarking feature since it does not compile on Node v4.0
+
+# 3.17.0
+- [SECURITY] Fixed injection vulnerability for order/limit
+- [FIXED] MySQL throws error when null GEOMETRY data results in empty buffer [#4953](https://github.com/sequelize/sequelize/issues/4953)
+
+# 3.16.0
+- [ADDED] PostgreSQL tsrange (Range of timestamp without time zone) data type support.
+- [ADDED] hasOne scope support [#5113](https://github.com/sequelize/sequelize/pull/5113)
+- [FIXED] attributes from multiple scopes does not merge  [#4856](https://github.com/sequelize/sequelize/issues/4856)
+- [FIXED] Support Unicode strings in mssql [#3752](https://github.com/sequelize/sequelize/issues/3752)
+- [FIXED] Do not inject include twice in `options.include` [#5106](https://github.com/sequelize/sequelize/pull/5106)
+- [FIXED] Expand and validate include in `aggregate`
+
+# 3.15.1
+- [FIXED] calling Model.update() modifies passed values  [#4520](https://github.com/sequelize/sequelize/issues/4520)
+- [FIXED] Instance can be chained on .set() and other methods [#4702](https://github.com/sequelize/sequelize/issues/4702)
+- [FIXED] includes nested from a `separate` include now work properly [#5080](https://github.com/sequelize/sequelize/pull/5080)
+
+# 3.15.0
+- [ADDED] Improve support for pg range type to handle unbound ranges, +/-infinity bounds and empty ranges
+- [FIXED] Postgres issue when using named timezone  [#4307](https://github.com/sequelize/sequelize/issues/4307)
+- [FIXED] Add support for Babel/ES6 imports [#4881](https://github.com/sequelize/sequelize/issues/4881)
+
+# 3.14.2
+- [FIXED] Model.aggregate methods now support attributes and where conditions with fields. [#4935](https://github.com/sequelize/sequelize/issues/4935)
+- [FIXED] Don't overwrite options.foreignKey in associations [#4927](https://github.com/sequelize/sequelize/pull/4927)
+- [FIXED] Support nested `$col` keys. [#4849](https://github.com/sequelize/sequelize/issues/4849)
+
+# 3.14.1
+- [FIXED] Issue with transaction options leaking and certain queries running outside of the transaction connection.
+
+# 3.14.0
+- [FIXED] Apply scopes to `aggregate` [#4764](https://github.com/sequelize/sequelize/issues/4764)
+- [FIXED] Improved postgres enum schema handling [#4796](https://github.com/sequelize/sequelize/issues/4796)
+- [ADDED/FIXED] Lower case `onDelete` option to allow the use of `onDelete: 'CASCADE', hooks: true`.
+- [FIXED] Ignore attributes in `count` [#4566](https://github.com/sequelize/sequelize/issues/4566)
+
+# 3.13.0
+- [FIXED] timestamp columns are no longer undefined for associations loaded with `separate`. [#4740](https://github.com/sequelize/sequelize/issues/4740)
+- [FIXED] Mark unscoped model as `.scoped`, to prevent injection of default scope on includes [#4663](https://github.com/sequelize/sequelize/issues/4663)
+- [ADDED] `.previous` now returns and object of previous values when called without `key`. This brings the API in line with `.changed`
+
+# 3.12.1
+- [FIXED] Mark postgres connection as invalid if the connection is reset [#4661](https://github.com/sequelize/sequelize/pull/4661)
+- [FIXED] Remove usage of "limit" in cases where it's unnecessary, which fixes some of the cases mentioned in [#4404] (https://github.com/sequelize/sequelize/issues/4404)
+- [SECURITY] Security concern with `$model.field$`, refactored to now require `$col: 'model.field'`
+
+# 3.12.0
+- [ADDED] Preliminary support for `include.on`.
+- [FIXED] Partial rollback of datatype validations by hiding it behind the `typeValidation` flag.
+- [FIXED] Don't try to select the primary key for models without primary key [#4607](https://github.com/sequelize/sequelize/issues/4607)
+- [FIXED] Apply `attributes` when including a scoped model. [#4625](https://github.com/sequelize/sequelize/issues/4625)
+- [FIXED] Use bits instead of strings for mssql booleans. [#4621](https://github.com/sequelize/sequelize/pull/4621)
+- [FIXED] BulkCreate validation fails for properties with `field` [#3787](https://github.com/sequelize/sequelize/issues/3787)
+
+# 3.11.0
+- [INTERNALS] Updated dependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
+    + bluebird@2.10.1
+    + dottie@1.0.0
+    + wellknown@0.4.0
+- [INTERNALS] Updated devDependencies [#4594](https://github.com/sequelize/sequelize/pull/4594)
+    + mysql@2.9.0
+    - coffee-script
+- [FIXED] Add limit to `findOne` when using queries like `{ id: { $gt ...` [#4416](https://github.com/sequelize/sequelize/issues/4416)
+- [FIXED] Include all with scopes [#4584](https://github.com/sequelize/sequelize/issues/4584)
+- [INTERNALS] Corrected spelling seperate -> separate
+- [ADDED] Added `include` and `exclude` to `options.attributes`. [#4074](https://github.com/sequelize/sequelize/issues/4074)
+- [FIXED/INTERNALS] Only recurse on plain objects in `mapOptionFieldNames`. [#4596](https://github.com/sequelize/sequelize/issues/4596)
+
+# 3.10.0
+- [ADDED] support `search_path` for postgres with lots of schemas [#4534](https://github.com/sequelize/sequelize/pull/4534)
+- [ADDED] Expose Association constructor as `Sequelize.Association`
+- [ADDED] beforeSync/afterSync/beforeBulkSync/afterBulksync hooks [#4479](https://github.com/sequelize/sequelize/issues/4479)
+- [FIXED] Calling set with dot.separated key on a JSON/JSONB attribute will not flag the entire object as changed [#4379](https://github.com/sequelize/sequelize/pull/4379)
+- [FIXED] instances returned from `bulkCreate` now has `isNewRecord: false` and should be updateable if using `returning: true` with dialects that support it.
+- [FIXED] Find with Include with a where clause generates wrong SQL [#3940](https://github.com/sequelize/sequelize/issues/3940)
+- [FIXED] ON DELETE constraint should default to CASCADE if foreignKey has allowNull: false] [#2831](https://github.com/sequelize/sequelize/issues/2831)
+- [FIXED] sqlite file handle leak
+
+# 3.9.0
+- [ADDED] beforeRestore/afterRestore hooks [#4371](https://github.com/sequelize/sequelize/issues/4371)
+- [ADDED] Map raw fields back to attributes names when using `mapToModel` or `returning` [#3995](https://github.com/sequelize/sequelize/pull/3995)
+- [ADDED] `skip` now supports filtering out modewl validators [#4528](https://github.com/sequelize/sequelize/pull/4528)
+- [INTERNALS] `options` has been renamed to `$options` in instance.js [#4429](https://github.com/sequelize/sequelize/pull/4429)
+- [FIXED] Reload doesn't synchronize a null include [#4353](https://github.com/sequelize/sequelize/issues/4353)
+- [FIXED] commit/rollback multiple times on same transaction [#4491](https://github.com/sequelize/sequelize/issues/4491)
+- [FIXED] memory leak / options mangle for scopes with include [#4470](https://github.com/sequelize/sequelize/issues/4470)
+- [FIXED] custom `targetKey` for belongsTo on a target with a primary key will now correctly create foreign key constraints [#4455](https://github.com/sequelize/sequelize/issues/4455)
+
+# 3.8.0
+- [ADDED] `version` on `Sequelize` returning the current npm/package.json version [#4459](https://github.com/sequelize/sequelize/pull/4459)
+
+# 3.7.0
+- [ADDED] Define field dependencies for VIRTUAL types that are automatically pulled into `attributes` [#4420](https://github.com/sequelize/sequelize/pull/4420)
+- [FIXED] Fall back to a default version when parsing the DB version fails [#4368](https://github.com/sequelize/sequelize/issues/4368)
+- [FIXED] Fix a bug where passing null as the second parameter to `sequelize.where` would fail [#4334](https://github.com/sequelize/sequelize/issues/4334)
+- [FIXED] An error is thrown if a column called `id` is added, but not marked as primary key, and no other pk is present. [#4139](https://github.com/sequelize/sequelize/issues/4139)
+- [FIXED] Cast to boolean when querying JSON [#4257](https://github.com/sequelize/sequelize/issues/4257)
+
 # 3.6.0
 - [ADDED] Model.findCreateFind: A more performant findOrCreate that will not work under a transaction (atleast not in postgres)
 - [FIXED] Show indexes query on Postgres fails to return functional indexes [#3911](https://github.com/sequelize/sequelize/issues/3911)
@@ -21,7 +144,7 @@
     + mysql@2.8.0
 
 # 3.5.1
-- [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeperate.
+- [FIXED] Fix bug with nested includes where a middle include results in a null value which breaks $findSeparate.
 
 # 3.5.0
 - [ADDED] `include.separate` with `include.limit` support for HasMany associations.

@@ -19,7 +19,17 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       }
     });
 
-    return this.User.sync({ force: true });
+    this.ParanoidUser = this.sequelize.define('ParanoidUser', {
+      username: DataTypes.STRING,
+      mood: {
+        type: DataTypes.ENUM,
+        values: ['happy', 'sad', 'neutral']
+      }
+    }, {
+      paranoid: true
+    });
+
+    return this.sequelize.sync({ force: true });
   });
 
   describe('#validate', function() {
@@ -242,6 +252,69 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           return expect(user.destroy()).to.be.rejected.then(function() {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
+          });
+        });
+      });
+    });
+  });
+
+  describe('#restore', function() {
+    describe('on success', function() {
+      it('should run hooks', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.ParanoidUser.beforeRestore(beforeHook);
+        this.ParanoidUser.afterRestore(afterHook);
+
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+          return user.destroy().then(function() {
+            return user.restore().then(function(user) {
+              expect(beforeHook).to.have.been.calledOnce;
+              expect(afterHook).to.have.been.calledOnce;
+            });
+          });
+        });
+      });
+    });
+
+    describe('on error', function() {
+      it('should return an error from before', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.ParanoidUser.beforeRestore(function(user, options) {
+          beforeHook();
+          throw new Error('Whoops!');
+        });
+        this.ParanoidUser.afterRestore(afterHook);
+
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+          return user.destroy().then(function() {
+            return expect(user.restore()).to.be.rejected.then(function() {
+              expect(beforeHook).to.have.been.calledOnce;
+              expect(afterHook).not.to.have.been.called;
+            });
+          });
+        });
+      });
+
+      it('should return an error from after', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.ParanoidUser.beforeRestore(beforeHook);
+        this.ParanoidUser.afterRestore(function(user, options) {
+          afterHook();
+          throw new Error('Whoops!');
+        });
+
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(function(user) {
+          return user.destroy().then(function() {
+            return expect(user.restore()).to.be.rejected.then(function() {
+              expect(beforeHook).to.have.been.calledOnce;
+              expect(afterHook).to.have.been.calledOnce;
+            });
           });
         });
       });
@@ -667,6 +740,120 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
   });
 
+  describe('#bulkRestore', function() {
+    beforeEach(function() {
+      return this.ParanoidUser.bulkCreate([
+        {username: 'adam', mood: 'happy'},
+        {username: 'joe', mood: 'sad'}
+      ]).bind(this).then(function() {
+        return this.ParanoidUser.destroy({truncate: true});
+      });
+    });
+
+    describe('on success', function() {
+      it('should run hooks', function() {
+        var beforeBulk = sinon.spy()
+          , afterBulk = sinon.spy();
+
+        this.ParanoidUser.beforeBulkRestore(beforeBulk);
+        this.ParanoidUser.afterBulkRestore(afterBulk);
+
+        return this.ParanoidUser.restore({where: {username: 'adam', mood: 'happy'}}).then(function() {
+          expect(beforeBulk).to.have.been.calledOnce;
+          expect(afterBulk).to.have.been.calledOnce;
+        });
+      });
+    });
+
+    describe('on error', function() {
+      it('should return an error from before', function() {
+        this.ParanoidUser.beforeBulkRestore(function(options) {
+          throw new Error('Whoops!');
+        });
+
+        return expect(this.ParanoidUser.restore({where: {username: 'adam', mood: 'happy'}})).to.be.rejected;
+      });
+
+      it('should return an error from after', function() {
+        this.ParanoidUser.afterBulkRestore(function(options) {
+          throw new Error('Whoops!');
+        });
+
+        return expect(this.ParanoidUser.restore({where: {username: 'adam', mood: 'happy'}})).to.be.rejected;
+      });
+    });
+
+    describe('with the {individualHooks: true} option', function() {
+      beforeEach(function() {
+        this.ParanoidUser = this.sequelize.define('ParanoidUser', {
+          aNumber: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+          }
+        }, {
+          paranoid: true
+        });
+
+        return this.ParanoidUser.sync({ force: true });
+      });
+
+      it('should run the after/before functions for each item restored successfully', function() {
+        var self = this
+          , beforeBulk = sinon.spy()
+          , afterBulk = sinon.spy()
+          , beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.ParanoidUser.beforeBulkRestore(beforeBulk);
+        this.ParanoidUser.afterBulkRestore(afterBulk);
+        this.ParanoidUser.beforeRestore(beforeHook);
+        this.ParanoidUser.afterRestore(afterHook);
+
+        return this.ParanoidUser.bulkCreate([
+          {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
+        ]).then(function() {
+          return self.ParanoidUser.destroy({where: {aNumber: 1}});
+        }).then(function() {
+          return self.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
+        }).then(function() {
+          expect(beforeBulk).to.have.been.calledOnce;
+          expect(afterBulk).to.have.been.calledOnce;
+          expect(beforeHook).to.have.been.calledThrice;
+          expect(afterHook).to.have.been.calledThrice;
+        });
+      });
+
+      it('should run the after/before functions for each item restored with an error', function() {
+        var self = this
+          , beforeBulk = sinon.spy()
+          , afterBulk = sinon.spy()
+          , beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.ParanoidUser.beforeBulkRestore(beforeBulk);
+        this.ParanoidUser.afterBulkRestore(afterBulk);
+        this.ParanoidUser.beforeRestore(function(user, options, fn) {
+          beforeHook();
+          fn(new Error('You shall not pass!'));
+        });
+
+        this.ParanoidUser.afterRestore(afterHook);
+
+        return this.ParanoidUser.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(function() {
+          return self.ParanoidUser.destroy({where: {aNumber: 1}});
+        }).then(function() {
+          return self.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
+        }).catch(function(err) {
+          expect(err).to.be.instanceOf(Error);
+          expect(beforeBulk).to.have.been.calledOnce;
+          expect(beforeHook).to.have.been.calledThrice;
+          expect(afterBulk).not.to.have.been.called;
+          expect(afterHook).not.to.have.been.called;
+        });
+      });
+    });
+  });
+
   describe('#find', function() {
     beforeEach(function() {
       return this.User.bulkCreate([
@@ -935,7 +1122,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             title: DataTypes.STRING
           });
 
-          this.Projects.hasOne(this.Tasks, {onDelete: 'cascade', hooks: true});
+          this.Projects.hasOne(this.Tasks, {onDelete: 'CASCADE', hooks: true});
           this.Tasks.belongsTo(this.Projects);
 
           return this.sequelize.sync({ force: true });
@@ -974,7 +1161,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               , afterProject = false
               , beforeTask = false
               , afterTask = false
-              , VeryCustomError = function() {};
+              , CustomErrorText = 'Whoops!';
 
             this.Projects.beforeCreate(function(project, options, fn) {
               beforeProject = true;
@@ -988,7 +1175,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeDestroy(function(task, options, fn) {
               beforeTask = true;
-              fn(new VeryCustomError('Whoops!'));
+              fn(new Error(CustomErrorText));
             });
 
             this.Tasks.afterDestroy(function(task, options, fn) {
@@ -999,7 +1186,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             return this.Projects.create({title: 'New Project'}).then(function(project) {
               return self.Tasks.create({title: 'New Task'}).then(function(task) {
                 return project.setTask(task).then(function() {
-                  return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
+                  return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function () {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
@@ -1734,7 +1921,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                 , afterTask = false
                 , beforeMiniTask = false
                 , afterMiniTask = false
-                , VeryCustomError = function() {};
+                , CustomErrorText = 'Whoops!';
 
               this.Projects.beforeCreate(function() {
                 beforeProject = true;
@@ -1746,7 +1933,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
               this.Tasks.beforeDestroy(function() {
                 beforeTask = true;
-                throw new VeryCustomError('Whoops!');
+                throw new Error(CustomErrorText);
               });
 
               this.Tasks.afterDestroy(function() {
@@ -1771,7 +1958,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   project.addTask(task)
                 ]).return(project);
               }).then(function(project) {
-                return expect(project.destroy()).to.eventually.be.rejectedWith(VeryCustomError).then(function () {
+                return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function () {
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
                   expect(beforeTask).to.be.true;
@@ -1946,4 +2133,156 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
   });
+
+  describe('Model#sync', function() {
+    describe('on success', function() {
+      it('should run hooks', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(beforeHook);
+        this.User.afterSync(afterHook);
+
+        return this.User.sync().then(function() {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+
+      it('should not run hooks when "hooks = false" option passed', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(beforeHook);
+        this.User.afterSync(afterHook);
+
+        return this.User.sync({ hooks: false }).then(function() {
+          expect(beforeHook).to.not.have.been.called;
+          expect(afterHook).to.not.have.been.called;
+        });
+      });
+
+    });
+
+    describe('on error', function() {
+      it('should return an error from before', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(function(options) {
+          beforeHook();
+          throw new Error('Whoops!');
+        });
+        this.User.afterSync(afterHook);
+
+        return expect(this.User.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).not.to.have.been.called;
+        });
+      });
+
+      it('should return an error from after', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.User.beforeSync(beforeHook);
+        this.User.afterSync(function(options) {
+          afterHook();
+          throw new Error('Whoops!');
+        });
+
+        return expect(this.User.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+    });
+  });
+
+  describe('sequelize#sync', function() {
+    describe('on success', function() {
+      it('should run hooks', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy()
+          , modelBeforeHook = sinon.spy()
+          , modelAfterHook = sinon.spy();
+
+        this.sequelize.beforeBulkSync(beforeHook);
+        this.User.beforeSync(modelBeforeHook);
+        this.User.afterSync(modelAfterHook);
+        this.sequelize.afterBulkSync(afterHook);
+
+        return this.sequelize.sync().then(function() {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(modelBeforeHook).to.have.been.calledOnce;
+          expect(modelAfterHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+
+      it('should not run hooks if "hooks = false" option passed', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy()
+          , modelBeforeHook = sinon.spy()
+          , modelAfterHook = sinon.spy();
+
+        this.sequelize.beforeBulkSync(beforeHook);
+        this.User.beforeSync(modelBeforeHook);
+        this.User.afterSync(modelAfterHook);
+        this.sequelize.afterBulkSync(afterHook);
+
+        return this.sequelize.sync({ hooks: false }).then(function() {
+          expect(beforeHook).to.not.have.been.called;
+          expect(modelBeforeHook).to.not.have.been.called;
+          expect(modelAfterHook).to.not.have.been.called;
+          expect(afterHook).to.not.have.been.called;
+        });
+      });
+
+      afterEach(function() {
+        this.sequelize.options.hooks = {};
+      });
+
+    });
+
+    describe('on error', function() {
+
+      it('should return an error from before', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+        this.sequelize.beforeBulkSync(function(options) {
+          beforeHook();
+          throw new Error('Whoops!');
+        });
+        this.sequelize.afterBulkSync(afterHook);
+
+        return expect(this.sequelize.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).not.to.have.been.called;
+        });
+      });
+
+      it('should return an error from after', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy();
+
+        this.sequelize.beforeBulkSync(beforeHook);
+        this.sequelize.afterBulkSync(function(options) {
+          afterHook();
+          throw new Error('Whoops!');
+        });
+
+        return expect(this.sequelize.sync()).to.be.rejected.then(function(err) {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+
+      afterEach(function() {
+        this.sequelize.options.hooks = {};
+      });
+
+    });
+  });
+
 });

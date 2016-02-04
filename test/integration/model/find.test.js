@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           where: ['specialkey = ?', 'awesome'],
           logging: function(sql) {
             test = true;
-            expect(sql).to.contain("WHERE specialkey = 'awesome'");
+            expect(sql).to.match(/WHERE specialkey = N?'awesome'/);
           }
         }).then(function() {
           expect(test).to.be.true;

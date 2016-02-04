@@ -110,7 +110,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       return self.sequelize.dropAllSchemas().then(function() {
         return self.sequelize.createSchema('archive');
       }).then(function() {
-        return self.sequelize.sync({force: true });
+        return User.sync({force: true });
+      }).then(function() {
+        return Task.sync({force: true });
       }).then(function() {
         return Promise.all([
           User.create({ username: 'foo', gender: 'male' }),
@@ -463,6 +465,25 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
     });
 
+    it('sets to NO ACTION if allowNull: false', function() {
+      var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+        , User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+      Task.belongsTo(User, { foreignKey: { allowNull: false }}); // defaults to NO ACTION
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'foo' }).then(function(user) {
+          return Task.create({ title: 'task', UserId: user.id }).then(function(task) {
+            return expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(function () {
+              return Task.findAll().then(function(tasks) {
+                expect(tasks).to.have.length(1);
+              });
+            });
+          });
+        });
+      });
+    });
+
     it('should be possible to disable them', function() {
       var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
         , User = this.sequelize.define('User', { username: Sequelize.STRING });
@@ -616,10 +637,40 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
     });
 
-    it('should support a non-primary key as the association column', function() {
+    it('should support a non-primary key as the association column on a target without a primary key', function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
         , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
       User.removeAttribute('id');
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'bob' }).then(function(newUser) {
+          return Task.create({ title: 'some task' }).then(function(newTask) {
+            return newTask.setUser(newUser).then(function() {
+              return Task.findOne({title: 'some task'}).then(function (foundTask) {
+                return foundTask.getUser().then(function (foundUser) {
+                  expect(foundUser.username).to.equal('bob');
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should support a non-primary unique key as the association column', function() {
+      var User = this.sequelize.define('User', {
+            username: {
+              type: DataTypes.STRING,
+              field: 'user_name',
+              unique: true
+            }
+          })
+        , Task = this.sequelize.define('Task', {
+            title: DataTypes.STRING
+          });
+
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(function() {

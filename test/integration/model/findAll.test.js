@@ -1185,6 +1185,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       });
+
+      it('should pull in dependent fields for a VIRTUAL', function () {
+        var User = this.sequelize.define('User', {
+          active: {
+            type: new Sequelize.VIRTUAL(Sequelize.BOOLEAN, ['createdAt']),
+            get: function() {
+              return this.get('createdAt') > Date.now() - (7 * 24 * 60 * 60 * 1000);
+            }
+          }
+        }, {
+          timestamps: true
+        });
+
+        return User.create().then(function () {
+          return User.findAll({
+            attributes: ['active']
+          }).then(function (users) {
+            users.forEach(function (user) {
+              expect(user.get('createdAt')).to.be.ok;
+              expect(user.get('active')).to.equal(true);
+            });
+          });
+        });
+      });
     });
   });
 
