@@ -124,10 +124,10 @@ All tests are located in the `test` folder (which contains the
 lovely [Mocha](http://visionmedia.github.io/mocha/) tests).
 
 ```console
-$ make all || mysql || sqlite || pgsql || postgres || mariadb || postgres-native
+$ npm run all || mysql || sqlite || pgsql || postgres || mariadb || postgres-native
 
 $ # alternatively you can pass database credentials with $variables when testing
-$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password make test
+$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password npm test
 ```
 
 #### 4a. Check the documentation
@@ -186,4 +186,4 @@ Yes
 4. Update changelog to match version number, commit changelog
 5. `git push --tags origin master`
 6. `npm publish .`
-7. Copy changelog for version to release notes for version on github 
+7. Copy changelog for version to release notes for version on github
