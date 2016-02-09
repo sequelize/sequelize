@@ -316,7 +316,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         attributes: ['*'],
         having: ['name IN (?)', [1, 'test', 3, "derp"]]
       }), {
-        default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');"
+        default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');",
+        oracle:  "SELECT * FROM \"User\" HAVING name IN (1,'test',3,'derp')"
       });
     });
   });
