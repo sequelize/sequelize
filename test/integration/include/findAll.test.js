@@ -1878,6 +1878,58 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should be able to order on the main table with a hasMany relation with custom tablenames and attributes and limit ', function () {
+      var User = this.sequelize.define('User', {
+        lastName: {
+          type: DataTypes.STRING,
+          field: 'last_name'
+        }
+      }, {tableName: 'users'});
+      var Company = this.sequelize.define('Company', {
+        rankNumber: {
+          type: DataTypes.INTEGER,
+          field: 'rank_number'
+        }
+      }, {tableName: 'companies'});
+
+      User.belongsTo(Company);
+      Company.hasMany(User);
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          User.create({lastName: 'Albertsen'}),
+          User.create({lastName: 'Zenith'}),
+          User.create({lastName: 'Hansen'}),
+          Company.create({rankNumber: 1}),
+          Company.create({rankNumber: 2})
+        ).spread(function (albertsen, zenith, hansen, company1, company2) {
+          return Promise.join(
+            albertsen.setCompany(company1),
+            zenith.setCompany(company2),
+            hansen.setCompany(company2)
+          );
+        }).then(function () {
+          return Company.findAll({
+            include: [
+              {model: User}
+            ],
+            order: [
+              ['rank_number', 'DESC'],
+              [User, 'last_name', 'DESC']
+            ],
+            limit: 5
+          }).then(function (companies) {
+            expect(companies[0].rankNumber).to.equal(2);
+            expect(companies[0].Users[0].lastName).to.equal('Zenith');
+            expect(companies[0].Users[1].lastName).to.equal('Hansen');
+
+            expect(companies[1].rankNumber).to.equal(1);
+            expect(companies[1].Users[0].lastName).to.equal('Albertsen');
+          });
+        });
+      });
+    });
+
     it('should ignore include with attributes: [] (used for aggregates)', function () {
       var Post = this.sequelize.define('Post', {
             title: DataTypes.STRING

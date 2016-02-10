@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Fixed findAll with order on custom field, limit, and hasMany relations [#5332](https://github.com/sequelize/sequelize/issues/5332)
+
 # 3.19.0
 - [ADDED] Geography support for postgres
 - [FIXED] Migrations failed to add foreign key [#966](https://github.com/sequelize/sequelize/issues/966)
