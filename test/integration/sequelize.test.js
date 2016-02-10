@@ -386,39 +386,37 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       }).to.throw(Error, 'Both `replacements` and `bind` cannot be set at the same time');
     });
 
-    if (Support.dialectIsMySQL()) {
-      it.only('properly adds and escapes replacement value', function () {
-        var logSql,
-            number  = 1,
-            date = new Date(),
-            string = 't\'e"st',
-            boolean = true,
-            buffer = new Buffer('t\'e"st');
+    it('properly adds and escapes replacement value', function () {
+      var logSql,
+          number  = 1,
+          date = new Date(),
+          string = 't\'e"st',
+          boolean = true,
+          buffer = new Buffer('t\'e"st');
 
-        date.setMilliseconds(0);
-        return this.sequelize.query({
-            query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
-            values: [number, date, string, boolean, buffer]
-          }, {
-            type: this.sequelize.QueryTypes.SELECT,
-            logging: function(s) {
-              logSql = s;
-            }
-          }).then(function(result) {
-            var res = result[0] || {};
-            res.date = res.date && new Date(res.date);
-            res.boolean = res.boolean && true;
-            expect(res).to.deep.equal({
-              number : number,
-              date   : date,
-              string : string,
-              boolean: boolean,
-              buffer : buffer
-            });
-            expect(logSql.indexOf('?')).to.equal(-1);
-        });
+      date.setMilliseconds(0);
+      return this.sequelize.query({
+          query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
+          values: [number, date, string, boolean, buffer]
+        }, {
+          type: this.sequelize.QueryTypes.SELECT,
+          logging: function(s) {
+            logSql = s;
+          }
+        }).then(function(result) {
+          var res = result[0] || {};
+          res.date = res.date && new Date(res.date);
+          res.boolean = res.boolean && true;
+          expect(res).to.deep.equal({
+            number : number,
+            date   : date,
+            string : string,
+            boolean: boolean,
+            buffer : buffer
+          });
+          expect(logSql.indexOf('?')).to.equal(-1);
       });
-    }
+    });
 
     it('uses properties `query` and `values` if query is tagged', function() {
       var logSql;
