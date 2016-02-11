@@ -1,3 +1,6 @@
+# NEXT
+- [FIXED] `updatedAt` and `createdAt` values are now set before validation [#5367](https://github.com/sequelize/sequelize/pull/5367)
+
 # 3.19.0
 - [ADDED] Geography support for postgres
 - [FIXED] Migrations failed to add foreign key [#966](https://github.com/sequelize/sequelize/issues/966)
