@@ -29,8 +29,8 @@ before_script:
   - "psql sequelize_test -c 'create extension postgis;' -U postgres"
 
 script:
-  - "make test"
-  
+  - "npm test"
+
 matrix:
   fast_finish: true
   include:
