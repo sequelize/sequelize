@@ -1172,6 +1172,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             self.clock.tick(2000);
             return user.save().then(function(newlySavedUser) {
               expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
+              return self.User.findOne({ username: 'John' }).then(function(newlySavedUser) {
+                expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
+              });
             });
           });
         });
@@ -1239,6 +1242,28 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return User2.create({ username: 'john doe' }).then(function(johnDoe) {
             expect(johnDoe.createdAt).to.be.undefined;
             expect(now).to.be.beforeTime(johnDoe.updatedAt);
+          });
+        });
+      });
+
+      it('works with `allowNull: false` on createdAt and updatedAt columns', function() {
+        var User2 = this.sequelize.define('User2', {
+          username: DataTypes.STRING,
+          createdAt: {
+            type: DataTypes.DATE,
+            allowNull: false
+          },
+          updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: false
+          }
+        }, { timestamps: true });
+
+        return User2.sync().then(function() {
+          return User2.create({ username: 'john doe' }).then(function(johnDoe) {
+            expect(johnDoe.createdAt).to.be.an.instanceof(Date);
+            expect( ! isNaN(johnDoe.createdAt.valueOf()) ).to.be.ok;
+            expect(johnDoe.createdAt).to.equalTime(johnDoe.updatedAt);
           });
         });
       });
