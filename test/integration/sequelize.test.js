@@ -407,6 +407,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           var res = result[0] || {};
           res.date = res.date && new Date(res.date);
           res.boolean = res.boolean && true;
+          if (typeof res.buffer === 'string' && res.buffer.indexOf('\\x') === 0) {
+            res.buffer = new Buffer(res.buffer.substring(2), 'hex');
+          }
           expect(res).to.deep.equal({
             number : number,
             date   : date,
