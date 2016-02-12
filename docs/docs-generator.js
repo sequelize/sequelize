@@ -48,7 +48,7 @@ Comment.prototype.getTag = function(tagName) {
 };
 
 Comment.prototype.getTags = function(tagName) {
-  return _.where(this.data.tags, { type: tagName });
+  return _.filter(this.data.tags, { type: tagName });
 };
 
 Comment.prototype.hasTag = function(tagName) {
