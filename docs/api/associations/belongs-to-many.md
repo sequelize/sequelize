@@ -25,7 +25,7 @@ Project.create({ id: 11 }).then(function (project) {
 });
 ```
 
-In the API reference below, replace `Assocation(s)` with the actual name of your association, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
+In the API reference below, replace `Association(s)` with the actual name of your association, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
 
 ***
 
@@ -124,7 +124,7 @@ Un-associate the instance.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [oldAssociated] | Instace &#124; String &#124; Number | Can be an Instance or its primary key |
+| [oldAssociated] | Instance &#124; String &#124; Number | Can be an Instance or its primary key |
 | [options] | Object | Options passed to `through.destroy` |
 
 
@@ -140,7 +140,7 @@ Un-associate several instances.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [oldAssociated] | Array.&lt;Instace &#124; String &#124; Number&gt; | Can be an array of instances or their primary keys |
+| [oldAssociated] | Array.&lt;Instance &#124; String &#124; Number&gt; | Can be an array of instances or their primary keys |
 | [options] | Object | Options passed to `through.destroy` |
 
 
@@ -156,7 +156,7 @@ Check if an instance is associated with this.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [instance] | Instace &#124; String &#124; Number | Can be an Instance or its primary key |
+| [instance] | Instance &#124; String &#124; Number | Can be an Instance or its primary key |
 | [options] | Object | Options passed to getAssociations |
 
 
@@ -172,7 +172,7 @@ Check if all instances are associated with this.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [instances] | Array.&lt;Instace &#124; String &#124; Number&gt; | Can be an array of instances or their primary keys |
+| [instances] | Array.&lt;Instance &#124; String &#124; Number&gt; | Can be an array of instances or their primary keys |
 | [options] | Object | Options passed to getAssociations |
 
 

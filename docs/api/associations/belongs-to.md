@@ -4,7 +4,7 @@
 
 One-to-one association
 
-In the API reference below, replace `Assocation` with the actual name of your association, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
+In the API reference below, replace `Association` with the actual name of your association, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
 
 ***
 

@@ -4,7 +4,7 @@
 
 One-to-many association
 
-In the API reference below, replace `Assocation(s)` with the actual name of your association, e.g. for `User.hasMany(Project)` the getter will be `user.getProjects()`.
+In the API reference below, replace `Association(s)` with the actual name of your association, e.g. for `User.hasMany(Project)` the getter will be `user.getProjects()`.
 
 ***
 
@@ -103,7 +103,7 @@ Un-associate the instance.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [oldAssociated] | Instace &#124; String &#124; Number | Can be an Instance or its primary key |
+| [oldAssociated] | Instance &#124; String &#124; Number | Can be an Instance or its primary key |
 | [options] | Object | Options passed to `target.update` |
 
 
@@ -135,7 +135,7 @@ Check if an instance is associated with this.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [instance] | Instace &#124; String &#124; Number | Can be an Instance or its primary key |
+| [instance] | Instance &#124; String &#124; Number | Can be an Instance or its primary key |
 | [options] | Object | Options passed to getAssociations |
 
 
@@ -151,7 +151,7 @@ Check if all instances are associated with this.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [instances] | Array.&lt;Instace &#124; String &#124; Number&gt; | Can be an array of instances or their primary keys |
+| [instances] | Array.&lt;Instance &#124; String &#124; Number&gt; | Can be an array of instances or their primary keys |
 | [options] | Object | Options passed to getAssociations |
 
 
