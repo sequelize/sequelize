@@ -33,7 +33,7 @@ Returns true if this instance has not yet been persisted to the database
 ***
 
 <a name="model"></a>
-## `Model()` -> `Model`
+## `Model` -> `Model`
 [View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/instance.js#L106)
 
 Returns the Model the instance was created from.
