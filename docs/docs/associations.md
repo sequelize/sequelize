@@ -250,13 +250,26 @@ By default the code above will add projectId and userId to the UserProjects tabl
 
 ```js
 UserProjects = sequelize.define('userProjects', {
-    id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
-    },
-    status: DataTypes.STRING
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  status: DataTypes.STRING
 })
+```
+With Belongs-To-Many you can query based on **through** relation and select specific attributes. For example using `findAll` with **through**
+
+```js
+User.findAll({
+  include: [{
+    model: Project,
+      through: {
+        attributes: ['createdAt', 'startedAt', 'finishedAt']
+          where: {completed: true}
+      }
+  }]
+});
 ```
 
 ## Scopes

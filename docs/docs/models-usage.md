@@ -556,6 +556,20 @@ To include all attributes, you can pass a single object with `all: true`:
 User.findAll({ include: [{ all: true }]});
 ```
 
+### Including soft deleted records
+
+In case you want to eager load soft deleted records you can do that by setting `include.paranoid` to `true`
+
+```js
+User.findAll({
+    include: [{
+        model: Tool,
+        where: { name: { $like: '%ooth%' } },
+        paranoid: true // query and loads the soft deleted records
+    }]
+});
+```
+
 ### Ordering Eager Loaded Associations
 
 In the case of a one-to-many relationship.
