@@ -102,7 +102,7 @@
     "test-unit-sqlite":"DIALECT=sqlite npm run test-unit",
     "test-unit-mssql":"DIALECT=mssql npm run test-unit",
     "test-unit-all":"npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite && npm run test-unit-mariadb",
-    "test-integration": "./node_modules/.bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter spec --grep ''$GREP'' 'test/integration/**/*.test.js'",
+    "test-integration": "./node_modules/.bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter spec --grep \"$GREP\" 'test/integration/**/*.test.js'",
     "test-integration-mysql":"DIALECT=mysql npm run test-integration",
     "test-integration-postgres":"DIALECT=postgres npm run test-integration",
     "test-integration-postgres-native":"DIALECT=postgres-native npm run test-integration",
