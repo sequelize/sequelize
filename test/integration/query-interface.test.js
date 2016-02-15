@@ -194,6 +194,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             expect(enumVals.special).to.be.instanceof(Array);
             expect(enumVals.special).to.have.length(2);
+          } else if (dialect === 'mysql') {
+            expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
           }
         });
       });
