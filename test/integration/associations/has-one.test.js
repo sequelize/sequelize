@@ -10,7 +10,7 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('HasOne'), function() {
   describe('Model.associations', function() {
-    it('should store all assocations when associting to the same table multiple times', function() {
+    it('should store all associations when associating to the same table multiple times', function() {
       var User = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {});
 
@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
   });
 
-  describe('getAssocation', function() {
+  describe('getAssociation', function() {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).then(function (sequelize) {

@@ -14,7 +14,7 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('HasMany'), function() {
   describe('Model.associations', function() {
-    it('should store all assocations when associting to the same table multiple times', function() {
+    it('should store all associations when associating to the same table multiple times', function() {
       var User = this.sequelize.define('User', {})
         , Group = this.sequelize.define('Group', {});
 
@@ -815,7 +815,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
     });
 
-    describe('getting assocations with options', function() {
+    describe('getting associations with options', function() {
       beforeEach(function() {
         var self = this;
 

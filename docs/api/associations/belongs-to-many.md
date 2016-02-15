@@ -25,7 +25,7 @@ Project.create({ id: 11 }).then(function (project) {
 });
 ```
 
-In the API reference below, replace `Assocation(s)` with the actual name of your association, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
+In the API reference below, replace `Association(s)` with the actual name of your association, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
 
 ***
 
