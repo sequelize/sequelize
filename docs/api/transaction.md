@@ -1,6 +1,6 @@
 <a name="transaction"></a>
 # Class Transaction
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L19)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L20)
 
 The transaction object is used to identify a running transaction. It is created by calling `Sequelize.transaction()`.
 
@@ -13,15 +13,52 @@ To run a query under a transaction, you should pass the transaction in the optio
 | sequelize | Sequelize | A configured sequelize Instance |
 | options | Object | An object with options |
 | options.autocommit=true | Boolean | Sets the autocommit property of the transaction. |
+| options.type=true | String | Sets the type of the transaction. |
 | options.isolationLevel=true | String | Sets the isolation level of the transaction. |
 | options.deferrable | String | Sets the constraints to be deferred or immediately checked. |
 
 
 ***
 
+<a name="types"></a>
+## `TYPES`
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L76)
+
+Types can be set per-transaction by passing `options.type` to `sequelize.transaction`.
+Default to `DEFERRED` but you can override the default type by passing `options.transactionType` in `new Sequelize`.
+Sqlite only.
+
+The possible types to use when starting a transaction:
+
+```js
+{
+  DEFERRED: "DEFERRED",
+  IMMEDIATE: "IMMEDIATE",
+  EXCLUSIVE: "EXCLUSIVE"
+}
+```
+
+Pass in the desired level as the first argument:
+
+```js
+return sequelize.transaction({
+  type: Sequelize.Transaction.EXCLUSIVE
+}, function (t) {
+
+ // your transactions
+
+}).then(function(result) {
+  // transaction has been committed. Do something after the commit if required.
+}).catch(function(err) {
+  // do something with the err.
+});
+```
+
+***
+
 <a name="isolation_levels"></a>
 ## `ISOLATION_LEVELS`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L71)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L116)
 
 Isolations levels can be set per-transaction by passing `options.isolationLevel` to `sequelize.transaction`.
 Default to `REPEATABLE_READ` but you can override the default isolation level by passing `options.isolationLevel` in `new Sequelize`.
@@ -57,9 +94,9 @@ return sequelize.transaction({
 
 <a name="lock"></a>
 ## `LOCK`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L115)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L160)
 
-Possible options for row locking. Used in conjuction with `find` calls:
+Possible options for row locking. Used in conjunction with `find` calls:
 
 ```js
 t1 // is a transaction
@@ -97,7 +134,7 @@ UserModel will be locked but TaskModel won't!
 
 <a name="commit"></a>
 ## `commit()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L127)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L172)
 
 Commit the transaction
 
@@ -105,7 +142,7 @@ Commit the transaction
 
 <a name="rollback"></a>
 ## `rollback()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/transaction.js#L154)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L200)
 
 Rollback (abort) the transaction
 
