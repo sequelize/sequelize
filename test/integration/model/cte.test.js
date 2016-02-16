@@ -3,6 +3,7 @@
 var chai = require('chai')
   , expect = chai.expect
   , things = require('chai-things')
+  , Promise = require('bluebird')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current = Support.sequelize;
@@ -314,75 +315,65 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
         User.belongsToMany(User, { as: 'friends', through: 'friend_users' });
 
         return this.sequelize.sync({ force: true }).then(function () {
-          return User.create({ username: 'user1', amount: 30 }).then(function (user1) {
-            return User.create({ username: 'user1.1', amount: 200 }).then(function (user2) {
-              return User.create({ username: 'user1.2', amount: 20 }).then(function (user3) {
-                return User.create({ username: 'user1.3', amount: 6000 }).then(function (user4) {
-                  return User.create({ username: 'user1.1.1', amount: 75 }).then(function (user5) {
-                    return User.create({ username: 'user1.3.1', amount: 876 }).then(function (user6) {
-                      return User.create({ username: 'user1.3.2', amount: 11 }).then(function (user7) {
-                        return PicStore.create({ amount: 30 }).then(function (picstore1) {
-                          return PicStore.create({ amount: 600 }).then(function (picstore2) {
-                            return user1.setPicStore(picstore2).then(function () {
-                              return user2.setPicStore(picstore2).then(function () {
-                                return user3.setPicStore(picstore1).then(function () {
-                                  return user4.setPicStore(picstore2).then(function () {
-                                    return user5.setPicStore(picstore1).then(function () {
-                                      return user6.setPicStore(picstore2).then(function () {
-                                        return user7.setPicStore(picstore1).then(function () {
-                                          return user1.addFriends([user2, user3, user4]).then(function () {
-                                            return user2.addFriends([user5]).then(function () {
-                                              return user4.addFriends([user6, user7]).then(function () {
-                                                return User.findAll({
-                                                  cte: [{
-                                                    name: 'a',
-                                                    model: User,
-                                                    initial: {
-                                                      where: { username: 'user1' }
-                                                    },
-                                                    recursive: {
-                                                      next: 'friends',
-                                                      include: [{
-                                                        useBefore: false,
-                                                        model: PicStore,
-                                                        as: 'picStore',
-                                                        where: {
-                                                          amount: { $gt: 30 }
-                                                        }
-                                                      }]
-                                                    }
-                                                  }],
-                                                  cteSelect: 'a'
-                                                }).then(function (selectedUsers) {
-
-                                                  expect(selectedUsers).to.have.length(4);
-
-                                                  expect(selectedUsers[0].get('username')).to.equal('user1');
-                                                  expect(selectedUsers[1].get('username')).to.equal('user1.1');
-                                                  expect(selectedUsers[2].get('username')).to.equal('user1.3');
-                                                  expect(selectedUsers[3].get('username')).to.equal('user1.3.1');
-                                                });
-                                              });
-                                            });
-                                          });
-                                        });
-                                      });
-                                    });
-                                  });
-                                });
-                              });
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
+          return Promise.join(
+            User.create({ username: 'user1' }),
+            User.create({ username: 'user1.1' }),
+            User.create({ username: 'user1.2' }),
+            User.create({ username: 'user1.3' }),
+            User.create({ username: 'user1.1.1' }),
+            User.create({ username: 'user1.3.1' }),
+            User.create({ username: 'user1.3.2' }),
+            PicStore.create({ amount: 30 }),
+            PicStore.create({ amount: 600 }),
+            function (user1, user2, user3, user4, user5, user6, user7, picstore1, picstore2) {
+              return Promise.join(
+                user1.setPicStore(picstore2),
+                user2.setPicStore(picstore2),
+                user3.setPicStore(picstore1),
+                user4.setPicStore(picstore2),
+                user5.setPicStore(picstore1),
+                user6.setPicStore(picstore2),
+                user7.setPicStore(picstore1),
+                user1.addFriends([user2, user3, user4]),
+                user2.addFriends([user5]),
+                user4.addFriends([user6, user7]),
+                function () { }
+                );
             });
-          });
+        }).then(function () {
+          return User.findAll({
+            cte: [{
+              name: 'a',
+              model: User,
+              initial: {
+                where: { username: 'user1' }
+              },
+              recursive: {
+                next: 'friends',
+                include: [{
+                  useBefore: false,
+                  model: PicStore,
+                  as: 'picStore',
+                  where: {
+                    amount: { $gt: 30 }
+                  }
+                }]
+              }
+            }],
+            cteSelect: 'a'
+          })
+        }).then(function (selectedUsers) {
+
+          expect(selectedUsers).to.have.length(4);
+
+          expect(selectedUsers[0].get('username')).to.equal('user1');
+          expect(selectedUsers[1].get('username')).to.equal('user1.1');
+          expect(selectedUsers[2].get('username')).to.equal('user1.3');
+          expect(selectedUsers[3].get('username')).to.equal('user1.3.1');
         });
       });
+
+
 
       it('can use an attribute on a cte to end a query', function () {
         var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
@@ -699,65 +690,59 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
         User.hasOne(User, { as: 'report' });
 
         return this.sequelize.sync({ force: true }).then(function () {
-          return User.create({ username: 'user1', amount: 12 }).then(function (user1) {
-            return User.create({ username: 'user2', amount: 5 }).then(function (user2) {
-              return User.create({ username: 'user3', amount: 2 }).then(function (user3) {
-                return User.create({ username: 'user4', amount: 23 }).then(function (user4) {
-                  return User.create({ username: 'user5', amount: 13 }).then(function (user5) {
-                    return User.create({ username: 'user6', amount: 7 }).then(function (user6) {
-                      return user1.setReport(user2).then(function () {
-                        return user2.setReport(user3).then(function () {
-                          return user3.setReport(user4).then(function () {
-                            return user4.setReport(user5).then(function () {
-                              return user5.setReport(user6).then(function () {
-                                return User.findAll({
-                                  cte: [{
-                                    name: 'a',
-                                    model: User,
-                                    cteAttributes: ['totalAmount'],
-                                    initial: {
-                                      totalAmount: { $model: 'amount' },
-                                      where: { username: 'user1' }
-                                    },
-                                    recursive: {
-                                      totalAmount: {
-                                        $add: [{ $cte: 'totalAmount' },
-                                          { $model: 'amount' }]
-                                      },
-                                      next: 'report',
-                                      order: [['level', 'DESC']],
-                                      where: {
-                                        cte: {
-                                          totalAmount: {
-                                            $lt: 20
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }],
-                                  cteSelect: 'a'
-                                }).then(function (selectedUsers) {
-                                  expect(selectedUsers).to.have.length(4);
-                                  expect(selectedUsers[0]).to.have.property('username', 'user1');
-                                  expect(selectedUsers[1]).to.have.property('username', 'user2');
-                                  expect(selectedUsers[2]).to.have.property('username', 'user3');
-                                  expect(selectedUsers[3]).to.have.property('username', 'user4');
-                                });
-
-                              });
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
+          return Promise.join(
+            User.create({ username: 'user1', amount: 12 }),
+            User.create({ username: 'user2', amount: 5 }),
+            User.create({ username: 'user3', amount: 2 }),
+            User.create({ username: 'user4', amount: 23 }),
+            User.create({ username: 'user5', amount: 13 }),
+            User.create({ username: 'user6', amount: 7 }),
+            function (user1, user2, user3, user4, user5, user6) {
+              return Promise.join(
+                user1.setReport(user2),
+                user2.setReport(user3),
+                user3.setReport(user4),
+                user4.setReport(user5),
+                user5.setReport(user6),
+                function () { }
+                );
             });
+        }).then(function () {
+          return User.findAll({
+            cte: [{
+              name: 'a',
+              model: User,
+              cteAttributes: ['totalAmount'],
+              initial: {
+                totalAmount: { $model: 'amount' },
+                where: { username: 'user1' }
+              },
+              recursive: {
+                totalAmount: {
+                  $add: [{ $cte: 'totalAmount' },
+                    { $model: 'amount' }]
+                },
+                next: 'report',
+                order: [['level', 'DESC']],
+                where: {
+                  cte: {
+                    totalAmount: {
+                      $lt: 20
+                    }
+                  }
+                }
+              }
+            }],
+            cteSelect: 'a'
+          }).then(function (selectedUsers) {
+            expect(selectedUsers).to.have.length(4);
+            expect(selectedUsers[0]).to.have.property('username', 'user1');
+            expect(selectedUsers[1]).to.have.property('username', 'user2');
+            expect(selectedUsers[2]).to.have.property('username', 'user3');
+            expect(selectedUsers[3]).to.have.property('username', 'user4');
           });
         });
       });
-
     });
   }
 });
