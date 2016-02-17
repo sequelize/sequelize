@@ -413,6 +413,8 @@ To actually use the results of a CTE in the results of a query there are some he
 The other way is through a new option property, `cteSelect`. If the CTE (whose name is given as a string to cteSelect) is based off of the same model an inner join is performed between the CTE and the main query results. 
 In addition, `cteAttributes` specifies an array of CTE attributes that should also be returned on each object. 
 
+For a shortcut if you have defined one cte it will automatically be used as the `cteSelect`. Defining `cteSelect` will disable this behavior and defining it as `null` will prevent any automatic join from occuring. 
+
 
 ### CTE support by dialect
 
