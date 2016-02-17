@@ -35,8 +35,8 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                     cteSelect: 'a'
                   }).then(function (selectedUsers) {
                     expect(selectedUsers).to.have.length(2);
-                    expect(selectedUsers[0]).to.have.property('username', 'user3');
-                    expect(selectedUsers[1]).to.have.property('username', 'user1');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
                   });
                 });
               });
@@ -65,8 +65,8 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                     cteSelect: 'a'
                   }).then(function (selectedUsers) {
                     expect(selectedUsers).to.have.length(2);
-                    expect(selectedUsers[0]).to.have.property('username', 'user3');
-                    expect(selectedUsers[1]).to.have.property('username', 'user1');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
                   });
                 });
               });
@@ -95,7 +95,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                     cteSelect: 'a'
                   }).then(function (selectedUsers) {
                     expect(selectedUsers).to.have.length(3);
-                    expect(selectedUsers[0]).to.have.property('username', 'user2');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
                     expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
                     expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
                   });
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                     cteAttributes: ['depth']
                   }).then(function (selectedUsers) {
                     expect(selectedUsers).to.have.length(3);
-                    expect(selectedUsers[0]).to.have.property('username', 'user2');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
                     expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
                     expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
                   });
@@ -194,6 +194,155 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
         });
       });
 
+      if (current.dialect.supports.cteLimitOffsetOrder) {
+        
+        it('limit option will stop query at correct limit', function () {
+          var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
+
+          User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+
+          return this.sequelize.sync({ force: true }).then(function () {
+            return User.create({ username: 'user1' }).then(function (user1) {
+              return User.create({ username: 'user2' }).then(function (user2) {
+                return User.create({ username: 'user3' }).then(function (user3) {
+                  return User.create({ username: 'user4' }).then(function (user4) {
+                    return User.create({ username: 'user5' }).then(function (user5) {
+                      return user1.setReport(user2).then(function () {
+                        return user2.setReport(user3).then(function () {
+                          return user3.setReport(user4).then(function () {
+                            return user4.setReport(user5).then(function () {
+                              return user5.setReport(user1).then(function () {
+                                return User.findAll({
+                                  cte: [{
+                                    name: 'a',
+                                    model: User,
+                                    initial: {
+                                      where: { username: 'user1' }
+                                    },
+                                    recursive: {
+                                      next: 'report'
+                                    },
+                                    limit: 50,
+                                    unique: false
+                                  }],
+                                  cteSelect: 'a'
+                                }).then(function (selectedUsers) {
+                                  expect(selectedUsers).to.have.length(50);
+                                });
+                              });
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+        
+        it('limit and offset option select the correct users', function () {
+          var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
+
+          User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+
+          return this.sequelize.sync({ force: true }).then(function () {
+            return User.create({ username: 'user1' }).then(function (user1) {
+              return User.create({ username: 'user2' }).then(function (user2) {
+                return User.create({ username: 'user3' }).then(function (user3) {
+                  return User.create({ username: 'user4' }).then(function (user4) {
+                    return User.create({ username: 'user5' }).then(function (user5) {
+                      return user1.setReport(user2).then(function () {
+                        return user2.setReport(user3).then(function () {
+                          return user3.setReport(user4).then(function () {
+                            return user4.setReport(user5).then(function () {
+                              return User.findAll({
+                                cte: [{
+                                  name: 'a',
+                                  model: User,
+                                  initial: {
+                                    where: { username: 'user1' }
+                                  },
+                                  recursive: {
+                                    next: 'report'
+                                  },
+                                  limit: 2,
+                                  offset: 2,
+                                  unique: false
+                                }],
+                                cteSelect: 'a'
+                              }).then(function (selectedUsers) {
+                                expect(selectedUsers).to.have.length(2);
+                                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+                                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
+                              });
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+        
+        it('order by clause in cte', function () {
+          var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
+
+          User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+
+          return this.sequelize.sync({ force: true }).then(function () {
+            return User.create({ username: 'user1' }).then(function (user1) {
+              return User.create({ username: 'user1.1' }).then(function (user2) {
+                return User.create({ username: 'user1.2' }).then(function (user3) {
+                  return User.create({ username: 'user1.1.1' }).then(function (user4) {
+                    return User.create({ username: 'user1.1.2' }).then(function (user5) {
+                      return User.create({ username: 'user1.2.1' }).then(function (user6) {
+                        return user1.setReports([user2, user3]).then(function () {
+                          return user2.setReports([user4, user5]).then(function () {
+                            return user3.setReports([user6]).then(function () {
+                              return User.findAll({
+                                cte: [{
+                                  name: 'a',
+                                  model: User,
+                                  cteAttributes: ['level'],
+                                  initial: {
+                                    level: 1,
+                                    where: { username: 'user1' }
+                                  },
+                                  recursive: {
+                                    level: { $add: [{ $cte: 'level' }, 1] },
+                                    next: 'reports',
+                                  },
+                                  order: [['level', 'DESC']]
+                                }],
+                                cteSelect: 'a'
+                              }).then(function (selectedUsers) {
+                                expect(selectedUsers).to.have.length(6);
+                                expect(selectedUsers[0]).to.have.property('username', 'user1');
+                                expect(selectedUsers[1]).to.have.property('username', 'user1.1');
+                                expect(selectedUsers[2]).to.have.property('username', 'user1.1.1');
+                                expect(selectedUsers[3]).to.have.property('username', 'user1.1.2');
+                                expect(selectedUsers[4]).to.have.property('username', 'user1.2');
+                                expect(selectedUsers[5]).to.have.property('username', 'user1.2.1');
+                              });
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+        
+      }
+
       it('can use scopes', function () {
         var User = this.sequelize.define('UserXYZ',
           { username: DataTypes.STRING }, {
@@ -220,8 +369,8 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                   return user2.setReport(user3).then(function () {
                     return User.scope('cte').findAll().then(function (selectedUsers) {
                       expect(selectedUsers).to.have.length(2);
-                      expect(selectedUsers[0]).to.have.property('username', 'user2');
-                      expect(selectedUsers[1]).to.have.property('username', 'user3');
+                      expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+                      expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
                     });
                   });
                 });
@@ -259,8 +408,8 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                   return user2.setReport(user3).then(function () {
                     return User.scope({ method: ['cte', 'user2'] }).findAll().then(function (selectedUsers) {
                       expect(selectedUsers).to.have.length(2);
-                      expect(selectedUsers[0]).to.have.property('username', 'user2');
-                      expect(selectedUsers[1]).to.have.property('username', 'user3');
+                      expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+                      expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
                     });
                   });
                 });
@@ -283,20 +432,20 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                   return user2.setReport(user3).then(function() {
                     return User.findAll({
                       cte: [{
-                      name: 'a',
-                      model: User,
-                      initial: { include: [{
-                      model: User,
-                      as: 'report',
-                      where: { user_id: { $gt: 99 }}
-                      }]},
-                      recursive: { next: 'report'}
+                        name: 'a',
+                        model: User,
+                        initial: { include: [{
+                          model: User,
+                          as: 'report',
+                          where: { user_id: { $gt: 99 }}
+                        }]},
+                        recursive: { next: 'report'}
                       }],
                       cteSelect: 'a'
                     }).then(function (selectedUsers) {
                       expect(selectedUsers).to.have.length(2);
-                      expect(selectedUsers[0]).to.have.property('username', 'user10');
-                      expect(selectedUsers[1]).to.have.property('username', 'user100');
+                      expect(selectedUsers).to.contain.a.thing.with.property('username', 'user10');
+                      expect(selectedUsers).to.contain.a.thing.with.property('username', 'user100');
                     });
                   });
                 });
@@ -366,14 +515,12 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
 
           expect(selectedUsers).to.have.length(4);
 
-          expect(selectedUsers[0].get('username')).to.equal('user1');
-          expect(selectedUsers[1].get('username')).to.equal('user1.1');
-          expect(selectedUsers[2].get('username')).to.equal('user1.3');
-          expect(selectedUsers[3].get('username')).to.equal('user1.3.1');
+          expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1')
+          expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.1');
+          expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.3');
+          expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.3.1');
         });
       });
-
-
 
       it('can use an attribute on a cte to end a query', function () {
         var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
@@ -408,154 +555,9 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                               cteSelect: 'a'
                             }).then(function (selectedUsers) {
                               expect(selectedUsers).to.have.length(3);
-                              expect(selectedUsers[0]).to.have.property('username', 'user1');
-                              expect(selectedUsers[1]).to.have.property('username', 'user2');
-                              expect(selectedUsers[2]).to.have.property('username', 'user3');
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-
-      it('limit option will stop query at correct limit', function () {
-        var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-
-        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
-
-        return this.sequelize.sync({ force: true }).then(function () {
-          return User.create({ username: 'user1' }).then(function (user1) {
-            return User.create({ username: 'user2' }).then(function (user2) {
-              return User.create({ username: 'user3' }).then(function (user3) {
-                return User.create({ username: 'user4' }).then(function (user4) {
-                  return User.create({ username: 'user5' }).then(function (user5) {
-                    return user1.setReport(user2).then(function () {
-                      return user2.setReport(user3).then(function () {
-                        return user3.setReport(user4).then(function () {
-                          return user4.setReport(user5).then(function () {
-                            return user5.setReport(user1).then(function () {
-                              return User.findAll({
-                                cte: [{
-                                  name: 'a',
-                                  model: User,
-                                  initial: {
-                                    where: { username: 'user1' }
-                                  },
-                                  recursive: {
-                                    next: 'report'
-                                  },
-                                  limit: 50,
-                                  unique: false
-                                }],
-                                cteSelect: 'a'
-                              }).then(function (selectedUsers) {
-                                expect(selectedUsers).to.have.length(50);
-                              });
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-
-      it('limit and offset option select the correct users', function () {
-        var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-
-        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
-
-        return this.sequelize.sync({ force: true }).then(function () {
-          return User.create({ username: 'user1' }).then(function (user1) {
-            return User.create({ username: 'user2' }).then(function (user2) {
-              return User.create({ username: 'user3' }).then(function (user3) {
-                return User.create({ username: 'user4' }).then(function (user4) {
-                  return User.create({ username: 'user5' }).then(function (user5) {
-                    return user1.setReport(user2).then(function () {
-                      return user2.setReport(user3).then(function () {
-                        return user3.setReport(user4).then(function () {
-                          return user4.setReport(user5).then(function () {
-                            return User.findAll({
-                              cte: [{
-                                name: 'a',
-                                model: User,
-                                initial: {
-                                  where: { username: 'user1' }
-                                },
-                                recursive: {
-                                  next: 'report'
-                                },
-                                limit: 2,
-                                offset: 2,
-                                unique: false
-                              }],
-                              cteSelect: 'a'
-                            }).then(function (selectedUsers) {
-                              expect(selectedUsers).to.have.length(2);
-                              expect(selectedUsers[0]).to.have.property('username', 'user3');
-                              expect(selectedUsers[1]).to.have.property('username', 'user4');
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-
-      it('order by clause in cte', function () {
-        var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-
-        User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
-
-        return this.sequelize.sync({ force: true }).then(function () {
-          return User.create({ username: 'user1' }).then(function (user1) {
-            return User.create({ username: 'user1.1' }).then(function (user2) {
-              return User.create({ username: 'user1.2' }).then(function (user3) {
-                return User.create({ username: 'user1.1.1' }).then(function (user4) {
-                  return User.create({ username: 'user1.1.2' }).then(function (user5) {
-                    return User.create({ username: 'user1.2.1' }).then(function (user6) {
-                      return user1.setReports([user2, user3]).then(function () {
-                        return user2.setReports([user4, user5]).then(function () {
-                          return user3.setReports([user6]).then(function () {
-                            return User.findAll({
-                              cte: [{
-                                name: 'a',
-                                model: User,
-                                cteAttributes: ['level'],
-                                initial: {
-                                  level: 1,
-                                  where: { username: 'user1' }
-                                },
-                                recursive: {
-                                  level: { $add: [{ $cte: 'level' }, 1] },
-                                  next: 'reports',
-                                },
-                                order: [['level', 'DESC']]
-                              }],
-                              cteSelect: 'a'
-                            }).then(function (selectedUsers) {
-                              expect(selectedUsers).to.have.length(6);
-                              expect(selectedUsers[0]).to.have.property('username', 'user1');
-                              expect(selectedUsers[1]).to.have.property('username', 'user1.1');
-                              expect(selectedUsers[2]).to.have.property('username', 'user1.1.1');
-                              expect(selectedUsers[3]).to.have.property('username', 'user1.1.2');
-                              expect(selectedUsers[4]).to.have.property('username', 'user1.2');
-                              expect(selectedUsers[5]).to.have.property('username', 'user1.2.1');
+                              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
+                              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+                              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
                             });
                           });
                         });
@@ -603,7 +605,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                               cteSelect: 'a'
                             }).then(function (selectedUsers) {
                               expect(selectedUsers).to.have.length(6);
-
+                              // unfortunate dependence on order here since we must call 'get'
                               expect(selectedUsers[0].get('level')).to.equal(1);
                               expect(selectedUsers[1].get('level')).to.equal(2);
                               expect(selectedUsers[2].get('level')).to.equal(2);
@@ -664,9 +666,9 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                               cteSelect: 'a'
                             }).then(function (selectedUsers) {
                               expect(selectedUsers).to.have.length(3);
-                              expect(selectedUsers[0]).to.have.property('username', 'user1');
-                              expect(selectedUsers[1]).to.have.property('username', 'user1.1');
-                              expect(selectedUsers[2]).to.have.property('username', 'user1.2');
+                              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
+                              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.1');
+                              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.2');
                             });
                           });
                         });
@@ -736,10 +738,10 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
             cteSelect: 'a'
           }).then(function (selectedUsers) {
             expect(selectedUsers).to.have.length(4);
-            expect(selectedUsers[0]).to.have.property('username', 'user1');
-            expect(selectedUsers[1]).to.have.property('username', 'user2');
-            expect(selectedUsers[2]).to.have.property('username', 'user3');
-            expect(selectedUsers[3]).to.have.property('username', 'user4');
+            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
+            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
           });
         });
       });
