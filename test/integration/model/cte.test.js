@@ -45,6 +45,38 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
         });
       });
       
+      it('will ignore cteSelect if it is null', function () {
+        var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
+
+        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.create({ username: 'user1' }).then(function (user1) {
+            return User.create({ username: 'user2' }).then(function (user2) {
+              return User.create({ username: 'user3' }).then(function (user3) {
+                return user3.setReport(user1).then(function () {
+                  return User.findAll({
+                    cte: [{
+                      name: 'a',
+                      model: User,
+                      initial: { where: { username: 'user3' } },
+                      recursive: { next: 'report' }
+                    }],
+                    cteSelect: null
+                  }).then(function (selectedUsers) {
+                    expect(selectedUsers).to.have.length(3);
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+                    expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+                    
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+      
       it('can follow a basic \'has one\' association', function () {
         var User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
 
