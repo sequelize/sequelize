@@ -4,6 +4,7 @@
 - [FIXED] Parsing of dates in MySQL, when a named timezone is used [#4208](https://github.com/sequelize/sequelize/issues/4208)
 - [FIXED] Truncating in Postgres, when table has a schema [#4306](https://github.com/sequelize/sequelize/issues/4306)
 - [FIXED] Moved initialization of scopes later in the model init process. Fixes attribute exclusion in scopes, [#4735](https://github.com/sequelize/sequelize/issues/4735) and [#4925](https://github.com/sequelize/sequelize/issues/4925)
+- [FIXED] Multiple custom unique validation messages being overwritten by the first-defined message, [#4920](https://github.com/sequelize/sequelize/issues/4920)
 
 # 3.19.0
 - [ADDED] Geography support for postgres
