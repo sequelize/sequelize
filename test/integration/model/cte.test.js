@@ -572,12 +572,12 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
               }
             }],
             cteSelect: 'a'
-          })
+          });
         }).then(function (selectedUsers) {
 
           expect(selectedUsers).to.have.length(4);
 
-          expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1')
+          expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
           expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.1');
           expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.3');
           expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1.3.1');
