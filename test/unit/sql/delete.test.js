@@ -12,16 +12,95 @@ var Support   = require(__dirname + '/../support')
 
 suite(Support.getTestDialectTeaser('SQL'), function() {
   suite('delete', function () {
+    var User = current.define('test_user', {}, {
+      timestamps:false,
+      schema: 'public'
+    });
+
+    suite('truncate #4306', function () {
+      var options = {
+        table: User.getTableName(),
+        where: {},
+        truncate: true,
+        cascade: true,
+        limit: 10
+      };
+
+      test(util.inspect(options, {depth: 2}), function () {
+        return expectsql(
+          sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            User
+          ), {
+            postgres:  'TRUNCATE "public"."test_users" CASCADE',
+            mssql:  "TRUNCATE TABLE [public].[test_users]",
+            mysql: 'TRUNCATE `public.test_users`',
+            sqlite: 'DELETE FROM `public.test_users`'
+          }
+        );
+      });
+    });
+
+    suite('delete without limit', function () {
+      var options = {
+        table: User.getTableName(),
+        where: {name: 'foo' },
+        limit: null
+      };
+
+      test(util.inspect(options, {depth: 2}), function () {
+        return expectsql(
+          sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            User
+          ), {
+            default: "DELETE FROM [public.test_users] WHERE `name` = 'foo'",
+            postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
+            mssql:    "DELETE FROM [public].[test_users] WHERE [name] = N'foo'; SELECT @@ROWCOUNT AS AFFECTEDROWS;"
+          }
+        );
+      });
+    });
+
+    suite('delete with limit', function () {
+      var options = {
+        table: User.getTableName(),
+        where: {name: "foo';DROP TABLE mySchema.myTable;"},
+        limit: 10
+      };
+
+      test(util.inspect(options, {depth: 2}), function () {
+        return expectsql(
+          sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            User
+          ), {
+            postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
+            sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
+            mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
+            default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
+          }
+        );
+      });
+    });
 
     suite('delete when the primary key has a different field name', function () {
-
       var User = current.define('test_user', {
         id: {
           type:       Sequelize.INTEGER,
           primaryKey: true,
-          field:      "test_user_id",
+          field:      "test_user_id"
         }
-      }, { freezeTableName: true, timestamps:false });
+      }, {
+        timestamps:false,
+        schema: 'public'
+      });
 
       var options = {
         table: 'test_user',
@@ -43,7 +122,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         );
       });
-
     });
   });
 });
