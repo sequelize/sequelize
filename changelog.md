@@ -2,6 +2,7 @@
 - [FIXED] `updatedAt` and `createdAt` values are now set before validation [#5367](https://github.com/sequelize/sequelize/pull/5367)
 - [FIXED] `describeTable` maintains proper enum casing in mysql [#5321](https://github.com/sequelize/sequelize/pull/5321)
 - [FIXED] Parsing of dates in MySQL, when a named timezone is used [#4208](https://github.com/sequelize/sequelize/issues/4208)
+- [FIXED] Truncating in Postgres, when table has a schema [#4306](https://github.com/sequelize/sequelize/issues/4306)
 
 # 3.19.0
 - [ADDED] Geography support for postgres

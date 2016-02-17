@@ -509,31 +509,6 @@ if (Support.dialectIsMySQL()) {
         }
       ],
 
-      deleteQuery: [
-        {
-          arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo' LIMIT 1"
-        }, {
-          arguments: ['myTable', 1],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1 LIMIT 1'
-        },{
-          arguments: ['myTable', undefined, {truncate: true}],
-          expectation: 'TRUNCATE `myTable`'
-        },{
-          arguments: ['myTable', 1, {limit: 10, truncate: true}],
-          expectation: 'TRUNCATE `myTable`'
-        }, {
-          arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1 LIMIT 10'
-        }, {
-          arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo\\';DROP TABLE myTable;' LIMIT 10"
-        }, {
-          arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }
-      ],
-
       showIndexesQuery: [
         {
           arguments: ['User'],

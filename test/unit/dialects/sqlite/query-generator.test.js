@@ -497,28 +497,6 @@ if (dialect === 'sqlite') {
           expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name` = 'foo'",
           needsSequelize: true
         }
-      ],
-
-      deleteQuery: [
-        {
-          arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }, {
-          arguments: ['myTable', 1],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1'
-        }, {
-          arguments: ['myTable', 1, {truncate: true}],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1'
-        }, {
-          arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1'
-        }, {
-          arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'';DROP TABLE myTable;'"
-        }, {
-          arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }
       ]
     };
 
