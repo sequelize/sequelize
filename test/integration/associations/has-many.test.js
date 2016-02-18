@@ -69,6 +69,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         });
 
         it('should fetch associations for multiple instances with limit and order', function () {
+          if (dialect !== 'oracle') {
           var User = this.sequelize.define('User', {})
             , Task = this.sequelize.define('Task', {
                 title: DataTypes.STRING
@@ -114,6 +115,9 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
               expect(result[users[1].id][1].title).to.equal('b');
             });
           });
+          } else {
+            console.log('Sort in subquery not supported by Oracle.  Skip.');
+          }
         });
 
         it('should fetch multiple layers of associations with limit and order with separate=true', function () {
@@ -222,6 +226,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         });
 
         it('should fetch associations for multiple instances with limit and order and a belongsTo relation', function () {
+          if (dialect !== 'oracle') {
           var User = this.sequelize.define('User', {})
             , Task = this.sequelize.define('Task', {
                 title: DataTypes.STRING,
@@ -278,6 +283,9 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
               expect(result[users[1].id][1].category).to.be.ok;
             });
           });
+          } else {
+            console.log('Sort in subquery not supported by Oracle.  Skip.');
+          }
         });
       });
     }
@@ -867,7 +875,11 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           this.article = article;
           return article.setLabels([label1, label2]);
         }).then(function() {
-          return this.article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]});
+          if (dialect === 'oracle') {
+            return this.article.getLabels({where: ['\"until\" > ?', moment('2014-01-02').toDate()]});
+          } else {
+            return this.article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]});
+          }
         }).then(function(labels) {
           expect(labels).to.be.instanceof(Array);
           expect(labels).to.have.length(1);
@@ -885,7 +897,11 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
       it('only get objects that fulfill the options', function() {
         return this.User.find({ where: { username: 'John' } }).then(function(john) {
-          return john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' });
+          if (dialect === 'oracle') {
+            return john.getTasks({ where: { active: true }, limit: 10, order: '\"id\" DESC' });
+          } else {
+            return john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' });
+          }
         }).then(function(tasks) {
           expect(tasks).to.have.length(1);
         });
@@ -1043,7 +1059,8 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       // NOTE: mssql does not support changing an autoincrement primary key
-      if (dialect !== 'mssql') {
+      // NOTE: oracle does not support cascade update.
+      if (dialect !== 'mssql' && dialect !== 'oracle') {
         it('can cascade updates', function() {
           var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
             , User = this.sequelize.define('User', { username: DataTypes.STRING });
