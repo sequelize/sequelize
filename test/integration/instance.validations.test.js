@@ -156,7 +156,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           return expect(Model.create(records[1])).to.be.rejected;
         }).then(function(err) {
           expect(err).to.be.an.instanceOf(Error);
-          console.log(err.errors);
           expect(err.errors).to.have.length(1);
           expect(err.errors[0].path).to.include('uniqueName1');
           expect(err.errors[0].message).to.equal('custom unique error message 1');
@@ -164,7 +163,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           return expect(Model.create(records[2])).to.be.rejected;
         }).then(function(err) {
           expect(err).to.be.an.instanceOf(Error);
-          console.log(err.errors);
           expect(err.errors).to.have.length(1);
           expect(err.errors[0].path).to.include('uniqueName2');
           expect(err.errors[0].message).to.equal('custom unique error message 2');
