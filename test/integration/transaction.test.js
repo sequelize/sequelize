@@ -21,7 +21,6 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     this.sinon.restore();
   });
 
-  this.timeout(5000);
   describe('constructor', function() {
     it('stores options', function() {
       var transaction = new Transaction(this.sequelize);
@@ -67,7 +66,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       var t;
       return (expect(this.sequelize.transaction(function(transaction) {
         t = transaction;
-        return Promise.reject('Swag');
+        return Promise.reject(new Error('Swag'));
       })).to.eventually.be.rejected).then(function() {
         expect(t.finished).to.be.equal('rollback');
       });
@@ -90,14 +89,14 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
                 field: 'value'
               }
             })
+          , self = this
           , transTest = function (val) {
               return self.sequelize.transaction({isolationLevel: 'SERIALIZABLE'}, function(t) {
                 return SumSumSum.sum('value', {transaction: t}).then(function (balance) {
                   return SumSumSum.create({value: -val}, {transaction: t});
                 });
               });
-            }
-          , self = this;
+            };
         // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
         return SumSumSum.sync({force: true}).then(function () {
           return (expect(Promise.join(transTest(80), transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions'));
@@ -129,6 +128,20 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     ).to.eventually.be.rejected;
   });
 
+  it('does not allow queries immediatly after commit call', function() {
+    var self = this;
+    return expect(
+      this.sequelize.transaction().then(function(t) {
+        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
+          return Promise.join(
+            expect(t.commit()).to.eventually.be.fulfilled,
+            expect(self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})).to.eventually.be.rejectedWith(/commit has been called on this transaction\([^)]+\), you can no longer use it/)
+          );
+        });
+      })
+    ).to.be.eventually.fulfilled;
+  });
+
   it('does not allow queries after rollback', function() {
     var self = this;
     return expect(
@@ -142,13 +155,27 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     ).to.eventually.be.rejected;
   });
 
+  it('does not allow queries immediatly after rollback call', function() {
+    var self = this;
+    return expect(
+      this.sequelize.transaction().then(function(t) {
+        return Promise.join(
+          expect(t.rollback()).to.eventually.be.fulfilled,
+          expect(self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})).to.eventually.be.rejectedWith(/rollback has been called on this transaction\([^)]+\), you can no longer use it/)
+        );
+      })
+    ).to.eventually.be.fulfilled;
+  });
+
   it('does not allow commits after commit', function () {
     var self = this;
-    return expect(self.sequelize.transaction().then(function (t) {
-      return t.commit().then(function () {
-        return t.commit();
-      });
-    })).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: commit');
+    return expect(
+      self.sequelize.transaction().then(function (t) {
+        return t.commit().then(function () {
+          return t.commit();
+        });
+      })
+    ).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: commit');
   });
 
   it('does not allow commits after rollback', function () {
@@ -239,7 +266,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       });
     });
   }
-  
+
   if (current.dialect.supports.transactionOptions.type) {
     describe('transaction types', function() {
       it('should support default transaction type DEFERRED', function() {
@@ -250,7 +277,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
           });
         });
       });
-      
+
       Object.keys(Transaction.TYPES).forEach(function(key) {
         it('should allow specification of ' + key + ' type', function() {
           return this.sequelize.transaction({
@@ -262,8 +289,51 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
           });
         });
       });
-      
+
     });
+
+  }
+
+  if (dialect === 'sqlite') {
+    it('automatically retries on SQLITE_BUSY failure', function () {
+      return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+        var User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        return User.sync({ force: true }).then(function() {
+          var newTransactionFunc = function() {
+            return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE}).then(function(t){
+              return User.create({}, {transaction:t}).then(function( ) {
+                return t.commit();
+              });
+            });
+          };
+          return Promise.join(newTransactionFunc(), newTransactionFunc()).then(function(results) {
+            return User.findAll().then(function(users) {
+              expect(users.length).to.equal(2);
+            });
+          });
+        });
+      });
+    });
+
+    it('fails with SQLITE_BUSY when retry.match is changed', function () {
+      return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+        var User = sequelize.define('User', { id: {type: Support.Sequelize.INTEGER, primaryKey: true}, username: Support.Sequelize.STRING });
+        return User.sync({ force: true }).then(function() {
+          var newTransactionFunc = function() {
+            return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: {match: ['NO_MATCH']}}).then(function(t){
+              // introduce delay to force the busy state race condition to fail
+              return Promise.delay(1000).then(function () {
+                return User.create({id: null, username: 'test ' + t.id}, {transaction:t}).then(function() {
+                  return t.commit();
+                });
+              });
+            });
+          };
+          return expect(Promise.join(newTransactionFunc(), newTransactionFunc())).to.be.rejectedWith('SQLITE_BUSY: database is locked');
+        });
+      });
+    });
+
   }
 
    if (current.dialect.supports.lock) {

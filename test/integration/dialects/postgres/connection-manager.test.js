@@ -10,8 +10,8 @@ var chai = require('chai')
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Sequelize', function() {
-    it('should correctly parse the moment based timezone', function() {
-      var options = _.extend(this.sequelize.options, { timezone: 'Asia/Kolkata', timestamps: true });
+    function checkTimezoneParsing(baseOptions) {
+      var options = _.extend({}, baseOptions, { timezone: 'Asia/Kolkata', timestamps: true });
       var sequelize = Support.createSequelizeInstance(options);
 
       var tzTable = sequelize.define('tz_table', { foo: DataTypes.STRING });
@@ -20,6 +20,17 @@ if (dialect.match(/^postgres/)) {
           expect(row).to.be.not.null;
         });
       });
+    }
+
+    it('should correctly parse the moment based timezone', function() {
+      return checkTimezoneParsing(this.sequelize.options);
+    });
+
+    it('should correctly parse the moment based timezone while fetching hstore oids', function() {
+      // reset oids so we need to refetch them
+      DataTypes.HSTORE.types.postgres.oids = [];
+      DataTypes.HSTORE.types.postgres.array_oids = [];
+      return checkTimezoneParsing(this.sequelize.options);
     });
   });
 }

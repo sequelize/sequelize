@@ -49,8 +49,8 @@ before_script:
     fi
 
 script:
-  - "make test"
-  
+  - "npm test"
+
 matrix:
   fast_finish: true
   include:

@@ -1,8 +1,8 @@
 <a name="associations"></a>
 # Mixin Associations
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L89)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L89)
 
-Creating assocations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
+Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
 
 * hasOne - adds a foreign key to the target and singular association mixins to the source.
 * belongsTo - add a foreign key and singular association mixins to the source.
@@ -48,7 +48,7 @@ User.hasMany(Picture, {
 })
 ```
 
-This specifies that the `uid` column can not be null. In most cases this will already be covered by the foreign key costraints, which sequelize creates automatically, but can be useful in case where the foreign keys are disabled, e.g. due to circular references (see `constraints: false` below).
+This specifies that the `uid` column cannot be null. In most cases this will already be covered by the foreign key constraints, which sequelize creates automatically, but can be useful in case where the foreign keys are disabled, e.g. due to circular references (see `constraints: false` below).
 
 When fetching associated models, you can limit your query to only load some models. These queries are written in the same way as queries to `find`/`findAll`. To only get pictures in JPG, you can do:
 
@@ -60,7 +60,7 @@ user.getPictures({
 })
 ```
 
-There are several ways to update and add new assoications. Continuing with our example of users and pictures:
+There are several ways to update and add new associations. Continuing with our example of users and pictures:
 ```js
 user.addPicture(p) // Add a single picture
 user.setPictures([p1, p2]) // Associate user with ONLY these two picture, all other associations will be deleted
@@ -81,7 +81,7 @@ Note how we also specified `constraints: false` for profile picture. This is bec
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L131)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L131)
 
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
@@ -94,8 +94,8 @@ Example: `User.hasOne(Profile)`. This will add userId to the profile table.
 | target | Model |  |
 | [options] | object |  |
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
-| [options.as] | string | The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the singularized name of target |
-| [options.foreignKey] | string &#124; object | The name of the foreign key in the target table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
+| [options.as] | string | The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the singularized name of target |
+| [options.foreignKey] | string &#124; object | The name of the foreign key in the target table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source |
 | [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | SET NULL if foreignKey allows nulls, CASCADE if otherwise |
 | [options.onUpdate='CASCADE'] | string |  |
 | [options.constraints=true] | boolean | Should on update and on delete constraints be enabled on the foreign key. |
@@ -105,7 +105,7 @@ Example: `User.hasOne(Profile)`. This will add userId to the profile table.
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L149)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L149)
 
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
@@ -118,7 +118,7 @@ Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
 | target | Model |  |
 | [options] | object |  |
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
-| [options.as] | string | The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting assocated models. Defaults to the singularized name of target |
+| [options.as] | string | The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the singularized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the source table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of target + primary key of target |
 | [options.targetKey] | string | The name of the field to use as the key for the association in the target table. Defaults to the primary key of the target table |
 | [options.onDelete='SET&nbsp;NULL &#124; NO&nbsp;ACTION'] | string | SET NULL if foreignKey allows nulls, NO ACTION if otherwise |
@@ -130,7 +130,7 @@ Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L166)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L166)
 
 Creates a 1:m association between this (the source) and the provided target. The foreign key is added on the target.
 
@@ -143,7 +143,7 @@ Example: `User.hasMany(Profile)`. This will add userId to the profile table.
 | target | Model |  |
 | [options] | object |  |
 | [options.hooks=false] | boolean | Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks |
-| [options.as] | string &#124; object | The alias of this model. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the pluralized name of target |
+| [options.as] | string &#124; object | The alias of this model. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the pluralized name of target |
 | [options.foreignKey] | string &#124; object | The name of the foreign key in the target table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
 | [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | SET NULL if foreignKey allows nulls, CASCADE if otherwise |
@@ -155,7 +155,7 @@ Example: `User.hasMany(Profile)`. This will add userId to the profile table.
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/mixin.js#L245)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L245)
 
 Create an N:M association with a join table.
 
@@ -187,7 +187,7 @@ p1.UserProjects = {
 user.setProjects([p1, p2], {started: false}) // The default value is false, but p1 overrides that.
 ```
 
-Similarily, when fetching through a join table with custom attributes, these attributes will be available as an object with the name of the through model.
+Similarly, when fetching through a join table with custom attributes, these attributes will be available as an object with the name of the through model.
 ```js
 user.getProjects().then(function (projects) {
   var p1 = projects[0]
@@ -206,9 +206,9 @@ user.getProjects().then(function (projects) {
 | [options.through.model] | Model | The model used to join both sides of the N:M association. |
 | [options.through.scope] | object | A key/value set that will be used for association create and find defaults on the through model. (Remember to add the attributes to the through model) |
 | [options.through.unique=true] | boolean | If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes) |
-| [options.as] | string &#124; object | The alias of this association. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the assocition, you should provide the same alias when eager loading and when getting assocated models. Defaults to the pluralized name of target |
-| [options.foreignKey] | string &#124; object | The name of the foreign key in the join table (representing the source model) or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of source + primary key of source |
-| [options.otherKey] | string &#124; object | The name of the foreign key in the join table (representing the target model) or an object representing the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of target |
+| [options.as] | string &#124; object | The alias of this association. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the pluralized name of target |
+| [options.foreignKey] | string &#124; object | The name of the foreign key in the join table (representing the source model) or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source |
+| [options.otherKey] | string &#124; object | The name of the foreign key in the join table (representing the target model) or an object representing the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of target + primary key of target |
 | [options.scope] | object | A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M) |
 | [options.timestamps=sequelize.options.timestamps] | boolean | Should the join model have timestamps |
 | [options.onDelete='SET&nbsp;NULL &#124; CASCADE'] | string | Cascade if this is a n:m, and set null if it is a 1:m |

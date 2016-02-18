@@ -20,8 +20,20 @@ if (current.dialect.supports.JSON) {
         });
 
         test('plain int', function () {
+          expectsql(sql.escape(0, { type: new DataTypes.JSON() }), {
+            default: '\'0\''
+          });
           expectsql(sql.escape(123, { type: new DataTypes.JSON() }), {
             default: '\'123\''
+          });
+        });
+
+        test('boolean', function () {
+          expectsql(sql.escape(true, { type: new DataTypes.JSON() }), {
+            default: '\'true\''
+          });
+          expectsql(sql.escape(false, { type: new DataTypes.JSON() }), {
+            default: '\'false\''
           });
         });
 

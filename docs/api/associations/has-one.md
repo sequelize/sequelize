@@ -1,17 +1,17 @@
 <a name="hasone"></a>
 # Mixin HasOne
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/has-one.js#L17)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L17)
 
 One-to-one association
 
-In the API reference below, replace `Assocation` with the actual name of your association, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
+In the API reference below, replace `Association` with the actual name of your association, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
 This is almost the same as `belongsTo` with one exception. The foreign key will be defined on the target model.
 
 ***
 
 <a name="getassociation"></a>
 ## `getAssociation([options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/has-one.js#L77)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L78)
 
 Get the associated instance.
 
@@ -28,7 +28,7 @@ Get the associated instance.
 
 <a name="setassociation"></a>
 ## `setAssociation([newAssociation], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/has-one.js#L86)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L87)
 
 Set the associated model.
 
@@ -37,14 +37,14 @@ Set the associated model.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [newAssociation] | Instance &#124; String &#124; Number | An instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association. |
-| [options] | Object | Options passed to getAssocation and `target.save` |
+| [options] | Object | Options passed to getAssociation and `target.save` |
 
 
 ***
 
 <a name="createassociation"></a>
 ## `createAssociation([values], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/0de404640d4c71e2d1f1259356650dfb586a248b/lib/associations/has-one.js#L95)
+[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L96)
 
 Create a new instance of the associated model and associate it with this.
 

@@ -1786,7 +1786,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-          result = _.pluck(result, 'tableName');
+          result = _.map(result, 'tableName');
         }
 
         expect(result.indexOf('group_user')).not.to.equal(-1);
@@ -1806,7 +1806,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-          result = _.pluck(result, 'tableName');
+          result = _.map(result, 'tableName');
         }
 
         expect(result.indexOf('user_groups')).not.to.equal(-1);
@@ -2065,7 +2065,75 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
   });
 
-  describe('selfAssociations', function () {
+  describe('selfAssociations', function() {
+    it('should work with self reference', function() {
+      var User = this.sequelize.define('User', {
+        name : Sequelize.STRING(100)
+      })
+      , Follow = this.sequelize.define('Follow')
+      , self = this;
+
+      User.belongsToMany(User, { through: Follow, as: 'User' });
+      User.belongsToMany(User, { through: Follow, as: 'Fan' });
+
+      return this.sequelize.sync({ force: true })
+      .then(function() {
+        return self.sequelize.Promise.all([
+          User.create({ name: 'Khsama' }),
+          User.create({ name: 'Vivek' }),
+          User.create({ name: 'Satya' })
+        ]);
+      })
+      .then(function(users) {
+        return self.sequelize.Promise.all([
+          users[0].addFan(users[1]),
+          users[1].addUser(users[2]),
+          users[2].addFan(users[0])
+        ]);
+      });
+    });
+
+    it('should work with custom self reference', function() {
+      var User = this.sequelize.define('User', {
+        name : Sequelize.STRING(100)
+      })
+      , UserFollowers = this.sequelize.define('UserFollower')
+      , self = this;
+
+      User.belongsToMany(User, {
+        as: {
+          singular: 'Follower',
+          plural: 'Followers'
+        },
+        through: UserFollowers
+      });
+
+      User.belongsToMany(User, {
+        as: {
+          singular: 'Invitee',
+          plural: 'Invitees'
+        },
+        foreignKey: 'InviteeId',
+        through: 'Invites'
+      });
+
+      return this.sequelize.sync({ force: true })
+      .then(function() {
+        return self.sequelize.Promise.all([
+          User.create({ name: 'Jalrangi' }),
+          User.create({ name: 'Sargrahi' })
+        ]);
+      })
+      .then(function(users) {
+        return self.sequelize.Promise.all([
+          users[0].addFollower(users[1]),
+          users[1].addFollower(users[0]),
+          users[0].addInvitee(users[1]),
+          users[1].addInvitee(users[0])
+        ]);
+      });
+    });
+
     it('should setup correct foreign keys', function () {
       /* camcelCase */
       var Person = this.sequelize.define('Person')

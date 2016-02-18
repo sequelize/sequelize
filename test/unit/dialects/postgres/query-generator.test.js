@@ -13,17 +13,6 @@ var chai = require('chai')
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
-    beforeEach(function() {
-      this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
-        email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
-        numbers: { type: DataTypes.ARRAY(DataTypes.FLOAT) },
-        document: { type: DataTypes.HSTORE, defaultValue: { default: '"value"' } }
-      });
-
-      return this.User.sync({ force: true });
-    });
-
     var suites = {
       attributesToSQL: [
         {
@@ -833,71 +822,6 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
           expectation: "UPDATE mySchema.myTable SET name='foo'';DROP TABLE mySchema.myTable;' WHERE name = 'foo'",
-          context: {options: {quoteIdentifiers: false}}
-        }
-      ],
-
-      deleteQuery: [
-        {
-          arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\" = 'foo' LIMIT 1)"
-        }, {
-          arguments: ['myTable', 1],
-          expectation: 'DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"id\" = 1 LIMIT 1)'
-        }, {
-          arguments: ['myTable', undefined, {truncate: true}],
-          expectation: 'TRUNCATE \"myTable\"'
-        }, {
-          arguments: ['myTable', undefined, {truncate: true, cascade: true}],
-          expectation: 'TRUNCATE \"myTable\" CASCADE'
-        }, {
-          arguments: ['myTable', 1, {limit: 10, truncate: true}],
-          expectation: 'TRUNCATE \"myTable\"'
-        }, {
-          arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"id\" = 1 LIMIT 10)'
-        }, {
-          arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM \"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"myTable\" WHERE \"name\" = 'foo'';DROP TABLE myTable;' LIMIT 10)"
-        }, {
-          arguments: ['mySchema.myTable', {name: 'foo'}],
-          expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\" = 'foo' LIMIT 1)"
-        }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM \"mySchema\".\"myTable\" WHERE \"id\" IN (SELECT \"id\" FROM \"mySchema\".\"myTable\" WHERE \"name\" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)"
-        }, {
-          arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM \"myTable\" WHERE \"name\" = 'foo'"
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM myTable WHERE id IN (SELECT id FROM myTable WHERE name = 'foo' LIMIT 1)",
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['myTable', 1],
-          expectation: 'DELETE FROM myTable WHERE id IN (SELECT id FROM myTable WHERE id = 1 LIMIT 1)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM myTable WHERE id IN (SELECT id FROM myTable WHERE id = 1 LIMIT 10)',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM myTable WHERE id IN (SELECT id FROM myTable WHERE name = 'foo'';DROP TABLE myTable;' LIMIT 10)",
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['mySchema.myTable', {name: 'foo'}],
-          expectation: "DELETE FROM mySchema.myTable WHERE id IN (SELECT id FROM mySchema.myTable WHERE name = 'foo' LIMIT 1)",
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['mySchema.myTable', {name: "foo';DROP TABLE mySchema.myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM mySchema.myTable WHERE id IN (SELECT id FROM mySchema.myTable WHERE name = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM myTable WHERE name = 'foo'",
           context: {options: {quoteIdentifiers: false}}
         }
       ],
