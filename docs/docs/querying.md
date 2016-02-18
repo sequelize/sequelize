@@ -418,4 +418,4 @@ For a shortcut if you have defined one cte it will automatically be used as the 
 
 ### CTE support by dialect
 
-Currently MySQL and MariaDB have no support for CTEs. If `cte` is used with either dialect it will be ignored. 
+Currently MySQL and MariaDB have no support for CTEs. If `cte` is used with either dialect it will be ignored. Postgres does not support the use of `order`, `limit`, or `offset` in recursive queries. MSSQL CTE syntax is different enough that it is not currently supported.
