@@ -1,3 +1,7 @@
+# NEXT
+
+ - [FIXED] dates being returned as `null` when using the `SYSTEM` timezone in MySQL [#5457](https://github.com/sequelize/sequelize/pull/5457)
+
 # 3.19.3
 - [FIXED] `updatedAt` and `createdAt` values are now set before validation [#5367](https://github.com/sequelize/sequelize/pull/5367)
 - [FIXED] `describeTable` maintains proper enum casing in mysql [#5321](https://github.com/sequelize/sequelize/pull/5321)
