@@ -72,6 +72,24 @@ if (dialect !== 'sqlite') {
           expect(normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 4 * 1000 * -1, 60 * 60 * 1000);
         });
       });
+
+      it('handles SYSTEM timezone', function() {
+        var sequelizeWithSystemTimezone = Support.createSequelizeInstance({
+          timezone: 'SYSTEM'
+        });
+
+        var NormalUser = this.sequelize.define('user', {})
+          , TimezonedUser = sequelizeWithSystemTimezone.define('user', {});
+
+        return this.sequelize.sync({ force: true }).bind(this).then(function() {
+          return TimezonedUser.create({});
+        }).then(function(timezonedUser) {
+          return TimezonedUser.findById(timezonedUser.id);
+        }).then(function(timezonedUser) {
+          expect(timezonedUser.createdAt).not.to.be.null;
+          expect(timezonedUser.createdAt).to.be.a('string');
+        });
+      });
     }
   });
 }
