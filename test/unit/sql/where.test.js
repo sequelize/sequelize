@@ -248,6 +248,16 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
         });
+
+        testsql('$or', [], {
+          default: "0 = 1"
+        });
+
+        test("sequelize.or()", function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or()), {
+            default: "0 = 1"
+          });
+        });
       });
 
       suite('$and', function () {
