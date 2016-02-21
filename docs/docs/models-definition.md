@@ -85,6 +85,7 @@ Sequelize.STRING                      // VARCHAR(255)
 Sequelize.STRING(1234)                // VARCHAR(1234)
 Sequelize.STRING.BINARY               // VARCHAR BINARY
 Sequelize.TEXT                        // TEXT
+Sequelize.TEXT('tiny')                // TINYTEXT
 
 Sequelize.INTEGER                     // INTEGER
 Sequelize.BIGINT                      // BIGINT
