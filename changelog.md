@@ -1,5 +1,6 @@
 # Future
 - [ADDED] `beforeCount` hook [#5209](https://github.com/sequelize/sequelize/pull/5209)
+- [ADDED] `validationFailed` hook [#1626](https://github.com/sequelize/sequelize/issues/1626)
 
 # 3.19.3
 - [FIXED] `updatedAt` and `createdAt` values are now set before validation [#5367](https://github.com/sequelize/sequelize/pull/5367)
