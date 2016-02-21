@@ -1,6 +1,6 @@
 <a name="belongsto"></a>
 # Mixin BelongsTo
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to.js#L17)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to.js#L17)
 
 One-to-one association
 
@@ -10,7 +10,7 @@ In the API reference below, replace `Assocation` with the actual name of your as
 
 <a name="getassociation"></a>
 ## `getAssociation([options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to.js#L83)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to.js#L83)
 
 Get the associated instance.
 
@@ -27,7 +27,7 @@ Get the associated instance.
 
 <a name="setassociation"></a>
 ## `setAssociation([newAssociation], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to.js#L93)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to.js#L93)
 
 Set the associated model.
 
@@ -44,7 +44,7 @@ Set the associated model.
 
 <a name="createassociation"></a>
 ## `createAssociation([values], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to.js#L102)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to.js#L102)
 
 Create a new instance of the associated model and associate it with this.
 

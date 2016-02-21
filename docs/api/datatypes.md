@@ -1,6 +1,6 @@
 <a name="datatypes"></a>
 # Class DataTypes
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L57)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L57)
 
 A convenience class holding commonly used data types. The datatypes are used when defining a new model using `Sequelize.define`, like this:
 ```js
@@ -47,7 +47,7 @@ sequelize.define('model', {
 
 <a name="string"></a>
 ## `STRING()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L109)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L109)
 
 A variable length string. Default length 255
 
@@ -57,7 +57,7 @@ Available properties: `BINARY`
 
 <a name="char"></a>
 ## `CHAR()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L151)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L151)
 
 A fixed length string. Default length 255
 
@@ -67,7 +67,7 @@ Available properties: `BINARY`
 
 <a name="text"></a>
 ## `TEXT()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L170)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L170)
 
 An (un)limited length text column. Available lengths: `tiny`, `medium`, `long`
 
@@ -75,7 +75,7 @@ An (un)limited length text column. Available lengths: `tiny`, `medium`, `long`
 
 <a name="integer"></a>
 ## `INTEGER()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L258)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L258)
 
 A 32 bit integer.
 
@@ -85,7 +85,7 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 <a name="bigint"></a>
 ## `BIGINT()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L283)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L283)
 
 A 64 bit integer.
 
@@ -95,7 +95,7 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 <a name="float"></a>
 ## `FLOAT()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L307)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L307)
 
 Floating point number (4-byte precision). Accepts one or two arguments for precision
 
@@ -105,7 +105,7 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 <a name="real"></a>
 ## `REAL()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L332)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L332)
 
 Floating point number (4-byte precision). Accepts one or two arguments for precision
 
@@ -115,7 +115,7 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 <a name="double"></a>
 ## `DOUBLE()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L350)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L350)
 
 Floating point number (8-byte precision). Accepts one or two arguments for precision
 
@@ -125,7 +125,7 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 <a name="decimal"></a>
 ## `DECIMAL()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L368)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L368)
 
 Decimal number. Accepts one or two arguments for precision
 
@@ -135,7 +135,7 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 <a name="boolean"></a>
 ## `BOOLEAN()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L397)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L397)
 
 A boolean / tinyint column, depending on dialect
 
@@ -143,7 +143,7 @@ A boolean / tinyint column, depending on dialect
 
 <a name="time"></a>
 ## `TIME()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L416)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L416)
 
 A time column
 
@@ -151,7 +151,7 @@ A time column
 
 <a name="date"></a>
 ## `DATE()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L427)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L427)
 
 A datetime column
 
@@ -159,7 +159,7 @@ A datetime column
 
 <a name="dateonly"></a>
 ## `DATEONLY()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L476)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L476)
 
 A date only column
 
@@ -167,7 +167,7 @@ A date only column
 
 <a name="hstore"></a>
 ## `HSTORE()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L492)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L492)
 
 A key / value column. Only available in postgres.
 
@@ -175,7 +175,7 @@ A key / value column. Only available in postgres.
 
 <a name="json"></a>
 ## `JSON()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L507)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L507)
 
 A JSON string column. Only available in postgres.
 
@@ -183,7 +183,7 @@ A JSON string column. Only available in postgres.
 
 <a name="jsonb"></a>
 ## `JSONB()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L526)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L526)
 
 A pre-processed JSON data column. Only available in postgres.
 
@@ -191,7 +191,7 @@ A pre-processed JSON data column. Only available in postgres.
 
 <a name="now"></a>
 ## `NOW()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L538)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L538)
 
 A default value of the current timestamp
 
@@ -199,7 +199,7 @@ A default value of the current timestamp
 
 <a name="blob"></a>
 ## `BLOB()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L548)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L548)
 
 Binary storage. Available lengths: `tiny`, `medium`, `long`
 
@@ -207,7 +207,7 @@ Binary storage. Available lengths: `tiny`, `medium`, `long`
 
 <a name="range"></a>
 ## `RANGE()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L603)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L603)
 
 Range types are data types representing a range of values of some element type (called the range's subtype).
 Only available in postgres.
@@ -217,7 +217,7 @@ See {@link http://www.postgresql.org/docs/9.4/static/rangetypes.html|Postgres do
 
 <a name="uuid"></a>
 ## `UUID()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L653)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L653)
 
 A column storing a unique universal identifier. Use with `UUIDV1` or `UUIDV4` for default values.
 
@@ -225,7 +225,7 @@ A column storing a unique universal identifier. Use with `UUIDV1` or `UUIDV4` fo
 
 <a name="uuidv1"></a>
 ## `UUIDV1()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L669)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L669)
 
 A default unique universal identifier generated following the UUID v1 standard
 
@@ -233,7 +233,7 @@ A default unique universal identifier generated following the UUID v1 standard
 
 <a name="uuidv4"></a>
 ## `UUIDV4()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L689)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L689)
 
 A default unique universal identifier generated following the UUID v4 standard
 
@@ -241,7 +241,7 @@ A default unique universal identifier generated following the UUID v4 standard
 
 <a name="virtual"></a>
 ## `VIRTUAL()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L746)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L746)
 
 A virtual value that is not stored in the DB. This could for example be useful if you want to provide a default value in your model that is returned to the user but not stored in the DB.
 
@@ -287,7 +287,7 @@ __Aliases:__ NONE
 
 <a name="enum"></a>
 ## `ENUM()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L762)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L762)
 
 An enumeration. `DataTypes.ENUM('value', 'another value')`.
 
@@ -295,7 +295,7 @@ An enumeration. `DataTypes.ENUM('value', 'another value')`.
 
 <a name="array"></a>
 ## `ARRAY()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L786)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L786)
 
 An array of `type`, e.g. `DataTypes.ARRAY(DataTypes.DECIMAL)`. Only available in postgres.
 
@@ -303,15 +303,60 @@ An array of `type`, e.g. `DataTypes.ARRAY(DataTypes.DECIMAL)`. Only available in
 
 <a name="geometry"></a>
 ## `GEOMETRY()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L823)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L869)
 
-A geometry datatype represents two dimensional spacial objects.
+A column storing Geometry information.  
+
+Only available in PostgreSQL (with PostGIS) or MySQL.  
+In MySQL, allowable Geometry types are 'POINT', 'LINESTRING', 'POLYGON'.
+
+When using, GeoJSON is accepted as input and returned as output.  
+In PostGIS, the GeoJSON is parsed using the PostGIS function `ST_GeomFromGeoJSON`.  
+In MySQL it is parsed using the function `GeomFromText`.  
+Therefore, one can just follow the [GeoJSON spec](http://geojson.org/geojson-spec.html) for handling geometry objects.  See the following examples:
+
+```js
+// Create a new point:
+var point = { type: 'Point', coordinates: [39.807222,-76.984722]};
+
+User.create({username: 'username', geometry: point }).then(function(newUser) {
+...
+});
+
+// Create a new linestring:
+var line = { type: 'LineString', 'coordinates': [ [100.0, 0.0], [101.0, 1.0] ] };
+
+User.create({username: 'username', geometry: line }).then(function(newUser) {
+...
+});
+
+// Create a new polygon:
+var polygon = { type: 'Polygon', coordinates: [
+                [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+                  [100.0, 1.0], [100.0, 0.0] ] 
+                ]};
+
+User.create({username: 'username', geometry: polygon }).then(function(newUser) {
+...
+});
+
+// Create a new point with a custom SRID:
+var point = { 
+  type: 'Point', 
+  coordinates: [39.807222,-76.984722],
+  crs: { type: 'name', properties: { name: 'EPSG:4326'} }
+};
+
+User.create({username: 'username', geometry: point }).then(function(newUser) {
+...
+});
+```
 
 ***
 
 <a name="geography"></a>
 ## `GEOGRAPHY()`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/data-types.js#L848)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L894)
 
 A geography datatype represents two dimensional spacial objects in an elliptic coord system.
 
