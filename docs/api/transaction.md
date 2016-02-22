@@ -1,6 +1,6 @@
 <a name="transaction"></a>
 # Class Transaction
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L20)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/transaction.js#L20)
 
 The transaction object is used to identify a running transaction. It is created by calling `Sequelize.transaction()`.
 
@@ -22,7 +22,7 @@ To run a query under a transaction, you should pass the transaction in the optio
 
 <a name="types"></a>
 ## `TYPES`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L76)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/transaction.js#L76)
 
 Types can be set per-transaction by passing `options.type` to `sequelize.transaction`.
 Default to `DEFERRED` but you can override the default type by passing `options.transactionType` in `new Sequelize`.
@@ -58,7 +58,7 @@ return sequelize.transaction({
 
 <a name="isolation_levels"></a>
 ## `ISOLATION_LEVELS`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L116)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/transaction.js#L116)
 
 Isolations levels can be set per-transaction by passing `options.isolationLevel` to `sequelize.transaction`.
 Default to `REPEATABLE_READ` but you can override the default isolation level by passing `options.isolationLevel` in `new Sequelize`.
@@ -94,7 +94,7 @@ return sequelize.transaction({
 
 <a name="lock"></a>
 ## `LOCK`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L160)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/transaction.js#L160)
 
 Possible options for row locking. Used in conjunction with `find` calls:
 
@@ -134,7 +134,7 @@ UserModel will be locked but TaskModel won't!
 
 <a name="commit"></a>
 ## `commit()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L172)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/transaction.js#L172)
 
 Commit the transaction
 
@@ -142,7 +142,7 @@ Commit the transaction
 
 <a name="rollback"></a>
 ## `rollback()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/transaction.js#L200)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/transaction.js#L200)
 
 Rollback (abort) the transaction
 

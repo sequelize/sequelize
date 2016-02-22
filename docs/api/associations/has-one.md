@@ -1,6 +1,6 @@
 <a name="hasone"></a>
 # Mixin HasOne
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L17)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/has-one.js#L17)
 
 One-to-one association
 
@@ -11,7 +11,7 @@ This is almost the same as `belongsTo` with one exception. The foreign key will 
 
 <a name="getassociation"></a>
 ## `getAssociation([options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L78)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/has-one.js#L78)
 
 Get the associated instance.
 
@@ -28,7 +28,7 @@ Get the associated instance.
 
 <a name="setassociation"></a>
 ## `setAssociation([newAssociation], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L87)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/has-one.js#L87)
 
 Set the associated model.
 
@@ -44,7 +44,7 @@ Set the associated model.
 
 <a name="createassociation"></a>
 ## `createAssociation([values], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/has-one.js#L96)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/has-one.js#L96)
 
 Create a new instance of the associated model and associate it with this.
 

@@ -304,4 +304,30 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
       });
    }
  });
+
+  if (dialect === 'postgres' || dialect === 'sqlite') {
+    // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
+    it('should store and parse IEEE floating point literals (NaN and Infinity', function () {
+      var Model = this.sequelize.define('model', {
+        float: Sequelize.FLOAT,
+        double: Sequelize.DOUBLE,
+        real: Sequelize.REAL
+      });
+
+      return Model.sync({ force: true }).then(function () {
+        return Model.create({
+          id: 1,
+          float: NaN,
+          double: Infinity,
+          real: -Infinity
+        });
+      }).then(function () {
+        return Model.find({id: 1});
+      }).then(function (user) {
+        expect(user.get('float')).to.be.NaN;
+        expect(user.get('double')).to.eq(Infinity);
+        expect(user.get('real')).to.eq(-Infinity);
+      });
+    });
+  }
 });
