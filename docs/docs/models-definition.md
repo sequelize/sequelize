@@ -107,6 +107,7 @@ Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
 
 Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
+Sequelize.DATEONLY                    // DATE without time.
 Sequelize.BOOLEAN                     // TINYINT(1)
 
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
