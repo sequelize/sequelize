@@ -133,7 +133,7 @@ return sequelize.transaction({
 ```
 
 # Unmanaged transaction (then-callback)
-Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise. Notice that `commit()` and `rollback()` returns a promise.
+Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise.
 
 ```js
 return sequelize.transaction().then(function (t) {
@@ -146,9 +146,9 @@ return sequelize.transaction().then(function (t) {
       lastName: 'Simpson'
     }, {transaction: t});
   }).then(function () {
-    return t.commit();
+    t.commit();
   }).catch(function (err) {
-    return t.rollback();
+    t.rollback();
   });
 });
 ```

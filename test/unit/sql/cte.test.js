@@ -37,7 +37,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId` FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId" FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
 
       });
@@ -60,7 +61,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
           }]
         },
         {
-          default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+          sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId`,`total` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId`, `user`.`amount` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId`, (`a`.`total` + `report`.`amount`) FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+          postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId","total" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId", "user"."amount" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId", ("a"."total" + "report"."amount") FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
         });
       
       });
@@ -84,7 +86,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [user].[id], [user].[amount], [user].[createdAt], [user].[updatedAt], [user].[userId] FROM [users] AS [user] INNER JOIN [projects] AS [assigned] ON [user].[id] = [assigned].[userId] AND [assigned].[name] = \'Rebuilding\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` INNER JOIN `projects` AS `assigned` ON `user`.`id` = `assigned`.`userId` AND `assigned`.`name` = \'Rebuilding\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId` FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId" FROM "users" AS "user" INNER JOIN "projects" AS "assigned" ON "user"."id" = "assigned"."userId" AND "assigned"."name" = \'Rebuilding\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId" FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
 
       });
@@ -105,7 +108,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION ALL SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION ALL SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId` FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION ALL SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId" FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
       });     
       
@@ -128,7 +132,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId] INNER JOIN [projects] AS [assigned] ON [report].[id] = [assigned].[userId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId` FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId` INNER JOIN `projects` AS `assigned` ON `report`.`id` = `assigned`.`userId`  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId" FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId" INNER JOIN "projects" AS "assigned" ON "report"."id" = "assigned"."userId"  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
       });
       
@@ -151,7 +156,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  WHERE [user].[amount] > 30  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId` FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  WHERE `user`.`amount` > 30  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId" FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  WHERE "user"."amount" > 30  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
       });
       
@@ -176,7 +182,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  WHERE [a].[total] < 500  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId`,`total` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId`, `user`.`amount` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId`, (`a`.`total` + `report`.`amount`) FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  WHERE `a`.`total` < 500  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId","total" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId", "user"."amount" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId", ("a"."total" + "report"."amount") FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  WHERE "a"."total" < 500  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
       });
       
@@ -202,7 +209,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  WHERE [user].[amount] > 30 AND [a].[total] < 500  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId`,`total` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId`, `user`.`amount` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId`, (`a`.`total` + `report`.`amount`) FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  WHERE `user`.`amount` > 30 AND `a`.`total` < 500  ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId","total" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId", "user"."amount" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId", ("a"."total" + "report"."amount") FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  WHERE "user"."amount" > 30 AND "a"."total" < 500  ) SELECT "user".* FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
       });
       
@@ -229,7 +237,8 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             includeCTEAttributes: ['total']
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  WHERE [a].[total] < 500  ) SELECT [user].*, [a].[total] FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId`,`total` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId`, `user`.`amount` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId`, (`a`.`total` + `report`.`amount`) FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  WHERE `a`.`total` < 500  ) SELECT `user`.*, `a`.`total` FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;',
+            postgres: 'WITH RECURSIVE a( "id","amount","createdAt","updatedAt","userId","total" ) AS ( SELECT "id", "amount", "createdAt", "updatedAt", "userId", "user"."amount" FROM "users" AS "user" WHERE "user"."username" = \'user3\' UNION SELECT "report"."id", "report"."amount", "report"."createdAt", "report"."updatedAt", "report"."userId", ("a"."total" + "report"."amount") FROM "a" INNER JOIN "users" AS "report" ON "a"."id" = "report"."userId"  WHERE "a"."total" < 500  ) SELECT "user".*, "a"."total" FROM "users" AS "user" INNER JOIN "a" ON "user"."id" = "a"."id";'
           });
       });
       
@@ -251,7 +260,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
               }]
             },
             {
-              default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  ORDER BY 2 ASC ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+              sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId` FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  ORDER BY 2 ASC ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;'
             });
         });
 
@@ -272,7 +281,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
               }]
             },
             {
-              default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[userId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[userId]  LIMIT 2, 2 ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+              sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` WHERE `user`.`username` = \'user3\' UNION SELECT `report`.`id`, `report`.`amount`, `report`.`createdAt`, `report`.`updatedAt`, `report`.`userId` FROM `a` INNER JOIN `users` AS `report` ON `a`.`id` = `report`.`userId`  LIMIT 2, 2 ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;'
             });
         });
       
@@ -290,7 +299,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
               }]
             },
             {
-              default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\'  ORDER BY 2 ASC ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+              sqlite: 'WITH RECURSIVE a( `id`,`amount`,`createdAt`,`updatedAt`,`userId` ) AS ( SELECT `id`, `amount`, `createdAt`, `updatedAt`, `userId` FROM `users` AS `user` WHERE `user`.`username` = \'user3\'  ORDER BY 2 ASC ) SELECT `user`.* FROM `users` AS `user` INNER JOIN `a` ON `user`.`id` = `a`.`id`;'
             });
         });
 
