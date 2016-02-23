@@ -248,6 +248,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
         });
+
+        testsql('$or', [], {
+          default: "0 = 1"
+        });
+
+        testsql('$or', {}, {
+          default: "0 = 1"
+        });
+
+        test("sequelize.or()", function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or()), {
+            default: "0 = 1"
+          });
+        });
       });
 
       suite('$and', function () {
@@ -312,6 +326,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         }, {
           default: 'NOT ([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
+        });
+
+        testsql('$not', [], {
+          default: "0 = 1"
+        });
+
+        testsql('$not', {}, {
+          default: "0 = 1"
         });
       });
     });

@@ -12,7 +12,10 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
-      username: DataTypes.STRING,
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
       mood: {
         type: DataTypes.ENUM,
         values: ['happy', 'sad', 'neutral']
@@ -36,6 +39,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('#create', function() {
       it('should return the user', function() {
         this.User.beforeValidate(function(user, options) {
+          user.username = 'Bob';
           user.mood = 'happy';
         });
 
@@ -57,7 +61,37 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           throw new Error('Whoops! Changed user.mood!');
         });
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejectedWith('Whoops! Changed user.mood!');
+        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejectedWith('Whoops! Changed user.mood!');
+      });
+
+      it('should call validationFailed hook', function() {
+        var validationFailedHook = sinon.spy();
+
+        this.User.validationFailed(validationFailedHook);
+
+        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(function(err) {
+          expect(validationFailedHook).to.have.been.calledOnce;
+        });
+      });
+
+      it('should not replace the validation error in validationFailed hook by default', function() {
+        var validationFailedHook = sinon.stub();
+
+        this.User.validationFailed(validationFailedHook);
+
+        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(function(err) {
+          expect(err.name).to.equal('SequelizeValidationError');
+        });
+      });
+
+      it('should replace the validation error if validationFailed hook creates a new error', function() {
+        var validationFailedHook = sinon.stub().throws(new Error('Whoops!'));
+
+        this.User.validationFailed(validationFailedHook);
+
+        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(function(err) {
+          expect(err.message).to.equal('Whoops!');
+        });
       });
     });
   });
@@ -974,6 +1008,49 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         return this.User.find({where: {username: 'adam'}}).catch (function(err) {
           expect(err.message).to.equal('Oops!');
         });
+      });
+    });
+  });
+
+  describe('#count', function() {
+    beforeEach(function() {
+      return this.User.bulkCreate([
+        {username: 'adam', mood: 'happy'},
+        {username: 'joe', mood: 'sad'},
+        {username: 'joe', mood: 'happy'}
+      ]);
+    });
+
+    describe('on success', function() {
+      it('hook runs', function() {
+        var beforeHook = false;
+
+        this.User.beforeCount(function() {
+          beforeHook = true;
+        });
+
+        return this.User.count().then(function(count) {
+          expect(count).to.equal(3);
+          expect(beforeHook).to.be.true;
+        });
+      });
+
+      it('beforeCount hook can change options', function() {
+        this.User.beforeCount(function(options) {
+          options.where.username = 'adam';
+        });
+
+        return expect(this.User.count({where: {username: 'joe'}})).to.eventually.equal(1);
+      });
+    });
+
+    describe('on error', function() {
+      it('in beforeCount hook returns error', function() {
+        this.User.beforeCount(function() {
+          throw new Error('Oops!');
+        });
+
+        return expect(this.User.count({where: {username: 'adam'}})).to.be.rejectedWith('Oops!');
       });
     });
   });

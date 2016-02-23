@@ -1,6 +1,6 @@
 <a name="belongstomany"></a>
 # Mixin BelongsToMany
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L41)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L41)
 
 Many-to-many association with a join table.
 
@@ -31,7 +31,7 @@ In the API reference below, replace `Assocation(s)` with the actual name of your
 
 <a name="getassociations"></a>
 ## `getAssociations([options])` -> `Promise.<Array.<Instance>>`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L209)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L209)
 
 Get everything currently associated with this, using an optional where clause.
 
@@ -49,7 +49,7 @@ Get everything currently associated with this, using an optional where clause.
 
 <a name="setassociations"></a>
 ## `setAssociations([newAssociations], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L219)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L219)
 
 Set the associated models by passing an array of instances or their primary keys. Everything that it not in the passed array will be un-associated.
 
@@ -66,7 +66,7 @@ Set the associated models by passing an array of instances or their primary keys
 
 <a name="addassociations"></a>
 ## `addAssociations([newAssociations], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L229)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L229)
 
 Associate several instances with this.
 
@@ -83,7 +83,7 @@ Associate several instances with this.
 
 <a name="addassociation"></a>
 ## `addAssociation([newAssociation], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L239)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L239)
 
 Associate one instance with this.
 
@@ -100,7 +100,7 @@ Associate one instance with this.
 
 <a name="createassociation"></a>
 ## `createAssociation([values], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L248)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L248)
 
 Create a new instance of the associated model and associate it with this.
 
@@ -116,7 +116,7 @@ Create a new instance of the associated model and associate it with this.
 
 <a name="removeassociation"></a>
 ## `removeAssociation([oldAssociated], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L257)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L257)
 
 Un-associate the instance.
 
@@ -132,7 +132,7 @@ Un-associate the instance.
 
 <a name="removeassociations"></a>
 ## `removeAssociations([oldAssociated], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L266)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L266)
 
 Un-associate several instances.
 
@@ -148,7 +148,7 @@ Un-associate several instances.
 
 <a name="hasassociation"></a>
 ## `hasAssociation([instance], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L275)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L275)
 
 Check if an instance is associated with this.
 
@@ -164,7 +164,7 @@ Check if an instance is associated with this.
 
 <a name="hasassociations"></a>
 ## `hasAssociations([instances], [options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L284)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L284)
 
 Check if all instances are associated with this.
 
@@ -180,7 +180,7 @@ Check if all instances are associated with this.
 
 <a name="countassociations"></a>
 ## `countAssociations([options])` -> `Promise.<Int>`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/belongs-to-many.js#L294)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/belongs-to-many.js#L294)
 
 Count everything currently associated with this, using an optional where clause.
 
