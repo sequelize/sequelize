@@ -23,5 +23,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(Model.options.indexes[0].fields).to.eql(['data']);
       expect(Model.options.indexes[0].using).to.equal('gin');
     });
+
+    it('should set the unique property when type is unique', function () {
+      var Model = current.define('m', {}, {
+        indexes: [
+          {
+            type: 'unique'
+          },
+          {
+            type: 'UNIQUE'
+          }
+        ]
+      });
+
+      expect(Model.options.indexes[0].unique).to.eql(true);
+      expect(Model.options.indexes[1].unique).to.eql(true);
+    });
   });
 });

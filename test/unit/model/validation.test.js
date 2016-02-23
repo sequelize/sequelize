@@ -46,10 +46,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         pass: 'fe80:0000:0000:0000:0204:61ff:fe9d:f156'
       }
     , isAlpha: {
+        stringOrBoolean: true,
+        spec: { args: 'en-GB' },
         fail: '012',
         pass: 'abc'
       }
     , isAlphanumeric: {
+        stringOrBoolean: true,
+        spec: { args: 'en-GB' },
         fail: '_abc019',
         pass: 'abc019'
       }
@@ -183,12 +187,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           var validations = {}
             , message = validator + '(' + failingValue + ')';
 
-          if (validatorDetails.spec) {
-            validations[validator] = validatorDetails.spec;
-          } else {
-            validations[validator] = {};
-          }
-
+          validations[validator] = validatorDetails.spec || {};
           validations[validator].msg = message;
 
           var UserFail = this.sequelize.define('User' + config.rand(), {
@@ -210,19 +209,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       , applyPassTest = function applyPassTest(validatorDetails, j, validator, type) {
           var succeedingValue = validatorDetails.pass[j];
           it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
-            var validations = {};
+            var validations = {}
+              , message = validator + '(' + succeedingValue + ')';
 
-            if (validatorDetails.spec !== undefined) {
-              validations[validator] = validatorDetails.spec;
-            } else {
-              validations[validator] = {};
-            }
+            validations[validator] = validatorDetails.spec || {};
 
             if (type === 'msg') {
-              validations[validator].msg = validator + '(' + succeedingValue + ')';
+              validations[validator].msg = message;
             } else if (type === 'args') {
               validations[validator].args = validations[validator].args || true;
-              validations[validator].msg = validator + '(' + succeedingValue + ')';
+              validations[validator].msg = message;
             } else if (type === 'true') {
               validations[validator] = true;
             }
@@ -260,7 +256,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
             applyPassTest(validatorDetails, i, validator);
             applyPassTest(validatorDetails, i, validator, 'msg');
             applyPassTest(validatorDetails, i, validator, 'args');
-            if (validatorDetails.spec === undefined) {
+            if (validatorDetails.stringOrBoolean || (validatorDetails.spec === undefined)) {
               applyPassTest(validatorDetails, i, validator, 'true');
             }
           }

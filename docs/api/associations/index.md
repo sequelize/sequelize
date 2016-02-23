@@ -1,6 +1,6 @@
 <a name="associations"></a>
 # Mixin Associations
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L89)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/mixin.js#L89)
 
 Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
 
@@ -81,7 +81,7 @@ Note how we also specified `constraints: false` for profile picture. This is bec
 
 <a name="hasone"></a>
 ## `hasOne(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L131)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/mixin.js#L131)
 
 Creates an association between this (the source) and the provided target. The foreign key is added on the target.
 
@@ -105,7 +105,7 @@ Example: `User.hasOne(Profile)`. This will add userId to the profile table.
 
 <a name="belongsto"></a>
 ## `belongsTo(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L149)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/mixin.js#L149)
 
 Creates an association between this (the source) and the provided target. The foreign key is added on the source.
 
@@ -130,7 +130,7 @@ Example: `Profile.belongsTo(User)`. This will add userId to the profile table.
 
 <a name="hasmany"></a>
 ## `hasMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L166)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/mixin.js#L166)
 
 Creates a 1:m association between this (the source) and the provided target. The foreign key is added on the target.
 
@@ -155,7 +155,7 @@ Example: `User.hasMany(Profile)`. This will add userId to the profile table.
 
 <a name="belongstomany"></a>
 ## `belongsToMany(target, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/d10eee53d37abb67db47160f067ac3cdc7e1bf43/lib/associations/mixin.js#L245)
+[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/associations/mixin.js#L245)
 
 Create an N:M association with a join table.
 
