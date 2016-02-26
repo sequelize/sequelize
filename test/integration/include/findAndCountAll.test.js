@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
       Project.belongsTo(User);
       Task.belongsTo(Project);
-      Task.belongsToMany(Tag, {through: TaskTag});
+      Task.belongsToMany(Tag, {through: 'TaskTag'});
       // Sync them
       return this.sequelize.sync({ force: true }).then(function () {
         // Create an enviroment
