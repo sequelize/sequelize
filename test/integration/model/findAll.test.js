@@ -1390,12 +1390,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
   });
 
-  describe('kenophobic mode', function() {
+  describe('rejectOnEmpty mode', function() {
     it('works from model options', function() {
       var Model = current.define('Test', {
         username: Sequelize.STRING(100)
       },{
-        kenophobic: true
+        rejectOnEmpty: true
       });
 
       return Model.sync({ force: true })
@@ -1413,7 +1413,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var Model = current.define('Test', {
         username: Sequelize.STRING(100)
       },{
-        kenophobic: new Sequelize.ConnectionError('Some Error') //using custom error instance
+        rejectOnEmpty: new Sequelize.ConnectionError('Some Error') //using custom error instance
       });
 
       return Model.sync({ force: true })
@@ -1431,7 +1431,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var Model = current.define('Test', {
         username: Sequelize.STRING(100)
       },{
-        kenophobic: Sequelize.ConnectionError //using custom error instance
+        rejectOnEmpty: Sequelize.ConnectionError //using custom error instance
       });
 
       return Model.sync({ force: true })
@@ -1443,7 +1443,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
         });
     });
-    
+
   });
 
 });

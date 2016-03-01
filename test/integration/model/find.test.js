@@ -936,19 +936,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    describe('kenophobic mode', function() {
+    describe('rejectOnEmpty mode', function() {
       it('throws error when record not found by findOne', function() {
         return expect(this.User.findOne({
           where: {
             username: 'ath-kantam-pradakshnami'
           },
-          kenophobic: true
+          rejectOnEmpty: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('throws error when record not found by findById', function() {
         return expect(this.User.findById(4732322332323333232344334354234, {
-          kenophobic: true
+          rejectOnEmpty: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
@@ -957,7 +957,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           where: {
             username: 'some-username-that-is-not-used-anywhere'
           },
-          kenophobic: true
+          rejectOnEmpty: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
@@ -965,7 +965,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var Model = current.define('Test', {
           username: Sequelize.STRING(100)
         },{
-          kenophobic: true
+          rejectOnEmpty: true
         });
 
         return Model.sync({ force: true })
