@@ -935,5 +935,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(spy.called).to.be.ok;
       });
     });
+
+    describe('kenophobic mode', function() {
+      it('throws error when record not found by findOne', function() {
+        return expect(this.User.findOne({
+          where: {
+            username: 'ath-kantam-pradakshnami'
+          }
+        }, {
+          kenophobic: true
+        })).to.eventually.be.rejectedWith(Sequelize.RecordNotFoundError);
+      });
+
+      it('throws error when record not found by findById', function() {
+        return expect(this.User.findById(4732322332323333232344334354234, {
+          kenophobic: true
+        })).to.eventually.be.rejectedWith(Sequelize.RecordNotFoundError);
+      });
+
+      it('throws error when record not found by find', function() {
+        return expect(this.User.find({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere'
+          }
+        }, {
+          kenophobic: true
+        })).to.eventually.be.rejectedWith(Sequelize.RecordNotFoundError);
+      });
+
+    });
+
   });
 });
