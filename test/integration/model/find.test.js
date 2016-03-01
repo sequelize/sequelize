@@ -941,8 +941,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return expect(this.User.findOne({
           where: {
             username: 'ath-kantam-pradakshnami'
-          }
-        }, {
+          },
           kenophobic: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
@@ -957,10 +956,41 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return expect(this.User.find({
           where: {
             username: 'some-username-that-is-not-used-anywhere'
-          }
-        }, {
+          },
           kenophobic: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('works from model options', function() {
+        var Model = current.define('Test', {
+          username: Sequelize.STRING(100)
+        },{
+          kenophobic: true
+        });
+
+        return Model.sync({ force: true })
+          .then(function() {
+            return expect(Model.findOne({
+              where: {
+                username: 'some-username-that-is-not-used-anywhere'
+              }
+            })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+          });
+      });
+
+      it('resolve null when disabled', function() {
+        var Model = current.define('Test', {
+          username: Sequelize.STRING(100)
+        });
+
+        return Model.sync({ force: true })
+          .then(function() {
+            return expect(Model.findOne({
+              where: {
+                username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+              }
+            })).to.eventually.be.equal(null);
+          });
       });
 
     });
