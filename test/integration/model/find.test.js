@@ -944,13 +944,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }
         }, {
           kenophobic: true
-        })).to.eventually.be.rejectedWith(Sequelize.RecordNotFoundError);
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('throws error when record not found by findById', function() {
         return expect(this.User.findById(4732322332323333232344334354234, {
           kenophobic: true
-        })).to.eventually.be.rejectedWith(Sequelize.RecordNotFoundError);
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('throws error when record not found by find', function() {
@@ -960,7 +960,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }
         }, {
           kenophobic: true
-        })).to.eventually.be.rejectedWith(Sequelize.RecordNotFoundError);
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
     });
