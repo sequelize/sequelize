@@ -102,6 +102,55 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
     });
+
+    describe('preserves changes to instance', function() {
+      it('beforeValidate', function(){
+        var hookCalled = 0;
+
+        this.User.beforeValidate(function(user, options) {
+          user.mood = 'happy';
+          hookCalled++;
+        });
+
+        return this.User.create({mood: 'sad', username: 'leafninja'}).then(function(user) {
+          expect(user.mood).to.equal('happy');
+          expect(user.username).to.equal('leafninja');
+          expect(hookCalled).to.equal(1);
+        });
+      });
+
+      it('afterValidate', function() {
+        var hookCalled = 0;
+
+        this.User.afterValidate(function(user, options) {
+          user.mood = 'neutral';
+          hookCalled++;
+        });
+
+        return this.User.create({mood: 'sad', username: 'fireninja'}).then(function(user) {
+          expect(user.mood).to.equal('neutral');
+          expect(user.username).to.equal('fireninja');
+          expect(hookCalled).to.equal(1);
+        });
+      });
+
+      it('beforeCreate', function(){
+        var hookCalled = 0;
+
+        this.User.beforeCreate(function(user, options) {
+          user.mood = 'happy';
+          hookCalled++;
+        });
+
+        return this.User.create({username: 'akira'}).then(function(user) {
+          expect(user.mood).to.equal('happy');
+          expect(user.username).to.equal('akira');
+          expect(hookCalled).to.equal(1);
+        });
+      });
+
+    });
+
   });
 
 });

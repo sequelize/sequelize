@@ -78,6 +78,37 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
     });
+
+    describe('preserves changes to instance', function() {
+      it('beforeValidate', function(){
+
+        this.User.beforeValidate(function(user, options) {
+          user.mood = 'happy';
+        });
+
+        return this.User.create({username: 'fireninja', mood: 'invalid'}).then(function(user) {
+          return user.updateAttributes({username: 'hero'});
+        }).then(function(user) {
+          expect(user.username).to.equal('hero');
+          expect(user.mood).to.equal('happy');
+        });
+      });
+
+      it('afterValidate', function() {
+
+        this.User.afterValidate(function(user, options) {
+          user.mood = 'sad';
+        });
+
+        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(function(user) {
+          return user.updateAttributes({username: 'spider'});
+        }).then(function(user) {
+          expect(user.username).to.equal('spider');
+          expect(user.mood).to.equal('sad');
+        });
+      });
+    });
+
   });
 
 });
