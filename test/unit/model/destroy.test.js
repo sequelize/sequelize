@@ -19,37 +19,40 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     before(function () {
-      this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkDelete', function () {
+      this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete', function () {
         return Promise.resolve([]);
       });
     });
 
     beforeEach(function () {
-      this.options = {where: {secretValue: '1'}}
-      this.cloneOptions = _.clone(this.options);
-      this.stubUpdate.reset();
+      this.deloptions = {where: {secretValue: '1'}};
+      this.cloneOptions = _.clone(this.deloptions);
+      this.stubDelete.reset();
     });
 
     afterEach(function () {
-      delete this.options;
+      delete this.deloptions;
       delete this.cloneOptions;
     });
 
     after(function () {
-      this.stubUpdate.restore();
+      this.stubDelete.restore();
     });
 
     it('properly clones options', function() {
       var self = this;
-      return User.destroy(self.options).bind(this).then(function(e) {
-        expect(self.options).to.be.deep.eql(self.cloneOptions);
+      return User.destroy(self.deloptions).bind(this).then(function(e) {
+        expect(self.deloptions).to.be.deep.eql(self.cloneOptions);
       });
     });
 
     it('can detect complexe objects', function() {
-      var self = this;
-      var where = function () { this.secretValue = '1'; }
-      return expect(User.destroy({where:new where})).to.eventually.be.rejectedWith(Error);
+      var Where = function () { this.secretValue = '1'; };
+
+      expect(function () {
+        User.destroy({where: new Where()});
+      }).to.throw();
+
     });
   });
 });

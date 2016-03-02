@@ -57,8 +57,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('can detect complexe objects', function() {
       var self = this;
-      var where = function () { this.secretValue = '1'; }
-      return expect(User.update(self.updates, {where:new where})).to.eventually.be.rejectedWith(Error);
+      var Where = function () { this.secretValue = '1'; };
+
+      expect(function () {
+        User.update(self.updates, {where:new Where()});
+      }).to.throw();
+
     });
   });
 });
