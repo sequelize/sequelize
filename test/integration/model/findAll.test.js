@@ -1313,13 +1313,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                     var criteria = {
                       offset: 5,
                       limit: 1,
+                      where: {
+                        name: 'Some election'
+                      },
                       include: [
                         Citizen, // Election creator
                         { model: Citizen, as: 'Voters' } // Election voters
                       ]
                     };
                     return Election.findAndCountAll(criteria).then(function(elections) {
-                      expect(elections.count).to.equal(2);
+                      expect(elections.count).to.equal(1);
                       expect(elections.rows.length).to.equal(0);
                     });
                   });
