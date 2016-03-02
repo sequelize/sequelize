@@ -560,6 +560,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           },
           lastName: {
             type: DataTypes.STRING
+          },
+          manager: {
+            type: DataTypes.INTEGER,
+            references: {
+              model: 'users',
+              key:   'id'
+            }
           }
         });
       });
@@ -577,6 +584,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           return this.queryInterface.describeTable('users');
         }).then(function(table) {
           expect(table).to.not.have.property('lastName');
+        });
+      });
+
+      it('should be able to remove a column with a foreign key constraint', function() {
+        return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
+          return this.queryInterface.describeTable('users');
+        }).then(function(table) {
+            expect(table).to.not.have.property('manager');
         });
       });
     });
