@@ -22,6 +22,11 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       }
     });
 
+    this.Child = this.sequelize.define('Child', {
+      name: DataTypes.STRING
+    });
+    this.User.hasMany(this.Child);
+
     this.ParanoidUser = this.sequelize.define('ParanoidUser', {
       username: DataTypes.STRING,
       mood: {
@@ -100,14 +105,42 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('on success', function() {
       it('should run hooks', function() {
         var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+          , afterHook = sinon.spy()
+          , afterIncludeHook = sinon.spy();
 
         this.User.beforeCreate(beforeHook);
         this.User.afterCreate(afterHook);
+        this.User.afterIncludeCreate(afterIncludeHook);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
+          expect(afterIncludeHook).to.not.have.been.called;
+        });
+      });
+      it('should run include hook', function() {
+        var beforeHook = sinon.spy()
+          , afterHook = sinon.spy()
+          , afterIncludeHook = sinon.spy();
+
+        this.User.beforeCreate(beforeHook);
+        this.User.afterCreate(afterHook);
+        this.User.afterIncludeCreate(afterIncludeHook);
+
+        return this.User.create({
+          username: 'Toni',
+          mood: 'happy',
+          Children: [{
+            name: 'Jack'
+          }, {
+            name: 'Louis'
+          }]
+        }, {
+          include: [this.Child]
+        }).then(function() {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+          expect(afterIncludeHook).to.have.been.calledOnce;
         });
       });
     });
