@@ -237,45 +237,47 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       Task.belongsTo(Project);
       Task.belongsToMany(Tag, {through: TaskTag});
       // Sync them
-      return this.sequelize.sync({ force: true }).then(function () {
+      return this.sequelize.sync({ force: true }).then(function() {
         // Create an enviroment
-        return Promise.join(
-          User.bulkCreate([
-            { name: 'user-name-1' },
-            { name: 'user-name-2' }
-          ]),
-          Project.bulkCreate([
+        return User.bulkCreate([
+          { name: 'user-name-1' },
+          { name: 'user-name-2' }
+        ]).then(function(u){
+          return Project.bulkCreate([
             { m: 'A', UserId: 1},
             { m: 'A', UserId: 2},
-          ]),
-          Task.bulkCreate([
+          ]);
+        }).then(function(p){
+          return Task.bulkCreate([
             { ProjectId: 1, name: 'Just' },
             { ProjectId: 1, name: 'for' },
             { ProjectId: 2, name: 'testing' },
             { ProjectId: 2, name: 'proposes' }
-          ])
-        ).then(function() {
+          ]);
+        })
+        .then(function() {
           // Find All Tasks with Project(m=a) and User(name=user-name-2)
           return Task.findAndCountAll({
-            limit: 2,
+            limit: 1,
             offset: 0,
-            order: [[ 'id', 'ASC' ]],
+            order: [[ 'id', 'DESC' ]],
             include: [
-              { model: Project,
+              {
+                model: Project,
                 where: { '$and': [ { m: 'A' } ] } ,
                 include: [ {
                     model: User,
                     where: { '$and': [ { name: 'user-name-2' } ] }
                   }
                 ]
-              }, {model : Tag}
-
+              },
+              { model : Tag }
             ]
           });
         });
       }).then(function(result) {
           expect(result.count).to.equal(2);
-          expect(result.rows.length).to.equal(2);
+          expect(result.rows.length).to.equal(1);
       });
     });
   });
