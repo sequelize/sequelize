@@ -2081,9 +2081,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.UserWithFields.bulkCreate([
         {age: 2, gender: 'male'},
         {age: 3, gender: 'female'}
-      ], {
-        logging: console.log
-      }).bind(this).then(function() {
+      ]).bind(this).then(function() {
         return expect(this.UserWithFields.sum('age', {
           where: { 'gender': 'male' }
         })).to.eventually.equal(2);
