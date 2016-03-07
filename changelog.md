@@ -1,4 +1,5 @@
 # Future
+- [ADDED] Benchmarking feature [#2494](https://github.com/sequelize/sequelize/issues/2494)
 - [ADDED] `beforeCount` hook [#5209](https://github.com/sequelize/sequelize/pull/5209)
 - [ADDED] `validationFailed` hook [#1626](https://github.com/sequelize/sequelize/issues/1626)
 - [FIXED] Mark index as `unique: true` when `type: 'UNIQUE'`. Fixes [#5351](https://github.com/sequelize/sequelize/issues/5351)
