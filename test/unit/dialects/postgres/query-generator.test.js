@@ -862,6 +862,42 @@ if (dialect.match(/^postgres/)) {
           expectation: 'DROP INDEX IF EXISTS mySchema.user_foo_bar',
           context: {options: {quoteIdentifiers: false}}
         }
+      ],
+
+      startTransactionQuery: [
+        {
+          arguments: [{}],
+          expectation: 'START TRANSACTION;',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: true}}
+        }
+      ],
+
+      rollbackTransactionQuery: [
+        {
+          arguments: [{}],
+          expectation: 'ROLLBACK;',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: true}}
+        }
       ]
     };
 
