@@ -309,7 +309,7 @@ CTEs are usually based on the model being queried. This happens automatically, b
 cte: [{
     name: 'b',
     model: User,
-    userModel: true
+    useModel: true
 }]
 ```
 
