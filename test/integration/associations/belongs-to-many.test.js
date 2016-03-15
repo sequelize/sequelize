@@ -1643,6 +1643,26 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           });
         });
       });
+
+      describe('query with through.where', function () {
+        it('should support query the through model', function () {
+          return this.User.create().then(function (user) {
+            return Promise.all([
+              user.createProject({}, { status: 'active', data: 1 }),
+              user.createProject({}, { status: 'inactive', data: 2 }),
+              user.createProject({}, { status: 'inactive', data: 3 })
+            ]).then(function () {
+              return Promise.all([
+                user.getProjects({ through: { where: { status: 'active' } } }),
+                user.countProjects({ through: { where: { status: 'inactive' } } }),
+              ]);
+            });
+          }).spread(function (activeProjects, inactiveProjectCount) {
+            expect(activeProjects).to.have.lengthOf(1);
+            expect(inactiveProjectCount).to.eql(2);
+          });
+        });
+      });
     });
 
     describe('removing from the join table', function() {

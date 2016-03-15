@@ -290,7 +290,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
               }]
             },
             {
-              default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\'  ORDER BY 2 ASC ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+              default: 'WITH a( [id],[amount],[createdAt],[updatedAt],[userId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [userId] FROM [users] AS [user] WHERE [user].[username] = \'user3\'  ORDER BY 2 ASC ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
             });
         });
 
