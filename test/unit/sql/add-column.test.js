@@ -61,7 +61,7 @@ if (current.dialect.name === 'mysql') {
           onDelete: 'cascade'
         }).then(function(sql){
           expectsql(sql, {
-            mysql: 'ALTER TABLE `users` ADD `level_id` INTEGER, ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+            mysql: 'ALTER TABLE `users` ADD `level_id` INTEGER, ADD CONSTRAINT `level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
           });
         });
       });
