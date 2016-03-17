@@ -1389,4 +1389,61 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(spy.called).to.be.ok;
     });
   });
+
+  describe('rejectOnEmpty mode', function() {
+    it('works from model options', function() {
+      var Model = current.define('Test', {
+        username: Sequelize.STRING(100)
+      },{
+        rejectOnEmpty: true
+      });
+
+      return Model.sync({ force: true })
+        .then(function() {
+          return expect(Model.findAll({
+            where: {
+              username: 'some-username-that-is-not-used-anywhere'
+            }
+          })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        });
+    });
+
+    it('throws custom error with initialized', function() {
+
+      var Model = current.define('Test', {
+        username: Sequelize.STRING(100)
+      },{
+        rejectOnEmpty: new Sequelize.ConnectionError('Some Error') //using custom error instance
+      });
+
+      return Model.sync({ force: true })
+        .then(function() {
+          return expect(Model.findAll({
+            where: {
+              username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+            }
+          })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+        });
+    });
+
+    it('throws custom error with instance', function() {
+
+      var Model = current.define('Test', {
+        username: Sequelize.STRING(100)
+      },{
+        rejectOnEmpty: Sequelize.ConnectionError //using custom error instance
+      });
+
+      return Model.sync({ force: true })
+        .then(function() {
+          return expect(Model.findAll({
+            where: {
+              username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+            }
+          })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+        });
+    });
+
+  });
+
 });
