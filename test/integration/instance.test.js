@@ -1878,7 +1878,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                     expect(user1.get('Projects')).to.not.exist;
                     expect(user2.get('Projects')).to.exist;
                     expect(user1.equals(user2)).to.be.true;
+                    expect(user2.equals(user1)).to.be.true;
                     expect(user1.equals(user3)).to.not.be.true;
+                    expect(user3.equals(user1)).to.not.be.true;
                   });
                 });
               });
