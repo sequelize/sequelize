@@ -1,5 +1,8 @@
 # Future
 - [ADDED] rejectOnEmpty mode [#272](https://github.com/sequelize/sequelize/issues/272) [#5480](https://github.com/sequelize/sequelize/issues/5480)
+- [FIXED] `findAndCountAll` generates invalid SQL, subQuery moves to LEFT OUTER JOIN [#5445](https://github.com/sequelize/sequelize/issues/5445)
+- [FIXED] `count` methods pollute the options.includes [#4191](https://github.com/sequelize/sequelize/issues/4191)
+- [FIXED] Invalid SQL generated when using group option along with attributes [#3009](https://github.com/sequelize/sequelize/issues/3009)
 - [ADDED] `beforeCount` hook [#5209](https://github.com/sequelize/sequelize/pull/5209)
 - [ADDED] `validationFailed` hook [#1626](https://github.com/sequelize/sequelize/issues/1626)
 - [FIXED] Mark index as `unique: true` when `type: 'UNIQUE'`. Fixes [#5351](https://github.com/sequelize/sequelize/issues/5351)
