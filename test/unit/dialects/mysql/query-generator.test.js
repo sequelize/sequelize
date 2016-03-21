@@ -369,6 +369,16 @@ if (Support.dialectIsMySQL()) {
           arguments: ['myTable', {where: {field: {ne: null}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
           context: QueryGenerator
+        }, {
+          title: 'use IS NOT if not === BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: true}}}],
+          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT true;',
+          context: QueryGenerator
+        }, {
+          title: 'use != if not !== BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: 3}}}],
+          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
+          context: QueryGenerator
         }
       ],
 

@@ -1851,6 +1851,42 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
       });
     });
+
+    it('does not compare the existence of associations', function () {
+      var self = this;
+
+      this.UserAssociationEqual = this.sequelize.define('UserAssociationEquals', {
+        username: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      }, { timestamps: false });
+
+      this.ProjectAssociationEqual = this.sequelize.define('ProjectAssocationEquals', {
+        title: DataTypes.STRING,
+        overdue_days: DataTypes.INTEGER
+      }, { timestamps: false });
+
+      this.UserAssociationEqual.hasMany(this.ProjectAssociationEqual, { as: 'Projects', foreignKey: 'userId' });
+      this.ProjectAssociationEqual.belongsTo(this.UserAssociationEqual, { as: 'Users', foreignKey: 'userId' });
+
+      return this.UserAssociationEqual.sync({force: true}).then(function() {
+        return self.ProjectAssociationEqual.sync({force: true}).then(function () {
+          return self.UserAssociationEqual.create({ username: 'jimhalpert' }).then(function (user1) {
+            return self.ProjectAssociationEqual.create({ title: 'A Cool Project'}).then(function (project1) {
+              return user1.setProjects([project1]).then(function () {
+                return self.UserAssociationEqual.findOne({ where: { username: 'jimhalpert' }, include: [{model: self.ProjectAssociationEqual, as: 'Projects'}] }).then(function (user2) {
+                  return self.UserAssociationEqual.create({ username: 'pambeesly' }).then(function (user3) {
+                    expect(user1.get('Projects')).to.not.exist;
+                    expect(user2.get('Projects')).to.exist;
+                    expect(user1.equals(user2)).to.be.true;
+                    expect(user1.equals(user3)).to.not.be.true;
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('values', function() {

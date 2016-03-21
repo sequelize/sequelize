@@ -123,6 +123,7 @@ $gte: 6,               // >= 6
 $lt: 10,               // < 10
 $lte: 10,              // <= 10
 $ne: 20,               // != 20
+$not: true,            // IS NOT TRUE
 $between: [6, 10],     // BETWEEN 6 AND 10
 $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
 $in: [1, 2],           // IN [1, 2]
@@ -259,13 +260,13 @@ something.findOne({
 
     // Will order by  otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
-    
+
     // Will order by name on an associated User
     [User, 'name', 'DESC'],
-    
+
     // Will order by name on an associated User aliased as Friend
     [{model: User, as: 'Friend'}, 'name', 'DESC'],
-    
+
     // Will order by name on a nested associated Company of an associated User
     [User, Company, 'name', 'DESC'],
   ]
