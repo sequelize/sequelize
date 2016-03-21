@@ -935,5 +935,65 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(spy.called).to.be.ok;
       });
     });
+
+    describe('rejectOnEmpty mode', function() {
+      it('throws error when record not found by findOne', function() {
+        return expect(this.User.findOne({
+          where: {
+            username: 'ath-kantam-pradakshnami'
+          },
+          rejectOnEmpty: true
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('throws error when record not found by findById', function() {
+        return expect(this.User.findById(4732322332323333232344334354234, {
+          rejectOnEmpty: true
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('throws error when record not found by find', function() {
+        return expect(this.User.find({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere'
+          },
+          rejectOnEmpty: true
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('works from model options', function() {
+        var Model = current.define('Test', {
+          username: Sequelize.STRING(100)
+        },{
+          rejectOnEmpty: true
+        });
+
+        return Model.sync({ force: true })
+          .then(function() {
+            return expect(Model.findOne({
+              where: {
+                username: 'some-username-that-is-not-used-anywhere'
+              }
+            })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+          });
+      });
+
+      it('resolve null when disabled', function() {
+        var Model = current.define('Test', {
+          username: Sequelize.STRING(100)
+        });
+
+        return Model.sync({ force: true })
+          .then(function() {
+            return expect(Model.findOne({
+              where: {
+                username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+              }
+            })).to.eventually.be.equal(null);
+          });
+      });
+
+    });
+
   });
 });

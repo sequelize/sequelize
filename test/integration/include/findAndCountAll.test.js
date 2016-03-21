@@ -207,5 +207,78 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         expect(result.rows.length).to.equal(1);
       });
     });
+
+    it('should correctly filter, limit and sort when multiple includes and types of associations are present.', function() {
+      var TaskTag = this.sequelize.define('TaskTag', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING}
+      });
+
+      var Tag = this.sequelize.define('Tag', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING}
+      });
+
+      var Task = this.sequelize.define('Task', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING}
+      });
+      var Project = this.sequelize.define('Project', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        m: { type: DataTypes.STRING}
+      });
+
+      var User = this.sequelize.define('User', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING }
+      });
+
+      Project.belongsTo(User);
+      Task.belongsTo(Project);
+      Task.belongsToMany(Tag, {through: TaskTag});
+      // Sync them
+      return this.sequelize.sync({ force: true }).then(function() {
+        // Create an enviroment
+        return User.bulkCreate([
+          { name: 'user-name-1' },
+          { name: 'user-name-2' }
+        ]).then(function(u){
+          return Project.bulkCreate([
+            { m: 'A', UserId: 1},
+            { m: 'A', UserId: 2},
+          ]);
+        }).then(function(p){
+          return Task.bulkCreate([
+            { ProjectId: 1, name: 'Just' },
+            { ProjectId: 1, name: 'for' },
+            { ProjectId: 2, name: 'testing' },
+            { ProjectId: 2, name: 'proposes' }
+          ]);
+        })
+        .then(function() {
+          // Find All Tasks with Project(m=a) and User(name=user-name-2)
+          return Task.findAndCountAll({
+            limit: 1,
+            offset: 0,
+            order: [[ 'id', 'DESC' ]],
+            include: [
+              {
+                model: Project,
+                where: { '$and': [ { m: 'A' } ] } ,
+                include: [ {
+                    model: User,
+                    where: { '$and': [ { name: 'user-name-2' } ] }
+                  }
+                ]
+              },
+              { model : Tag }
+            ]
+          });
+        });
+      }).then(function(result) {
+          expect(result.count).to.equal(2);
+          expect(result.rows.length).to.equal(1);
+      });
+    });
   });
 });

@@ -514,6 +514,16 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: {field: {ne: null}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field IS NOT NULL;',
           context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'use IS NOT if not === BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: true}}}],
+          expectation: 'SELECT * FROM myTable WHERE myTable.field IS NOT true;',
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'use != if not !== BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: 3}}}],
+          expectation: 'SELECT * FROM myTable WHERE myTable.field != 3;',
+          context: {options: {quoteIdentifiers: false}}
         }
       ],
 
