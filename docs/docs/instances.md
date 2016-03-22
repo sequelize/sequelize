@@ -161,7 +161,8 @@ Task.bulkCreate([
     { status: 'inactive' }, /* set attributes' value */,
     { where: { subject: 'programming' }} /* where criteria */
   );
-}).then(function(affectedRows) {
+}).then(function(updateResults) {
+  var affectedRows = updateResults[0];
   // affectedRows will be 2
   return Task.findAll();
 }).then(function(tasks) {
