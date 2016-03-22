@@ -664,4 +664,4 @@ sequelize.define('user', {}, {
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
 [5]: /docs/latest/misc#asynchronicity
-[6]: https://github.com/petkaantonov/bluebird/blob/master/API.md#spreadfunction-fulfilledhandler--function-rejectedhandler----promise
+[6]: http://bluebirdjs.com/docs/api/spread.html
