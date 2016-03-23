@@ -582,6 +582,10 @@ Company.findAll({
   order: [ [ { model: Division, as: 'Div' }, 'name' ] ]
 });
 Company.findAll({
+  include: [ { model: Division, as: 'Div' } ],
+  order: [ [ { model: Division, as: 'Div' }, 'name', 'DESC' ] ]
+});
+Company.findAll({
   include: [ { model: Division, include: [ Department ] } ],
   order: [ [ Division, Department, 'name' ] ]
 });
