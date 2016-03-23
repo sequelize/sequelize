@@ -340,9 +340,9 @@ if (Support.dialectIsMySQL()) {
           expectation: 'SELECT * FROM `myTable` LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: "uses limit '0'",
+         title: 'uses limit \'0\'',
          arguments: ['myTable', {limit: '0'}],
-         expectation: "SELECT * FROM `myTable` LIMIT '0';",
+         expectation: 'SELECT * FROM `myTable` LIMIT \'0\';',
          context: QueryGenerator
        },{
          title: 'uses offset 0',
@@ -350,9 +350,9 @@ if (Support.dialectIsMySQL()) {
          expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
          context: QueryGenerator
        }, {
-        title: "uses offset '0'",
+        title: 'uses offset \'0\'',
         arguments: ['myTable', {offset: '0'}],
-        expectation: "SELECT * FROM `myTable` LIMIT '0', 10000000000000;",
+        expectation: 'SELECT * FROM `myTable` LIMIT \'0\', 10000000000000;',
         context: QueryGenerator
       }, {
           title: 'multiple where arguments',
