@@ -12,6 +12,26 @@ if (current.dialect.supports.transactions) {
 describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
   this.timeout(4000);
 
+  describe('promise', function () {
+    beforeEach(function () {
+      var self = this;
+      return this
+        .sequelize
+        .transaction()
+        .then(function (t) {
+          self.t = t;
+        });
+    });
+    it('should be fulfilled after commit', function () {
+      this.t.commit();
+      return this.t.promise;
+    });
+    it('shouldn be rejected after rollback', function () {
+      this.t.rollback();
+      expect(this.t.promise).to.have.been.rejected;
+    });
+  });
+
   describe('success', function() {
     it('gets triggered once a transaction has been successfully committed', function(done) {
       this
