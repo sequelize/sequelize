@@ -1,7 +1,7 @@
 This section describes the various association types in sequelize. When calling a method such as `User.hasOne(Project)`, we say that the `User` model (the model that the function is being invoked on) is the __source__ and the `Project` model (the model being passed as an argument) is the __target__.
 
 ## One-To-One associations
-One-To-One associations are associations between exactly two models connected by a single gn key.
+One-To-One associations are associations between exactly two models connected by a single foreign key.
 
 ### BelongsTo
 
