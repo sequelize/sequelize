@@ -240,7 +240,7 @@ User.belongsToMany(Project, { through: UserProjects })
 Project.belongsToMany(User, { through: UserProjects })
 ```
 
-To add a new project to a user and set it's status, you pass an extra object to the setter, which contains the attributes for the join table
+To add a new project to a user and set its status, you pass an extra object to the setter, which contains the attributes for the join table
 
 ```js
 user.addProject(project, { status: 'started' })
