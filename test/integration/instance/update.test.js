@@ -161,13 +161,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
     it('should save attributes affected by setters', function () {
       var user = this.User.build();
-      return user.update({validateSideEffect: 5}).then(function () {
+      return user.update({validateSideEffect: 5}).bind(this).then(function () {
         expect(user.validateSideEffect).to.be.equal(5);
       }).then(function () {
         return user.reload();
       }).then(function () {
         expect(user.validateSideAffected).to.be.equal(10);
-        expect(user.validateSideEffect).not.to.be.ok;
+        expect(user.validateSideEffect).to.be.equal(5);
+        return this.User.findOne({id: user.id });
+      }).then(function (user) {
+        expect(user.validateSideAffected).to.be.equal(10);
+        expect(user.validateSideEffect).to.not.be.ok;
       });
     });
 

@@ -34,7 +34,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             virtualWithDefault: {
               type: Sequelize.VIRTUAL,
               defaultValue: 'cake'
-            }
+            },
+            virtualWithoutDefault: {
+              type: Sequelize.VIRTUAL,
+            },
           }, { timestamps: false });
 
           this.Task = this.sequelize.define('task', {});
@@ -58,7 +61,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             field2: 'field2_value'
           });
 
-          expect(user.get()).to.deep.equal({ storage: 'field1_value', field1: 'field1_value', virtualWithDefault: 'cake', field2: 42, id: null });
+          expect(user.get()).to.deep.equal({
+            storage: 'field1_value',
+            field1: 'field1_value',
+            virtualWithDefault: 'cake',
+            virtualWithoutDefault: undefined,
+            field2: 42,
+            id: null,
+          });
         });
 
         it('should be ignored in table creation', function() {
@@ -142,6 +152,44 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             return self.User.findAll();
           }).then(function(users) {
             expect(users[0].storage).to.equal('something');
+          });
+        });
+
+        it('should be populated with default values when loaded from the db', function () {
+          var self = this;
+          return this.User.create({
+            field1: 'fizzbuzz',
+          }).then(function() {
+            return self.User.findOne({ where: { storage: 'fizzbuzz' }});
+          }).then(function (user) {
+            expect(user.virtualWithDefault).to.equal('cake');
+            expect(user.virtualWithoutDefault).to.equal(undefined);
+          });
+        });
+
+        it('should be populated to a default value on reload() if not previously set', function () {
+          return this.User.create({
+            field1: 'fizzbuzz',
+          }).then(function(user) {
+            expect(user.virtualWithDefault).to.equal('cake');
+            return user.reload();
+          }).then(function(reloadedUser) {
+            expect(reloadedUser.virtualWithDefault).to.equal('cake');
+            expect(reloadedUser.virtualWithoutDefault).to.equal(undefined);
+          });
+        });
+
+        it('should maintain its value on reload() if previously set', function () {
+          return this.User.create({
+            virtualWithDefault: 'pie',
+            virtualWithoutDefault: 'cookie',
+          }).then(function(user) {
+            expect(user.virtualWithDefault).to.equal('pie');
+            expect(user.virtualWithoutDefault).to.equal('cookie');
+            return user.reload();
+          }).then(function(reloadedUser) {
+            expect(reloadedUser.virtualWithDefault).to.equal('pie');
+            expect(reloadedUser.virtualWithoutDefault).to.equal('cookie');
           });
         });
       });
