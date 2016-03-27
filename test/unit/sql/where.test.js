@@ -91,6 +91,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       mssql: '[deleted] IS NULL'
     });
 
+    testsql('deleted', undefined, {
+      default: '`deleted` IS NULL',
+      postgres: '"deleted" IS NULL',
+      mssql: '[deleted] IS NULL'
+    });
+
     suite('$in', function () {
       testsql('equipment', {
         $in: [1, 3]
