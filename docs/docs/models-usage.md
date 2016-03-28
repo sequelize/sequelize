@@ -117,7 +117,7 @@ User.findAndCountAll({
   include: [
      { model: Profile, required: true}
   ],
-  limit 3
+  limit: 3
 });
 ```
 
@@ -128,7 +128,7 @@ User.findAndCountAll({
   include: [
      { model: Profile, where: { active: true }}
   ],
-  limit 3
+  limit: 3
 });
 ```
 
