@@ -61,78 +61,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     });
   });
 
-  describe('Instantiation with a URL string', function() {
-    it('should accept username, password, host, port, and database', function() {
-      var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      var config = sequelize.config;
-      var options = sequelize.options;
-
-      expect(options.dialect).to.equal('mysql');
-
-      expect(config.database).to.equal('dbname');
-      expect(config.host).to.equal('example.com');
-      expect(config.username).to.equal('user');
-      expect(config.password).to.equal('pass');
-      expect(config.port).to.equal('9821');
-    });
-
-    it('should work with no authentication options', function() {
-      var sequelize = new Sequelize('mysql://example.com:9821/dbname');
-      var config = sequelize.config;
-
-      expect(config.username).to.not.be.ok;
-      expect(config.password).to.be.null;
-    });
-
-    it('should work with no authentication options and passing additional options', function() {
-      var sequelize = new Sequelize('mysql://example.com:9821/dbname', {});
-      var config = sequelize.config;
-
-      expect(config.username).to.not.be.ok;
-      expect(config.password).to.be.null;
-    });
-
-    it('should use the default port when no other is specified', function() {
-      var sequelize = new Sequelize('dbname', 'root', 'pass', {
-          dialect: dialect
-        })
-        , config = sequelize.config
-        , port;
-
-      if (Support.dialectIsMySQL()) {
-        port = 3306;
-      } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-        port = 5432;
-      } else {
-        // sqlite has no concept of ports when connecting
-        return;
-      }
-
-      expect(config.port).to.equal(port);
-    });
-  });
-
   describe('Instantiation with arguments', function() {
-    it('should accept four parameters (database, username, password, options)', function() {
-      var sequelize = new Sequelize('dbname', 'root', 'pass', {
-        port: 999,
-        dialect: dialect,
-        dialectOptions: {
-          supportBigNumbers: true,
-          bigNumberStrings: true
-        }
-      });
-      var config = sequelize.config;
-
-      expect(config.database).to.equal('dbname');
-      expect(config.username).to.equal('root');
-      expect(config.password).to.equal('pass');
-      expect(config.port).to.equal(999);
-      expect(sequelize.options.dialect).to.equal(dialect);
-      expect(config.dialectOptions.supportBigNumbers).to.be.true;
-      expect(config.dialectOptions.bigNumberStrings).to.be.true;
-    });
-
     if (dialect === 'sqlite') {
       it('should respect READONLY / READWRITE connection modes', function() {
         var p = path.join(__dirname, '../tmp', 'foo.sqlite');
