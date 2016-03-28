@@ -162,6 +162,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
         it('triggers the error event when using replication', function() {
           return new Sequelize('sequelize', null, null, {
+            dialect: dialect,
             replication: {
               read: {
                 host: 'localhost',
