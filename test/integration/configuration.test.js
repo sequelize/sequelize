@@ -56,8 +56,8 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
 
     it('when we don\'t have a valid dialect.', function() {
       expect(function() {
-        new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: undefined});
-      }).to.throw(Error, 'The dialect undefined is not supported. Supported dialects: mariadb, mssql, mysql, postgres, and sqlite.');
+        new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect'});
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mariadb, mssql, mysql, postgres, and sqlite.');
     });
   });
 
@@ -113,26 +113,10 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
   });
 
   describe('Instantiation with arguments', function() {
-    it('should accept two parameters (database, username)', function() {
-      var sequelize = new Sequelize('dbname', 'root');
-      var config = sequelize.config;
-
-      expect(config.database).to.equal('dbname');
-      expect(config.username).to.equal('root');
-    });
-
-    it('should accept three parameters (database, username, password)', function() {
-      var sequelize = new Sequelize('dbname', 'root', 'pass');
-      var config = sequelize.config;
-
-      expect(config.database).to.equal('dbname');
-      expect(config.username).to.equal('root');
-      expect(config.password).to.equal('pass');
-    });
-
     it('should accept four parameters (database, username, password, options)', function() {
       var sequelize = new Sequelize('dbname', 'root', 'pass', {
         port: 999,
+        dialect: dialect,
         dialectOptions: {
           supportBigNumbers: true,
           bigNumberStrings: true
@@ -144,6 +128,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
       expect(config.username).to.equal('root');
       expect(config.password).to.equal('pass');
       expect(config.port).to.equal(999);
+      expect(sequelize.options.dialect).to.equal(dialect);
       expect(config.dialectOptions.supportBigNumbers).to.be.true;
       expect(config.dialectOptions.bigNumberStrings).to.be.true;
     });

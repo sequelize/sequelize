@@ -6,6 +6,7 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = Support.Sequelize
+  , dialect = Support.getTestDialect()
   , sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
@@ -82,7 +83,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         sequelize.options.protocol = 'udp';
       });
 
-      this.seq = new Sequelize('db', 'user', 'pass', {});
+      this.seq = new Sequelize('db', 'user', 'pass', { dialect : dialect });
     });
 
     it('beforeInit hook can alter config', function() {
