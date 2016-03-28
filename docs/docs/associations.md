@@ -1,7 +1,7 @@
 This section describes the various association types in sequelize. When calling a method such as `User.hasOne(Project)`, we say that the `User` model (the model that the function is being invoked on) is the __source__ and the `Project` model (the model being passed as an argument) is the __target__.
 
 ## One-To-One associations
-One-To-One associations are associations between exactly two models connected by a single gn key.
+One-To-One associations are associations between exactly two models connected by a single foreign key.
 
 ### BelongsTo
 
@@ -205,7 +205,7 @@ This will create a new model called UserProject with the equivalent foreign keys
 
 Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
-This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects` and `addProject`, `addProjects` to `User`.
+This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects`, `addProject`, and `addProjects` to `User`.
 
 Sometimes you may want to rename your models when using them in associations. Let's define users as workers and projects as tasks by using the alias (`as`) option. We will also manually define the foreign keys to use:
 ```js
@@ -240,7 +240,7 @@ User.belongsToMany(Project, { through: UserProjects })
 Project.belongsToMany(User, { through: UserProjects })
 ```
 
-To add a new project to a user and set it's status, you pass an extra object to the setter, which contains the attributes for the join table
+To add a new project to a user and set its status, you pass an extra object to the setter, which contains the attributes for the join table
 
 ```js
 user.addProject(project, { status: 'started' })
