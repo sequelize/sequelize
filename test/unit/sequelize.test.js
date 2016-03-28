@@ -3,9 +3,26 @@
 /* jshint -W030 */
 var chai = require('chai')
   , expect = chai.expect
-  , Sequelize = require(__dirname + '/../../index');
+  , Support = require(__dirname + '/support')
+  , Sequelize = Support.Sequelize;
 
-describe('sequelize constructor', function () {
+describe('Sequelize constructor', function () {
+  describe('options', function() {
+    it('throw error when no dialect is supplied', function() {
+      expect(function() {
+        new Sequelize('localhost', 'test', 'test');
+      }).to.throw(Error);
+    });
+
+    it('works when dialect explicitly supplied', function() {
+      expect(function() {
+        new Sequelize('localhost', 'test', 'test', {
+          dialect: 'mysql'
+        });
+      }).not.to.throw(Error);
+    });
+  });
+
   it('should support database, username, password, options', function () {
     var database = Math.random().toString()
       , username = Math.random().toString()
