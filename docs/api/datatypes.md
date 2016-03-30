@@ -265,6 +265,7 @@ sequelize.define('user', {
   }
 })
 ```
+In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
 
 VIRTUAL also takes a return type and dependency fields as arguments
 If a virtual attribute is present in `attributes` it will automatically pull in the extra fields as well.
@@ -280,7 +281,6 @@ Return type is mostly useful for setups that rely on types like GraphQL.
 }
 ```
 
-In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
 __Aliases:__ NONE
 
 ***
