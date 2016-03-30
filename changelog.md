@@ -1,3 +1,6 @@
+# Next
+- [FIXED] Support lower case type names in SQLite [#5482](https://github.com/sequelize/sequelize/issues/5482)
+
 # 3.20.0
 - [ADDED] rejectOnEmpty mode [#272](https://github.com/sequelize/sequelize/issues/272) [#5480](https://github.com/sequelize/sequelize/issues/5480)
 - [ADDED] `beforeCount` hook [#5209](https://github.com/sequelize/sequelize/pull/5209)
