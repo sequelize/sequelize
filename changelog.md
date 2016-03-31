@@ -1,5 +1,6 @@
 # Next
 - [FIXED] Support lower case type names in SQLite [#5482](https://github.com/sequelize/sequelize/issues/5482)
+- [INTERNALS] Removed dependency on wellknown in favor of terraformer-wkt-parser
 
 # 3.20.0
 - [ADDED] rejectOnEmpty mode [#272](https://github.com/sequelize/sequelize/issues/272) [#5480](https://github.com/sequelize/sequelize/issues/5480)
