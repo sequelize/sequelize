@@ -17,7 +17,8 @@
   "nonbsp": true,
   "maxdepth": 8,
   "quotmark": true, // deprecated
-
+  "-W041": false,
+  
   /* relaxing options */
   "laxbreak":true,
   "laxcomma":true,
