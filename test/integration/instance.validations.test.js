@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     return User.build({
       name: 'abcdefg'
     }).validate().then(function(errors) {
-      expect(errors === undefined).to.be.ok;
+      expect(errors).to.be.null;
 
       return User.build({
         name: 'a'
