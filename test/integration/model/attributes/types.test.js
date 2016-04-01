@@ -173,9 +173,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }).then(function(user) {
             expect(user.virtualWithDefault).to.equal('cake');
             return user.reload();
-          }).then(function(reloadedUser) {
-            expect(reloadedUser.virtualWithDefault).to.equal('cake');
-            expect(reloadedUser.virtualWithoutDefault).to.equal(undefined);
+          }).then(function(user) {
+            expect(user.virtualWithDefault).to.equal('cake');
+            expect(user.virtualWithoutDefault).to.equal(undefined);
+            user.set('virtualWithDefault', undefined);
+            return user.reload();
+          }).then(function(user) {
+            expect(user.virtualWithDefault).to.equal('cake');
+            expect(user.virtualWithoutDefault).to.equal(undefined);
           });
         });
 
@@ -187,9 +192,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(user.virtualWithDefault).to.equal('pie');
             expect(user.virtualWithoutDefault).to.equal('cookie');
             return user.reload();
-          }).then(function(reloadedUser) {
-            expect(reloadedUser.virtualWithDefault).to.equal('pie');
-            expect(reloadedUser.virtualWithoutDefault).to.equal('cookie');
+          }).then(function(user) {
+            expect(user.virtualWithDefault).to.equal('pie');
+            expect(user.virtualWithoutDefault).to.equal('cookie');
+            user.set('virtualWithDefault', 'muffin');
+            return user.reload();
+          }).then(function(user) {
+            expect(user.virtualWithDefault).to.equal('muffin');
+            expect(user.virtualWithoutDefault).to.equal('cookie');
           });
         });
       });
