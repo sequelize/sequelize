@@ -2,9 +2,7 @@
 
 /* jshint -W030 */
 var chai = require('chai')
-  , sinon = require('sinon')
   , expect = chai.expect
-  , _ = require('lodash')
   , Sequelize = require(__dirname + '/../../index');
 
 describe('sequelize constructor', function () {
