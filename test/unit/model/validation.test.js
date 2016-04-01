@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
             });
             var successfulUser = UserSuccess.build({ name: succeedingValue });
             return successfulUser.validate().then(function(errors) {
-              expect(errors).to.be.undefined;
+              expect(errors).to.be.null;
             }).catch(function(err) {
               expect(err).to.deep.equal({});
             });

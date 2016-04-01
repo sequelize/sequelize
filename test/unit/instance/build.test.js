@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('updated_time')).to.be.an.instanceof(Date);
 
       return instance.validate().then(function(err) {
-        expect(err).to.be.equal(undefined);
+        expect(err).to.be.equal(null);
       });
     });
 
