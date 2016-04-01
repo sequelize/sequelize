@@ -25,7 +25,7 @@ describe('sequelize constructor', function () {
     expect(sequelize.config.port).to.equal(port);
   });
 
-  it('should connection uri, options', function () {
+  it('should support connection uri, options', function () {
     var dialect = 'postgres'
       , database = Math.ceil(Math.random() * 9999).toString()
       , username = Math.ceil(Math.random() * 9999).toString()
