@@ -1,6 +1,7 @@
 # Future
 - [FIXED] Confirmed that values modified in validation hooks are preserved [#3534](https://github.com/sequelize/sequelize/issues/3534)
 - [FIXED] Support lower case type names in SQLite [#5482](https://github.com/sequelize/sequelize/issues/5482)
+- [FIXED] Support calling `setAssociation` twice on `hasOne` [#5315](https://github.com/sequelize/sequelize/issues/5315)
 - [INTERNALS] Removed dependency on wellknown in favor of terraformer-wkt-parser
 - [ADDED] Benchmarking feature [#2494](https://github.com/sequelize/sequelize/issues/2494)
 
