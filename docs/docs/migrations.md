@@ -106,6 +106,16 @@ queryInterface.createTable(
       type: Sequelize.BOOLEAN,
       defaultValue: false,
       allowNull: false
+    },
+    //foreign key usage
+    attr4: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: 'another_table_name',
+            key: 'id'
+        },
+        onUpdate: 'cascade',
+        onDelete: 'cascade'
     }
   },
   {
