@@ -160,14 +160,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return this.User.create({
             field1: 'fizzbuzz',
           }).then(function() {
-            return self.User.findOne({ where: { storage: 'fizzbuzz' }});
-          }).then(function (user) {
+            return self.User.findOne({
+              where: { storage: 'fizzbuzz' },
+            });
+          }).then(function(user) {
             expect(user.virtualWithDefault).to.equal('cake');
             expect(user.virtualWithoutDefault).to.equal(undefined);
+            return self.User.findOne({
+              attributes: ['storage'],
+              where: { storage: 'fizzbuzz' },
+            });
+          }).then(function(user) {
+            expect(user.virtualWithDefault).to.equal('cake');
           });
         });
 
-        it('should be populated to a default value on reload() if not previously set', function () {
+        it('should be populated to a default value on reload() if not previously set or is undefined', function () {
           return this.User.create({
             field1: 'fizzbuzz',
           }).then(function(user) {
