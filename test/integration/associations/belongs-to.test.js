@@ -334,6 +334,28 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         });
       });
     });
+
+    it('supports setting same association twice', function () {
+      var Home = this.sequelize.define('home', {})
+        , User = this.sequelize.define('user');
+
+      Home.belongsTo(User);
+
+      return this.sequelize.sync({ force: true }).bind({}).then(function () {
+        return Promise.all([
+          Home.create(),
+          User.create()
+        ]);
+      }).spread(function (home, user) {
+        this.home = home;
+        this.user = user;
+        return home.setUser(user);
+      }).then(function() {
+        return this.home.setUser(this.user);
+      }).then(function () {
+        return expect(this.home.getUser()).to.eventually.have.property('id', this.user.get('id'));
+      });
+    });
   });
 
   describe('createAssociation', function() {
