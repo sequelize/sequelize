@@ -813,7 +813,10 @@ Product.create({
     {id: 2, name: 'Beta'}
   ]
 }, {
-  include: [ Categories ]
+  include: [{
+    model: Categories,
+    as: 'categories'
+  }]
 })
 ```
 
