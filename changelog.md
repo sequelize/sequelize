@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Fix defaultValues getting overwritten on build
+- [FIXED] Queue queries against tedious connections
 
 # 3.21.0
 - [FIXED] Confirmed that values modified in validation hooks are preserved [#3534](https://github.com/sequelize/sequelize/issues/3534)
