@@ -8,6 +8,7 @@
 - [FIXED] Support calling `setAssociation` twice on `hasOne` [#5315](https://github.com/sequelize/sequelize/issues/5315)
 - [INTERNALS] Removed dependency on wellknown in favor of terraformer-wkt-parser
 - [ADDED] Benchmarking feature [#2494](https://github.com/sequelize/sequelize/issues/2494)
+- [INTERNALS] Add `Utils.mergeDeep` - allows lodash to be updated to latest version
 
 # 3.20.0
 - [ADDED] rejectOnEmpty mode [#272](https://github.com/sequelize/sequelize/issues/272) [#5480](https://github.com/sequelize/sequelize/issues/5480)
