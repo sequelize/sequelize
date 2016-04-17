@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('updated_time')).to.be.an.instanceof(Date);
 
       return instance.validate().then(function(err) {
-        expect(err).to.be.equal(undefined);
+        expect(err).to.be.equal(null);
       });
     });
 
@@ -93,6 +93,22 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('number1')).to.equal(1);
       expect(instance.get('number2')).not.to.be.undefined;
       expect(instance.get('number2')).to.equal(2);
+    });
+
+    it('should clone the default values', function () {
+      var Model = current.define('Model', {
+        data: {
+          type: DataTypes.JSONB,
+          defaultValue: { foo: 'bar' }
+        }
+      })
+        , instance;
+
+      instance = Model.build();
+      instance.data.foo = 'biz';
+
+      expect(instance.get('data')).to.eql({ foo: 'biz' });
+      expect(Model.build().get('data')).to.eql({ foo: 'bar' });
     });
   });
 });

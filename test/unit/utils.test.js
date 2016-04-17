@@ -9,6 +9,16 @@ var chai = require('chai')
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 suite(Support.getTestDialectTeaser('Utils'), function() {
+  suite('merge', function () {
+    test('does not clone sequelize models', function () {
+      var User = this.sequelize.define('user')
+        , merged = Utils.merge({}, { include: [{model : User }]})
+        , merged2 = Utils.merge({}, { user: User });
+
+      expect(merged.include[0].model).to.equal(User);
+      expect(merged2.user).to.equal(User);
+    });
+  });
 
   suite('toDefaultValue', function () {
     test('return plain data types', function () {
