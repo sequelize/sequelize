@@ -277,7 +277,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         attributes: ['id', 'updatedAt', 'foobar']
       });
     });
-
   });
 
   describe('$injectScope', function () {
@@ -431,6 +430,83 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(options.include).to.have.length(2);
         expect(options.include[0]).to.deep.equal({ all: true });
         expect(options.include[1]).to.deep.equal({ model: User, where: { something: true }});
+      });
+    });
+  });
+
+  describe('complex defaultScope', function () {
+    var User = current.define('user', {
+      name: DataTypes.STRING,
+    }, {
+      defaultScope: function (name) {
+        var options = {
+          include: [{model: Company }]
+        };
+
+        if (name) options.where = { name: name };
+        return options;
+      }
+    });
+
+    it('should include company', function () {
+      expect(User.$scope).to.deep.equal({
+        include: [{ model: Company }]
+      });
+    });
+
+    it('should be able to call without parameter', function () {
+      expect(User.scope(['defaultScope']).$scope).to.deep.equal({
+        include: [{ model: Company }]
+      });
+    });
+
+    it('should be able to call with parameter', function () {
+      expect(User.scope({ method: [ 'defaultScope', 'foo' ] }).$scope).to.deep.equal({
+        include: [{ model: Company }],
+        where: { name: 'foo' }
+      });
+    });
+
+    it('works with addScope', function () {
+      Company.addScope('defaultScope', function (name) {
+        var options = {
+          include: [Project]
+        };
+
+        if (name) {
+          options.where = {
+            name: name
+          };
+        }
+
+        return options;
+      }, { override: true });
+
+      expect(Company.$scope).to.deep.equal({
+        include: [{ model: Project }]
+      });
+    });
+
+    it('should be able to work after addScope', function () {
+      expect(Company.scope({method: [ 'defaultScope', 'foo' ]}).$scope).to.deep.equal({
+        include: [{ model: Project }],
+        where: {
+          name: 'foo'
+        }
+      });
+    });
+
+    it('should be able to override with other scope', function () {
+      Company.addScope('newScope', {
+        attributes: [ 'name', 'address' ]
+      }, { override: true });
+
+      expect(Company.scope([ {method: [ 'defaultScope', 'foo' ]}, 'newScope' ]).$scope).to.deep.equal({
+        attributes: [ 'name', 'address' ],
+        include: [{ model: Project }],
+        where: {
+          name: 'foo'
+        }
       });
     });
   });
