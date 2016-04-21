@@ -4,6 +4,7 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
@@ -70,6 +71,50 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   describe('.scope', function () {
+    describe('attribute exclude / include', function () {
+      var User = current.define('user', {
+        password: DataTypes.STRING,
+        name: DataTypes.STRING
+      }, {
+        defaultScope: {
+          attributes: {
+            exclude: ['password']
+          }
+        },
+        scopes: {
+          aScope: {
+            attributes: {
+              exclude: ['password']
+            }
+          }
+        }
+      });
+
+      it('should be able to exclude in defaultScope #4735', function () {
+        expect(User.$scope.attributes).to.deep.equal([
+          'id',
+          'name',
+          'createdAt',
+          'updatedAt'
+        ]);
+      });
+
+      it('should be able to exclude in a scope #4925', function () {
+        expect(User.scope('aScope').$scope.attributes).to.deep.equal([
+          'id',
+          'name',
+          'createdAt',
+          'updatedAt'
+        ]);
+      });
+    });
+
+    it('defaultScope should be an empty object if not overridden', function () {
+      var Foo = current.define('foo', {}, {});
+
+      expect(Foo.scope('defaultScope').$scope).to.deep.equal({});
+    });
+
     it('should apply default scope', function () {
       expect(Company.$scope).to.deep.equal({
         include: [{ model: Project }],
@@ -80,6 +125,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should be able to unscope', function () {
       expect(Company.scope(null).$scope).to.be.empty;
       expect(Company.unscoped().$scope).to.be.empty;
+      // Yes, being unscoped is also a scope - this prevents inject defaultScope, when including a scoped model, see #4663
+      expect(Company.unscoped().scoped).to.be.ok;
     });
 
     it('should be able to merge scopes', function() {
@@ -217,6 +264,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{ model: Project }]
       });
     });
+
+    it('works with exclude and include attributes', function () {
+      Company.addScope('newIncludeScope', {
+        attributes: {
+          include: ['foobar'],
+          exclude: ['createdAt']
+        }
+      });
+
+      expect(Company.scope('newIncludeScope').$scope).to.deep.equal({
+        attributes: ['id', 'updatedAt', 'foobar']
+      });
+    });
+
   });
 
   describe('$injectScope', function () {
@@ -237,7 +298,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         limit: 9
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options).to.deep.equal({
         where: {
@@ -259,7 +322,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       var options = {};
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -274,7 +339,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -289,7 +356,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({model: User, as: 'otherUser'});
@@ -309,11 +378,60 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         ]
       };
 
-      current.Model.$injectScope(scope, options);
+      current.Model.prototype.$injectScope.call({
+        $scope: scope
+      }, options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
       expect(options.include[1]).to.deep.equal({ model: Project, where: { something: false }});
+    });
+
+    describe('include all', function () {
+      it('scope with all', function () {
+        var scope = {
+          include: [
+            { all: true }
+          ]
+        };
+
+        var options = {
+          include: [
+            { model: User, where: { something: true }}
+          ]
+        };
+
+        current.Model.prototype.$injectScope.call({
+          $scope: scope
+        }, options);
+
+        expect(options.include).to.have.length(2);
+        expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
+        expect(options.include[1]).to.deep.equal({ all: true });
+      });
+
+
+      it('options with all', function () {
+        var scope = {
+          include: [
+            { model: User, where: { something: true }}
+          ]
+        };
+
+        var options = {
+          include: [
+            { all: true }
+          ]
+        };
+
+        current.Model.prototype.$injectScope.call({
+          $scope: scope
+        }, options);
+
+        expect(options.include).to.have.length(2);
+        expect(options.include[0]).to.deep.equal({ all: true });
+        expect(options.include[1]).to.deep.equal({ model: User, where: { something: true }});
+      });
     });
   });
 });

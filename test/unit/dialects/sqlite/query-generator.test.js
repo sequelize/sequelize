@@ -50,6 +50,10 @@ if (dialect === 'sqlite') {
           expectation: {id: 'INTEGER DEFAULT 0'}
         },
         {
+          arguments: [{id: {type: 'INTEGER', defaultValue: undefined}}],
+          expectation: {id: 'INTEGER'}
+        },
+        {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },
@@ -343,6 +347,16 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {where: {field: {ne: null}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
           context: QueryGenerator
+        }, {
+          title: 'use IS NOT if not === BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: true}}}],
+          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT 1;',
+          context: QueryGenerator
+        }, {
+          title: 'use != if not !== BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: 3}}}],
+          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
+          context: QueryGenerator
         }
       ],
 
@@ -493,28 +507,6 @@ if (dialect === 'sqlite') {
           expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name` = 'foo'",
           needsSequelize: true
         }
-      ],
-
-      deleteQuery: [
-        {
-          arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }, {
-          arguments: ['myTable', 1],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1'
-        }, {
-          arguments: ['myTable', 1, {truncate: true}],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1'
-        }, {
-          arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1'
-        }, {
-          arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'';DROP TABLE myTable;'"
-        }, {
-          arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }
       ]
     };
 
@@ -529,7 +521,7 @@ if (dialect === 'sqlite') {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
-            QueryGenerator.options = context.options;
+            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

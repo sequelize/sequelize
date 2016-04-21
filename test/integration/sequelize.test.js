@@ -14,13 +14,15 @@ var chai = require('chai')
   , moment = require('moment')
   , Transaction = require(__dirname + '/../../lib/transaction')
   , sinon = require('sinon')
+  , babel = require('babel-core')
+  , fs = require('fs')
   , current = Support.sequelize;
 
 
 var qq = function(str) {
-  if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+  if (dialect === 'postgres' || dialect === 'mssql') {
     return '"' + str + '"';
-  } else if (Support.dialectIsMySQL()) {
+  } else if (Support.dialectIsMySQL() || dialect === 'sqlite') {
     return '`' + str + '`';
   } else {
     return str;
@@ -221,6 +223,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('query', function() {
     afterEach(function() {
       this.sequelize.options.quoteIdentifiers = true;
+
+      console.log.restore && console.log.restore();
     });
 
     beforeEach(function() {
@@ -245,6 +249,57 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     it('executes a query if only the sql is passed', function() {
       return this.sequelize.query(this.insertQuery);
+    });
+
+    it('executes a query with global benchmarking option and default logger', function() {
+      var logger = sinon.spy(console, 'log');
+      var sequelize = Support.createSequelizeInstance({
+        logging: logger,
+        benchmark: true
+      });
+
+      return sequelize.query('select 1;').then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+      });
+    });
+
+    it('executes a query with global benchmarking option and custom logger', function() {
+      var logger = sinon.spy();
+      var sequelize = Support.createSequelizeInstance({
+        logging: logger,
+        benchmark: true
+      });
+
+      return sequelize.query('select 1;').then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+        expect(typeof logger.args[0][1] === 'number').to.be.true;
+      });
+    });
+
+    it('executes a query with benchmarking option and default logger', function() {
+      var logger = sinon.spy(console, 'log');
+      return this.sequelize.query('select 1;', {
+        logging: logger,
+        benchmark: true
+      }).then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+      });
+    });
+
+    it('executes a query with benchmarking option and custom logger', function() {
+      var logger = sinon.spy();
+
+      return this.sequelize.query('select 1;', {
+        logging: logger,
+        benchmark: true
+      }).then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+        expect(typeof logger.args[0][1] === 'number').to.be.true;
+      });
     });
 
     it('executes select queries correctly', function() {
@@ -349,9 +404,93 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       }).to.throw(Error, 'Both `sql.values` and `options.replacements` cannot be set at the same time');
     });
 
+    it('throw an exception if `sql.bind` and `options.bind` are both passed', function() {
+      var self = this;
+      expect(function() {
+        return self.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, bind: [1, 2] });
+      }).to.throw(Error, 'Both `sql.bind` and `options.bind` cannot be set at the same time');
+    });
+
+    it('throw an exception if `options.replacements` and `options.bind` are both passed', function() {
+      var self = this;
+      expect(function() {
+        return self.sequelize.query('select $1 + ? as foo, $2 + ? as bar', { raw: true, bind: [1, 2], replacements: [1, 2] });
+      }).to.throw(Error, 'Both `replacements` and `bind` cannot be set at the same time');
+    });
+
+    it('throw an exception if `sql.bind` and `sql.values` are both passed', function() {
+      var self = this;
+      expect(function() {
+        return self.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2], values: [1, 2] }, { raw: true });
+      }).to.throw(Error, 'Both `replacements` and `bind` cannot be set at the same time');
+    });
+
+    it('throw an exception if `sql.bind` and `options.replacements`` are both passed', function() {
+      var self = this;
+      expect(function() {
+        return self.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, replacements: [1, 2] });
+      }).to.throw(Error, 'Both `replacements` and `bind` cannot be set at the same time');
+    });
+
+    it('throw an exception if `options.bind` and `sql.replacements` are both passed', function() {
+      var self = this;
+      expect(function() {
+        return self.sequelize.query({ query: 'select $1 + ? as foo, $1 _ ? as bar', values: [1, 2] }, { raw: true, bind: [1, 2] });
+      }).to.throw(Error, 'Both `replacements` and `bind` cannot be set at the same time');
+    });
+
+    it('properly adds and escapes replacement value', function () {
+      var logSql,
+          number  = 1,
+          date = new Date(),
+          string = 't\'e"st',
+          boolean = true,
+          buffer = new Buffer('t\'e"st');
+
+      date.setMilliseconds(0);
+      return this.sequelize.query({
+          query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
+          values: [number, date, string, boolean, buffer]
+        }, {
+          type: this.sequelize.QueryTypes.SELECT,
+          logging: function(s) {
+            logSql = s;
+          }
+        }).then(function(result) {
+          var res = result[0] || {};
+          res.date = res.date && new Date(res.date);
+          res.boolean = res.boolean && true;
+          if (typeof res.buffer === 'string' && res.buffer.indexOf('\\x') === 0) {
+            res.buffer = new Buffer(res.buffer.substring(2), 'hex');
+          }
+          expect(res).to.deep.equal({
+            number : number,
+            date   : date,
+            string : string,
+            boolean: boolean,
+            buffer : buffer
+          });
+          expect(logSql.indexOf('?')).to.equal(-1);
+      });
+    });
+
     it('uses properties `query` and `values` if query is tagged', function() {
-      return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT }).then(function(result) {
+      var logSql;
+      return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging: function(s) { logSql = s; } }).then(function(result) {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
+        expect(logSql.indexOf('?')).to.equal(-1);
+      });
+    });
+
+    it('uses properties `query` and `bind` if query is tagged', function() {
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      return this.sequelize.query({ query: 'select $1'+typeCast+' as foo, $2'+typeCast+' as bar', bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
+        if ((dialect === 'postgres') || (dialect === 'sqlite')) {
+          expect(logSql.indexOf('$1')).to.be.above(-1);
+          expect(logSql.indexOf('$2')).to.be.above(-1);
+        }
       });
     });
 
@@ -432,6 +571,154 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       }).to.throw(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
+    it('binds token with the passed array', function() {
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      return this.sequelize.query('select $1'+typeCast+' as foo, $2'+typeCast+' as bar', { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
+        if ((dialect === 'postgres') || (dialect === 'sqlite')) {
+          expect(logSql.indexOf('$1')).to.be.above(-1);
+        }
+      });
+    });
+
+    it('binds named parameters with the passed object', function() {
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      return this.sequelize.query('select $one'+typeCast+' as foo, $two'+typeCast+' as bar', { raw: true, bind: { one: 1, two: 2 }, logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result[0]).to.deep.equal([{ foo: 1, bar: 2 }]);
+        if ((dialect === 'postgres')) {
+          expect(logSql.indexOf('$1')).to.be.above(-1);
+        }
+        if ((dialect === 'sqlite')) {
+          expect(logSql.indexOf('$one')).to.be.above(-1);
+        }
+      });
+    });
+
+    it('binds named parameters with the passed object using the same key twice', function() {
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      return this.sequelize.query('select $one'+typeCast+' as foo, $two'+typeCast+' as bar, $one'+typeCast+' as baz', { raw: true, bind: { one: 1, two: 2 }, logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
+        if ((dialect === 'postgres')) {
+          expect(logSql.indexOf('$1')).to.be.above(-1);
+          expect(logSql.indexOf('$2')).to.be.above(-1);
+          expect(logSql.indexOf('$3')).to.equal(-1);
+        }
+      });
+    });
+
+    it('binds named parameters with the passed object having a null property', function() {
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      return this.sequelize.query('select $one'+typeCast+' as foo, $two'+typeCast+' as bar', { raw: true, bind: { one: 1, two: null }, logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result[0]).to.deep.equal([{ foo: 1, bar: null }]);
+      });
+    });
+
+    it('binds named parameters array handles escaped $$', function() {
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      return this.sequelize.query('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar', { raw: true, bind: [1 ], logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
+        if ((dialect === 'postgres') || (dialect === 'sqlite')) {
+          expect(logSql.indexOf('$1')).to.be.above(-1);
+        }
+      });
+    });
+
+    it('binds named parameters object handles escaped $$', function() {
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      return this.sequelize.query('select $one'+typeCast+' as foo, \'$$ / $$one\' as bar', { raw: true, bind: { one: 1 }, logging: function(s) { logSql = s; } }).then(function(result) {
+        expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
+      });
+    });
+
+    if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+      it ('does not improperly escape arrays of strings bound to named parameters', function() {
+        var logSql;
+        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: [ '"string"' ] }, logging: function(s) { logSql = s; } }).then(function(result) {
+          expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
+        });
+      });
+    }
+
+    it('throw an exception when binds passed with object and numeric $1 is also present', function() {
+      var self = this;
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      expect(function() {
+        self.sequelize.query('select $one'+typeCast+' as foo, $two'+typeCast+' as bar, \'$1\' as baz', {  raw: true, bind: { one: 1, two: 2 }, logging: function(s) { logSql = s; } });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception when binds passed as array and $alpha is also present', function() {
+      var self = this;
+      var typeCast = (dialect === 'postgres') ? '::int' : '';
+      var logSql;
+      expect(function() {
+        self.sequelize.query('select $1'+typeCast+' as foo, $2'+typeCast+' as bar, \'$foo\' as baz', { raw: true, bind: [1, 2], logging: function(s) { logSql = s; } });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception when bind key is $0 with the passed array', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $1 as foo, $0 as bar, $3 as baz', { raw: true, bind: [1, 2] });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception when bind key is $01 with the passed array', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $1 as foo, $01 as bar, $3 as baz', { raw: true, bind: [1, 2] });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception when bind key is missing in the passed array', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $1 as foo, $2 as bar, $3 as baz', { raw: true, bind: [1, 2] });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception when bind key is missing in the passed object', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $one as foo, $two as bar, $three as baz', { raw: true, bind: { one: 1, two: 2 }});
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception with the passed number for bind', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 2 });
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception with the passed empty object for bind', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: {}});
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception with the passed string for bind', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 'foobar'});
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
+    it('throw an exception with the passed date for bind', function() {
+      var self = this;
+      expect(function() {
+        self.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: new Date()});
+      }).to.throw(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
+    });
+
     it('handles AS in conjunction with functions just fine', function() {
       var datetime = (dialect === 'sqlite' ? 'date(\'now\')' : 'NOW()');
       if (dialect === 'mssql') {
@@ -454,6 +741,27 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           .to.eventually.deep.equal([{ 'sum': '5050' }]);
       });
     }
+
+    if (Support.getTestDialect() === 'sqlite') {
+      it('binds array parameters for upsert are replaced. $$ unescapes only once', function() {
+        var logSql;
+        return this.sequelize.query('select $1 as foo, $2 as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: [1, 2], logging: function(s) { logSql = s; } }).then(function(result) {
+          // sqlite.exec does not return a result
+          expect(logSql.indexOf('$one')).to.equal(-1);
+          expect(logSql.indexOf('\'$$\'')).to.be.above(-1);
+        });
+      });
+
+      it('binds named parameters for upsert are replaced. $$ unescapes only once', function() {
+        var logSql;
+        return this.sequelize.query('select $one as foo, $two as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: { one: 1, two: 2 }, logging: function(s) { logSql = s; } }).then(function(result) {
+          // sqlite.exec does not return a result
+          expect(logSql.indexOf('$one')).to.equal(-1);
+          expect(logSql.indexOf('\'$$\'')).to.be.above(-1);
+        });
+      });
+    }
+
   });
 
   describe('set', function() {
@@ -688,7 +996,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       return Photo.sync({ force: true }).then(function() {
         return self.sequelize.getQueryInterface().showAllTables().then(function(tableNames) {
           if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-            tableNames = _.pluck(tableNames, 'tableName');
+            tableNames = _.map(tableNames, 'tableName');
           }
           expect(tableNames).to.include('photos');
         });
@@ -923,8 +1231,21 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('import', function() {
     it('imports a dao definition from a file absolute path', function() {
       var Project = this.sequelize.import(__dirname + '/assets/project');
-
       expect(Project).to.exist;
+    });
+
+    it('imports a dao definition from a file compiled with babel', function () {
+      var es6project = babel.transformFileSync(__dirname + '/assets/es6project.es6', {
+        presets: ['es2015']
+      }).code;
+      fs.writeFileSync(__dirname + '/assets/es6project.js', es6project);
+      var Project = this.sequelize.import(__dirname + '/assets/es6project');
+      expect(Project).to.exist;
+
+    });
+
+    after(function(){
+      fs.unlink(__dirname + '/assets/es6project.js');
     });
 
     it('imports a dao definition from a function', function() {
@@ -945,6 +1266,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     ].forEach(function(status) {
       describe('enum', function() {
         beforeEach(function() {
+          this.sequelize = Support.createSequelizeInstance({
+            typeValidation: true
+          });
+
           this.Review = this.sequelize.define('review', { status: status });
           return this.Review.sync({ force: true });
         });
@@ -1270,8 +1595,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             expect(Number(user.deletedAt)).to.equal(epoch);
             return user.destroy();
           }).then(function(destroyedUser) {
+            expect(destroyedUser.deletedAt).to.exist;
             expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
-            return destroyedUser.restore();
+            return User.findById(destroyedUser.id, { paranoid: false });
+          }).then(function(fetchedDestroyedUser) {
+            expect(fetchedDestroyedUser.deletedAt).to.exist;
+            expect(Number(fetchedDestroyedUser.deletedAt)).not.to.equal(epoch);
+            return fetchedDestroyedUser.restore();
           }).then(function(restoredUser) {
             expect(Number(restoredUser.deletedAt)).to.equal(epoch);
             return User.destroy({where: {

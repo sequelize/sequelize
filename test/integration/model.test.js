@@ -11,9 +11,18 @@ var chai = require('chai')
   , sinon = require('sinon')
   , _ = require('lodash')
   , moment = require('moment')
+  , Promise = require('bluebird')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
+  before(function () {
+    this.clock = sinon.useFakeTimers();
+  });
+
+  after(function () {
+    this.clock.restore();
+  });
+
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -180,8 +189,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserTable.create({aNumber: 4}).then(function(user) {
           expect(user.updatedOn).to.exist;
           expect(user.dateCreated).to.exist;
-          return user.destroy().then(function(user) {
-            expect(user.deletedAtThisTime).to.exist;
+          return user.destroy().then(function() {
+            return user.reload({ paranoid: false }).then(function() {
+              expect(user.deletedAtThisTime).to.exist;
+            });
           });
         });
       });
@@ -208,8 +219,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           user.name = 'heho';
           return user.save().then(function(user) {
             expect(user.updatedAt).not.to.exist;
-            return user.destroy().then(function(user) {
-              expect(user.deletedAtThisTime).to.exist;
+            return user.destroy().then(function() {
+              return user.reload({ paranoid: false }).then(function() {
+                expect(user.deletedAtThisTime).to.exist;
+              });
             });
           });
         });
@@ -1045,6 +1058,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should properly set data when individualHooks are true', function() {
+      var self = this;
+
+      self.User.beforeUpdate(function(instance) {
+         instance.set('intVal', 1);
+      });
+
+      return self.User.create({ username: 'Peter' }).then(function (user) {
+        return self.User.update({ data: 'test' }, { where: { id: user.id }, individualHooks: true }).then(function () {
+          return self.User.findById(user.id).then(function (userUpdated){
+            expect(userUpdated.intVal).to.be.equal(1);
+          });
+        });
+      });
+    });
+
     it('sets updatedAt to the current timestamp', function() {
       var data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
@@ -1059,9 +1088,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(this.updatedAt).to.equalTime(users[2].updatedAt); // All users should have the same updatedAt
 
         // Pass the time so we can actually see a change
-        return this.sequelize.Promise.delay(1000).bind(this).then(function() {
-          return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
-        });
+        this.clock.tick(1000);
+        return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
       }).then(function() {
         return this.User.findAll({order: 'id'});
       }).then(function(users) {
@@ -1324,6 +1352,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
         expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
+      });
+    });
+
+    it('does not set deletedAt for previously destroyed instances if paranoid is true', function() {
+      var User = this.sequelize.define('UserCol', {
+        secretValue: Sequelize.STRING,
+        username: Sequelize.STRING
+      }, { paranoid: true });
+
+      return User.sync({ force: true }).then(function() {
+        return User.bulkCreate([
+          { username: 'Toni', secretValue: '42' },
+          { username: 'Tobi', secretValue: '42' },
+          { username: 'Max', secretValue: '42' }
+        ]).then(function() {
+          return User.findById(1).then(function(user) {
+            return user.destroy().then(function() {
+              return user.reload({ paranoid: false }).then(function() {
+                var deletedAt = user.deletedAt;
+
+                return User.destroy({ where: { secretValue: '42' } }).then(function() {
+                  return user.reload({ paranoid: false }).then(function() {
+                    expect(user.deletedAt).to.eql(deletedAt);
+                  });
+                });
+              });
+            });
+          });
+        });
       });
     });
 
@@ -1953,7 +2010,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('sum', function() {
     beforeEach(function() {
-      var self = this;
       this.UserWithAge = this.sequelize.define('UserWithAge', {
         age: Sequelize.INTEGER,
         order: Sequelize.INTEGER,
@@ -1964,9 +2020,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         value: Sequelize.DECIMAL(10, 3)
       });
 
-      return this.UserWithAge.sync({ force: true }).then(function() {
-        return self.UserWithDec.sync({ force: true });
+      this.UserWithFields = this.sequelize.define('UserWithFields', {
+        age: {
+          type: Sequelize.INTEGER,
+          field: 'user_age'
+        },
+        order: Sequelize.INTEGER,
+        gender: {
+          type: Sequelize.ENUM('male', 'female'),
+          field: 'male_female'
+        }
       });
+
+      return Promise.join(
+        this.UserWithAge.sync({ force: true }),
+        this.UserWithDec.sync({ force: true }),
+        this.UserWithFields.sync({ force: true })
+      );
     });
 
     it('should return the sum of the values for a field named the same as an SQL reserved keyword', function() {
@@ -2004,6 +2074,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return self.UserWithAge.sum('age', options).then(function(sum) {
           expect(sum).to.equal(2);
         });
+      });
+    });
+
+    it('should accept a where clause with custom fields', function() {
+      return this.UserWithFields.bulkCreate([
+        {age: 2, gender: 'male'},
+        {age: 3, gender: 'female'}
+      ]).bind(this).then(function() {
+        return expect(this.UserWithFields.sum('age', {
+          where: { 'gender': 'male' }
+        })).to.eventually.equal(2);
       });
     });
 

@@ -110,7 +110,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       return self.sequelize.dropAllSchemas().then(function() {
         return self.sequelize.createSchema('archive');
       }).then(function() {
-        return self.sequelize.sync({force: true });
+        return User.sync({force: true });
+      }).then(function() {
+        return Task.sync({force: true });
       }).then(function() {
         return Promise.all([
           User.create({ username: 'foo', gender: 'male' }),
@@ -332,6 +334,28 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         });
       });
     });
+
+    it('supports setting same association twice', function () {
+      var Home = this.sequelize.define('home', {})
+        , User = this.sequelize.define('user');
+
+      Home.belongsTo(User);
+
+      return this.sequelize.sync({ force: true }).bind({}).then(function () {
+        return Promise.all([
+          Home.create(),
+          User.create()
+        ]);
+      }).spread(function (home, user) {
+        this.home = home;
+        this.user = user;
+        return home.setUser(user);
+      }).then(function() {
+        return this.home.setUser(this.user);
+      }).then(function () {
+        return expect(this.home.getUser()).to.eventually.have.property('id', this.user.get('id'));
+      });
+    });
   });
 
   describe('createAssociation', function() {
@@ -456,6 +480,25 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
                 return task.reload().then(function() {
                   expect(task.UserId).to.equal(null);
                 });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('sets to NO ACTION if allowNull: false', function() {
+      var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
+        , User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+      Task.belongsTo(User, { foreignKey: { allowNull: false }}); // defaults to NO ACTION
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'foo' }).then(function(user) {
+          return Task.create({ title: 'task', UserId: user.id }).then(function(task) {
+            return expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(function () {
+              return Task.findAll().then(function(tasks) {
+                expect(tasks).to.have.length(1);
               });
             });
           });

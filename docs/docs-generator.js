@@ -48,7 +48,7 @@ Comment.prototype.getTag = function(tagName) {
 };
 
 Comment.prototype.getTags = function(tagName) {
-  return _.where(this.data.tags, { type: tagName });
+  return _.filter(this.data.tags, { type: tagName });
 };
 
 Comment.prototype.hasTag = function(tagName) {
@@ -93,7 +93,7 @@ Comment.prototype.putString = function(str) {
 
 Comment.prototype.putLine = function(str) {
   str = str || '';
-  this.putString(str + "\n");
+  this.putString(str + '\n');
 };
 
 Comment.prototype.putLines = function(lines) {
@@ -103,7 +103,7 @@ Comment.prototype.putLines = function(lines) {
 };
 
 Comment.prototype.toString = function () {
-  return this.string + "\n";
+  return this.string + '\n';
 };
 
 ['class', 'mixin', 'constructor'].forEach(function (prop) {
@@ -180,6 +180,7 @@ var parseComments = function (comments, file) {
       }
 
       comment.putLine('[View code](' + comment.githubLink() + ')');
+      comment.putLine();
       comment.putLine(comment.data.description.full);
 
       if ((mixes = comment.getTags('mixes')).length) {
@@ -259,7 +260,7 @@ var parseComments = function (comments, file) {
   return output;
 };
 
-var code, obj, output, path;
+var obj, path;
 
 new git.Repo(path.dirname(__filename) + '/..', function (err, repo) {
   repo.head(function (err, status) {
@@ -270,7 +271,7 @@ new git.Repo(path.dirname(__filename) + '/..', function (err, repo) {
         obj = dox.parseComments(code.toString(), { raw: true});
         path = program.out + '/' + file.output + '.md';
 
-        console.log(path)
+        console.log(path);
 
         var output = parseComments(obj, file.file);
         fs.writeFile(path, output);

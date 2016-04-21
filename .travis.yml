@@ -29,12 +29,7 @@ before_script:
   - "psql sequelize_test -c 'create extension postgis;' -U postgres"
 
 script:
-  - "make test"
-
-branches:
-  only:
-    - master
-    - 1.7.0
+  - "npm test"
 
 matrix:
   fast_finish: true
@@ -44,9 +39,3 @@ matrix:
   allow_failures:
     - node_js: "0.10"
       env: COVERAGE=true
-
-notifications:
-  hipchat:
-    - 40e8850aaba9854ac4c9963bd33f8b@253477
-  irc:
-    - "chat.freenode.net#sequelizejs"

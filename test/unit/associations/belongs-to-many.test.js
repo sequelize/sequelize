@@ -36,8 +36,26 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
 
     AB = current.model('AB');
 
-    expect(AB.options.defaultScope).not.to.be.ok;
+    expect(AB.options.defaultScope).to.deep.equal({});
     expect(AB.options.scopes).to.have.length(0);
+  });
+
+  it('should not inherit validations from parent to join table', function () {
+    var A = current.define('a')
+      , B = current.define('b', {}, {
+        validate: {
+          validateModel: function () {
+            return true;
+          }
+        }
+      })
+      , AB;
+
+    B.belongsToMany(A, { through: 'AB' });
+
+    AB = current.model('AB');
+
+    expect(AB.options.validate).to.deep.equal({});
   });
 
   describe('timestamps', function () {

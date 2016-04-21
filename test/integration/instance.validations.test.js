@@ -131,6 +131,43 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           expect(err.errors[0].message).to.equal('custom unique error message');
         });
     });
+
+    it('should handle multiple unique messages correctly', function() {
+      var Model = this.sequelize.define('model', {
+        uniqueName1: {
+          type: Sequelize.STRING,
+          unique: { msg: 'custom unique error message 1' }
+        },
+        uniqueName2: {
+          type: Sequelize.STRING,
+          unique: { msg: 'custom unique error message 2' }
+        },
+      });
+      var records = [
+        { uniqueName1: 'unique name one', uniqueName2: 'unique name one' },
+        { uniqueName1: 'unique name one', uniqueName2: 'this is ok' },
+        { uniqueName1: 'this is ok', uniqueName2: 'unique name one' },
+      ];
+      return Model.sync({ force: true })
+        .then(function() {
+          return Model.create(records[0]);
+        }).then(function(instance) {
+          expect(instance).to.be.ok;
+          return expect(Model.create(records[1])).to.be.rejected;
+        }).then(function(err) {
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.errors).to.have.length(1);
+          expect(err.errors[0].path).to.include('uniqueName1');
+          expect(err.errors[0].message).to.equal('custom unique error message 1');
+
+          return expect(Model.create(records[2])).to.be.rejected;
+        }).then(function(err) {
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.errors).to.have.length(1);
+          expect(err.errors[0].path).to.include('uniqueName2');
+          expect(err.errors[0].message).to.equal('custom unique error message 2');
+        });
+    });
   });
 
   describe('#create', function() {
@@ -336,7 +373,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
       var successfulUser = User.build({ name: '2' });
       return successfulUser.validate().then(function(err) {
-        expect(err).to.be.undefined;
+        expect(err).to.be.null;
       });
     });
   });
@@ -365,7 +402,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         expect(error.get('name')[0].message).to.equal('Invalid username');
 
         return User.build({ name: 'no error' }).validate().then(function(errors) {
-          expect(errors).to.be.undefined;
+          expect(errors).to.be.null;
         });
       });
     });
@@ -661,14 +698,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         password: 'short',
         salt: '42'
       }).validate().then(function(errors) {
-        expect(errors).not.to.be.undefined;
+        expect(errors).not.to.be.null;
         expect(errors.get('password')[0].message).to.equal('Please choose a longer password');
       }),
       User.build({
         password: 'loooooooong',
         salt: '42'
       }).validate().then(function(errors) {
-        expect(errors).to.be.undefined;
+        expect(errors).to.be.null;
       })
     ]);
   });
@@ -690,7 +727,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     return User.build({
       name: 'abcdefg'
     }).validate().then(function(errors) {
-      expect(errors === undefined).to.be.ok;
+      expect(errors).to.be.null;
 
       return User.build({
         name: 'a'

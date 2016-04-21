@@ -5,12 +5,16 @@
 var chai = require('chai')
   , Sequelize = require('../../../../index')
   , expect = chai.expect
+  , Promise = require(__dirname + '/../../../../lib/promise')
   , Support = require(__dirname + '/../../support');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('scope', function () {
     describe('count', function () {
       beforeEach(function () {
+        this.Child = this.sequelize.define('Child', {
+          priority: Sequelize.INTEGER
+        });
         this.ScopeMe = this.sequelize.define('ScopeMe', {
           username: Sequelize.STRING,
           email: Sequelize.STRING,
@@ -22,7 +26,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               access_level: {
                 gte: 5
               }
-            }
+            },
+            attributes: ['id', 'username', 'email', 'access_level']
           },
           scopes: {
             lowAccess: {
@@ -34,11 +39,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             withOrder: {
               order: 'username'
+            },
+            withInclude: {
+              include: [{
+                model: this.Child,
+                where: {
+                  priority: 1
+                }
+              }]
             }
           }
         });
+        this.Child.belongsTo(this.ScopeMe);
+        this.ScopeMe.hasMany(this.Child);
 
-        return this.sequelize.sync({force: true}).then(function() {
+        return this.sequelize.sync({force: true}).then(function () {
           var records = [
             {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7},
             {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
@@ -46,7 +61,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7}
           ];
           return this.ScopeMe.bulkCreate(records);
-        }.bind(this));
+        }.bind(this)).then(function () {
+          return this.ScopeMe.findAll();
+        }.bind(this)).then(function (records) {
+          return Promise.all([
+            records[0].createChild({
+              priority: 1
+            }),
+            records[1].createChild({
+              priority: 2
+            })
+          ]);
+        });
       });
 
       it('should apply defaultScope', function () {
@@ -71,6 +97,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('should ignore the order option if it is found within the scope', function () {
         return expect(this.ScopeMe.scope('withOrder').count()).to.eventually.equal(4);
+      });
+
+      it('should be able to use where on include', function () {
+        return expect(this.ScopeMe.scope('withInclude').count()).to.eventually.equal(1);
       });
     });
   });

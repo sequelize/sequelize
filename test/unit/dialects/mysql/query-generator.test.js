@@ -332,9 +332,19 @@ if (Support.dialectIsMySQL()) {
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', {offset: 2}],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 18440000000000000000;',
+          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
           context: QueryGenerator
         }, {
+          title: 'uses limit 0',
+          arguments: ['myTable', {limit: 0}],
+          expectation: 'SELECT * FROM `myTable` LIMIT 0;',
+          context: QueryGenerator
+        }, {
+         title: 'uses offset 0',
+         arguments: ['myTable', {offset: 0}],
+         expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+         context: QueryGenerator
+       }, {
           title: 'multiple where arguments',
           arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat` = 'canoe' AND `myTable`.`weather` = 'cold';",
@@ -368,6 +378,16 @@ if (Support.dialectIsMySQL()) {
           title: 'use IS NOT if ne === null',
           arguments: ['myTable', {where: {field: {ne: null}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
+          context: QueryGenerator
+        }, {
+          title: 'use IS NOT if not === BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: true}}}],
+          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT true;',
+          context: QueryGenerator
+        }, {
+          title: 'use != if not !== BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: 3}}}],
+          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
           context: QueryGenerator
         }
       ],
@@ -509,31 +529,6 @@ if (Support.dialectIsMySQL()) {
         }
       ],
 
-      deleteQuery: [
-        {
-          arguments: ['myTable', {name: 'foo'}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo' LIMIT 1"
-        }, {
-          arguments: ['myTable', 1],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1 LIMIT 1'
-        },{
-          arguments: ['myTable', undefined, {truncate: true}],
-          expectation: 'TRUNCATE `myTable`'
-        },{
-          arguments: ['myTable', 1, {limit: 10, truncate: true}],
-          expectation: 'TRUNCATE `myTable`'
-        }, {
-          arguments: ['myTable', 1, {limit: 10}],
-          expectation: 'DELETE FROM `myTable` WHERE `id` = 1 LIMIT 10'
-        }, {
-          arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {limit: 10}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo\\';DROP TABLE myTable;' LIMIT 10"
-        }, {
-          arguments: ['myTable', {name: 'foo'}, {limit: null}],
-          expectation: "DELETE FROM `myTable` WHERE `name` = 'foo'"
-        }
-      ],
-
       showIndexesQuery: [
         {
           arguments: ['User'],
@@ -566,7 +561,7 @@ if (Support.dialectIsMySQL()) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
-            QueryGenerator.options = context.options;
+            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

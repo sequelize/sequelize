@@ -7,9 +7,9 @@ The key difference is that the managed transaction uses a callback that expects 
 
 # Managed transaction (auto-callback)
 
-Managed transactions handle comitting or rolling back the transaction automagically. You start a managed transaction by passing a callback to `sequelize.transaction`.
+Managed transactions handle committing or rolling back the transaction automagically. You start a managed transaction by passing a callback to `sequelize.transaction`.
 
-Notice how the callback passed to `transaction` returns a promise chain, and does not explicitly call `t.commit()` nor `t.rollback()`. If all promises in the returned chain are resolved successfully the transaction is comitted. If one or several of the promises are rejected, the transaction is rolled back.
+Notice how the callback passed to `transaction` returns a promise chain, and does not explicitly call `t.commit()` nor `t.rollback()`. If all promises in the returned chain are resolved successfully the transaction is committed. If one or several of the promises are rejected, the transaction is rolled back.
 
 ```js
 return sequelize.transaction(function (t) {
@@ -133,7 +133,7 @@ return sequelize.transaction({
 ```
 
 # Unmanaged transaction (then-callback)
-Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise.
+Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise. Notice that `commit()` and `rollback()` returns a promise.
 
 ```js
 return sequelize.transaction().then(function (t) {
@@ -146,9 +146,9 @@ return sequelize.transaction().then(function (t) {
       lastName: 'Simpson'
     }, {transaction: t});
   }).then(function () {
-    t.commit();
+    return t.commit();
   }).catch(function (err) {
-    t.rollback();
+    return t.rollback();
   });
 });
 ```

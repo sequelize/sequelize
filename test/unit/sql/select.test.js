@@ -36,9 +36,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       ],
       where: {
         email: 'jon.snow@gmail.com'
-      }
+      },
+      order: [
+        ['email', 'DESC']
+      ],
+      limit: 10
     }, {
-      default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com';"
+      default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com' ORDER BY [email] DESC LIMIT 10;",
+      mssql: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N'jon.snow@gmail.com' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;"
     });
 
     testsql({
@@ -102,6 +107,19 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       User.Posts = User.hasMany(Post, {foreignKey: 'userId', as: 'POSTS'});
 
+      var Comment = Support.sequelize.define('Comment', {
+        title: DataTypes.STRING,
+        postId: {
+          type: DataTypes.INTEGER,
+          field: 'post_id'
+        }
+      },
+      {
+        tableName: 'comment'
+      });
+
+      Post.Comments = Post.hasMany(Comment, {foreignKey: 'postId', as: 'COMMENTS'});
+
       var include = Model.$validateIncludedElements({
         include: [{
           attributes: ['title'],
@@ -138,6 +156,48 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];'
+      });
+
+      var nestedInclude = Model.$validateIncludedElements({
+        include: [{
+          attributes: ['title'],
+          association: User.Posts,
+          include: [{
+            attributes: ['title'],
+            association: Post.Comments
+          }]
+        }],
+        model: User
+      }).include;
+
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        include: nestedInclude,
+        attributes: [
+          ['id_user', 'id'],
+          'email',
+          ['first_name', 'firstName'],
+          ['last_name', 'lastName']
+        ],
+        order: [
+          ['last_name', 'ASC']
+        ],
+        groupedLimit: {
+          limit: 3,
+          on: 'companyId',
+          values: [
+            1,
+            5
+          ]
+        }
+      }, {
+        default: 'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS.COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS.COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM ('+
+          [
+            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+            '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+        +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS.COMMENTS] ON [POSTS].[id] = [POSTS.COMMENTS].[post_id];'
       });
     })();
 
@@ -231,5 +291,17 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+  });
+
+  suite('raw query', function () {
+    test('raw replacements', function () {
+      expectsql(sql.selectQuery('User', {
+        attributes: ['*'],
+        having: ['name IN (?)', [1, 'test', 3, "derp"]]
+      }), {
+        default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');",
+        mssql: "SELECT * FROM [User] HAVING name IN (1,N'test',3,N'derp');"
+      });
+    });
   });
 });

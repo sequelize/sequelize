@@ -4,12 +4,12 @@ To define mappings between a model and a table, use the `define` method. Sequeli
 
 
 ```js
-var Project = sequelize.define('Project', {
+var Project = sequelize.define('project', {
   title: Sequelize.STRING,
   description: Sequelize.TEXT
 })
 
-var Task = sequelize.define('Task', {
+var Task = sequelize.define('task', {
   title: Sequelize.STRING,
   description: Sequelize.TEXT,
   deadline: Sequelize.DATE
@@ -19,7 +19,7 @@ var Task = sequelize.define('Task', {
 You can also set some options on each column:
 
 ```js
-var Foo = sequelize.define('Foo', {
+var Foo = sequelize.define('foo', {
  // instantiating will automatically set the flag to true if not set
  flag: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
 
@@ -37,7 +37,7 @@ var Foo = sequelize.define('Foo', {
  someUnique: {type: Sequelize.STRING, unique: true},
  uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
  uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
- 
+
  // The unique property is simply a shorthand to create a unique index.
  someUnique: {type: Sequelize.STRING, unique: true}
  // It's exactly the same as creating the index in the model's options.
@@ -85,6 +85,7 @@ Sequelize.STRING                      // VARCHAR(255)
 Sequelize.STRING(1234)                // VARCHAR(1234)
 Sequelize.STRING.BINARY               // VARCHAR BINARY
 Sequelize.TEXT                        // TEXT
+Sequelize.TEXT('tiny')                // TINYTEXT
 
 Sequelize.INTEGER                     // INTEGER
 Sequelize.BIGINT                      // BIGINT
@@ -106,6 +107,8 @@ Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
 
 Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
+Sequelize.DATE(6)                     // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision 
+Sequelize.DATEONLY                    // DATE without time.
 Sequelize.BOOLEAN                     // TINYINT(1)
 
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
@@ -118,6 +121,18 @@ Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
 Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other options are medium and long)
 
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
+
+Sequelize.RANGE(Sequelize.INTEGER)    // Defines int4range range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.BIGINT)     // Defined int8range range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.DATE)       // Defines tstzrange range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.DATEONLY)   // Defines daterange range. PostgreSQL only.
+Sequelize.RANGE(Sequelize.DECIMAL)    // Defines numrange range. PostgreSQL only.
+
+Sequelize.ARRAY(Sequelize.RANGE(Sequelize.DATE)) // Defines array of tstzrange ranges. PostgreSQL only.
+
+Sequelize.GEOMETRY                    // Spatial column.  PostgreSQL (with PostGIS) or MySQL only.
+Sequelize.GEOMETRY('POINT')           // Spatial column with geomerty type.  PostgreSQL (with PostGIS) or MySQL only.
+Sequelize.GEOMETRY('POINT', 4326)     // Spatial column with geomerty type and SRID.  PostgreSQL (with PostGIS) or MySQL only.
 ```
 
 The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column. that data will always be returned as a buffer.
@@ -142,7 +157,7 @@ Sequelize.INTEGER(11).ZEROFILL.UNSIGNED // INTEGER(11) UNSIGNED ZEROFILL
 Sequelize.INTEGER(11).UNSIGNED.ZEROFILL // INTEGER(11) UNSIGNED ZEROFILL
 ```
 
-_The examples above only show integer&comma; but the same can be done with bigint and float_
+_The examples above only show integer, but the same can be done with bigint and float_
 
 Usage in object notation:
 
@@ -189,7 +204,7 @@ Getters and Setters can be defined in 2 ways (you can mix and match these 2 appr
 ### Defining as part of a property
 
 ```js
-var Employee = sequelize.define('Employee', {
+var Employee = sequelize.define('employee', {
   name:  {
     type     : Sequelize.STRING,
     allowNull: false,
@@ -223,7 +238,7 @@ Below is an example of defining the getters and setters in the model options. Th
 Note that the `this.firstname` and `this.lastname` references in the `fullName` getter function will trigger a call to the respective getter functions. If you do not want that then use the `getDataValue()` method to access the raw value (see below).
 
 ```js
-var Foo = sequelize.define('Foo', {
+var Foo = sequelize.define('foo', {
   firstname: Sequelize.STRING,
   lastname: Sequelize.STRING
 }, {
@@ -266,14 +281,14 @@ function(title) {
 
 ## Validations
 
-Model validations, allow you to specify format&sol;content&sol;inheritance validations for each attribute of the model&period;
+Model validations, allow you to specify format/content/inheritance validations for each attribute of the model.
 
 Validations are automatically run on `create`, `update` and `save`. You can also call `validate()` to manually validate an instance.
 
 The validations are implemented by [validator.js][3].
 
 ```js
-var ValidateMe = sequelize.define('Foo', {
+var ValidateMe = sequelize.define('foo', {
   foo: {
     type: Sequelize.STRING,
     validate: {
@@ -324,9 +339,9 @@ var ValidateMe = sequelize.define('Foo', {
 })
 ```
 
-Note that where multiple arguments need to be passed to the built-in validation functions&comma; the arguments to be passed must be in an array&period; But if a single array argument is to be passed&comma; for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument&period; To work around this pass a single-length array of arguments&comma; such as `[['one', 'two']]` as shown above&period;
+Note that where multiple arguments need to be passed to the built-in validation functions, the arguments to be passed must be in an array. But if a single array argument is to be passed, for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument. To work around this pass a single-length array of arguments, such as `[['one', 'two']]` as shown above.
 
-To use a custom error message instead of that provided by validator.js&comma; use an object instead of the plain value or array of arguments&comma; for example a validator which needs no argument can be given a custom message with
+To use a custom error message instead of that provided by validator.js, use an object instead of the plain value or array of arguments, for example a validator which needs no argument can be given a custom message with
 
 ```js
 isInt: {
@@ -334,7 +349,7 @@ isInt: {
 }
 ```
 
-or if arguments need to also be passed add an`args`property&colon;
+or if arguments need to also be passed add an`args`property:
 
 ```js
 isIn: {
@@ -343,28 +358,28 @@ isIn: {
 }
 ```
 
-When using custom validator functions the error message will be whatever message the thrown`Error`object holds&period;
+When using custom validator functions the error message will be whatever message the thrown`Error`object holds.
 
-See [the validator.js project][3] for more details on the built in validation methods&period;
+See [the validator.js project][3] for more details on the built in validation methods.
 
-**Hint&colon; **You can also define a custom function for the logging part&period; Just pass a function&period; The first parameter will be the string that is logged&period;
+**Hint: **You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.
 
 ### Validators and `allowNull`
 
-If a particular field of a model is set to allow null &lpar;with `allowNull: true`&rpar; and that value has been set to `null` &comma; its validators do not run&period; This means you can&comma; for instance&comma; have a string field which validates its length to be at least 5 characters&comma; but which also allows`null`&period;
+If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run. This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows`null`.
 
 ### Model validations
 
-Validations can also be defined to check the model after the field-specific validators&period; Using this you could&comma; for example&comma; ensure either neither of `latitude` and `longitude` are set or both&comma; and fail if one but not the other is set&period;
+Validations can also be defined to check the model after the field-specific validators. Using this you could, for example, ensure either neither of `latitude` and `longitude` are set or both, and fail if one but not the other is set.
 
-Model validator methods are called with the model object's context and are deemed to fail if they throw an error&comma; otherwise pass&period; This is just the same as with custom field-specific validators&period;
+Model validator methods are called with the model object's context and are deemed to fail if they throw an error, otherwise pass. This is just the same as with custom field-specific validators.
 
-Any error messages collected are put in the validation result object alongside the field validation errors&comma; with keys named after the failed validation method's key in the `validate` option object&period; Even though there can only be one error message for each model validation method at any one time&comma; it is presented as a single string error in an array&comma; to maximize consistency with the field errors&period; &lpar;Note that the structure of `validate()`'s output is scheduled to change in `v2.0`to avoid this awkward situation&period; In the mean time&comma; an error is issued if a field exists with the same name as a custom model validation&period;&rpar;
+Any error messages collected are put in the validation result object alongside the field validation errors, with keys named after the failed validation method's key in the `validate` option object. Even though there can only be one error message for each model validation method at any one time, it is presented as a single string error in an array, to maximize consistency with the field errors.
 
-An example&colon;
+An example:
 
 ```js
-var Pub = Sequelize.define('Pub', {
+var Pub = Sequelize.define('pub', {
   name: { type: Sequelize.STRING },
   address: { type: Sequelize.STRING },
   latitude: {
@@ -390,7 +405,7 @@ var Pub = Sequelize.define('Pub', {
 })
 ```
 
-In this simple case an object fails validation if either latitude or longitude is given&comma; but not both&period; If we try to build one with an out-of-range latitude and nolongitude, `raging_bullock_arms.validate()` might return
+In this simple case an object fails validation if either latitude or longitude is given, but not both. If we try to build one with an out-of-range latitude and no longitude, `raging_bullock_arms.validate()` might return
 
 ```js
 {
@@ -401,10 +416,10 @@ In this simple case an object fails validation if either latitude or longitude i
 
 ## Configuration
 
-You can also influence the way Sequelize handles your column names&colon;
+You can also influence the way Sequelize handles your column names:
 
 ```js
-var Bar = sequelize.define('Bar', { /* bla */ }, {
+var Bar = sequelize.define('bar', { /* bla */ }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
 
@@ -417,7 +432,7 @@ var Bar = sequelize.define('Bar', { /* bla */ }, {
   // so updatedAt will be updated_at
   underscored: true,
 
-  // disable the modification of tablenames; By default, sequelize will automatically
+  // disable the modification of table names; By default, sequelize will automatically
   // transform all passed model names (first parameter of define) into plural.
   // if you don't want that, set the following
   freezeTableName: true,
@@ -430,7 +445,7 @@ var Bar = sequelize.define('Bar', { /* bla */ }, {
 If you want sequelize to handle timestamps, but only want some of them, or want your timestamps to be called something else, you can override each column individually:
 
 ```js
-var Foo = sequelize.define('Foo',  { /* bla */ }, {
+var Foo = sequelize.define('foo',  { /* bla */ }, {
   // don't forget to enable timestamps!
   timestamps: true,
 
@@ -446,10 +461,10 @@ var Foo = sequelize.define('Foo',  { /* bla */ }, {
 })
 ```
 
-You can also change the database engine&comma; e&period;g&period; to MyISAM&period; InnoDB is the default.
+You can also change the database engine, e.g. to MyISAM. InnoDB is the default.
 
 ```js
-var Person = sequelize.define('Person', { /* attributes */ }, {
+var Person = sequelize.define('person', { /* attributes */ }, {
   engine: 'MYISAM'
 })
 
@@ -459,17 +474,17 @@ var sequelize = new Sequelize(db, user, pw, {
 })
 ```
 
-Finaly you can specify a comment for the table in MySQL and PG
+Finally you can specify a comment for the table in MySQL and PG
 
 ```js
-var Person = sequelize.define('Person', { /* attributes */ }, {
+var Person = sequelize.define('person', { /* attributes */ }, {
   comment: "I'm a table comment!"
 })
 ```
 
 ## Import
 
-You can also store your model definitions in a single file using the `import` method&period; The returned object is exactly the same as defined in the imported file's function&period; Since `v1:5.0` of Sequelize the import is cached&comma; so you won't run into troubles when calling the import of a file twice or more often&period;
+You can also store your model definitions in a single file using the `import` method. The returned object is exactly the same as defined in the imported file's function. Since `v1:5.0` of Sequelize the import is cached, so you won't run into troubles when calling the import of a file twice or more often.
 
 ```js
 // in your server file - e.g. app.js
@@ -478,18 +493,18 @@ var Project = sequelize.import(__dirname + "/path/to/models/project")
 // The model definition is done in /path/to/models/project.js
 // As you might notice, the DataTypes are the very same as explained above
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define("Project", {
+  return sequelize.define("project", {
     name: DataTypes.STRING,
     description: DataTypes.TEXT
   })
 }
 ```
 
-The `import` method can also accept a callback as an argument&period;
+The `import` method can also accept a callback as an argument.
 
 ```js
-sequelize.import('Project', function(sequelize, DataTypes) {
-  return sequelize.define("Project", {
+sequelize.import('project', function(sequelize, DataTypes) {
+  return sequelize.define("project", {
     name: DataTypes.STRING,
     description: DataTypes.TEXT
   })
@@ -498,7 +513,7 @@ sequelize.import('Project', function(sequelize, DataTypes) {
 
 ## Database synchronization
 
-When starting a new project you won't have a database structure and using Sequelize you won't need to&period; Just specify your model structures and let the library do the rest&period; Currently supported is the creation and deletion of tables&colon;
+When starting a new project you won't have a database structure and using Sequelize you won't need to. Just specify your model structures and let the library do the rest. Currently supported is the creation and deletion of tables:
 
 ```js
 // Create the tables:
@@ -520,13 +535,13 @@ Project.[sync|drop]().then(function() {
 })
 ```
 
-Because synchronizing and dropping all of your tables might be a lot of lines to write&comma; you can also let Sequelize do the work for you&colon;
+Because synchronizing and dropping all of your tables might be a lot of lines to write, you can also let Sequelize do the work for you:
 
 ```js
 // Sync all models that aren't already in the database
 sequelize.sync()
 
-// Force sync all modes
+// Force sync all models
 sequelize.sync({force: true})
 
 // Drop all tables
@@ -551,10 +566,10 @@ sequelize.sync({ force: true, match: /_test$/ });
 
 ## Expansion of models
 
-Sequelize allows you to pass custom methods to a model and its instances&period; Just do the following&colon;
+Sequelize allows you to pass custom methods to a model and its instances. Just do the following:
 
 ```js
-var Foo = sequelize.define('Foo', { /* attributes */}, {
+var Foo = sequelize.define('foo', { /* attributes */}, {
   classMethods: {
     method1: function(){ return 'smth' }
   },
@@ -568,10 +583,10 @@ Foo.method1()
 Foo.build().method2()
 ```
 
-Of course you can also access the instance's data and generate virtual getters&colon;
+Of course you can also access the instance's data and generate virtual getters:
 
 ```js
-var User = sequelize.define('User', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
+var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
   instanceMethods: {
     getFullname: function() {
       return [this.firstname, this.lastname].join(' ')
@@ -583,7 +598,7 @@ var User = sequelize.define('User', { firstname: Sequelize.STRING, lastname: Seq
 User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
 ```
 
-You can also set custom methods to all of your models during the instantiation&colon;
+You can also set custom methods to all of your models during the instantiation:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -600,7 +615,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 })
 
 // Example:
-var Foo = sequelize.define('Foo', { /* attributes */});
+var Foo = sequelize.define('foo', { /* attributes */});
 Foo.method1()
 Foo.method2()
 Foo.build().method3()
@@ -610,7 +625,7 @@ Foo.build().method3()
 Sequelize supports adding indexes to the model definition which will be created during `Model.sync()` or `sequelize.sync`.
 
 ```js
-sequelize.define('User', {}, {
+sequelize.define('user', {}, {
   indexes: [
     // Create a unique index on email
     {
@@ -649,4 +664,4 @@ sequelize.define('User', {}, {
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
 [5]: /docs/latest/misc#asynchronicity
-[6]: https://github.com/petkaantonov/bluebird/blob/master/API.md#spreadfunction-fulfilledhandler--function-rejectedhandler----promise
+[6]: http://bluebirdjs.com/docs/api/spread.html

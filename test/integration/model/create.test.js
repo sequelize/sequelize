@@ -45,9 +45,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
-          return self.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }, transaction: t }).then(function() {
+          return self.User.findOrCreate({
+            where: {
+              username: 'Username'
+            },
+            defaults: {
+              data: 'some data'
+            },
+            transaction: t
+          }).then(function() {
             return self.User.count().then(function(count) {
-              expect(count).to.equal(0);
+             expect(count).to.equal(0);
               return t.commit().then(function() {
                 return self.User.count().then(function(count) {
                   expect(count).to.equal(1);
@@ -704,7 +712,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         intVal: this.sequelize.cast('1', type)
       }, {
         logging: function(sql) {
-          expect(sql).to.match(new RegExp("CAST\\('1' AS " + type.toUpperCase() + '\\)'));
+          expect(sql).to.match(new RegExp("CAST\\(N?'1' AS " + type.toUpperCase() + '\\)'));
           match = true;
         }
       }).then(function(user) {
@@ -846,7 +854,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           logging: function(sql) {
             test = true;
             expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-            expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+            expect(sql.indexOf('ARRAY[]::VARCHAR(255)[]')).to.be.above(-1);
           }
         });
       }).then(function() {
@@ -874,7 +882,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             logging: function(sql) {
               test = true;
               expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-              expect(sql.indexOf('ARRAY[]::VARCHAR[]')).to.be.above(-1);
+              expect(sql.indexOf('ARRAY[]::VARCHAR(255)[]')).to.be.above(-1);
             }
           });
         });
@@ -1446,6 +1454,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(users[0].secretValue).to.equal('42');
           expect(users[1].username).to.equal('Paul');
           expect(users[1].secretValue).to.equal('23');
+        });
+      });
+    });
+
+    it('should set isNewRecord = false', function() {
+      var self = this
+        , data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
+                  { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+
+      return this.User.bulkCreate(data).then(function() {
+        return self.User.findAll({order: 'id'}).then(function(users) {
+          expect(users.length).to.equal(2);
+          users.forEach(function (user) {
+            expect(user.isNewRecord).to.equal(false);
+          });
         });
       });
     });

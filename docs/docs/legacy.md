@@ -2,8 +2,8 @@ While out of the box Sequelize will seem a bit opinionated it's trivial to both 
 
 ## Tables
 ```js
-sequelize.define('User', {
-  
+sequelize.define('user', {
+
 }, {
   tableName: 'users'
 });
@@ -11,7 +11,7 @@ sequelize.define('User', {
 
 ## Fields
 ```js
-sequelize.define('ModelName', {
+sequelize.define('modelName', {
   userId: {
     type: Sequelize.INTEGER,
     field: 'user_id'

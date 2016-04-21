@@ -97,6 +97,82 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    it('should include a model with a where clause when the PK field name and attribute name are different', function() {
+      var User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          field: 'main_id',
+          primaryKey: true
+        }
+      })
+        , Task = this.sequelize.define('Task', {
+          searchString: { type: DataTypes.STRING }
+        });
+
+      User.hasMany(Task, {foreignKey: 'userId'});
+      Task.belongsTo(User, {foreignKey: 'userId'});
+
+      return this.sequelize.sync({
+        force: true
+      }).then(function() {
+        return User.create();
+      }).then(function(user) {
+        return Task.bulkCreate([
+          {userId: user.get('id'), searchString: 'one'},
+          {userId: user.get('id'), searchString: 'two'},
+        ]);
+      }).then(function() {
+        return User.find({
+          include: [
+            {model: Task, where: {searchString: 'one'} }
+          ]
+        });
+      }).then(function(user) {
+        expect(user).to.be.ok;
+        expect(user.Tasks.length).to.equal(1);
+      });
+    });
+
+    it('should include a model with a through.where and required true clause when the PK field name and attribute name are different', function() {
+      var A = this.sequelize.define('a', {})
+        , B = this.sequelize.define('b', {})
+        , AB = this.sequelize.define('a_b', {
+        name: {
+          type : DataTypes.STRING(40),
+          field: 'name_id',
+          primaryKey : true
+        }
+      });
+
+      A.belongsToMany(B, { through : AB });
+      B.belongsToMany(A, { through : AB });
+
+      return this.sequelize
+        .sync({force: true})
+        .then(function() {
+          return Promise.join(
+            A.create({}),
+            B.create({})
+          );
+        })
+        .spread(function(a, b) {
+          return a.addB(b, {name : 'Foobar'});
+        })
+        .then(function() {
+          return A.find({
+            include: [
+              {model: B, through : { where: {name: 'Foobar'} }, required : true }
+            ]
+          });
+        })
+        .then(function(a) {
+          expect(a).to.not.equal(null);
+          expect(a.get('bs')).to.have.length(1);
+        });
+    });
+
+
     it('should still pull the main record when an included model is not required and has where restrictions without matches', function() {
       var A = this.sequelize.define('a', {
           name: DataTypes.STRING(40)

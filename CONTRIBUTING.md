@@ -22,9 +22,9 @@ We're glad to get pull request if any functionality is missing or something is b
 * Explain the issue that your PR is solving - or link to an existing issue
 * Make sure that all existing tests pass
 * Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
-  - Use [promise style](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them) in all new tests. Specifically this means:
+  - Use [promise style](http://bluebirdjs.com/docs/why-promises.html) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
-    - don't use nested callbacks (use [Promise.bind](https://github.com/petkaantonov/bluebird/blob/master/API.md#binddynamic-thisarg---promise) to maintain context in promise chains)
+    - don't use nested callbacks (use [Promise.bind](http://bluebirdjs.com/docs/api/promise.bind.html) to maintain context in promise chains)
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 1.7 branch are accepted without tests.
 * If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation  ) for the specifics.
@@ -33,7 +33,7 @@ We're glad to get pull request if any functionality is missing or something is b
 Still interested? Coolio! Here is how to get started:
 
 ### 1. Prepare your environment
-Here comes a little surprise: You need [Node.JS](http://nodejs.org). In order to be a productive developer, I would recommend the latest v0.10.
+Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 ### 2. Install the dependencies
 
@@ -124,10 +124,10 @@ All tests are located in the `test` folder (which contains the
 lovely [Mocha](http://visionmedia.github.io/mocha/) tests).
 
 ```console
-$ make all || mysql || sqlite || pgsql || postgres || mariadb || postgres-native
+$ npm run test-all || test-mysql || test-sqlite || test-mssql || test-postgres || test-mariadb || test-postgres-native
 
 $ # alternatively you can pass database credentials with $variables when testing
-$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password make test
+$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password npm test
 ```
 
 #### 4a. Check the documentation
@@ -177,3 +177,13 @@ var num  = 1
 
 #### 6.3. Semicolons ####
 Yes
+
+# Publishing a release
+
+1. Ensure that latest build on master is green
+2. Ensure your local code is up to date (`git pull origin master`)
+3. `npm version patch|minor|major` (see SemVer)
+4. Update changelog to match version number, commit changelog
+5. `git push --tags origin master`
+6. `npm publish .`
+7. Copy changelog for version to release notes for version on github

@@ -217,6 +217,28 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         });
       });
     });
+
+    it('supports setting same association twice', function () {
+      var Home = this.sequelize.define('home', {})
+        , User = this.sequelize.define('user');
+
+      User.hasOne(Home);
+
+      return this.sequelize.sync({ force: true }).bind({}).then(function () {
+        return Promise.all([
+          Home.create(),
+          User.create()
+        ]);
+      }).spread(function (home, user) {
+        this.home = home;
+        this.user = user;
+        return user.setHome(home);
+      }).then(function() {
+        return this.user.setHome(this.home);
+      }).then(function () {
+        return expect(this.user.getHome()).to.eventually.have.property('id', this.home.get('id'));
+      });
+    });
   });
 
   describe('createAssociation', function() {
@@ -348,6 +370,25 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
               });
             });
           });
+        });
+      });
+    });
+
+    it('sets to CASCADE if allowNull: false', function() {
+      var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
+        , User = this.sequelize.define('User', { username: Sequelize.STRING });
+
+      User.hasOne(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({ username: 'foo' }).then(function(user) {
+          return Task.create({ title: 'task', UserId: user.id }).then(function() {
+            return user.destroy().then(function() {
+              return Task.findAll();
+            });
+          });
+        }).then(function(tasks) {
+          expect(tasks).to.be.empty;
         });
       });
     });
