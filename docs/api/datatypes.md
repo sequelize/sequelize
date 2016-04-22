@@ -89,6 +89,8 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 A 64 bit integer.
 
+Note: an attribute defined as `BIGINT` will be treated like a `string` due this [feature from node-postgres](https://github.com/brianc/node-postgres/pull/353) to prevent precision loss. To have this attribute as a `number`, this is a possible [workaround](https://github.com/sequelize/sequelize/issues/2383#issuecomment-58006083).
+
 Available properties: `UNSIGNED`, `ZEROFILL`
 
 ***
