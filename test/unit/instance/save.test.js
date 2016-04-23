@@ -52,13 +52,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.save();
         }).to.not.throw();
       });
-
-      it('should not modify options when it given to save', function () {
-        instance = Model.build({});
-        var options = { transaction: null };
-        instance.save(options);
-        expect(options).to.deep.equal({ transaction: null });
-      });
     });
   });
 });
