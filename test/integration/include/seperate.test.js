@@ -67,19 +67,59 @@ if (current.dialect.supports.groupedLimit) {
 
       it('should run a belongsToMany association in a separate query', function () {
         var User = this.sequelize.define('User', {})
-          , Group = this.sequelize.define('Group', {})
+            , Group = this.sequelize.define('Group', {})
+            , sqlSpy = sinon.spy();
+
+        User.Groups = User.belongsToMany(Group, {as: 'groups', through: 'UserGroup'});
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return Promise.join(
+              User.bulkCreate([1, 2].map(function(id) {
+                return {id: id};
+              })),
+              Group.bulkCreate([1, 2].map(function(id) {
+                return {id: id};
+              }))
+          ).then(_.spread(function (users, groups) {
+            return Promise.join(
+                users[0].addGroup(groups[0]),
+                users[1].addGroups(groups)
+            );
+          })).then(function () {
+            return User.findAll({
+              include: [
+                {association: User.Groups, separate: true, limit: 2}
+              ],
+              logging: sqlSpy
+            });
+          }).then(function (users) {
+            function getPrimaryKey(instance) {
+              return instance.get(instance.Model.primaryKeyAttribute);
+            }
+
+            expect(users[0].groups).to.be.ok;
+            expect(users[0].groups.length).to.equal(1);
+            expect(users[1].groups).to.be.ok;
+            expect(users[1].groups.length).to.equal(2);
+            expect(_.map(users[1].groups, getPrimaryKey)).to.include(getPrimaryKey(users[0].groups[0]));
+            expect(sqlSpy).to.have.been.calledThrice;
+          });
+        });
+      });
+
+      it('should run hasMany query for each source in belongsToMany when limited or ordered', function () {
+        var User = this.sequelize.define('User', {})
+          , Group = this.sequelize.define('Group', {precedence: Sequelize.INTEGER})
           , sqlSpy = sinon.spy();
 
         User.Groups = User.belongsToMany(Group, {as: 'groups', through: 'UserGroup'});
 
         return this.sequelize.sync({force: true}).then(function () {
           return Promise.join(
-            User.bulkCreate([1, 2].map(function(id) {
+            User.bulkCreate([1, 2, 3].map(function(id) {
               return {id: id};
             })),
-            Group.bulkCreate([1, 2].map(function(id) {
-              return {id: id};
-            }))
+            Group.bulkCreate([{id: 1, precedence: 5}, {id: 2, precedence: 10}])
           ).then(_.spread(function (users, groups) {
             return Promise.join(
               users[0].addGroup(groups[0]),
@@ -88,17 +128,22 @@ if (current.dialect.supports.groupedLimit) {
           })).then(function () {
             return User.findAll({
               include: [
-                {association: User.Groups, separate: true}
+                {association: User.Groups, separate: true, limit: 1, order: [['precedence', 'DESC']]}
               ],
               logging: sqlSpy
             });
           }).then(function (users) {
+            function getPrimaryKey(instance) {
+              return instance.get(instance.Model.primaryKeyAttribute);
+            }
+
             expect(users[0].groups).to.be.ok;
-            expect(users[0].groups.length).to.equal(1);
+            expect(users[0].groups).to.have.length(1);
             expect(users[1].groups).to.be.ok;
-            expect(users[1].groups.length).to.equal(2);
-            expect(users[1].groups).to.include(users[0].groups[0]);
-            expect(sqlSpy).to.have.been.calledThrice;
+            expect(users[1].groups).to.have.length(1);
+            expect(users[2].groups).to.be.empty;
+            expect(getPrimaryKey(users[1].groups[0])).to.not.equal(getPrimaryKey(users[0].groups[0]));
+            expect(sqlSpy.callCount).to.equal(4);
           });
         });
       });
