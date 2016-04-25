@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Method QueryInterface.bulkDelete no longer working when the model parameter is missing. (PostgreSQL) [#5615](https://github.com/sequelize/sequelize/issues/5615)
+- [ADDED] Context and custom options for deep creation
 
 # 3.22.0
 - [FIXED] Fix defaultValues getting overwritten on build
