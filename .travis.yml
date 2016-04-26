@@ -8,45 +8,36 @@ node_js:
 
 sudo: required
 
+services:
+  - docker
+
 cache:
   directories:
     - node_modules
 
 env:
-  global:
-    - ORACLE_FILE=oracle-xe-11.2.0-1.0.x86_64.rpm.zip
-    - ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
-    - ORACLE_SID=XE
   matrix:
     - DIALECT=oracle
-    - DIALECT=mysql
-    - DIALECT=postgres
-    - DIALECT=postgres-native
-    - DIALECT=sqlite
-    - DIALECT=mariadb
-    - DIALECT=mssql
+#    - DIALECT=mysql
+#    - DIALECT=postgres
+#    - DIALECT=postgres-native
+#    - DIALECT=sqlite
+#    - DIALECT=mariadb
+#    - DIALECT=mssql
 
-addons:
-  postgresql: "9.4"
+#addons:
+#  postgresql: "9.4"
 
 before_install:
   - if [ ${DIALECT} = "oracle" ]; then
-        wget 'https://github.com/cbandy/travis-oracle/archive/v1.1.0.tar.gz';
-        mkdir -p .travis/oracle;
-        tar --extract --gzip --strip-components 1 --directory .travis/oracle --file v1.1.0.tar.gz;
-        .travis/oracle/download.sh;
-        .travis/oracle/install.sh;
+        docker pull wnameless/oracle-xe-11g
+        docker run -d -p 49160:22 -p 49161:1521 -e ORACLE_ALLOW_REMOTE=true wnameless/oracle-xe-11g
     fi
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"
   - "psql -c 'create database sequelize_test;' -U postgres"
   - "psql sequelize_test -c 'create extension postgis;' -U postgres"
-  - if [ ${DIALECT} = "oracle" ]; then
-        { echo "CREATE USER williamgueiros IDENTIFIED BY tiger;";
-          echo "GRANT CONNECT, RESOURCE to williamgueiros;";
-        } | "$ORACLE_HOME/bin/sqlplus" -L -S / AS SYSDBA;
-    fi
 
 script:
   - "npm test"

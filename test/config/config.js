@@ -71,7 +71,7 @@ module.exports = {
   },
 
   oracle: {
-    database: process.env.SEQ_ORACLE_DB   || process.env.SEQ_DB   || 'localhost:1521/xe',
+    database: process.env.SEQ_ORACLE_DB   || process.env.SEQ_DB   || 'localhost:49161/xe',
     username: process.env.SEQ_ORACLE_USER || process.env.SEQ_USER || 'system',
     password: process.env.SEQ_ORACLE_PW   || process.env.SEQ_PW   || 'oracle',
     pool:     {
