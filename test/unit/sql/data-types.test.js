@@ -255,6 +255,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
           expect(type.validate(uuid.v4())).to.equal(true);
         });
+
+        test('should return `true` if `value` is a string and we accept strings', function() {
+          var type = DataTypes.UUID();
+
+          expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
+        });
       });
     });
 
@@ -276,6 +282,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           var type = DataTypes.UUIDV1();
 
           expect(type.validate(uuid.v1())).to.equal(true);
+        });
+
+        test('should return `true` if `value` is a string and we accept strings', function() {
+          var type = DataTypes.UUIDV1();
+
+          expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
         });
       });
     });
@@ -299,6 +311,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           var type = DataTypes.UUIDV4();
 
           expect(type.validate(uuid.v4())).to.equal(true);
+        });
+
+        test('should return `true` if `value` is a string and we accept strings', function() {
+          var type = DataTypes.UUIDV4();
+
+          expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
         });
       });
     });

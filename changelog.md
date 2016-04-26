@@ -1,4 +1,29 @@
-# 3.19.1
+# 3.22.0
+- [FIXED] Fix defaultValues getting overwritten on build
+- [FIXED] Queue queries against tedious connections
+- [ADDED] Enable type validation for all queries
+
+# 3.21.0
+- [FIXED] Confirmed that values modified in validation hooks are preserved [#3534](https://github.com/sequelize/sequelize/issues/3534)
+- [FIXED] Support lower case type names in SQLite [#5482](https://github.com/sequelize/sequelize/issues/5482)
+- [FIXED] Support calling `setAssociation` twice on `hasOne` [#5315](https://github.com/sequelize/sequelize/issues/5315)
+- [INTERNALS] Removed dependency on wellknown in favor of terraformer-wkt-parser
+- [ADDED] Benchmarking feature [#2494](https://github.com/sequelize/sequelize/issues/2494)
+- [INTERNALS] Add `Utils.mergeDeep` - allows lodash to be updated to latest version
+
+# 3.20.0
+- [ADDED] rejectOnEmpty mode [#272](https://github.com/sequelize/sequelize/issues/272) [#5480](https://github.com/sequelize/sequelize/issues/5480)
+- [ADDED] `beforeCount` hook [#5209](https://github.com/sequelize/sequelize/pull/5209)
+- [ADDED] `validationFailed` hook [#1626](https://github.com/sequelize/sequelize/issues/1626)
+- [ADDED] Support for IEEE floating point literals in postgres and sqlite [#5194](https://github.com/sequelize/sequelize/issues/5194)
+- [FIXED] `addColumn` with reference in mysql [#5592](https://github.com/sequelize/sequelize/issues/5592)
+- [FIXED] `findAndCountAll` generates invalid SQL, subQuery moves to LEFT OUTER JOIN [#5445](https://github.com/sequelize/sequelize/issues/5445)
+- [FIXED] `count` methods pollute the options.includes [#4191](https://github.com/sequelize/sequelize/issues/4191)
+- [FIXED] Invalid SQL generated when using group option along with attributes [#3009](https://github.com/sequelize/sequelize/issues/3009)
+- [FIXED] Mark index as `unique: true` when `type: 'UNIQUE'`. Fixes [#5351](https://github.com/sequelize/sequelize/issues/5351)
+- [FIXED] Improper escaping of bound arrays of strings on Postgres, SQLite, and Microsoft SQL Server
+
+# 3.19.3
 - [FIXED] `updatedAt` and `createdAt` values are now set before validation [#5367](https://github.com/sequelize/sequelize/pull/5367)
 - [FIXED] `describeTable` maintains proper enum casing in mysql [#5321](https://github.com/sequelize/sequelize/pull/5321)
 - [FIXED] Parsing of dates in MySQL, when a named timezone is used [#4208](https://github.com/sequelize/sequelize/issues/4208)

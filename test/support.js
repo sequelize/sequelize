@@ -225,9 +225,11 @@ var Support = {
   }
 };
 
-beforeEach(function() {
-  this.sequelize = Support.sequelize;
-});
+if (typeof beforeEach !== 'undefined') {
+  beforeEach(function() {
+    this.sequelize = Support.sequelize;
+  });
+}
 
 Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;

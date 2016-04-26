@@ -55,5 +55,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('can detect complexe objects', function() {
+      var self = this;
+      var Where = function () { this.secretValue = '1'; };
+
+      expect(function () {
+        User.update(self.updates, {where:new Where()});
+      }).to.throw();
+
+    });
   });
 });

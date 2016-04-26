@@ -223,6 +223,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('query', function() {
     afterEach(function() {
       this.sequelize.options.quoteIdentifiers = true;
+
+      console.log.restore && console.log.restore();
     });
 
     beforeEach(function() {
@@ -247,6 +249,57 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
     it('executes a query if only the sql is passed', function() {
       return this.sequelize.query(this.insertQuery);
+    });
+
+    it('executes a query with global benchmarking option and default logger', function() {
+      var logger = sinon.spy(console, 'log');
+      var sequelize = Support.createSequelizeInstance({
+        logging: logger,
+        benchmark: true
+      });
+
+      return sequelize.query('select 1;').then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+      });
+    });
+
+    it('executes a query with global benchmarking option and custom logger', function() {
+      var logger = sinon.spy();
+      var sequelize = Support.createSequelizeInstance({
+        logging: logger,
+        benchmark: true
+      });
+
+      return sequelize.query('select 1;').then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+        expect(typeof logger.args[0][1] === 'number').to.be.true;
+      });
+    });
+
+    it('executes a query with benchmarking option and default logger', function() {
+      var logger = sinon.spy(console, 'log');
+      return this.sequelize.query('select 1;', {
+        logging: logger,
+        benchmark: true
+      }).then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+      });
+    });
+
+    it('executes a query with benchmarking option and custom logger', function() {
+      var logger = sinon.spy();
+
+      return this.sequelize.query('select 1;', {
+        logging: logger,
+        benchmark: true
+      }).then(function() {
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+        expect(typeof logger.args[0][1] === 'number').to.be.true;
+      });
     });
 
     it('executes select queries correctly', function() {
@@ -582,6 +635,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
       });
     });
+
+    if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+      it ('does not improperly escape arrays of strings bound to named parameters', function() {
+        var logSql;
+        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: [ '"string"' ] }, logging: function(s) { logSql = s; } }).then(function(result) {
+          expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
+        });
+      });
+    }
 
     it('throw an exception when binds passed with object and numeric $1 is also present', function() {
       var self = this;

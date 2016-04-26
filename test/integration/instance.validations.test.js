@@ -373,7 +373,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
       var successfulUser = User.build({ name: '2' });
       return successfulUser.validate().then(function(err) {
-        expect(err).to.be.undefined;
+        expect(err).to.be.null;
       });
     });
   });
@@ -402,7 +402,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         expect(error.get('name')[0].message).to.equal('Invalid username');
 
         return User.build({ name: 'no error' }).validate().then(function(errors) {
-          expect(errors).to.be.undefined;
+          expect(errors).to.be.null;
         });
       });
     });
@@ -698,14 +698,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         password: 'short',
         salt: '42'
       }).validate().then(function(errors) {
-        expect(errors).not.to.be.undefined;
+        expect(errors).not.to.be.null;
         expect(errors.get('password')[0].message).to.equal('Please choose a longer password');
       }),
       User.build({
         password: 'loooooooong',
         salt: '42'
       }).validate().then(function(errors) {
-        expect(errors).to.be.undefined;
+        expect(errors).to.be.null;
       })
     ]);
   });
@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     return User.build({
       name: 'abcdefg'
     }).validate().then(function(errors) {
-      expect(errors === undefined).to.be.ok;
+      expect(errors).to.be.null;
 
       return User.build({
         name: 'a'
