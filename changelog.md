@@ -1,4 +1,4 @@
-# Future
+# 3.22.0
 - [FIXED] Fix defaultValues getting overwritten on build
 - [FIXED] Queue queries against tedious connections
 - [ADDED] Enable type validation for all queries

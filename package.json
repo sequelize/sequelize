@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS/io.js",
-  "version": "3.21.0",
+  "version": "3.22.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -129,7 +129,11 @@
     "cover-all": "npm run cover-mysql && npm run cover-postgres && npm run cover-postgres-native && npm run cover-mssql && npm run cover-sqlite && npm run cover-mariadb && npm run merge-coverage",
     "merge-coverage": "rm -rf coverage && mkdir coverage && ./node_modules/.bin/lcov-result-merger 'coverage-*/lcov.info' 'coverage/lcov.info'",
     "codeclimate-send": "npm install -g codeclimate-test-reporter && CODECLIMATE_REPO_TOKEN=ce835a510bbf423a5ab5400a9bdcc2ec2d189d840b31657c6ee7cb9916b161d6 codeclimate-test-reporter < coverage/lcov.info",
-    "codeclimate": "npm run cover-all && npm run codeclimate-send"
+    "codeclimate": "npm run cover-all && npm run codeclimate-send",
+    "sscce": "docker-compose run sequelize /bin/sh -c \"node sscce.js\"",
+    "sscce-mysql": "DIALECT=mysql npm run sscce",
+    "sscce-postgres": "DIALECT=postgres npm run sscce",
+    "sscce-sqlite": "DIALECT=sqlite npm run sscce"
   },
   "engines": {
     "node": ">=0.6.21"
