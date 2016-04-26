@@ -30,8 +30,8 @@ env:
 
 before_install:
   - if [ ${DIALECT} = "oracle" ]; then
-        docker pull wnameless/oracle-xe-11g
-        docker run -d -p 49160:22 -p 49161:1521 -e ORACLE_ALLOW_REMOTE=true wnameless/oracle-xe-11g
+        docker pull wnameless/oracle-xe-11g;
+        docker run -d -p 49160:22 -p 49161:1521 -e ORACLE_ALLOW_REMOTE=true wnameless/oracle-xe-11g;
     fi
 
 before_script:
