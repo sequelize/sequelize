@@ -14,7 +14,7 @@ We will skip the very basic things and directly dive into the Sequelize related 
 
 ## A word about promises
 
-TODO - a link to bluebird + general promise syntax + catch / error handling
+Read about promises [here](http://bluebirdjs.com/docs/why-promises.html).
 
 ## Setting up a project
 
