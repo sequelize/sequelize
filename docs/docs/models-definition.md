@@ -301,8 +301,8 @@ var ValidateMe = sequelize.define('foo', {
       isIPv4: true,             // checks for IPv4 (129.89.23.1)
       isIPv6: true,             // checks for IPv6 format
       isAlpha: true,            // will only allow letters
-      isAlphanumeric: true      // will only allow alphanumeric characters, so "_abc" will fail
-      isNumeric: true           // will only allow numbers
+      isAlphanumeric: true,     // will only allow alphanumeric characters, so "_abc" will fail
+      isNumeric: true,          // will only allow numbers
       isInt: true,              // checks for valid integers
       isFloat: true,            // checks for valid floating point numbers
       isDecimal: true,          // checks for any numbers
@@ -336,7 +336,7 @@ var ValidateMe = sequelize.define('foo', {
       }
     }
   }
-})
+});
 ```
 
 Note that where multiple arguments need to be passed to the built-in validation functions, the arguments to be passed must be in an array. But if a single array argument is to be passed, for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument. To work around this pass a single-length array of arguments, such as `[['one', 'two']]` as shown above.
