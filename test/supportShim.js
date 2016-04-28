@@ -16,7 +16,7 @@ module.exports = function(Sequelize) {
   shimAll(Sequelize.Instance.prototype);
   shimAll(QueryInterface.prototype);
   shimAll(Sequelize.Association.prototype);
-   _.forIn(Sequelize.Association, function(Association) {
+  _.forIn(Sequelize.Association, function(Association) {
     shimAll(Association.prototype);
   });
 
