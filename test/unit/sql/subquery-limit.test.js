@@ -5,7 +5,6 @@ var Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Model = require(__dirname + '/../../../lib/model') 
   , util      = require('util')
-  , Sequelize = require(__dirname + '/../../../lib/sequelize')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
   , sql       = current.dialect.QueryGenerator;
@@ -132,5 +131,5 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }, {
       default: "SELECT `Tag`.*, `userPost`.`id` AS `userPost.id`, `userPost`.`type` AS `userPost.type`, `userPost`.`content` AS `userPost.content`, `userPost`.`createdAt` AS `userPost.createdAt`, `userPost`.`updatedAt` AS `userPost.updatedAt`, `userPost.Products`.`id` AS `userPost.Products.id`, `userPost.Products`.`token` AS `userPost.Products.token`, `userPost.Products`.`price` AS `userPost.Products.price`, `userPost.Products`.`createdAt` AS `userPost.Products.createdAt`, `userPost.Products`.`updatedAt` AS `userPost.Products.updatedAt`, `userPost.Products.PostProduct`.`createdAt` AS `userPost.Products.PostProduct.createdAt`, `userPost.Products.PostProduct`.`updatedAt` AS `userPost.Products.PostProduct.updatedAt`, `userPost.Products.PostProduct`.`ProductId` AS `userPost.Products.PostProduct.ProductId`, `userPost.Products.PostProduct`.`PostId` AS `userPost.Products.PostProduct.PostId` FROM (SELECT `Tag`.* FROM `Tags` AS `Tag` WHERE `Tag`.`type` = 'USER_POST' AND ( SELECT `Post`.`id` FROM `Posts` AS `Post` INNER JOIN (`PostProducts` AS `Products.PostProduct` INNER JOIN `Products` AS `Products` ON `Products`.`id` = `Products.PostProduct`.`ProductId`) ON `Post`.`id` = `Products.PostProduct`.`PostId` AND `Products`.`price` >= 10000 WHERE `Tag`.`targetId` = `Post`.`id` LIMIT 1 ) IS NOT NULL LIMIT 1) AS `Tag` INNER JOIN `Posts` AS `userPost` ON `Tag`.`targetId` = `userPost`.`id` INNER JOIN (`PostProducts` AS `userPost.Products.PostProduct` INNER JOIN `Products` AS `userPost.Products` ON `userPost.Products`.`id` = `userPost.Products.PostProduct`.`ProductId`) ON `userPost`.`id` = `userPost.Products.PostProduct`.`PostId` AND `userPost.Products`.`price` >= 10000;"
     });
-  })
+  });
 });
