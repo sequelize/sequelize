@@ -126,24 +126,26 @@ module.exports = function(Sequelize) {
     index--;
 
     shimMethod(obj, name, function(original) {
+      var sequelizeProto = (obj === Sequelize.prototype);
+
       return function() {
+        var sequelize = (sequelizeProto ? this : this.sequelize);
+
         var args = Sequelize.Utils.sliceArgs(arguments),
           options,
           fromTests = calledFromTests();
 
-        if (!Sequelize.dontShim) {
-          if (conform) args = conform.apply(this, arguments);
+        if (conform) args = conform.apply(this, arguments);
 
-          if (fromTests) {
-            options = _.cloneDeepWith(args[index], function (value) {
-              if (typeof value === 'object' && !_.isPlainObject(value)) {
-                return value;
-              }
-            });
-            args[index] = addLogger(args[index]);
-          } else {
-            testLogger(args[index], name);
-          }
+        if (fromTests) {
+          options = _.cloneDeepWith(args[index], function (value) {
+            if (typeof value === 'object' && !_.isPlainObject(value)) {
+              return value;
+            }
+          });
+          args[index] = addLogger(args[index], sequelize);
+        } else {
+          testLogger(args[index], name);
         }
 
         var result;
@@ -192,17 +194,20 @@ module.exports = function(Sequelize) {
    * @param {Object} options
    * @returns {Object} Options with `logging` attribute added
    */
-  function addLogger(options) {
+  function addLogger(options, sequelize) {
     if (!options) options = {};
 
     var hadLogging = options.hasOwnProperty('logging'),
       originalLogging = options.logging;
 
-    options.logging = function(msg) {
-      if (originalLogging) {
-        return originalLogging.apply(this, arguments);
-      } else {
-        logger(msg);
+    options.logging = function() {
+      var logger = originalLogging !== undefined ? originalLogging : sequelize.options.logging;
+      if (logger) {
+        if ((sequelize.options.benchmark || options.benchmark) && logger === console.log) {
+          return logger.call(this, arguments[0] + ' Elapsed time: ' + arguments[1] + 'ms');
+        } else {
+          return logger.apply(this, arguments);
+        }
       }
     };
 
@@ -249,15 +254,6 @@ module.exports = function(Sequelize) {
 
   function calledFromTests() {
     return !!((new Error()).stack.split(/[\r\n]+/)[3].match(regExp));
-  }
-
-  /*
-   * Logging function
-   *
-   * @param {String} msg Logging message
-   */
-  function logger(msg) {
-    if (process.env.SEQ_LOG) console.log(msg);
   }
 };
 

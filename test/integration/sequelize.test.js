@@ -252,15 +252,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     });
 
     describe('logging', function () {
-      before(function () {
-        // Shimming interferes with the global logging function 
-        Sequelize.dontShim = true;
-      });
-
-      after(function () {
-        Sequelize.dontShim = true;
-      });
-
       it('executes a query with global benchmarking option and default logger', function() {
         var logger = sinon.spy(console, 'log');
         var sequelize = Support.createSequelizeInstance({
