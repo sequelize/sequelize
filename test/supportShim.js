@@ -132,37 +132,33 @@ module.exports = function(Sequelize) {
         var sequelize = (sequelizeProto ? this : this.sequelize);
 
         var args = Sequelize.Utils.sliceArgs(arguments),
-          options,
+          originalOptions,
           fromTests = calledFromTests();
 
         if (conform) args = conform.apply(this, arguments);
 
+        var options = args[index];
+
         if (fromTests) {
-          options = _.cloneDeepWith(args[index], function (value) {
-            if (typeof value === 'object' && !_.isPlainObject(value)) {
-              return value;
-            }
-          });
-          args[index] = addLogger(args[index], sequelize);
+          args[index] = options = addLogger(options, sequelize);
+          originalOptions = cloneOptions(options);
         } else {
-          testLogger(args[index], name);
+          testLogger(options, name);
         }
 
-        var result;
-        // NB next line written as a single statement to avoid bug with uncaught rejection
-        return (result = original.apply(this, args)) instanceof Sequelize.Promise ?
-          result.finally(finish) :
-          finish();
-
-        function finish() {
-          if (fromTests) {
-            removeLogger(args[index]);
-            if ((typeof options !== 'undefined' && options !== null) && !_.isEqual(args[index], options)) {
-              throw new Error('options modified in ' + name + ', input: ' + util.inspect(options) + ' output: ' + util.inspect(args[index]));
-            }
+        var result = original.apply(this, args);
+        if (fromTests) {
+          if (result instanceof Sequelize.Promise) {
+            result = result.finally(function() {
+              checkOptions(options, originalOptions, name);
+              removeLogger(options);
+            });
+          } else {
+            checkOptions(options, originalOptions, name);
+            removeLogger(options);
           }
-          return result;
         }
+        return result;
       };
     });
   }
@@ -224,12 +220,10 @@ module.exports = function(Sequelize) {
    * @returns {Object} Options with `logging` attribute reverted to original value
    */
   function removeLogger(options) {
-    if (options && options.logging && options.logging.__testLoggingFn) {
-      if (options.logging.hasOwnProperty('__originalLogging')) {
-        options.logging = options.logging.__originalLogging;
-      } else {
-        delete options.logging;
-      }
+    if (options.logging.hasOwnProperty('__originalLogging')) {
+      options.logging = options.logging.__originalLogging;
+    } else {
+      delete options.logging;
     }
   }
 
@@ -295,4 +289,37 @@ function getArgumentsConformFn(method, args, hints, tree) {
 
   // create function that conforms arguments
   return new Function(args, body + ';return [' + args + '];'); // jshint ignore:line
+}
+
+/*
+ * Clone options object
+ * @params {Object} options - Options object
+ * @returns {Object} Clone of options
+ */
+function cloneOptions(options) {
+  return _.cloneDeepWith(options, function(value) {
+    if (typeof value === 'object' && !_.isPlainObject(value)) return value;
+  });
+}
+
+/*
+ * Checks options object has not been altered and throw if altered
+ *
+ * @params {Object} options - Options object
+ * @params {Object} original - Original options object
+ * @throws {Error} Throws if options and original are not identical
+ */
+function checkOptions(options, original, name) {
+  if (!optionsEqual(options, original)) throw new Error('options modified in ' + name + ', input: ' + util.inspect(original) + ' output: ' + util.inspect(options));
+}
+
+/*
+ * Compares two options objects and returns if they are deep equal to each other.
+ *
+ * @params {Object} options - Options object
+ * @params {Object} original - Original options object
+ * @returns {Boolean} true if options and original are same, false if not
+ */
+function optionsEqual(options, original) {
+  return _.isEqual(options, original);
 }
