@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
         expect(user.get('name')).to.equal('Jan');
       });
 
-      it('doesn\'t overwrite defined primary keys', function() {
+      it('overwrites defined primary keys', function() {
         var User = this.sequelize.define('User', {
           identifier: {type: DataTypes.STRING, primaryKey: true}
         });
@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
 
         expect(user.get('identifier')).to.equal('identifier');
         user.set('identifier', 'another identifier');
-        expect(user.get('identifier')).to.equal('identifier');
+        expect(user.get('identifier')).to.equal('another identifier');
       });
 
       it('doesn\'t set timestamps', function() {
