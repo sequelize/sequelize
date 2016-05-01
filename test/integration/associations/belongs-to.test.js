@@ -93,7 +93,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         ]);
       }).spread(function(userA, userB, task) {
         return task.setUserXYZ(userA).then(function() {
-          return task.getUserXYZ({where: ['gender = ?', 'female']});
+          if (current.dialect.name === 'oracle') {
+            return task.getUserXYZ({where: ['"gender" = ?', 'female']});
+          } else {
+            return task.getUserXYZ({where: ['gender = ?', 'female']});
+          }
         });
       }).then(function(user) {
         expect(user).to.be.null;
@@ -603,7 +607,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
     }
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    if ((Support.getTestDialect() !== 'mssql')&&(Support.getTestDialect() !== 'oracle')) {
       it('can cascade updates', function() {
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });

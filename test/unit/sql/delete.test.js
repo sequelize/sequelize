@@ -147,6 +147,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             User
           ), {
             postgres: 'DELETE FROM "test_user" WHERE "test_user_id" IN (SELECT "test_user_id" FROM "test_user" WHERE "test_user_id" = 100 LIMIT 1)',
+            oracle:   'DELETE FROM "test_user" WHERE "test_user_id" = 100',
             sqlite:   'DELETE FROM `test_user` WHERE `test_user_id` = 100',
             mssql:    'DELETE TOP(1) FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             default:  'DELETE FROM [test_user] WHERE [test_user_id] = 100 LIMIT 1'

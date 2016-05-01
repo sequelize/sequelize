@@ -5,7 +5,8 @@
 var chai = require('chai')
   , expect = chai.expect
   , Utils = require(__dirname + '/../../lib/utils')
-  , Support = require(__dirname + '/support');
+  , Support = require(__dirname + '/support')
+  , dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('removeCommentsFromFunctionString', function() {
@@ -99,12 +100,22 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
 
   describe('format', function() {
     it('should format where clause correctly when the value is truthy', function() {
-      var where = ['foo = ?', 1];
+      var where = [];
+      if (dialect === 'oracle') {
+        where = ['"foo" = ?', 1];
+      } else {
+        where = ['foo = ?', 1];
+      }
       expect(Utils.format(where)).to.equal('foo = 1');
     });
 
     it('should format where clause correctly when the value is false', function() {
-      var where = ['foo = ?', 0];
+      var where = [];
+      if (dialect === 'oracle') {
+        where = ['"foo" = ?', 0];
+      } else {
+        where = ['foo = ?', 0];
+      }
       expect(Utils.format(where)).to.equal('foo = 0');
     });
   });

@@ -43,6 +43,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       limit: 10
     }, {
       default: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = 'jon.snow@gmail.com' ORDER BY [email] DESC LIMIT 10;",
+      oracle: 'SELECT "email", "first_name" AS "firstName" FROM "User" WHERE "User"."email" = \'jon.snow@gmail.com\'',
       mssql: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N'jon.snow@gmail.com' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;"
     });
 
@@ -70,7 +71,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
           '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
         ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
-      +') AS [User];'
+      +') AS [User];',
+      oracle: 'SELECT "User".* FROM ('+
+        [
+          '(SELECT "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "User" WHERE "User"."companyId" = 1 AND ROWNUM <= 3 ORDER BY "last_name" ASC)',
+          '(SELECT "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "User" WHERE "User"."companyId" = 5 AND ROWNUM <= 3 ORDER BY "last_name" ASC)'
+        ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+      +') "User"'
     });
 
     (function () {
@@ -155,7 +162,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
             '(SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
-        +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];'
+        +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];',
+        oracle: 'SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM ('+
+          [
+            '(SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 1 AND ROWNUM <= 3 ORDER BY "user"."last_name" ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+            '(SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 5 AND ROWNUM <= 3 ORDER BY "user"."last_name" ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+        +') "user" LEFT OUTER JOIN "post" "POSTS" ON "user"."id" = "POSTS"."user_id"'
       });
 
       var nestedInclude = Model.$validateIncludedElements({
@@ -229,7 +242,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         }).include,
         model: User
       }, User), {
-        default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
+        default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        oracle: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" "User" LEFT OUTER JOIN "Post" "Posts" ON "User"."id" = "Posts"."user_id"'
       });
     });
   });
@@ -245,6 +259,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     test('*', function () {
       expectsql(sql.selectQuery('User'), {
         default: 'SELECT * FROM [User];',
+        oracle: 'SELECT * FROM "User"',
         postgres: 'SELECT * FROM User;'
       });
     });
@@ -254,6 +269,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         attributes: ['name', 'age']
       }), {
         default: 'SELECT [name], [age] FROM [User];',
+        oracle: 'SELECT "name", "age" FROM "User"',
         postgres: 'SELECT name, age FROM User;'
       });
     });
@@ -287,6 +303,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         model: User
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        oracle:  'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" "User" LEFT OUTER JOIN "Post" "Posts" ON "User"."id" = "Posts"."user_id"',
         postgres: 'SELECT User.name, User.age, Posts.id AS "Posts.id", Posts.title AS "Posts.title" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;'
       });
     });
@@ -300,6 +317,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         having: ['name IN (?)', [1, 'test', 3, "derp"]]
       }), {
         default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');",
+        oracle:  "SELECT * FROM \"User\" HAVING name IN (1,'test',3,'derp')",
         mssql: "SELECT * FROM [User] HAVING name IN (1,N'test',3,N'derp');"
       });
     });

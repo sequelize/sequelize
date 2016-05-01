@@ -151,8 +151,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('only gets objects that fulfill options with a formatted value', function() {
+      var wherestr = '';
+      if (current.dialect.name === 'oracle') {
+        wherestr = '"active" = ?';  // oracle requests that user specify where condition using double quotes to have same as column name (oracle default is big letters)
+      } else {
+        wherestr = 'active = ?';
+      }
       return this.User.find({where: {username: 'John'}}).then(function(john) {
-        return john.getTasks({where: ['active = ?', true]});
+        return john.getTasks({where: [wherestr, true]});
       }).then(function(tasks) {
         expect(tasks).to.have.length(1);
       });
@@ -303,7 +309,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         tableName: 'tbl_group'
       });
 
-      var User_has_Group = this.sequelize.define('User_has_Group', {
+      var User_has_Group = this.sequelize.define('usr_has_gr', {
 
       }, {
         tableName: 'tbl_user_has_group'
@@ -369,7 +375,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         tableName: 'tbl_group'
       });
 
-      var Company_has_Group = this.sequelize.define('Company_has_Group', {
+      var Company_has_Group = this.sequelize.define('chg', {
 
       }, {
         tableName: 'tbl_company_has_group'
@@ -543,7 +549,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('should be able to set twice with custom primary keys', function() {
-      var User = this.sequelize.define('User', { uid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING })
+      var User = this.sequelize.define('User', { user_unique_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING })
         , Task = this.sequelize.define('Task', { tid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING });
 
       User.belongsToMany(Task, { through: 'UserTasks' });
@@ -808,6 +814,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
           this.User.belongsToMany(this.Task, { through: this.UserTask });
           this.Task.belongsToMany(this.User, { through: this.UserTask });
+
           this.sequelize = sequelize;
           return sequelize.sync({ force: true });
         }).then(function() {
@@ -1189,7 +1196,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
       // doubly linked has many
       this.User.belongsToMany(this.Project, {
-        through: 'user_projects',
+        through: 'up',
         as: 'Projects',
         foreignKey: {
           field: 'user_id',
@@ -1201,7 +1208,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }
       });
       this.Project.belongsToMany(this.User, {
-        through: 'user_projects',
+        through: 'up',
         as: 'Users',
         foreignKey: {
           field: 'project_id',
@@ -1292,7 +1299,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       this.Group = this.sequelize.define('Group', { groupName: DataTypes.STRING});
 
       this.Group.belongsToMany(this.User, {
-        through: 'group_users',
+        through: 'gu',
         as: 'Users',
         foreignKey: {
           field: 'group_id',
@@ -1304,7 +1311,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }
       });
       this.User.belongsToMany(this.Group, {
-        through: 'group_users',
+        through: 'gu',
         as: 'Groups',
         foreignKey: {
           field: 'user_id',
@@ -1413,10 +1420,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       beforeEach(function() {
         var self = this;
 
+        return self.sequelize.getQueryInterface().dropTable('users', { force: true }).then(function() {
+          return self.sequelize.getQueryInterface().dropTable('tasks', { force: true }).then(function() {
+            return self.sequelize.getQueryInterface().dropTable('users_tasks', { force: true }).then(function() {
         return self.sequelize.queryInterface.createTable('users', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true } , username: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).then(function() {
           return self.sequelize.queryInterface.createTable('tasks', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE });
         }).then(function() {
           return self.sequelize.queryInterface.createTable('users_tasks', { TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE });
+        });
+            });
+          });
         });
       });
 
@@ -1444,6 +1457,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
   describe('through', function() {
     beforeEach(function() {
+      var self = this;
       this.User = this.sequelize.define('User', {});
       this.Project = this.sequelize.define('Project', {});
       this.UserProjects = this.sequelize.define('UserProjects', {
@@ -1454,7 +1468,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       this.User.belongsToMany(this.Project, { through: this.UserProjects });
       this.Project.belongsToMany(this.User, { through: this.UserProjects });
 
-      return this.sequelize.sync();
+      return this.sequelize.getQueryInterface().dropTable('UserProjects', { force: true }).then(function() {
+        return self.sequelize.sync();
+      });
     });
 
     describe('fetching from join table', function() {
@@ -1537,7 +1553,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
-
           return this.sequelize.sync({force: true}).bind({}).then(function() {
             return Worker.create({id: 1337});
           }).then(function(worker) {
@@ -1802,7 +1817,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
           result = _.map(result, 'tableName');
         }
-
         expect(result.indexOf('group_user')).not.to.equal(-1);
       });
     });

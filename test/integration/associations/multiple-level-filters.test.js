@@ -3,7 +3,8 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types');
+  , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
   it('can filter through belongsTo', function() {
@@ -51,8 +52,13 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
               ]
             }).then(function(tasks) {
               expect(tasks.length).to.be.equal(2);
-              expect(tasks[0].title).to.be.equal('fight empire');
-              expect(tasks[1].title).to.be.equal('stablish republic');
+              if (dialect === 'oracle') {
+                expect(tasks[0].title).to.be.equal('stablish republic');
+                expect(tasks[1].title).to.be.equal('fight empire');
+              } else {
+                expect(tasks[0].title).to.be.equal('fight empire');
+                expect(tasks[1].title).to.be.equal('stablish republic');
+              }
             });
           });
         });
@@ -174,8 +180,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
-    Project.belongsToMany(User, {through: 'user_project'});
-    User.belongsToMany(Project, {through: 'user_project'});
+    Project.belongsToMany(User, {through: 'u_p'});
+    User.belongsToMany(Project, {through: 'u_p'});
 
     return this.sequelize.sync({ force: true }).then(function() {
       return User.bulkCreate([{

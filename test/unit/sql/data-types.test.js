@@ -23,31 +23,36 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('STRING', function () {
       testsql('STRING', DataTypes.STRING, {
         default: 'VARCHAR(255)',
-        mssql: 'NVARCHAR(255)'
+        mssql: 'NVARCHAR(255)',
+        oracle: 'NVARCHAR2(255)'
       });
 
       testsql('STRING(1234)', DataTypes.STRING(1234), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
         sqlite: 'VARCHAR BINARY(1234)',
         mssql: 'BINARY(1234)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'VARCHAR2(1234 BYTE)'
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
         default: 'VARCHAR(255) BINARY',
         sqlite: 'VARCHAR BINARY(255)',
         mssql: 'BINARY(255)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'VARCHAR2(255 BYTE)'
       });
 
       suite('validate', function () {
@@ -66,12 +71,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('TEXT', function () {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
+        oracle: 'CLOB',
         mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
       });
 
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
+        oracle: 'NVARCHAR2(256)',
         mysql: 'TINYTEXT',
         mariadb: 'TINYTEXT'
       });
@@ -79,12 +86,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
+        oracle: 'NVARCHAR2(256)',
         mysql: 'TINYTEXT',
         mariadb: 'TINYTEXT'
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
+        oracle: 'CLOB',
         mssql: 'NVARCHAR(MAX)',
         mysql: 'MEDIUMTEXT',
         mariadb: 'MEDIUMTEXT'
@@ -92,6 +101,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
+        oracle: 'CLOB',
         mssql: 'NVARCHAR(MAX)',
         mysql: 'LONGTEXT',
         mariadb: 'LONGTEXT'
@@ -130,13 +140,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('CHAR(12).BINARY', DataTypes.CHAR(12).BINARY, {
         default: 'CHAR(12) BINARY',
         sqlite: 'CHAR BINARY(12)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'CHAR(12 BYTE)'
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
         sqlite: 'CHAR BINARY(255)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'CHAR(255 BYTE)'
       });
     });
 
@@ -145,7 +157,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: 'BOOLEAN',
         mssql: 'BIT',
         mysql: 'TINYINT(1)',
-        sqlite: 'TINYINT(1)'
+        sqlite: 'TINYINT(1)',
+        oracle: 'CHAR'
       });
 
       suite('validate', function () {
@@ -169,6 +182,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('DATE', function () {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         mssql: 'DATETIME2',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
@@ -223,7 +237,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         postgres: 'UUID',
         mssql: 'CHAR(36)',
         mysql: 'CHAR(36) BINARY',
-        sqlite: 'UUID'
+        sqlite: 'UUID',
+        oracle: 'CHAR(36)'
       });
 
       suite('validate', function () {
@@ -309,65 +324,75 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('NOW', function () {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
-        mssql: 'GETDATE()'
+        mssql: 'GETDATE()',
+        oracle: 'CURRENT_TIMESTAMP'
       });
     });
 
     suite('INTEGER', function () {
       testsql('INTEGER', DataTypes.INTEGER, {
-        default: 'INTEGER'
+        default: 'INTEGER',
+        oracle: 'NUMBER(12,0)'
       });
 
       testsql('INTEGER.UNSIGNED', DataTypes.INTEGER.UNSIGNED, {
         default: 'INTEGER UNSIGNED',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(12,0)'
       });
 
       testsql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
         default: 'INTEGER UNSIGNED ZEROFILL',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(12,0)'
       });
 
       testsql('INTEGER(11)', DataTypes.INTEGER(11), {
         default: 'INTEGER(11)',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER({ length: 11 })', DataTypes.INTEGER({ length: 11 }), {
         default: 'INTEGER(11)',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED',
         sqlite: 'INTEGER UNSIGNED(11)',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
         sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).ZEROFILL', DataTypes.INTEGER(11).ZEROFILL, {
         default: 'INTEGER(11) ZEROFILL',
         sqlite: 'INTEGER ZEROFILL(11)',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).ZEROFILL.UNSIGNED', DataTypes.INTEGER(11).ZEROFILL.UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
         sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
         postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       suite('validate', function () {

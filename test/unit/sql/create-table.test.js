@@ -23,6 +23,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
           sqlite: 'CREATE TABLE IF NOT EXISTS `foo.users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `mood` TEXT);',
           postgres: 'CREATE TABLE IF NOT EXISTS "foo"."users" ("id"   SERIAL , "mood" "foo"."enum_users_mood", PRIMARY KEY ("id"));',
           mysql: "CREATE TABLE IF NOT EXISTS `foo.users` (`id` INTEGER NOT NULL auto_increment , `mood` ENUM('happy', 'sad'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
+          oracle: 'CREATE TABLE "foo"."users" ("id" NUMBER(12,0) NOT NULL , "mood" VARCHAR2(255) CHECK ("mood" IN(\'happy\', \'sad\')), PRIMARY KEY ("id"))',
           mssql: "IF OBJECT_ID('[foo].[users]', 'U') IS NULL CREATE TABLE [foo].[users] ([id] INTEGER NOT NULL IDENTITY(1,1) , [mood] VARCHAR(255) CHECK (mood IN(N'happy', N'sad')), PRIMARY KEY ([id]));"
         });
       });

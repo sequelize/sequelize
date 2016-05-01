@@ -6,22 +6,33 @@ node_js:
   - "iojs-v1"
   - "iojs-v2"
 
-sudo: false
+sudo: required
+
+services:
+  - docker
 
 cache:
   directories:
     - node_modules
 
 env:
-  - DIALECT=mysql
-  - DIALECT=postgres
-  - DIALECT=postgres-native
-  - DIALECT=sqlite
-  - DIALECT=mariadb
-  - DIALECT=mssql
+  matrix:
+    - DIALECT=oracle
+#    - DIALECT=mysql
+#    - DIALECT=postgres
+#    - DIALECT=postgres-native
+#    - DIALECT=sqlite
+#    - DIALECT=mariadb
+#    - DIALECT=mssql
 
-addons:
-  postgresql: "9.4"
+#addons:
+#  postgresql: "9.4"
+
+before_install:
+  - if [ ${DIALECT} = "oracle" ]; then
+        docker pull wnameless/oracle-xe-11g;
+        docker run -d -p 49160:22 -p 49161:1521 -e ORACLE_ALLOW_REMOTE=true wnameless/oracle-xe-11g;
+    fi
 
 before_script:
   - "mysql -e 'create database sequelize_test;'"
