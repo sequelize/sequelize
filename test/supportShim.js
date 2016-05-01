@@ -148,13 +148,13 @@ module.exports = function(Sequelize) {
 
         var result = original.apply(this, args);
         if (fromTests) {
+          checkOptions(options, originalOptions, name);
           if (result instanceof Sequelize.Promise) {
             result = result.finally(function() {
               checkOptions(options, originalOptions, name);
               removeLogger(options);
             });
           } else {
-            checkOptions(options, originalOptions, name);
             removeLogger(options);
           }
         }
