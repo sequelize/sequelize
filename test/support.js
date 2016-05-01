@@ -221,7 +221,11 @@ var Support = {
                     .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
     }
 
-    expect(query).to.equal(expectation);
+    if (_.isError(query)) {
+      expect(query.message).to.equal(expectation.message);
+    } else {
+      expect(query).to.equal(expectation);
+    }
   }
 };
 
