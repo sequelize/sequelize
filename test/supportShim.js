@@ -315,11 +315,15 @@ function checkOptions(options, original, name) {
 
 /*
  * Compares two options objects and returns if they are deep equal to each other.
+ * Objects which are not plain objects (e.g. Models) are compared by reference.
+ * Everything else deep-compared by value.
  *
  * @params {Object} options - Options object
  * @params {Object} original - Original options object
  * @returns {Boolean} true if options and original are same, false if not
  */
 function optionsEqual(options, original) {
-  return _.isEqual(options, original);
+  return _.isEqualWith(options, original, function(value1, value2) {
+    if ((typeof value1 === 'object' && !_.isPlainObject(value1)) || (typeof value2 === 'object' && !_.isPlainObject(value2))) return value1 === value2;
+  });
 }
