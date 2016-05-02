@@ -150,13 +150,21 @@ module.exports = function(Sequelize) {
 
         var result = original.apply(this, args);
         if (fromTests) {
-          checkOptions(options, originalOptions, debugName);
           if (result instanceof Sequelize.Promise) {
+            var err;
+            try {
+              checkOptions(options, originalOptions, debugName);
+            } catch (e) {
+              err = e;
+            }
+
             result = result.finally(function() {
+              if (err) throw err;
               checkOptions(options, originalOptions, debugName);
               removeLogger(options);
             });
           } else {
+            checkOptions(options, originalOptions, debugName);
             removeLogger(options);
           }
         }
