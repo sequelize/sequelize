@@ -11,13 +11,13 @@ var QueryInterface = require(__dirname + '/../lib/query-interface')
  */
 module.exports = function(Sequelize) {
   // Shim all Sequelize methods
-  shimAll(Sequelize.prototype);
-  shimAll(Sequelize.Model.prototype);
-  shimAll(Sequelize.Instance.prototype);
-  shimAll(QueryInterface.prototype);
-  shimAll(Sequelize.Association.prototype);
-   _.forIn(Sequelize.Association, function(Association) {
-    shimAll(Association.prototype);
+  shimAll(Sequelize.prototype, 'Sequelize');
+  shimAll(Sequelize.Model.prototype, 'Model');
+  shimAll(Sequelize.Instance.prototype, 'Instance');
+  shimAll(QueryInterface.prototype, 'QueryInterface');
+  shimAll(Sequelize.Association.prototype, 'Association');
+  _.forIn(Sequelize.Association, function(Association, name) {
+    shimAll(Association.prototype, 'Association.' + name);
   });
 
   // Shim Model.prototype to then shim getter/setter methods
@@ -27,8 +27,8 @@ module.exports = function(Sequelize) {
         var model = this,
           association = original.apply(this, arguments);
 
-        _.forIn(association.accessors, function(accessor) {
-          shim(model.Instance.prototype, accessor, model.Instance.prototype[accessor].length);
+        _.forIn(association.accessors, function(accessor, accessorName) {
+          shim(model.Instance.prototype, accessor, model.Instance.prototype[accessor].length, null, 'Instance#' + accessorName);
         });
 
         return association;
@@ -41,11 +41,12 @@ module.exports = function(Sequelize) {
   /*
    * Shims all shimmable methods on obj.
    * @param {Object} obj
+   * @param {String} objName Name of object for error reporting
    */
-  function shimAll(obj) {
+  function shimAll(obj, objName) {
     _.forIn(obj, function(method, name) {
       var result = examine(method, name);
-      if (result) shim(obj, name, result.index, result.conform);
+      if (result) shim(obj, name, result.index, result.conform, objName + '#' + name);
     });
   }
 
@@ -121,46 +122,53 @@ module.exports = function(Sequelize) {
    * @param {String} name Name of method on object to shim
    * @param {Integer} index Index of argument which is `options` (1-based)
    * @param {Function} conform Function to conform function arguments
+   * @param {String} debugName Full name of method for error reporting
    */
-  function shim(obj, name, index, conform) {
+  function shim(obj, name, index, conform, debugName) {
     index--;
 
     shimMethod(obj, name, function(original) {
+      var sequelizeProto = (obj === Sequelize.prototype);
+
       return function() {
+        var sequelize = (sequelizeProto ? this : this.sequelize);
+
         var args = Sequelize.Utils.sliceArgs(arguments),
-          options,
           fromTests = calledFromTests();
 
-        if (!Sequelize.dontShim) {
-          if (conform) args = conform.apply(this, arguments);
+        if (conform) args = conform.apply(this, arguments);
 
-          if (fromTests) {
-            options = _.cloneDeepWith(args[index], function (value) {
-              if (typeof value === 'object' && !_.isPlainObject(value)) {
-                return value;
-              }
-            });
-            args[index] = addLogger(args[index]);
-          } else {
-            testLogger(args[index], name);
-          }
+        var options = args[index];
+
+        if (fromTests) {
+          args[index] = options = addLogger(options, sequelize);
+        } else {
+          testLogger(options, debugName);
         }
 
-        var result;
-        // NB next line written as a single statement to avoid bug with uncaught rejection
-        return (result = original.apply(this, args)) instanceof Sequelize.Promise ?
-          result.finally(finish) :
-          finish();
+        var originalOptions = cloneOptions(options);
 
-        function finish() {
-          if (fromTests) {
-            removeLogger(args[index]);
-            if ((typeof options !== 'undefined' && options !== null) && !_.isEqual(args[index], options)) {
-              throw new Error('options modified in ' + name + ', input: ' + util.inspect(options) + ' output: ' + util.inspect(args[index]));
-            }
+        var result = original.apply(this, args);
+
+        if (result instanceof Sequelize.Promise) {
+          var err;
+          try {
+            checkOptions(options, originalOptions, debugName);
+          } catch (e) {
+            err = e;
           }
-          return result;
+
+          result = result.finally(function() {
+            if (err) throw err;
+            checkOptions(options, originalOptions, debugName);
+            if (fromTests) removeLogger(options);
+          });
+        } else {
+          checkOptions(options, originalOptions, debugName);
+          if (fromTests) removeLogger(options);
         }
+
+        return result;
       };
     });
   }
@@ -192,17 +200,20 @@ module.exports = function(Sequelize) {
    * @param {Object} options
    * @returns {Object} Options with `logging` attribute added
    */
-  function addLogger(options) {
+  function addLogger(options, sequelize) {
     if (!options) options = {};
 
     var hadLogging = options.hasOwnProperty('logging'),
       originalLogging = options.logging;
 
-    options.logging = function(msg) {
-      if (originalLogging) {
-        return originalLogging.apply(this, arguments);
-      } else {
-        logger(msg);
+    options.logging = function() {
+      var logger = originalLogging !== undefined ? originalLogging : sequelize.options.logging;
+      if (logger) {
+        if ((sequelize.options.benchmark || options.benchmark) && logger === console.log) {
+          return logger.call(this, arguments[0] + ' Elapsed time: ' + arguments[1] + 'ms');
+        } else {
+          return logger.apply(this, arguments);
+        }
       }
     };
 
@@ -219,12 +230,10 @@ module.exports = function(Sequelize) {
    * @returns {Object} Options with `logging` attribute reverted to original value
    */
   function removeLogger(options) {
-    if (options && options.logging && options.logging.__testLoggingFn) {
-      if (options.logging.hasOwnProperty('__originalLogging')) {
-        options.logging = options.logging.__originalLogging;
-      } else {
-        delete options.logging;
-      }
+    if (options.logging.hasOwnProperty('__originalLogging')) {
+      options.logging = options.logging.__originalLogging;
+    } else {
+      delete options.logging;
     }
   }
 
@@ -249,15 +258,6 @@ module.exports = function(Sequelize) {
 
   function calledFromTests() {
     return !!((new Error()).stack.split(/[\r\n]+/)[3].match(regExp));
-  }
-
-  /*
-   * Logging function
-   *
-   * @param {String} msg Logging message
-   */
-  function logger(msg) {
-    if (process.env.SEQ_LOG) console.log(msg);
   }
 };
 
@@ -299,4 +299,41 @@ function getArgumentsConformFn(method, args, hints, tree) {
 
   // create function that conforms arguments
   return new Function(args, body + ';return [' + args + '];'); // jshint ignore:line
+}
+
+/*
+ * Clone options object
+ * @params {Object} options - Options object
+ * @returns {Object} Clone of options
+ */
+function cloneOptions(options) {
+  return _.cloneDeepWith(options, function(value) {
+    if (typeof value === 'object' && !_.isPlainObject(value)) return value;
+  });
+}
+
+/*
+ * Checks options object has not been altered and throw if altered
+ *
+ * @params {Object} options - Options object
+ * @params {Object} original - Original options object
+ * @throws {Error} Throws if options and original are not identical
+ */
+function checkOptions(options, original, name) {
+  if (!optionsEqual(options, original)) throw new Error('options modified in ' + name + ', input: ' + util.inspect(original) + ' output: ' + util.inspect(options));
+}
+
+/*
+ * Compares two options objects and returns if they are deep equal to each other.
+ * Objects which are not plain objects (e.g. Models) are compared by reference.
+ * Everything else deep-compared by value.
+ *
+ * @params {Object} options - Options object
+ * @params {Object} original - Original options object
+ * @returns {Boolean} true if options and original are same, false if not
+ */
+function optionsEqual(options, original) {
+  return _.isEqualWith(options, original, function(value1, value2) {
+    if ((typeof value1 === 'object' && !_.isPlainObject(value1)) || (typeof value2 === 'object' && !_.isPlainObject(value2))) return value1 === value2;
+  });
 }
