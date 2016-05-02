@@ -11,13 +11,13 @@ var QueryInterface = require(__dirname + '/../lib/query-interface')
  */
 module.exports = function(Sequelize) {
   // Shim all Sequelize methods
-  shimAll(Sequelize.prototype);
-  shimAll(Sequelize.Model.prototype);
-  shimAll(Sequelize.Instance.prototype);
-  shimAll(QueryInterface.prototype);
-  shimAll(Sequelize.Association.prototype);
-  _.forIn(Sequelize.Association, function(Association) {
-    shimAll(Association.prototype);
+  shimAll(Sequelize.prototype, 'Sequelize');
+  shimAll(Sequelize.Model.prototype, 'Model');
+  shimAll(Sequelize.Instance.prototype, 'Instance');
+  shimAll(QueryInterface.prototype, 'QueryInterface');
+  shimAll(Sequelize.Association.prototype, 'Association');
+  _.forIn(Sequelize.Association, function(Association, name) {
+    shimAll(Association.prototype, 'Association.' + name);
   });
 
   // Shim Model.prototype to then shim getter/setter methods
@@ -27,8 +27,8 @@ module.exports = function(Sequelize) {
         var model = this,
           association = original.apply(this, arguments);
 
-        _.forIn(association.accessors, function(accessor) {
-          shim(model.Instance.prototype, accessor, model.Instance.prototype[accessor].length);
+        _.forIn(association.accessors, function(accessor, accessorName) {
+          shim(model.Instance.prototype, accessor, model.Instance.prototype[accessor].length, null, 'Instance#' + accessorName);
         });
 
         return association;
@@ -41,11 +41,12 @@ module.exports = function(Sequelize) {
   /*
    * Shims all shimmable methods on obj.
    * @param {Object} obj
+   * @param {String} objName Name of object for error reporting
    */
-  function shimAll(obj) {
+  function shimAll(obj, objName) {
     _.forIn(obj, function(method, name) {
       var result = examine(method, name);
-      if (result) shim(obj, name, result.index, result.conform);
+      if (result) shim(obj, name, result.index, result.conform, objName + '#' + name);
     });
   }
 
@@ -121,8 +122,9 @@ module.exports = function(Sequelize) {
    * @param {String} name Name of method on object to shim
    * @param {Integer} index Index of argument which is `options` (1-based)
    * @param {Function} conform Function to conform function arguments
+   * @param {String} debugName Full name of method for error reporting
    */
-  function shim(obj, name, index, conform) {
+  function shim(obj, name, index, conform, debugName) {
     index--;
 
     shimMethod(obj, name, function(original) {
@@ -143,15 +145,15 @@ module.exports = function(Sequelize) {
           args[index] = options = addLogger(options, sequelize);
           originalOptions = cloneOptions(options);
         } else {
-          testLogger(options, name);
+          testLogger(options, debugName);
         }
 
         var result = original.apply(this, args);
         if (fromTests) {
-          checkOptions(options, originalOptions, name);
+          checkOptions(options, originalOptions, debugName);
           if (result instanceof Sequelize.Promise) {
             result = result.finally(function() {
-              checkOptions(options, originalOptions, name);
+              checkOptions(options, originalOptions, debugName);
               removeLogger(options);
             });
           } else {
