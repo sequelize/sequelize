@@ -134,7 +134,6 @@ module.exports = function(Sequelize) {
         var sequelize = (sequelizeProto ? this : this.sequelize);
 
         var args = Sequelize.Utils.sliceArgs(arguments),
-          originalOptions,
           fromTests = calledFromTests();
 
         if (conform) args = conform.apply(this, arguments);
@@ -143,31 +142,32 @@ module.exports = function(Sequelize) {
 
         if (fromTests) {
           args[index] = options = addLogger(options, sequelize);
-          originalOptions = cloneOptions(options);
         } else {
           testLogger(options, debugName);
         }
 
-        var result = original.apply(this, args);
-        if (fromTests) {
-          if (result instanceof Sequelize.Promise) {
-            var err;
-            try {
-              checkOptions(options, originalOptions, debugName);
-            } catch (e) {
-              err = e;
-            }
+        var originalOptions = cloneOptions(options);
 
-            result = result.finally(function() {
-              if (err) throw err;
-              checkOptions(options, originalOptions, debugName);
-              removeLogger(options);
-            });
-          } else {
+        var result = original.apply(this, args);
+
+        if (result instanceof Sequelize.Promise) {
+          var err;
+          try {
             checkOptions(options, originalOptions, debugName);
-            removeLogger(options);
+          } catch (e) {
+            err = e;
           }
+
+          result = result.finally(function() {
+            if (err) throw err;
+            checkOptions(options, originalOptions, debugName);
+            if (fromTests) removeLogger(options);
+          });
+        } else {
+          checkOptions(options, originalOptions, debugName);
+          if (fromTests) removeLogger(options);
         }
+
         return result;
       };
     });
