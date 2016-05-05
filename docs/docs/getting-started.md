@@ -91,14 +91,14 @@ Basically a promise represents a value which will be present at some point - "I 
 // DON'T DO THIS
 user = User.findOne()
 
-console.log(user.name);
+console.log(user.get('firstName'));
 ```
 
 _will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
 
 ```js
 User.findOne().then(function (user) {
-    console.log(user.name);
+    console.log(user.get('firstName'));
 });
 ```
 

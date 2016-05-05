@@ -264,10 +264,10 @@ With Belongs-To-Many you can query based on **through** relation and select spec
 User.findAll({
   include: [{
     model: Project,
-      through: {
-        attributes: ['createdAt', 'startedAt', 'finishedAt']
-          where: {completed: true}
-      }
+    through: {
+      attributes: ['createdAt', 'startedAt', 'finishedAt'],
+      where: {completed: true}
+    }
   }]
 });
 ```
@@ -813,7 +813,10 @@ Product.create({
     {id: 2, name: 'Beta'}
   ]
 }, {
-  include: [ Categories ]
+  include: [{
+    model: Categories,
+    as: 'categories'
+  }]
 })
 ```
 

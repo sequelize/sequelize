@@ -17,6 +17,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var User = this.sequelize.define('User', {
           first_name: Sequelize.STRING,
           last_name: Sequelize.STRING
+        }, {
+          hooks: {
+            beforeCreate: function (user, options) {
+              user.createOptions = options;
+            }
+          }
         });
 
         Product.belongsTo(User);
@@ -29,8 +35,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               last_name: 'Broadstone'
             }
           }, {
-            include: [ User ]
+            include: [{
+              model: User,
+              myOption: 'option'
+            }]
           }).then(function(savedProduct) {
+            expect(savedProduct.User.createOptions.myOption).to.be.equal('option');
+            expect(savedProduct.User.createOptions.parentRecord).to.be.equal(savedProduct);
             return Product.findOne({
               where: { id: savedProduct.id },
               include: [ User ]
@@ -82,6 +93,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
         var Tag = this.sequelize.define('Tag', {
           name: Sequelize.STRING
+        }, {
+          hooks: {
+            afterCreate: function (tag, options) {
+              tag.createOptions = options;
+            }
+          }
         });
 
         Product.hasMany(Tag);
@@ -95,7 +112,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               {id: 2, name: 'Beta'}
             ]
           }, {
-            include: [ Tag ]
+            include: [{
+              model: Tag,
+              myOption: 'option'
+            }]
           }).then(function(savedProduct) {
             return Product.find({
               where: { id: savedProduct.id },
@@ -209,6 +229,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var Task = this.sequelize.define('Task', {
           title: DataTypes.STRING,
           active: DataTypes.BOOLEAN
+        }, {
+          hooks: {
+            afterCreate: function (task, options) {
+              task.createOptions = options;
+            }
+          }
         });
 
         User.belongsToMany(Task, {through: 'user_task'});
@@ -222,8 +248,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               { title: 'Die trying', active: false }
             ]
           }, {
-            include: [ Task ]
+            include: [{
+              model: Task,
+              myOption: 'option'
+            }]
           }).then(function(savedUser) {
+            expect(savedUser.Tasks[0].createOptions.myOption).to.be.equal('option');
+            expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(savedUser);
+            expect(savedUser.Tasks[1].createOptions.myOption).to.be.equal('option');
+            expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(savedUser);
             return User.find({
               where: { id: savedUser.id },
               include: [ Task ]
