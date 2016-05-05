@@ -117,7 +117,7 @@ User.findAndCountAll({
   include: [
      { model: Profile, required: true}
   ],
-  limit 3
+  limit: 3
 });
 ```
 
@@ -128,7 +128,7 @@ User.findAndCountAll({
   include: [
      { model: Profile, where: { active: true }}
   ],
-  limit 3
+  limit: 3
 });
 ```
 
@@ -580,6 +580,10 @@ Company.findAll({ include: [ Division ], order: [ [ Division, 'name', 'DESC' ] ]
 Company.findAll({
   include: [ { model: Division, as: 'Div' } ],
   order: [ [ { model: Division, as: 'Div' }, 'name' ] ]
+});
+Company.findAll({
+  include: [ { model: Division, as: 'Div' } ],
+  order: [ [ { model: Division, as: 'Div' }, 'name', 'DESC' ] ]
 });
 Company.findAll({
   include: [ { model: Division, include: [ Department ] } ],

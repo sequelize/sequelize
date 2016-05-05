@@ -83,7 +83,7 @@ var Post = sequelize.define('post', {}, {
 ```
 
 ## Promises
-Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them)
+Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](http://bluebirdjs.com/docs/why-promises.html)
 
 Basically a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
 
@@ -91,15 +91,15 @@ Basically a promise represents a value which will be present at some point - "I 
 // DON'T DO THIS
 user = User.findOne()
 
-console.log(user.name);
+console.log(user.get('firstName'));
 ```
 
 _will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
 
 ```js
 User.findOne().then(function (user) {
-    console.log(user.name);
+    console.log(user.get('firstName'));
 });
 ```
 
-Once you've got the hang of what promises are and how they work, use the [bluebird API reference](https://github.com/petkaantonov/bluebird/blob/master/API.md) as your go to tool. In particular, you'll probably be using [`.all`](https://github.com/petkaantonov/bluebird/blob/master/API.md#all---promise) a lot.  
+Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.  

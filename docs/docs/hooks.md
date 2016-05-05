@@ -7,8 +7,8 @@ For a full list of hooks, see [Hooks API](/api/hooks).
 ```
 (1)
   beforeBulkCreate(instances, options, fn)
-  beforeBulkDestroy(instances, options, fn)
-  beforeBulkUpdate(instances, options, fn)
+  beforeBulkDestroy(options, fn)
+  beforeBulkUpdate(options, fn)
 (2)
   beforeValidate(instance, options, fn)
 (-)
@@ -31,8 +31,8 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   afterUpdate(instance, options, fn)
 (6)
   afterBulkCreate(instances, options, fn)
-  afterBulkDestroy(instances, options, fn)
-  afterBulkUpdate(instances, options, fn)
+  afterBulkDestroy(options, fn)
+  afterBulkUpdate(options, fn)
 ```
 
 ## Declaring Hooks
