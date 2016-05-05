@@ -282,7 +282,7 @@ something.findOne({
 CTEs (Common Table Expressions) are special expressions that preceded a query. They create a named expression that can be referenced later in a query. Some dialects allow a CTE to perform a recursive query, a query that repeats itself as long as it is able to. There may be many CTEs with a single query, and each CTE can build on the results of the one that came before.
 
 
-`cte` takes an array of objects that each describe a common table expression or CTE. CTEs run before the main query and can be recursive.
+`cte` takes an array of objects that each describe a common table expression or CTE. CTEs run before the main query and can be made recursive.
 
 ```js
 something.findAll({
