@@ -1715,14 +1715,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('does not modify the passed arguments', function() {
-      var options = { where: ['username = ?', 'user1']};
-
-      return this.User.count(options).then(function() {
-        expect(options).to.deep.equal({ where: ['username = ?', 'user1']});
-      });
-    });
-
     describe("options sent to aggregate", function () {
       var options, aggregateSpy;
 

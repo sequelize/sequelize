@@ -2,7 +2,8 @@
 
 var QueryInterface = require(__dirname + '/../lib/query-interface')
   , hintsModule = require('hints')
-  , _ = require('lodash');
+  , _ = require('lodash')
+  , util = require('util');
 
 /*
  * Shims all Sequelize methods to test for logging passing.
@@ -14,6 +15,10 @@ module.exports = function(Sequelize) {
   shimAll(Sequelize.Model.prototype);
   shimAll(Sequelize.Instance.prototype);
   shimAll(QueryInterface.prototype);
+  shimAll(Sequelize.Association.prototype);
+   _.forIn(Sequelize.Association, function(Association) {
+    shimAll(Association.prototype);
+  });
 
   // Shim Model.prototype to then shim getter/setter methods
   ['hasOne', 'belongsTo', 'hasMany', 'belongsToMany'].forEach(function(type) {
@@ -123,14 +128,22 @@ module.exports = function(Sequelize) {
     shimMethod(obj, name, function(original) {
       return function() {
         var args = Sequelize.Utils.sliceArgs(arguments),
+          options,
           fromTests = calledFromTests();
 
-        if (conform) args = conform.apply(this, arguments);
+        if (!Sequelize.dontShim) {
+          if (conform) args = conform.apply(this, arguments);
 
-        if (fromTests) {
-          args[index] = addLogger(args[index]);
-        } else {
-          testLogger(args[index]);
+          if (fromTests) {
+            options = _.cloneDeepWith(args[index], function (value) {
+              if (typeof value === 'object' && !_.isPlainObject(value)) {
+                return value;
+              }
+            });
+            args[index] = addLogger(args[index]);
+          } else {
+            testLogger(args[index], name);
+          }
         }
 
         var result;
@@ -140,7 +153,12 @@ module.exports = function(Sequelize) {
           finish();
 
         function finish() {
-          if (fromTests) removeLogger(args[index]);
+          if (fromTests) {
+            removeLogger(args[index]);
+            if ((typeof options !== 'undefined' && options !== null) && !_.isEqual(args[index], options)) {
+              throw new Error('options modified in ' + name + ', input: ' + util.inspect(options) + ' output: ' + util.inspect(args[index]));
+            }
+          }
           return result;
         }
       };
@@ -201,7 +219,7 @@ module.exports = function(Sequelize) {
    * @returns {Object} Options with `logging` attribute reverted to original value
    */
   function removeLogger(options) {
-    if (options.logging && options.logging.__testLoggingFn) {
+    if (options && options.logging && options.logging.__testLoggingFn) {
       if (options.logging.hasOwnProperty('__originalLogging')) {
         options.logging = options.logging.__originalLogging;
       } else {
@@ -216,8 +234,8 @@ module.exports = function(Sequelize) {
    * @param {Object} options
    * @throws {Error} Throws if `options.logging` is not a shimmed logging function
    */
-  function testLogger(options) {
-    if (!options || !options.logging || !options.logging.__testLoggingFn) throw new Error('options.logging has been lost');
+  function testLogger(options, name) {
+    if (!options || !options.logging || !options.logging.__testLoggingFn) throw new Error('options.logging has been lost in method ' + name);
   }
 
   /*
