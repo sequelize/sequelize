@@ -70,6 +70,9 @@ get SQLite tests for free :)
 
 Makes sure Docker and docker-compose are installed.
 
+If running on OSX, install [Docker Toolbox](https://docs.docker.com/engine/installation/mac/) and
+ launch `Docker Quickstart Terminal.app`.
+
 Then simply run:
 
 ```sh
@@ -86,9 +89,13 @@ To rebuild the image (in case of changed dependencies or similar).
 
 If sequelize is unable to connect to mysql you might want to try running `sudo docker-compose up` in a second terminal window.
 
-#### 3b. Docker and OSX:
+#### 3b. [Deprecated] Docker and OSX using `boot2docker-cli`:
 
-Docker does not run on OSX natively so you will have to use an VM layer like `boot2docker`. See [OSX Docker Documentation](http://docs.docker.com/installation/mac/) for install or you can also use [Homebrew](http://brew.sh) to install `boot2docker` after installing [VirtualBox](https://www.virtualbox.org)
+Docker does not run on OSX natively so you will have to use a VM layer like `boot2docker`. 
+
+[Docker Machine](https://docs.docker.com/machine/) will take care of the VM layer and it is included in Docker Toolbox.
+
+[boot2docker-cli](https://github.com/boot2docker/boot2docker-cli) is a command line interface to manipulate `boot2docker`, it is officially deprecated in favor of Docker Machine. If you insists, you can see [boot2docker-cli/release](https://github.com/boot2docker/boot2docker-cli/releases) for install or you can also use [Homebrew](http://brew.sh) to install `boot2docker` after installing [VirtualBox](https://www.virtualbox.org).
 
 After installing and intializing docker you can pull the docker container:
 ```console
