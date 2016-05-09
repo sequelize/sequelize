@@ -142,8 +142,11 @@ if (current.dialect.supports.groupedLimit) {
             expect(users[1].groups).to.be.ok;
             expect(users[1].groups).to.have.length(1);
             expect(users[2].groups).to.be.empty;
+
+            // make sure the group with higher precedence was selected
             expect(getPrimaryKey(users[1].groups[0])).to.not.equal(getPrimaryKey(users[0].groups[0]));
-            expect(sqlSpy.callCount).to.equal(4);
+
+            expect(sqlSpy.callCount).to.equal(3);
           });
         });
       });
