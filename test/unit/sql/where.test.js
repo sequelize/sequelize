@@ -572,7 +572,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" LIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" LIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
@@ -580,7 +580,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" ILIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" ILIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
@@ -588,7 +588,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" NOT LIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" NOT LIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
@@ -596,7 +596,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" NOT ILIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" NOT ILIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
