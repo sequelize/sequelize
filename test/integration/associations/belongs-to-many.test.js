@@ -1852,35 +1852,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       expect(Group.associations.MyUsers.through.model.rawAttributes.UserId).to.exist;
       expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
     });
-
-    it('handles constraints properly when through is a string', function() {
-      var User = this.sequelize.define('User', {})
-       , Group = this.sequelize.define('Group', {});
-
-      User.belongsToMany(Group, { as: 'MyGroups', through: 'group_user', onUpdate: 'RESTRICT', onDelete: 'SET NULL' });
-      Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user', onUpdate: 'SET NULL', onDelete: 'RESTRICT' });
-
-      expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onUpdate).to.equal('RESTRICT');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onDelete).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onUpdate).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
-    });
-
-    it('handles constraints properly when through is a model', function() {
-      var User = this.sequelize.define('User', {})
-       , Group = this.sequelize.define('Group', {})
-       , UserGroup = this.sequelize.define('GroupUser', {}, {tableName: 'user_groups'});
-
-      User.belongsToMany(Group, { as: 'MyGroups', through: UserGroup, onUpdate: 'RESTRICT', onDelete: 'SET NULL' });
-      Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup, onUpdate: 'SET NULL', onDelete: 'RESTRICT' });
-
-      expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onUpdate).to.equal('RESTRICT');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onDelete).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onUpdate).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
-    });
   });
 
   describe('multiple hasMany', function() {
