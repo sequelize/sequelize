@@ -347,7 +347,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it('doesn\'t update primary keys or timestamps', function() {
+    it('doesn\'t update timestamps', function() {
       var User = this.sequelize.define('User' + config.rand(), {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
@@ -361,18 +361,39 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
       }).then(function(user) {
         var oldCreatedAt = user.createdAt
-          , oldUpdatedAt = user.updatedAt
-          , oldIdentifier = user.identifier;
+          , oldUpdatedAt = user.updatedAt;
 
         this.clock.tick(1000);
         return user.update({
           name: 'foobar',
           createdAt: new Date(2000, 1, 1),
-          identifier: 'another identifier'
         }).then(function(user) {
           expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt));
           expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt));
-          expect(user.identifier).to.equal(oldIdentifier);
+        });
+      });
+    });
+
+    it('does update primary keys that aren\'t autoIncrement', function() {
+      var User = this.sequelize.define('User' + config.rand(), {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        identifier: {type: DataTypes.STRING, primaryKey: true}
+      });
+
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({
+          name: 'snafu',
+          identifier: 'identifier'
+        });
+      }).then(function(user) {
+
+        this.clock.tick(1000);
+        return user.update({
+          name: 'foobar',
+          identifier: 'another identifier'
+        }).then(function(user) {
+          expect(user.identifier).to.equal(user.identifier);
         });
       });
     });
