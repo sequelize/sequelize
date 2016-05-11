@@ -6,8 +6,7 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , current = Support.sequelize
   , sinon = require('sinon')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , _ = require('lodash');
+  , DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('method findAll', function () {
@@ -86,19 +85,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'name'
           ]);
-        });
-      });
-
-      it('properly clones options values', function() {
-        var options = {
-          attributes: {
-            exclude: ['name'],
-            include: ['name']
-          }
-        };
-        var optionsClones = _.cloneDeep(options);
-        return Model.findAll(options).bind(this).then(function () {
-          expect(options).to.deep.equal(optionsClones);
         });
       });
 

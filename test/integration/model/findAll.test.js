@@ -1110,13 +1110,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('does not modify the passed arguments', function() {
-        var options = { where: ['username = ?', 'awesome']};
-        return this.User.findAll(options).then(function() {
-          expect(options).to.deep.equal({ where: ['username = ?', 'awesome']});
-        });
-      });
-
       it('can also handle array notation', function() {
         var self = this;
         return this.User.findAll({where: ['id = ?', this.users[1].id]}).then(function(users) {
