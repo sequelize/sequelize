@@ -50,6 +50,7 @@
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
 - [FIXED] Improved offset and limit support for SQL server 2008 [#5616](https://github.com/sequelize/sequelize/pull/5616)
 - [FIXED] options object cloned in all Sequelize methods (so not modified within Sequelize)
+- [ADDED] Test coverage for options object not being modified
 
 # 3.23.1
 - [FIXED] Postgres DECIMAL precision. (PostgreSQL) [#4893](https://github.com/sequelize/sequelize/issues/4893)
