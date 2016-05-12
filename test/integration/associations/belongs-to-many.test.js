@@ -1373,7 +1373,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       this.User.belongsToMany(this.Task, { through: this.UserTasks });
       this.Task.belongsToMany(this.User, { through: this.UserTasks });
 
-      expect(Object.keys(this.UserTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId']);
+      expect(Object.keys(this.UserTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
     });
 
     it('keeps the primary key if it was added by the user', function() {
@@ -1426,7 +1426,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.User.belongsToMany(this.Task, { through: this.UsersTasks });
         this.Task.belongsToMany(this.User, { through: this.UsersTasks });
 
-        expect(Object.keys(this.UsersTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId']);
+        expect(Object.keys(this.UsersTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
 
         return Promise.all([
           this.User.create({username: 'foo'}),
