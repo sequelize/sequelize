@@ -1,4 +1,4 @@
-# Future
+# 3.23.1
 - [FIXED] Postgres DECIMAL precision. (PostgreSQL) [#4893](https://github.com/sequelize/sequelize/issues/4893)
 - [FIXED] removeColumn tries to delete non-existant foreign key constraint (mysql) [#5808](https://github.com/sequelize/sequelize/issues/5808)
 - [FIXED] Relation constraints not being applied correctly [#5865](https://github.com/sequelize/sequelize/issues/5865)
