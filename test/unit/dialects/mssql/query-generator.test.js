@@ -24,7 +24,7 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    test('selectSqlFragmentBuilder', function() {
+    test('selectFromTableFragment', function() {
       var modifiedGen = _.clone(QueryGenerator);
       // Test newer versions first
       // Should be all the same since handling is done in addLimitAndOffset
@@ -36,22 +36,22 @@ if (current.dialect.name === 'mssql') {
       };
 
       // Base case
-      expectsql(modifiedGen.selectSqlFragmentBuilder({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
+      expectsql(modifiedGen.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
         mssql: "SELECT id, name FROM myTable AS myOtherName"
       });
 
       // With limit
-      expectsql(modifiedGen.selectSqlFragmentBuilder({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: "SELECT id, name FROM myTable AS myOtherName"
       });
 
       // With offset
-      expectsql(modifiedGen.selectSqlFragmentBuilder({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: "SELECT id, name FROM myTable AS myOtherName"
       });
 
       // With both limit and offset
-      expectsql(modifiedGen.selectSqlFragmentBuilder({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: "SELECT id, name FROM myTable AS myOtherName"
       });
 
@@ -59,22 +59,22 @@ if (current.dialect.name === 'mssql') {
       modifiedGen.sequelize.options.databaseVersion = '10.0.0';
 
       // Base case
-      expectsql(modifiedGen.selectSqlFragmentBuilder({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
+      expectsql(modifiedGen.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
         mssql: "SELECT id, name FROM myTable AS myOtherName"
       });
 
       // With limit
-      expectsql(modifiedGen.selectSqlFragmentBuilder({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: "SELECT TOP 10 id, name FROM myTable AS myOtherName"
       });
 
       // With offset
-      expectsql(modifiedGen.selectSqlFragmentBuilder({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: "SELECT TOP 100 PERCENT id, name FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, *  FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName"
       });
 
       // With both limit and offset
-      expectsql(modifiedGen.selectSqlFragmentBuilder({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: "SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, *  FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName"
       });
     });
