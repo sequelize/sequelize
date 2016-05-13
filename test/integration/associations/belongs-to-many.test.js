@@ -36,16 +36,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
-    it('does not modify the passed arguments', function() {
-      return this.User.create({}).bind(this).then(function(user) {
-        this.options = {};
-
-        return user.getTasks(this.options);
-      }).then(function() {
-        expect(this.options).to.deep.equal({});
-      });
-    });
-
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {

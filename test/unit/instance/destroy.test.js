@@ -39,13 +39,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.destroy();
         }).to.not.throw();
       });
-
-      it('should not modify options when it given to destroy', function () {
-        instance = Model.build({id: 1}, {isNewRecord: false});
-        var options = { transaction: null };
-        instance.destroy(options);
-        expect(options).to.deep.equal({ transaction: null });
-      });
     });
   });
 });
