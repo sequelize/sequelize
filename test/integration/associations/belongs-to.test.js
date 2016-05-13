@@ -24,6 +24,43 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
     });
   });
 
+  describe('get', function () {
+    describe('multiple', function () {
+      it('should fetch associations for multiple instances', function () {
+        var User = this.sequelize.define('User', {})
+          , Task = this.sequelize.define('Task', {});
+
+        Task.User = Task.belongsTo(User, {as: 'user'});
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return Promise.join(
+            Task.create({
+              id: 1,
+              user: {}
+            }, {
+              include: [Task.User]
+            }),
+            Task.create({
+              id: 2,
+              user: {}
+            }, {
+              include: [Task.User]
+            }),
+            Task.create({
+              id: 3
+            })
+          );
+        }).then(function (tasks) {
+          return Task.User.get(tasks).then(function (result) {
+            expect(result[tasks[0].id].id).to.equal(tasks[0].user.id);
+            expect(result[tasks[1].id].id).to.equal(tasks[1].user.id);
+            expect(result[tasks[2].id]).to.be.undefined;
+          });
+        });
+      });
+    });
+  });
+
   describe('getAssociation', function() {
 
     if (current.dialect.supports.transactions) {
