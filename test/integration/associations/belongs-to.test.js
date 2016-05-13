@@ -126,25 +126,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         expect(user).to.be.ok;
       });
     });
-
-    it('should support logging', function () {
-      var spy = sinon.spy();
-
-       var User = this.sequelize.define('user', {})
-        , Project = this.sequelize.define('project', {});
-
-      User.belongsTo(Project);
-
-      return this.sequelize.sync({ force: true }).bind(this).then(function() {
-        return User.create({});
-      }).then(function(user) {
-        return user.getProject({
-          logging: spy
-        });
-      }).then(function() {
-        expect(spy.called).to.be.ok;
-      });
-    });
   });
 
   describe('setAssociation', function() {
