@@ -1,4 +1,4 @@
-FROM iojs:1.6
+FROM node:5
 
 RUN apt-get install libpq-dev
 
