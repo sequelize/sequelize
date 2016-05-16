@@ -1,3 +1,13 @@
+# Future (4.0.0-1)
+- [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
+- [REMOVED] Support for `referencesKey`
+- [CHANGED] Throw if `dialect` is not provided to the constructor
+
+## BC breaks:
+- `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
+- Removed support for `referencesKey`, use a `references` object
+- Remove default dialect
+
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
 - [FIXED] Improved offset and limit support for SQL server 2008 [#5616](https://github.com/sequelize/sequelize/pull/5616)
