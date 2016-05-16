@@ -2738,13 +2738,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      return user.bulkCreate(data, {
+      return expect(user.bulkCreate(data, {
         validate: true,
         individualHooks: true
-      })
-      .catch(function(errors) {
-        expect(errors).to.be.instanceof(Array);
-      });
+      })).to.be.rejectedWith(Promise.AggregateError);
     });
   });
 });

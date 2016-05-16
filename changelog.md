@@ -2,11 +2,13 @@
 - [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
 - [REMOVED] Support for `referencesKey`
 - [CHANGED] Throw if `dialect` is not provided to the constructor
+- [CHANGED] Throw `bluebird.AggregateError` instead of array from `bulkCreate` when validation fails
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
 - Removed support for `referencesKey`, use a `references` object
 - Remove default dialect
+- When `bulkCreate` is rejected because of validation failure it throws a `bluebird.AggregateError` instead of an array. This object is an array-like so length and index access will still work, but `instanceof` array will not
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)

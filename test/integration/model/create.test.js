@@ -1570,8 +1570,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           {code: '1234'},
           {name: 'bar', code: '1'}
         ], { validate: true }).catch(function(errors) {
-          expect(errors).to.not.be.null;
-          expect(errors).to.be.an('Array');
+          expect(errors).to.be.instanceof(Promise.AggregateError);
           expect(errors).to.have.length(2);
           expect(errors[0].record.code).to.equal('1234');
           expect(errors[0].errors.get('name')[0].type).to.equal('notNull Violation');
