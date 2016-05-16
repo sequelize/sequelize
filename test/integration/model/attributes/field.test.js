@@ -2,6 +2,7 @@
 
 /* jshint -W030 */
 var chai = require('chai')
+  , sinon = require('sinon')
   , Sequelize = require('../../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -10,6 +11,15 @@ var chai = require('chai')
   , dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), function() {
+
+  before(function () {
+    this.clock = sinon.useFakeTimers();
+  });
+
+  after(function () {
+    this.clock.restore();
+  });
+
   describe('attributes', function() {
     describe('field', function() {
       beforeEach(function() {
@@ -523,15 +533,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           paranoid: true
         });
 
-        return User.sync({force: true}).then(function () {
-          return User.create().then(function (user) {
+        return User.sync({force: true})
+          .bind(this)
+          .then(function () {
+            return User.create();
+          })
+          .then(function (user) {
             return user.destroy();
-          }).then(function () {
-            return User.findAll().then(function (users) {
-              expect(users.length).to.equal(0);
-            });
+          })
+          .then(function () {
+            this.clock.tick(1000);
+            return User.findAll();
+          })
+          .then(function (users) {
+            expect(users.length).to.equal(0);
           });
-        });
       });
 
       it('should work with paranoid Model.destroy()', function () {
