@@ -7,6 +7,7 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
+  , moment = require('moment')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , config = require(__dirname + '/../../config/config')
@@ -985,6 +986,29 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
       });
 
+    });
+
+    it('should find records where deletedAt set to future', function() {
+      var User = this.sequelize.define('paranoiduser', {
+        username: Sequelize.STRING
+      }, { paranoid: true });
+
+      return User.sync({ force: true }).then(function() {
+        return User.bulkCreate([
+          {username: 'Bob'},
+          {username: 'Tobi', deletedAt: moment().add(30, 'minutes').format()},
+          {username: 'Max', deletedAt: moment().add(30, 'days').format()},
+          {username: 'Tony', deletedAt: moment().subtract(30, 'days').format()}
+        ]);
+      }).then(function() {
+        return User.find({ where: {username: 'Tobi'} });
+      }).then(function(tobi) {
+        expect(tobi).not.to.be.null;
+      }).then(function() {
+        return User.findAll();
+      }).then(function(users) {
+        expect(users.length).to.be.eql(3);
+      });
     });
 
   });
