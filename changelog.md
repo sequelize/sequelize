@@ -5,6 +5,7 @@
 - [CHANGED] Throw `bluebird.AggregateError` instead of array from `bulkCreate` when validation fails
 - [FIXED] `$notIn: []` is now converted to `NOT IN (NULL)`  [#4859](https://github.com/sequelize/sequelize/issues/4859)
 - [FIXED] Add `raw` support to `instance.get()` [#5815](https://github.com/sequelize/sequelize/issues/5815)
+- [FIXED] Use `defaultValue` for attribute in `Model.create()` when given attribute is specified but excluded in `fields` (similar to [#3458](https://github.com/sequelize/sequelize/issues/3458))
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
