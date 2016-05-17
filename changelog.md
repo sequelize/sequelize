@@ -6,6 +6,7 @@
 - [FIXED] `$notIn: []` is now converted to `NOT IN (NULL)`  [#4859](https://github.com/sequelize/sequelize/issues/4859)
 - [FIXED] Add `raw` support to `instance.get()` [#5815](https://github.com/sequelize/sequelize/issues/5815)
 - [ADDED] Compare deletedAt against current timestamp when using paranoid [#5880](https://github.com/sequelize/sequelize/pull/5880)
+- [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
