@@ -1197,6 +1197,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
       it('through Sequelize.sync()', function() {
         var self = this;
+        self.spy.reset();
         return this.sequelize.sync({ force: true, logging: false }).then(function() {
           expect(self.spy.notCalled).to.be.true;
         });
@@ -1204,6 +1205,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
       it('through DAOFactory.sync()', function() {
         var self = this;
+        self.spy.reset();
         return this.User.sync({ force: true, logging: false }).then(function() {
           expect(self.spy.notCalled).to.be.true;
         });
