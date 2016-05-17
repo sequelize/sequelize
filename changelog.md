@@ -10,6 +10,7 @@
 - [FIXED] Trigger afterCreate hook after all nested includes (for hasMany or belongsToMany associations) have been created to be consistent with hasOne.
 - [REMOVED] Support for `pool:false`
 - [REMOVED] Default transaction isolation level [#5094](https://github.com/sequelize/sequelize/issues/5094)
+- [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
