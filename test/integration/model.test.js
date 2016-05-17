@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
       });
 
-      return User.sync({ force: true, logging: _.after(2, _.once(function(sql) {
+      return User.sync({ force: true, logging: _.after(3, _.once(function(sql) {
         if (dialect === 'mssql') {
           expect(sql).to.match(/CONSTRAINT\s*([`"\[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"\[]?username[`"\]]?, [`"\[]?email[`"\]]?\)/);
           expect(sql).to.match(/CONSTRAINT\s*([`"\[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"\[]?aCol[`"\]]?, [`"\[]?bCol[`"\]]?\)/);
@@ -2223,7 +2223,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       var run = function() {
         return UserPub.sync({ force: true }).then(function() {
-          return ItemPub.sync({ force: true, logging: _.after(2, _.once(function(sql) {
+          return ItemPub.sync({ force: true, logging: _.after(3, _.once(function(sql) {
             if (dialect === 'postgres') {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
             } else if (dialect === 'mssql') {
@@ -2664,7 +2664,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         str: { type: Sequelize.STRING, unique: true }
       });
 
-      return uniqueTrue.sync({force: true, logging: _.after(2, _.once(function(s) {
+      return uniqueTrue.sync({force: true, logging: _.after(3, _.once(function(s) {
         expect(s).to.match(/UNIQUE/);
       }))});
     });
