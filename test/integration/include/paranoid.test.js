@@ -2,6 +2,7 @@
 
 var chai = require('chai')
   , expect = chai.expect
+  , sinon = require('sinon')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
@@ -29,6 +30,14 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
     D.belongsToMany(A, {through: 'a_d'});
 
     return S.sync({ force: true });
+  });
+
+  before(function () {
+    this.clock = sinon.useFakeTimers();
+  });
+
+  after(function () {
+    this.clock.restore();
   });
 
   it('paranoid with timestamps: false should be ignored / not crash', function() {
@@ -108,6 +117,9 @@ describe(Support.getTestDialectTeaser('Paranoid'), function() {
     }).then(function () {
       return this.y.destroy();
     }).then(function () {
+      //prevent CURRENT_TIMESTAMP to be same
+      this.clock.tick(1000);
+
       return X.findAll({
         include: [Y]
       }).get(0);

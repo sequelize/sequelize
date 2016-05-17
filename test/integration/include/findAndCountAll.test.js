@@ -2,11 +2,21 @@
 
 var chai = require('chai')
   , expect = chai.expect
+  , sinon = require('sinon')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Include'), function() {
+
+  before(function () {
+    this.clock = sinon.useFakeTimers();
+  });
+
+  after(function () {
+    this.clock.restore();
+  });
+
   describe('findAndCountAll', function() {
     it('should be able to include a required model. Result rows should match count', function() {
       var User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
@@ -18,6 +28,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
           B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
           C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
+
+      var self = this;
 
       // Associate them
       User.hasMany(SomeConnection, { foreignKey: 'u', constraints: false });
@@ -84,13 +96,13 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             { name: 'because we only want A' }
           ])
         ).then(function () {
-
           // Delete some of conns to prove the concept
           return SomeConnection.destroy({where: {
             m: 'A',
             u: 1,
             fk: [1, 2]
           }}).then(function() {
+            self.clock.tick(1000);
             // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
             return A.findAndCountAll({
               include: [{
