@@ -106,7 +106,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
  
   // use pooling in order to reduce db connection overload and to increase speed
   // currently only for mysql and postgresql (since v1.5.0)
-  pool: { maxConnections: 5, maxIdleTime: 30},
+  pool: { max: 5, idle: 30},
  
   // language is used to determine how to translate words into singular or plural form based on the [lingo project](https://github.com/visionmedia/lingo)
   // options are: en [default], es
@@ -140,8 +140,8 @@ var sequelize = new Sequelize('database', null, null, {
     write: { host: 'localhost', username: 'root', password: null }
   },
   pool: { // If you want to override the options used for the read pool you can do so here
-    maxConnections: 20,
-    maxIdleTime: 30000
+    max: 20,
+    idle: 30000
   },
 })
 ```
@@ -152,9 +152,9 @@ Sequelize uses a pool to manage connections to your replicas. The default option
 
 ```js
 {
-  maxConnections: 10,
-  minConnections: 0,
-  maxIdleTime:    1000
+  max: 10,
+  min: 0,
+  idle: 1000
 }
 ```
 
