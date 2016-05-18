@@ -6,6 +6,10 @@
 - [FIXED] `$notIn: []` is now converted to `NOT IN (NULL)`  [#4859](https://github.com/sequelize/sequelize/issues/4859)
 - [FIXED] Add `raw` support to `instance.get()` [#5815](https://github.com/sequelize/sequelize/issues/5815)
 - [ADDED] Compare deletedAt against current timestamp when using paranoid [#5880](https://github.com/sequelize/sequelize/pull/5880)
+- [FIXED] `BIGINT` gets truncated [#5176](https://github.com/sequelize/sequelize/issues/5176)
+- [FIXED] Trigger afterCreate hook after all nested includes (for hasMany or belongsToMany associations) have been created to be consistent with hasOne.
+- [REMOVED] Support for `pool:false`
+- [REMOVED] Default transaction isolation level [#5094](https://github.com/sequelize/sequelize/issues/5094)
 - [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
 
 ## BC breaks:
@@ -14,6 +18,9 @@
 - Remove default dialect
 - When `bulkCreate` is rejected because of validation failure it throws a `bluebird.AggregateError` instead of an array. This object is an array-like so length and index access will still work, but `instanceof` array will not
 - `$notIn: []` will now match all rows instead of none
+- (MySQL) `BIGINT` now gets converted to string when number is too big
+- Removed support for `pool:false`, if you still want to use single connection set `pool.max` to `1`
+- Removed default `REPEATABLE_READ` transaction isolation, use config option to explicitly set it
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)

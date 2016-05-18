@@ -34,8 +34,11 @@ if (Support.dialectIsMySQL()) {
     });
 
     it('accepts new queries after shutting down a connection', function() {
-      // Create a sequelize instance with pooling disabled
-      var sequelize = Support.createSequelizeInstance({ pool: false });
+      // Create a sequelize instance with fast disconnecting connection
+      var sequelize = Support.createSequelizeInstance({ pool: {
+        idle: 50,
+        max: 1
+      } });
       var User = sequelize.define('User', { username: DataTypes.STRING });
 
       return User.sync({force: true}).then(function() {
