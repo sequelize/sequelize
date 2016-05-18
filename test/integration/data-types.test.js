@@ -364,4 +364,26 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     });
   }
 
+  if (dialect === 'mysql') {
+    it('should parse BIGINT as string', function () {
+      var Model = this.sequelize.define('model', {
+        jewelPurity: Sequelize.BIGINT
+      });
+
+      var sampleData = {
+        id: 1,
+        jewelPurity: '9223372036854775807',
+      };
+
+      return Model.sync({ force: true }).then(function () {
+        return Model.create(sampleData);
+      }).then(function () {
+        return Model.find({id: 1});
+      }).then(function (user) {
+        expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
+        expect(user.get('jewelPurity')).to.be.string;
+      });
+    });
+  }
+
 });
