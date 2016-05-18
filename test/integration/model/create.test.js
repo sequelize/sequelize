@@ -705,7 +705,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('is possible to use casting when creating an instance', function() {
       var self = this
-        , type = Support.dialectIsMySQL() ? 'signed' : 'integer'
+        , type = dialect === 'mysql' ? 'signed' : 'integer'
         , match = false;
 
       return this.User.create({
@@ -728,7 +728,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         , type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer')
         , match = false;
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed');
       }
 
@@ -736,7 +736,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         intVal: type
       }, {
         logging: function(sql) {
-          if (Support.dialectIsMySQL()) {
+          if (dialect === 'mysql') {
             expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
           } else {
             expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');
@@ -755,7 +755,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var self = this;
 
       return this.User.create({
-        intVal: this.sequelize.literal('CAST(1-2 AS ' + (Support.dialectIsMySQL() ? 'SIGNED' : 'INTEGER') + ')')
+        intVal: this.sequelize.literal('CAST(1-2 AS ' + (dialect === 'mysql' ? 'SIGNED' : 'INTEGER') + ')')
       }).then(function(user) {
         return self.User.findById(user.id).then(function(user) {
           expect(user.intVal).to.equal(-1);
@@ -918,7 +918,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserNull.create({ username: 'foo2', smth: null }).catch(function(err) {
           expect(err).to.exist;
           expect(err.get('smth')[0].path).to.equal('smth');
-          if (Support.dialectIsMySQL()) {
+          if (dialect === 'mysql') {
             // We need to allow two different errors for MySQL, see:
             // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
             expect(err.get('smth')[0].type).to.match(/notNull Violation/);
@@ -1403,7 +1403,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(sql.indexOf('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT')).not.be.equal(-1);
             } else if (dialect === 'mssql') {
               expect(sql.indexOf('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES')).not.be.equal(-1);
-            } else { // mysql, sqlite, mariadb
+            } else { // mysql, sqlite
               expect(sql.indexOf('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL')).not.be.equal(-1);
             }
           }

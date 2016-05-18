@@ -16,12 +16,6 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Connections problems should fail with a nice message', function() {
     it('when we don\'t have the correct server details', function() {
-      if (dialect === 'mariadb') {
-        console.log('This dialect doesn\'t support me :(');
-        expect(true).to.be.true; // Silence Buster
-        return;
-      }
-
       var seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect});
       if (dialect === 'sqlite') {
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
@@ -32,12 +26,6 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     });
 
     it('when we don\'t have the correct login information', function() {
-      if (dialect === 'mariadb') {
-        console.log('This dialect doesn\'t support me :(');
-        expect(true).to.be.true; // Silence Buster
-        return;
-      }
-
       if (dialect === 'mssql') {
         // NOTE: Travis seems to be having trouble with this test against the
         //       AWS instance. Works perfectly fine on a local setup.
@@ -57,7 +45,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     it('when we don\'t have a valid dialect.', function() {
       expect(function() {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect'});
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mariadb, mssql, mysql, postgres, and sqlite.');
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mysql, postgres, and sqlite.');
     });
   });
 

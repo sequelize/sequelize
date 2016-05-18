@@ -4,9 +4,10 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-if (Support.dialectIsMySQL()) {
+if (dialect === 'mysql') {
   describe('[MYSQL Specific] Associations', function() {
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {

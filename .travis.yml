@@ -22,7 +22,6 @@ env:
     - DIALECT=postgres
     - DIALECT=postgres-native
     - DIALECT=sqlite
-    - DIALECT=mariadb
     - DIALECT=mssql
 
 addons:
@@ -55,8 +54,6 @@ matrix:
       env: COVERAGE=true DIALECT=postgres-native
     - node_js: "6"
       env: COVERAGE=true DIALECT=sqlite
-    - node_js: "6"
-      env: COVERAGE=true DIALECT=mariadb
     - node_js: "6"
       env: COVERAGE=true DIALECT=mssql
 

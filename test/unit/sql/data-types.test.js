@@ -72,29 +72,25 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT',
-        mariadb: 'TINYTEXT'
+        mysql: 'TINYTEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT',
-        mariadb: 'TINYTEXT'
+        mysql: 'TINYTEXT'
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mysql: 'MEDIUMTEXT',
-        mariadb: 'MEDIUMTEXT'
+        mysql: 'MEDIUMTEXT'
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mysql: 'LONGTEXT',
-        mariadb: 'LONGTEXT'
+        mysql: 'LONGTEXT'
       });
 
       suite('validate', function () {
