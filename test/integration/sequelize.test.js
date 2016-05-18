@@ -95,7 +95,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
       describe('with an invalid connection', function() {
         beforeEach(function() {
-          var options = _.extend({}, this.sequelize.options, { port: '99999' });
+          var options = _.extend({logging:true,showWarnings:true}, this.sequelize.options, { port: '99999' });
           this.sequelizeWithInvalidConnection = new Sequelize('wat', 'trololo', 'wow', options);
         });
 
