@@ -32,13 +32,13 @@ var qq = function(str) {
 describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('constructor', function() {
     if (dialect !== 'sqlite') {
-      it.skip('should work with minConnections', function() {
+      it.skip('should work with min connections', function() {
         var ConnectionManager = current.dialect.connectionManager
           , connectionSpy = ConnectionManager.connect = chai.spy(ConnectionManager.connect);
 
         Support.createSequelizeInstance({
           pool: {
-            minConnections: 2
+            min: 2
           }
         });
         expect(connectionSpy).to.have.been.called.twice;

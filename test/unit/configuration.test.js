@@ -24,6 +24,15 @@ describe('Sequelize', function() {
     });
   });
 
+  it('should throw error if pool:false', function() {
+    expect(function() {
+      new Sequelize('localhost', 'test', 'test', {
+        dialect: 'mysql',
+        pool: false
+      });
+    }).to.throw('Support for pool:false was removed in v4.0');
+  });
+
   describe('Instantiation with arguments', function() {
     it('should accept four parameters (database, username, password, options)', function() {
       var sequelize = new Sequelize('dbname', 'root', 'pass', {
