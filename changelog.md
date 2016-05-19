@@ -14,6 +14,7 @@
 - [REMOVED] MariaDB dialect
 - [FIXED] `hasOne` now prefer aliases to construct foreign key [#5247](https://github.com/sequelize/sequelize/issues/5247)
 - [CHANGED] `instance.equals` now only checks primary keys, instead of all attributes.
+- [CHANGED] Refactor methods to use options only [#5248](https://github.com/sequelize/sequelize/issues/5248)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
@@ -27,6 +28,7 @@
 - Removed MariaDB dialect - this was just a thin wrapper around MySQL, so using `dialect: 'mysql'` instead should work with no further changes
 - `hasOne` now prefer `as` option to generate foreign key name, otherwise it defaults to source model name
 - `instance.equals` now provides reference equality (do two instances refer to the same row, i.e. are their primary key(s) equal). Use `instance.get()` to get and compare all values.
+- Changed signature for `increment`/`decrement` to only use `options`. Use `options.fields` to pass the `fields`
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
