@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return User.sync({ force: true }).then(function() {
             return User.create({ number: 1 }).then(function(user) {
               return sequelize.transaction().then(function(t) {
-                return user.increment('number', { by: 2, transaction: t }).then(function() {
+                return user.increment({ fields: 'number', by: 2, transaction: t }).then(function() {
                   return User.findAll().then(function(users1) {
                     return User.findAll({ transaction: t }).then(function(users2) {
                       expect(users1[0].number).to.equal(1);
@@ -151,7 +151,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     if (current.dialect.supports.returnValues.returning) {
       it('supports returning', function() {
         return this.User.findById(1).then(function(user1) {
-          return user1.increment('aNumber', { by: 2 }).then(function() {
+          return user1.increment({ fields: 'aNumber', by: 2 }).then(function() {
             expect(user1.aNumber).to.be.equal(2);
           });
         });
@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('supports where conditions', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } }).then(function() {
+        return user1.increment({ fields: ['aNumber'], by: 2, where: { bNumber: 1 } }).then(function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(0);
           });
@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with array', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.increment(['aNumber'], { by: 2 }).then(function() {
+        return user1.increment({ fields: ['aNumber'], by: 2 }).then(function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(2);
           });
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with single field', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.increment('aNumber', { by: 2 }).then(function() {
+        return user1.increment({fields: 'aNumber', by: 2 }).then(function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(2);
           });
@@ -194,7 +194,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with single field and no value', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.increment('aNumber').then(function() {
+        return user1.increment({ fields: 'aNumber' }).then(function() {
           return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.be.equal(1);
           });
@@ -210,7 +210,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).then(function() {
-            return user1.increment(['aNumber'], { by: 2 }).then(function() {
+            return user1.increment({ fields: ['aNumber'], by: 2 }).then(function() {
               return self.User.findById(1).then(function(user5) {
                 expect(user5.aNumber).to.be.equal(3);
               });
@@ -224,9 +224,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
         return this.sequelize.Promise.all([
-          user1.increment(['aNumber'], { by: 2 }),
-          user1.increment(['aNumber'], { by: 2 }),
-          user1.increment(['aNumber'], { by: 2 })
+          user1.increment({ fields: ['aNumber'], by: 2 }),
+          user1.increment({ fields: ['aNumber'], by: 2 }),
+          user1.increment({ fields: ['aNumber'], by: 2 })
         ]).then(function() {
           return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.equal(6);
@@ -238,7 +238,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with key value pair', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.increment({ 'aNumber': 1, 'bNumber': 2 }).then(function() {
+        return user1.increment({ fields: { 'aNumber': 1, 'bNumber': 2 } }).then(function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(1);
             expect(user3.bNumber).to.be.equal(2);
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         oldDate = user.updatedAt;
 
         this.clock.tick(1000);
-        return user.increment('aNumber', {by: 1});
+        return user.increment({ fields: 'aNumber', by: 1});
       }).then(function() {
         return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
@@ -279,7 +279,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return User.sync({ force: true }).then(function() {
             return User.create({ number: 3 }).then(function(user) {
               return sequelize.transaction().then(function(t) {
-                return user.decrement('number', { by: 2, transaction: t }).then(function() {
+                return user.decrement({ fields: 'number', by: 2, transaction: t }).then(function() {
                   return User.findAll().then(function(users1) {
                     return User.findAll({ transaction: t }).then(function(users2) {
                       expect(users1[0].number).to.equal(3);
@@ -298,7 +298,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with array', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.decrement(['aNumber'], { by: 2 }).then(function() {
+        return user1.decrement({ fields: ['aNumber'], by: 2 }).then(function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(-2);
           });
@@ -309,7 +309,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with single field', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.decrement('aNumber', { by: 2 }).then(function() {
+        return user1.decrement({ fields: 'aNumber', by: 2 }).then(function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(-2);
           });
@@ -320,7 +320,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with single field and no value', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.decrement('aNumber').then(function() {
+        return user1.decrement({ fields: 'aNumber' }).then(function() {
           return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.be.equal(-1);
           });
@@ -336,7 +336,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           return user2.updateAttributes({
             aNumber: user2.aNumber + 1
           }).then(function() {
-            return user1.decrement(['aNumber'], { by: 2 }).then(function() {
+            return user1.decrement({ fields: ['aNumber'], by: 2 }).then(function() {
               return self.User.findById(1).then(function(user5) {
                 expect(user5.aNumber).to.be.equal(-1);
               });
@@ -350,9 +350,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
         return this.sequelize.Promise.all([
-          user1.decrement(['aNumber'], { by: 2 }),
-          user1.decrement(['aNumber'], { by: 2 }),
-          user1.decrement(['aNumber'], { by: 2 })
+          user1.decrement({ fields: ['aNumber'], by: 2 }),
+          user1.decrement({ fields: ['aNumber'], by: 2 }),
+          user1.decrement({ fields: ['aNumber'], by: 2 })
         ]).then(function() {
           return self.User.findById(1).then(function(user2) {
             expect(user2.aNumber).to.equal(-6);
@@ -364,7 +364,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('with key value pair', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return user1.decrement({ 'aNumber': 1, 'bNumber': 2}).then(function() {
+        return user1.decrement({ fields: { 'aNumber': 1, 'bNumber': 2} }).then(function() {
           return self.User.findById(1).then(function(user3) {
             expect(user3.aNumber).to.be.equal(-1);
             expect(user3.bNumber).to.be.equal(-2);
@@ -384,7 +384,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       }).then(function(user) {
         oldDate = user.updatedAt;
         this.clock.tick(1000);
-        return user.decrement('aNumber', {by: 1});
+        return user.decrement({ fields: 'aNumber', by: 1});
       }).then(function() {
         return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });

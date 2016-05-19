@@ -376,7 +376,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       it('should work with increment', function () {
         return this.User.create().then(function (user) {
-          return user.increment('taskCount');
+          return user.increment({ fields: 'taskCount' });
         });
       });
 

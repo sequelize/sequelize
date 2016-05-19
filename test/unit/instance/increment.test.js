@@ -33,11 +33,11 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         stub.restore();
       });
 
-      it('should allow increments even if options are not given', function () {
+      it('should throw error if options.fields are missing', function () {
         instance = Model.build({id: 1}, {isNewRecord: false});
         expect(function () {
           instance.increment(['id']);
-        }).to.not.throw();
+        }).to.throw('Increment was refactored to use options only. Pass fields via `options.fields` option.');
       });
     });
   });
