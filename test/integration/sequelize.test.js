@@ -95,7 +95,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
       describe('with an invalid connection', function() {
         beforeEach(function() {
-          var options = _.extend({logging:true,showWarnings:true}, this.sequelize.options, { port: '99999' });
+          var options = _.extend({}, this.sequelize.options, { port: '99999' });
           this.sequelizeWithInvalidConnection = new Sequelize('wat', 'trololo', 'wow', options);
         });
 
@@ -281,7 +281,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         return sequelize.query(insertWarningQuery)
         .then(function(results) {
           expect(logger.callCount).to.equal(3);
-          expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\): Data truncated for column 'createdAt'/m);
+          expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\):.*?'createdAt'/m);
         });
       });
 
