@@ -267,23 +267,26 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         });
       });
     
-      it('logs warnings when there are warnings', function() {
-        var logger = sinon.spy();
-        var sequelize = Support.createSequelizeInstance({
-          logging: logger,
-          benchmark: false,
-          showWarnings: true
-        });
-        var insertWarningQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, email_address, ' +
-          qq('createdAt') + ', ' + qq('updatedAt') +
-          ") VALUES ('john', 'john@gmail.com', 'HORSE', '2012-01-01 10:10:10')";
+      // We can only test MySQL warnings when using MySQL.
+      if (Support.dialectIsMySQL()) {
+        it('logs warnings when there are warnings', function() {
+          var logger = sinon.spy();
+          var sequelize = Support.createSequelizeInstance({
+            logging: logger,
+            benchmark: false,
+            showWarnings: true
+          });
+          var insertWarningQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, email_address, ' +
+            qq('createdAt') + ', ' + qq('updatedAt') +
+            ") VALUES ('john', 'john@gmail.com', 'HORSE', '2012-01-01 10:10:10')";
 
-        return sequelize.query(insertWarningQuery)
-        .then(function(results) {
-          expect(logger.callCount).to.equal(3);
-          expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\):.*?'createdAt'/m);
+          return sequelize.query(insertWarningQuery)
+          .then(function(results) {
+            expect(logger.callCount).to.equal(3);
+            expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\):.*?'createdAt'/m);
+          });
         });
-      });
+      }
 
       it('executes a query with global benchmarking option and custom logger', function() {
         var logger = sinon.spy();
