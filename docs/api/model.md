@@ -698,7 +698,7 @@ Truncate all instances of the model. This is a convenient method for Model.destr
 | ---- | ---- | ----------- |
 | [options] | object | The options passed to Model.destroy in addition to truncate |
 | [options.transaction] | Boolean &#124; function | Transaction to run query under |
-| [options.cascade | Boolean &#124; function | = false] Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
+| [options.cascade=false] | Boolean &#124; function | Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging] | Boolean &#124; function | A function that logs sql queries, or false for no logging |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
