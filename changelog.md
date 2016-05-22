@@ -5,11 +5,12 @@
 - [CHANGED] Throw `bluebird.AggregateError` instead of array from `bulkCreate` when validation fails
 - [FIXED] `$notIn: []` is now converted to `NOT IN (NULL)`  [#4859](https://github.com/sequelize/sequelize/issues/4859)
 - [FIXED] Add `raw` support to `instance.get()` [#5815](https://github.com/sequelize/sequelize/issues/5815)
-- [ADDED] Compare `deletedAt` against current timestamp when using paranoid [#5880](https://github.com/sequelize/sequelize/pull/5880)
+- [ADDED] Compare deletedAt against current timestamp when using paranoid [#5880](https://github.com/sequelize/sequelize/pull/5880)
 - [FIXED] `BIGINT` gets truncated [#5176](https://github.com/sequelize/sequelize/issues/5176)
 - [FIXED] Trigger afterCreate hook after all nested includes (for hasMany or belongsToMany associations) have been created to be consistent with hasOne.
 - [REMOVED] Support for `pool:false`
 - [REMOVED] Default transaction isolation level [#5094](https://github.com/sequelize/sequelize/issues/5094)
+- [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
