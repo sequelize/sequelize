@@ -12,7 +12,7 @@
 - [REMOVED] Default transaction isolation level [#5094](https://github.com/sequelize/sequelize/issues/5094)
 - [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
 - [REMOVED] MariaDB dialect
-- [CHANGED] `hasOne` now prefer aliases to construct foreign key [#5247](https://github.com/sequelize/sequelize/issues/5247)
+- [FIXED] `hasOne` now prefer aliases to construct foreign key [#5247](https://github.com/sequelize/sequelize/issues/5247)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
