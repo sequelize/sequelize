@@ -4,7 +4,6 @@ sudo: false
 
 node_js:
   - "4"
-  - "0.12"
 
 cache:
   directories:
