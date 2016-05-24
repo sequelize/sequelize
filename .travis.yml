@@ -15,7 +15,7 @@ env:
     - CXX=clang++
     - npm_config_clang=1
     - COVERALLS_REPO_TOKEN=751SiA6QhY5EH4P2ygq7JFWulqiD2ETXO
-    - COVERALS_PARALLEL=true
+    - COVERALLS_PARALLEL=true
   matrix:
     - DIALECT=mysql
     - DIALECT=postgres
