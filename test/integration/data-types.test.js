@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('calls parse and stringify for GEOMETRY', function () {
     var Type = new Sequelize.GEOMETRY();
 
-    if (['postgres', 'mysql', 'mariadb'].indexOf(dialect) !== -1) {
+    if (['postgres', 'mysql'].indexOf(dialect) !== -1) {
       return testSuccess(Type, { type: "Point", coordinates: [125.6, 10.1] });
     } else {
       // Not implemented yet
@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         //This case throw unhandled exception
         return User.findAll();
       }).then(function(users){
-        if (Support.dialectIsMySQL()) {
+        if (dialect === 'mysql') {
           // MySQL will return NULL, becuase they lack EMPTY geometry data support.
           expect(users[0].field).to.be.eql(null);
         } else if (dialect === 'postgres' || dialect === 'postgres-native') {

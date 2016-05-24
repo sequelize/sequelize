@@ -9,6 +9,7 @@ var chai = require('chai')
   , expect = chai.expect
   , moment = require('moment')
   , Support = require(__dirname + '/../support')
+  , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
@@ -74,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 

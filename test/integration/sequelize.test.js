@@ -22,7 +22,7 @@ var chai = require('chai')
 var qq = function(str) {
   if (dialect === 'postgres' || dialect === 'mssql') {
     return '"' + str + '"';
-  } else if (Support.dialectIsMySQL() || dialect === 'sqlite') {
+  } else if (dialect === 'mysql' || dialect === 'sqlite') {
     return '`' + str + '`';
   } else {
     return str;
@@ -128,9 +128,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               expect(
                 err.message.match(/connect ECONNREFUSED/) ||
                 err.message.match(/invalid port number/) ||
-                err.message.match(/Port should be > 0 and < 65536/) ||
-                err.message.match(/port should be > 0 and < 65536/) ||
-                err.message.match(/port should be >= 0 and < 65536: 99999/) ||
+                err.message.match(/should be >=? 0 and < 65536/) ||
                 err.message.match(/Login failed for user/)
               ).to.be.ok;
             });
@@ -268,7 +266,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     
       // We can only test MySQL warnings when using MySQL.
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         it('logs warnings when there are warnings', function() {
           var logger = sinon.spy();
           var sequelize = Support.createSequelizeInstance({
@@ -370,7 +368,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
-    if (Support.dialectIsMySQL()) {
+    if (dialect === 'mysql') {
       it('executes stored procedures', function() {
         var self = this;
         return self.sequelize.query(this.insertQuery).then(function() {
@@ -898,7 +896,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     });
   });
 
-  if (Support.dialectIsMySQL()) {
+  if (dialect === 'mysql') {
     describe('set', function() {
       it("should return an promised error if transaction isn't defined", function() {
         expect(function() {

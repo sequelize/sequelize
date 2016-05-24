@@ -4,10 +4,11 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , dialect = Support.getTestDialect()
   , _ = require('lodash')
   , QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
-if (Support.dialectIsMySQL()) {
+if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', function() {
     var suites = {
       attributesToSQL: [
@@ -47,7 +48,7 @@ if (Support.dialectIsMySQL()) {
           arguments: [{id: {type: 'INTEGER', after: 'Bar'}}],
           expectation: {id: 'INTEGER AFTER `Bar`'}
         },
-        
+
         // New references style
         {
           arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],

@@ -11,6 +11,7 @@
 - [REMOVED] Support for `pool:false`
 - [REMOVED] Default transaction isolation level [#5094](https://github.com/sequelize/sequelize/issues/5094)
 - [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
+- [REMOVED] MariaDB dialect
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
@@ -21,6 +22,7 @@
 - (MySQL) `BIGINT` now gets converted to string when number is too big
 - Removed support for `pool:false`, if you still want to use single connection set `pool.max` to `1`
 - Removed default `REPEATABLE_READ` transaction isolation, use config option to explicitly set it
+- Removed MariaDB dialect - this was just a thin wrapper around MySQL, so using `dialect: 'mysql'` instead should work with no further changes
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)

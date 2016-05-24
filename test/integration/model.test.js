@@ -1140,7 +1140,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     }
 
-    if (Support.dialectIsMySQL()) {
+    if (dialect === 'mysql') {
       it('supports limit clause', function() {
         var self = this
           , data = [{ username: 'Peter', secretValue: '42' },
@@ -2135,7 +2135,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    if (Support.dialectIsMySQL() || dialect === 'sqlite') {
+    if (dialect === 'mysql' || dialect === 'sqlite') {
       it('should take schemaDelimiter into account if applicable', function() {
         var test = 0;
         var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'});
@@ -2175,7 +2175,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserPublic.schema('special').sync({ force: true }).then(function() {
           return self.sequelize.queryInterface.describeTable('Publics', {
             logging: function(sql) {
-              if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
+              if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
                 expect(sql).to.not.contain('special');
                 count++;
               }
@@ -2188,7 +2188,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             return self.sequelize.queryInterface.describeTable('Publics', {
               schema: 'special',
               logging: function(sql) {
-                if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
+                if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
                   expect(sql).to.contain('special');
                   count++;
                 }
@@ -2331,7 +2331,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Post.sync({logging: _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (Support.dialectIsMySQL()) {
+        } else if (dialect === 'mysql') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
@@ -2356,7 +2356,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Post.sync({logging: _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (Support.dialectIsMySQL()) {
+        } else if (dialect === 'mysql') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
@@ -2388,10 +2388,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return;
       }).catch (function(err) {
-        if (Support.dialectIsMySQL(true)) {
+        if (dialect === 'mysql') {
           expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/);
-        } else if (dialect === 'mariadb') {
-          expect(err.message).to.match(/Can\'t create table/);
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2);
