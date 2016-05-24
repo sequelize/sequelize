@@ -64,7 +64,7 @@
     "istanbul": "^0.4.3",
     "jshint": "^2.9.2",
     "lcov-result-merger": "^1.2.0",
-    "mocha": "^2.4.2",
+    "mocha": "^2.5.1",
     "mysql": "~2.10.1",
     "pg": "^4.4.6",
     "pg-hstore": "^2.3.1",
