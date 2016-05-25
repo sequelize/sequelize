@@ -18,6 +18,7 @@
 - [REWRITE] Rewrite model and instance to a single class - instance instanceof Model [#5924](https://github.com/sequelize/sequelize/issues/5924)
 - [REMOVED] Counter cache plugin
 - [FIXED] All associations now prefer aliases to construct foreign key [#5267](https://github.com/sequelize/sequelize/issues/5267)
+- [REMOVED] Default transaction auto commit [#5094](https://github.com/sequelize/sequelize/issues/5094)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
@@ -33,6 +34,7 @@
 - Instances (database rows) are now instances of the model, instead of being a separate class. This means you can replace User.build() with new User() and sequelize.define with User extends Sequelize.Model. See #5924
 - The counter cache plugin, and consequently the `counterCache` option for associations has been removed. The plugin is seeking a new maintainer - You can find the code [here](https://github.com/sequelize/sequelize/blob/aace1250dfa8cd81a4edfd2086c9058b513f6ee0/lib/plugins/counter-cache.js)
 - All associations type will prefer `as` when constructing the `foreignKey` name. You can override this by `foreignKey` option.
+- Removed default `AUTO COMMIT` for transaction. Its only sent if explicitly set by user or required by dialects (like `mysql`)
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
