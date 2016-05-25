@@ -199,9 +199,9 @@ describe(Support.getTestDialectTeaser('associations'), function() {
             questionComment.getItem()
           );
         }).spread(function(post, image, question) {
-          expect(post.Model).to.equal(self.Post);
-          expect(image.Model).to.equal(self.Image);
-          expect(question.Model).to.equal(self.Question);
+          expect(post.constructor).to.equal(self.Post);
+          expect(image.constructor).to.equal(self.Image);
+          expect(question.constructor).to.equal(self.Question);
         }).then(function() {
           return Promise.join(
             self.Post.find({
