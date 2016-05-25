@@ -1,4 +1,5 @@
 # Future (4.0.0-pre1)
+- [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
 - [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
 - [REMOVED] Support for `referencesKey`
 - [CHANGED] Throw if `dialect` is not provided to the constructor
