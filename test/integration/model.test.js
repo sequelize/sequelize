@@ -623,9 +623,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(product.Tags).to.be.ok;
         expect(product.Tags.length).to.equal(2);
-        expect(product.Tags[0].Model).to.equal(Tag);
+        expect(product.Tags[0].constructor).to.equal(Tag);
         expect(product.User).to.be.ok;
-        expect(product.User.Model).to.equal(User);
+        expect(product.User.constructor).to.equal(User);
       });
 
       it('should support includes with aliases', function() {
@@ -674,10 +674,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(product.categories).to.be.ok;
         expect(product.categories.length).to.equal(4);
-        expect(product.categories[0].Model).to.equal(Tag);
+        expect(product.categories[0].constructor).to.equal(Tag);
         expect(product.followers).to.be.ok;
         expect(product.followers.length).to.equal(2);
-        expect(product.followers[0].Model).to.equal(User);
+        expect(product.followers[0].constructor).to.equal(User);
       });
     });
   });

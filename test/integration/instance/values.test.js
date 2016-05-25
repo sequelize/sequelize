@@ -183,9 +183,9 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
 
           expect(product.tags).to.be.ok;
           expect(product.tags.length).to.equal(2);
-          expect(product.tags[0].Model).to.equal(Tag);
+          expect(product.tags[0].constructor).to.equal(Tag);
           expect(product.user).to.be.ok;
-          expect(product.user.Model).to.equal(User);
+          expect(product.user.constructor).to.equal(User);
         });
 
         it('should support basic includes (with raw: true)', function() {
@@ -227,9 +227,9 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
 
           expect(product.tags).to.be.ok;
           expect(product.tags.length).to.equal(2);
-          expect(product.tags[0].Model).to.equal(Tag);
+          expect(product.tags[0].constructor).to.equal(Tag);
           expect(product.user).to.be.ok;
-          expect(product.user.Model).to.equal(User);
+          expect(product.user.constructor).to.equal(User);
         });
       });
     });
