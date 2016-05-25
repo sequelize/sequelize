@@ -102,4 +102,106 @@ describe(Support.getTestDialectTeaser('Alias'), function() {
       expect(user.assignments).to.be.ok;
     });
   });
+
+  it('should allow me refer to an association using only its alias in string form in eager loading', function() {
+    var User = this.sequelize.define('user', {})
+      , Task = this.sequelize.define('task', {});
+
+    User.hasMany(Task, { as: 'assignments', foreignKey: 'userId' });
+    Task.belongsTo(User, { as: 'owner', foreignKey: 'userId' });
+
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.create({ id: 1 });
+    }).then(function(user) {
+      expect(user.getAssignments).to.be.ok;
+
+      return Task.create({ id: 1, userId: 1 });
+    }).then(function(task) {
+      expect(task.getOwner).to.be.ok;
+
+      return Promise.all([
+        User.find({ where: { id: 1 }, include: ['assignments'] }),
+        Task.find({ where: { id: 1 }, include: ['owner'] })
+      ]);
+    }).spread(function(user, task) {
+      expect(user.assignments).to.be.ok;
+      expect(task.owner).to.be.ok;
+    });
+  });
+
+  it('should allow me refer to an association using only its alias in object form in eager loading', function() {
+    var User = this.sequelize.define('user', {})
+      , Task = this.sequelize.define('task', {});
+
+    User.hasMany(Task, { as: {singular: 'assignment', plural: 'assignmentz'}, foreignKey: 'userId' });
+    Task.belongsTo(User, { as: 'owner', foreignKey: 'userId' });
+
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.create({ id: 1 });
+    }).then(function(user) {
+      expect(user.getAssignmentz).to.be.ok;
+
+      return Task.create({ id: 1, userId: 1 });
+    }).then(function(task) {
+      expect(task.getOwner).to.be.ok;
+
+      return Promise.all([
+        User.find({ where: { id: 1 }, include: [{as: 'assignmentz'}] }),
+        Task.find({ where: { id: 1 }, include: [{as: 'owner'}] })
+      ]);
+    }).spread(function(user, task) {
+      expect(user.assignmentz).to.be.ok;
+      expect(task.owner).to.be.ok;
+    });
+  });
+
+  it('should not allow me refer to a non-existant association using an alias in string form in eager loading', function() {
+    var User = this.sequelize.define('user', {})
+      , Task = this.sequelize.define('task', {});
+
+    User.hasMany(Task, { as: 'assignments', foreignKey: 'userId' });
+    Task.belongsTo(User, { as: 'owner', foreignKey: 'userId' });
+
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.create({ id: 1 });
+    }).then(function(user) {
+      expect(user.getAssignments).to.be.ok;
+
+      return Task.create({ id: 1, userId: 1 });
+    }).then(function(task) {
+      expect(task.getOwner).to.be.ok;
+
+      return  User.find({ where: { id: 1 }, include: ['xassignments'] });
+    }).then(function(){
+      throw new Error('Error should be thrown when non-existant alias referenced');
+    }, function(err) {
+      expect(err).to.be.an.instanceof(Error);
+      expect(err.message).to.match(/Include unexpected. Unable to find Association with/);
+    });
+  });
+
+  it('should not allow me refer to a non-existant association using an alias in object form in eager loading', function() {
+    var User = this.sequelize.define('user', {})
+      , Task = this.sequelize.define('task', {});
+
+    User.hasMany(Task, { as: {singular: 'assignment', plural: 'assignmentz'}, foreignKey: 'userId' });
+    Task.belongsTo(User, { as: 'owner', foreignKey: 'userId' });
+
+    return this.sequelize.sync({ force: true }).then(function() {
+      return User.create({ id: 1 });
+    }).then(function(user) {
+      expect(user.getAssignmentz).to.be.ok;
+
+      return Task.create({ id: 1, userId: 1 });
+    }).then(function(task) {
+      expect(task.getOwner).to.be.ok;
+
+      return  User.find({ where: { id: 1 }, include: [{as: 'xassignmentz'}] });
+    }).then(function(){
+      throw new Error('Error should be thrown when non-existant alias referenced');
+    }, function(err) {
+      expect(err).to.be.an.instanceof(Error);
+      expect(err.message).to.match(/Include unexpected. Unable to find Association with/);
+    });
+  });
 });
