@@ -350,8 +350,8 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
             }
           }, {raw: true});
 
-          expect(product.get('user', {plain: true}).$Model).not.to.be.ok;
-          expect(product.get({plain: true}).user.$Model).not.to.be.ok;
+          expect(product.get('user', {plain: true})).not.to.be.instanceof(User);
+          expect(product.get({plain: true}).user).not.to.be.instanceof(User);
         });
       });
 
