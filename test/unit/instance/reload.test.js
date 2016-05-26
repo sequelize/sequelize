@@ -44,14 +44,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.reload();
         }).to.not.throw();
       });
-
-      it('should not modify options when it given to reload', function () {
-        instance = Model.build({id: 1}, {isNewRecord: false});
-        var options = { transaction: null };
-        instance.reload(options);
-        expect(options).to.deep.equal({ transaction: null });
-      });
-
     });
   });
 });

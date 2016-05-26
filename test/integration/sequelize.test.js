@@ -22,7 +22,7 @@ var chai = require('chai')
 var qq = function(str) {
   if (dialect === 'postgres' || dialect === 'mssql') {
     return '"' + str + '"';
-  } else if (Support.dialectIsMySQL() || dialect === 'sqlite') {
+  } else if (dialect === 'mysql' || dialect === 'sqlite') {
     return '`' + str + '`';
   } else {
     return str;
@@ -32,13 +32,13 @@ var qq = function(str) {
 describe(Support.getTestDialectTeaser('Sequelize'), function() {
   describe('constructor', function() {
     if (dialect !== 'sqlite') {
-      it.skip('should work with minConnections', function() {
+      it.skip('should work with min connections', function() {
         var ConnectionManager = current.dialect.connectionManager
           , connectionSpy = ConnectionManager.connect = chai.spy(ConnectionManager.connect);
 
         Support.createSequelizeInstance({
           pool: {
-            minConnections: 2
+            min: 2
           }
         });
         expect(connectionSpy).to.have.been.called.twice;
@@ -128,9 +128,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               expect(
                 err.message.match(/connect ECONNREFUSED/) ||
                 err.message.match(/invalid port number/) ||
-                err.message.match(/Port should be > 0 and < 65536/) ||
-                err.message.match(/port should be > 0 and < 65536/) ||
-                err.message.match(/port should be >= 0 and < 65536: 99999/) ||
+                err.message.match(/should be >=? 0 and < 65536/) ||
                 err.message.match(/Login failed for user/)
               ).to.be.ok;
             });
@@ -162,6 +160,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
         it('triggers the error event when using replication', function() {
           return new Sequelize('sequelize', null, null, {
+            dialect: dialect,
             replication: {
               read: {
                 host: 'localhost',
@@ -251,54 +250,78 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       return this.sequelize.query(this.insertQuery);
     });
 
-    it('executes a query with global benchmarking option and default logger', function() {
-      var logger = sinon.spy(console, 'log');
-      var sequelize = Support.createSequelizeInstance({
-        logging: logger,
-        benchmark: true
+
+    describe('logging', function () {
+      it('executes a query with global benchmarking option and default logger', function() {
+        var logger = sinon.spy(console, 'log');
+        var sequelize = Support.createSequelizeInstance({
+          logging: logger,
+          benchmark: true
+        });
+
+        return sequelize.query('select 1;').then(function() {
+          expect(logger.calledOnce).to.be.true;
+          expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+        });
+      });
+    
+      // We can only test MySQL warnings when using MySQL.
+      if (dialect === 'mysql') {
+        it('logs warnings when there are warnings', function() {
+          var logger = sinon.spy();
+          var sequelize = Support.createSequelizeInstance({
+            logging: logger,
+            benchmark: false,
+            showWarnings: true
+          });
+          var insertWarningQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, email_address, ' +
+            qq('createdAt') + ', ' + qq('updatedAt') +
+            ") VALUES ('john', 'john@gmail.com', 'HORSE', '2012-01-01 10:10:10')";
+
+          return sequelize.query(insertWarningQuery)
+          .then(function(results) {
+            expect(logger.callCount).to.equal(3);
+            expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\):.*?'createdAt'/m);
+          });
+        });
+      }
+
+      it('executes a query with global benchmarking option and custom logger', function() {
+        var logger = sinon.spy();
+        var sequelize = Support.createSequelizeInstance({
+          logging: logger,
+          benchmark: true
+        });
+
+        return sequelize.query('select 1;').then(function() {
+          expect(logger.calledOnce).to.be.true;
+          expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+          expect(typeof logger.args[0][1] === 'number').to.be.true;
+        });
       });
 
-      return sequelize.query('select 1;').then(function() {
-        expect(logger.calledOnce).to.be.true;
-        expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
-      });
-    });
-
-    it('executes a query with global benchmarking option and custom logger', function() {
-      var logger = sinon.spy();
-      var sequelize = Support.createSequelizeInstance({
-        logging: logger,
-        benchmark: true
+      it('executes a query with benchmarking option and default logger', function() {
+        var logger = sinon.spy(console, 'log');
+        return this.sequelize.query('select 1;', {
+          logging: logger,
+          benchmark: true
+        }).then(function() {
+          expect(logger.calledOnce).to.be.true;
+          expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+        });
       });
 
-      return sequelize.query('select 1;').then(function() {
-        expect(logger.calledOnce).to.be.true;
-        expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
-        expect(typeof logger.args[0][1] === 'number').to.be.true;
-      });
-    });
+      it('executes a query with benchmarking option and custom logger', function() {
+        var logger = sinon.spy();
 
-    it('executes a query with benchmarking option and default logger', function() {
-      var logger = sinon.spy(console, 'log');
-      return this.sequelize.query('select 1;', {
-        logging: logger,
-        benchmark: true
-      }).then(function() {
-        expect(logger.calledOnce).to.be.true;
-        expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
-      });
-    });
-
-    it('executes a query with benchmarking option and custom logger', function() {
-      var logger = sinon.spy();
-
-      return this.sequelize.query('select 1;', {
-        logging: logger,
-        benchmark: true
-      }).then(function() {
-        expect(logger.calledOnce).to.be.true;
-        expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
-        expect(typeof logger.args[0][1] === 'number').to.be.true;
+        return this.sequelize.query('select 1;', {
+          logging: logger,
+          benchmark: true
+        }).then(function() {
+          expect(logger.calledOnce).to.be.true;
+          expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+          expect(typeof logger.args[0][1] === 'number').to.be.true;
+        });
       });
     });
 
@@ -345,7 +368,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
-    if (Support.dialectIsMySQL()) {
+    if (dialect === 'mysql') {
       it('executes stored procedures', function() {
         var self = this;
         return self.sequelize.query(this.insertQuery).then(function() {
@@ -873,7 +896,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     });
   });
 
-  if (Support.dialectIsMySQL()) {
+  if (dialect === 'mysql') {
     describe('set', function() {
       it("should return an promised error if transaction isn't defined", function() {
         expect(function() {
@@ -1194,6 +1217,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
       it('through Sequelize.sync()', function() {
         var self = this;
+        self.spy.reset();
         return this.sequelize.sync({ force: true, logging: false }).then(function() {
           expect(self.spy.notCalled).to.be.true;
         });
@@ -1201,6 +1225,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
       it('through DAOFactory.sync()', function() {
         var self = this;
+        self.spy.reset();
         return this.User.sync({ force: true, logging: false }).then(function() {
           expect(self.spy.notCalled).to.be.true;
         });

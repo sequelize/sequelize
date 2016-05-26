@@ -39,13 +39,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.decrement(['id']);
         }).to.not.throw();
       });
-
-      it('should not modify options when it given to decrement', function () {
-        instance = Model.build({id: 3}, {isNewRecord: false});
-        var options = { by: 2 };
-        instance.decrement(['id'], options);
-        expect(options).to.deep.equal({ by: 2 });
-      });
     });
   });
 });

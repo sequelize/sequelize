@@ -1,7 +1,48 @@
-# Future
+# Future (4.0.0-pre1)
+- [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
+- [REMOVED] Support for `referencesKey`
+- [CHANGED] Throw if `dialect` is not provided to the constructor
+- [CHANGED] Throw `bluebird.AggregateError` instead of array from `bulkCreate` when validation fails
+- [FIXED] `$notIn: []` is now converted to `NOT IN (NULL)`  [#4859](https://github.com/sequelize/sequelize/issues/4859)
+- [FIXED] Add `raw` support to `instance.get()` [#5815](https://github.com/sequelize/sequelize/issues/5815)
+- [ADDED] Compare deletedAt against current timestamp when using paranoid [#5880](https://github.com/sequelize/sequelize/pull/5880)
+- [FIXED] `BIGINT` gets truncated [#5176](https://github.com/sequelize/sequelize/issues/5176)
+- [FIXED] Trigger afterCreate hook after all nested includes (for hasMany or belongsToMany associations) have been created to be consistent with hasOne.
+- [REMOVED] Support for `pool:false`
+- [REMOVED] Default transaction isolation level [#5094](https://github.com/sequelize/sequelize/issues/5094)
+- [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
+- [REMOVED] MariaDB dialect
+- [FIXED] `hasOne` now prefer aliases to construct foreign key [#5247](https://github.com/sequelize/sequelize/issues/5247)
+- [CHANGED] `instance.equals` now only checks primary keys, instead of all attributes.
+
+## BC breaks:
+- `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
+- Removed support for `referencesKey`, use a `references` object
+- Remove default dialect
+- When `bulkCreate` is rejected because of validation failure it throws a `bluebird.AggregateError` instead of an array. This object is an array-like so length and index access will still work, but `instanceof` array will not
+- `$notIn: []` will now match all rows instead of none
+- (MySQL) `BIGINT` now gets converted to string when number is too big
+- Removed support for `pool:false`, if you still want to use single connection set `pool.max` to `1`
+- Removed default `REPEATABLE_READ` transaction isolation, use config option to explicitly set it
+- Removed MariaDB dialect - this was just a thin wrapper around MySQL, so using `dialect: 'mysql'` instead should work with no further changes
+- `hasOne` now prefer `as` option to generate foreign key name, otherwise it defaults to source model name
+- `instance.equals` now provides reference equality (do two instances refer to the same row, i.e. are their primary key(s) equal). Use `instance.get()` to get and compare all values.
+
+# 3.23.2
+- [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
+- [FIXED] Improved offset and limit support for SQL server 2008 [#5616](https://github.com/sequelize/sequelize/pull/5616)
+- [FIXED] options object cloned in all Sequelize methods (so not modified within Sequelize)
+
+# 3.23.1
+- [FIXED] Postgres DECIMAL precision. (PostgreSQL) [#4893](https://github.com/sequelize/sequelize/issues/4893)
+- [FIXED] removeColumn tries to delete non-existant foreign key constraint (mysql) [#5808](https://github.com/sequelize/sequelize/issues/5808)
+- [FIXED] Relation constraints not being applied correctly [#5865](https://github.com/sequelize/sequelize/issues/5865)
+
+# 3.23.0
 - [FIXED] Invalid query generated when using LIKE + ANY [#5736](https://github.com/sequelize/sequelize/issues/5736)
 - [FIXED] Method QueryInterface.bulkDelete no longer working when the model parameter is missing. (PostgreSQL) [#5615](https://github.com/sequelize/sequelize/issues/5615)
 - [ADDED] Context and custom options for deep creation
+- [FIXED] Dates with millisecond precision are inserted correctly in MySQL [#5855](https://github.com/sequelize/sequelize/pull/5855)
 
 # 3.22.0
 - [FIXED] Fix defaultValues getting overwritten on build

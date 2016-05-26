@@ -4,10 +4,11 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , dialect = Support.getTestDialect()
   , _ = require('lodash')
   , QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
-if (Support.dialectIsMySQL()) {
+if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', function() {
     var suites = {
       attributesToSQL: [
@@ -46,28 +47,6 @@ if (Support.dialectIsMySQL()) {
         {
           arguments: [{id: {type: 'INTEGER', after: 'Bar'}}],
           expectation: {id: 'INTEGER AFTER `Bar`'}
-        },
-
-        // Old references style
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`pk`)'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onDelete: 'CASCADE'}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
         },
 
         // New references style

@@ -835,16 +835,6 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         });
       });
 
-      it('does not modify the passed arguments', function() {
-        return this.User.create({}).bind(this).then(function(user) {
-          this.options = {};
-
-          return user.getTasks(this.options);
-        }).then(function() {
-          expect(this.options).to.deep.equal({});
-        });
-      });
-
       it('should treat the where object of associations as a first class citizen', function() {
         var self = this;
         this.Article = this.sequelize.define('Article', {

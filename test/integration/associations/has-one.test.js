@@ -22,6 +22,44 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
   });
 
+  describe('get', function () {
+    describe('multiple', function () {
+      it('should fetch associations for multiple instances', function () {
+        var User = this.sequelize.define('User', {})
+          , Player = this.sequelize.define('Player', {});
+
+        Player.User = Player.hasOne(User, {as: 'user'});
+
+        return this.sequelize.sync({force: true}).then(function () {
+          return Promise.join(
+            Player.create({
+              id: 1,
+              user: {}
+            }, {
+              include: [Player.User]
+            }),
+            Player.create({
+              id: 2,
+              user: {}
+            }, {
+              include: [Player.User]
+            }),
+            Player.create({
+              id: 3
+            })
+          );
+        }).then(function (players) {
+          return Player.User.get(players).then(function (result) {
+            expect(result[players[0].id].id).to.equal(players[0].user.id);
+            expect(result[players[1].id].id).to.equal(players[1].user.id);
+            expect(result[players[2].id]).to.equal(null);
+          });
+        });
+      });
+    });
+  });
+
+
   describe('getAssocation', function() {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
@@ -59,23 +97,6 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         });
       });
     }
-
-    it('does not modify the passed arguments', function() {
-      var User = this.sequelize.define('user', {})
-        , Project = this.sequelize.define('project', {});
-
-      User.hasOne(Project);
-
-      return this.sequelize.sync({ force: true }).bind(this).then(function() {
-        return User.create({});
-      }).then(function(user) {
-        this.options = {};
-
-        return user.getProject(this.options);
-      }).then(function() {
-        expect(this.options).to.deep.equal({});
-      });
-    });
 
     it('should be able to handle a where object that\'s a first class citizen.', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })

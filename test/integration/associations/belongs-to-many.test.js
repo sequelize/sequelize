@@ -36,16 +36,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
-    it('does not modify the passed arguments', function() {
-      return this.User.create({}).bind(this).then(function(user) {
-        this.options = {};
-
-        return user.getTasks(this.options);
-      }).then(function() {
-        expect(this.options).to.deep.equal({});
-      });
-    });
-
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
@@ -1373,7 +1363,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       this.User.belongsToMany(this.Task, { through: this.UserTasks });
       this.Task.belongsToMany(this.User, { through: this.UserTasks });
 
-      expect(Object.keys(this.UserTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId']);
+      expect(Object.keys(this.UserTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
     });
 
     it('keeps the primary key if it was added by the user', function() {
@@ -1426,7 +1416,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.User.belongsToMany(this.Task, { through: this.UsersTasks });
         this.Task.belongsToMany(this.User, { through: this.UsersTasks });
 
-        expect(Object.keys(this.UsersTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId']);
+        expect(Object.keys(this.UsersTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
 
         return Promise.all([
           this.User.create({username: 'foo'}),

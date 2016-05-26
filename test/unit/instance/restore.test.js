@@ -44,14 +44,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.restore();
         }).to.not.throw();
       });
-
-      it('should not modify options when it given to restore', function () {
-        instance = Model.build({id: 1}, {isNewRecord: false});
-        var options = { transaction: null };
-        instance.restore(options);
-        expect(options).to.deep.equal({ transaction: null });
-      });
     });
   });
-
 });

@@ -1110,13 +1110,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('does not modify the passed arguments', function() {
-        var options = { where: ['username = ?', 'awesome']};
-        return this.User.findAll(options).then(function() {
-          expect(options).to.deep.equal({ where: ['username = ?', 'awesome']});
-        });
-      });
-
       it('can also handle array notation', function() {
         var self = this;
         return this.User.findAll({where: ['id = ?', this.users[1].id]}).then(function(users) {
@@ -1313,13 +1306,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                     var criteria = {
                       offset: 5,
                       limit: 1,
+                      where: {
+                        name: 'Some election'
+                      },
                       include: [
                         Citizen, // Election creator
                         { model: Citizen, as: 'Voters' } // Election voters
                       ]
                     };
                     return Election.findAndCountAll(criteria).then(function(elections) {
-                      expect(elections.count).to.equal(2);
+                      expect(elections.count).to.equal(1);
                       expect(elections.rows.length).to.equal(0);
                     });
                   });
