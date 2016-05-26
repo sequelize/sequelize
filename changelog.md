@@ -1,4 +1,4 @@
-# Future
+# 3.23.3
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
 
 # 3.23.2
