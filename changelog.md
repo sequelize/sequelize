@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
+
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
 - [FIXED] Improved offset and limit support for SQL server 2008 [#5616](https://github.com/sequelize/sequelize/pull/5616)
