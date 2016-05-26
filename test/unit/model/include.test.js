@@ -436,5 +436,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(options.include[0].subQuery).to.equal(false);
       });
     });
+
+    describe('association alias', function () {
+      it('should have as', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [
+            {association: this.User.Company, as: 'userCompanyAlias'}
+          ]
+        });
+
+        expect(options.include[0].as).to.equal('userCompanyAlias');
+      });
+    });
   });
 });
