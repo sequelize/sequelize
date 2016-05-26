@@ -45,7 +45,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [username=null] | String | The username which is used to authenticate against the database. |
 | [password=null] | String | The password which is used to authenticate against the database. |
 | [options={}] | Object | An object with options. |
-| [options.dialect='mysql'] | String | The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql. |
+| [options.dialect='mysql'] | String | The dialect of the database you are connecting to. One of mysql, postgres, sqlite and mssql. |
 | [options.dialectModulePath=null] | String | If specified, load the dialect library from this path. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify 'pg.js' here |
 | [options.dialectOptions] | Object | An object of additional options, which are passed directly to the connection library |
 | [options.storage] | String | Only used by sqlite. Defaults to ':memory:' |
@@ -62,9 +62,9 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.native=false] | Boolean | A flag that defines if native library shall be used or not. Currently only has an effect for postgres |
 | [options.replication=false] | Boolean | Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database` |
 | [options.pool={}] | Object | Should sequelize use a connection pool. Default is true |
-| [options.pool.maxConnections] | Integer |  |
-| [options.pool.minConnections] | Integer |  |
-| [options.pool.maxIdleTime] | Integer | The maximum time, in milliseconds, that a connection can be idle before being released |
+| [options.pool.max] | Integer |  |
+| [options.pool.min] | Integer |  |
+| [options.pool.idle] | Integer | The maximum time, in milliseconds, that a connection can be idle before being released |
 | [options.pool.validateConnection] | Function | A function that validates a connection. Called with client. The default function checks that client is an object, and that its state is not disconnected |
 | [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. |
 | [options.transactionType='DEFERRED'] | String | Set the default transaction type. See `Sequelize.Transaction.TYPES` for possible options. Sqlite only. |

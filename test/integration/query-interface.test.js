@@ -696,7 +696,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
     it('should get a list of foreign keys for the table', function() {
       var sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
-
+      var self = this;
       return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then(function(fks) {
         expect(fks).to.have.length(3);
         var keys = Object.keys(fks[0]),
@@ -714,6 +714,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         } else {
           console.log('This test doesn\'t support ' + dialect);
         }
+        return fks;
+      }).then(function(fks){
+        if (dialect === 'mysql') {
+          return self.sequelize.query(
+              self.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin'),
+              {}
+            )
+            .spread(function(fk){
+              expect(fks[0]).to.deep.eql(fk[0]);
+            });
+        }
+        return;
       });
     });
   });

@@ -7,7 +7,9 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
+  , moment = require('moment')
   , Support = require(__dirname + '/../support')
+  , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
@@ -73,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
@@ -106,14 +108,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       }
-
-      it('does not modify the passed arguments', function() {
-        var options = { where: ['specialkey = ?', 'awesome']};
-
-        return this.UserPrimary.findOne(options).then(function() {
-          expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']});
-        });
-      });
 
       it('treats questionmarks in an array', function() {
         var test = false;
@@ -993,6 +987,29 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
       });
 
+    });
+
+    it('should find records where deletedAt set to future', function() {
+      var User = this.sequelize.define('paranoiduser', {
+        username: Sequelize.STRING
+      }, { paranoid: true });
+
+      return User.sync({ force: true }).then(function() {
+        return User.bulkCreate([
+          {username: 'Bob'},
+          {username: 'Tobi', deletedAt: moment().add(30, 'minutes').format()},
+          {username: 'Max', deletedAt: moment().add(30, 'days').format()},
+          {username: 'Tony', deletedAt: moment().subtract(30, 'days').format()}
+        ]);
+      }).then(function() {
+        return User.find({ where: {username: 'Tobi'} });
+      }).then(function(tobi) {
+        expect(tobi).not.to.be.null;
+      }).then(function() {
+        return User.findAll();
+      }).then(function(users) {
+        expect(users.length).to.be.eql(3);
+      });
     });
 
   });

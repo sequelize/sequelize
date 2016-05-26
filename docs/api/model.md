@@ -671,7 +671,7 @@ To obtain Instances for the newly created values, you will need to query for the
 | [options.hooks=true] | Boolean | Run before / after bulk create hooks? |
 | [options.individualHooks=false] | Boolean | Run before / after create hooks for each individual Instance? BulkCreate hooks will still be run if options.hooks is true. |
 | [options.ignoreDuplicates=false] | Boolean | Ignore duplicate values for primary keys? (not supported by postgres) |
-| [options.updateOnDuplicate] | Array | Fields to update if row key already exists (on duplicate key update)? (only supported by mysql & mariadb). By default, all fields are updated. |
+| [options.updateOnDuplicate] | Array | Fields to update if row key already exists (on duplicate key update)? (only supported by mysql). By default, all fields are updated. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.returning=false] | Boolean | Append RETURNING * to get back auto generated values (Postgres only) |
@@ -698,7 +698,7 @@ Truncate all instances of the model. This is a convenient method for Model.destr
 | ---- | ---- | ----------- |
 | [options] | object | The options passed to Model.destroy in addition to truncate |
 | [options.transaction] | Boolean &#124; function | Transaction to run query under |
-| [options.cascade | Boolean &#124; function | = false] Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
+| [options.cascade=false] | Boolean &#124; function | Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging] | Boolean &#124; function | A function that logs sql queries, or false for no logging |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
@@ -775,7 +775,7 @@ of affected rows, while the second element is the actual affected rows (only sup
 | [options.sideEffects=true] | Boolean | Whether or not to update the side effects of any virtual setters. |
 | [options.individualHooks=false] | Boolean | Run before / after update hooks?. If true, this will execute a SELECT followed by individual UPDATEs. A select is needed, because the row data needs to be passed to the hooks |
 | [options.returning=false] | Boolean | Return the affected rows (only for postgres) |
-| [options.limit] | Number | How many rows to update (only for mysql and mariadb) |
+| [options.limit] | Number | How many rows to update (only for mysql) |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 | [options.transaction] | Transaction | Transaction to run query under |
