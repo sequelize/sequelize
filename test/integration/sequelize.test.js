@@ -393,7 +393,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           model: this.User
         });
       }).then(function(users) {
-        expect(users[0].constructor).to.equal(this.User);
+        expect(users[0]).to.be.instanceof(this.User);
       });
     });
 
