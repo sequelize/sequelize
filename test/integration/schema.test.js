@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Schema'), function() {
 
   it('supports increment', function() {
     return this.User.create({ aNumber: 1 }).then(function(user) {
-      return user.increment('aNumber', { by: 3 });
+      return user.increment({ fields: 'aNumber', by: 3 });
     }).then(function(result) {
       return result.reload();
     }).then(function(user) {
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Schema'), function() {
 
   it('supports decrement', function() {
     return this.User.create({ aNumber: 10 }).then(function(user) {
-      return user.decrement('aNumber', { by: 3 });
+      return user.decrement({ fields: 'aNumber', by: 3 });
     }).then(function(result) {
       return result.reload();
     }).then(function(user) {

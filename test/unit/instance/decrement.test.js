@@ -33,11 +33,11 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         stub.restore();
       });
 
-      it('should allow decrements even if options are not given', function () {
+      it('should throw error if options.fields are missing', function () {
         instance = Model.build({id: 3}, {isNewRecord: false});
         expect(function () {
           instance.decrement(['id']);
-        }).to.not.throw();
+        }).to.throw('Decrement was refactored to use options only. Pass fields via `options.fields` option.');
       });
     });
   });
