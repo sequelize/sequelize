@@ -470,7 +470,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }
       });
 
-      return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
+      var self = this;
+      return this.UserTask.sync({ force: true })
+      .then(function() {
+        return self.user.setActiveTasks(self.tasks);
+      })
+      .then(function() {
+        return expect(self.user.countActiveTasks({})).to.eventually.equal(1);
+      });
     });
 
     it('should count scoped through associations', function () {
@@ -486,18 +493,23 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }
       });
 
-      return Promise.join(
-        this.Task.create().then(function (task) {
-          return user.addTask(task, {
-            started: true
-          });
-        }),
-        this.Task.create().then(function (task) {
-          return user.addTask(task, {
-            started: true
-          });
-        })
-      ).then(function () {
+      return this.UserTask.sync({ force: true})
+      .bind(this)
+      .then(function() {
+        return Promise.join(
+          this.Task.create().then(function (task) {
+            return user.addStartedTask(task, {
+              started: true
+            });
+          }),
+          this.Task.create().then(function (task) {
+            return user.addStartedTask(task, {
+              started: true
+            });
+          })
+        );
+      })
+      .then(function () {
         return expect(user.countStartedTasks({})).to.eventually.equal(2);
       });
     });
@@ -1825,8 +1837,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user'});
 
       expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId).to.exist;
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyGroupsId).to.exist;
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyUsersId).to.exist;
     });
 
     it('correctly identifies its counterpart when through is a model', function() {
@@ -1839,8 +1851,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
       expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
 
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId).to.exist;
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyGroupsId).to.exist;
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyUsersId).to.exist;
     });
   });
 
@@ -2146,7 +2158,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
       Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
 
-      expect(Children.foreignKey).to.equal('PersonId');
+      expect(Children.foreignKey).to.equal('ChildrenId');
       expect(Children.otherKey).to.equal('ChildId');
       expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
       expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
@@ -2156,7 +2168,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       PersonChildren = this.sequelize.define('PersonChildren', {}, {underscored: true});
       Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
 
-      expect(Children.foreignKey).to.equal('person_id');
+      expect(Children.foreignKey).to.equal('children_id');
       expect(Children.otherKey).to.equal('child_id');
       expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
       expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
