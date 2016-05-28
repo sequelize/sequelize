@@ -22,7 +22,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               field: 'base_number',
               type: DataTypes.STRING(25)
             }
-          }),
+          }, {
+          timestamps: false
+        }),
           Bar = current.define('bar', {
             barId: {
               field: 'bar_id',
@@ -34,6 +36,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               type: DataTypes.UUID,
               allowNull: false
             }
+          }, {
+            timestamps: false
           });
 
         Foo.hasMany(Bar, {foreignKey: 'foo_id', as: 'bars'})

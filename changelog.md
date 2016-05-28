@@ -11,6 +11,7 @@
 - [REMOVED] Support for `pool:false`
 - [REMOVED] Default transaction isolation level [#5094](https://github.com/sequelize/sequelize/issues/5094)
 - [ADDED] Add logging for mysql warnings, observant of the `showWarnings` option. [#5900](https://github.com/sequelize/sequelize/issues/5900)
+- [FIXED] Fixed an issue where custom-named model fields break when offsetting, ordering, and including hasMany simultaneously. [#5985] (https://github.com/sequelize/sequelize/issues/5985) 
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
