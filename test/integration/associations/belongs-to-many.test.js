@@ -632,7 +632,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.task = task;
         return task.createUser({ username: 'foo' });
       }).then(function(createdUser) {
-        expect(createdUser.Model).to.equal(User);
+        expect(createdUser).to.be.instanceof(User);
         expect(createdUser.username).to.equal('foo');
         return this.task.getUsers();
       }).then(function(_users) {
@@ -717,7 +717,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.task = task;
         return task.createUser({ username: 'foo' }, {fields: ['username']});
       }).then(function(createdUser) {
-        expect(createdUser.Model).to.equal(User);
+        expect(createdUser).to.be.instanceof(User);
         expect(createdUser.username).to.equal('foo');
         return this.task.getUsers();
       }).then(function(_users) {

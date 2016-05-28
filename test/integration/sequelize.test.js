@@ -264,7 +264,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
         });
       });
-    
+
       // We can only test MySQL warnings when using MySQL.
       if (dialect === 'mysql') {
         it('logs warnings when there are warnings', function() {
@@ -393,7 +393,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           model: this.User
         });
       }).then(function(users) {
-        expect(users[0].Model).to.equal(this.User);
+        expect(users[0]).to.be.instanceof(this.User);
       });
     });
 

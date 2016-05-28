@@ -429,10 +429,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
     });
 
     it('should work for belongsTo associations defined before belongsToMany', function () {
-      expect(this.UserProjects.Instance.prototype.getUser).to.be.ok;
+      expect(this.UserProjects.prototype.getUser).to.be.ok;
     });
     it('should work for belongsTo associations defined after belongsToMany', function () {
-      expect(this.UserProjects.Instance.prototype.getProject).to.be.ok;
+      expect(this.UserProjects.prototype.getProject).to.be.ok;
     });
   });
 
@@ -484,22 +484,21 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
 
     it('works with singular and plural name for self-associations', function () {
       // Models taken from https://github.com/sequelize/sequelize/issues/3796
-      var Service = current.define('service', {})
-        , Instance = Service.Instance;
+      var Service = current.define('service', {});
 
       Service.belongsToMany(Service, {through: 'Supplements', as: 'supplements'});
       Service.belongsToMany(Service, {through: 'Supplements', as: {singular: 'supplemented', plural: 'supplemented'}});
 
-      expect(Instance.prototype).to.have.property('getSupplements').which.is.a.function;
+      expect(Service.prototype).to.have.property('getSupplements').which.is.a.function;
 
-      expect(Instance.prototype).to.have.property('addSupplement').which.is.a.function;
-      expect(Instance.prototype).to.have.property('addSupplements').which.is.a.function;
+      expect(Service.prototype).to.have.property('addSupplement').which.is.a.function;
+      expect(Service.prototype).to.have.property('addSupplements').which.is.a.function;
 
-      expect(Instance.prototype).to.have.property('getSupplemented').which.is.a.function;
-      expect(Instance.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
+      expect(Service.prototype).to.have.property('getSupplemented').which.is.a.function;
+      expect(Service.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
 
-      expect(Instance.prototype).to.have.property('addSupplemented').which.is.a.function;
-      expect(Instance.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
+      expect(Service.prototype).to.have.property('addSupplemented').which.is.a.function;
+      expect(Service.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
     });
   });
 

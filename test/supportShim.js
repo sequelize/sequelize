@@ -11,8 +11,8 @@ var QueryInterface = require(__dirname + '/../lib/query-interface')
 module.exports = function(Sequelize) {
   // Shim all Sequelize methods
   shimAll(Sequelize.prototype);
+  shimAll(Sequelize.Model);
   shimAll(Sequelize.Model.prototype);
-  shimAll(Sequelize.Instance.prototype);
   shimAll(QueryInterface.prototype);
 
   // Shim Model.prototype to then shim getter/setter methods
@@ -23,7 +23,7 @@ module.exports = function(Sequelize) {
           association = original.apply(this, arguments);
 
         _.forIn(association.accessors, function(accessor) {
-          shim(model.Instance.prototype, accessor, model.Instance.prototype[accessor].length);
+          shim(model.prototype, accessor, model.prototype[accessor].length);
         });
 
         return association;

@@ -737,7 +737,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           var self = this;
           return this.User.findAll({ where: { username: 'barfooz'}}).then(function(users) {
             users.forEach(function(user) {
-              expect(user).to.be.instanceOf(self.User.Instance);
+              expect(user).to.be.instanceOf(self.User);
             });
           });
         });
@@ -746,7 +746,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           var self = this;
           return this.User.findAll({ where: { username: 'barfooz'}, raw: false }).then(function(users) {
             users.forEach(function(user) {
-              expect(user).to.be.instanceOf(self.User.Instance);
+              expect(user).to.be.instanceOf(self.User);
             });
           });
         });
@@ -755,7 +755,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           var self = this;
           return this.User.findAll({ where: { username: 'barfooz'}, raw: true }).then(function(users) {
             users.forEach(function(user) {
-              expect(user).to.not.be.instanceOf(self.User.Instance);
+              expect(user).to.not.be.instanceOf(self.User);
               expect(users[0]).to.be.instanceOf(Object);
             });
           });
