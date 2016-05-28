@@ -1,4 +1,4 @@
-# Future (4.0.0-pre1)
+# 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
 - [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
 - [REMOVED] Support for `referencesKey`
