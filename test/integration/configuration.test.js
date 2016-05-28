@@ -11,7 +11,7 @@ var chai = require('chai')
   , path = require('path');
 
 if (dialect === 'sqlite') {
-  var sqlite3 = require('sqlite3')
+  var sqlite3 = require('sqlite3');
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), function() {
