@@ -16,6 +16,7 @@
   "unused": "vars",
   "nonbsp": true,
   "maxdepth": 8,
+  "esversion": 6,
   "quotmark": true, // deprecated
   "-W041": false,
 
