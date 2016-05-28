@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Fixed an issue where custom-named model fields break when offsetting, ordering, and including hasMany simultaneously. [#5985] (https://github.com/sequelize/sequelize/issues/5985) 
+
 # 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
 - [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
@@ -18,7 +21,6 @@
 - [REWRITE] Rewrite model and instance to a single class - instance instanceof Model [#5924](https://github.com/sequelize/sequelize/issues/5924)
 - [REMOVED] Counter cache plugin
 - [FIXED] All associations now prefer aliases to construct foreign key [#5267](https://github.com/sequelize/sequelize/issues/5267)
-- [FIXED] Fixed an issue where custom-named model fields break when offsetting, ordering, and including hasMany simultaneously. [#5985] (https://github.com/sequelize/sequelize/issues/5985) 
 - [REMOVED] Default transaction auto commit [#5094](https://github.com/sequelize/sequelize/issues/5094)
 
 ## BC breaks:
