@@ -4,10 +4,11 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , dialect = Support.getTestDialect()
   , sinon = require('sinon')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-if (Support.dialectIsMySQL()) {
+if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connector Manager', function() {
     it('works correctly after being idle', function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
@@ -55,7 +56,7 @@ if (Support.dialectIsMySQL()) {
     });
 
     // This should run only on direct mysql
-    if (Support.dialectIsMySQL(true)) {
+    if (dialect === 'mysql') {
       it('should maintain connection', function() {
         var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}})
           , cm = sequelize.connectionManager

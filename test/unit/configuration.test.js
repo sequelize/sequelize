@@ -93,7 +93,7 @@ describe('Sequelize', function() {
         , config = sequelize.config
         , port;
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         port = 3306;
       } else if (dialect === 'postgres' || dialect === 'postgres-native') {
         port = 5432;

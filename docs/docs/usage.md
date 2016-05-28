@@ -53,12 +53,12 @@ var sequelize = new Sequelize('database', 'username', 'password', {
  
   // the sql dialect of the database
   // - default is 'mysql'
-  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mariadb', 'mssql'
+  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mssql'
   dialect: 'mysql',
  
   // you can also pass any dialect options to the underlying dialect library
   // - default is empty
-  // - currently supported: 'mysql', 'mariadb', 'postgres', 'mssql'
+  // - currently supported: 'mysql', 'postgres', 'mssql'
   dialectOptions: {
     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
     supportBigNumbers: true,
@@ -181,18 +181,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 
 **Note:** You can pass options directly to dialect library by setting the
 `dialectOptions` parameter. See [Options][0]
-for examples (currently only mysql and mariadb are supported).
-
-### MariaDB
-
-For MariaDB compatibility you have to install the package `mariasql@~0.1.20`.
-The configuration needs to look like this:
-
-```js
-var sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'mariadb'
-})
-```
+for examples (currently only mysql is supported).
 
 ### SQLite
 

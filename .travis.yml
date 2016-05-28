@@ -1,24 +1,36 @@
 language: node_js
 
-node_js:
-  - "0.10"
-  - "0.12"
-  - "iojs-v1"
-  - "iojs-v2"
-
 sudo: false
+
+node_js:
+  - "4"
 
 cache:
   directories:
     - node_modules
 
 env:
-  - DIALECT=mysql
-  - DIALECT=postgres
-  - DIALECT=postgres-native
-  - DIALECT=sqlite
-  - DIALECT=mariadb
-  - DIALECT=mssql
+  global:
+    - CC=clang
+    - CXX=clang++
+    - npm_config_clang=1
+    - COVERALLS_REPO_TOKEN=751SiA6QhY5EH4P2ygq7JFWulqiD2ETXO
+    - COVERALLS_PARALLEL=true
+  matrix:
+    - DIALECT=mysql
+    - DIALECT=postgres
+    - DIALECT=postgres-native
+    - DIALECT=sqlite
+    - DIALECT=mssql
+
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-precise-3.6
+      - ubuntu-toolchain-r-test
+    packages:
+      - clang-3.6
+      - g++-4.8
 
 addons:
   postgresql: "9.4"
@@ -32,10 +44,17 @@ script:
   - "npm test"
 
 matrix:
-  fast_finish: true
   include:
-    - node_js: "0.10"
-      env: COVERAGE=true
-  allow_failures:
-    - node_js: "0.10"
-      env: COVERAGE=true
+    - node_js: "6"
+      env: COVERAGE=true DIALECT=mysql
+    - node_js: "6"
+      env: COVERAGE=true DIALECT=postgres
+    - node_js: "6"
+      env: COVERAGE=true DIALECT=postgres-native
+    - node_js: "6"
+      env: COVERAGE=true DIALECT=sqlite
+    - node_js: "6"
+      env: COVERAGE=true DIALECT=mssql
+
+notifications:
+  webhooks: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN

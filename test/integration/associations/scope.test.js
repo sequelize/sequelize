@@ -199,9 +199,9 @@ describe(Support.getTestDialectTeaser('associations'), function() {
             questionComment.getItem()
           );
         }).spread(function(post, image, question) {
-          expect(post.Model).to.equal(self.Post);
-          expect(image.Model).to.equal(self.Image);
-          expect(question.Model).to.equal(self.Question);
+          expect(post).to.be.instanceof(self.Post);
+          expect(image).to.be.instanceof(self.Image);
+          expect(question).to.be.instanceof(self.Question);
         }).then(function() {
           return Promise.join(
             self.Post.find({
@@ -261,8 +261,8 @@ describe(Support.getTestDialectTeaser('associations'), function() {
             this.PostTag = this.sequelize.define('post_tag');
 
             this.Tag.belongsToMany(this.Post, {through: this.PostTag});
-            this.Post.belongsToMany(this.Tag, {as: 'categories', through: this.PostTag, scope: { type: 'category' }});
-            this.Post.belongsToMany(this.Tag, {as: 'tags', through: this.PostTag, scope: { type: 'tag' }});
+            this.Post.belongsToMany(this.Tag, {as: 'categories', through: this.PostTag, foreignKey: 'PostId', scope: { type: 'category' }});
+            this.Post.belongsToMany(this.Tag, {as: 'tags', through: this.PostTag, foreignKey: 'PostId', scope: { type: 'tag' }});
           });
 
           it('should create, find and include associations with scope values', function() {

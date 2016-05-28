@@ -429,10 +429,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
     });
 
     it('should work for belongsTo associations defined before belongsToMany', function () {
-      expect(this.UserProjects.Instance.prototype.getUser).to.be.ok;
+      expect(this.UserProjects.prototype.getUser).to.be.ok;
     });
     it('should work for belongsTo associations defined after belongsToMany', function () {
-      expect(this.UserProjects.Instance.prototype.getProject).to.be.ok;
+      expect(this.UserProjects.prototype.getProject).to.be.ok;
     });
   });
 
@@ -484,22 +484,21 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
 
     it('works with singular and plural name for self-associations', function () {
       // Models taken from https://github.com/sequelize/sequelize/issues/3796
-      var Service = current.define('service', {})
-        , Instance = Service.Instance;
+      var Service = current.define('service', {});
 
       Service.belongsToMany(Service, {through: 'Supplements', as: 'supplements'});
       Service.belongsToMany(Service, {through: 'Supplements', as: {singular: 'supplemented', plural: 'supplemented'}});
 
-      expect(Instance.prototype).to.have.property('getSupplements').which.is.a.function;
+      expect(Service.prototype).to.have.property('getSupplements').which.is.a.function;
 
-      expect(Instance.prototype).to.have.property('addSupplement').which.is.a.function;
-      expect(Instance.prototype).to.have.property('addSupplements').which.is.a.function;
+      expect(Service.prototype).to.have.property('addSupplement').which.is.a.function;
+      expect(Service.prototype).to.have.property('addSupplements').which.is.a.function;
 
-      expect(Instance.prototype).to.have.property('getSupplemented').which.is.a.function;
-      expect(Instance.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
+      expect(Service.prototype).to.have.property('getSupplemented').which.is.a.function;
+      expect(Service.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
 
-      expect(Instance.prototype).to.have.property('addSupplemented').which.is.a.function;
-      expect(Instance.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
+      expect(Service.prototype).to.have.property('addSupplemented').which.is.a.function;
+      expect(Service.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
     });
   });
 
@@ -513,10 +512,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
       Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user', onUpdate: 'SET NULL', onDelete: 'RESTRICT' });
 
       expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onUpdate).to.equal('RESTRICT');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onDelete).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onUpdate).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyGroupsId.onUpdate).to.equal('RESTRICT');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyGroupsId.onDelete).to.equal('SET NULL');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyUsersId.onUpdate).to.equal('SET NULL');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyUsersId.onDelete).to.equal('RESTRICT');
     });
 
     it('work properly when through is a model', function() {
@@ -528,10 +527,25 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
       Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup, onUpdate: 'SET NULL', onDelete: 'RESTRICT' });
 
       expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onUpdate).to.equal('RESTRICT');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onDelete).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onUpdate).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyGroupsId.onUpdate).to.equal('RESTRICT');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyGroupsId.onDelete).to.equal('SET NULL');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyUsersId.onUpdate).to.equal('SET NULL');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.MyUsersId.onDelete).to.equal('RESTRICT');
     });
+  });
+
+  it('properly use the `as` key to generate foreign key name', function(){
+    var City = current.define('City', { cityname: DataTypes.STRING })
+      , State = current.define('State', { statename: DataTypes.STRING })
+      , CityStateMap = current.define('CityStateMap', { rating: DataTypes.STRING });
+
+    State.belongsToMany(City, { through: CityStateMap });
+    expect(CityStateMap.attributes.StateId).not.to.be.empty;
+    expect(CityStateMap.attributes.CityId).not.to.be.empty;
+
+    State.belongsToMany(City, { through: CityStateMap, as: 'Test'});
+    expect(CityStateMap.attributes.TestId).not.to.be.empty;
+    expect(CityStateMap.attributes.CityId).not.to.be.empty;
+
   });
 });

@@ -9,6 +9,7 @@ var chai = require('chai')
   , expect = chai.expect
   , moment = require('moment')
   , Support = require(__dirname + '/../support')
+  , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
@@ -74,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
@@ -898,21 +899,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('should return a DAO when queryOptions are not set', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}}).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.Instance);
+          expect(user).to.be.instanceOf(self.User);
         });
       });
 
       it('should return a DAO when raw is false', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: false }).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.Instance);
+          expect(user).to.be.instanceOf(self.User);
         });
       });
 
       it('should return raw data when raw is true', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: true }).then(function(user) {
-          expect(user).to.not.be.instanceOf(self.User.Instance);
+          expect(user).to.not.be.instanceOf(self.User);
           expect(user).to.be.instanceOf(Object);
         });
       });
