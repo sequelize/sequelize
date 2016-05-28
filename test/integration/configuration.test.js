@@ -7,11 +7,12 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , dialect = Support.getTestDialect()
   , Sequelize = Support.Sequelize
-  , sqlite3 = require('sqlite3')
   , fs = require('fs')
   , path = require('path');
 
-
+if (dialect === 'sqlite') {
+  var sqlite3 = require('sqlite3')
+}
 
 describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Connections problems should fail with a nice message', function() {
