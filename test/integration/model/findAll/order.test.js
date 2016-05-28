@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             timestamps: false
           });
 
-        Foo.hasMany(Bar, {foreignKey: 'foo_id', as: 'bars'})
+        Foo.hasMany(Bar, {foreignKey: 'foo_id', as: 'bars'});
 
         return current.sync({force: true})
           .then(function () {
@@ -56,10 +56,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             };
 
             return Foo.findAll(options).then(function () {
-              console.log('success!')
+              console.log('success!');
             }, function (err) {
               throw err;
-            })
+            });
           });
       });
 
