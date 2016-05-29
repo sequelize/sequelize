@@ -19,17 +19,17 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle null as empty bound', function () {
-        expect(range.stringify([null, 1])).to.equal('(,1)');
-        expect(range.stringify([1, null])).to.equal('(1,)');
-        expect(range.stringify([null, null])).to.equal('(,)');
+        expect(range.stringify([null, 1])).to.equal('[,1)');
+        expect(range.stringify([1, null])).to.equal('[1,)');
+        expect(range.stringify([null, null])).to.equal('[,)');
       });
 
       it('should handle Infinity/-Infinity as infinity/-infinity bounds', function () {
-        expect(range.stringify([Infinity, 1])).to.equal('(infinity,1)');
-        expect(range.stringify([1, Infinity])).to.equal('(1,infinity)');
-        expect(range.stringify([-Infinity, 1])).to.equal('(-infinity,1)');
-        expect(range.stringify([1, -Infinity])).to.equal('(1,-infinity)');
-        expect(range.stringify([-Infinity, Infinity])).to.equal('(-infinity,infinity)');
+        expect(range.stringify([Infinity, 1])).to.equal('[infinity,1)');
+        expect(range.stringify([1, Infinity])).to.equal('[1,infinity)');
+        expect(range.stringify([-Infinity, 1])).to.equal('[-infinity,1)');
+        expect(range.stringify([1, -Infinity])).to.equal('[1,-infinity)');
+        expect(range.stringify([-Infinity, Infinity])).to.equal('[-infinity,infinity)');
       });
 
       it('should throw error when array length is no 0 or 2', function () {
@@ -47,7 +47,7 @@ if (dialect.match(/^postgres/)) {
         expect(range.stringify([{ inclusive: true, value: 0 }, { value: 1 }])).to.equal('[0,1)');
         expect(range.stringify([{ inclusive: true, value: 0 }, { inclusive: true, value: 1 }])).to.equal('[0,1]');
         expect(range.stringify([{ inclusive: false, value: 0 }, 1])).to.equal('(0,1)');
-        expect(range.stringify([0, { inclusive: true, value: 1 }])).to.equal('(0,1]');
+        expect(range.stringify([0, { inclusive: true, value: 1 }])).to.equal('[0,1]');
       });
 
       it('should handle inclusive property of input array properly', function () {
@@ -72,7 +72,7 @@ if (dialect.match(/^postgres/)) {
       it('should handle date values', function () {
         var Range = new DataTypes.postgres.RANGE(DataTypes.DATE);
         expect(Range.stringify([new Date(Date.UTC(2000, 1, 1)),
-                                new Date(Date.UTC(2000, 1, 2))], { timezone: '+02:00' })).to.equal('\'("2000-02-01 02:00:00.000 +02:00","2000-02-02 02:00:00.000 +02:00")\'');
+                                new Date(Date.UTC(2000, 1, 2))], { timezone: '+02:00' })).to.equal('\'["2000-02-01 02:00:00.000 +02:00","2000-02-02 02:00:00.000 +02:00")\'');
       });
     });
 
