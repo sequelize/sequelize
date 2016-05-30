@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Fixed an issue where custom-named model fields break when offsetting, ordering, and including hasMany simultaneously. [#5985] (https://github.com/sequelize/sequelize/issues/5985) 
+
 # 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
 - [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
