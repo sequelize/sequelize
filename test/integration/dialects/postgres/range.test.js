@@ -76,6 +76,35 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
+    describe('stringify value', function () {
+
+      it('should stringify integer values with appropriate casting', function () {
+        var Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
+        expect(Range.stringify(1)).to.equal('\'1\'::integer');
+      });
+
+      it('should stringify bigint values with appropriate casting', function () {
+        var Range = new DataTypes.postgres.RANGE(DataTypes.BIGINT);
+        expect(Range.stringify(1)).to.equal('\'1\'::bigint');
+      });
+
+      it('should stringify numeric values with appropriate casting', function () {
+        var Range = new DataTypes.postgres.RANGE(DataTypes.DECIMAL);
+        expect(Range.stringify(1.1)).to.equal('\'1.1\'::numeric');
+      });
+
+      it('should stringify dateonly values with appropriate casting', function () {
+        var Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
+        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1))).indexOf('::date')).not.to.equal(-1);
+      });
+
+      it('should stringify date values with appropriate casting', function () {
+        var Range = new DataTypes.postgres.RANGE(DataTypes.DATE);
+        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1)), { timezone: '+02:00' })).to.equal('\'2000-02-01 02:00:00.000 +02:00\'::timestamptz');
+      });
+
+    });
+
     describe('parse', function () {
       it('should handle a null object correctly', function () {
         expect(range.parse(null)).to.equal(null);
