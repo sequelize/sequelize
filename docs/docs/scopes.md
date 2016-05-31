@@ -23,14 +23,14 @@ var Project = sequelize.define('project', {
         { model: User, where: { active: true }}
       ]
     }
-    random: function () {
+    random() {
       return {
         where: {
           someNumber: Math.random()
         }
       }
     },
-    accessLevel: function (value) {
+    accessLevel(value) {
       return {
         where: {
           accessLevel: {

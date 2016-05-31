@@ -55,11 +55,11 @@ The following skeleton shows a typical migration file. All migrations are expect
 
 ```js
 module.exports = {
-  up: function(queryInterface, Sequelize) {
+  up(queryInterface, Sequelize) {
     // logic for transforming into the new state
   },
  
-  down: function(queryInterface, Sequelize) {
+  down(queryInterface, Sequelize) {
     // logic for reverting the changes
   }
 }
@@ -69,7 +69,7 @@ The passed `queryInterface` object can be used to modify the database. The `Sequ
 
 ```js
 module.exports = {
-  up: function(queryInterface, Sequelize) {
+  up(queryInterface, Sequelize) {
     return queryInterface.dropAllTables();
   }
 }
@@ -154,7 +154,7 @@ queryInterface.renameTable('Person', 'User')
 This method returns the name of all existing tables in the database.
 
 ```js
-queryInterface.showAllTables().then(function(tableNames) {})
+queryInterface.showAllTables().then(tableNames => {})
 ```
 
 ### describeTable(tableName, options)
@@ -162,7 +162,7 @@ queryInterface.showAllTables().then(function(tableNames) {})
 This method returns an array of hashes containing information about all attributes in the table.
 
 ```js
-queryInterface.describeTable('Person').then(function(attributes) {
+queryInterface.describeTable('Person').then(attributes => {
   /*
     attributes will be something like:
  
