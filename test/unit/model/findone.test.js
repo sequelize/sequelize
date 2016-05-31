@@ -12,14 +12,14 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('method findOne', function () {
     before(function () {
-      this.oldFindAll = current.Model.prototype.findAll;
+      this.oldFindAll = current.Model.findAll;
     });
     after(function () {
-      current.Model.prototype.findAll = this.oldFindAll;
+      current.Model.findAll = this.oldFindAll;
     });
 
     beforeEach(function () {
-      this.stub = current.Model.prototype.findAll = sinon.stub().returns(Promise.resolve());
+      this.stub = current.Model.findAll = sinon.stub().returns(Promise.resolve());
     });
 
     describe('should not add limit when querying on a primary key', function () {

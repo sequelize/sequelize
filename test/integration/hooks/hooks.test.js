@@ -113,12 +113,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeValidate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
               fn();
             },
             afterValidate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
               fn();
             }
@@ -143,12 +143,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeCreate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
               fn();
             },
             afterCreate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
               fn();
             }
@@ -173,12 +173,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeDestroy: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
               fn();
             },
             afterDestroy: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
               fn();
             }
@@ -205,12 +205,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeDelete: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
               fn();
             },
             afterDelete: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
               fn();
             }
@@ -237,12 +237,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         }, {
           hooks: {
             beforeUpdate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
               fn();
             },
             afterUpdate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
               fn();
             }

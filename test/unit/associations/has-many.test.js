@@ -162,4 +162,15 @@ describe(Support.getTestDialectTeaser('hasMany'), function() {
       });
     });
   });
+
+  it('properly use the `as` key to generate foreign key name', function(){
+    var City = current.define('City', { cityname: DataTypes.STRING })
+      , State = current.define('State', { statename: DataTypes.STRING });
+
+    State.hasMany(City);
+    expect(City.attributes.StateId).not.to.be.empty;
+
+    State.hasMany(City, {as : 'Capital'});
+    expect(City.attributes.CapitalId).not.to.be.empty;
+  });
 });

@@ -298,7 +298,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         limit: 9
       };
 
-      current.Model.prototype.$injectScope.call({
+      current.Model.$injectScope.call({
         $scope: scope
       }, options);
 
@@ -322,7 +322,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       var options = {};
 
-      current.Model.prototype.$injectScope.call({
+      current.Model.$injectScope.call({
         $scope: scope
       }, options);
 
@@ -339,7 +339,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      current.Model.prototype.$injectScope.call({
+      current.Model.$injectScope.call({
         $scope: scope
       }, options);
 
@@ -356,7 +356,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      current.Model.prototype.$injectScope.call({
+      current.Model.$injectScope.call({
         $scope: scope
       }, options);
 
@@ -378,7 +378,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         ]
       };
 
-      current.Model.prototype.$injectScope.call({
+      current.Model.$injectScope.call({
         $scope: scope
       }, options);
 
@@ -401,7 +401,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           ]
         };
 
-        current.Model.prototype.$injectScope.call({
+        current.Model.$injectScope.call({
           $scope: scope
         }, options);
 
@@ -424,7 +424,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           ]
         };
 
-        current.Model.prototype.$injectScope.call({
+        current.Model.$injectScope.call({
           $scope: scope
         }, options);
 
