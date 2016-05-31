@@ -1,18 +1,34 @@
 <a name="model"></a>
 # Class Model
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L26)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L39)
 
-A Model represents a table in the database. Sometimes you might also see it referred to as model, or simply as factory.
-This class should _not_ be instantiated directly, it is created using `sequelize.define`, and already created models can be loaded using `sequelize.import`
+A Model represents a table in the database. Instances of this class represent a database row.
+
+Model instances operate with the concept of a `dataValues` property, which stores the actual values represented by the instance.
+By default, the values from dataValues can also be accessed directly from the Instance, that is:
+```js
+instance.field
+// is the same as
+instance.get('field')
+// is the same as
+instance.getDataValue('field')
+```
+However, if getters and/or setters are defined for `field` they will be invoked, instead of returning the value from `dataValues`.
+Accessing properties directly or using `get` is preferred for regular use, `getDataValue` should only be used for custom getters.
 ### Mixes:
 * Hooks
 * Associations
+
+**See:**
+
+* [Sequelize#define](sequelize#define)
+
 
 ***
 
 <a name="removeattribute"></a>
 ## `removeAttribute([attribute])`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L964)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L947)
 
 Remove attribute from model definition
 
@@ -27,7 +43,7 @@ Remove attribute from model definition
 
 <a name="sync"></a>
 ## `sync()` -> `Promise.<this>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L974)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L957)
 
 Sync this Model to the DB, that is create the table. Upon success, the callback will be called with the model instance (this)
 
@@ -40,7 +56,7 @@ Sync this Model to the DB, that is create the table. Upon success, the callback 
 
 <a name="drop"></a>
 ## `drop([options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1022)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1009)
 
 Drop the table represented by this Model
 
@@ -51,17 +67,28 @@ Drop the table represented by this Model
 | [options] | Object |  |
 | [options.cascade=false] | Boolean | Also drop all objects depending on this table, such as views. Only works in postgres |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 
 
 ***
 
 <a name="schema"></a>
 ## `schema(schema, [options])` -> `this`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1041)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1037)
 
 Apply a schema to this model. For postgres, this will actually place the schema in front of the table name - `"schema"."tableName"`,
 while the schema will be prepended to the table name for mysql and sqlite - `'schema.tablename'`.
+
+This method is intended for use cases where the same model is needed in multiple schemas. In such a use case it is important
+to call `model.schema(schema, [options]).sync()` for each model to ensure the models are created in the correct schema.
+
+If a single default schema per model is needed, set the `options.schema='schema'` parameter during the `define()` call
+for the model.
+
+**See:**
+
+* [Sequelize#define](sequelize#define)
+
 
 **Params:**
 
@@ -71,14 +98,14 @@ while the schema will be prepended to the table name for mysql and sqlite - `'sc
 | [options] | Object |  |
 | [options.schemaDelimiter='.'] | String | The character(s) that separates the schema name from the table name |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 
 
 ***
 
 <a name="gettablename"></a>
 ## `getTableName([options])` -> `String|Object`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1075)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1066)
 
 Get the tablename of the model, taking schema into account. The method will return The name as a string if the model has no schema,
 or an object with `tableName`, `schema` and `delimiter` properties.
@@ -89,14 +116,14 @@ or an object with `tableName`, `schema` and `delimiter` properties.
 | ---- | ---- | ----------- |
 | [options] | Object | The hash of options from any query. You can use one model to access tables with matching schemas by overriding `getTableName` and using custom key/values to alter the name of the table. (eg. subscribers_1, subscribers_2) |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 
 
 ***
 
 <a name="unscoped"></a>
 ## `unscoped()` -> `Model`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1082)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1073)
 
 
 
@@ -104,7 +131,7 @@ or an object with `tableName`, `schema` and `delimiter` properties.
 
 <a name="addscope"></a>
 ## `addScope(name, scope, [options])`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1096)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1087)
 
 Add a new scope to the model. This is especially useful for adding scopes with includes, when the model you want to include is not available at the time this model is defined.
 
@@ -124,7 +151,7 @@ By default this will throw an error if a scope with that name already exists. Pa
 
 <a name="scope"></a>
 ## `scope(options*)` -> `Model`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1160)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1151)
 
 Apply a scope created in `define` to the model. First let's look at how to create scopes:
 ```js
@@ -180,7 +207,7 @@ __Returns:__ A reference to the model, with the scope(s) applied. Calling scope 
 
 <a name="findall"></a>
 ## `findAll([options])` -> `Promise.<Array.<Instance>>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1327)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1320)
 
 Search for multiple instances.
 
@@ -281,9 +308,10 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.lock] | String &#124; Object | Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE. Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model locks with joins. See [transaction.LOCK for an example](transaction#lock) |
 | [options.raw] | Boolean | Return raw result. See sequelize.query for more information. |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.having] | Object |  |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.rejectOnEmpty=false] | Boolean &#124; Error | Throws an error when no records found |
 
 __Aliases:__ all
 
@@ -291,7 +319,7 @@ __Aliases:__ all
 
 <a name="findbyid"></a>
 ## `findById(id, [options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1456)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1464)
 
 Search for a single instance by its primary key.
 
@@ -315,7 +343,7 @@ __Aliases:__ findByPrimary
 
 <a name="findone"></a>
 ## `findOne([options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1487)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1494)
 
 Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single instance.
 
@@ -338,7 +366,7 @@ __Aliases:__ find
 
 <a name="aggregate"></a>
 ## `aggregate(field, aggregateFunction, [options])` -> `Promise.<options.dataType|object>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1525)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1532)
 
 Run an aggregation method on the specified field
 
@@ -351,11 +379,11 @@ Run an aggregation method on the specified field
 | [options] | Object | Query options. See sequelize.query for full options |
 | [options.where] | Object | A hash of search attributes. |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.dataType] | DataType &#124; String | The type of the result. If `field` is a field in this Model, the default will be the type of that field, otherwise defaults to float. |
 | [options.distinct] | boolean | Applies DISTINCT to the field being aggregated over |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.plain] | Boolean | When `true`, the first returned value of `aggregateFunction` is cast to `dataType` and returned. If additional attributes are specified, along with `group` clauses, set `plain` to `false` to return all values of all returned rows. Defaults to `true` |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
 __Returns:__ Returns the aggregate result cast to `options.dataType`, unless `options.plain` is false, in which case the complete data result is returned.
 
@@ -363,7 +391,7 @@ __Returns:__ Returns the aggregate result cast to `options.dataType`, unless `op
 
 <a name="count"></a>
 ## `count([options])` -> `Promise.<Integer>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1579)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1587)
 
 Count the number of records matching the provided where clause.
 
@@ -381,15 +409,15 @@ If you provide an `include` option, the number of matching associations will be 
 | [options.group] | Object | For creating complex counts. Will return multiple rows as needed. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
 
 ***
 
 <a name="findandcount"></a>
 ## `findAndCount([findOptions])` -> `Promise.<Object>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1638)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1654)
 
 Find all the rows matching your query, within a specified offset / limit, and get the total number of rows matching your query. This is very useful for paging
 
@@ -434,7 +462,7 @@ __Aliases:__ findAndCountAll
 
 <a name="max"></a>
 ## `max(field, [options])` -> `Promise.<Any>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1702)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1716)
 
 Find the maximum value of field
 
@@ -455,7 +483,7 @@ Find the maximum value of field
 
 <a name="min"></a>
 ## `min(field, [options])` -> `Promise.<Any>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1715)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1729)
 
 Find the minimum value of field
 
@@ -476,7 +504,7 @@ Find the minimum value of field
 
 <a name="sum"></a>
 ## `sum(field, [options])` -> `Promise.<Number>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1728)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1742)
 
 Find the sum of field
 
@@ -497,7 +525,7 @@ Find the sum of field
 
 <a name="build"></a>
 ## `build(values, [options])` -> `Instance`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1743)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1757)
 
 Builds a new model instance. Values is an object of key value pairs, must be defined but can be empty.
 
@@ -516,7 +544,7 @@ Builds a new model instance. Values is an object of key value pairs, must be def
 
 <a name="create"></a>
 ## `create(values, [options])` -> `Promise.<Instance>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1815)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1828)
 
 Builds a new model instance and calls save on it.
 
@@ -539,15 +567,15 @@ Builds a new model instance and calls save on it.
 | [options.onDuplicate] | String |  |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
 
 ***
 
-<a name="findorinitialize"></a>
-## `findOrInitialize` -> `Promise.<Instance, initialized>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1841)
+<a name="findorbuild"></a>
+## `findOrBuild(options)` -> `Promise.<Instance, initialized>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1854)
 
 Find a row that matches the query, or build (but don't save) the row if none is found.
 The successful result of the promise will be (instance, initialized) - Make sure to use .spread()
@@ -561,7 +589,7 @@ The successful result of the promise will be (instance, initialized) - Make sure
 | [options.defaults] | Object | Default values to use if building a new instance |
 | [options.transaction] | Object | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 
 __Aliases:__ findOrBuild
 
@@ -569,7 +597,7 @@ __Aliases:__ findOrBuild
 
 <a name="findorcreate"></a>
 ## `findOrCreate(options)` -> `Promise.<Instance, created>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1883)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1896)
 
 Find a row that matches the query, or build and save the row if none is found
 The successful result of the promise will be (instance, created) - Make sure to use .spread()
@@ -597,7 +625,7 @@ If a transaction is created, a savepoint will be created instead, and any unique
 
 <a name="findcreatefind"></a>
 ## `findCreateFind(options)` -> `Promise.<Instance, created>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L1969)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L1984)
 
 A more performant findOrCreate that will not work under a transaction (at least not in postgres)
 Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
@@ -620,7 +648,7 @@ Will execute a find call, if empty then attempt to create, if unique constraint 
 
 <a name="upsert"></a>
 ## `upsert(values, [options])` -> `Promise.<created>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L2018)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2033)
 
 Insert or update a single row. An update will be executed if a row which matches the supplied values on either the primary key or a unique key is found. Note that the unique index must be defined in your sequelize model and not just in the table. Otherwise you may experience a unique constraint violation, because sequelize fails to identify the row that should be updated.
 
@@ -642,8 +670,8 @@ Insert or update a single row. An update will be executed if a row which matches
 | [options.fields=Object.keys(this.attributes)] | Array | The fields to insert / update. Defaults to all fields |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
 __Returns:__ Returns a boolean indicating whether the row was created or updated.
 __Aliases:__ insertOrUpdate
@@ -652,13 +680,15 @@ __Aliases:__ insertOrUpdate
 
 <a name="bulkcreate"></a>
 ## `bulkCreate(records, [options])` -> `Promise.<Array.<Instance>>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L2081)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2096)
 
 Create and insert multiple instances in bulk.
 
 The success handler is passed an array of instances, but please notice that these may not completely represent the state of the rows in the DB. This is because MySQL
 and SQLite do not make it easy to obtain back automatically generated IDs and other default values in a way that can be mapped to multiple records.
 To obtain Instances for the newly created values, you will need to query for them again.
+
+If validation fails, the promise is rejected with an array-like [AggregateError](http://bluebirdjs.com/docs/api/aggregateerror.html)
 
 **Params:**
 
@@ -674,16 +704,16 @@ To obtain Instances for the newly created values, you will need to query for the
 | [options.updateOnDuplicate] | Array | Fields to update if row key already exists (on duplicate key update)? (only supported by mysql). By default, all fields are updated. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.returning=false] | Boolean | Append RETURNING * to get back auto generated values (Postgres only) |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
 
 ***
 
 <a name="truncate"></a>
 ## `truncate([options])` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L2234)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2241)
 
 Truncate all instances of the model. This is a convenient method for Model.destroy({ truncate: true }).
 
@@ -698,18 +728,18 @@ Truncate all instances of the model. This is a convenient method for Model.destr
 | ---- | ---- | ----------- |
 | [options] | object | The options passed to Model.destroy in addition to truncate |
 | [options.transaction] | Boolean &#124; function | Transaction to run query under |
-| [options.cascade=false] | Boolean &#124; function | Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
+| [options.cascade | Boolean &#124; function | = false] Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging] | Boolean &#124; function | A function that logs sql queries, or false for no logging |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
 
 ***
 
 <a name="destroy"></a>
 ## `destroy(options)` -> `Promise.<Integer>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L2256)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2263)
 
 Delete multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
 
@@ -727,7 +757,7 @@ Delete multiple instances, or set their deletedAt timestamp to the current time 
 | [options.cascade=false] | Boolean | Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 
 __Returns:__ The number of destroyed rows
 
@@ -735,7 +765,7 @@ __Returns:__ The number of destroyed rows
 
 <a name="restore"></a>
 ## `restore(options)` -> `Promise.<undefined>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L2338)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2351)
 
 Restore multiple instances if `paranoid` is enabled.
 
@@ -747,9 +777,9 @@ Restore multiple instances if `paranoid` is enabled.
 | [options.where] | Object | Filter the restore |
 | [options.hooks=true] | Boolean | Run before / after bulk restore hooks? |
 | [options.individualHooks=false] | Boolean | If set to true, restore will find all records within the where parameter and will execute before / after bulkRestore hooks on each row |
-| [options.limit] | Number | How many rows to undelete |
+| [options.limit] | Number | How many rows to undelete (only for mysql) |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.transaction] | Transaction | Transaction to run query under |
 
 
@@ -757,7 +787,7 @@ Restore multiple instances if `paranoid` is enabled.
 
 <a name="update"></a>
 ## `update(values, options)` -> `Promise.<Array.<affectedCount, affectedRows>>`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L2417)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2431)
 
 Update multiple instances that match the where options. The promise returns an array with one or two elements. The first element is always the number
 of affected rows, while the second element is the actual affected rows (only supported in postgres with `options.returning` true.)
@@ -775,9 +805,9 @@ of affected rows, while the second element is the actual affected rows (only sup
 | [options.sideEffects=true] | Boolean | Whether or not to update the side effects of any virtual setters. |
 | [options.individualHooks=false] | Boolean | Run before / after update hooks?. If true, this will execute a SELECT followed by individual UPDATEs. A select is needed, because the row data needs to be passed to the hooks |
 | [options.returning=false] | Boolean | Return the affected rows (only for postgres) |
-| [options.limit] | Number | How many rows to update (only for mysql) |
+| [options.limit] | Number | How many rows to update (only for mysql and mariadb) |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
-| [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
+| [options.benchmark=false] | Boolean | Pass query execution time in milliseconds as second argument to logging function (options.logging). |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.silent=false] | Boolean | If true, the updatedAt timestamp will not be updated. |
 
@@ -786,9 +816,423 @@ of affected rows, while the second element is the actual affected rows (only sup
 
 <a name="describe"></a>
 ## `describe()` -> `Promise`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/model.js#L2613)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2634)
 
 Run a describe query on the table. The result will be return to the listener as a hash of attributes and their types.
+
+***
+
+<a name="isnewrecord"></a>
+## `isNewRecord` -> `Boolean`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2712)
+
+Returns true if this instance has not yet been persisted to the database
+
+***
+
+<a name="model"></a>
+## `Model()` -> `Model`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2721)
+
+Returns the Model the instance was created from.
+
+**See:**
+
+* [Model](model)
+
+
+***
+
+<a name="sequelize"></a>
+## `sequelize` -> `Sequelize`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2781)
+
+A reference to the sequelize instance
+
+**See:**
+
+* [Sequelize](sequelize)
+
+
+***
+
+<a name="where"></a>
+## `where()` -> `Object`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2791)
+
+Get an object representing the query for this instance, use with `options.where`
+
+***
+
+<a name="getdatavalue"></a>
+## `getDataValue(key)` -> `any`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2815)
+
+Get the value of the underlying data value
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| key | String |  |
+
+
+***
+
+<a name="setdatavalue"></a>
+## `setDataValue(key, value)`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2825)
+
+Update the underlying data value
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| key | String |  |
+| value | any |  |
+
+
+***
+
+<a name="get"></a>
+## `get([key], [options])` -> `Object|any`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2845)
+
+If no key is given, returns all values of the instance, also invoking virtual getters.
+
+If key is given and a field or virtual getter is present for the key it will call that getter - else it will return the value for key.
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [key] | String |  |
+| [options] | Object |  |
+| [options.plain=false] | Boolean | If set to true, included instances will be returned as plain objects |
+| [options.raw=false] | Boolean | If set to true, field and virtual setters will be ignored |
+
+
+***
+
+<a name="set"></a>
+## `set(key, value, [options])`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L2917)
+
+Set is used to update values on the instance (the sequelize representation of the instance that is, remember that nothing will be persisted before you actually call `save`).
+In its most basic form `set` will update a value stored in the underlying `dataValues` object. However, if a custom setter function is defined for the key, that function
+will be called instead. To bypass the setter, you can pass `raw: true` in the options object.
+
+If set is called with an object, it will loop over the object, and call set recursively for each key, value pair. If you set raw to true, the underlying dataValues will either be
+set directly to the object passed, or used to extend dataValues, if dataValues already contain values.
+
+When set is called, the previous value of the field is stored and sets a changed flag(see `changed`).
+
+Set can also be used to build instances for associations, if you have values for those.
+When using set with associations you need to make sure the property key matches the alias of the association
+while also making sure that the proper include options have been set (from .build() or .find())
+
+If called with a dot.separated key on a JSON/JSONB attribute it will set the value nested and flag the entire object as changed.
+
+**See:**
+
+* [Model#find](model#find)
+
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| key | String &#124; Object |  |
+| value | any |  |
+| [options] | Object |  |
+| [options.raw=false] | Boolean | If set to true, field and virtual setters will be ignored |
+| [options.reset=false] | Boolean | Clear all previously set data values |
+
+__Aliases:__ setAttributes
+
+***
+
+<a name="changed"></a>
+## `changed([key])` -> `Boolean|Array`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3069)
+
+If changed is called with a string it will return a boolean indicating whether the value of that key in `dataValues` is different from the value in `_previousDataValues`.
+
+If changed is called without an argument, it will return an array of keys that have changed.
+
+If changed is called without an argument and no keys have changed, it will return `false`.
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [key] | String |  |
+
+
+***
+
+<a name="previous"></a>
+## `previous([key])` -> `any|Array.<any>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3093)
+
+Returns the previous value for key from `_previousDataValues`.
+
+If called without a key, returns the previous values for all values which have changed
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [key] | String |  |
+
+
+***
+
+<a name="save"></a>
+## `save([options])` -> `Promise.<this|Errors.ValidationError>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3162)
+
+Validate this instance, and if the validation passes, persist it to the database. It will only save changed fields, and do nothing if no fields have changed.
+
+On success, the callback will be called with this instance. On validation error, the callback will be called with an instance of `Sequelize.ValidationError`.
+This error will have a property for each of the fields for which validation failed, with the error message for that field.
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [options] | Object |  |
+| [options.fields] | Array.&lt;string&gt; | An optional array of strings, representing database columns. If fields is provided, only those columns will be validated and saved. |
+| [options.silent=false] | Boolean | If true, the updatedAt timestamp will not be updated. |
+| [options.validate=true] | Boolean | If false, validations won't be run. |
+| [options.hooks=true] | Boolean | Run before and after create / update + validate hooks |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.transaction] | Transaction |  |
+| [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
+
+
+***
+
+<a name="reload"></a>
+## `reload([options])` -> `Promise.<this>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3408)
+
+Refresh the current instance in-place, i.e. update the object with current data from the DB and return the same object.
+This is different from doing a `find(Instance.id)`, because that would create and return a new instance. With this method,
+all references to the Instance are updated with the new data and no new objects are created.
+
+**See:**
+
+* [Model#find](model#find)
+
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [options] | Object | Options that are passed on to `Model.find` |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+
+
+***
+
+<a name="validate"></a>
+## `validate([options])` -> `Promise.<Errors.ValidationError|undefined>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3445)
+
+Validate the attribute of this instance according to validation rules set in the model definition.
+
+Emits null if and only if validation successful; otherwise an Error instance containing { field name : [error msgs] } entries.
+
+**See:**
+
+* [InstanceValidator](instancevalidator)
+
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [options] | Object | Options that are passed to the validator |
+| [options.skip] | Array | An array of strings. All properties that are in this array will not be validated |
+| [options.hooks=true] | Boolean | Run before and after validate hooks |
+
+
+***
+
+<a name="update"></a>
+## `update(updates, options)` -> `Promise.<this>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3461)
+
+This is the same as calling `set` and then calling `save` but it only saves the
+exact values passed to it, making it more atomic and safer.
+
+**See:**
+
+* [Instance#set](instance#set)
+* [Instance#save](instance#save)
+
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| updates | Object | See `set` |
+| options | Object | See `save` |
+
+__Aliases:__ updateAttributes
+
+***
+
+<a name="destroy"></a>
+## `destroy([options={}])` -> `Promise.<undefined>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3499)
+
+Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will either be completely deleted, or have its deletedAt timestamp set to the current time.
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [options={}] | Object |  |
+| [options.force=false] | Boolean | If set to true, paranoid models will actually be deleted |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.transaction] | Transaction |  |
+| [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
+
+
+***
+
+<a name="restore"></a>
+## `restore([options={}])` -> `Promise.<undefined>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3546)
+
+Restore the row corresponding to this instance. Only available for paranoid models.
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [options={}] | Object |  |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.transaction] | Transaction |  |
+
+
+***
+
+<a name="increment"></a>
+## `increment(fields, [options])` -> `Promise.<this>`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3598)
+
+Increment the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The increment is done using a
+```sql
+SET column = column + X
+```
+query. To get the correct value after an increment into the Instance you should do a reload.
+
+```js
+instance.increment('number') // increment number by 1
+instance.increment(['number', 'count'], { by: 2 }) // increment number and count by 2
+instance.increment({ answer: 42, tries: 1}, { by: 2 }) // increment answer by 42, and tries by 1.
+                                                       // `by` is ignored, since each column has its own value
+```
+
+**See:**
+
+* [Instance#reload](instance#reload)
+
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| fields | String &#124; Array &#124; Object | If a string is provided, that column is incremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is incremented by the value given. |
+| [options] | Object |  |
+| [options.by=1] | Integer | The number to increment by |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.transaction] | Transaction |  |
+| [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
+
+
+***
+
+<a name="decrement"></a>
+## `decrement(fields, [options])` -> `Promise`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3661)
+
+Decrement the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The decrement is done using a
+```sql
+SET column = column - X
+```
+query. To get the correct value after an decrement into the Instance you should do a reload.
+
+```js
+instance.decrement('number') // decrement number by 1
+instance.decrement(['number', 'count'], { by: 2 }) // decrement number and count by 2
+instance.decrement({ answer: 42, tries: 1}, { by: 2 }) // decrement answer by 42, and tries by 1.
+                                                       // `by` is ignored, since each column has its own value
+```
+
+**See:**
+
+* [Instance#reload](instance#reload)
+
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| fields | String &#124; Array &#124; Object | If a string is provided, that column is decremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is decremented by the value given |
+| [options] | Object |  |
+| [options.by=1] | Integer | The number to decrement by |
+| [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
+| [options.transaction] | Transaction |  |
+| [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
+
+
+***
+
+<a name="equals"></a>
+## `equals(other)` -> `Boolean`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3683)
+
+Check whether this and `other` Instance refer to the same row
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| other | Instance |  |
+
+
+***
+
+<a name="equalsoneof"></a>
+## `equalsOneOf(others)` -> `Boolean`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3705)
+
+Check if this is equal to one of `others` by calling equals
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| others | Array |  |
+
+
+***
+
+<a name="tojson"></a>
+## `toJSON()` -> `object`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/model.js#L3723)
+
+Convert the instance to a JSON representation. Proxies to calling `get` with no keys. This means get all values gotten from the DB, and apply all custom getters.
+
+**See:**
+
+* [Instance#get](instance#get)
+
 
 ***
 
