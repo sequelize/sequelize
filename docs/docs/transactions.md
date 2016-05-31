@@ -7,7 +7,7 @@ The key difference is that the managed transaction uses a callback that expects 
 
 # Managed transaction (auto-callback)
 
-Managed transactions handle committing or rolling back the transaction automagically. You start a managed transaction by passing a callback to `sequelize.transaction`.
+Managed transactions handle committing or rolling back the transaction automatically. You start a managed transaction by passing a callback to `sequelize.transaction`.
 
 Notice how the callback passed to `transaction` returns a promise chain, and does not explicitly call `t.commit()` nor `t.rollback()`. If all promises in the returned chain are resolved successfully the transaction is committed. If one or several of the promises are rejected, the transaction is rolled back.
 
