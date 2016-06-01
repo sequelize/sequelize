@@ -39,7 +39,7 @@ if (current.dialect.name === 'mysql') {
           onUpdate: 'cascade',
           onDelete: 'cascade'
         })), {
-            mysql: 'ALTER TABLE `users` ADD `level_id` INTEGER, ADD CONSTRAINT `level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+            mysql: 'ALTER TABLE `users` ADD `level_id` INTEGER, ADD CONSTRAINT `users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
         });
       });
 
