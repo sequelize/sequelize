@@ -386,4 +386,17 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     });
   }
 
+  it('should allow spaces in ENUM', function () {
+    var Model = this.sequelize.define('user', {
+      name: Sequelize.STRING,
+      type: Sequelize.ENUM(['action', 'mecha', 'canon', 'class s'])
+    });
+
+    return Model.sync({ force: true}).then(function () {
+      return Model.create({ name: 'sakura', type: 'class s' });
+    }).then(function (record) {
+      expect(record.type).to.be.eql('class s');
+    });
+  });
+
 });
