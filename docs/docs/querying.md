@@ -142,6 +142,28 @@ $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 $col: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
 ```
 
+### Range Operators
+
+Range types can be queried with all supported operators.
+
+Keep in mind, the provided range value can
+[define the bound inclusion/exclusion](models-definition/#range-types)
+as well.
+
+```js
+// All the above equlity and inequality operators plus the following:
+
+$contains: 2           // @> '2'::integer (PG range contains element operator)
+$contains: [1, 2]      // @> [1, 2) (PG range contains range operator)
+$contained: [1, 2]     // <@ [1, 2) (PG range is contained by operator)
+$overlap: [1, 2]       // && [1, 2) (PG range overlap (have points in common) operator)
+$adjacent: [1, 2]      // -|- [1, 2) (PG range is adjacent to operator)
+$strictLeft: [1, 2]    // << [1, 2) (PG range strictly left of operator)
+$strictRight: [1, 2]   // >> [1, 2) (PG range strictly right of operator)
+$noExtendRight: [1, 2] // &< [1, 2) (PG range does not extend to the right of operator)
+$noExtendLeft: [1, 2]  // &> [1, 2) (PG range does not extend to the left of operator)
+```
+
 ### Combinations
 ```js
 {

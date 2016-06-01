@@ -171,6 +171,71 @@ sequelize.define('model', {
 })
 ```
 
+### Range types
+
+Since range types have extra information for their bound inclusion/exclusion it's not
+very straightforward to just use a touple to represent them in javascript.
+
+When supplying ranges as values you can choose from the following APIs:
+
+```js
+// defaults to '["2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00")' 
+// inclusive lower bound, exclusive upper bound
+Timeline.create({ range: [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))] });
+
+// control inclusion
+const range = [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))];
+range.inclusive = false; // '()'
+range.inclusive = [false, true]; // '(]'
+range.inclusive = true; // '[]'
+range.inclusive = [true, false]; // '[)'
+
+// or as a single expression
+const range = [
+  { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false }, 
+  { value: new Date(Date.UTC(2016, 1, 1)), inclusive: true },
+];
+// '("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]' 
+
+// composite form
+const range = [
+  { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false }, 
+  new Date(Date.UTC(2016, 1, 1)),
+];
+// '("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00")' 
+
+Timeline.create({ range });
+```
+
+However, please note that whenever you get back a value that is range you will
+receive:
+
+```js
+// stored value: ("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]
+range // [Date, Date]
+range.inclusive // [false, true]
+```
+
+Make sure you turn that into a serializable format before serialization since array
+extra properties will not be serialized.
+
+#### Special Cases
+
+```js
+// empty range:
+Timeline.create({ range: [] }); // range = 'empty'
+
+// Unbounded range:
+Timeline.create({ range: [null, null] }); // range = '[,)'
+// range = '[,"2016-01-01 00:00:00+00:00")'
+Timeline.create({ range: [null, new Date(Date.UTC(2016, 0, 1))] });
+
+// Infinite range:
+// range = '[-infinity,"2016-01-01 00:00:00+00:00")'
+Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
+
+```
+
 ## Deferrable
 
 When you specify a foreign key column it is optionally possible to declare the deferrable

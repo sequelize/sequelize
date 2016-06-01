@@ -1,3 +1,10 @@
+# Future
+- [CHANGED] Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive) [#5990](https://github.com/sequelize/sequelize/issues/5990)
+- [ADDED] Support for range operators [#5990](https://github.com/sequelize/sequelize/issues/5990)
+
+## BC breaks:
+- Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
+
 # 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
 - [CHANGED] Remove `hookValidate` in favor of `validate` with `hooks: true | false`.
