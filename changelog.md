@@ -27,6 +27,7 @@
 - [FIXED] All associations now prefer aliases to construct foreign key [#5267](https://github.com/sequelize/sequelize/issues/5267)
 - [REMOVED] Default transaction auto commit [#5094](https://github.com/sequelize/sequelize/issues/5094)
 - [REMOVED] Callback support for hooks [#5228](https://github.com/sequelize/sequelize/issues/5228)
+- [FIXED] Broken transactions in `MySQL` [#3568](https://github.com/sequelize/sequelize/issues/3568)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
