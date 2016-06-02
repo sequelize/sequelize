@@ -791,7 +791,7 @@ Now we can create a project with multiple tags in the following way:
 Product.create({
   id: 1,
   title: 'Chair',
-  Tags: [
+  tags: [
     { name: 'Alpha'},
     { name: 'Beta'}
   ]
