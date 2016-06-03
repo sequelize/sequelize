@@ -74,6 +74,8 @@
 - [FIXED] Dates with millisecond precision are inserted correctly in MySQL [#5855](https://github.com/sequelize/sequelize/pull/5855)
 - [ADDED] Where conditions on Instance.save
 - [ADDED] NotAffectedRows error on Postgres on update when option ensureAffectedRows is set to true
+- [ADDED] NotAffectedRows error on SQLite on update when option ensureAffectedRows is set to true
+- [ADDED] NotAffectedRows error on MySQL on update when option ensureAffectedRows is set to true
 
 # 3.22.0
 - [FIXED] Fix defaultValues getting overwritten on build

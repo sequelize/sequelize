@@ -30,6 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       data: DataTypes.STRING,
       intVal: DataTypes.INTEGER,
       theDate: DataTypes.DATE,
+      version: { type: DataTypes.INTEGER, defaultValue: 0 },
       aBool: DataTypes.BOOLEAN
     });
 
@@ -1154,6 +1155,34 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
     }
+
+    describe('ensuring affected rows', function() {
+      beforeEach(function() {
+        return this.User.create({ username: 'Versioned User'});
+      });
+
+      it('should save if conditions match and ensureAffectedRows is true', function() {
+        var self = this;
+        return this.User.update({ version: 314 }, { where: {username: 'Versioned User'}, ensureAffectedRows: true }
+        ).spread(function(affectedCount, affectedRows) {
+          expect(affectedCount).to.be.equal(1);
+          return self.User.findOne({where: {version: 314}}).then(function(user) {
+            expect(user.username).to.be.equal('Versioned User');
+          });
+        });
+      });
+
+      it('should raise error if conditions do not match and ensureAffectedRows is true', function() {
+        var self = this;
+        return this.User.update({ version: 42 }, { where: {username: 'Missing User'}, ensureAffectedRows: true }
+        ).catch(function(err) {
+          expect(err.name).to.be.equal('SequelizeNoAffectedRowsError');
+          return self.User.findOne({where: {version: 42}}).then(function(user) {
+            expect(user).to.be.null;
+          });
+        });
+      });
+    });
 
   });
 
