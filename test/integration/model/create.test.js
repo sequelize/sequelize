@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
-      (dialect !== 'sqlite' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
+      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
         var User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
