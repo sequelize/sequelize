@@ -407,6 +407,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           instance.set('username', instance.get('username').trim());
         });
 
+        let spy = sinon.spy();
+
         let names = [
           'mick ',
           'mick ',
@@ -421,10 +423,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return Promise.all(
             names.map(username => {
               return User.findOrCreate({where: {username}}).catch(err => {
+                spy();
                 expect(err.message).to.equal(`user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick ' vs 'mick'`);
               });
             })
           );
+        }).then(() => {
+          expect(spy).to.have.been.called;
         });
       });
 
