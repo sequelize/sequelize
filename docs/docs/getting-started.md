@@ -37,6 +37,21 @@ var sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 
 The Sequelize constructor takes a whole slew of options that are available via the [API reference](http://sequelize.readthedocs.org/en/latest/api/sequelize/).
 
+## Test the connection
+
+You can use the `.authenticate()` function like this to test the connection.
+
+```
+sequelize
+  .authenticate()
+  .then(function(err) {
+    console.log('Connection has been established successfully.');
+  })
+  .catch(function (err) {
+    console.log('Unable to connect to the database:', err);
+  });
+```
+
 ## Your first model
 
 Models are defined with `sequelize.define('name', {attributes}, {options})`.
