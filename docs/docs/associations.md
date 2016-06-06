@@ -745,7 +745,7 @@ A new `Product` and `User` can be created in one step in the following way:
 ```js
 return Product.create({
   title: 'Chair',
-  User: {
+  user: {
     first_name: 'Mick',
     last_name: 'Broadstone'
   }
@@ -753,6 +753,8 @@ return Product.create({
   include: [ User ]
 });
 ```
+
+Here, our user model is called `user`, with a lowercase u - This means that the property in the object should also be `user`. If the name given to `sequelize.define` was `User`, the key in the object should also be `User`.
 
 ### Creating elements of a "BelongsTo" association with an alias
 
