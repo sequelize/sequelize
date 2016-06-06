@@ -394,6 +394,45 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
+      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
+        var User = this.sequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
+            field: 'user_name'
+          }
+        });
+
+        User.beforeCreate(instance => {
+          instance.set('username', instance.get('username').trim());
+        });
+
+        let spy = sinon.spy();
+
+        let names = [
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick '
+        ];
+
+        return User.sync({force: true}).then(() => {
+          return Promise.all(
+            names.map(username => {
+              return User.findOrCreate({where: {username}}).catch(err => {
+                spy();
+                expect(err.message).to.equal(`user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick ' vs 'mick'`);
+              });
+            })
+          );
+        }).then(() => {
+          expect(spy).to.have.been.called;
+        });
+      });
+
       (dialect !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', function () {
         var User = this.sequelize.define('user', {
           objectId: {
