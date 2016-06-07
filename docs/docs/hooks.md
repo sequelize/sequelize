@@ -42,7 +42,7 @@ There are currently three ways to programmatically add hooks:
 
 ```js
 // Method 1 via the .define() method
-var User = sequelize.define('user', {
+const User = sequelize.define('user', {
   username: DataTypes.STRING,
   mood: {
     type: DataTypes.ENUM,
@@ -50,32 +50,32 @@ var User = sequelize.define('user', {
   }
 }, {
   hooks: {
-    beforeValidate: function(user, options) {
+    beforeValidate(user, options) {
       user.mood = 'happy'
     },
-    afterValidate: function(user, options) {
+    afterValidate(user, options) {
       user.username = 'Toni'
     }
   }
 })
 
 // Method 2 via the .hook() method
-User.hook('beforeValidate', function(user, options) {
+User.hook('beforeValidate', (user, options) => {
   user.mood = 'happy'
 })
 
-User.hook('afterValidate', function(user, options) {
+User.hook('afterValidate', (user, options) => {
   return sequelize.Promise.reject("I'm afraid I can't let you do that!")
 })
 
 // Method 3 via the direct method
-User.beforeCreate(function(user, options) {
-  return hashPassword(user.password).then(function (hashedPw) {
+User.beforeCreate((user, options) => {
+  return hashPassword(user.password).then(hashedPw => {
     user.password = hashedPw;
   });
 })
 
-User.afterValidate('myHookAfter', function(user, options, fn) {
+User.afterValidate('myHookAfter', (user, options, fn) => {
   user.username = 'Toni'
 })
 ```
@@ -89,7 +89,7 @@ var Book = sequelize.define('book', {
   title: DataTypes.STRING
 })
 
-Book.addHook('afterCreate', 'notifyUsers', function(book, options) {
+Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
   // ...
 })
 
@@ -104,7 +104,7 @@ Global hooks are hooks which are run for all models. They can define behaviours 
 var sequelize = new Sequelize(..., {
     define: {
         hooks: {
-            beforeCreate: function () {
+            beforeCreate() {
                 // Do stuff
             }
         }
@@ -118,7 +118,7 @@ This adds a default hook to all models, which is run if the model does not defin
 var User = sequelize.define('user');
 var Project = sequelize.define('project', {}, {
     hooks: {
-        beforeCreate: function () {
+        beforeCreate: () => {
             // Do other stuff
         }
     }
@@ -130,7 +130,7 @@ Project.create() // Runs its own hook (because the global hook is overwritten)
 
 ### Sequelize.addHook (permanent hook)
 ```js
-sequelize.addHook('beforeCreate', function () {
+sequelize.addHook('beforeCreate', () => {
     // Do stuff
 });
 ```
@@ -142,7 +142,7 @@ This hooks is always run before create, regardless of whether the model specifie
 var User = sequelize.define('user');
 var Project = sequelize.define('project', {}, {
     hooks: {
-        beforeCreate: function () {
+        beforeCreate() {
             // Do other stuff
         }
     }
@@ -168,7 +168,7 @@ afterCreate / afterUpdate / afterDestroy
 
 ```js
 // ...define ...
-User.beforeCreate(function(user) {
+User.beforeCreate(user => {
   if (user.accessLevel > 10 && user.username !== "Boss") {
     throw new Error("You can't grant this user an access level above 10!")
   }
@@ -178,7 +178,7 @@ User.beforeCreate(function(user) {
 This example will return an error:
 
 ```js
-User.create({username: 'Not a Boss', accessLevel: 20}).catch(function(err) {
+User.create({username: 'Not a Boss', accessLevel: 20}).catch(err => {
   console.log(err) // You can't grant this user an access level above 10!
 })
 ```
@@ -186,7 +186,7 @@ User.create({username: 'Not a Boss', accessLevel: 20}).catch(function(err) {
 The following example would return successful:
 
 ```js
-User.create({username: 'Boss', accessLevel: 20}).then(function(user) {
+User.create({username: 'Boss', accessLevel: 20}).then(user => {
   console.log(user) // user object with username as Boss and accessLevel of 20
 })
 ```
@@ -213,7 +213,7 @@ Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: tru
 Some model hooks have two or three parameters sent to each hook depending on it's type.
 
 ```js
-Model.beforeBulkCreate(function(records, fields) {
+Model.beforeBulkCreate((records, fields) => {
   // records = the first argument sent to .bulkCreate
   // fields = the second argument sent to .bulkCreate
 })
@@ -223,14 +223,14 @@ Model.bulkCreate([
   {username: 'Tobi'} // part of records argument
 ], ['username'] /* part of fields argument */)
 
-Model.beforeBulkUpdate(function(attributes, where) {
+Model.beforeBulkUpdate((attributes, where) => {
   // attributes = first argument sent to Model.update
   // where = second argument sent to Model.update
 })
 
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
 
-Model.beforeBulkDestroy(function(whereClause) {
+Model.beforeBulkDestroy(whereClause => {
   // whereClause = first argument sent to Model.destroy
 })
 
@@ -239,18 +239,18 @@ Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 
 If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes made in the hook to fields that aren't given in the `updatesOnDuplicate` array will not be persisted to the database. However it is possible to change the updatesOnDuplicate option inside the hook if this is what you want.
 
-```
+```js
 // Bulk updating existing users with updatesOnDuplicate option
 Users.bulkCreate([{ id: 1, isMemeber: true}, 
                  { id: 2, isMember: false}], 
                  { updatesOnDuplicate: ['isMember']})
 
-User.beforeBulkCreate(function (users, options) {
-  users.forEach(function (user) {
+User.beforeBulkCreate((users, options) => {
+  for (const user of users) {
     if (user.isMember) {
       user.memberSince = new Date()
     }
-  })
+  }
 
   // Add memberSince to updatesOnDuplicate otherwise the memberSince date wont be
   // saved to the database
@@ -298,7 +298,7 @@ Note that many model operations in Sequelize allow you to specify a transaction 
 ```js
 // Here we use the promise-style of async hooks rather than
 // the callback.
-User.hook('afterCreate', function(user, options) {
+User.hook('afterCreate', (user, options) => {
   // 'transaction' will be available in options.transaction
 
   // This operation will be part of the same transaction as the
@@ -314,11 +314,11 @@ User.hook('afterCreate', function(user, options) {
 });
 
 
-sequelize.transaction(function(t) {
+sequelize.transaction(transaction => {
   User.create({
     username: 'someguy',
     mood: 'happy',
-    transaction: t
+    transaction
   });
 });
 ```
