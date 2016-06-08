@@ -2015,36 +2015,46 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         foreignKey: 'tag_name', 
         otherKey: 'entity_id' 
       });
-
-      return this.sequelize.sync({ force: true }).then(function () {
+      return this.sequelize.sync({ force: true }).bind(this).then(function () {
+        return User.create({ username: 'bob' });
+      }).then(function () {
+        return TaggableSentient.create({ nametag: 'bob' });
+      }).then(function () {
+        return Entity.create({ creator: 'bob' });
+      }).then(function (entity) {
+        return Promise.all([Post.create({ post_id: entity.entity_id }), entity.addTags('bob')]);
+      }).then(function () {
         return Post.findAll({
+          include: [{
+            model: Entity,
+            required: true,
             include: [{
-              model: Entity,
+              model: User,
+              required: true
+            },{
+              model: TaggableSentient,
+              as: 'tags',
               required: true,
-              include: [{
-                model: User,
-                required: true
-              },{
-                model: TaggableSentient,
-                as: 'tags',
-                required: true,
-                through: {
-                  where: {
-                    tag_name: ['tag1', 'tag2']
-                  }
+              through: {
+                where: {
+                  tag_name: ['bob']
                 }
-              }]
-            }],
-            limit: 5,
-            offset: 0,
-            order: [
-              [ { raw: '\`Entity.votes\`' }, 'DESC' ]
-            ]
-        }).then(function (posts) {
-          expect(posts.length).to.equal(0);
+              }
+            }]
+          }],
+          limit: 5,
+          offset: 0,
+          order: [
+            [ { raw: '\`Entity.votes\`' }, 'DESC' ]
+          ]
         });
+      }).then(function (posts) {
+        expect(posts.length).to.equal(1);
+        expect(posts[0].Entity.creator).to.equal('bob');
+        expect(posts[0].Entity.tags.length).to.equal(1);
+        expect(posts[0].Entity.tags[0].EntityTag.tag_name).to.equal('bob');
+        expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
       });
-
     });
 
 
