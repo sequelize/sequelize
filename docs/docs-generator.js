@@ -21,7 +21,6 @@ if (program.file) {
   files = [
     {file:'lib/errors.js', output: 'errors'},
     {file:'lib/sequelize.js', output: 'sequelize'},
-    {file:'lib/instance.js', output: 'instance'},
     {file:'lib/model.js', output: 'model'},
     {file:'lib/hooks.js', output: 'hooks'},
     {file:'lib/associations/mixin.js', output: 'associations/index'},

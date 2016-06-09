@@ -1,6 +1,6 @@
 <a name="hooks"></a>
 # Mixin Hooks
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L39)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L39)
 
 Hooks are function that are called before and after  (bulk-) creation/updating/deletion and validation. Hooks can be added to you models in three ways:
 
@@ -38,7 +38,7 @@ Model.afterBulkUpdate(function () {})
 
 <a name="addhook"></a>
 ## `addHook(hooktype, [name], fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L160)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L155)
 
 Add a hook to the model
 
@@ -56,7 +56,7 @@ __Aliases:__ hook
 
 <a name="removehook"></a>
 ## `removeHook(hookType, name)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L179)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L174)
 
 Remove hook from the model
 
@@ -72,7 +72,7 @@ Remove hook from the model
 
 <a name="hashook"></a>
 ## `hasHook(hookType)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L205)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L200)
 
 Check whether the mode has any hooks of this type
 
@@ -88,7 +88,7 @@ __Aliases:__ hasHooks
 
 <a name="beforevalidate"></a>
 ## `beforeValidate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L218)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L213)
 
 A hook that is run before validation
 
@@ -104,7 +104,7 @@ A hook that is run before validation
 
 <a name="aftervalidate"></a>
 ## `afterValidate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L225)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L220)
 
 A hook that is run after validation
 
@@ -118,9 +118,25 @@ A hook that is run after validation
 
 ***
 
+<a name="validationfailed"></a>
+## `validationFailed(name, fn)`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L228)
+
+A hook that is run when validation fails
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| name | String |  |
+| fn | Function | A callback function that is called with instance, options, error. Error is the SequelizeValidationError. If the callback throws an error, it will replace the original validation error. |
+
+
+***
+
 <a name="beforecreate"></a>
 ## `beforeCreate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L232)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L235)
 
 A hook that is run before creating a single instance
 
@@ -136,7 +152,7 @@ A hook that is run before creating a single instance
 
 <a name="aftercreate"></a>
 ## `afterCreate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L239)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L242)
 
 A hook that is run after creating a single instance
 
@@ -152,7 +168,7 @@ A hook that is run after creating a single instance
 
 <a name="beforedestroy"></a>
 ## `beforeDestroy(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L248)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L251)
 
 A hook that is run before destroying a single instance
 
@@ -169,7 +185,7 @@ __Aliases:__ beforeDelete
 
 <a name="afterdestroy"></a>
 ## `afterDestroy(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L257)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L260)
 
 A hook that is run after destroying a single instance
 
@@ -186,7 +202,7 @@ __Aliases:__ afterDelete
 
 <a name="beforerestore"></a>
 ## `beforeRestore(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L265)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L268)
 
 A hook that is run before restoring a single instance
 
@@ -202,7 +218,7 @@ A hook that is run before restoring a single instance
 
 <a name="afterrestore"></a>
 ## `afterRestore(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L273)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L276)
 
 A hook that is run after restoring a single instance
 
@@ -218,7 +234,7 @@ A hook that is run after restoring a single instance
 
 <a name="beforeupdate"></a>
 ## `beforeUpdate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L280)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L283)
 
 A hook that is run before updating a single instance
 
@@ -234,7 +250,7 @@ A hook that is run before updating a single instance
 
 <a name="afterupdate"></a>
 ## `afterUpdate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L287)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L290)
 
 A hook that is run after updating a single instance
 
@@ -250,7 +266,7 @@ A hook that is run after updating a single instance
 
 <a name="beforebulkcreate"></a>
 ## `beforeBulkCreate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L294)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L297)
 
 A hook that is run before creating instances in bulk
 
@@ -266,7 +282,7 @@ A hook that is run before creating instances in bulk
 
 <a name="afterbulkcreate"></a>
 ## `afterBulkCreate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L301)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L304)
 
 A hook that is run after creating instances in bulk
 
@@ -282,7 +298,7 @@ A hook that is run after creating instances in bulk
 
 <a name="beforebulkdestroy"></a>
 ## `beforeBulkDestroy(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L310)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L313)
 
 A hook that is run before destroying instances in bulk
 
@@ -299,7 +315,7 @@ __Aliases:__ beforeBulkDelete
 
 <a name="afterbulkdestroy"></a>
 ## `afterBulkDestroy(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L319)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L322)
 
 A hook that is run after destroying instances in bulk
 
@@ -316,7 +332,7 @@ __Aliases:__ afterBulkDelete
 
 <a name="beforebulkrestore"></a>
 ## `beforeBulkRestore(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L327)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L330)
 
 A hook that is run before restoring instances in bulk
 
@@ -332,7 +348,7 @@ A hook that is run before restoring instances in bulk
 
 <a name="afterbulkrestore"></a>
 ## `afterBulkRestore(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L335)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L338)
 
 A hook that is run after restoring instances in bulk
 
@@ -348,7 +364,7 @@ A hook that is run after restoring instances in bulk
 
 <a name="beforebulkupdate"></a>
 ## `beforeBulkUpdate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L342)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L345)
 
 A hook that is run before updating instances in bulk
 
@@ -364,7 +380,7 @@ A hook that is run before updating instances in bulk
 
 <a name="afterbulkupdate"></a>
 ## `afterBulkUpdate(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L349)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L352)
 
 A hook that is run after updating instances in bulk
 
@@ -380,7 +396,7 @@ A hook that is run after updating instances in bulk
 
 <a name="beforefind"></a>
 ## `beforeFind(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L356)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L359)
 
 A hook that is run before a find (select) query
 
@@ -396,7 +412,7 @@ A hook that is run before a find (select) query
 
 <a name="beforefindafterexpandincludeall"></a>
 ## `beforeFindAfterExpandIncludeAll(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L363)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L366)
 
 A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
 
@@ -412,7 +428,7 @@ A hook that is run before a find (select) query, after any { include: {all: ...}
 
 <a name="beforefindafteroptions"></a>
 ## `beforeFindAfterOptions(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L370)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L373)
 
 A hook that is run before a find (select) query, after all option parsing is complete
 
@@ -428,7 +444,7 @@ A hook that is run before a find (select) query, after all option parsing is com
 
 <a name="afterfind"></a>
 ## `afterFind(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L377)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L380)
 
 A hook that is run after a find (select) query
 
@@ -442,9 +458,25 @@ A hook that is run after a find (select) query
 
 ***
 
+<a name="beforecount"></a>
+## `beforeCount(name, fn)`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L387)
+
+A hook that is run before a count query
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| name | String |  |
+| fn | Function | A callback function that is called with options |
+
+
+***
+
 <a name="beforedefine"></a>
 ## `beforeDefine(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L384)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L394)
 
 A hook that is run before a define call
 
@@ -460,7 +492,7 @@ A hook that is run before a define call
 
 <a name="afterdefine"></a>
 ## `afterDefine(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L391)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L401)
 
 A hook that is run after a define call
 
@@ -476,7 +508,7 @@ A hook that is run after a define call
 
 <a name="beforeinit"></a>
 ## `beforeInit(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L398)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L408)
 
 A hook that is run before Sequelize() call
 
@@ -492,7 +524,7 @@ A hook that is run before Sequelize() call
 
 <a name="afterinit"></a>
 ## `afterInit(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L405)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L415)
 
 A hook that is run after Sequelize() call
 
@@ -506,9 +538,25 @@ A hook that is run after Sequelize() call
 
 ***
 
+<a name="beforeconnect"></a>
+## `beforeConnect(name, fn)`
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L422)
+
+A hook that is run before a connection is created
+
+**Params:**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| name | String |  |
+| fn | Function | A callback function that is called with config passed to connection |
+
+
+***
+
 <a name="beforesync"></a>
 ## `beforeSync(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L412)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L429)
 
 A hook that is run before Model.sync call
 
@@ -524,7 +572,7 @@ A hook that is run before Model.sync call
 
 <a name="aftersync"></a>
 ## `afterSync(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L419)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L436)
 
 A hook that is run after Model.sync call
 
@@ -540,7 +588,7 @@ A hook that is run after Model.sync call
 
 <a name="beforebulksync"></a>
 ## `beforeBulkSync(name, fn)`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L426)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L443)
 
 A hook that is run before sequelize.sync call
 
@@ -556,7 +604,7 @@ A hook that is run before sequelize.sync call
 
 <a name="afterbulksync"></a>
 ## `afterBulkSync`
-[View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/hooks.js#L434)
+[View code](https://github.com/sequelize/sequelize/blob/e7f5544bf5353441d3f1abcf9861c8345c93f84b/lib/hooks.js#L451)
 
 A hook that is run after sequelize.sync call
 
