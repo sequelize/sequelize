@@ -408,6 +408,155 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('SMALLINT', function () {
+      testsql('SMALLINT', DataTypes.SMALLINT, {
+        default: 'SMALLINT'
+      });
+
+      testsql('SMALLINT.UNSIGNED', DataTypes.SMALLINT.UNSIGNED, {
+        default: 'SMALLINT UNSIGNED',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      testsql('SMALLINT.UNSIGNED.ZEROFILL', DataTypes.SMALLINT.UNSIGNED.ZEROFILL, {
+        default: 'SMALLINT UNSIGNED ZEROFILL',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      testsql('SMALLINT(11)', DataTypes.SMALLINT(11), {
+        default: 'SMALLINT(11)',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      testsql('SMALLINT({ length: 11 })', DataTypes.SMALLINT({ length: 11 }), {
+        default: 'SMALLINT(11)',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      testsql('SMALLINT(11).UNSIGNED', DataTypes.SMALLINT(11).UNSIGNED, {
+        default: 'SMALLINT(11) UNSIGNED',
+        sqlite: 'SMALLINT UNSIGNED(11)',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      testsql('SMALLINT(11).UNSIGNED.ZEROFILL', DataTypes.SMALLINT(11).UNSIGNED.ZEROFILL, {
+        default: 'SMALLINT(11) UNSIGNED ZEROFILL',
+        sqlite: 'SMALLINT UNSIGNED ZEROFILL(11)',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      testsql('SMALLINT(11).ZEROFILL', DataTypes.SMALLINT(11).ZEROFILL, {
+        default: 'SMALLINT(11) ZEROFILL',
+        sqlite: 'SMALLINT ZEROFILL(11)',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      testsql('SMALLINT(11).ZEROFILL.UNSIGNED', DataTypes.SMALLINT(11).ZEROFILL.UNSIGNED, {
+        default: 'SMALLINT(11) UNSIGNED ZEROFILL',
+        sqlite: 'SMALLINT UNSIGNED ZEROFILL(11)',
+        postgres: 'SMALLINT',
+        mssql: 'SMALLINT'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.SMALLINT();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid integer');
+        });
+
+        test('should return `true` if `value` is a valid integer', function() {
+          var type = DataTypes.SMALLINT();
+
+          expect(type.validate(12345)).to.equal(true);
+        });
+      });
+    });
+
+    suite('TINYINT', function () {
+      testsql('TINYINT', DataTypes.TINYINT, {
+        default: 'TINYINT',
+        postgres: 'SMALLINT'
+      });
+
+      testsql('TINYINT.UNSIGNED', DataTypes.TINYINT.UNSIGNED, {
+        default: 'TINYINT UNSIGNED',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      testsql('TINYINT.UNSIGNED.ZEROFILL', DataTypes.TINYINT.UNSIGNED.ZEROFILL, {
+        default: 'TINYINT UNSIGNED ZEROFILL',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      testsql('TINYINT(11)', DataTypes.TINYINT(11), {
+        default: 'TINYINT(11)',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      testsql('TINYINT({ length: 11 })', DataTypes.TINYINT({ length: 11 }), {
+        default: 'TINYINT(11)',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      testsql('TINYINT(11).UNSIGNED', DataTypes.TINYINT(11).UNSIGNED, {
+        default: 'TINYINT(11) UNSIGNED',
+        sqlite: 'TINYINT UNSIGNED(11)',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      testsql('TINYINT(11).UNSIGNED.ZEROFILL', DataTypes.TINYINT(11).UNSIGNED.ZEROFILL, {
+        default: 'TINYINT(11) UNSIGNED ZEROFILL',
+        sqlite: 'TINYINT UNSIGNED ZEROFILL(11)',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      testsql('TINYINT(11).ZEROFILL', DataTypes.TINYINT(11).ZEROFILL, {
+        default: 'TINYINT(11) ZEROFILL',
+        sqlite: 'TINYINT ZEROFILL(11)',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      testsql('TINYINT(11).ZEROFILL.UNSIGNED', DataTypes.TINYINT(11).ZEROFILL.UNSIGNED, {
+        default: 'TINYINT(11) UNSIGNED ZEROFILL',
+        sqlite: 'TINYINT UNSIGNED ZEROFILL(11)',
+        postgres: 'SMALLINT',
+        mssql: 'TINYINT'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.TINYINT();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid integer');
+        });
+
+        test('should return `true` if `value` is a valid integer', function() {
+          var type = DataTypes.TINYINT();
+
+          expect(type.validate(123)).to.equal(true);
+        });
+      });
+    });
+
     suite('BIGINT', function () {
       testsql('BIGINT', DataTypes.BIGINT, {
         default: 'BIGINT'
