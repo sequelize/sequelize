@@ -239,6 +239,33 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     });
 
+    it('supports updating with a primary key instead of an object', function() {
+      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
+        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING });
+
+      User.hasOne(Task);
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.create({id: 1, username: 'foo'}).then(function(user) {
+          return Task.create({id: 20, title: 'bar'}).then(function(task) {
+            return user.setTaskXYZ(task.id).then(function() {
+              return user.getTaskXYZ().then(function(task) {
+                expect(task).not.to.be.null;
+
+                return Task.create({id: 2, title: 'bar2'}).then(function(task2) {
+                  return user.setTaskXYZ(task2.id).then(function() {
+                    return user.getTaskXYZ().then(function(_task) {
+                      expect(_task).not.to.be.null;
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
     it('supports setting same association twice', function () {
       var Home = this.sequelize.define('home', {})
         , User = this.sequelize.define('user');
