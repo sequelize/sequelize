@@ -61,7 +61,7 @@
     "coveralls": "^2.11.9",
     "dox": "~0.8.0",
     "git": "^0.1.5",
-    "hints": "^0.2.0",
+    "hints": "^1.0.0",
     "istanbul": "^0.4.3",
     "jshint": "^2.9.2",
     "lcov-result-merger": "^1.2.0",
