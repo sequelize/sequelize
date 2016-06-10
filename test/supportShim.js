@@ -5,9 +5,9 @@ var QueryInterface = require(__dirname + '/../lib/query-interface')
   , _ = require('lodash')
   , util = require('util');
 
-/*
+/**
  * Shims all Sequelize methods to test for logging passing.
- * @param {Object} Sequelize Sequelize constructor
+ * @param {Object} Sequelize - Sequelize constructor
  */
 module.exports = function(Sequelize) {
   // Shim all Sequelize methods
@@ -38,10 +38,10 @@ module.exports = function(Sequelize) {
 
   // Support functions
 
-  /*
+  /**
    * Shims all shimmable methods on obj.
    * @param {Object} obj
-   * @param {String} objName Name of object for error reporting
+   * @param {string} objName - Name of object for error reporting
    */
   function shimAll(obj, objName) {
     forOwn(obj, function(method, name) {
@@ -50,7 +50,7 @@ module.exports = function(Sequelize) {
     });
   }
 
-  /*
+  /**
    * Given a function, checks whether is suitable for shimming to modify `options`
    * and returns information about how to do that
    *
@@ -73,8 +73,8 @@ module.exports = function(Sequelize) {
    *   `// testhint argsConform.start` & `// testhint argsConform.end`
    *     - this part of the function body deals with conforming flexible arguments
    *
-   * @param {Function} method Function to examine
-   * @param {String} name Attribute name of this method on parent object
+   * @param {Function} method - Function to examine
+   * @param {string} name - Attribute name of this method on parent object
    * @returns {Object}
    */
   function examine(method, name) {
@@ -114,17 +114,17 @@ module.exports = function(Sequelize) {
     return result;
   }
 
-  /*
+  /**
    * Shims a method to check for `options.logging`.
    * The method then:
    *   Injects `options.logging` if called from within the tests.
    *   Throws if called from within Sequelize and not passed correct `options.logging`
    *
-   * @param {Object} obj Object which is parent of this method
-   * @param {String} name Name of method on object to shim
-   * @param {Integer} index Index of argument which is `options` (1-based)
-   * @param {Function} conform Function to conform function arguments
-   * @param {String} debugName Full name of method for error reporting
+   * @param {Object} obj - Object which is parent of this method
+   * @param {string} name - Name of method on object to shim
+   * @param {number} index - Index of argument which is `options` (1-based)
+   * @param {Function} conform - Function to conform function arguments
+   * @param {string} debugName - Full name of method for error reporting
    */
   function shim(obj, name, index, conform, debugName) {
     index--;
@@ -182,12 +182,12 @@ module.exports = function(Sequelize) {
     });
   }
 
-  /*
+  /**
    * Shims a method with given wrapper function
    *
-   * @param {Object} obj Object which is parent of this method
-   * @param {String} name Name of method on object to shim
-   * @param {Function} wrapper Wrapper function
+   * @param {Object} obj - Object which is parent of this method
+   * @param {string} name - Name of method on object to shim
+   * @param {Function} wrapper - Wrapper function
    */
   function shimMethod(obj, name, wrapper) {
     var original = obj[name];
@@ -202,12 +202,12 @@ module.exports = function(Sequelize) {
     }
   }
 
-  /*
+  /**
    * Adds `logging` function to `options`.
    * If existing `logging` attribute, shims it.
    *
    * @param {Object} options
-   * @returns {Object} Options with `logging` attribute added
+   * @returns {Object} - Options with `logging` attribute added
    */
   function addLogger(options, sequelize) {
     if (!options) options = {};
@@ -232,11 +232,11 @@ module.exports = function(Sequelize) {
     return options;
   }
 
-  /*
+  /**
    * Revert `options.logging` to original value
    *
    * @param {Object} options
-   * @returns {Object} Options with `logging` attribute reverted to original value
+   * @returns {Object} - Options with `logging` attribute reverted to original value
    */
   function removeLogger(options) {
     if (options.logging.hasOwnProperty('__originalLogging')) {
@@ -246,21 +246,21 @@ module.exports = function(Sequelize) {
     }
   }
 
-  /*
+  /**
    * Checks if `options.logging` is an injected logging function
    *
    * @param {Object} options
-   * @throws {Error} Throws if `options.logging` is not a shimmed logging function
+   * @throws {Error} - Throws if `options.logging` is not a shimmed logging function
    */
   function testLogger(options, name) {
     if (!options || !options.logging || !options.logging.__testLoggingFn) throw new Error('options.logging has been lost in method ' + name);
   }
 
-  /*
+  /**
    * Checks if this method called from the tests
    * (as opposed to being called within Sequelize codebase).
    *
-   * @returns {Boolean} true if this method called from within the tests
+   * @returns {boolean} - true if this method called from within the tests
    */
   var pathRegStr = _.escapeRegExp(__dirname + '/'),
     regExp = new RegExp('^\\s+at\\s+(' + pathRegStr + '|.+ \\(' + pathRegStr + ')');
@@ -272,7 +272,7 @@ module.exports = function(Sequelize) {
 
 // Helper functions for examining code for hints
 
-/*
+/**
  * Loop through own properties of object (including non-enumerable properties)
  * and call `fn` for each property with argments `(value, key, object)`.
  * Getters are skipped.
@@ -289,7 +289,7 @@ function forOwn(obj, fn) {
   return obj;
 }
 
-/*
+/**
  * Get code of function
  * Adds 'function ' to start of code where fn has been defined with object method shortcut,
  * and alters illegal function names ('import', 'delete'), so code can be parsed by `acorn`.
@@ -304,28 +304,28 @@ function getFunctionCode(fn) {
   return 'function ' + code;
 }
 
-/*
+/**
  * Returns arguments of a function as an array, from it's AST
  *
- * @tree {Object} tree Abstract syntax tree of function's code
- * @returns {Array} Array of names of `method`'s arguments
+ * @param {Object} tree - Abstract syntax tree of function's code
+ * @returns {Array} - Array of names of `method`'s arguments
  */
 function getFunctionArguments(tree) {
   return tree.body[0].params.map(function(param) {return param.name;});
 }
 
-/*
+/**
  * Extracts conform arguments section from function body and turns into function.
  * That function is called with the same signature as the original function,
  * conforms them into the standard order, and returns the arguments as an array.
  *
  * Returns undefined if no conform arguments hints.
  *
- * @param {Function} method Function to inspect
- * @param {Array} args Array of names of `method`'s arguments
- * @param {Object} hints Hints object containing code hints parsed from code
- * @tree {Object} tree Abstract syntax tree of function's code
- * @returns {Function} Function which will conform method's arguments and return as an array
+ * @param {Function} method - Function to inspect
+ * @param {Array} args - Array of names of `method`'s arguments
+ * @param {Object} hints - Hints object containing code hints parsed from code
+ * @param {Object} tree - Abstract syntax tree of function's code
+ * @returns {Function} - Function which will conform method's arguments and return as an array
  */
 function getArgumentsConformFn(method, args, hints, tree) {
   // check if argsConform hints present
@@ -342,10 +342,10 @@ function getArgumentsConformFn(method, args, hints, tree) {
   return new Function(args, body + ';return [' + args + '];'); // jshint ignore:line
 }
 
-/*
+/**
  * Clone options object
- * @params {Object} options - Options object
- * @returns {Object} Clone of options
+ * @param {Object} options - Options object
+ * @returns {Object} - Clone of options
  */
 function cloneOptions(options) {
   return _.cloneDeepWith(options, function(value) {
@@ -353,25 +353,25 @@ function cloneOptions(options) {
   });
 }
 
-/*
+/**
  * Checks options object has not been altered and throw if altered
  *
- * @params {Object} options - Options object
- * @params {Object} original - Original options object
- * @throws {Error} Throws if options and original are not identical
+ * @param {Object} options - Options object
+ * @param {Object} original - Original options object
+ * @throws {Error} - Throws if options and original are not identical
  */
 function checkOptions(options, original, name) {
   if (!optionsEqual(options, original)) throw new Error('options modified in ' + name + ', input: ' + util.inspect(original) + ' output: ' + util.inspect(options));
 }
 
-/*
+/**
  * Compares two options objects and returns if they are deep equal to each other.
  * Objects which are not plain objects (e.g. Models) are compared by reference.
  * Everything else deep-compared by value.
  *
- * @params {Object} options - Options object
- * @params {Object} original - Original options object
- * @returns {Boolean} true if options and original are same, false if not
+ * @param {Object} options - Options object
+ * @param {Object} original - Original options object
+ * @returns {boolean} - true if options and original are same, false if not
  */
 function optionsEqual(options, original) {
   return _.isEqualWith(options, original, function(value1, value2) {
