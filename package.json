@@ -36,7 +36,7 @@
     "depd": "^1.1.0",
     "dottie": "^1.0.0",
     "generic-pool": "2.4.2",
-    "inflection": "^1.6.0",
+    "inflection": "1.10.0",
     "lodash": "4.13.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
