@@ -36,13 +36,13 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
           return Promise.join(
             Task.create({
               id: 1,
-              user: {}
+              user: {id: 1}
             }, {
               include: [Task.User]
             }),
             Task.create({
               id: 2,
-              user: {}
+              user: {id: 2}
             }, {
               include: [Task.User]
             }),
