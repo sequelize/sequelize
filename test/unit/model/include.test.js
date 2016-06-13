@@ -47,6 +47,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       this.Company.Owner = this.Company.belongsTo(this.User, {as: 'Owner', foreignKey: 'ownerId'});
     });
 
+    describe('alias', function () {
+      it('should inject the alias', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [
+            {
+              association: this.User.Company
+            }
+          ]
+        });
+
+        expect(options.include[0].as).to.deep.equal('Company');
+      });
+
+      it('should not rewrite the alias when present with associations', function () {
+        var options = Sequelize.Model.$validateIncludedElements({
+          model: this.User,
+          include: [
+            {
+              as: 'foo',
+              association: this.User.Company
+            }
+          ]
+        });
+
+        expect(options.include[0].as).to.deep.equal('foo');
+      });
+    });
+
     describe('attributes', function () {
       it('should not inject the aliassed PK again, if its already there', function () {
         var options = Sequelize.Model.$validateIncludedElements({
