@@ -65,11 +65,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       )
       .then((users) => {
         expect(users.length).to.be.eql(2);
-
-        // correct count
-        expect(users[0].count).to.be.equal(1);
-        expect(users[1].count).to.be.equal(2);
-
+        
         // have attributes
         expect(users[0].createdAt).to.exist;
         expect(users[1].createdAt).to.exist;
