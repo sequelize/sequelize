@@ -51,5 +51,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }]
       })).to.eventually.equal(1);
     });
+
+    it('should return attributes', function () {
+      return this.User.create({
+        username: 'valak',
+        createdAt: (new Date()).setFullYear(2015)
+      })
+      .then(() =>
+        this.User.count({
+          attributes: ['createdAt'],
+          group: ['createdAt']
+        })
+      )
+      .then((users) => {
+        expect(users.length).to.be.eql(2);
+
+        // correct count
+        expect(users[0].count).to.be.eql('1');
+        expect(users[1].count).to.be.eql('2');
+
+        // have attributes
+        expect(users[0].createdAt).to.exist;
+        expect(users[1].createdAt).to.exist;
+      });
+    });
+
   });
 });
