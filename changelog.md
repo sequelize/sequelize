@@ -5,6 +5,7 @@
 - [FIXED] `Model.count` don't include attributes [#5057](https://github.com/sequelize/sequelize/issues/5057)
 - [INTERNALS] Updated `inflection` dependency and pinned version and expose all used `inflection` methods on `Utils`
 - [ADDED] `Sequelize.useInflection` method
+- [FIXED] `hasOne` throws error on update with a primary key [#6069](https://github.com/sequelize/sequelize/issues/6069)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
