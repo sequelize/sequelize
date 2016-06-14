@@ -10,7 +10,8 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
-      username: DataTypes.STRING
+      username: DataTypes.STRING,
+      age: DataTypes.INTEGER
     });
     this.Project = this.sequelize.define('Project', {
       name: DataTypes.STRING
@@ -65,10 +66,44 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       )
       .then((users) => {
         expect(users.length).to.be.eql(2);
-        
+
         // have attributes
         expect(users[0].createdAt).to.exist;
         expect(users[1].createdAt).to.exist;
+      });
+    });
+
+    it('should not return NaN', function() {
+      return this.sequelize.sync({ force: true })
+      .then(() =>
+        this.User.bulkCreate([
+          { username: 'valak' , age: 10},
+          { username: 'conjuring' , age: 20},
+          { username: 'scary' , age: 10}
+        ])
+      )
+      .then(() =>
+        this.User.count({
+          where: { age: 10 },
+          group: ['age'],
+          order: 'age'
+        })
+      )
+      .then((result) => {
+        expect(parseInt(result[0].count)).to.be.eql(2);
+        return this.User.count({
+          where: { username: 'fire' }
+        });
+      })
+      .then((count) => {
+        expect(count).to.be.eql(0);
+        return this.User.count({
+          where: { username: 'fire' },
+          group: 'age'
+        });
+      })
+      .then((count) => {
+        expect(count).to.be.eql([]);
       });
     });
 
