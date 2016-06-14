@@ -10,9 +10,11 @@
 - [ADDED] `Model.count` now allow specifying column to count on, use `options.col` [#4442](https://github.com/sequelize/sequelize/issues/4442)
 - [ADDED] `DEBUG` support [#2852](https://github.com/sequelize/sequelize/issues/2852)
 - [ADDED] Intensive connection logging [#851](https://github.com/sequelize/sequelize/issues/851)
+- [FIXED] Only `belongsTo` uses `as` to construct foreign key - revert of [#5957](https://github.com/sequelize/sequelize/pull/5957) introduced in 4.0.0-0
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
+- Only `belongsTo` uses `as` to construct foreign key - revert of [#5957](https://github.com/sequelize/sequelize/pull/5957) introduced in 4.0.0-0
 
 # 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling

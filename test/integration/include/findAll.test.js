@@ -405,8 +405,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             ]).spread(function(user, products) {
               return Promise.all([
                 GroupMember.bulkCreate([
-                  {MembershipsId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                  {MembershipsId: user.id, GroupId: groups[1].id, RankId: ranks[1].id}
+                  {UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                  {UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id}
                 ]),
                 user.setProducts([
                   products[(i * 2) + 0],
