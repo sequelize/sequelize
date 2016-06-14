@@ -52,7 +52,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           this.Projects.hasOne(this.Tasks, {onUpdate: 'cascade', hooks: true});
           this.Tasks.belongsTo(this.Projects);
 
-          return this.Projects.sync({ force: true }).then(() => self.Tasks.sync({ force: true }));
+          return this.Projects.sync({ force: true })
+          .then(() => self.Tasks.sync({ force: true }));
         });
 
         it('on success', function() {
@@ -70,7 +71,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             fn();
           });
 
-          return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.setTask(task).then(() => project.updateAttributes({id: 2}).then(() => {
+          return this.Projects.create({title: 'New Project'})
+          .then(project => self.Tasks.create({title: 'New Task'})
+          .then(task => project.setTask(task)
+          .then(() => project.updateAttributes({id: 2})
+          .then(() => {
             expect(beforeHook).to.be.true;
             expect(afterHook).to.be.true;
           }))));
@@ -83,7 +88,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             fn(new Error('Whoops!'));
           });
 
-          return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.setTask(task).catch(err => {
+          return this.Projects.create({title: 'New Project'})
+          .then(project => self.Tasks.create({title: 'New Task'})
+          .then(task => project.setTask(task)
+          .catch(err => {
             expect(err).to.be.instanceOf(Error);
           })));
         });
@@ -114,7 +122,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.setTask(task).then(() => project.destroy().then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.setTask(task)
+            .then(() => project.destroy()
+            .then(() => {
               expect(beforeProject).to.have.been.calledOnce;
               expect(afterProject).to.have.been.calledOnce;
               expect(beforeTask).to.have.been.calledOnce;
@@ -150,7 +162,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               fn();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.setTask(task).then(() => expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.setTask(task)
+            .then(() => expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText)
+            .then(() => {
               expect(beforeProject).to.be.true;
               expect(afterProject).to.be.true;
               expect(beforeTask).to.be.true;
@@ -184,7 +200,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           this.Tasks.beforeUpdate(beforeHook);
           this.Tasks.afterUpdate(afterHook);
 
-          return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.setTask(task).then(() => project.updateAttributes({id: 2}).then(() => {
+          return this.Projects.create({title: 'New Project'})
+          .then(project => self.Tasks.create({title: 'New Task'})
+          .then(task => project.setTask(task)
+          .then(() => project.updateAttributes({id: 2})
+          .then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
           }))));
@@ -197,7 +217,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             throw new Error('Whoops!');
           });
 
-          return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => expect(project.setTask(task)).to.be.rejected));
+          return this.Projects.create({title: 'New Project'})
+          .then(project => self.Tasks.create({title: 'New Task'})
+          .then(task => expect(project.setTask(task)).to.be.rejected));
         });
       });
 
@@ -221,14 +243,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            const self = this, beforeProject = sinon.spy(), afterProject = sinon.spy(), beforeTask = sinon.spy(), afterTask = sinon.spy();
+            const self = this
+                , beforeProject = sinon.spy()
+                , afterProject = sinon.spy()
+                , beforeTask = sinon.spy()
+                , afterTask = sinon.spy();
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => project.removeTask(task).then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => project.removeTask(task)
+            .then(() => {
               expect(beforeProject).to.have.been.called;
               expect(afterProject).to.have.been.called;
               expect(beforeTask).not.to.have.been.called;
@@ -237,7 +267,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           it('with errors', function() {
-            const self = this, beforeProject = sinon.spy(), afterProject = sinon.spy(), beforeTask = sinon.spy(), afterTask = sinon.spy();
+            const self = this
+                , beforeProject = sinon.spy()
+                , afterProject = sinon.spy()
+                , beforeTask = sinon.spy()
+                , afterTask = sinon.spy();
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
@@ -247,7 +281,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).catch(err => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .catch(err => {
               expect(err).to.be.instanceOf(Error);
               expect(beforeProject).to.have.been.calledOnce;
               expect(afterProject).to.have.been.calledOnce;
@@ -279,14 +316,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            const self = this, beforeProject = sinon.spy(), afterProject = sinon.spy(), beforeTask = sinon.spy(), afterTask = sinon.spy();
+            const self = this
+                , beforeProject = sinon.spy()
+                , afterProject = sinon.spy()
+                , beforeTask = sinon.spy()
+                , afterTask = sinon.spy();
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => project.destroy().then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => project.destroy()
+            .then(() => {
               expect(beforeProject).to.have.been.calledOnce;
               expect(afterProject).to.have.been.calledOnce;
               expect(beforeTask).to.have.been.calledOnce;
@@ -321,7 +366,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               fn();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => project.destroy().catch(err => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => project.destroy()
+            .catch(err => {
               expect(err).to.be.instanceOf(Error);
               expect(beforeProject).to.be.true;
               expect(afterProject).to.be.true;
@@ -350,14 +399,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            const self = this, beforeProject = sinon.spy(), afterProject = sinon.spy(), beforeTask = sinon.spy(), afterTask = sinon.spy();
+            const self = this
+                , beforeProject = sinon.spy()
+                , afterProject = sinon.spy()
+                , beforeTask = sinon.spy()
+                , afterTask = sinon.spy();
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => project.removeTask(task).then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => project.removeTask(task)
+            .then(() => {
               expect(beforeProject).to.have.been.called;
               expect(afterProject).to.have.been.called;
               expect(beforeTask).not.to.have.been.called;
@@ -392,7 +449,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               fn();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).catch(err => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .catch(err => {
               expect(err).to.be.instanceOf(Error);
               expect(beforeProject).to.be.true;
               expect(afterProject).to.be.true;
@@ -423,14 +483,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            const self = this, beforeProject = sinon.spy(), afterProject = sinon.spy(), beforeTask = sinon.spy(), afterTask = sinon.spy();
+            const self = this
+                , beforeProject = sinon.spy()
+                , afterProject = sinon.spy()
+                , beforeTask = sinon.spy()
+                , afterTask = sinon.spy();
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => project.destroy().then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => project.destroy()
+            .then(() => {
               expect(beforeProject).to.have.been.calledOnce;
               expect(afterProject).to.have.been.calledOnce;
               // Since Sequelize does not cascade M:M, these should be false
@@ -466,7 +534,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               fn();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => project.destroy().then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => project.destroy()
+            .then(() => {
               expect(beforeProject).to.be.true;
               expect(afterProject).to.be.true;
               expect(beforeTask).to.be.false;
@@ -494,14 +566,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            const self = this, beforeProject = sinon.spy(), afterProject = sinon.spy(), beforeTask = sinon.spy(), afterTask = sinon.spy();
+            const self = this
+                , beforeProject = sinon.spy()
+                , afterProject = sinon.spy()
+                , beforeTask = sinon.spy()
+                , afterTask = sinon.spy();
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => project.removeTask(task).then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => project.removeTask(task)
+            .then(() => {
               expect(beforeProject).to.have.been.calledOnce;
               expect(afterProject).to.have.been.calledOnce;
               expect(beforeTask).not.to.have.been.called;
@@ -536,7 +616,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               fn();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => self.Tasks.create({title: 'New Task'}).then(task => project.addTask(task).then(() => {
+            return this.Projects.create({title: 'New Project'})
+            .then(project => self.Tasks.create({title: 'New Task'})
+            .then(task => project.addTask(task)
+            .then(() => {
               expect(beforeProject).to.be.true;
               expect(afterProject).to.be.true;
               expect(beforeTask).to.be.false;
@@ -579,7 +662,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
           describe('#remove', () => {
             it('with no errors', function() {
-              let beforeProject = false, afterProject = false, beforeTask = false, afterTask = false, beforeMiniTask = false, afterMiniTask = false;
+              let beforeProject = false
+                , afterProject = false
+                , beforeTask = false
+                , afterTask = false
+                , beforeMiniTask = false
+                , afterMiniTask = false;
 
               this.Projects.beforeCreate((project, options, fn) => {
                 beforeProject = true;
@@ -626,7 +714,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
 
             it('with errors', function() {
-              let beforeProject = false, afterProject = false, beforeTask = false, afterTask = false, beforeMiniTask = false, afterMiniTask = false;
+              let beforeProject = false
+                , afterProject = false
+                , beforeTask = false
+                , afterTask = false
+                , beforeMiniTask = false
+                , afterMiniTask = false;
 
               this.Projects.beforeCreate((project, options, fn) => {
                 beforeProject = true;

@@ -41,7 +41,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.beforeRestore(beforeHook);
         this.ParanoidUser.afterRestore(afterHook);
 
-        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(user => user.destroy().then(() => user.restore().then(user => {
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'})
+        .then(user => user.destroy()
+        .then(() => user.restore()
+        .then(user => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
         })));
@@ -58,7 +61,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
         this.ParanoidUser.afterRestore(afterHook);
 
-        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(user => user.destroy().then(() => expect(user.restore()).to.be.rejected.then(() => {
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'})
+        .then(user => user.destroy()
+        .then(() => expect(user.restore()).to.be.rejected
+        .then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).not.to.have.been.called;
         })));
@@ -73,7 +79,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(user => user.destroy().then(() => expect(user.restore()).to.be.rejected.then(() => {
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'})
+        .then(user => user.destroy()
+        .then(() => expect(user.restore()).to.be.rejected
+        .then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
         })));
