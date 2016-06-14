@@ -481,7 +481,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('should be able to set twice with custom primary keys', function() {
-      const User = this.sequelize.define('User', { uid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING }), Task = this.sequelize.define('Task', { tid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING });
+      const User = this.sequelize.define('User', { uid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { tid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING });
 
       User.belongsToMany(Task, { through: 'UserTasks' });
       Task.belongsToMany(User, { through: 'UserTasks' });
@@ -1274,8 +1275,25 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     describe('without sync', () => {
       beforeEach(function() {
         const self = this;
-
-        return self.sequelize.queryInterface.createTable('users', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true } , username: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).then(() => self.sequelize.queryInterface.createTable('tasks', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE })).then(() => self.sequelize.queryInterface.createTable('users_tasks', { TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }));
+        return self.sequelize.queryInterface
+          .createTable('users', {
+            id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+            username: DataTypes.STRING,
+            createdAt: DataTypes.DATE,
+            updatedAt: DataTypes.DATE
+          })
+          .then(() => self.sequelize.queryInterface.createTable('tasks', {
+            id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+            title: DataTypes.STRING,
+            createdAt: DataTypes.DATE,
+            updatedAt: DataTypes.DATE
+          }))
+          .then(() => self.sequelize.queryInterface.createTable('users_tasks',{
+            TaskId: DataTypes.INTEGER,
+            UserId: DataTypes.INTEGER,
+            createdAt: DataTypes.DATE,
+            updatedAt: DataTypes.DATE
+          }));
       });
 
       it('removes all associations', function() {
@@ -1289,7 +1307,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return Sequelize.Promise.all([
           this.User.create({username: 'foo'}),
           this.Task.create({title: 'foo'})
-        ]).spread((user, task) => user.addTask(task).return (user)).then(user => user.setTasks(null)).then(result => {
+        ])
+        .spread((user, task) => user.addTask(task).return (user))
+        .then(user => user.setTasks(null))
+        .then(result => {
           expect(result).to.be.ok;
         });
       });
@@ -1316,7 +1337,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return Sequelize.Promise.all([
           this.User.create(),
           this.Project.create()
-        ]).spread((user, project) => user.addProject(project, { status: 'active', data: 42 }).return (user)).then(user => user.getProjects()).then(projects => {
+        ])
+        .spread((user, project) => user.addProject(project, { status: 'active', data: 42 }).return (user))
+        .then(user => user.getProjects())
+        .then(projects => {
           const project = projects[0];
 
           expect(project.UserProjects).to.be.ok;
@@ -1330,7 +1354,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return Sequelize.Promise.all([
           this.User.create(),
           this.Project.create()
-        ]).spread((user, project) => user.addProject(project, { status: 'active', data: 42 }).return (user)).then(user => user.getProjects({ joinTableAttributes: ['status']})).then(projects => {
+        ])
+        .spread((user, project) => user.addProject(project, { status: 'active', data: 42 }).return (user))
+        .then(user => user.getProjects({ joinTableAttributes: ['status']}))
+        .then(projects => {
           const project = projects[0];
 
           expect(project.UserProjects).to.be.ok;
@@ -1377,7 +1404,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         });
 
         it('should be able to add twice (second call result in UPDATE call) without any attributes (and timestamps off) on the through model', function() {
-          const Worker = this.sequelize.define('Worker', {}, {timestamps: false}), Task = this.sequelize.define('Task', {}, {timestamps: false}), WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
+          const Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+              , Task = this.sequelize.define('Task', {}, {timestamps: false})
+              , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
 
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
@@ -1394,29 +1423,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         it('should be able to add twice (second call result in UPDATE call) with custom primary keys and without any attributes (and timestamps off) on the through model', function() {
           const Worker = this.sequelize.define('Worker', {
-                    id: {
-                      type: DataTypes.INTEGER,
-                      allowNull: false,
-                      primaryKey: true,
-                      autoIncrement: true
-                    }
-                  }, {timestamps: false}),
-                Task = this.sequelize.define('Task', {
-                    id: {
-                      type: DataTypes.INTEGER,
-                      allowNull: false,
-                      primaryKey: true,
-                      autoIncrement: true
-                    }
-                  }, {timestamps: false}),
-                WorkerTasks = this.sequelize.define('WorkerTasks', {
-                    id: {
-                      type: DataTypes.INTEGER,
-                      allowNull: false,
-                      primaryKey: true,
-                      autoIncrement: true
-                    }
-                  }, {timestamps: false});
+                  id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true }
+                }, {timestamps: false});
+          const Task = this.sequelize.define('Task', {
+            id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true }
+          }, {timestamps: false});
+          const WorkerTasks = this.sequelize.define('WorkerTasks', {
+            id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true }
+          }, {timestamps: false});
 
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
@@ -1460,7 +1474,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         });
 
         it('should be able to set twice (second call result in UPDATE calls) without any attributes (and timestamps off) on the through model', function() {
-          const Worker = this.sequelize.define('Worker', {}, {timestamps: false}), Task = this.sequelize.define('Task', {}, {timestamps: false}), WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
+          const Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+              , Task = this.sequelize.define('Task', {}, {timestamps: false})
+              , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
 
           Worker.belongsToMany(Task, { through: WorkerTasks });
           Task.belongsToMany(Worker, { through: WorkerTasks });
@@ -1491,7 +1507,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     describe('removing from the join table', () => {
       it('should remove a single entry without any attributes (and timestamps off) on the through model', function() {
-        const Worker = this.sequelize.define('Worker', {}, {timestamps: false}), Task = this.sequelize.define('Task', {}, {timestamps: false}), WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
+        const Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+            , Task = this.sequelize.define('Task', {}, {timestamps: false})
+            , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
 
         Worker.belongsToMany(Task, { through: WorkerTasks });
         Task.belongsToMany(Worker, { through: WorkerTasks });
@@ -1500,13 +1518,20 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return this.sequelize.sync({force: true}).then(() => Sequelize.Sequelize.Promise.all([
           Worker.create({}),
           Task.bulkCreate([{}, {}, {}]).then(() => Task.findAll())
-        ])).spread((worker, tasks) => worker.setTasks(tasks).then(() => worker.removeTask(tasks[0])).then(() => worker.removeTask(tasks[1].id)).then(() => worker.getTasks())).then(tasks => {
+        ]))
+        .spread((worker, tasks) => worker.setTasks(tasks)
+        .then(() => worker.removeTask(tasks[0]))
+        .then(() => worker.removeTask(tasks[1].id))
+        .then(() => worker.getTasks()))
+        .then(tasks => {
           expect(tasks.length).to.equal(1);
         });
       });
 
       it('should remove multiple entries without any attributes (and timestamps off) on the through model', function() {
-        const Worker = this.sequelize.define('Worker', {}, {timestamps: false}), Task = this.sequelize.define('Task', {}, {timestamps: false}), WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
+        const Worker = this.sequelize.define('Worker', {}, {timestamps: false})
+            , Task = this.sequelize.define('Task', {}, {timestamps: false})
+            , WorkerTasks = this.sequelize.define('WorkerTasks', {}, {timestamps: false});
 
         Worker.belongsToMany(Task, { through: WorkerTasks });
         Task.belongsToMany(Worker, { through: WorkerTasks });
@@ -1515,7 +1540,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return this.sequelize.sync({force: true}).then(() => Sequelize.Sequelize.Promise.all([
           Worker.create({}),
           Task.bulkCreate([{}, {}, {}, {}, {}]).then(() => Task.findAll())
-        ])).spread((worker, tasks) => worker.setTasks(tasks).then(() => worker.removeTasks([tasks[0], tasks[1]])).then(() => worker.removeTasks([tasks[2].id, tasks[3].id])).then(() => worker.getTasks())).then(tasks => {
+        ]))
+        .spread((worker, tasks) => worker.setTasks(tasks)
+        .then(() => worker.removeTasks([tasks[0], tasks[1]]))
+        .then(() => worker.removeTasks([tasks[2].id, tasks[3].id]))
+        .then(() => worker.getTasks()))
+        .then(tasks => {
           expect(tasks.length).to.equal(1);
         });
       });
@@ -1596,7 +1626,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('creates the join table when through is a model', function() {
-      const self = this, User = this.sequelize.define('User', {}), Group = this.sequelize.define('Group', {}), UserGroup = this.sequelize.define('GroupUser', {}, {tableName: 'user_groups'});
+      const self = this
+          , User = this.sequelize.define('User', {})
+          , Group = this.sequelize.define('Group', {})
+          , UserGroup = this.sequelize.define('GroupUser', {}, {tableName: 'user_groups'});
 
       User.belongsToMany(Group, { as: 'MyGroups', through: UserGroup});
       Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup});

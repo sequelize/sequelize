@@ -649,7 +649,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         Article.hasMany(Label);
 
-        return this.sequelize.sync({ force: true }).then(() => Article.create({ title: 'foo' })).then(article => article.createLabel({ text: 'bar' }).return (article)).then(article => Label.findAll({ where: { ArticleId: article.id }})).then(labels => {
+        return this.sequelize.sync({ force: true })
+        .then(() => Article.create({ title: 'foo' }))
+        .then(article => article.createLabel({ text: 'bar' }).return (article))
+        .then(article => Label.findAll({ where: { ArticleId: article.id }}))
+        .then(labels => {
           expect(labels.length).to.equal(1);
         });
       });
@@ -863,7 +867,12 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         User.hasMany(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
 
-        return this.sequelize.sync({ force: true }).then(() => User.create({ username: 'foo' }).then(user => Task.create({ title: 'task', UserId: user.id }).then(() => user.destroy().then(() => Task.findAll()))).then(tasks => {
+        return this.sequelize.sync({ force: true })
+        .then(() => User.create({ username: 'foo' })
+        .then(user => Task.create({ title: 'task', UserId: user.id })
+        .then(() => user.destroy()
+        .then(() => Task.findAll())))
+        .then(tasks => {
           expect(tasks).to.be.empty;
         }));
       });
