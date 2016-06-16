@@ -264,6 +264,29 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
     });
+
+    it('with timestamps set to true and custom field names', function() {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER,
+        updatedAt: {
+          field: 'updated_at',
+          type: DataTypes.DATE,
+          allowNull: true
+        }
+      }, { timestamps: true, updatedAt: 'updatedAt' })
+        , oldDate;
+
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({aNumber: 1});
+      }).then(function(user) {
+        oldDate = user.updatedAt;
+
+        this.clock.tick(1000);
+        return user.increment('aNumber', {by: 1});
+      }).then(function() {
+        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+      });
+    });
   });
 
   describe('decrement', function() {
