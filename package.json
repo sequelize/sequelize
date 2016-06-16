@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "bluebird": "^3.4.0",
+    "debug": "^2.2.0",
     "depd": "^1.1.0",
     "dottie": "^1.0.0",
     "generic-pool": "2.4.2",
