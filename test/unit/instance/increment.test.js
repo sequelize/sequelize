@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.increment(['id'], {attributes: {incrementedAt: new Date()}});
         }).to.not.throw();
 
-        expect(stub.calledOnce).to.be.true;
+        expect(stub.calledOnce).to.be.equal(true);
 
         var options = stub.getCall(0).args[1];
         expect(options).to.be.an('object').with.property('attributes');
@@ -91,6 +91,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(attributes).to.not.have.property('incrementedAt');
         expect(attributes).to.not.have.property('updatedAt');
       });
-    })
+    });
   });
 });
