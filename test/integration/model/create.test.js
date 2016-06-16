@@ -1203,27 +1203,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should use default value if attribute is excluded in fields option', function() {
-      var User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
-        taskCount: {
-          type: DataTypes.INTEGER,
-          defaultValue: 2
-        }
-      });
-
-      return User.sync().then(function() {
-        return User.create({
-          username: 'John',
-          taskCount: 5
-        }, {
-          fields: ['username']
-        }).then(function(savedUser) {
-          expect(savedUser.taskCount).to.equal(2);
-        });
-      });
-    });
-
     describe('enums', function() {
       it('correctly restores enum values', function() {
         var self = this

@@ -819,6 +819,27 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         });
       });
     });
+
+    describe('excluded attributes', function() {
+      it('should use default value if an attribute is excluded in attributes option', function() {
+        var Person = this.sequelize.define('Person', {
+          username: DataTypes.STRING,
+          taskCount: {
+            type: DataTypes.INTEGER,
+            defaultValue: 2
+          }
+        });
+
+        var person = Person.build({
+          username: 'John',
+          taskCount: 5
+        }, {
+          attributes: ['username']
+        });
+        expect(person.username).to.equal('John');
+        expect(person.taskCount).to.equal(2);
+      });
+    });
   });
 
   describe('complete', function() {
