@@ -8,6 +8,8 @@
 - [FIXED] `hasOne` throws error on update with a primary key [#6069](https://github.com/sequelize/sequelize/issues/6069)
 - [FIXED] `Model.count` gives SQL syntax error when using `distinct` [#4840](https://github.com/sequelize/sequelize/issues/4840)
 - [ADDED] `Model.count` now allow specifying column to count on, use `options.col` [#4442](https://github.com/sequelize/sequelize/issues/4442)
+- [ADDED] `DEBUG` support [#2852](https://github.com/sequelize/sequelize/issues/2852)
+- [ADDED] Intensive connection logging [#851](https://github.com/sequelize/sequelize/issues/851)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
