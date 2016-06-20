@@ -189,7 +189,7 @@ var Project = sequelize.define('project', {/* ... */})
 Project.hasMany(User, {as: 'Workers'})
 ```
 
-This will add the attribute `WorkersId` or `Workers_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
+This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
 But we want more! Let's define it the other way around by creating a many to many association in the next section:
 
 ## Belongs-To-Many associations
