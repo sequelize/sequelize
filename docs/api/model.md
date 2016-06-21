@@ -541,7 +541,8 @@ Builds a new model instance and calls save on it.
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
-
+| [options.returning] | Boolean | Append RETURNING * to get back auto generated values (Postgres only) |
+| [options.silent=false] | Boolean | If true, the updatedAt timestamp will not be updated. |
 
 ***
 
