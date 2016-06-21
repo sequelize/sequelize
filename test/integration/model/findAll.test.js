@@ -1265,6 +1265,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('handles group', function() {
+      return this.User.findAndCountAll({group: 'username', offset: 1}).then(function(info) {
+        expect(info.count).to.equal(3);
+        expect(Array.isArray(info.rows)).to.be.ok;
+        expect(info.rows.length).to.equal(2);
+      });
+    });
+
     it('handles limit', function() {
       return this.User.findAndCountAll({limit: 1}).then(function(info) {
         expect(info.count).to.equal(3);
