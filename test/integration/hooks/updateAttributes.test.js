@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledTwice;
-            expect(afterSave).not.to.have.been.calledTwice;
+            expect(afterSave).to.have.been.calledOnce;
           });
         });
       });
