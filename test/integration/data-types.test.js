@@ -322,7 +322,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
           real: -Infinity
         });
       }).then(function () {
-        return Model.find({id: 1});
+        return Model.find({ where:{ id: 1 } });
       }).then(function (user) {
         expect(user.get('float')).to.be.NaN;
         expect(user.get('double')).to.eq(Infinity);

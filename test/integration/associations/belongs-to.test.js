@@ -671,7 +671,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         return User.create({ username: 'bob' }).then(function(newUser) {
           return Task.create({ title: 'some task' }).then(function(newTask) {
             return newTask.setUser(newUser).then(function() {
-              return Task.findOne({title: 'some task'}).then(function (foundTask) {
+              return Task.findOne({ where: { title: 'some task' } }).then(function (foundTask) {
                 return foundTask.getUser().then(function (foundUser) {
                   expect(foundUser.username).to.equal('bob');
                 });
@@ -700,7 +700,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         return User.create({ username: 'bob' }).then(function(newUser) {
           return Task.create({ title: 'some task' }).then(function(newTask) {
             return newTask.setUser(newUser).then(function() {
-              return Task.findOne({title: 'some task'}).then(function (foundTask) {
+              return Task.findOne({ where: { title: 'some task' } }).then(function (foundTask) {
                 return foundTask.getUser().then(function (foundUser) {
                   expect(foundUser.username).to.equal('bob');
                 });
@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         return User.create({ username: 'bob' }).then(function(newUser) {
           return Task.create({ title: 'some task' }).then(function(newTask) {
             return newTask.setUser(newUser).then(function() {
-              return Task.findOne({title: 'some task'}).then(function (foundTask) {
+              return Task.findOne({ where: { title: 'some task'} }).then(function (foundTask) {
                 return foundTask.getUser().then(function (foundUser) {
                   expect(foundUser.username).to.equal('bob');
                 });
