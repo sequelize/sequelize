@@ -79,6 +79,7 @@
 - [FIXED] Fix defaultValues getting overwritten on build
 - [FIXED] Queue queries against tedious connections
 - [ADDED] Enable type validation for all queries
+- [ADDED] UPSERT support for MSSQL dialect
 
 # 3.21.0
 - [FIXED] Confirmed that values modified in validation hooks are preserved [#3534](https://github.com/sequelize/sequelize/issues/3534)
