@@ -12,6 +12,7 @@
 - [ADDED] Intensive connection logging [#851](https://github.com/sequelize/sequelize/issues/851)
 - [FIXED] Only `belongsTo` uses `as` to construct foreign key - revert of [#5957](https://github.com/sequelize/sequelize/pull/5957) introduced in 4.0.0-0
 - [CHANGED] `Sequelize.Promise` is now an independent copy of `bluebird` library [#5974](https://github.com/sequelize/sequelize/issues/5974)
+- [FIXED] `findAndCountAll` dont ignore `group` [#6148](https://github.com/sequelize/sequelize/issues/6148)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
