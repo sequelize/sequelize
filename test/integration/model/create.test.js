@@ -625,8 +625,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
 
           return User.findOne({
-            updatedAt: {
-              ne: null
+            where: {
+              updatedAt: {
+                ne: null
+              }
             }
           }).then(function (user) {
             expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
@@ -1402,8 +1404,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           silent: true
         }).then(function () {
           return User.findAll({
-            updatedAt: {
-              ne: null
+            where: {
+              updatedAt: {
+                ne: null
+              }
             }
           }).then(function (users) {
             users.forEach(function (user) {

@@ -1167,12 +1167,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       it('does not update timestamps', function() {
         var self = this;
         return self.User.create({ username: 'John' }).then(function() {
-          return self.User.findOne({ username: 'John' }).then(function(user) {
+          return self.User.findOne({ where: { username: 'John' } }).then(function(user) {
             var updatedAt = user.updatedAt;
             self.clock.tick(2000);
             return user.save().then(function(newlySavedUser) {
               expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
-              return self.User.findOne({ username: 'John' }).then(function(newlySavedUser) {
+              return self.User.findOne({ where: { username: 'John' } }).then(function(newlySavedUser) {
                 expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
               });
             });

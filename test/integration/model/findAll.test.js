@@ -1158,7 +1158,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return User.sync({ force: true }).then(function() {
           return User.create({Login: 'foo'}).then(function() {
-            return User.findAll({ID: 1}).then(function(user) {
+            return User.findAll({ where: { ID: 1 } }).then(function(user) {
               expect(user).to.be.instanceof(Array);
               expect(user).to.have.length(1);
             });
