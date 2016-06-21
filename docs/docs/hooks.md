@@ -21,15 +21,19 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   beforeCreate(instance, options, fn)
   beforeDestroy(instance, options, fn)
   beforeUpdate(instance, options, fn)
+(5)
+  beforeSave(instance, options, fn)
 (-)
   create
   destroy
   update
-(5)
+(6)
   afterCreate(instance, options, fn)
   afterDestroy(instance, options, fn)
   afterUpdate(instance, options, fn)
-(6)
+(7)
+  afterSave(instance, options, fn)
+(8)
   afterBulkCreate(instances, options, fn)
   afterBulkDestroy(options, fn)
   afterBulkUpdate(options, fn)
@@ -241,8 +245,8 @@ If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes
 
 ```
 // Bulk updating existing users with updatesOnDuplicate option
-Users.bulkCreate([{ id: 1, isMemeber: true}, 
-                 { id: 2, isMember: false}], 
+Users.bulkCreate([{ id: 1, isMemeber: true},
+                 { id: 2, isMember: false}],
                  { updatesOnDuplicate: ['isMember']})
 
 User.beforeBulkCreate(function (users, options) {
