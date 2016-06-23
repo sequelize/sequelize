@@ -26,15 +26,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('on success', function() {
       it('should run hooks', function() {
         var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+          , afterHook = sinon.spy()
+          , beforeSave = sinon.spy()
+          , afterSave = sinon.spy();
 
         this.User.beforeUpdate(beforeHook);
         this.User.afterUpdate(afterHook);
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
           return user.updateAttributes({username: 'Chong'}).then(function(user) {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
+            expect(beforeSave).to.have.been.calledTwice;
+            expect(afterSave).to.have.been.calledTwice;
             expect(user.username).to.equal('Chong');
           });
         });
@@ -44,36 +50,48 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('on error', function() {
       it('should return an error from before', function() {
         var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+          , afterHook = sinon.spy()
+          , beforeSave = sinon.spy()
+          , afterSave = sinon.spy();
 
         this.User.beforeUpdate(function(user, options) {
           beforeHook();
           throw new Error('Whoops!');
         });
         this.User.afterUpdate(afterHook);
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
           return expect(user.updateAttributes({username: 'Chong'})).to.be.rejected.then(function() {
             expect(beforeHook).to.have.been.calledOnce;
+            expect(beforeSave).to.have.been.calledOnce;
             expect(afterHook).not.to.have.been.called;
+            expect(afterSave).to.have.been.calledOnce;
           });
         });
       });
 
       it('should return an error from after', function() {
         var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+          , afterHook = sinon.spy()
+          , beforeSave = sinon.spy()
+          , afterSave = sinon.spy();
 
         this.User.beforeUpdate(beforeHook);
         this.User.afterUpdate(function(user, options) {
           afterHook();
           throw new Error('Whoops!');
         });
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(function(user) {
           return expect(user.updateAttributes({username: 'Chong'})).to.be.rejected.then(function() {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
+            expect(beforeSave).to.have.been.calledTwice;
+            expect(afterSave).to.have.been.calledOnce;
           });
         });
       });
@@ -107,6 +125,46 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           expect(user.mood).to.equal('sad');
         });
       });
+
+      it('beforeSave', function() {
+        var hookCalled = 0;
+
+        this.User.beforeSave(function(user, options) {
+          user.mood = 'happy';
+          hookCalled++;
+        });
+
+        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(function(user) {
+          return user.updateAttributes({username: 'spider', mood: 'sad'});
+        }).then(function(user) {
+          expect(user.username).to.equal('spider');
+          expect(user.mood).to.equal('happy');
+          expect(hookCalled).to.equal(2);
+        });
+      });
+
+      it('beforeSave with beforeUpdate', function() {
+        var hookCalled = 0;
+
+        this.User.beforeUpdate(function(user, options) {
+          user.mood = 'sad';
+          hookCalled++;
+        });
+
+        this.User.beforeSave(function(user, options) {
+          user.mood = 'happy';
+          hookCalled++;
+        });
+
+        return this.User.create({username: 'akira'}).then(function(user) {
+          return user.updateAttributes({username: 'spider', mood: 'sad'});
+        }).then(function(user) {
+          expect(user.mood).to.equal('happy');
+          expect(user.username).to.equal('spider');
+          expect(hookCalled).to.equal(3);
+        });
+      });
+
     });
 
   });

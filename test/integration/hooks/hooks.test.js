@@ -413,4 +413,60 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
   });
 
+  describe('#removal', function() {
+    it('should be able to remove by name', function() {
+      var sasukeHook = sinon.spy()
+        , narutoHook = sinon.spy();
+
+      this.User.hook('beforeCreate', 'sasuke', sasukeHook);
+      this.User.hook('beforeCreate', 'naruto', narutoHook);
+
+      return this.User.create({ username: 'makunouchi'}).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledOnce;
+        this.User.removeHook('beforeCreate', 'sasuke');
+        return this.User.create({ username: 'sendo'});
+      }).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledTwice;
+      });
+    });
+
+    it('should be able to remove by reference', function() {
+      var sasukeHook = sinon.spy()
+        , narutoHook = sinon.spy();
+
+      this.User.hook('beforeCreate', sasukeHook);
+      this.User.hook('beforeCreate', narutoHook);
+
+      return this.User.create({ username: 'makunouchi'}).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledOnce;
+        this.User.removeHook('beforeCreate', sasukeHook);
+        return this.User.create({ username: 'sendo'});
+      }).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledTwice;
+      });
+    });
+
+    it('should be able to remove proxies', function() {
+      var sasukeHook = sinon.spy()
+        , narutoHook = sinon.spy();
+
+      this.User.hook('beforeSave', sasukeHook);
+      this.User.hook('beforeSave', narutoHook);
+
+      return this.User.create({ username: 'makunouchi'}).then((user) => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledOnce;
+        this.User.removeHook('beforeSave', sasukeHook);
+        return user.updateAttributes({ username: 'sendo'});
+      }).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledTwice;
+      });
+    });
+
+  });
 });
