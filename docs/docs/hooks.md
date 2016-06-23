@@ -22,6 +22,7 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   beforeDestroy(instance, options, fn)
   beforeUpdate(instance, options, fn)
   beforeSave(instance, options, fn)
+  beforeUpsert(values, options, fn)
 (-)
   create
   destroy
@@ -31,6 +32,7 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   afterDestroy(instance, options, fn)
   afterUpdate(instance, options, fn)
   afterSave(instance, options, fn)
+  afterUpsert(created, options, fn)
 (6)
   afterBulkCreate(instances, options, fn)
   afterBulkDestroy(options, fn)
