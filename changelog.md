@@ -14,6 +14,7 @@
 - [CHANGED] `Sequelize.Promise` is now an independent copy of `bluebird` library [#5974](https://github.com/sequelize/sequelize/issues/5974)
 - [ADDED] before/after Save hook [#2702](https://github.com/sequelize/sequelize/issues/2702)
 - [ADDED] Remove hooks by reference [#6155](https://github.com/sequelize/sequelize/issues/6155)
+- [ADDED] before/after Upsert hook [#3965](https://github.com/sequelize/sequelize/issues/3965)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
