@@ -21,19 +21,17 @@ For a full list of hooks, see [Hooks API](/api/hooks).
   beforeCreate(instance, options, fn)
   beforeDestroy(instance, options, fn)
   beforeUpdate(instance, options, fn)
-(5)
   beforeSave(instance, options, fn)
 (-)
   create
   destroy
   update
-(6)
+(5)
   afterCreate(instance, options, fn)
   afterDestroy(instance, options, fn)
   afterUpdate(instance, options, fn)
-(7)
   afterSave(instance, options, fn)
-(8)
+(6)
   afterBulkCreate(instances, options, fn)
   afterBulkDestroy(options, fn)
   afterBulkUpdate(options, fn)
