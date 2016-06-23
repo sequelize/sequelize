@@ -30,6 +30,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       ]);
     });
 
+    it('allow changing attributes via beforeFind #5675', function() {
+      this.User.beforeFind((options) => {
+        options.attributes = {
+          include: ['id']
+        }
+      });
+      return this.User.findAll({});
+    });
+
     describe('on success', function() {
       it('all hooks run', function() {
         var beforeHook = false
