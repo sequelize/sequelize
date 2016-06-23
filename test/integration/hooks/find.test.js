@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       this.User.beforeFind((options) => {
         options.attributes = {
           include: ['id']
-        }
+        };
       });
       return this.User.findAll({});
     });
