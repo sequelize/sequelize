@@ -16,11 +16,13 @@
 - [ADDED] Remove hooks by reference [#6155](https://github.com/sequelize/sequelize/issues/6155)
 - [ADDED] before/after Upsert hook [#3965](https://github.com/sequelize/sequelize/issues/3965)
 - [FIXED] Modifying `options` in `beforeFind` throws error [#5675](https://github.com/sequelize/sequelize/issues/5675)
+- [REMOVED] `classMethods` and `instanceMethods` support [#5869](https://github.com/sequelize/sequelize/issues/5869#issuecomment-221773485)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
 - Only `belongsTo` uses `as` to construct foreign key - revert of [#5957](https://github.com/sequelize/sequelize/pull/5957) introduced in 4.0.0-0
 - Sequelize uses an independent copy of `bluebird` library. This means (1) promises returned from Sequelize methods are instances of `Sequelize.Promise` but not global `Bluebird` and (2) the CLS patch does not affect global `Bluebird`.
+- Dropped support for `classMethods` and `instanceMethods`. As Models are now ES6 classes `classMethods` can be directly assigned and `instanceMethods` should be added to `Model.prototype`
 
 # 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
