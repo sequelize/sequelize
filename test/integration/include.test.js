@@ -858,4 +858,72 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
   });
+
+  var createTeamsUsersAndClearences = function () {
+
+    var Employee = this.sequelize.define('Employee', { 'name': DataTypes.STRING });
+    var Team = this.sequelize.define('Team', { 'name': DataTypes.STRING });
+    var Clearence = this.sequelize.define('Clearence', { 'level': DataTypes.INTEGER });
+
+
+    Team.Members = Team.hasMany(Employee, { as: 'members' });
+    Employee.Clearence = Employee.hasOne(Clearence, { as: 'clearence' });
+    Clearence.Employee = Clearence.belongsTo(Employee, { as: 'employee' });
+
+    this.Employee = Employee;
+    this.Team = Team;
+    this.Clearence = Clearence;
+
+    return this.sequelize.sync({ force: true }).then(function () {
+      return Promise.all([
+        Team.create({ name: 'TeamA' }),
+        Team.create({ name: 'TeamB' }),
+        Employee.create({ name: 'John' }),
+        Employee.create({ name: 'Jane' }),
+        Employee.create({ name: 'Josh' }),
+        Employee.create({ name: 'Jill' }),
+        Clearence.create({ level: 3 }),
+        Clearence.create({ level: 5 })
+      ]).then(function (instances) {
+        return Promise.all([
+          instances[0].addMembers([instances[2], instances[3]]),
+          instances[1].addMembers([instances[4], instances[5]]),
+          instances[2].setClearence(instances[6]),
+          instances[3].setClearence(instances[7])
+        ]);
+      });
+    });
+
+  };
+
+  describe('nested includes', function () {
+
+    beforeEach(function () {
+      return createTeamsUsersAndClearences.bind(this)();
+    });
+
+    it('should not ripple grandchild required to top level find when required of child is set to false', function () {
+
+      return this.Team.findAll({
+        include: [
+          {
+            association: this.Team.Members,
+            required: false,
+            include: [
+              {
+                association: this.Employee.Clearence,
+                required: true,
+              }
+            ]
+          }
+        ],
+        logging: console.log,
+      }).then(function (teams) {
+        expect(teams).to.have.length(2);
+      });
+
+    });
+
+  });
+
 });
