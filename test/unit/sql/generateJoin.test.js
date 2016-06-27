@@ -25,7 +25,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       test(name, function () {
 
-        let join = sql.generateJoin(include, options, options.subQuery);
+        let join = sql.generateJoin(include,
+          {
+            options,
+            subQuery: options.subQuery === undefined ? options.limit && options.hasMultiAssociation : options.subQuery
+          }
+        );
 
         return expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
       });
