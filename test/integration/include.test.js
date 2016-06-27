@@ -917,9 +917,49 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             ]
           }
         ],
-        logging: console.log,
       }).then(function (teams) {
         expect(teams).to.have.length(2);
+      });
+
+    });
+
+    it('should not ripple grandchild required to top level find when required of child is not given (implicitly false)', function () {
+
+      return this.Team.findAll({
+        include: [
+          {
+            association: this.Team.Members,
+            include: [
+              {
+                association: this.Employee.Clearence,
+                required: true,
+              }
+            ]
+          }
+        ],
+      }).then(function (teams) {
+        expect(teams).to.have.length(2);
+      });
+
+    });
+
+    it('should ripple grandchild required to top level find when required of child is set to true as well', function () {
+
+      return this.Team.findAll({
+        include: [
+          {
+            association: this.Team.Members,
+            required: true,
+            include: [
+              {
+                association: this.Employee.Clearence,
+                required: true,
+              }
+            ]
+          }
+        ],
+      }).then(function (teams) {
+        expect(teams).to.have.length(1);
       });
 
     });
