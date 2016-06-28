@@ -16,7 +16,7 @@
 - [ADDED] Remove hooks by reference [#6155](https://github.com/sequelize/sequelize/issues/6155)
 - [ADDED] before/after Upsert hook [#3965](https://github.com/sequelize/sequelize/issues/3965)
 - [FIXED] Modifying `options` in `beforeFind` throws error [#5675](https://github.com/sequelize/sequelize/issues/5675)
-- [REMOVED] `classMethods` and `instanceMethods` support [#5869](https://github.com/sequelize/sequelize/issues/5869#issuecomment-221773485)
+- [REMOVED] `classMethods` and `instanceMethods` [#5869](https://github.com/sequelize/sequelize/issues/5869#issuecomment-221773485)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
