@@ -285,13 +285,11 @@ this.Comment = this.sequelize.define('comment', {
   title: Sequelize.STRING,
   commentable: Sequelize.STRING,
   commentable_id: Sequelize.INTEGER
-}, {
-  instanceMethods: {
-    getItem: function() {
-      return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
-    }
-  }
 });
+
+this.Comment.prototype.getItem = function() {
+  return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+};
 
 this.Post.hasMany(this.Comment, {
   foreignKey: 'commentable_id',

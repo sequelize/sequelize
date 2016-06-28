@@ -57,21 +57,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(factorySize).to.equal(factorySize2);
     });
 
-    it('attaches class and instance methods', function() {
-      var User = this.sequelize.define('UserWithClassAndInstanceMethods', {}, {
-        classMethods: { doSmth: function() { return 1; } },
-        instanceMethods: { makeItSo: function() { return 2; } }
-      });
-
-      expect(User.doSmth).to.exist;
-      expect(User.doSmth()).to.equal(1);
-      expect(User.makeItSo).not.to.exist;
-
-      expect(User.build().doSmth).not.to.exist;
-      expect(User.build().makeItSo).to.exist;
-      expect(User.build().makeItSo()).to.equal(2);
-    });
-
     it('allows us us to predefine the ID column with our own specs', function() {
       var User = this.sequelize.define('UserCol', {
         id: {
