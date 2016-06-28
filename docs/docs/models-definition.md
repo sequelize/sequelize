@@ -638,12 +638,12 @@ var User = sequelize.define('user', { firstname: Sequelize.STRING });
 // Adding a class level method
 User.classLevelMethod = function() {
   return 'foo';
-}
+};
 
 // Adding an instance level method
 User.prototype.instanceLevelMethod = function() {
   return 'bar';
-}
+};
 ```
 
 Of course you can also access the instance's data and generate virtual getters:
@@ -651,8 +651,8 @@ Of course you can also access the instance's data and generate virtual getters:
 ```js
 var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING });
 
-User.prototype.getFullname: function() {
-  return [this.firstname, this.lastname].join(' ')
+User.prototype.getFullname = function() {
+  return [this.firstname, this.lastname].join(' ');
 };
 
 // Example:
