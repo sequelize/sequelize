@@ -150,5 +150,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should be able to specify column for COUNT() with includes', function() {
+      return this.sequelize.sync({ force: true }).then(() =>
+        this.User.bulkCreate([
+          { username: 'ember' , age: 10},
+          { username: 'angular' , age: 20},
+          { username: 'mithril' , age: 10}
+        ])
+      ).then(() =>
+        this.User.count({
+          col: 'username',
+          distinct: true,
+          include: [this.Project]
+        })
+      ).then((count) => {
+        expect(parseInt(count)).to.be.eql(3);
+        return this.User.count({
+          col: 'age',
+          distinct: true,
+          include: [this.Project]
+        });
+      }).then((count) => expect(parseInt(count)).to.be.eql(2));
+    });
+
   });
 });
