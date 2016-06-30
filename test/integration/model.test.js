@@ -1772,24 +1772,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('supports distinct option', function() {
-      var Post = this.sequelize.define('Post', {});
-      var PostComment = this.sequelize.define('PostComment', {});
+    it('supports distinct option', function () {
+      const Post = this.sequelize.define('Post', {});
+      const PostComment = this.sequelize.define('PostComment', {});
       Post.hasMany(PostComment);
-      return Post.sync({ force: true }).then(function() {
-        return PostComment.sync({ force: true }).then(function() {
-          return Post.create({}).then(function(post) {
-            return PostComment.bulkCreate([{ PostId: post.id },{ PostId: post.id }]).then(function() {
-              return Post.count({ include: [{ model: PostComment, required: false }] }).then(function(count1) {
-                return Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }).then(function(count2) {
-                  expect(count1).to.equal(2);
-                  expect(count2).to.equal(1);
-                });
-              });
-            });
-          });
-        });
-      });
+      return Post.sync({ force: true })
+        .then(() => PostComment.sync({ force: true }))
+        .then(() => Post.create({}))
+        .then((post) => PostComment.bulkCreate([{ PostId: post.id },{ PostId: post.id }]))
+        .then(() => Promise.join(
+            Post.count({ distinct: false, include: [{ model: PostComment, required: false }] }),
+            Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }),
+          (count1, count2) => {
+            expect(count1).to.equal(2);
+            expect(count2).to.equal(1);
+          })
+        );
     });
 
   });

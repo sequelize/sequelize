@@ -133,5 +133,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should be able to use where clause on included models', function() {
+      const queryObject = {
+        col: 'username',
+        include: [this.Project],
+        where: {
+          '$Projects.name$': 'project1'
+        }
+      };
+      return this.User.count(queryObject).then((count) => {
+        expect(parseInt(count)).to.be.eql(1);
+        queryObject.where['$Projects.name$'] = 'project2';
+        return this.User.count(queryObject);
+      }).then((count) => {
+        expect(parseInt(count)).to.be.eql(0);
+      });
+    });
+
   });
 });
