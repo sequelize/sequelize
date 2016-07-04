@@ -147,4 +147,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
   });
+
+  suite('removeIndex', function () {
+    test('naming', function () {
+      expectsql(sql.removeIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
+        mysql: 'DROP INDEX `table_column1_column2` ON `table`',
+        mssql: 'DROP INDEX table_column1_column2 ON [table]',
+        default: 'DROP INDEX IF EXISTS [table_column1_column2]'
+      });
+    });
+  });
 });
