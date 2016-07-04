@@ -19,6 +19,7 @@
 - [REMOVED] `classMethods` and `instanceMethods` [#5869](https://github.com/sequelize/sequelize/issues/5869#issuecomment-221773485)
 - [CHANGED] `Sequelize.Validator` is now an independent copy of `validator` library
 - [FIXED] Don't patch `validator` library globally [#6196](https://github.com/sequelize/sequelize/issues/6196)
+- [CHANGED] `ignore` for create was renamed to `ignoreDuplicates` [#6138](https://github.com/sequelize/sequelize/issues/6138)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
@@ -26,6 +27,7 @@
 - Sequelize uses an independent copy of `bluebird` library. This means (1) promises returned from Sequelize methods are instances of `Sequelize.Promise` but not global `Bluebird` and (2) the CLS patch does not affect global `Bluebird`.
 - Dropped support for `classMethods` and `instanceMethods`. As Models are now ES6 classes `classMethods` can be directly assigned and `instanceMethods` should be added to `Model.prototype`
 - `Sequelize.Validator` is now a cloned version of `validator`, It will not pollute global library methods.
+- `ignore` for create was renamed to `ignoreDuplicates`
 
 # 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
