@@ -1808,6 +1808,48 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
     });
+
+    it('should properly map field names to attribute names', function() {
+      var Maya = this.sequelize.define('Maya', {
+        name: Sequelize.STRING,
+        secret: {
+          field: 'secret_given',
+          type: Sequelize.STRING
+        },
+        createdAt: {
+            field: 'created_at',
+            type: Sequelize.DATE
+        },
+        updatedAt: {
+            field: 'updated_at',
+            type: Sequelize.DATE
+        }
+      });
+
+      var M1 = { id: 1, name: 'Prathma Maya', secret: 'You are on list #1'};
+      var M2 = { id: 2, name: 'Dwitiya Maya', secret: 'You are on list #2'};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1))
+      .then((m) => {
+        expect(m.createdAt).to.be.ok;
+        expect(m.id).to.be.eql(M1.id);
+        expect(m.name).to.be.eql(M1.name);
+        expect(m.secret).to.be.eql(M1.secret);
+
+        return Maya.bulkCreate([M2]);
+      }).spread((m) => {
+
+        // fields are preserved
+        expect(m.createdAt).to.be.ok;
+        expect(m.created_at).to.not.exist;
+        expect(m.secret_given).to.not.exist;
+
+        // values look fine
+        expect(m.id).to.be.eql(M2.id);
+        expect(m.name).to.be.eql(M2.name);
+        expect(m.secret).to.be.eql(M2.secret);
+      });
+    });
   });
 
   it('should support logging', function () {
