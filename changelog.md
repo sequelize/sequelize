@@ -21,6 +21,7 @@
 - [FIXED] Don't patch `validator` library globally [#6196](https://github.com/sequelize/sequelize/issues/6196)
 - [CHANGED] `ignore` for create was renamed to `ignoreDuplicates` [#6138](https://github.com/sequelize/sequelize/issues/6138)
 - [FIXED] Index names not quoted properly in `removeIndex` [#5888](https://github.com/sequelize/sequelize/issues/5888)
+- [FIXED] `Int4` range not properly parsed [#5747](https://github.com/sequelize/sequelize/issues/5747)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
