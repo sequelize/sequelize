@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
-    it('should count on a where and not use an uneeded include', function() {
+    it('should count on a where', function() {
       var Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
         project_name: { type: DataTypes.STRING}
@@ -136,7 +136,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       }).then(function() {
         return User.findAndCountAll({
           where: {id: userId},
-          include: [Project]
+          include: [Project],
+          distinct: true
         });
       }).then(function(result) {
         expect(result.rows.length).to.equal(1);
@@ -197,7 +198,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         // Query for the first instance of Foo which have related Bars with m === 'yes'
         return Foo.findAndCountAll({
           include: [{ model: Bar, where: { m: 'yes' } }],
-          limit: 1
+          limit: 1,
+          distinct: true
         });
       }).then(function(result) {
         // There should be 2 instances matching the query (Instances 1 and 2), see the findAll statement
