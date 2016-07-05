@@ -24,6 +24,7 @@
 - [FIXED] `Int4` range not properly parsed [#5747](https://github.com/sequelize/sequelize/issues/5747)
 - [FIXED] `upsert` does not fail anymore on not null validations [#5711](https://github.com/sequelize/sequelize/issues/5711)
 - [FIXED] Don't remove includes from count queries and unify findAndCount and count queries. [#6123](https://github.com/sequelize/sequelize/issues/6123)
+- [FIXED] `Model.count` with `options.col` and `options.include` works properly now
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
