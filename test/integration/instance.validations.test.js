@@ -6,6 +6,7 @@ var chai = require('chai')
   , expect = chai.expect
   , Sequelize = require(__dirname + '/../../index')
   , Support = require(__dirname + '/support')
+  , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../config/config');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
@@ -99,7 +100,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         }).then(function(err) {
           expect(err).to.be.an.instanceOf(Error);
           expect(err.errors).to.have.length(1);
-          expect(err.errors[0].path).to.include('uniqueName');
+          if (dialect !== 'mssql') {
+            expect(err.errors[0].path).to.include('uniqueName');
+          }
           expect(err.errors[0].message).to.include('must be unique');
         });
     });
