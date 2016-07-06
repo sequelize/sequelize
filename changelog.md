@@ -25,7 +25,7 @@
 - [FIXED] `upsert` does not fail anymore on not null validations [#5711](https://github.com/sequelize/sequelize/issues/5711)
 - [FIXED] Don't remove includes from count queries and unify findAndCount and count queries. [#6123](https://github.com/sequelize/sequelize/issues/6123)
 - [FIXED] `Model.count` with `options.col` and `options.include` works properly now
-- [FIXED] `bulkCreate` don't map fields to attributes properly [#4476](https://github.com/sequelize/sequelize/issues/4476)[#3908](https://github.com/sequelize/sequelize/issues/3908)[#4103](https://github.com/sequelize/sequelize/issues/4103)[#3764](https://github.com/sequelize/sequelize/issues/3764)[#4476](https://github.com/sequelize/sequelize/issues/4476)
+- [FIXED] `bulkCreate` don't map fields to attributes properly [#4476](https://github.com/sequelize/sequelize/issues/4476)[#3908](https://github.com/sequelize/sequelize/issues/3908)[#4103](https://github.com/sequelize/sequelize/issues/4103)[#3764](https://github.com/sequelize/sequelize/issues/3764)[#3789](https://github.com/sequelize/sequelize/issues/3789)[#4600](https://github.com/sequelize/sequelize/issues/4600)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)

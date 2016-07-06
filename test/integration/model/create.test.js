@@ -1839,10 +1839,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return Maya.bulkCreate([M2]);
       }).spread((m) => {
 
-        // fields are preserved
+        // only attributes are returned, no fields are mixed
         expect(m.createdAt).to.be.ok;
         expect(m.created_at).to.not.exist;
         expect(m.secret_given).to.not.exist;
+        expect(m.get('secret_given')).not.to.be.defined;
+        expect(m.get('created_at')).not.to.be.defined;
 
         // values look fine
         expect(m.id).to.be.eql(M2.id);
