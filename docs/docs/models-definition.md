@@ -173,7 +173,7 @@ sequelize.define('model', {
 ### Range types
 
 Since range types have extra information for their bound inclusion/exclusion it's not
-very straightforward to just use a touple to represent them in javascript.
+very straightforward to just use a tuple to represent them in javascript.
 
 When supplying ranges as values you can choose from the following APIs:
 
