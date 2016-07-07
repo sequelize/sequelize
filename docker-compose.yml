@@ -3,8 +3,6 @@ sequelize:
   links:
    - mysql
    - postgres
-  volumes:
-    - .:/sequelize
   environment:
     SEQ_DB: sequelize_test
     SEQ_USER: sequelize_test
