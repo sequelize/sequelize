@@ -10,7 +10,7 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../config/config')
   , sinon = require('sinon')
-  , uuid = require('node-uuid')
+  , uuid = require('uuid')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
