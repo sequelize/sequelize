@@ -789,32 +789,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
   describe('set', function() {
     it("should be configurable with global functions", function() {
-      var defaultClassMethod = sinon.spy()
-        , overrideClassMethod = sinon.spy()
-        , defaultInstanceMethod = sinon.spy()
-        , overrideInstanceMethod = sinon.spy()
-        , defaultSetterMethod = sinon.spy()
+      var defaultSetterMethod = sinon.spy()
         , overrideSetterMethod = sinon.spy()
         , defaultGetterMethod = sinon.spy()
         , overrideGetterMethod = sinon.spy()
-        , customClassMethod = sinon.spy()
-        , customOverrideClassMethod = sinon.spy()
-        , customInstanceMethod = sinon.spy()
-        , customOverrideInstanceMethod = sinon.spy()
         , customSetterMethod = sinon.spy()
         , customOverrideSetterMethod = sinon.spy()
         , customGetterMethod = sinon.spy()
         , customOverrideGetterMethod = sinon.spy();
 
       this.sequelize.options.define = {
-        'classMethods': {
-          'defaultClassMethod': defaultClassMethod,
-          'overrideClassMethod': overrideClassMethod
-        },
-        'instanceMethods': {
-          'defaultInstanceMethod': defaultInstanceMethod,
-          'overrideInstanceMethod': overrideInstanceMethod
-        },
         'setterMethods': {
           'default': defaultSetterMethod,
           'override': overrideSetterMethod
@@ -825,14 +809,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         }
       };
       var testEntity = this.sequelize.define('TestEntity', {}, {
-        'classMethods': {
-          'customClassMethod': customClassMethod,
-          'overrideClassMethod': customOverrideClassMethod
-        },
-        'instanceMethods': {
-          'customInstanceMethod': customInstanceMethod,
-          'overrideInstanceMethod': customOverrideInstanceMethod
-        },
         'setterMethods': {
           'custom': customSetterMethod,
           'override': customOverrideSetterMethod
@@ -843,36 +819,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         }
       });
 
-      // Call all Class Methods
-      testEntity.defaultClassMethod();
-      testEntity.customClassMethod();
-      testEntity.overrideClassMethod();
-
-      expect(typeof testEntity.defaultClassMethod).to.equal('function');
-      expect(typeof testEntity.customClassMethod).to.equal('function');
-      expect(typeof testEntity.overrideClassMethod).to.equal('function');
-
-      expect(defaultClassMethod).to.have.been.calledOnce;
-      expect(customClassMethod).to.have.been.calledOnce;
-      expect(overrideClassMethod.callCount).to.be.eql(0);
-      expect(customOverrideClassMethod).to.have.been.calledOnce;
-
       // Create Instance to test
       var instance = testEntity.build();
-
-      // Call all Instance Methods
-      instance.defaultInstanceMethod();
-      instance.customInstanceMethod();
-      instance.overrideInstanceMethod();
-
-      expect(typeof instance.defaultInstanceMethod).to.equal('function');
-      expect(typeof instance.customInstanceMethod).to.equal('function');
-      expect(typeof instance.overrideInstanceMethod).to.equal('function');
-
-      expect(defaultInstanceMethod).to.have.been.calledOnce;
-      expect(customInstanceMethod).to.have.been.calledOnce;
-      expect(overrideInstanceMethod.callCount).to.be.eql(0);
-      expect(customOverrideInstanceMethod).to.have.been.calledOnce;
 
       // Call Getters
       instance.default;
@@ -959,58 +907,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       var sequelize = Support.createSequelizeInstance({ define: { collate: 'utf8_general_ci' } });
       var DAO = sequelize.define('foo', {bar: DataTypes.STRING});
       expect(DAO.options.collate).to.equal('utf8_general_ci');
-    });
-
-    it('inherits global classMethods and instanceMethods, and can override global methods with local ones', function() {
-      var globalClassMethod = sinon.spy()
-        , globalInstanceMethod = sinon.spy()
-        , localClassMethod = sinon.spy()
-        , localInstanceMethod = sinon.spy()
-        , sequelize = Support.createSequelizeInstance({
-          define: {
-            classMethods: {
-              globalClassMethod: function() {},
-              overrideMe: globalClassMethod
-            },
-            instanceMethods: {
-              globalInstanceMethod: function() {},
-              overrideMe: globalInstanceMethod
-            }
-          }
-        })
-        , DAO;
-
-      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
-        classMethods: { localClassMethod: function() {} }
-      });
-
-      expect(typeof DAO.options.classMethods.globalClassMethod).to.equal('function');
-      expect(typeof DAO.options.classMethods.localClassMethod).to.equal('function');
-      expect(typeof DAO.options.instanceMethods.globalInstanceMethod).to.equal('function');
-
-      // This DAO inherits the global methods
-      DAO.overrideMe();
-      DAO.build().overrideMe();
-
-      DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {
-        classMethods: {
-          overrideMe: localClassMethod
-        },
-        instanceMethods: {
-          overrideMe: localInstanceMethod
-        }
-      });
-
-      // This DAO has its own implementation
-      DAO.overrideMe();
-      DAO.build().overrideMe();
-
-      expect(globalClassMethod).to.have.been.calledOnce;
-      expect(globalInstanceMethod).to.have.been.calledOnce;
-
-      expect(localClassMethod).to.have.been.calledOnce;
-      expect(localInstanceMethod).to.have.been.calledOnce;
-
     });
 
     it('uses the passed tableName', function() {

@@ -362,6 +362,24 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
     });
+
+    it('should return Int4 range properly #5747', function() {
+      var Model = this.sequelize.define('M', {
+        interval: {
+            type: Sequelize.RANGE(Sequelize.INTEGER),
+            allowNull: false,
+            unique: true
+        }
+      });
+
+      return Model.sync({ force: true })
+              .then(() => Model.create({ interval: [1,4] }) )
+              .then(() => Model.findAll() )
+              .spread((m) => {
+                expect(m.interval[0]).to.be.eql(1);
+                expect(m.interval[1]).to.be.eql(4);
+              });
+    });
   }
 
   if (dialect === 'mysql') {

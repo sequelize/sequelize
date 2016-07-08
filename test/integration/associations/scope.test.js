@@ -22,13 +22,11 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         }
-      }, {
-        instanceMethods: {
-          getItem: function() {
-            return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
-          }
-        }
       });
+      
+      this.Comment.prototype.getItem = function() {
+        return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+      };
 
       this.Post.addScope('withComments', {
         include: [this.Comment]
