@@ -376,7 +376,8 @@ Tag.belongsToMany(Post, {
     model: ItemTag,
     unique: false
   },
-  foreignKey: 'tag_id'
+  foreignKey: 'tag_id',
+  constraints: false
 });
 ```
 
