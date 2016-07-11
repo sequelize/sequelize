@@ -342,19 +342,21 @@ For brevity, the example only shows a Post model, but in reality Tag would be re
 
 ```js
 ItemTag = sequelize.define('item_tag', {
-  tag_id: {
+  id : {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    autoIncrement: true
+  },
+  tag_id: {
+    type: DataTypes.INTEGER,
     unique: 'item_tag_taggable'
   },
   taggable: {
     type: DataTypes.STRING,
-    primaryKey: true,
     unique: 'item_tag_taggable'
   },
   taggable_id: {
     type: DataTypes.INTEGER,
-    primaryKey: true,
     unique: 'item_tag_taggable',
     references: null
   }
