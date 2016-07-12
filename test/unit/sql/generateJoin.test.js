@@ -138,7 +138,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ]
       },
       {
-        default: "LEFT OUTER JOIN [company] AS [Professionals_Company] ON [Professionals].[company_id] = [Professionals_Company].[id]"
+        default: "LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]"
       }
     );
 
@@ -188,7 +188,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       },
       {
-        default: "LEFT OUTER JOIN [user] AS [Company_Owner] ON [Company].[owner_id] = [Company_Owner].[id_user]"
+        default: "LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]"
       }
     );
 
@@ -209,7 +209,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         ]
       },
-      { default: "LEFT OUTER JOIN [profession] AS [Company_Owner_Profession] ON [Company_Owner].[professionId] = [Company_Owner_Profession].[id]" }
+      { default: "LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]" }
     );
 
     testsql(
@@ -227,7 +227,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         ]
       },
-      { default: "LEFT OUTER JOIN [user] AS [Company_Owner] ON [Company].[owner_id] = [Company_Owner].[id_user]" }
+      { default: "LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]" }
     );
 
     testsql(
