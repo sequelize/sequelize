@@ -586,14 +586,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           expect(table).to.not.have.property('lastName');
         });
       });
-
-      it('should be able to remove a column with a foreign key constraint', function() {
-        return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
-          return this.queryInterface.describeTable('users');
-        }).then(function(table) {
+      if(dialect !== 'mysql'){
+        it('should be able to remove a column with a foreign key constraint', function() {
+          return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
+            return this.queryInterface.describeTable('users');
+          }).then(function(table) {
             expect(table).to.not.have.property('manager');
+          });
         });
-      });
+      }
     });
 
     describe('(with a schema)', function() {
