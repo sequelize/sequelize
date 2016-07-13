@@ -244,7 +244,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ['first_name', 'firstName'],
           ['last_name', 'lastName']
         ],
-        order: '`user`.`last_name` ASC',
+        order: '[user].[last_name] ASC'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
         limit: 30,
         offset: 10,
         subQuery: true
