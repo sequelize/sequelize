@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         });
         break;
       default:
-        this.sequelize.connectionManager.$clearTypeParser();
+        this.sequelize.connectionManager._clearTypeParser();
     }
 
     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
     var stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
       if (!moment.isMoment(value)) {
-        value = this.$applyTimezone(value, options);
+        value = this._applyTimezone(value, options);
       }
       return value.format('YYYY-MM-DD HH:mm:ss Z');
     });

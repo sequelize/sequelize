@@ -79,7 +79,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: false,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         model: User,
         include: [
           User.Company
@@ -92,7 +92,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: false,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         model: User,
         include: [
           {association: User.Company, where: {public: true}, or: true}
@@ -107,7 +107,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -122,7 +122,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       model: User,
       subQuery: true,
       groupedLimit: {},
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -136,7 +136,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -154,7 +154,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -170,7 +170,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -188,7 +188,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -205,7 +205,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -223,7 +223,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: false,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         model: User,
         include: [
           User.Tasks
@@ -236,7 +236,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -251,7 +251,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: true,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         limit: 3,
         model: User,
         include: [
@@ -266,7 +266,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: false,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         model: User,
         include: [
           {association: User.Tasks, on: {
@@ -284,7 +284,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     testsql({
       model: User,
       subQuery: false,
-      include: Sequelize.Model.$validateIncludedElements({
+      include: Sequelize.Model._validateIncludedElements({
         model: User,
         include: [
           {association: User.Tasks, on: {'user_id': {$col: 'User.alternative_id'}}}
