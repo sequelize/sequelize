@@ -80,7 +80,7 @@
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
     "tedious": "^1.13.2",
-    "watchr": "~2.4.11"
+    "watchr": "~2.5.0"
   },
   "keywords": [
     "mysql",
