@@ -65,6 +65,7 @@
     "continuation-local-storage": "^3.1.4",
     "coveralls": "^2.11.9",
     "dox": "~0.8.0",
+    "eslint": "^3.1.0",
     "git": "^0.1.5",
     "hints": "^1.1.0",
     "istanbul": "^0.4.3",
@@ -94,6 +95,7 @@
   ],
   "main": "index",
   "scripts": {
+    "lint": "eslint lib test",
     "test": "if [ $COVERAGE ]; then npm run coveralls; else npm run jshint && npm run teaser && npm run test-unit && npm run test-integration; fi",
     "test-docker": "docker-compose run sequelize /bin/sh -c \"npm run test-all\"",
     "test-docker-unit": "docker-compose run sequelize /bin/sh -c \"npm run test-unit-all\"",
