@@ -16,49 +16,49 @@ describe(Support.getTestDialectTeaser('Model') + 'Schemas', function() {
 
     describe('schema', function() {
       it('should work with no default schema', function() {
-        expect(Project.$schema).to.be.null;
+        expect(Project._schema).to.be.null;
       });
 
       it('should apply default schema from define', function() {
-        expect(Company.$schema).to.equal('default');
+        expect(Company._schema).to.equal('default');
       });
 
       it('should be able to override the default schema', function() {
-        expect(Company.schema('newSchema').$schema).to.equal('newSchema');
+        expect(Company.schema('newSchema')._schema).to.equal('newSchema');
       });
 
       it('should be able nullify schema', function() {
-        expect(Company.schema(null).$schema).to.be.null;
+        expect(Company.schema(null)._schema).to.be.null;
       });
 
       it('should support multiple, coexistent schema models', function() {
         var schema1 = Company.schema('schema1')
           , schema2 = Company.schema('schema1');
 
-        expect(schema1.$schema).to.equal('schema1');
-        expect(schema2.$schema).to.equal('schema1');
+        expect(schema1._schema).to.equal('schema1');
+        expect(schema2._schema).to.equal('schema1');
       });
     });
 
     describe('schema delimiter', function() {
       it('should work with no default schema delimiter', function() {
-        expect(Project.$schemaDelimiter).to.equal('');
+        expect(Project._schemaDelimiter).to.equal('');
       });
 
       it('should apply default schema delimiter from define', function() {
-        expect(Company.$schemaDelimiter).to.equal('&');
+        expect(Company._schemaDelimiter).to.equal('&');
       });
 
       it('should be able to override the default schema delimiter', function() {
-        expect(Company.schema(Company.$schema,'^').$schemaDelimiter).to.equal('^');
+        expect(Company.schema(Company._schema,'^')._schemaDelimiter).to.equal('^');
       });
 
       it('should support multiple, coexistent schema delimiter models', function() {
-        var schema1 = Company.schema(Company.$schema,'$')
-          , schema2 = Company.schema(Company.$schema,'#');
+        var schema1 = Company.schema(Company._schema,'$')
+          , schema2 = Company.schema(Company._schema,'#');
 
-        expect(schema1.$schemaDelimiter).to.equal('$');
-        expect(schema2.$schemaDelimiter).to.equal('#');
+        expect(schema1._schemaDelimiter).to.equal('$');
+        expect(schema2._schemaDelimiter).to.equal('#');
       });
     });
   }

@@ -532,12 +532,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                 return Book.findOne({
                   where: { id: book.id }
                 }).then(function(leBook) {
-                  var oldOptions = leBook.$options;
+                  var oldOptions = leBook._options;
                   return leBook.reload({
                     include: [Page]
                   }).then(function(leBook) {
-                    expect(oldOptions).not.to.equal(leBook.$options);
-                    expect(leBook.$options.include.length).to.equal(1);
+                    expect(oldOptions).not.to.equal(leBook._options);
+                    expect(leBook._options.include.length).to.equal(1);
                     expect(leBook.Pages.length).to.equal(1);
                     expect(leBook.get({plain: true}).Pages.length).to.equal(1);
                   });
