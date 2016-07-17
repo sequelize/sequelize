@@ -707,6 +707,54 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       });
     });
 
+    it('should be possible to define a hasMany include with grouped limit', function() {
+      var User = this.sequelize.define('User', {}, {schema: 'account'})
+        , Task = this.sequelize.define('Task', {
+            title: DataTypes.STRING
+          }, {schema: 'account'});
+
+      User.Tasks = User.hasMany(Task, {as: 'tasks'});
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          User.create({
+            tasks: [
+              {title: 'b'},
+              {title: 'd'},
+              {title: 'c'},
+              {title: 'a'}
+            ]
+          }, {
+            include: [User.Tasks]
+          }),
+          User.create({
+            tasks: [
+              {title: 'a'},
+              {title: 'c'},
+              {title: 'b'}
+            ]
+          }, {
+            include: [User.Tasks]
+          })
+        );
+      }).then(function (users) {
+        return User.findAll({
+          include: [{ model: Task, limit: 2, as: 'tasks' }],
+          order: [
+            ['id', 'ASC']
+          ]
+        }).then(function (result) {
+          expect(result[0].tasks.length).to.equal(2);
+          expect(result[0].tasks[0].title).to.equal('b');
+          expect(result[0].tasks[1].title).to.equal('d');
+
+          expect(result[1].tasks.length).to.equal(2);
+          expect(result[1].tasks[0].title).to.equal('a');
+          expect(result[1].tasks[1].title).to.equal('c');
+        });
+      });
+    });
+
     it('should be possible to define a belongsTo include as required with child hasMany with limit and aliases', function() {
       var User = this.sequelize.define('User', {}, {schema: 'account'})
         , Group = this.sequelize.define('Group', {
