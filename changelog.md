@@ -1,4 +1,5 @@
 # Future
+- [ADDED] Expand string in `include` option into the association
 - [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
 
 # 4.0.0-1
