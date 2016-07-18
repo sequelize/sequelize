@@ -120,7 +120,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       Post.Comments = Post.hasMany(Comment, {foreignKey: 'postId', as: 'COMMENTS'});
 
-      var include = Model.$validateIncludedElements({
+      var include = Model._validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts
@@ -158,7 +158,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];'
       });
 
-      var nestedInclude = Model.$validateIncludedElements({
+      var nestedInclude = Model._validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts,
@@ -220,7 +220,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: Model.$validateIncludedElements({
+        include: Model._validateIncludedElements({
           include: [{
             attributes: ['title'],
             association: User.Posts
@@ -277,7 +277,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: Model.$validateIncludedElements({
+        include: Model._validateIncludedElements({
           include: [{
             attributes: ['title'],
             association: User.Posts

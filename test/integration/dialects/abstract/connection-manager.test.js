@@ -82,8 +82,8 @@ describe('Connction Manager', function() {
       });
     });
 
-    var connectStub = sandbox.stub(connectionManager, '$connect').returns(resolvedPromise);
-    sandbox.stub(connectionManager, '$disconnect').returns(resolvedPromise);
+    var connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
+    sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
     sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
     connectionManager.initPools();
 
@@ -128,8 +128,8 @@ describe('Connction Manager', function() {
       });
     });
 
-    var connectStub = sandbox.stub(connectionManager, '$connect').returns(resolvedPromise);
-    sandbox.stub(connectionManager, '$disconnect').returns(resolvedPromise);
+    var connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
+    sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
     sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
     connectionManager.initPools();
 
