@@ -2,9 +2,39 @@
 - [CHANGED] Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive) [#5990](https://github.com/sequelize/sequelize/issues/5990)
 - [ADDED] Support for range operators [#5990](https://github.com/sequelize/sequelize/issues/5990)
 - [FIXED] Broken transactions in `MySQL` [#3568](https://github.com/sequelize/sequelize/issues/3568)
+- [FIXED] `Model.count` don't include attributes [#5057](https://github.com/sequelize/sequelize/issues/5057)
+- [INTERNALS] Updated `inflection` dependency and pinned version and expose all used `inflection` methods on `Utils`
+- [ADDED] `Sequelize.useInflection` method
+- [FIXED] `hasOne` throws error on update with a primary key [#6069](https://github.com/sequelize/sequelize/issues/6069)
+- [FIXED] `Model.count` gives SQL syntax error when using `distinct` [#4840](https://github.com/sequelize/sequelize/issues/4840)
+- [ADDED] `Model.count` now allow specifying column to count on, use `options.col` [#4442](https://github.com/sequelize/sequelize/issues/4442)
+- [ADDED] `DEBUG` support [#2852](https://github.com/sequelize/sequelize/issues/2852)
+- [ADDED] Intensive connection logging [#851](https://github.com/sequelize/sequelize/issues/851)
+- [FIXED] Only `belongsTo` uses `as` to construct foreign key - revert of [#5957](https://github.com/sequelize/sequelize/pull/5957) introduced in 4.0.0-0
+- [CHANGED] `Sequelize.Promise` is now an independent copy of `bluebird` library [#5974](https://github.com/sequelize/sequelize/issues/5974)
+- [ADDED] before/after Save hook [#2702](https://github.com/sequelize/sequelize/issues/2702)
+- [ADDED] Remove hooks by reference [#6155](https://github.com/sequelize/sequelize/issues/6155)
+- [ADDED] before/after Upsert hook [#3965](https://github.com/sequelize/sequelize/issues/3965)
+- [FIXED] Modifying `options` in `beforeFind` throws error [#5675](https://github.com/sequelize/sequelize/issues/5675)
+- [REMOVED] `classMethods` and `instanceMethods` [#5869](https://github.com/sequelize/sequelize/issues/5869#issuecomment-221773485)
+- [CHANGED] `Sequelize.Validator` is now an independent copy of `validator` library
+- [FIXED] Don't patch `validator` library globally [#6196](https://github.com/sequelize/sequelize/issues/6196)
+- [CHANGED] `ignore` for create was renamed to `ignoreDuplicates` [#6138](https://github.com/sequelize/sequelize/issues/6138)
+- [FIXED] Index names not quoted properly in `removeIndex` [#5888](https://github.com/sequelize/sequelize/issues/5888)
+- [FIXED] `Int4` range not properly parsed [#5747](https://github.com/sequelize/sequelize/issues/5747)
+- [FIXED] `upsert` does not fail anymore on not null validations [#5711](https://github.com/sequelize/sequelize/issues/5711)
+- [FIXED] Don't remove includes from count queries and unify findAndCount and count queries. [#6123](https://github.com/sequelize/sequelize/issues/6123)
+- [FIXED] `Model.count` with `options.col` and `options.include` works properly now
+- [FIXED] `bulkCreate` don't map fields to attributes properly [#4476](https://github.com/sequelize/sequelize/issues/4476)[#3908](https://github.com/sequelize/sequelize/issues/3908)[#4103](https://github.com/sequelize/sequelize/issues/4103)[#3764](https://github.com/sequelize/sequelize/issues/3764)[#3789](https://github.com/sequelize/sequelize/issues/3789)[#4600](https://github.com/sequelize/sequelize/issues/4600)
+- [FIXED] `sync` don't handle global `options.logging` properly [#5788](https://github.com/sequelize/sequelize/issues/5788)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
+- Only `belongsTo` uses `as` to construct foreign key - revert of [#5957](https://github.com/sequelize/sequelize/pull/5957) introduced in 4.0.0-0
+- Sequelize uses an independent copy of `bluebird` library. This means (1) promises returned from Sequelize methods are instances of `Sequelize.Promise` but not global `Bluebird` and (2) the CLS patch does not affect global `Bluebird`.
+- Dropped support for `classMethods` and `instanceMethods`. As Models are now ES6 classes `classMethods` can be directly assigned and `instanceMethods` should be added to `Model.prototype`
+- `Sequelize.Validator` is now a cloned version of `validator`, It will not pollute global library methods.
+- `ignore` for create was renamed to `ignoreDuplicates`
 
 # 4.0.0-0
 - [FIXED] Pass ResourceLock instead of raw connection in MSSQL disconnect handling
@@ -50,6 +80,7 @@
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
 - [FIXED] Improved offset and limit support for SQL server 2008 [#5616](https://github.com/sequelize/sequelize/pull/5616)
 - [FIXED] options object cloned in all Sequelize methods (so not modified within Sequelize)
+- [ADDED] Test coverage for options object not being modified
 
 # 3.23.1
 - [FIXED] Postgres DECIMAL precision. (PostgreSQL) [#4893](https://github.com/sequelize/sequelize/issues/4893)

@@ -322,7 +322,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
           real: -Infinity
         });
       }).then(function () {
-        return Model.find({id: 1});
+        return Model.find({ where:{ id: 1 } });
       }).then(function (user) {
         expect(user.get('float')).to.be.NaN;
         expect(user.get('double')).to.eq(Infinity);
@@ -361,6 +361,24 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
+    });
+
+    it('should return Int4 range properly #5747', function() {
+      var Model = this.sequelize.define('M', {
+        interval: {
+            type: Sequelize.RANGE(Sequelize.INTEGER),
+            allowNull: false,
+            unique: true
+        }
+      });
+
+      return Model.sync({ force: true })
+              .then(() => Model.create({ interval: [1,4] }) )
+              .then(() => Model.findAll() )
+              .spread((m) => {
+                expect(m.interval[0]).to.be.eql(1);
+                expect(m.interval[1]).to.be.eql(4);
+              });
     });
   }
 

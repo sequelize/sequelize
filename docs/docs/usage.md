@@ -93,8 +93,6 @@ var sequelize = new Sequelize('database', 'username', 'password', {
     dialectOptions: {
       collate: 'utf8_general_ci'
     },
-    classMethods: {method1: function() {}},
-    instanceMethods: {method2: function() {}},
     timestamps: true
   },
  

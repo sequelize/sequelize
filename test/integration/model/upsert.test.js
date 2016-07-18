@@ -261,7 +261,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(created).not.to.be.ok;
           }
 
-          return this.ModelWithFieldPK.findOne({ userId: 42 });
+          return this.ModelWithFieldPK.findOne({ where: { userId: 42 } });
         }).then(function(instance) {
           expect(instance.foo).to.equal('second');
         });

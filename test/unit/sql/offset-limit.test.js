@@ -26,6 +26,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     };
 
     testsql({
+      limit: 10,//when no order by present, one is automagically prepended, test it's existence
+      model:{primaryKeyField:'id', name:'tableRef'}
+    }, {
+      default: ' LIMIT 10',
+      mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
+    });
+
+    testsql({
       limit: 10,
       order: [
         ['email', 'DESC'] // for MSSQL

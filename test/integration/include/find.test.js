@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Task.create({ title: 'some task' }).then(function(newTask) {
             return newTask.setUser(newUser).then(function() {
               return Task.find({
-                title: 'some task',
+                where: { title: 'some task' },
                 include: [ { model: User } ]
               })
                 .then(function (foundTask) {

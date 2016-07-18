@@ -521,10 +521,10 @@ if (dialect === 'mysql') {
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX user_foo_bar ON `User`'
+          expectation: 'DROP INDEX `user_foo_bar` ON `User`'
         }, {
           arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX user_foo_bar ON `User`'
+          expectation: 'DROP INDEX `user_foo_bar` ON `User`'
         }
       ]
     };
