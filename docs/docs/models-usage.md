@@ -501,7 +501,7 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 })
 ```
 
-As an alternative you can specify alias only.
+You can also include by alias name by specifying a string that matches the association alias:
 
 ```js
 User.findAll({ include: ['Instruments'] }).then(function(users) {
