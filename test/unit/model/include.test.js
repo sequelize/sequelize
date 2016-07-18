@@ -258,7 +258,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var options = {
           include: ['Owner']
         };
-        Sequelize.Model.$conformOptions(options, this.Company);
+        Sequelize.Model._conformOptions(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
