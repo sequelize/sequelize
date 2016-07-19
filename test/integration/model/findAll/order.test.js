@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             }, function (err) {
               throw err;
             });
-          });        
+          });
        });
 
       describe('Sequelize.literal()', function () {
