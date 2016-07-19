@@ -1,4 +1,4 @@
-# Future
+# 3.23.5
 - [FIXED] Fixed an issue where custom-named model fields break when offsetting, ordering, and including hasMany simultaneously. [#5985](https://github.com/sequelize/sequelize/issues/5985)
 - [FIXED] Don't remove includes from count queries and unify findAndCount and count queries. [#6123](https://github.com/sequelize/sequelize/issues/6123)
 - [FIXED] `Model.count` don't include attributes [#5057](https://github.com/sequelize/sequelize/issues/5057)
