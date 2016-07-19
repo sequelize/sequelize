@@ -8,8 +8,6 @@ You can use the information below to contact maintainers directly. We will try t
 - **Mick Hansen** mick.kasper.hansen@gmail.com
 - **Jan Aagaard Meier** janzeh@gmail.com
 - **Sushant Dhiman** sushantdhiman@outlook.com
-- **Sascha Depold** sascha@depold.com
-- **Daniel Durante** me@danieldurante.com
 
 ### Via Slack
 
