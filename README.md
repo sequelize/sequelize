@@ -31,6 +31,9 @@ Starting from 4.0.0 Sequelize will only support Node v4 and above to use ES6 fea
 - Migrations
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
+## Responsible disclosure
+If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md) 
+
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
 - [Getting Started](http://docs.sequelizejs.com/en/latest/docs/getting-started/)
