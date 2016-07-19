@@ -197,6 +197,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }
         });
       });
+
+      it('should properly escape the single quotes on coordinates', function () {
+        return this.Model.create({
+          location: {
+            type: "Point",
+            properties: {
+              exploit: "'); DELETE YOLO INJECTIONS; -- "
+            },
+            coordinates: [39.807222,"'); DELETE YOLO INJECTIONS; -- "]
+          }
+        });
+      });
     });
   }
 });
