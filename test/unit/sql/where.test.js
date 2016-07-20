@@ -377,7 +377,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('$offer.organization.id$', {
         $col: 'offer.user.organizationId'
       }, {
-        default: '[offer.organization].[id] = [offer.user].[organizationId]'
+        default: '[offer->organization].[id] = [offer->user].[organizationId]'
       });
     });
 

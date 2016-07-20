@@ -304,5 +304,33 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, { default: "LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]" }
     );
 
+    testsql(
+      "include[0].include[0]",
+      {
+        subQuery: true,
+        model: User,
+        include: [
+          {
+            association: User.Company, 
+            include: [
+              {
+                association: Company.Owner,
+                on: {
+                  $or: [
+                    { '$Company.owner_id$': { $col: 'Company.Owner.id_user'} },
+                    { '$Company.Owner.id_user$': 2 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+
+      },
+      {
+        default: "LEFT OUTER JOIN [user] AS [Company->Owner] ON ([Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2)"
+      }
+    );
+
   });
 });
