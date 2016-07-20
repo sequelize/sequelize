@@ -804,6 +804,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         default: 'DECIMAL(10)'
       });
 
+      testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
+        mysql: 'DECIMAL UNSIGNED',
+        default: 'DECIMAL'
+      });
+
+      testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
+        mysql: 'DECIMAL UNSIGNED ZEROFILL',
+        default: 'DECIMAL'
+      });
+
+      testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
+        mysql: 'DECIMAL(10,2) UNSIGNED',
+        default: 'DECIMAL(10,2)'
+      });
+
       suite('validate', function () {
         test('should throw an error if `value` is invalid', function() {
           var type = DataTypes.DECIMAL(10);
