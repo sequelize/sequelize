@@ -374,6 +374,59 @@ if (current.dialect.supports.groupedLimit) {
           });
         });
       });
+
+      it('should work with two schema models in a hasMany association', function() {
+        var User = this.sequelize.define('User', {}, {schema: 'archive'})
+          , Task = this.sequelize.define('Task', {
+              title: DataTypes.STRING
+            }, {schema: 'archive'});
+
+        User.Tasks = User.hasMany(Task, {as: 'tasks'});
+
+        return this.sequelize.dropAllSchemas().then(() => {
+          return this.sequelize.createSchema('archive').then(() => {
+            return this.sequelize.sync({force: true}).then(() => {
+              return Promise.join(
+                User.create({
+                  tasks: [
+                    {title: 'b'},
+                    {title: 'd'},
+                    {title: 'c'},
+                    {title: 'a'}
+                  ]
+                }, {
+                  include: [User.Tasks]
+                }),
+                User.create({
+                  tasks: [
+                    {title: 'a'},
+                    {title: 'c'},
+                    {title: 'b'}
+                  ]
+                }, {
+                  include: [User.Tasks]
+                })
+              );
+            }).then((users) => {
+              return User.findAll({
+                include: [{ model: Task, limit: 2, as: 'tasks' }],
+                order: [
+                  ['id', 'ASC']
+                ],
+                logging: console.log
+              }).then((result) => {
+                expect(result[0].tasks.length).to.equal(2);
+                expect(result[0].tasks[0].title).to.equal('b');
+                expect(result[0].tasks[1].title).to.equal('d');
+
+                expect(result[1].tasks.length).to.equal(2);
+                expect(result[1].tasks[0].title).to.equal('a');
+                expect(result[1].tasks[1].title).to.equal('c');
+              });
+            });
+          });
+        });
+      });
     });
   });
 }

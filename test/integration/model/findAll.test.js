@@ -859,6 +859,98 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       });
+
+      describe('properly handles attributes:[] cases', function () {
+
+        beforeEach(function () {
+          this.Animal = this.sequelize.define('Animal', {
+            name: Sequelize.STRING,
+            age: Sequelize.INTEGER
+          });
+          this.Kingdom = this.sequelize.define('Kingdom', {
+            name: Sequelize.STRING
+          });
+          this.AnimalKingdom = this.sequelize.define('AnimalKingdom', {
+            relation: Sequelize.STRING,
+            mutation: Sequelize.BOOLEAN
+          });
+
+          this.Kingdom.belongsToMany(this.Animal, { through: this.AnimalKingdom });
+
+          return this.sequelize.sync({ force: true })
+            .then(() => Sequelize.Promise.all([
+              this.Animal.create({ name: 'Dog', age: 20 }),
+              this.Animal.create({ name: 'Cat', age: 30 }),
+              this.Animal.create({ name: 'Peacock', age: 25 }),
+              this.Animal.create({ name: 'Fish', age: 100 })
+            ]))
+            .spread((a1, a2, a3, a4) => Sequelize.Promise.all([
+                this.Kingdom.create({ name: 'Earth' }),
+                this.Kingdom.create({ name: 'Water' }),
+                this.Kingdom.create({ name: 'Wind' })
+              ]).spread((k1, k2, k3) => (
+                Sequelize.Promise.all([
+                  k1.addAnimals([a1, a2]),
+                  k2.addAnimals([a4]),
+                  k3.addAnimals([a3])
+                ])
+            )));
+        });
+
+        it('N:M with ignoring include.attributes only', function () {
+          return this.Kingdom.findAll({
+            include:[{
+              model: this.Animal,
+              where: { age: { $gte : 29 } },
+              attributes: []
+            }]
+          }).then((kingdoms) => {
+            expect(kingdoms.length).to.be.eql(2);
+            kingdoms.forEach((kingdom) => {
+              // include.attributes:[] , model doesn't exists
+              expect(kingdom.Animals).to.not.exist;
+            });
+          });
+        });
+
+        it('N:M with ignoring through.attributes only', function () {
+          return this.Kingdom.findAll({
+            include:[{
+              model: this.Animal,
+              where: { age: { $gte : 29 } },
+              through: {
+                attributes: []
+              }
+            }]
+          }).then((kingdoms) => {
+            expect(kingdoms.length).to.be.eql(2);
+            kingdoms.forEach((kingdom) => {
+              expect(kingdom.Animals).to.exist; // include model exists
+              expect(kingdom.Animals[0].AnimalKingdom).to.not.exist; // through doesn't exists
+            });
+          });
+        });
+
+        it('N:M with ignoring include.attributes but having through.attributes', function () {
+          return this.Kingdom.findAll({
+            include:[{
+              model: this.Animal,
+              where: { age: { $gte : 29 } },
+              attributes: [],
+              through: {
+                attributes: ['mutation']
+              }
+            }]
+          }).then((kingdoms) => {
+            expect(kingdoms.length).to.be.eql(2);
+            kingdoms.forEach((kingdom) => {
+              // include.attributes: [], model doesn't exists
+              expect(kingdom.Animals).to.not.exist;
+            });
+          });
+        });
+
+      });
     });
 
     describe('order by eager loaded tables', function() {

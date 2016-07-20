@@ -18,8 +18,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       let name = `${path}, ${util.inspect(options, { depth: 10 })}`;
       
-      Sequelize.Model.$conformOptions(options);
-      options = Sequelize.Model.$validateIncludedElements(options);   
+      Sequelize.Model._conformOptions(options);
+      options = Sequelize.Model._validateIncludedElements(options);   
 
       let include = _.at(options, path)[0];
 
