@@ -86,7 +86,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with upsert on a composite key', function() {
-        return this.User.upsert({ foo: 'baz', bar: 19, username: 'john' }).then(created => {
+        const options = { conflict: { constraint: 'users_foo_bar_key' } };
+        return this.User.upsert({ foo: 'baz', bar: 19, username: 'john' }, options).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
@@ -94,7 +95,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           this.clock.tick(1000);
-          return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
+          return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' }, options);
         }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -142,12 +143,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           username: DataTypes.STRING
         });
+        const options = { conflict: { constraint: 'users_pkey' } };
 
         return User.sync({ force: true }).then(() => {
           return Promise.all([
             // Create two users
-            User.upsert({ a: 'a', b: 'b', username: 'john' }),
-            User.upsert({ a: 'a', b: 'a', username: 'curt' })
+            User.upsert({ a: 'a', b: 'b', username: 'john' }, options),
+            User.upsert({ a: 'a', b: 'a', username: 'curt' }, options)
           ]);
         }).then(([created1, created2]) => {
           if (dialect === 'sqlite') {
@@ -160,7 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           this.clock.tick(1000);
           // Update the first one
-          return User.upsert({ a: 'a', b: 'b', username: 'doe' });
+          return User.upsert({ a: 'a', b: 'b', username: 'doe' }, options);
         }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -268,7 +270,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with primary key using .field', function() {
-        return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' }).then(created => {
+        const options = { conflict: { target: 'userId' } };
+        return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' }, options).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
@@ -276,7 +279,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           this.clock.tick(1000);
-          return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
+          return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' }, options);
         }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -464,14 +467,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return User.upsert({ name: 'user1', address: 'address', city: 'City' })
+          const options = { conflict: { target: ['name', 'address'] } };
+          return User.upsert({ name: 'user1', address: 'address', city: 'City' }, options)
             .then(created => {
               if (dialect === 'sqlite') {
                 expect(created).to.be.undefined;
               } else {
                 expect(created).to.be.ok;
               }
-              return User.upsert({ name: 'user1', address: 'address', city: 'New City' });
+              return User.upsert({ name: 'user1', address: 'address', city: 'New City' }, options);
             }).then(created => {
               if (dialect === 'sqlite') {
                 expect(created).to.be.undefined;
@@ -537,7 +541,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               // this record is soft deleted
               User.create({ name: 'user3', deletedAt: -Infinity })
             ]).then(() => {
-              return User.upsert({ name: 'user1', address: 'address' });
+              const options = { conflict: { target: ['name', 'deletedAt'] } };
+              return User.upsert({ name: 'user1', address: 'address' }, options);
             }).then(() => {
               return User.findAll({
                 where: { address: null }
