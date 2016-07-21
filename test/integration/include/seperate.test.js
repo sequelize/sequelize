@@ -415,8 +415,7 @@ if (current.dialect.supports.groupedLimit) {
                 include: [{ model: Task, limit: 2, as: 'tasks', order:[['id', 'ASC']] }],
                 order: [
                   ['id', 'ASC']
-                ],
-                logging: console.log
+                ]
               }).then((result) => {
                 expect(result[0].tasks.length).to.equal(2);
                 expect(result[0].tasks[0].title).to.equal('b');
