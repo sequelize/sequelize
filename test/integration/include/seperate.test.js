@@ -378,6 +378,7 @@ if (current.dialect.supports.groupedLimit) {
       it('should work with two schema models in a hasMany association', function() {
         var User = this.sequelize.define('User', {}, {schema: 'archive'})
           , Task = this.sequelize.define('Task', {
+              id: { type: DataTypes.INTEGER, primaryKey: true },
               title: DataTypes.STRING
             }, {schema: 'archive'});
 
@@ -389,19 +390,19 @@ if (current.dialect.supports.groupedLimit) {
               return Promise.join(
                 User.create({
                   tasks: [
-                    {title: 'b'},
-                    {title: 'd'},
-                    {title: 'c'},
-                    {title: 'a'}
+                    {id: 1, title: 'b'},
+                    {id: 2, title: 'd'},
+                    {id: 3, title: 'c'},
+                    {id: 4, title: 'a'}
                   ]
                 }, {
                   include: [User.Tasks]
                 }),
                 User.create({
                   tasks: [
-                    {title: 'a'},
-                    {title: 'c'},
-                    {title: 'b'}
+                    {id: 5, title: 'a'},
+                    {id: 6, title: 'c'},
+                    {id: 7, title: 'b'}
                   ]
                 }, {
                   include: [User.Tasks]
@@ -415,6 +416,7 @@ if (current.dialect.supports.groupedLimit) {
                 ],
                 logging: console.log
               }).then((result) => {
+
                 expect(result[0].tasks.length).to.equal(2);
                 expect(result[0].tasks[0].title).to.equal('b');
                 expect(result[0].tasks[1].title).to.equal('d');
