@@ -416,7 +416,6 @@ if (current.dialect.supports.groupedLimit) {
                 ],
                 logging: console.log
               }).then((result) => {
-
                 expect(result[0].tasks.length).to.equal(2);
                 expect(result[0].tasks[0].title).to.equal('b');
                 expect(result[0].tasks[1].title).to.equal('d');
