@@ -1260,9 +1260,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).then(function(user) {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
         spy.reset();
-        return user.getProjects({
-          logging: spy
-        });
+        return user.getProjects({ logging: spy });
       }).then(function(projects) {
         var project = projects[0];
         expect(spy.calledOnce).to.be.ok;
@@ -2160,6 +2158,34 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       expect(Children.otherKey).to.equal('child_id');
       expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
       expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+    });
+  });
+
+  describe('it defaults to individualHooks:true', function () {
+    it('destroyHooks are properly executed by default', function () {
+      let User = this.sequelize.define('user')
+        , Project = this.sequelize.define('project')
+        , UserProject = this.sequelize.define('userproject');
+
+      let userProjectHook = sinon.spy();
+      let userProjectAfterHook = sinon.spy();
+      let userProjectBulkHook = sinon.spy();
+
+      UserProject.addHook('beforeDestroy', userProjectHook);
+      UserProject.addHook('afterDestroy', userProjectAfterHook);
+      UserProject.addHook('beforeBulkDestroy', userProjectBulkHook);
+
+      User.belongsToMany(Project, { through: UserProject, hooks: true });
+
+      return this.sequelize.sync({ force: true })
+        .then(() => this.sequelize.Promise.all([User.create({}), Project.create({}), Project.create({})]))
+        .spread((u, p1, p2) => u.setProjects([p1, p2]).then(() => ([u, p1, p2])))
+        .spread((u, p1, p2) => u.removeProjects([p1, p2]))
+        .then(() => {
+          expect(userProjectHook).to.be.calledTwice;
+          expect(userProjectAfterHook).to.be.calledTwice;
+          expect(userProjectBulkHook).to.be.calledOnce;
+        });
     });
   });
 });
