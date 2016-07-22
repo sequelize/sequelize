@@ -112,15 +112,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeValidate: function(user, options, fn) {
+            beforeValidate: function(user, options) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterValidate: function(user, options, fn) {
+            afterValidate: function(user, options) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -142,15 +142,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeCreate: function(user, options, fn) {
+            beforeCreate: function(user, options) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterCreate: function(user, options, fn) {
+            afterCreate: function(user, options) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -172,15 +172,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeDestroy: function(user, options, fn) {
+            beforeDestroy: function(user, options) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterDestroy: function(user, options, fn) {
+            afterDestroy: function(user, options) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -204,15 +204,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeDelete: function(user, options, fn) {
+            beforeDelete: function(user, options) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterDelete: function(user, options, fn) {
+            afterDelete: function(user, options) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -236,15 +236,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeUpdate: function(user, options, fn) {
+            beforeUpdate: function(user, options) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterUpdate: function(user, options, fn) {
+            afterUpdate: function(user, options) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });

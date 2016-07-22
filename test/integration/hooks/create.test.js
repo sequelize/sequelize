@@ -102,9 +102,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       var hookCalled = 0;
 
-      A.addHook('afterCreate', function(instance, options, next) {
+      A.addHook('afterCreate', function(instance, options) {
         hookCalled++;
-        next();
+        return Promise.resolve();
       });
 
       B.belongsToMany(A, {through: 'a_b'});
