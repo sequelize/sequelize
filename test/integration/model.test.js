@@ -2383,7 +2383,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return;
       }).catch (function(err) {
         if (dialect === 'mysql') {
-          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/);
+          expect(err.message).to.match(/Can\'t create table/);
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2);

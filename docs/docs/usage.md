@@ -52,7 +52,6 @@ var sequelize = new Sequelize('database', 'username', 'password', {
   logging: false,
  
   // the sql dialect of the database
-  // - default is 'mysql'
   // - currently supported: 'mysql', 'sqlite', 'postgres', 'mssql'
   dialect: 'mysql',
  
@@ -166,13 +165,10 @@ With the release of Sequelize`1.6.0`, the library got independent from specific 
 
 ### MySQL
 
-In order to get Sequelize working nicely together with MySQL, you'll need to install`mysql@~2.5.0`or higher. Once that's done you can use it like this:
+In order to get Sequelize working nicely together with MySQL, you'll need to install`mysql2@^1.0.0-rc.8`or higher. Once that's done you can use it like this:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
-  // mysql is the default dialect, but you know...
-  // for demo purposes we are defining it nevertheless :)
-  // so: we want mysql!
   dialect: 'mysql'
 })
 ```
