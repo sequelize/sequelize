@@ -5,7 +5,8 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , sinon = require('sinon');
+  , sinon = require('sinon')
+  , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -146,7 +147,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         this.User.beforeCreate(function(user, options) {
-          fn(new Error('You shall not pass!'));
+          return Promise.reject(new Error('You shall not pass!'));
         });
 
         this.User.afterCreate(function(user, options) {
@@ -431,7 +432,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         this.User.beforeDestroy(function(user, options) {
           beforeHook = true;
-          fn(new Error('You shall not pass!'));
+          return Promise.reject(new Error('You shall not pass!'));
         });
 
         this.User.afterDestroy(function(user, options) {
@@ -546,7 +547,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         this.ParanoidUser.afterBulkRestore(afterBulk);
         this.ParanoidUser.beforeRestore(function(user, options) {
           beforeHook();
-          fn(new Error('You shall not pass!'));
+          return Promise.reject(new Error('You shall not pass!'));
         });
 
         this.ParanoidUser.afterRestore(afterHook);

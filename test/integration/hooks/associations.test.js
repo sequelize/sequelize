@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           var self = this;
 
           this.Tasks.afterUpdate(function(task, options) {
-            fn(new Error('Whoops!'));
+            return Promise.reject(new Error('Whoops!'));
           });
 
           return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -388,7 +388,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeDestroy(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
             this.Tasks.afterDestroy(function(task, options) {
@@ -475,7 +475,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeUpdate(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
             this.Tasks.afterUpdate(function(task, options) {
@@ -563,7 +563,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeDestroy(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
             this.Tasks.afterDestroy(function(task, options) {
@@ -649,7 +649,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
             this.Tasks.beforeUpdate(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
             this.Tasks.afterUpdate(function(task, options) {
@@ -789,7 +789,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
               this.MiniTasks.beforeDestroy(function(minitask, options) {
                 beforeMiniTask = true;
-                fn(new Error('Whoops!'));
+                return Promise.reject(new Error('Whoops!'));
               });
 
               this.MiniTasks.afterDestroy(function(minitask, options) {
