@@ -991,6 +991,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           } else if (dialect === 'mssql') {
             expect(err.message).to.match(/.*ECONNREFUSED.*/);
           } else {
+            console.log(err)
             expect(err.message.toString()).to.match(/.*Access\ denied.*/);
           }
         });
