@@ -6,7 +6,7 @@
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com)
 [![npm](https://img.shields.io/npm/dt/sequelize.svg?maxAge=2592000?style=plastic)](https://www.npmjs.com/package/sequelize)
 
-Sequelize is a promise-based Node.js/io.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
+Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
 [Documentation](http://sequelize.readthedocs.org/en/latest/)
 
