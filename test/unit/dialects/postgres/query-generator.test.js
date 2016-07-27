@@ -253,8 +253,18 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" OFFSET 0;',
           context: QueryGenerator
         }, {
-          title: 'ignores non valid limit or offset values',
-          arguments: ['myTable', {limit: NaN}],
+          title: 'ignores non valid limit or offset values (NaN)',
+          arguments: ['myTable', {limit: NaN, offset: NaN}],
+          expectation: 'SELECT * FROM "myTable";',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values (null)',
+          arguments: ['myTable', {limit: null, offset: null}],
+          expectation: 'SELECT * FROM "myTable";',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values (undefined)',
+          arguments: ['myTable', {limit: undefined, offset: undefined}],
           expectation: 'SELECT * FROM "myTable";',
           context: QueryGenerator
         }, {
