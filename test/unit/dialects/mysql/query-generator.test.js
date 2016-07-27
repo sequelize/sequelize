@@ -346,7 +346,17 @@ if (Support.dialectIsMySQL()) {
           context: QueryGenerator
         }, {
           title: 'ignores non valid limit or offset values',
-          arguments: ['myTable', {limit: NaN}],
+          arguments: ['myTable', {limit: NaN, offset: NaN}],
+          expectation: 'SELECT * FROM `myTable`;',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values',
+          arguments: ['myTable', {limit: undefined, offset: undefined}],
+          expectation: 'SELECT * FROM `myTable`;',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values',
+          arguments: ['myTable', {limit: null, offset: null}],
           expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator
         }, {
