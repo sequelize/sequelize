@@ -319,11 +319,16 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `myTable` LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: 'uses offset 0',
-         arguments: ['myTable', {offset: 0}],
-         expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
-         context: QueryGenerator
-       }, {
+          title: 'uses offset 0',
+          arguments: ['myTable', {offset: 0}],
+          expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values',
+          arguments: ['myTable', {limit: NaN}],
+          expectation: 'SELECT * FROM `myTable`;',
+          context: QueryGenerator
+        }, {
           title: 'multiple where arguments',
           arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat` = 'canoe' AND `myTable`.`weather` = 'cold';",
