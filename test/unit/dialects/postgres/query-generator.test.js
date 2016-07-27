@@ -248,12 +248,17 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: 'uses offset 0',
-         arguments: ['myTable', {offset: 0}],
-         expectation: 'SELECT * FROM "myTable" OFFSET 0;',
-         context: QueryGenerator
-       }, {
-         title: 'raw arguments are neither quoted nor escaped',
+          title: 'uses offset 0',
+          arguments: ['myTable', {offset: 0}],
+          expectation: 'SELECT * FROM "myTable" OFFSET 0;',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values',
+          arguments: ['myTable', {limit: NaN}],
+          expectation: 'SELECT * FROM "myTable";',
+          context: QueryGenerator
+        }, {
+          title: 'raw arguments are neither quoted nor escaped',
           arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
           context: QueryGenerator
