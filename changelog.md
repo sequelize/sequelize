@@ -30,6 +30,7 @@
 - [FIXED] `attribute:[]` throw errors with `include` or `through` [#5078](https://github.com/sequelize/sequelize/issues/5078) [#4222](https://github.com/sequelize/sequelize/issues/4222) [#5958](https://github.com/sequelize/sequelize/issues/5958) [#5590](https://github.com/sequelize/sequelize/issues/5590) [#6139](https://github.com/sequelize/sequelize/issues/6139) [#4866](https://github.com/sequelize/sequelize/issues/4866) [#6242](https://github.com/sequelize/sequelize/issues/6242)
 - [SECURITY] `GEOMETRY` and `GEOGRAPHY` SQL injection attacks [#6194](https://github.com/sequelize/sequelize/issues/6194)
 - [FIXED] `DECIMAL` now supports `UNSIGNED` / `ZEROFILL` (MySQL) [#2038](https://github.com/sequelize/sequelize/issues/2038)
+- [FIXED] Generate correct SQL of nested include when quoteIdentifiers is false. (Postgres) [#6351](https://github.com/sequelize/sequelize/issues/6351)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
