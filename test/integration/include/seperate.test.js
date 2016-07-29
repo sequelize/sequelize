@@ -389,6 +389,7 @@ if (current.dialect.supports.groupedLimit) {
             return this.sequelize.sync({force: true}).then(() => {
               return Promise.join(
                 User.create({
+                  id:1,
                   tasks: [
                     {id: 1, title: 'b'},
                     {id: 2, title: 'd'},
@@ -399,6 +400,7 @@ if (current.dialect.supports.groupedLimit) {
                   include: [User.Tasks]
                 }),
                 User.create({
+                  id:2,
                   tasks: [
                     {id: 5, title: 'a'},
                     {id: 6, title: 'c'},
@@ -410,7 +412,7 @@ if (current.dialect.supports.groupedLimit) {
               );
             }).then((users) => {
               return User.findAll({
-                include: [{ model: Task, limit: 2, as: 'tasks' }],
+                include: [{ model: Task, limit: 2, as: 'tasks', order:[['id', 'ASC']] }],
                 order: [
                   ['id', 'ASC']
                 ],
