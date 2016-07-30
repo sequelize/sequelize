@@ -12,7 +12,8 @@ var chai = require('chai')
   , current = Support.sequelize
   , uuid = require('node-uuid')
   , DataTypes = require('../../lib/data-types')
-  , dialect = Support.getTestDialect();
+  , dialect = Support.getTestDialect()
+  , semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), function() {
   afterEach(function () {
@@ -44,14 +45,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
   it('allows me to return values from a custom parse function', function () {
     var parse = Sequelize.DATE.parse = sinon.spy(function (value) {
-      return moment(value, 'YYYY-MM-DD HH:mm:ss Z');
+      return moment(value, 'YYYY-MM-DD HH:mm:ss');
     });
 
     var stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
       if (!moment.isMoment(value)) {
         value = this._applyTimezone(value, options);
       }
-      return value.format('YYYY-MM-DD HH:mm:ss Z');
+      return value.format('YYYY-MM-DD HH:mm:ss');
     });
 
     current.refreshTypes();
@@ -276,6 +277,16 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
   it('should parse an empty GEOMETRY field', function () {
    var Type = new Sequelize.GEOMETRY();
+
+   // MySQL 5.7 or above doesn't support POINT EMPTY
+   if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.7.0')) {
+     return;
+   }
+
+   // Postgres 9.5.0 or above doesn't support POINT EMPTY
+   if (/^postgres/.test(dialect) && semver.gte(current.options.databaseVersion, '9.5.0')) {
+     return;
+   }
 
    if (current.dialect.supports.GEOMETRY) {
      current.refreshTypes();
