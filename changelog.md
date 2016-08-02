@@ -32,6 +32,7 @@
 - [SECURITY] `GEOMETRY` and `GEOGRAPHY` SQL injection attacks [#6194](https://github.com/sequelize/sequelize/issues/6194)
 - [FIXED] `DECIMAL` now supports `UNSIGNED` / `ZEROFILL` (MySQL) [#2038](https://github.com/sequelize/sequelize/issues/2038)
 - [FIXED] Generate correct SQL of nested include when quoteIdentifiers is false. (Postgres) [#6351](https://github.com/sequelize/sequelize/issues/6351)
+- [FIXED] Nested query return correct result when quoteIdentifiers is false. (Postgres) [#6363](https://github.com/sequelize/sequelize/issues/6363)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)

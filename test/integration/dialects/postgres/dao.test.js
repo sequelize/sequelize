@@ -5,6 +5,8 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , Sequelize = Support.Sequelize
+  , Promise   = Sequelize.Promise
   , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , sequelize = require(__dirname + '/../../../../lib/sequelize');
@@ -938,6 +940,144 @@ if (dialect.match(/^postgres/)) {
               });
             });
         });
+      });
+      it('can select nested include', function() {
+        var self = this;
+        this.sequelize.options.quoteIdentifiers = false;
+        this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = false;
+        this.Professor  = this.sequelize.define('Professor', {
+          fullName: DataTypes.STRING
+        }, {
+          quoteIdentifiers: false
+        });
+        this.Class = this.sequelize.define('Class', {
+          name: DataTypes.STRING
+        }, {
+          quoteIdentifiers: false
+        });
+        this.Student = this.sequelize.define('Student', {
+          fullName: DataTypes.STRING
+        }, {
+          quoteIdentifiers: false
+        });
+        this.ClassStudent = this.sequelize.define('ClassStudent', {
+        }, {
+          quoteIdentifiers: false,
+	        tableName: 'class_student'
+        });
+        this.Professor.hasMany(this.Class);
+        this.Class.belongsTo(this.Professor);
+        this.Class.belongsToMany(this.Student,{through: this.ClassStudent});
+        this.Student.belongsToMany(this.Class,{through: this.ClassStudent});
+        return this.Professor.sync({ force: true })
+          .then(function() {
+            return self.Student.sync({ force: true });
+          })
+          .then(function() {
+            return self.Class.sync({ force: true });
+          })
+          .then(function() {
+            return self.ClassStudent.sync({ force: true });
+          })
+          .then(function() {
+              return self.Professor.bulkCreate([
+                {
+                  id: 1,
+                  fullName: 'Albus Dumbledore'
+                },
+                {
+                  id: 2,
+                  fullName: 'Severus Snape'
+                }
+              ]);
+            })
+          .then(function() {
+            return self.Class.bulkCreate([
+              {
+                id: 1,
+                name: 'Transfiguration',
+                ProfessorId: 1
+              },
+              {
+                id: 2,
+                name: 'Potions',
+                ProfessorId: 2
+              },
+              {
+                id: 3,
+                name: 'Defence Against the Dark Arts',
+                ProfessorId: 2
+              }
+            ]);
+          })
+          .then(function(classes) {
+            return self.Student.bulkCreate([
+              {
+                id: 1,
+                fullName: 'Harry Potter',
+              },
+              {
+                id: 2,
+                fullName: 'Ron Weasley',
+              },
+              {
+                id: 3,
+                fullName: 'Ginny Weasley',
+              },
+              {
+                id: 4,
+                fullName: 'Hermione Granger',
+              }
+            ]);
+          })
+          .then(function() {
+            return Promise.all([
+              self.Student.findById(1)
+                .then(function(Harry){
+                  return Harry.setClasses([1,2,3]);
+                }),
+              self.Student.findById(2)
+                .then(function(Ron){
+                  return Ron.setClasses([1,2]);
+                }),
+              self.Student.findById(3)
+                .then(function(Ginny){
+                  return Ginny.setClasses([2,3]);
+                }),
+              self.Student.findById(4)
+                .then(function(Hermione){
+                  return Hermione.setClasses([1,2,3]);
+                })
+            ]);
+          })
+          .then(function() {
+            return self.Professor.findAll({
+              include:[
+                {
+                  model: self.Class,
+                  include: [
+                    {
+                      model: self.Student
+                    }
+                  ]
+                }
+              ],
+              order: [
+                ['id'],
+                [self.Class, 'id'],
+                [self.Class, self.Student, 'id']
+              ]
+            });
+          })
+          .then(function(professors) {
+            expect(professors.length).to.eql(2);
+            expect(professors[0].fullName).to.eql('Albus Dumbledore');
+            expect(professors[0].Classes.length).to.eql(1);
+            expect(professors[0].Classes[0].Students.length).to.eql(3);
+          })
+          .finally(function (){
+            self.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true;
+          });
       });
     });
   });
