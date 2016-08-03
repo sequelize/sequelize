@@ -608,7 +608,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           });
 
           testsql('createdAt', {
-            $like: { '2016-%' }
+            $like: '2016-%'
           }, {
             mysql: "`createdAt` LIKE '2016-%'"
           });
