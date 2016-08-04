@@ -70,7 +70,7 @@
     "istanbul": "^0.4.3",
     "jshint": "^2.9.2",
     "lcov-result-merger": "^1.2.0",
-    "mocha": "^2.5.2",
+    "mocha": "^3.0.0",
     "mysql": "~2.11.1",
     "pg": "^6.0.0",
     "pg-hstore": "^2.3.1",
