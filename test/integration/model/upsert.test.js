@@ -331,6 +331,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('does not update setting current values', function() {
+        return this.User.create({ id: 42, username: 'john' }).bind(this).then(function() {
+          return this.User.findById(42);
+        }).then(function(user) {
+          return this.User.upsert({ id: user.id, username: user.username });
+        }).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).to.be.undefined;
+          } else {
+            // After set node-mysql flags = '-FOUND_ROWS' in connection of mysql,
+            // result from upsert should be false when upsert a row to its current value
+            // https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html
+            expect(created).to.equal(false);
+          }
+        });
+      });
+
     });
   }
 });
