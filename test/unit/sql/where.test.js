@@ -607,11 +607,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: "\"userId\" NOT ILIKE ALL ARRAY['foo','bar','baz']"
           });
 
-          testsql('createdAt', {
-            $like: '2016-%'
-          }, {
-            mysql: "`createdAt` LIKE '2016-%'"
-          });
+          if (current.dialect.name === 'mysql') {
+            testsql('createdAt', {
+              $like: '2016-%'
+            }, {
+              mysql: "`createdAt` LIKE '2016-%'"
+            });
+          }
         });
       });
     }
