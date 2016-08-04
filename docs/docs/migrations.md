@@ -119,8 +119,9 @@ queryInterface.createTable(
     }
   },
   {
-    engine: 'MYISAM', // default: 'InnoDB'
-    charset: 'latin1' // default: null
+    engine: 'MYISAM',                     // default: 'InnoDB'
+    charset: 'latin1',                    // default: null
+    schema: 'public'                      // default: public, PostgreSQL only.
   }
 )
 ```
@@ -182,7 +183,7 @@ queryInterface.describeTable('Person').then(function(attributes) {
 })
 ```
 
-### addColumn(tableName, attributeName, dataTypeOrOptions, options)
+### addColumn(tableNameOrOptions, attributeName, dataTypeOrOptions, options)
 
 This method allows adding columns to an existing table. The data type can be simple or complex.
 
@@ -203,14 +204,32 @@ queryInterface.addColumn(
     allowNull: false
   }
 )
+
+// or with an explicit schema:
+
+queryInterface.addColumn({
+    tableName: 'Person',
+    schema: 'public'
+  },
+  'signature',
+  Sequelize.STRING
+)
+
 ```
 
-### removeColumn(tableName, attributeName, options)
+### removeColumn(tableNameOrOptions, attributeName, options)
 
 This method allows deletion of a specific column of an existing table.
 
 ```js
 queryInterface.removeColumn('Person', 'signature')
+
+// or with an explicit schema:
+
+queryInterface.removeColumn({
+  tableName: 'Person',
+  schema: 'public'
+}, 'signature');
 ```
 
 ### changeColumn(tableName, attributeName, dataTypeOrOptions, options)
