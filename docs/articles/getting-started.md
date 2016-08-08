@@ -33,7 +33,7 @@ Once done, you can install Sequelize and the connector for your database of choi
 ```bash
 $ npm install --save sequelize
 $ npm install --save pg       # for postgres
-$ npm install --save mysql    # for mysql
+$ npm install --save mysql2   # for mysql
 $ npm install --save sqlite3  # for sqlite
 ```
 
