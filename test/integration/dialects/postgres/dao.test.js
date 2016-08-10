@@ -942,7 +942,6 @@ if (dialect.match(/^postgres/)) {
         });
       });
       it('can select nested include', function() {
-        var self = this;
         this.sequelize.options.quoteIdentifiers = false;
         this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = false;
         this.Professor  = this.sequelize.define('Professor', {
@@ -970,17 +969,17 @@ if (dialect.match(/^postgres/)) {
         this.Class.belongsToMany(this.Student,{through: this.ClassStudent});
         this.Student.belongsToMany(this.Class,{through: this.ClassStudent});
         return this.Professor.sync({ force: true })
-          .then(function() {
-            return self.Student.sync({ force: true });
+          .then(()=> {
+            return this.Student.sync({ force: true });
           })
-          .then(function() {
-            return self.Class.sync({ force: true });
+          .then(()=> {
+            return this.Class.sync({ force: true });
           })
-          .then(function() {
-            return self.ClassStudent.sync({ force: true });
+          .then(()=> {
+            return this.ClassStudent.sync({ force: true });
           })
-          .then(function() {
-              return self.Professor.bulkCreate([
+          .then(()=> {
+              return this.Professor.bulkCreate([
                 {
                   id: 1,
                   fullName: 'Albus Dumbledore'
@@ -991,8 +990,8 @@ if (dialect.match(/^postgres/)) {
                 }
               ]);
             })
-          .then(function() {
-            return self.Class.bulkCreate([
+          .then(()=> {
+            return this.Class.bulkCreate([
               {
                 id: 1,
                 name: 'Transfiguration',
@@ -1010,8 +1009,8 @@ if (dialect.match(/^postgres/)) {
               }
             ]);
           })
-          .then(function(classes) {
-            return self.Student.bulkCreate([
+          .then(()=> {
+            return this.Student.bulkCreate([
               {
                 id: 1,
                 fullName: 'Harry Potter',
@@ -1030,53 +1029,53 @@ if (dialect.match(/^postgres/)) {
               }
             ]);
           })
-          .then(function() {
+          .then(()=> {
             return Promise.all([
-              self.Student.findById(1)
-                .then(function(Harry){
+              this.Student.findById(1)
+                .then((Harry)=> {
                   return Harry.setClasses([1,2,3]);
                 }),
-              self.Student.findById(2)
-                .then(function(Ron){
+              this.Student.findById(2)
+                .then((Ron)=> {
                   return Ron.setClasses([1,2]);
                 }),
-              self.Student.findById(3)
-                .then(function(Ginny){
+              this.Student.findById(3)
+                .then((Ginny)=> {
                   return Ginny.setClasses([2,3]);
                 }),
-              self.Student.findById(4)
-                .then(function(Hermione){
+              this.Student.findById(4)
+                .then((Hermione)=> {
                   return Hermione.setClasses([1,2,3]);
                 })
             ]);
           })
-          .then(function() {
-            return self.Professor.findAll({
+          .then(()=> {
+            return this.Professor.findAll({
               include:[
                 {
-                  model: self.Class,
+                  model: this.Class,
                   include: [
                     {
-                      model: self.Student
+                      model: this.Student
                     }
                   ]
                 }
               ],
               order: [
                 ['id'],
-                [self.Class, 'id'],
-                [self.Class, self.Student, 'id']
+                [this.Class, 'id'],
+                [this.Class, this.Student, 'id']
               ]
             });
           })
-          .then(function(professors) {
+          .then((professors)=> {
             expect(professors.length).to.eql(2);
             expect(professors[0].fullName).to.eql('Albus Dumbledore');
             expect(professors[0].Classes.length).to.eql(1);
             expect(professors[0].Classes[0].Students.length).to.eql(3);
           })
-          .finally(function (){
-            self.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true;
+          .finally(()=> {
+            this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true;
           });
       });
     });
