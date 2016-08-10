@@ -260,10 +260,13 @@ if (dialect.match(/^postgres/)) {
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })])
           .then(function() {
-            return self.User.find({ where: sequelize.json('emergencyContact.name', 'joe') });
+            return self.User.find({
+              attributes: [[sequelize.json('emergencyContact.name'), 'contactName']],
+              where: sequelize.json('emergencyContact.name', 'joe')
+            });
           })
           .then(function(user) {
-            expect(user.emergencyContact.name).to.equal('joe');
+            expect(user.get("contactName")).to.equal('joe');
           });
       });
 
