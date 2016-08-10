@@ -33,7 +33,7 @@
 - [SECURITY] `GEOMETRY` and `GEOGRAPHY` SQL injection attacks [#6194](https://github.com/sequelize/sequelize/issues/6194)
 - [FIXED] `DECIMAL` now supports `UNSIGNED` / `ZEROFILL` (MySQL) [#2038](https://github.com/sequelize/sequelize/issues/2038)
 - [FIXED] Generate correct SQL of nested include when quoteIdentifiers is false. (Postgres) [#6351](https://github.com/sequelize/sequelize/issues/6351)
-- [FIXED] Generate correct SQL of JSON attributes with quote.
+- [FIXED] Generate correct SQL for JSON attributes with quote.
 [#6406](https://github.com/sequelize/sequelize/issues/6406)
 
 ## BC breaks:
