@@ -20,7 +20,7 @@ if (dialect.match(/^postgres/)) {
         document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
         phones: DataTypes.ARRAY(DataTypes.HSTORE),
         emergency_contact: DataTypes.JSON,
-        emergencyCntact: DataTypes.JSON,
+        emergencyContact: DataTypes.JSON,
         friends: {
           type: DataTypes.ARRAY(DataTypes.JSON),
           defaultValue: []
