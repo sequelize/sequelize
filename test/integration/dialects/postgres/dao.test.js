@@ -20,6 +20,7 @@ if (dialect.match(/^postgres/)) {
         document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
         phones: DataTypes.ARRAY(DataTypes.HSTORE),
         emergency_contact: DataTypes.JSON,
+        emergencyCntact: DataTypes.JSON,
         friends: {
           type: DataTypes.ARRAY(DataTypes.JSON),
           defaultValue: []
@@ -249,6 +250,20 @@ if (dialect.match(/^postgres/)) {
           })
           .then(function(user) {
             expect(user.emergency_contact.name).to.equal('joe');
+          });
+      });
+      
+      it('should be able to query using dot syntax with uppercase name', function() {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })])
+          .then(function() {
+            return self.User.find({ where: sequelize.json('emergencyContact.name', 'joe') });
+          })
+          .then(function(user) {
+            expect(user.emergencyContact.name).to.equal('joe');
           });
       });
 
