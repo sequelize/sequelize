@@ -194,7 +194,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
           },
           another_json_field: { x: 1 }
         };
-        var expected = "\"metadata\"#>>'{language}' = 'icelandic' and metadata#>>'{pg_rating,dk}' = 'G' and another_json_field#>>'{x}' = '1'";
+        var expected = "\"metadata\"#>>'{language}' = 'icelandic' and \"metadata\"#>>'{pg_rating,dk}' = 'G' and \"another_json_field\"#>>'{x}' = '1'";
         expect(queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
       });
 
