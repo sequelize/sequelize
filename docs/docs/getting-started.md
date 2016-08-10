@@ -7,7 +7,7 @@ $ npm install --save sequelize
 
 # And one of the following:
 $ npm install --save pg pg-hstore
-$ npm install --save mysql
+$ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
 ```

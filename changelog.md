@@ -1,4 +1,5 @@
 # Future
+- [INTERNAL] Migrated to `node-mysql2` for prepared statements [#6354](https://github.com/sequelize/sequelize/issues/6354)
 - [ADDED] SQLCipher support via the SQLite connection manager
 - [CHANGED] Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive) [#5990](https://github.com/sequelize/sequelize/issues/5990)
 - [ADDED] Support for range operators [#5990](https://github.com/sequelize/sequelize/issues/5990)
