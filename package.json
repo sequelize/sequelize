@@ -42,7 +42,7 @@
     "dottie": "^1.0.0",
     "generic-pool": "2.4.2",
     "inflection": "1.10.0",
-    "lodash": "4.14.1",
+    "lodash": "4.14.2",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "node-uuid": "~1.4.4",
@@ -65,13 +65,14 @@
     "continuation-local-storage": "^3.1.4",
     "coveralls": "^2.11.9",
     "dox": "~0.8.0",
+    "eslint": "^3.1.0",
     "git": "^0.1.5",
     "hints": "^1.1.0",
     "istanbul": "^0.4.3",
     "jshint": "^2.9.2",
     "lcov-result-merger": "^1.2.0",
-    "mocha": "^2.5.2",
-    "mysql": "~2.11.1",
+    "mocha": "^3.0.2",
+    "mysql2": "^1.0.0-rc.10",
     "pg": "^6.0.0",
     "pg-hstore": "^2.3.1",
     "pg-native": "^1.8.0",
@@ -80,7 +81,7 @@
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
     "tedious": "^1.13.2",
-    "watchr": "~2.4.11"
+    "watchr": "~2.6.0"
   },
   "keywords": [
     "mysql",
@@ -94,6 +95,7 @@
   ],
   "main": "index",
   "scripts": {
+    "lint": "eslint lib test",
     "test": "if [ $COVERAGE ]; then npm run coveralls; else npm run jshint && npm run teaser && npm run test-unit && npm run test-integration; fi",
     "test-docker": "docker-compose run sequelize /bin/sh -c \"npm run test-all\"",
     "test-docker-unit": "docker-compose run sequelize /bin/sh -c \"npm run test-unit-all\"",

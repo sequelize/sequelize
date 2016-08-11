@@ -377,12 +377,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           fields: ['fieldC'],
           concurrently: true
         });
+
+        indices.push({
+          type: 'FULLTEXT',
+          fields: ['fieldD']
+        });
       }
 
       var Model = this.sequelize.define('model', {
         fieldA: Sequelize.STRING,
         fieldB: Sequelize.INTEGER,
-        fieldC: Sequelize.STRING
+        fieldC: Sequelize.STRING,
+        fieldD: Sequelize.STRING
       }, {
         indexes: indices,
         engine: 'MyISAM'
@@ -393,7 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }).then(function() {
         return this.sequelize.queryInterface.showIndex(Model.tableName);
       }).spread(function() {
-        var primary, idx1, idx2;
+        var primary, idx1, idx2, idx3;
 
         if (dialect === 'sqlite') {
           // PRAGMA index_info does not return the primary index
@@ -420,6 +426,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           primary = arguments[2];
           idx1 = arguments[0];
           idx2 = arguments[1];
+          idx3 = arguments[2];
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
@@ -428,6 +435,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined}
+          ]);
+
+          expect(idx3.fields).to.deep.equal([
+            { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined}
           ]);
         } else {
           // And finally mysql returns the primary first, and then the rest in the order they were defined
@@ -2372,7 +2383,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return;
       }).catch (function(err) {
         if (dialect === 'mysql') {
-          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/);
+          expect(err.message).to.match(/Can\'t create table/);
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2);
