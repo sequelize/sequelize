@@ -43,6 +43,33 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('truncate with cascade and restartIdentity', function () {
+      var options = {
+        table: User.getTableName(),
+        where: {},
+        truncate: true,
+        cascade: true,
+        restartIdentity: true,
+        limit: 10
+      };
+
+      test(util.inspect(options, {depth: 2}), function () {
+        return expectsql(
+          sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            User
+          ), {
+            postgres: 'TRUNCATE "public"."test_users" CASCADE RESTART IDENTITY',
+            mssql:    'TRUNCATE TABLE [public].[test_users]',
+            mysql:    'TRUNCATE `public.test_users`',
+            sqlite:   'DELETE FROM `public.test_users`'
+          }
+        );
+      });
+    });
+
     suite('delete without limit', function () {
       var options = {
         table: User.getTableName(),
