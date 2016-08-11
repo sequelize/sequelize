@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         });
         break;
       default:
-        this.sequelize.connectionManager.$clearTypeParser();
+        this.sequelize.connectionManager._clearTypeParser();
     }
 
     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
     var stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
       if (!moment.isMoment(value)) {
-        value = this.$applyTimezone(value, options);
+        value = this._applyTimezone(value, options);
       }
       return value.format('YYYY-MM-DD HH:mm:ss Z');
     });
@@ -362,6 +362,24 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
     });
+
+    it('should return Int4 range properly #5747', function() {
+      var Model = this.sequelize.define('M', {
+        interval: {
+            type: Sequelize.RANGE(Sequelize.INTEGER),
+            allowNull: false,
+            unique: true
+        }
+      });
+
+      return Model.sync({ force: true })
+              .then(() => Model.create({ interval: [1,4] }) )
+              .then(() => Model.findAll() )
+              .spread((m) => {
+                expect(m.interval[0]).to.be.eql(1);
+                expect(m.interval[1]).to.be.eql(4);
+              });
+    });
   }
 
   if (dialect === 'mysql') {
@@ -378,7 +396,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
       return Model.sync({ force: true }).then(function () {
         return Model.create(sampleData);
       }).then(function () {
-        return Model.find({id: 1});
+        return Model.findById(1);
       }).then(function (user) {
         expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
         expect(user.get('jewelPurity')).to.be.string;

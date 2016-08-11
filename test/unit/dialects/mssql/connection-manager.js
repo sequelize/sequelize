@@ -33,10 +33,10 @@ describe('[MSSQL] Connection Manager', function () {
                              , config);    
   });
   
-  it('connectionManager.$connect() Does not delete `domain` from config.dialectOptions',
+  it('connectionManager._connect() Does not delete `domain` from config.dialectOptions',
      function () {
        expect(config.dialectOptions.domain).to.equal('TEST.COM');
-       instance.dialect.connectionManager.$connect(config);
+       instance.dialect.connectionManager._connect(config);
        expect(config.dialectOptions.domain).to.equal('TEST.COM');
      });
 });

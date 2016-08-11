@@ -155,6 +155,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('should fail with meaningful error message on invalid attributes definition', function() {
+        expect(this.User.findOne({
+          where: { id: 1 },
+          attributes: ['id', ['username']]
+        })).to.be.rejectedWith('["username"] is not a valid attribute definition. Please use the following format: [\'attribute definition\', \'alias\']');
+      });
+
       it('should not try to convert boolean values if they are not selected', function() {
         var UserWithBoolean = this.sequelize.define('UserBoolean', {
           active: Sequelize.BOOLEAN

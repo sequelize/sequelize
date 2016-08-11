@@ -29,7 +29,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         expectsql(sql.addIndexQuery(sql.quoteTable(sql.addSchema({
-          $schema: 'schema',
+          _schema: 'schema',
           tableName: 'table'
         })), ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
@@ -146,5 +146,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
     }
+  });
+
+  suite('removeIndex', function () {
+    test('naming', function () {
+      expectsql(sql.removeIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
+        mysql: 'DROP INDEX `table_column1_column2` ON `table`',
+        mssql: 'DROP INDEX [table_column1_column2] ON [table]',
+        default: 'DROP INDEX IF EXISTS [table_column1_column2]'
+      });
+    });
   });
 });

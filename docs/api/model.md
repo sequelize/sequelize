@@ -726,6 +726,7 @@ Delete multiple instances, or set their deletedAt timestamp to the current time 
 | [options.force=false] | Boolean | Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled) |
 | [options.truncate=false] | Boolean | If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is truncated the where and limit options are ignored |
 | [options.cascade=false] | Boolean | Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
+| [options.restartIdentity=false] | Boolean | Only used in conjunction with TRUNCATE. Automatically restart sequences owned by columns of the truncated table. Postgres only. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
