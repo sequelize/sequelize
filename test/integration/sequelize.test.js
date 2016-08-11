@@ -497,6 +497,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       });
     });
 
+    it('it allows to pass custom class instances', function() {
+      let logSql;
+      class SQLStatement {
+        constructor() {
+          this.values = [1, 2];
+        }
+        get query() {
+          return 'select ? as foo, ? as bar';
+        }
+      }
+      return this.sequelize.query(new SQLStatement(), { type: this.sequelize.QueryTypes.SELECT, logging: s => logSql = s } ).then(result => {
+        expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
+        expect(logSql.indexOf('?')).to.equal(-1);
+      });
+    });
+
     it('uses properties `query` and `values` if query is tagged', function() {
       var logSql;
       return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging: function(s) { logSql = s; } }).then(function(result) {
