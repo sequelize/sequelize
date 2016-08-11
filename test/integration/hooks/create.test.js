@@ -6,7 +6,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = Support.Sequelize
-  , sinon = require('sinon');
+  , sinon = require('sinon')
+  , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -102,9 +103,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       var hookCalled = 0;
 
-      A.addHook('afterCreate', function(instance, options, next) {
+      A.addHook('afterCreate', function(instance, options) {
         hookCalled++;
-        next();
+        return Promise.resolve();
       });
 
       B.belongsToMany(A, {through: 'a_b'});
