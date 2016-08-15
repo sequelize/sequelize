@@ -1,4 +1,6 @@
 # Future
+- [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)
+- [FIXED] Made `Model.init()` behave like `sequelize.define()` (hooks are called and options have proper defaults) [#6437](https://github.com/sequelize/sequelize/issues/6437)
 - [ADDED] `restartIdentity` option for truncate in postgres [#5356](https://github.com/sequelize/sequelize/issues/5356)
 - [INTERNAL] Migrated to `node-mysql2` for prepared statements [#6354](https://github.com/sequelize/sequelize/issues/6354)
 - [ADDED] SQLCipher support via the SQLite connection manager
