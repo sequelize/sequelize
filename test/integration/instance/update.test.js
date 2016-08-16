@@ -147,8 +147,8 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING,
-          createdAt: DataTypes.DATE(6),
-          updatedAt: DataTypes.DATE(6)
+          createdAt: {type: DataTypes.DATE(6), allowNull: false},
+          updatedAt: {type: DataTypes.DATE(6), allowNull: false}
         }, {
           timestamps: true
         });
