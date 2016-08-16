@@ -141,34 +141,36 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it('should update timestamps w milliseconds', function() {
-      var User = this.sequelize.define('User' + config.rand(), {
-        name: DataTypes.STRING,
-        bio: DataTypes.TEXT,
-        email: DataTypes.STRING,
-        createdAt: DataTypes.DATE(6),
-        updatedAt: DataTypes.DATE(6)
-      }, {
-        timestamps: true
-      });
+    if(dialect == 'mysql') {
+      it('should update timestamps w milliseconds', function() {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING,
+          createdAt: DataTypes.DATE(6),
+          updatedAt: DataTypes.DATE(6)
+        }, {
+          timestamps: true
+        });
 
-     this.clock.tick(2100); //move the clock forward 2100 ms. 
+      this.clock.tick(2100); //move the clock forward 2100 ms. 
 
-     return User.sync({force: true}).then(function() {
-        return User.create({
-          name: 'snafu',
-          email: 'email'
-        }).then(function(user) {
-          return user.reload();
-        }).then(function(user) {
-          expect(user.get('name')).to.equal('snafu');
-          expect(user.get('email')).to.equal('email');
-          var testDate = new Date();
-          testDate.setTime(2100);
-          expect(user.get('createdAt')).to.equalTime(testDate);
+      return User.sync({force: true}).then(function() {
+          return User.create({
+            name: 'snafu',
+            email: 'email'
+          }).then(function(user) {
+            return user.reload();
+          }).then(function(user) {
+            expect(user.get('name')).to.equal('snafu');
+            expect(user.get('email')).to.equal('email');
+            var testDate = new Date();
+            testDate.setTime(2100);
+            expect(user.get('createdAt')).to.equalTime(testDate);
+          });
         });
       });
-    });
+    }
 
     it('should only save passed attributes', function () {
       var user = this.User.build();
