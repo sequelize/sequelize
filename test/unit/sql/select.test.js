@@ -291,6 +291,52 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+
+    test('nested include (left outer join)', function () {
+      var User = Support.sequelize.define('User', {
+          name: DataTypes.STRING,
+          age: DataTypes.INTEGER
+        },
+        {
+          freezeTableName: true
+        });
+      var Post = Support.sequelize.define('Post', {
+          title: DataTypes.STRING
+        },
+        {
+          freezeTableName: true
+        });
+      var Comment = Support.sequelize.define('Comment', {
+          title: DataTypes.STRING
+        },
+        {
+          freezeTableName: true
+        });
+
+      User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
+      Post.Comments = Post.hasMany(Comment, {foreignKey: 'post_id'});
+
+      expectsql(sql.selectQuery('User', {
+        attributes: ['name', 'age'],
+        include: Model._validateIncludedElements({
+          include: [{
+            attributes: ['title'],
+            association: User.Posts,
+            include: [
+              {
+                model: Comment
+              }
+            ]
+          }],
+          model: User
+        }).include,
+        model: User
+      }, User), {
+        default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts.Comments].[id] AS [Posts.Comments.id], [Posts.Comments].[title] AS [Posts.Comments.title], [Posts.Comments].[createdAt] AS [Posts.Comments.createdAt], [Posts.Comments].[updatedAt] AS [Posts.Comments.updatedAt], [Posts.Comments].[post_id] AS [Posts.Comments.post_id] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id] LEFT OUTER JOIN [Comment] AS [Posts.Comments] ON [Posts].[id] = [Posts.Comments].[post_id];',
+        postgres: 'SELECT User.name, User.age, Posts.id AS "Posts.id", Posts.title AS "Posts.title", "Posts.Comments".id AS "Posts.Comments.id", "Posts.Comments".title AS "Posts.Comments.title", "Posts.Comments".createdAt AS "Posts.Comments.createdAt", "Posts.Comments".updatedAt AS "Posts.Comments.updatedAt", "Posts.Comments".post_id AS "Posts.Comments.post_id" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id LEFT OUTER JOIN Comment AS "Posts.Comments" ON Posts.id = "Posts.Comments".post_id;'
+      });
+    });
+
   });
 
   suite('raw query', function () {

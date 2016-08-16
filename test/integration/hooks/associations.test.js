@@ -6,7 +6,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , sinon = require('sinon')
-  , dialect = Support.getTestDialect();
+  , dialect = Support.getTestDialect()
+  , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -62,14 +63,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           , beforeHook = false
           , afterHook = false;
 
-          this.Tasks.beforeUpdate(function(task, options, fn) {
+          this.Tasks.beforeUpdate(function(task, options) {
             beforeHook = true;
-            fn();
+            return Promise.resolve();
           });
 
-          this.Tasks.afterUpdate(function(task, options, fn) {
+          this.Tasks.afterUpdate(function(task, options) {
             afterHook = true;
-            fn();
+            return Promise.resolve();
           });
 
           return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -87,8 +88,8 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         it('on error', function() {
           var self = this;
 
-          this.Tasks.afterUpdate(function(task, options, fn) {
-            fn(new Error('Whoops!'));
+          this.Tasks.afterUpdate(function(task, options) {
+            return Promise.reject(new Error('Whoops!'));
           });
 
           return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -152,24 +153,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             , afterTask = false
             , CustomErrorText = 'Whoops!';
 
-            this.Projects.beforeCreate(function(project, options, fn) {
+            this.Projects.beforeCreate(function(project, options) {
               beforeProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Projects.afterCreate(function(project, options, fn) {
+            this.Projects.afterCreate(function(project, options) {
               afterProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Tasks.beforeDestroy(function(task, options, fn) {
+            this.Tasks.beforeDestroy(function(task, options) {
               beforeTask = true;
-              fn(new Error(CustomErrorText));
+              return Promise.reject(new Error(CustomErrorText));
             });
 
-            this.Tasks.afterDestroy(function(task, options, fn) {
+            this.Tasks.afterDestroy(function(task, options) {
               afterTask = true;
-              fn();
+              return Promise.resolve();
             });
 
             return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -375,24 +376,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             , beforeTask = false
             , afterTask = false;
 
-            this.Projects.beforeCreate(function(project, options, fn) {
+            this.Projects.beforeCreate(function(project, options) {
               beforeProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Projects.afterCreate(function(project, options, fn) {
+            this.Projects.afterCreate(function(project, options) {
               afterProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Tasks.beforeDestroy(function(task, options, fn) {
+            this.Tasks.beforeDestroy(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterDestroy(function(task, options, fn) {
+            this.Tasks.afterDestroy(function(task, options) {
               afterTask = true;
-              fn();
+              return Promise.resolve();
             });
 
             return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -462,24 +463,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             , beforeTask = false
             , afterTask = false;
 
-            this.Projects.beforeCreate(function(project, options, fn) {
+            this.Projects.beforeCreate(function(project, options) {
               beforeProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Projects.afterCreate(function(project, options, fn) {
+            this.Projects.afterCreate(function(project, options) {
               afterProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Tasks.beforeUpdate(function(task, options, fn) {
+            this.Tasks.beforeUpdate(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterUpdate(function(task, options, fn) {
+            this.Tasks.afterUpdate(function(task, options) {
               afterTask = true;
-              fn();
+              return Promise.resolve();
             });
 
             return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -550,24 +551,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             , beforeTask = false
             , afterTask = false;
 
-            this.Projects.beforeCreate(function(project, options, fn) {
+            this.Projects.beforeCreate(function(project, options) {
               beforeProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Projects.afterCreate(function(project, options, fn) {
+            this.Projects.afterCreate(function(project, options) {
               afterProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Tasks.beforeDestroy(function(task, options, fn) {
+            this.Tasks.beforeDestroy(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterDestroy(function(task, options, fn) {
+            this.Tasks.afterDestroy(function(task, options) {
               afterTask = true;
-              fn();
+              return Promise.resolve();
             });
 
             return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -636,24 +637,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             , beforeTask = false
             , afterTask = false;
 
-            this.Projects.beforeCreate(function(project, options, fn) {
+            this.Projects.beforeCreate(function(project, options) {
               beforeProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Projects.afterCreate(function(project, options, fn) {
+            this.Projects.afterCreate(function(project, options) {
               afterProject = true;
-              fn();
+              return Promise.resolve();
             });
 
-            this.Tasks.beforeUpdate(function(task, options, fn) {
+            this.Tasks.beforeUpdate(function(task, options) {
               beforeTask = true;
-              fn(new Error('Whoops!'));
+              return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterUpdate(function(task, options, fn) {
+            this.Tasks.afterUpdate(function(task, options) {
               afterTask = true;
-              fn();
+              return Promise.resolve();
             });
 
             return this.Projects.create({title: 'New Project'}).then(function(project) {
@@ -710,34 +711,34 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               , beforeMiniTask = false
               , afterMiniTask = false;
 
-              this.Projects.beforeCreate(function(project, options, fn) {
+              this.Projects.beforeCreate(function(project, options) {
                 beforeProject = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Projects.afterCreate(function(project, options, fn) {
+              this.Projects.afterCreate(function(project, options) {
                 afterProject = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Tasks.beforeDestroy(function(task, options, fn) {
+              this.Tasks.beforeDestroy(function(task, options) {
                 beforeTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Tasks.afterDestroy(function(task, options, fn) {
+              this.Tasks.afterDestroy(function(task, options) {
                 afterTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              this.MiniTasks.beforeDestroy(function(minitask, options) {
                 beforeMiniTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              this.MiniTasks.afterDestroy(function(minitask, options) {
                 afterMiniTask = true;
-                fn();
+                return Promise.resolve();
               });
 
               return this.sequelize.Promise.all([
@@ -766,34 +767,34 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               , beforeMiniTask = false
               , afterMiniTask = false;
 
-              this.Projects.beforeCreate(function(project, options, fn) {
+              this.Projects.beforeCreate(function(project, options) {
                 beforeProject = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Projects.afterCreate(function(project, options, fn) {
+              this.Projects.afterCreate(function(project, options) {
                 afterProject = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Tasks.beforeDestroy(function(task, options, fn) {
+              this.Tasks.beforeDestroy(function(task, options) {
                 beforeTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Tasks.afterDestroy(function(task, options, fn) {
+              this.Tasks.afterDestroy(function(task, options) {
                 afterTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              this.MiniTasks.beforeDestroy(function(minitask, options) {
                 beforeMiniTask = true;
-                fn(new Error('Whoops!'));
+                return Promise.reject(new Error('Whoops!'));
               });
 
-              this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              this.MiniTasks.afterDestroy(function(minitask, options) {
                 afterMiniTask = true;
-                fn();
+                return Promise.resolve();
               });
 
               return this.sequelize.Promise.all([
@@ -852,34 +853,34 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
               , beforeMiniTask = false
               , afterMiniTask = false;
 
-              this.Projects.beforeCreate(function(project, options, fn) {
+              this.Projects.beforeCreate(function(project, options) {
                 beforeProject = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Projects.afterCreate(function(project, options, fn) {
+              this.Projects.afterCreate(function(project, options) {
                 afterProject = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Tasks.beforeDestroy(function(task, options, fn) {
+              this.Tasks.beforeDestroy(function(task, options) {
                 beforeTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.Tasks.afterDestroy(function(task, options, fn) {
+              this.Tasks.afterDestroy(function(task, options) {
                 afterTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.MiniTasks.beforeDestroy(function(minitask, options, fn) {
+              this.MiniTasks.beforeDestroy(function(minitask, options) {
                 beforeMiniTask = true;
-                fn();
+                return Promise.resolve();
               });
 
-              this.MiniTasks.afterDestroy(function(minitask, options, fn) {
+              this.MiniTasks.afterDestroy(function(minitask, options) {
                 afterMiniTask = true;
-                fn();
+                return Promise.resolve();
               });
 
               return this.sequelize.Promise.all([

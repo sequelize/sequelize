@@ -396,7 +396,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
       return Model.sync({ force: true }).then(function () {
         return Model.create(sampleData);
       }).then(function () {
-        return Model.find({id: 1});
+        return Model.findById(1);
       }).then(function (user) {
         expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
         expect(user.get('jewelPurity')).to.be.string;

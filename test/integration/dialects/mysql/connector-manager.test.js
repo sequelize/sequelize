@@ -100,7 +100,7 @@ if (dialect === 'mysql') {
             conn = connection;
 
             // simulate a unexpected end
-            connection._protocol.end();
+            connection.close();
           })
           .then(function() {
             return cm.releaseConnection(conn);
