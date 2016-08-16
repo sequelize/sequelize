@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    if(dialect == 'mysql') {
+    if(dialect === 'mysql') {
       it('should update timestamps w milliseconds', function() {
         var User = this.sequelize.define('User' + config.rand(), {
           name: DataTypes.STRING,
