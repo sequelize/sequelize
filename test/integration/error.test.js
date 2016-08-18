@@ -244,5 +244,25 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
         return expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(this.sequelize.UniqueConstraintError);
       });
     });
+
+    it('adds parent and sql properties', function () {
+      var User = this.sequelize.define('user', {
+        name: {
+          type: Sequelize.STRING,
+          unique: 'unique',
+        }
+      }, { timestamps: false });
+
+      return this.sequelize.sync({ force: true }).bind(this).then(function () {
+        return User.create({ name: 'jan' });
+      }).then(function () {
+        return expect(User.create({ name: 'jan' })).to.be.rejected;
+      }).then(function (error) {
+        expect(error).to.be.instanceOf(this.sequelize.UniqueConstraintError);
+        expect(error).to.have.property('parent');
+        expect(error).to.have.property('original');
+        expect(error).to.have.property('sql');
+      });
+    });
   });
 });
