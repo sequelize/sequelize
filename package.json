@@ -49,7 +49,7 @@
     "retry-as-promised": "^2.0.0",
     "semver": "^5.0.1",
     "shimmer": "1.1.0",
-    "terraformer-wkt-parser": "^1.1.0",
+    "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
     "validator": "^5.2.0",
     "wkx": "0.3.0"
