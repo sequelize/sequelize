@@ -1,4 +1,4 @@
-# Future
+# 4.0.0-1
 - [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)
 - [FIXED] Made `Model.init()` behave like `sequelize.define()` (hooks are called and options have proper defaults) [#6437](https://github.com/sequelize/sequelize/issues/6437)
 - [ADDED] `restartIdentity` option for truncate in postgres [#5356](https://github.com/sequelize/sequelize/issues/5356)
