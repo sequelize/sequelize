@@ -1,3 +1,6 @@
+# Next
+- [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
+
 # 3.24.0
 - [ADDED] `restartIdentity` option for truncate in postgres [#5356](https://github.com/sequelize/sequelize/issues/5356)
 
