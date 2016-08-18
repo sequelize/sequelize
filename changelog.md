@@ -1,4 +1,4 @@
-# Next
+# 3.24.1
 - [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
 
 # 3.24.0
