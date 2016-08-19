@@ -268,7 +268,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       name: Sequelize.STRING,
       awesome: Sequelize.BOOLEAN,
       number: Sequelize.DECIMAL,
-      uid: Sequelize.UUID
+      uid: Sequelize.UUID,
+      date: Sequelize.DATE
     });
 
     before(function () {
@@ -294,6 +295,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         it('should allow decimal as a string', function () {
           return expect(User.create({
             number: '12.6'
+          })).not.to.be.rejected;
+        });
+
+        it('should allow dates as a string', function() {
+          return expect(User.find({
+            where: {
+              date: '2000-12-16'
+            }
           })).not.to.be.rejected;
         });
 
