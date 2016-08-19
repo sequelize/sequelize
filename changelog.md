@@ -1,5 +1,5 @@
 # Future
-- [FIXED] Fixed test-case. Postgis >=2.1.7 will now throw an error when passing a geojson object with an empty coordinates array (instead of just using [0,0])
+- [REMOVED] Postgis >=2.1.7 will now throw an error when passing a geojson object with an empty coordinates array (instead of just using [0,0]), so just remove the test case as no backends really supports an empty array (mysql will just return null)
 
 # 4.0.0-1
 - [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)

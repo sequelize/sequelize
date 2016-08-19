@@ -274,45 +274,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     testFailure(Type);
   });
 
-  it('should parse an empty GEOMETRY field', function () {
-   var Type = new Sequelize.GEOMETRY();
-
-   if (current.dialect.supports.GEOMETRY) {
-     current.refreshTypes();
-
-     var User = current.define('user', { field: Type }, { timestamps: false });
-     var point = { type: "Point", coordinates: [] };
-
-     return current.sync({ force: true }).then(function () {
-       return User.create({
-          //insert a null GEOMETRY type
-          field: point
-        });
-      }).then(function () {
-        //This case throw unhandled exception
-        return User.findAll();
-      }).then(function(users){
-        if (dialect === 'mysql') {
-          // MySQL will return NULL, becuase they lack EMPTY geometry data support.
-          expect(users[0].field).to.be.eql(null);
-        } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-          // Used to return [0,0] but change made around postgis 2.1.7 to throw error instead:
-          // https://trac.osgeo.org/postgis/changeset/13401 (L96-101)
-          expect(!'Should throw error. Postgis >=2.1.7 does not support empty coordinates.');
-        } else {
-          expect(users[0].field).to.be.deep.eql(point);
-        }
-      })
-      .catch(function(e) {
-        if (dialect === 'postgres' || dialect === 'postgres-native') {
-          expect(e.message === 'Too few ordinates in GeoJSON');
-          return;
-        }
-        throw e;
-      });
-   }
- });
-
   if (dialect === 'postgres' || dialect === 'sqlite') {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
     it('should store and parse IEEE floating point literals (NaN and Infinity)', function () {
