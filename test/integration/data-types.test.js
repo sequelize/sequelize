@@ -296,11 +296,19 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
           // MySQL will return NULL, becuase they lack EMPTY geometry data support.
           expect(users[0].field).to.be.eql(null);
         } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-          //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
-          expect(users[0].field).to.be.deep.eql({ type: "Point", coordinates: [0,0] });
+          // Used to return [0,0] but change made around postgis 2.1.7 to throw error instead:
+          // https://trac.osgeo.org/postgis/changeset/13401 (L96-101)
+          expect(!'Should throw error. Postgis >=2.1.7 does not support empty coordinates.');
         } else {
           expect(users[0].field).to.be.deep.eql(point);
         }
+      })
+      .catch(function(e) {
+        if (dialect === 'postgres' || dialect === 'postgres-native') {
+          expect(e.message === 'Too few ordinates in GeoJSON');
+          return;
+        }
+        throw e;
       });
    }
  });

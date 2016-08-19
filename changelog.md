@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Fixed test-case. Postgis >=2.1.7 will now throw an error when passing a geojson object with an empty coordinates array (instead of just using [0,0])
+
 # 4.0.0-1
 - [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)
 - [FIXED] Made `Model.init()` behave like `sequelize.define()` (hooks are called and options have proper defaults) [#6437](https://github.com/sequelize/sequelize/issues/6437)
