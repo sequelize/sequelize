@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
+
 # 3.24.1
 - [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
 
