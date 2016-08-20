@@ -1860,6 +1860,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           autoIncrement: true,
           primaryKey: true
         },
+        secret: {
+          field: 'secret_given',
+          type: Sequelize.STRING
+        },
         createdAt: {
             field: 'created_at',
             type: Sequelize.DATE
