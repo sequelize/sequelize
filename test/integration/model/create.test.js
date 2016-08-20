@@ -1858,7 +1858,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var M1 = {};
       var M2 = {};
 
-      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2]))
+      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
       .then((ms) => {
         expect(ms[0].id).to.be.eql(1);
         expect(ms[1].id).to.be.eql(2);
