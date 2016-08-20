@@ -713,26 +713,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     if (current.dialect.supports.returnValues) {
       describe('return values', function () {
-        it('should make the autoincremented values available on the returned instances with create', function () {
+        it('should make the autoincremented values available on the returned instances', function () {
           var User = this.sequelize.define('user', {});
 
           return User.sync({force: true}).then(function () {
             return User.create({}, {returning: true}).then(function (user) {
               expect(user.get('id')).to.be.ok;
               expect(user.get('id')).to.equal(1);
-            });
-          });
-        });
-        
-        it('should make the autoincremented values available on the returned instances with bulkCreate', function () {
-          var User = this.sequelize.define('user', {});
-
-          return User.sync({force: true}).then(function () {
-            return User.bulkCreate([{}, {}], {returning: true}).then(function (users) {
-              expect(users[0].id).to.be.ok;
-              expect(users[0].id).to.equal(1);
-              expect(users[1].id).to.be.ok;
-              expect(users[1].id).to.equal(2);
             });
           });
         });
@@ -1863,6 +1850,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.id).to.be.eql(M2.id);
         expect(m.name).to.be.eql(M2.name);
         expect(m.secret).to.be.eql(M2.secret);
+      });
+    });
+    it('should return autoIncrement primary key', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+      var M2 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
+      .then((ms) => {
+        expect(ms[0].id).to.be.eql(1);
+        expect(ms[1].id).to.be.eql(2);
       });
     });
   });
