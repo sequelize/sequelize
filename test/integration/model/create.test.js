@@ -1853,8 +1853,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
     it('should return autoIncrement primary key', function() {
-      var Maya = this.sequelize.define('Maya', {
-      });
+      var Maya = this.sequelize.define('Maya', {});
 
       var M1 = {};
       var M2 = {};
