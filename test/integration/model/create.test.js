@@ -1852,7 +1852,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.secret).to.be.eql(M2.secret);
       });
     });
-    it('should return autoIncrement primary key', function() {
+    
+    it('should return autoIncrement primary key (create)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1, {returning: true}))
+      .then((m) => {
+        expect(m.id).to.be.eql(1);
+      });
+    });
+  
+    it('should return autoIncrement primary key (bulkCreate)', function() {
       var Maya = this.sequelize.define('Maya', {});
 
       var M1 = {};
