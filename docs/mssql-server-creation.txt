@@ -1,0 +1,58 @@
+Launching the VM
+
+1. Go to AWS
+2. Open the EC2 Dashboard
+3. Launch instance
+4. On "Choose an Amazon Machine Image" choose the image "Microsoft Windows Server 2012 R2"
+5. On "Choose an Instance Type" choose "t2.macro"
+6. On "Tag Instance" specify a name (e.g. "SQL Server")
+7. On "Configure Security Group" add a rule with
+    7.1. Type: Custom TCP Rule
+    7.2. Protocol: TCP
+    7.3. Port Range: 1433
+    7.4. Source: Anywhere 0.0.0.0/0
+8. Click "Review and Launch"
+9. Optional: Create a new key pair and download it
+
+Configuring the VM
+1. Download the "Microsoft Remote Desktop" app
+2. Configure new configuration
+    2.1. PC name: Use the Public DNS of the VM
+    2.2. User: Administrator
+    2.3. Password: Can be received by rightclicking on the VM and "Get Windows Password"
+3. Connect
+4. Download the "SQL Server Express" via PowerShell:
+    4.1. wget https://download.microsoft.com/download/9/A/E/9AE09369-C53D-4FB7-985B-5CF0D547AE9F/SQLServer2016-SSEI-Expr.exe -OutFile SQLServer2016-SSEI-Expr.exe
+5. Download the "SQL Server Management Studio"
+    5.1. wget http://go.microsoft.com/fwlink/?LinkID=824938 -OutFile SSMS.exe
+6. Install SQL Server Express with the "Basic" option
+7. Install the SQL Server Management Studio
+8. Open port to the public
+    8.1. Start the "SQL Server Configuration Manager"
+    8.2. Click "SQL Server Network Configuration"
+    8.3. Open "Protocols for SQLEXPRESS"
+    8.4. Right-click "TCP/IP" --> Click "Properties"
+    8.5. Under "Protocol": Set Enabled to Yes
+    8.6. Under "IP Addresses": Set all "TCP Port" values to 1433
+    8.7. Restart the SQL Server instance
+    8.8. Go to the windows firewall
+    8.9. Click Advanced Settings
+    8.10. Add new inbound rule which allows 1433 TCP connections
+9. Enable "Mixed Authentication mode"
+    9.1. Open the "Microsoft SQL Server Management Studio"
+    9.2. Right click the SQL Server instance --> Click "Properties"
+    9.3. Open the "Security" menu
+    9.4. Change the Server authentication value to "SQL Server and Windows Authentication mode"
+    9.5. Save and restart the SQL Server instance
+10. Create Login
+    10.1. In the "Microsoft SQL Server Management Studio" right-click on Security -> Logins and hit the "New Login" item
+    10.2. Login name: sequelize
+    10.3. SQL Server authentication --> Set password
+    10.4. Disable "Enforce password policy"
+11. Prepare databases
+    11.1. `cat mssql-server-creation.sql|pbcopy`
+    11.2. Paste snippet into a query on the server
+    11.3. Run script
+    11.4. It will take a bit and create 101 databases  
+12.
+
