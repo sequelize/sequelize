@@ -1865,6 +1865,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.secret).to.be.eql(M2.secret);
       });
     });
+  });
 
   it('should support logging', function () {
     var spy = sinon.spy();
