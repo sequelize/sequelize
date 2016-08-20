@@ -718,7 +718,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           return User.sync({force: true}).then(function () {
             return User.create({}, {returning: true}).then(function (user) {
-              expect(user.get('id')).to.be.ok;
               expect(user.get('id')).to.equal(1);
             });
           });
@@ -729,9 +728,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           return User.sync({force: true}).then(function () {
             return User.bulkCreate([{}, {}], {returning: true}).then(function (users) {
-              expect(users[0].get('id')).to.be.ok;
               expect(users[0].get('id')).to.equal(1);
-              expect(users[1].get('id')).to.be.ok;
               expect(users[1].get('id')).to.equal(2);
             });
           });
