@@ -1852,6 +1852,33 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.secret).to.be.eql(M2.secret);
       });
     });
+    it('should return autoIncrement primary key', function() {
+      var Maya = this.sequelize.define('Maya', {
+        name: Sequelize.STRING,
+        id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        createdAt: {
+            field: 'created_at',
+            type: Sequelize.DATE
+        },
+        updatedAt: {
+            field: 'updated_at',
+            type: Sequelize.DATE
+        }
+      });
+
+      var M1 = { name: 'Prathma Maya', secret: 'You are on list #1'};
+      var M2 = { name: 'Dwitiya Maya', secret: 'You are on list #2'};
+
+      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2]))
+      .then((ms) => {
+        expect(ms[0].id).to.be.eql(1);
+        expect(ms[1].id).to.be.eql(2);
+      });
+    });
   });
 
   it('should support logging', function () {
