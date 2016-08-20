@@ -1854,28 +1854,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
     it('should return autoIncrement primary key', function() {
       var Maya = this.sequelize.define('Maya', {
-        name: Sequelize.STRING,
-        id: {
-          type: Sequelize.INTEGER,
-          autoIncrement: true,
-          primaryKey: true
-        },
-        secret: {
-          field: 'secret_given',
-          type: Sequelize.STRING
-        },
-        createdAt: {
-            field: 'created_at',
-            type: Sequelize.DATE
-        },
-        updatedAt: {
-            field: 'updated_at',
-            type: Sequelize.DATE
-        }
       });
 
-      var M1 = { name: 'Prathma Maya', secret: 'You are on list #1'};
-      var M2 = { name: 'Dwitiya Maya', secret: 'You are on list #2'};
+      var M1 = {};
+      var M2 = {};
 
       return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2]))
       .then((ms) => {
