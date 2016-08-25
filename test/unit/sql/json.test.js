@@ -48,16 +48,33 @@ if (current.dialect.supports.JSON) {
             default: '\'{"some":"nested","more":{"nested":true},"answer":42}\''
           });
         });
+      });
+    });
+  });
+}
 
+if (current.dialect.supports.JSON && current.dialect.supports.ARRAY) {
+  suite(Support.getTestDialectTeaser('SQL'), function() {
+    suite('JSONB', function () {
+      suite('escape', function () {
         test('array of JSON', function () {
           expectsql(sql.escape([
             { some: 'nested', more: { nested: true }, answer: 42 },
             43,
             'joe'
-          ], { type: DataTypes.ARRAY(DataTypes.JSON)}), {
+          ], { type: DataTypes.ARRAY(DataTypes.JSONB)}), {
             postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]'
           });
         });
+      });
+    });
+  });
+}
+
+if (current.dialect.supports.JSONB && current.dialect.supports.ARRAY) {
+  suite(Support.getTestDialectTeaser('SQL'), function() {
+    suite('JSONB', function () {
+      suite('escape', function () {
         test('array of JSONB', function () {
           expectsql(sql.escape([
             { some: 'nested', more: { nested: true }, answer: 42 },
