@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
+- [ADDED] Sqlite JSON datatype support ([#6500](https://github.com/sequelize/sequelize/pull/6500))
 
 # 4.0.0-1
 - [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)
