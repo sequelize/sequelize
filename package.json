@@ -68,7 +68,7 @@
     "eslint": "^3.1.0",
     "git": "^0.1.5",
     "hints": "^1.1.0",
-    "istanbul": "^0.4.3",
+    "istanbul": "^0.4.5",
     "jshint": "^2.9.3",
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
