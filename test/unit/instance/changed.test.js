@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(user.changed('birthdate')).to.equal(false);
     });
 
-    it('should return true for changed JSON with same object', function () {
+    it('should return true for changed JSON', function () {
       var user = this.User.build({
         meta: {
           city: 'Copenhagen'
@@ -91,8 +91,22 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var meta = user.get('meta');
       meta.city = 'Stockholm';
 
-      user.set('meta', meta);
       expect(user.changed('meta')).to.equal(true);
+    });
+
+    it('should return false for unchanged JSON', function () {
+      var user = this.User.build({
+        meta: {
+          city: 'Copenhagen'
+        }
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.meta = {city: 'Copenhagen'};
+
+      expect(user.changed('meta')).to.equal(false);
     });
 
     it('should return true for JSON dot.separated key with changed values', function() {
