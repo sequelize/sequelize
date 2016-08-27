@@ -14,7 +14,6 @@ var chai = require('chai')
   , moment = require('moment')
   , Transaction = require(__dirname + '/../../lib/transaction')
   , sinon = require('sinon')
-  , babel = require('babel-core')
   , fs = require('fs')
   , current = Support.sequelize;
 
@@ -1252,14 +1251,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       expect(Project).to.exist;
     });
 
-    it('imports a dao definition from a file compiled with babel', function () {
-      var es6project = babel.transformFileSync(__dirname + '/assets/es6project.es6', {
-        presets: ['es2015']
-      }).code;
-      fs.writeFileSync(__dirname + '/assets/es6project.js', es6project);
+    it('imports a dao definition with a default export', function () {
       var Project = this.sequelize.import(__dirname + '/assets/es6project');
       expect(Project).to.exist;
-
     });
 
     after(function(){
