@@ -1,17 +1,17 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , sinon = require('sinon')
-  , DataTypes = require(__dirname + '/../../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../../support');
+const dialect = Support.getTestDialect();
+const sinon = require('sinon');
+const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connector Manager', function() {
     it('works correctly after being idle', function() {
-      var User = this.sequelize.define('User', { username: DataTypes.STRING })
+      let User = this.sequelize.define('User', { username: DataTypes.STRING })
         , spy = sinon.spy()
         , self = this;
 
@@ -36,18 +36,18 @@ if (dialect === 'mysql') {
 
     it('accepts new queries after shutting down a connection', function() {
       // Create a sequelize instance with fast disconnecting connection
-      var sequelize = Support.createSequelizeInstance({ pool: {
+      const sequelize = Support.createSequelizeInstance({ pool: {
         idle: 50,
         max: 1
       } });
-      var User = sequelize.define('User', { username: DataTypes.STRING });
+      const User = sequelize.define('User', { username: DataTypes.STRING });
 
       return User.sync({force: true}).then(function() {
         return User.create({username: 'user1'});
       }).then(function() {
         // After 100 ms the DB connection will be disconnected for inactivity
         return sequelize.Promise.delay(100);
-      }).then(function () {
+      }).then(function() {
         // This query will be queued just after the `client.end` is executed and before its callback is called
         return sequelize.query('SELECT COUNT(*) AS count FROM Users', { type: sequelize.QueryTypes.SELECT });
       }).then(function(count) {
@@ -58,7 +58,7 @@ if (dialect === 'mysql') {
     // This should run only on direct mysql
     if (dialect === 'mysql') {
       it('should maintain connection', function() {
-        var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}})
+        let sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}})
           , cm = sequelize.connectionManager
           , conn;
 
@@ -87,7 +87,7 @@ if (dialect === 'mysql') {
       });
 
       it('should work with handleDisconnects', function() {
-        var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}})
+        let sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}})
           , cm = sequelize.connectionManager
           , conn;
 

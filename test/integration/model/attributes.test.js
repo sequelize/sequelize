@@ -1,6 +1,6 @@
 'use strict';
 
-var chai = require('chai')
+let chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -10,7 +10,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('attributes', function() {
     describe('set', function() {
       it('should only be called once when used on a join model called with an association getter', function() {
-        var self = this;
+        const self = this;
         self.callCount = 0;
 
         this.Student = this.sequelize.define('student', {
@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         this.Course = this.sequelize.define('course', {
           no: {type: Sequelize.INTEGER, primaryKey: true},
           name: Sequelize.STRING
-        },{
+        }, {
           tableName: 'course',
           timestamps: false
         });
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           score: Sequelize.INTEGER,
           test_value: {
             type: Sequelize.INTEGER,
-            set: function(v) {
+            set(v) {
               self.callCount++;
               this.setDataValue('test_value', v + 1);
             }

@@ -1,27 +1,28 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , sinon = require('sinon')
-  , Support = require(__dirname + '/../support')
-  , Sequelize = require(__dirname + '/../../../index')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current = Support.sequelize
-  , Promise = Sequelize.Promise
-  , _ = require('lodash');
+/* jshint -W079 */
+const chai = require('chai');
+const expect = chai.expect;
+const sinon = require('sinon');
+const Support = require(__dirname + '/../support');
+const Sequelize = require(__dirname + '/../../../index');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const current = Support.sequelize;
+const Promise = Sequelize.Promise;
+const _ = require('lodash');
 
 if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), function() {
-    describe('separate', function () {
-      it('should run a hasMany association in a separate query', function () {
-        var User = this.sequelize.define('User', {})
+    describe('separate', function() {
+      it('should run a hasMany association in a separate query', function() {
+        let User = this.sequelize.define('User', {})
           , Task = this.sequelize.define('Task', {})
           , sqlSpy = sinon.spy();
 
         User.Tasks = User.hasMany(Task, {as: 'tasks'});
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             User.create({
               id: 1,
@@ -41,7 +42,7 @@ if (current.dialect.supports.groupedLimit) {
             }, {
               include: [User.Tasks]
             })
-          ).then(function () {
+          ).then(function() {
             return User.findAll({
               include: [
                 {association: User.Tasks, separate: true}
@@ -51,7 +52,7 @@ if (current.dialect.supports.groupedLimit) {
               ],
               logging: sqlSpy
             });
-          }).then(function (users) {
+          }).then(function(users) {
             expect(users[0].get('tasks')).to.be.ok;
             expect(users[0].get('tasks').length).to.equal(3);
             expect(users[1].get('tasks')).to.be.ok;
@@ -65,8 +66,8 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
-      it('should work even if the id was not included', function () {
-        var User = this.sequelize.define('User', {
+      it('should work even if the id was not included', function() {
+        let User = this.sequelize.define('User', {
             name: DataTypes.STRING
           })
           , Task = this.sequelize.define('Task', {})
@@ -74,46 +75,46 @@ if (current.dialect.supports.groupedLimit) {
 
         User.Tasks = User.hasMany(Task, {as: 'tasks'});
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return User.create({
-              id: 1,
-              tasks: [
+            id: 1,
+            tasks: [
                 {},
                 {},
                 {}
-              ]
-            }, {
-              include: [User.Tasks]
-            }).then(function () {
-              return User.findAll({
-                attributes: ['name'],
-                include: [
+            ]
+          }, {
+            include: [User.Tasks]
+          }).then(function() {
+            return User.findAll({
+              attributes: ['name'],
+              include: [
                   {association: User.Tasks, separate: true}
-                ],
-                order: [
+              ],
+              order: [
                   ['id', 'ASC']
-                ],
-                logging: sqlSpy
-              });
-            }).then(function (users) {
-              expect(users[0].get('tasks')).to.be.ok;
-              expect(users[0].get('tasks').length).to.equal(3);
-              expect(sqlSpy).to.have.been.calledTwice;
+              ],
+              logging: sqlSpy
             });
+          }).then(function(users) {
+            expect(users[0].get('tasks')).to.be.ok;
+            expect(users[0].get('tasks').length).to.equal(3);
+            expect(sqlSpy).to.have.been.calledTwice;
+          });
         });
       });
 
-      it('should not break a nested include with null values', function () {
-        var User = this.sequelize.define('User', {})
+      it('should not break a nested include with null values', function() {
+        let User = this.sequelize.define('User', {})
           , Team = this.sequelize.define('Team', {})
           , Company = this.sequelize.define('Company', {});
 
         User.Team = User.belongsTo(Team);
         Team.Company = Team.belongsTo(Company);
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return User.create({});
-        }).then(function () {
+        }).then(function() {
           return User.findAll({
             include: [
               {association: User.Team, include: [Team.Company]}
@@ -122,19 +123,19 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
-      it('should run a hasMany association with limit in a separate query', function () {
-        var User = this.sequelize.define('User', {})
+      it('should run a hasMany association with limit in a separate query', function() {
+        let User = this.sequelize.define('User', {})
           , Task = this.sequelize.define('Task', {
-              userId: {
-                type: DataTypes.INTEGER,
-                field: 'user_id'
-              }
-            })
+            userId: {
+              type: DataTypes.INTEGER,
+              field: 'user_id'
+            }
+          })
           , sqlSpy = sinon.spy();
 
         User.Tasks = User.hasMany(Task, {as: 'tasks', foreignKey: 'userId'});
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             User.create({
               id: 1,
@@ -157,7 +158,7 @@ if (current.dialect.supports.groupedLimit) {
             }, {
               include: [User.Tasks]
             })
-          ).then(function () {
+          ).then(function() {
             return User.findAll({
               include: [
                 {association: User.Tasks, limit: 2}
@@ -167,7 +168,7 @@ if (current.dialect.supports.groupedLimit) {
               ],
               logging: sqlSpy
             });
-          }).then(function (users) {
+          }).then(function(users) {
             expect(users[0].get('tasks')).to.be.ok;
             expect(users[0].get('tasks').length).to.equal(2);
             expect(users[1].get('tasks')).to.be.ok;
@@ -177,8 +178,8 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
-      it('should run a nested (from a non-separate include) hasMany association in a separate query', function () {
-        var User = this.sequelize.define('User', {})
+      it('should run a nested (from a non-separate include) hasMany association in a separate query', function() {
+        let User = this.sequelize.define('User', {})
           , Company = this.sequelize.define('Company')
           , Task = this.sequelize.define('Task', {})
           , sqlSpy = sinon.spy();
@@ -186,7 +187,7 @@ if (current.dialect.supports.groupedLimit) {
         User.Company = User.belongsTo(Company, {as: 'company'});
         Company.Tasks = Company.hasMany(Task, {as: 'tasks'});
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             User.create({
               id: 1,
@@ -214,7 +215,7 @@ if (current.dialect.supports.groupedLimit) {
                 {association: User.Company, include: [Company.Tasks]}
               ]
             })
-          ).then(function () {
+          ).then(function() {
             return User.findAll({
               include: [
                 {association: User.Company, include: [
@@ -226,7 +227,7 @@ if (current.dialect.supports.groupedLimit) {
               ],
               logging: sqlSpy
             });
-          }).then(function (users) {
+          }).then(function(users) {
             expect(users[0].get('company').get('tasks')).to.be.ok;
             expect(users[0].get('company').get('tasks').length).to.equal(3);
             expect(users[1].get('company').get('tasks')).to.be.ok;
@@ -236,8 +237,8 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
-      it('should work having a separate include between a parent and child include', function () {
-        var User = this.sequelize.define('User', {})
+      it('should work having a separate include between a parent and child include', function() {
+        let User = this.sequelize.define('User', {})
           , Project = this.sequelize.define('Project')
           , Company = this.sequelize.define('Company')
           , Task = this.sequelize.define('Task', {})
@@ -247,7 +248,7 @@ if (current.dialect.supports.groupedLimit) {
         User.Tasks = User.hasMany(Task, {as: 'tasks'});
         Task.Project = Task.belongsTo(Project, {as: 'project'});
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             Company.create({
               id: 1,
@@ -269,7 +270,7 @@ if (current.dialect.supports.groupedLimit) {
                 ]}
               ]
             })
-          ).then(function () {
+          ).then(function() {
             return Company.findAll({
               include: [
                 {association: Company.Users, include: [
@@ -283,7 +284,7 @@ if (current.dialect.supports.groupedLimit) {
               ],
               logging: sqlSpy
             });
-          }).then(function (companies) {
+          }).then(function(companies) {
             expect(sqlSpy).to.have.been.calledTwice;
 
             expect(companies[0].users[0].tasks[0].project).to.be.ok;
@@ -291,8 +292,8 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
-      it('should run two nested hasMany association in a separate queries', function () {
-        var User = this.sequelize.define('User', {})
+      it('should run two nested hasMany association in a separate queries', function() {
+        let User = this.sequelize.define('User', {})
           , Project = this.sequelize.define('Project', {})
           , Task = this.sequelize.define('Task', {})
           , sqlSpy = sinon.spy();
@@ -300,7 +301,7 @@ if (current.dialect.supports.groupedLimit) {
         User.Projects = User.hasMany(Project, {as: 'projects'});
         Project.Tasks = Project.hasMany(Task, {as: 'tasks'});
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             User.create({
               id: 1,
@@ -341,7 +342,7 @@ if (current.dialect.supports.groupedLimit) {
                 {association: User.Projects, include: [Project.Tasks]}
               ]
             })
-          ).then(function () {
+          ).then(function() {
             return User.findAll({
               include: [
                 {association: User.Projects, separate: true, include: [
@@ -353,8 +354,8 @@ if (current.dialect.supports.groupedLimit) {
               ],
               logging: sqlSpy
             });
-          }).then(function (users) {
-            var u1projects = users[0].get('projects');
+          }).then(function(users) {
+            const u1projects = users[0].get('projects');
 
             expect(u1projects).to.be.ok;
             expect(u1projects[0].get('tasks')).to.be.ok;
@@ -362,8 +363,8 @@ if (current.dialect.supports.groupedLimit) {
             expect(u1projects.length).to.equal(2);
 
             // WTB ES2015 syntax ...
-            expect(_.find(u1projects, function (p) { return p.id === 1; }).get('tasks').length).to.equal(3);
-            expect(_.find(u1projects, function (p) { return p.id === 2; }).get('tasks').length).to.equal(1);
+            expect(_.find(u1projects, function(p) { return p.id === 1; }).get('tasks').length).to.equal(3);
+            expect(_.find(u1projects, function(p) { return p.id === 2; }).get('tasks').length).to.equal(1);
 
             expect(users[1].get('projects')).to.be.ok;
             expect(users[1].get('projects')[0].get('tasks')).to.be.ok;
@@ -376,11 +377,11 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should work with two schema models in a hasMany association', function() {
-        var User = this.sequelize.define('User', {}, {schema: 'archive'})
+        let User = this.sequelize.define('User', {}, {schema: 'archive'})
           , Task = this.sequelize.define('Task', {
-              id: { type: DataTypes.INTEGER, primaryKey: true },
-              title: DataTypes.STRING
-            }, {schema: 'archive'});
+            id: { type: DataTypes.INTEGER, primaryKey: true },
+            title: DataTypes.STRING
+          }, {schema: 'archive'});
 
         User.Tasks = User.hasMany(Task, {as: 'tasks'});
 

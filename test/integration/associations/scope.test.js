@@ -1,12 +1,13 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Sequelize = require('../../../index')
-  , Promise = Sequelize.Promise;
+/* jshint -W079 */
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Sequelize = require('../../../index');
+const Promise = Sequelize.Promise;
 
 describe(Support.getTestDialectTeaser('associations'), function() {
   describe('scope', function() {
@@ -23,7 +24,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           defaultValue: false
         }
       });
-      
+
       this.Comment.prototype.getItem = function() {
         return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
       };
@@ -32,10 +33,10 @@ describe(Support.getTestDialectTeaser('associations'), function() {
         include: [this.Comment]
       });
       this.Post.addScope('withMainComment', {
-          include: [{
-            model: this.Comment,
-            as: 'mainComment'
-          }]
+        include: [{
+          model: this.Comment,
+          as: 'mainComment'
+        }]
       });
       this.Post.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
@@ -88,7 +89,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
 
     describe('1:1', function() {
       it('should create, find and include associations with scope values', function() {
-        var self = this;
+        const self = this;
         return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             self.Post.create(),
@@ -112,27 +113,27 @@ describe(Support.getTestDialectTeaser('associations'), function() {
         }).then(function(post) {
           expect(post.mainComment).to.be.null;
           return post.createMainComment({
-              title: 'I am a main post comment'
+            title: 'I am a main post comment'
           });
         }).then(function(mainComment) {
           this.mainComment = mainComment;
           expect(mainComment.get('commentable')).to.equal('post');
           expect(mainComment.get('isMain')).to.be.true;
           return this.Post.scope('withMainComment').findById(this.post.id);
-        }).then(function (post) {
+        }).then(function(post) {
           expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
           return post.getMainComment();
-        }).then(function (mainComment, post) {
+        }).then(function(mainComment, post) {
           expect(mainComment.get('commentable')).to.equal('post');
           expect(mainComment.get('isMain')).to.be.true;
           return this.Comment.create({
             title: 'I am a future main comment'
           });
-        }).then(function (comment) {
+        }).then(function(comment) {
           return this.post.setMainComment(comment);
-        }).then( function () {
+        }).then( function() {
           return this.post.getMainComment();
-        }).then(function (mainComment) {
+        }).then(function(mainComment) {
           expect(mainComment.get('commentable')).to.equal('post');
           expect(mainComment.get('isMain')).to.be.true;
           expect(mainComment.get('title')).to.equal('I am a future main comment');
@@ -142,7 +143,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
 
     describe('1:M', function() {
       it('should create, find and include associations with scope values', function() {
-        var self = this;
+        const self = this;
         return this.sequelize.sync({force: true}).then(function() {
           return Promise.join(
             self.Post.create(),
@@ -221,28 +222,28 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           expect(question.comments[0].get('title')).to.equal('I am a question comment');
         });
       });
-      it('should make the same query if called multiple time (#4470)', function () {
-        var self = this;
-        var logs = [];
-        var logging = function (log) {
+      it('should make the same query if called multiple time (#4470)', function() {
+        const self = this;
+        const logs = [];
+        const logging = function(log) {
           logs.push(log);
         };
 
-        return this.sequelize.sync({force: true}).then(function () {
+        return this.sequelize.sync({force: true}).then(function() {
           return self.Post.create();
-        }).then(function (post) {
+        }).then(function(post) {
           return post.createComment({
             title: 'I am a post comment'
           });
         }).then(function() {
           return self.Post.scope('withComments').findAll({
-            logging: logging
+            logging
           });
-        }).then(function () {
+        }).then(function() {
           return self.Post.scope('withComments').findAll({
-            logging: logging
+            logging
           });
-        }).then(function () {
+        }).then(function() {
           expect(logs[0]).to.equal(logs[1]);
         });
       });
@@ -264,7 +265,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           });
 
           it('should create, find and include associations with scope values', function() {
-            var self = this;
+            const self = this;
             return Promise.join(
               self.Post.sync({force: true}),
               self.Tag.sync({force: true})
@@ -453,7 +454,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           });
 
           it('should create, find and include associations with scope values', function() {
-            var self = this;
+            const self = this;
             return Promise.join(
               this.Post.sync({force: true}),
               this.Image.sync({force: true}),
@@ -515,7 +516,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
                 expect(questionTags.map(function(tag) {
                   return tag.name;
                 }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
-              }).then(function () {
+              }).then(function() {
                 return Promise.join(
                   self.Post.findOne({
                     where: {},
@@ -529,7 +530,7 @@ describe(Support.getTestDialectTeaser('associations'), function() {
                     where: {},
                     include: [self.Tag]
                   })
-                ).spread(function (post, image, question) {
+                ).spread(function(post, image, question) {
                   expect(post.tags.length).to.equal(3);
                   expect(image.tags.length).to.equal(3);
                   expect(question.tags.length).to.equal(3);

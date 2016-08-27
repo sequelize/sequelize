@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('#destroy', function() {
     describe('on success', function() {
       it('should run hooks', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , afterHook = sinon.spy();
 
         this.User.beforeDestroy(beforeHook);
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('on error', function() {
       it('should return an error from before', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , afterHook = sinon.spy();
 
         this.User.beforeDestroy(function(user, options) {
@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should return an error from after', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , afterHook = sinon.spy();
 
         this.User.beforeDestroy(beforeHook);

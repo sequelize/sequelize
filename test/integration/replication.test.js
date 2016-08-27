@@ -2,7 +2,7 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
@@ -11,7 +11,7 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Replication'), function() {
   if (dialect === 'sqlite') return;
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.sequelize = Support.getSequelizeInstance(null, null, null, {
       replication: {
         write: Support.getConnectionOptions(),
@@ -32,13 +32,13 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
     return this.User.sync({force: true});
   });
 
-  it('should be able to make a write', function () {
+  it('should be able to make a write', function() {
     return this.User.create({
       firstName: Math.random().toString()
     });
   });
 
-  it('should be able to make a read', function () {
+  it('should be able to make a read', function() {
     return this.User.findAll();
   });
 });

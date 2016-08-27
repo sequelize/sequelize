@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types');
@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Schema'), function() {
       schema: 'testschema'
     });
 
-   return this.User.sync({ force: true });
+    return this.User.sync({ force: true });
   });
 
   it('supports increment', function() {

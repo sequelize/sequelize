@@ -2,7 +2,7 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Sequelize = require(__dirname + '/../../index')
   , Support = require(__dirname + '/support')
@@ -11,7 +11,7 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   describe('#update', function() {
     it('should allow us to update specific columns without tripping the validations', function() {
-      var User = this.sequelize.define('model', {
+      const User = this.sequelize.define('model', {
         username: Sequelize.STRING,
         email: {
           type: Sequelize.STRING,
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     it('should be able to emit an error upon updating when a validation has failed from an instance', function() {
-      var Model = this.sequelize.define('model', {
+      const Model = this.sequelize.define('model', {
         name: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     it('should be able to emit an error upon updating when a validation has failed from the factory', function() {
-      var Model = this.sequelize.define('model', {
+      const Model = this.sequelize.define('model', {
         name: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -80,10 +80,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     it('should enforce a unique constraint', function() {
-      var Model = this.sequelize.define('model', {
+      const Model = this.sequelize.define('model', {
         uniqueName: { type: Sequelize.STRING, unique: true }
       });
-      var records = [
+      const records = [
         { uniqueName: 'unique name one' },
         { uniqueName: 'unique name two' }
       ];
@@ -105,13 +105,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     it('should allow a custom unique constraint error message', function() {
-      var Model = this.sequelize.define('model', {
+      const Model = this.sequelize.define('model', {
         uniqueName: {
           type: Sequelize.STRING,
           unique: { msg: 'custom unique error message' }
         }
       });
-      var records = [
+      const records = [
         { uniqueName: 'unique name one' },
         { uniqueName: 'unique name two' }
       ];
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     it('should handle multiple unique messages correctly', function() {
-      var Model = this.sequelize.define('model', {
+      const Model = this.sequelize.define('model', {
         uniqueName1: {
           type: Sequelize.STRING,
           unique: { msg: 'custom unique error message 1' }
@@ -141,12 +141,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         uniqueName2: {
           type: Sequelize.STRING,
           unique: { msg: 'custom unique error message 2' }
-        },
+        }
       });
-      var records = [
+      const records = [
         { uniqueName1: 'unique name one', uniqueName2: 'unique name one' },
         { uniqueName1: 'unique name one', uniqueName2: 'this is ok' },
-        { uniqueName1: 'this is ok', uniqueName2: 'unique name one' },
+        { uniqueName1: 'this is ok', uniqueName2: 'unique name one' }
       ];
       return Model.sync({ force: true })
         .then(function() {
@@ -173,9 +173,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   describe('#create', function() {
     describe('generic', function() {
       beforeEach(function() {
-        var self = this;
+        const self = this;
 
-        var Project = this.sequelize.define('Project', {
+        const Project = this.sequelize.define('Project', {
           name: {
             type: Sequelize.STRING,
             allowNull: false,
@@ -186,7 +186,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
           }
         });
 
-        var Task = this.sequelize.define('Task', {
+        const Task = this.sequelize.define('Task', {
           something: Sequelize.INTEGER
         });
 
@@ -206,7 +206,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       });
 
       it('correctly validates using create method ', function() {
-        var self = this;
+        const self = this;
         return this.Project.create({}).then(function(project) {
           return self.Task.create({something: 1}).then(function(task) {
             return project.setTask(task).then(function(task) {
@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
     describe('explicitly validating primary/auto incremented columns', function() {
       it('should emit an error when we try to enter in a string for the id key without validation arguments', function() {
-        var User = this.sequelize.define('UserId', {
+        const User = this.sequelize.define('UserId', {
           id: {
             type: Sequelize.INTEGER,
             autoIncrement: true,
@@ -242,7 +242,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       });
 
       it('should emit an error when we try to enter in a string for an auto increment key (not named id)', function() {
-        var User = this.sequelize.define('UserId', {
+        const User = this.sequelize.define('UserId', {
           username: {
             type: Sequelize.INTEGER,
             autoIncrement: true,
@@ -285,7 +285,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         });
 
         it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', function() {
-          var user = this.User.build({id: 'helloworld'});
+          const user = this.User.build({id: 'helloworld'});
 
           return expect(user.validate()).to.be.rejected.then(function(err) {
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         });
 
         it('should emit an error when we try to .save()', function() {
-          var user = this.User.build({id: 'helloworld'});
+          const user = this.User.build({id: 'helloworld'});
           return user.save().catch(function(err) {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
@@ -303,8 +303,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
     describe('Pass all paths when validating', function() {
       beforeEach(function() {
-        var self = this;
-        var Project = this.sequelize.define('Project', {
+        const self = this;
+        const Project = this.sequelize.define('Project', {
           name: {
             type: Sequelize.STRING,
             allowNull: false,
@@ -323,7 +323,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
         });
 
-        var Task = this.sequelize.define('Task', {
+        const Task = this.sequelize.define('Task', {
           something: Sequelize.INTEGER
         });
 
@@ -349,11 +349,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('correctly validates using custom validation methods', function() {
-    var User = this.sequelize.define('User' + config.rand(), {
+    const User = this.sequelize.define('User' + config.rand(), {
       name: {
         type: Sequelize.STRING,
         validate: {
-          customFn: function(val, next) {
+          customFn(val, next) {
             if (val !== '2') {
               next("name should equal '2'");
             } else {
@@ -364,24 +364,24 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    var failingUser = User.build({ name: '3' });
+    const failingUser = User.build({ name: '3' });
 
     return expect(failingUser.validate()).to.be.rejected.then(function(error) {
       expect(error).to.be.an.instanceOf(Error);
       expect(error.get('name')[0].message).to.equal("name should equal '2'");
 
-      var successfulUser = User.build({ name: '2' });
+      const successfulUser = User.build({ name: '2' });
       return expect(successfulUser.validate()).not.to.be.rejected;
     });
   });
 
   it('supports promises with custom validation methods', function() {
-    var self = this
+    let self = this
       , User = this.sequelize.define('User' + config.rand(), {
         name: {
           type: Sequelize.STRING,
           validate: {
-            customFn: function(val) {
+            customFn(val) {
               return User.findAll()
                 .then(function() {
                   if (val === 'error') {
@@ -404,7 +404,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('skips other validations if allowNull is true and the value is null', function() {
-    var User = this.sequelize.define('User' + config.rand(), {
+    const User = this.sequelize.define('User' + config.rand(), {
       age: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -424,7 +424,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('validates a model with custom model-wide validation methods', function() {
-    var Foo = this.sequelize.define('Foo' + config.rand(), {
+    const Foo = this.sequelize.define('Foo' + config.rand(), {
       field1: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -435,8 +435,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     }, {
       validate: {
-        xnor: function() {
-          if ((this.field1 === null) === (this.field2 === null)) {
+        xnor() {
+          if (this.field1 === null === (this.field2 === null)) {
             throw new Error('xnor failed');
           }
         }
@@ -458,14 +458,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('validates model with a validator whose arg is an Array successfully twice in a row', function() {
-    var Foo = this.sequelize.define('Foo' + config.rand(), {
-      bar: {
-        type: Sequelize.STRING,
-        validate: {
-          isIn: [['a', 'b']]
+    let Foo = this.sequelize.define('Foo' + config.rand(), {
+        bar: {
+          type: Sequelize.STRING,
+          validate: {
+            isIn: [['a', 'b']]
+          }
         }
-      }
-    }), foo;
+      }), foo;
 
     foo = Foo.build({bar: 'a'});
     return expect(foo.validate()).not.to.be.rejected.then(function() {
@@ -474,19 +474,19 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('validates enums', function() {
-    var values = ['value1', 'value2'];
+    const values = ['value1', 'value2'];
 
-    var Bar = this.sequelize.define('Bar' + config.rand(), {
+    const Bar = this.sequelize.define('Bar' + config.rand(), {
       field: {
         type: Sequelize.ENUM,
-        values: values,
+        values,
         validate: {
           isIn: [values]
         }
       }
     });
 
-    var failingBar = Bar.build({ field: 'value3' });
+    const failingBar = Bar.build({ field: 'value3' });
 
     return expect(failingBar.validate()).to.be.rejected.then(function(errors) {
       expect(errors.get('field')).to.have.length(1);
@@ -495,25 +495,25 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('skips validations for the given fields', function() {
-    var values = ['value1', 'value2'];
+    const values = ['value1', 'value2'];
 
-    var Bar = this.sequelize.define('Bar' + config.rand(), {
+    const Bar = this.sequelize.define('Bar' + config.rand(), {
       field: {
         type: Sequelize.ENUM,
-        values: values,
+        values,
         validate: {
           isIn: [values]
         }
       }
     });
 
-    var failingBar = Bar.build({ field: 'value3' });
+    const failingBar = Bar.build({ field: 'value3' });
 
     return expect(failingBar.validate({ skip: ['field'] })).not.to.be.rejected;
   });
 
   it('raises an error if saving a different value into an immutable field', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       name: {
         type: Sequelize.STRING,
         validate: {
@@ -534,7 +534,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('allows setting an immutable field if the record is unsaved', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       name: {
         type: Sequelize.STRING,
         validate: {
@@ -543,7 +543,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    var user = User.build({ name: 'RedCat' });
+    const user = User.build({ name: 'RedCat' });
     expect(user.getDataValue('name')).to.equal('RedCat');
 
     user.setDataValue('name', 'YellowCat');
@@ -551,7 +551,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('raises an error for array on a STRING', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       'email': {
         type: Sequelize.STRING
       }
@@ -563,7 +563,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('raises an error for array on a STRING(20)', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       'email': {
         type: Sequelize.STRING(20)
       }
@@ -575,7 +575,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('raises an error for array on a TEXT', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       'email': {
         type: Sequelize.TEXT
       }
@@ -587,7 +587,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('raises an error for {} on a STRING', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       'email': {
         type: Sequelize.STRING
       }
@@ -599,7 +599,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('raises an error for {} on a STRING(20)', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       'email': {
         type: Sequelize.STRING(20)
       }
@@ -611,7 +611,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('raises an error for {} on a TEXT', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       'email': {
         type: Sequelize.TEXT
       }
@@ -623,7 +623,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('does not raise an error for null on a STRING (where null is allowed)', function() {
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       'email': {
         type: Sequelize.STRING
       }
@@ -635,17 +635,17 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
   });
 
   it('validates VIRTUAL fields', function() {
-    var User = this.sequelize.define('user', {
+    const User = this.sequelize.define('user', {
       password_hash: Sequelize.STRING,
       salt: Sequelize.STRING,
       password: {
         type: Sequelize.VIRTUAL,
-        set: function(val) {
+        set(val) {
           this.setDataValue('password', val);
           this.setDataValue('password_hash', this.salt + val);
         },
         validate: {
-          isLongEnough: function(val) {
+          isLongEnough(val) {
             if (val.length < 7) {
               throw new Error('Please choose a longer password');
             }
@@ -673,7 +673,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       return val.length === 7;
     });
 
-    var User = this.sequelize.define('User', {
+    const User = this.sequelize.define('User', {
       name: {
         type: Sequelize.STRING,
         validate: {

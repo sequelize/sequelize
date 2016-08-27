@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , Sequelize = Support.Sequelize
@@ -35,15 +35,15 @@ describe('Sequelize', function() {
 
   describe('Instantiation with arguments', function() {
     it('should accept four parameters (database, username, password, options)', function() {
-      var sequelize = new Sequelize('dbname', 'root', 'pass', {
+      const sequelize = new Sequelize('dbname', 'root', 'pass', {
         port: 999,
-        dialect: dialect,
+        dialect,
         dialectOptions: {
           supportBigNumbers: true,
           bigNumberStrings: true
         }
       });
-      var config = sequelize.config;
+      const config = sequelize.config;
 
       expect(config.database).to.equal('dbname');
       expect(config.username).to.equal('root');
@@ -57,9 +57,9 @@ describe('Sequelize', function() {
 
   describe('Instantiation with a URL string', function() {
     it('should accept username, password, host, port, and database', function() {
-      var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      var config = sequelize.config;
-      var options = sequelize.options;
+      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
+      const config = sequelize.config;
+      const options = sequelize.options;
 
       expect(options.dialect).to.equal('mysql');
 
@@ -71,24 +71,24 @@ describe('Sequelize', function() {
     });
 
     it('should work with no authentication options', function() {
-      var sequelize = new Sequelize('mysql://example.com:9821/dbname');
-      var config = sequelize.config;
+      const sequelize = new Sequelize('mysql://example.com:9821/dbname');
+      const config = sequelize.config;
 
       expect(config.username).to.not.be.ok;
       expect(config.password).to.be.null;
     });
 
     it('should work with no authentication options and passing additional options', function() {
-      var sequelize = new Sequelize('mysql://example.com:9821/dbname', {});
-      var config = sequelize.config;
+      const sequelize = new Sequelize('mysql://example.com:9821/dbname', {});
+      const config = sequelize.config;
 
       expect(config.username).to.not.be.ok;
       expect(config.password).to.be.null;
     });
 
     it('should use the default port when no other is specified', function() {
-      var sequelize = new Sequelize('dbname', 'root', 'pass', {
-          dialect: dialect
+      let sequelize = new Sequelize('dbname', 'root', 'pass', {
+          dialect
         })
         , config = sequelize.config
         , port;

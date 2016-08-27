@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
@@ -43,12 +43,12 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('#3534, hooks modifications', function() {
       it('fields modified in hooks are saved', function() {
-        var self = this;
+        const self = this;
 
         this.User.afterValidate(function(user, options) {
           //if username is defined and has more than 5 char
           user.username = user.username
-                          ? (user.username.length < 5 ? null : user.username)
+                          ? user.username.length < 5 ? null : user.username
                           : null;
           user.username = user.username || 'Samorost 3';
 
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should call validationFailed hook', function() {
-        var validationFailedHook = sinon.spy();
+        const validationFailedHook = sinon.spy();
 
         this.User.validationFailed(validationFailedHook);
 
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should not replace the validation error in validationFailed hook by default', function() {
-        var validationFailedHook = sinon.stub();
+        const validationFailedHook = sinon.stub();
 
         this.User.validationFailed(validationFailedHook);
 
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should replace the validation error if validationFailed hook creates a new error', function() {
-        var validationFailedHook = sinon.stub().throws(new Error('Whoops!'));
+        const validationFailedHook = sinon.stub().throws(new Error('Whoops!'));
 
         this.User.validationFailed(validationFailedHook);
 

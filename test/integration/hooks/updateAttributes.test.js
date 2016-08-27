@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('#updateAttributes', function() {
     describe('on success', function() {
       it('should run hooks', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , afterHook = sinon.spy()
           , beforeSave = sinon.spy()
           , afterSave = sinon.spy();
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('on error', function() {
       it('should return an error from before', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , afterHook = sinon.spy()
           , beforeSave = sinon.spy()
           , afterSave = sinon.spy();
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should return an error from after', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , afterHook = sinon.spy()
           , beforeSave = sinon.spy()
           , afterSave = sinon.spy();
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeSave', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
         this.User.beforeSave(function(user, options) {
           user.mood = 'happy';
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeSave with beforeUpdate', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
         this.User.beforeUpdate(function(user, options) {
           user.mood = 'sad';

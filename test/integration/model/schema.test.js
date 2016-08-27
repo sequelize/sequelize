@@ -2,16 +2,16 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current = Support.sequelize
   , Promise   = current.Promise;
-var SCHEMA_ONE = 'schema_one';
-var SCHEMA_TWO = 'schema_two';
+const SCHEMA_ONE = 'schema_one';
+const SCHEMA_TWO = 'schema_two';
 
-var locationId;
+let locationId;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   if (current.dialect.supports.schemas) {
@@ -19,19 +19,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     describe('schemas', function() {
       before(function() {
         this.Restaurant = current.define('restaurant', {
-            foo: DataTypes.STRING,
-            bar: DataTypes.STRING
-          },
-          {tableName: "restaurants"});
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING
+        },
+          {tableName: 'restaurants'});
         this.Location = current.define('location', {
-            name: DataTypes.STRING
-          },
-          {tableName: "locations"});
+          name: DataTypes.STRING
+        },
+          {tableName: 'locations'});
         this.Employee = current.define('employee', {
-            first_name: DataTypes.STRING,
-            last_name: DataTypes.STRING
-          },
-          {tableName: "employees"});
+          first_name: DataTypes.STRING,
+          last_name: DataTypes.STRING
+        },
+          {tableName: 'employees'});
         this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
         this.Restaurant.belongsTo(this.Location,
           {
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
       beforeEach('build restaurant tables', function() {
-        var self = this;
+        const self = this;
         return Promise.all([
           current.createSchema('schema_one'),
           current.createSchema('schema_two')
@@ -74,8 +74,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Add data via model.create, retrieve via model.findOne', function() {
         it('should be able to insert data into the table in schema_one using create', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantOne.create({
             foo: 'one',
@@ -99,8 +99,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be able to insert data into the table in schema_two using create', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantTwo.create({
             foo: 'two',
@@ -126,11 +126,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Persist and retrieve data', function() {
         it('should be able to insert data into both schemas using instance.save and retrieve/count it', function() {
-          var self = this;
+          const self = this;
 
           //building and saving in random order to make sure calling
           // .schema doesn't impact model prototype
-          var restaurauntModel = self.RestaurantOne.build({bar: 'one.1'});
+          let restaurauntModel = self.RestaurantOne.build({bar: 'one.1'});
 
           return restaurauntModel.save()
             .then(function() {
@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Get associated data in public schema via include', function() {
         beforeEach(function() {
-          var Location = this.Location;
+          const Location = this.Location;
 
           return Location.sync({force: true})
             .then(function() {
@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', function() {
-          var self = this;
+          const self = this;
 
           return self.RestaurantOne.create({
             foo: 'one',
@@ -249,7 +249,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Get schema specific associated data via include', function() {
         beforeEach(function() {
-          var Employee = this.Employee;
+          const Employee = this.Employee;
           return Promise.all([
             Employee.schema(SCHEMA_ONE).sync({force: true}),
             Employee.schema(SCHEMA_TWO).sync({force: true})
@@ -257,8 +257,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantOne.create({
             foo: 'one'
@@ -308,8 +308,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
         it('should be able to insert and retrieve associated data into the table in schema_two', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantTwo.create({
             foo: 'two'
@@ -360,10 +360,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('concurency tests', function() {
         it('should build and persist instances to 2 schemas concurrently in any order', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
-          var restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({bar: 'one.1'});
-          var restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({bar: 'two.1'});
+          let restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({bar: 'one.1'});
+          const restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({bar: 'two.1'});
 
           return restaurauntModelSchema1.save()
             .then(function() {

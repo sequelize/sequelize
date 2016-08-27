@@ -2,7 +2,7 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Utils = require(__dirname + '/../../lib/utils')
   , Support = require(__dirname + '/support');
@@ -10,29 +10,29 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('removeCommentsFromFunctionString', function() {
     it('removes line comments at the start of a line', function() {
-      var functionWithLineComments = function() {
+      const functionWithLineComments = function() {
         // noot noot
       };
 
-      var string = functionWithLineComments.toString()
+      let string = functionWithLineComments.toString()
         , result = Utils.removeCommentsFromFunctionString(string);
 
       expect(result).not.to.match(/.*noot.*/);
     });
 
     it('removes lines comments in the middle of a line', function() {
-      var functionWithLineComments = function() {
+      const functionWithLineComments = function() {
         alert(1); // noot noot
       };
 
-      var string = functionWithLineComments.toString()
+      let string = functionWithLineComments.toString()
         , result = Utils.removeCommentsFromFunctionString(string);
 
       expect(result).not.to.match(/.*noot.*/);
     });
 
     it('removes range comments', function() {
-      var s = function() {
+      const s = function() {
         alert(1); /*
           noot noot
         */
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
         */
       }.toString();
 
-      var result = Utils.removeCommentsFromFunctionString(s);
+      const result = Utils.removeCommentsFromFunctionString(s);
 
       expect(result).not.to.match(/.*noot.*/);
       expect(result).not.to.match(/.*foo.*/);
@@ -99,26 +99,26 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
 
   describe('format', function() {
     it('should format where clause correctly when the value is truthy', function() {
-      var where = ['foo = ?', 1];
+      const where = ['foo = ?', 1];
       expect(Utils.format(where)).to.equal('foo = 1');
     });
 
     it('should format where clause correctly when the value is false', function() {
-      var where = ['foo = ?', 0];
+      const where = ['foo = ?', 0];
       expect(Utils.format(where)).to.equal('foo = 0');
     });
   });
 
   describe('cloneDeep', function() {
     it('should clone objects', function() {
-      var obj = {foo: 1}
+      let obj = {foo: 1}
         , clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
 
     it('should clone nested objects', function() {
-      var obj = {foo: {bar: 1}}
+      let obj = {foo: {bar: 1}}
         , clone = Utils.cloneDeep(obj);
 
       expect(obj.foo).to.not.equal(clone.foo);
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
     it('should not call clone methods on plain objects', function() {
       expect(function() {
         Utils.cloneDeep({
-          clone: function() {
+          clone() {
             throw new Error('clone method called');
           }
         });
@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
 
     it('should not call clone methods on arrays', function() {
       expect(function() {
-        var arr = [];
+        const arr = [];
         arr.clone = function() {
           throw new Error('clone method called');
         };
@@ -184,34 +184,34 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
 
   if (Support.getTestDialect() === 'postgres') {
     describe('json', function() {
-      var queryGenerator = require('../../lib/dialects/postgres/query-generator.js');
+      const queryGenerator = require('../../lib/dialects/postgres/query-generator.js');
 
       it('successfully parses a complex nested condition hash', function() {
-        var conditions = {
+        const conditions = {
           metadata: {
             language: 'icelandic',
             pg_rating: { 'dk': 'G' }
           },
           another_json_field: { x: 1 }
         };
-        var expected = `"metadata"#>>'{language}' = 'icelandic' and "metadata"#>>'{pg_rating,dk}' = 'G' and "another_json_field"#>>'{x}' = '1'`;
+        const expected = '"metadata"#>>\'{language}\' = \'icelandic\' and "metadata"#>>\'{pg_rating,dk}\' = \'G\' and "another_json_field"#>>\'{x}\' = \'1\'';
         expect(queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
       });
 
       it('successfully parses a string using dot notation', function() {
-        var path = 'metadata.pg_rating.dk';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(`"metadata"#>>'{pg_rating,dk}'`);
+        const path = 'metadata.pg_rating.dk';
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('"metadata"#>>\'{pg_rating,dk}\'');
       });
 
       it('allows postgres json syntax', function() {
-        var path = 'metadata->pg_rating->>dk';
+        const path = 'metadata->pg_rating->>dk';
         expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
       });
 
       it('can take a value to compare against', function() {
-        var path = 'metadata.pg_rating.is';
-        var value = 'U';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal(`"metadata"#>>'{pg_rating,is}' = 'U'`);
+        const path = 'metadata.pg_rating.is';
+        const value = 'U';
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('"metadata"#>>\'{pg_rating,is}\' = \'U\'');
       });
     });
   }

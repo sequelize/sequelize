@@ -1,19 +1,19 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , config = require(__dirname + '/../../../config/config')
-  , DataTypes = require(__dirname + '/../../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../../support');
+const dialect = Support.getTestDialect();
+const config = require(__dirname + '/../../../config/config');
+const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', function() {
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {
         it('should create a table wp_table1wp_table2s', function() {
-          var Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
+          let Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING});
 
           Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
@@ -25,7 +25,7 @@ if (dialect.match(/^postgres/)) {
 
       describe('when join table name is specified', function() {
         beforeEach(function() {
-          var Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
+          let Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
           Table1.belongsToMany(Table2, {through: 'table1_to_table2'});
@@ -45,7 +45,7 @@ if (dialect.match(/^postgres/)) {
     describe('HasMany', function() {
       describe('addDAO / getModel', function() {
         beforeEach(function() {
-          var self = this;
+          const self = this;
 
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
           this.User = this.sequelize.define('User' + config.rand(), { name: DataTypes.STRING });
@@ -56,14 +56,14 @@ if (dialect.match(/^postgres/)) {
           this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'usertasks'});
           this.Task.belongsToMany(this.User, {as: 'Users', through: 'usertasks'});
 
-          var users = []
+          let users = []
             , tasks = [];
 
-          for (var i = 0; i < 5; ++i) {
+          for (let i = 0; i < 5; ++i) {
             users[users.length] = {name: 'User' + Math.random()};
           }
 
-          for (var x = 0; x < 5; ++x) {
+          for (let x = 0; x < 5; ++x) {
             tasks[tasks.length] = {name: 'Task' + Math.random()};
           }
 
@@ -82,7 +82,7 @@ if (dialect.match(/^postgres/)) {
         });
 
         it('should correctly add an association to the dao', function() {
-          var self = this;
+          const self = this;
 
           return self.user.getTasks().then(function(_tasks) {
             expect(_tasks).to.have.length(0);
@@ -97,7 +97,7 @@ if (dialect.match(/^postgres/)) {
 
       describe('removeDAO', function() {
         it('should correctly remove associated objects', function() {
-          var self = this
+          let self = this
             , users = []
             , tasks = [];
 
@@ -110,11 +110,11 @@ if (dialect.match(/^postgres/)) {
           this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'usertasks'});
           this.Task.belongsToMany(this.User, {as: 'Users', through: 'usertasks'});
 
-          for (var i = 0; i < 5; ++i) {
+          for (let i = 0; i < 5; ++i) {
             users[users.length] = {id: i + 1, name: 'User' + Math.random()};
           }
 
-          for (var x = 0; x < 5; ++x) {
+          for (let x = 0; x < 5; ++x) {
             tasks[tasks.length] = {id: x + 1, name: 'Task' + Math.random()};
           }
 

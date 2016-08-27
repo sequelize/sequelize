@@ -2,20 +2,20 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types');
-var SEARCH_PATH_ONE = 'schema_one,public';
-var SEARCH_PATH_TWO = 'schema_two,public';
+const SEARCH_PATH_ONE = 'schema_one,public';
+const SEARCH_PATH_TWO = 'schema_two,public';
 
-var current = Support.createSequelizeInstance({
+const current = Support.createSequelizeInstance({
   dialectOptions: {
     prependSearchPath: true
   }
 });
 
-var locationId;
+let locationId;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   if (current.dialect.supports.searchPath) {
@@ -23,19 +23,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     describe('SEARCH PATH', function() {
       before(function() {
         this.Restaurant = current.define('restaurant', {
-            foo: DataTypes.STRING,
-            bar: DataTypes.STRING
-          },
-          {tableName: "restaurants"});
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING
+        },
+          {tableName: 'restaurants'});
         this.Location = current.define('location', {
-            name: DataTypes.STRING
-          },
-          {tableName: "locations"});
+          name: DataTypes.STRING
+        },
+          {tableName: 'locations'});
         this.Employee = current.define('employee', {
-            first_name: DataTypes.STRING,
-            last_name: DataTypes.STRING
-          },
-          {tableName: "employees"});
+          first_name: DataTypes.STRING,
+          last_name: DataTypes.STRING
+        },
+          {tableName: 'employees'});
         this.Restaurant.belongsTo(this.Location,
           {
             foreignKey: 'location_id',
@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
       beforeEach('build restaurant tables', function() {
-        var Restaurant = this.Restaurant;
+        const Restaurant = this.Restaurant;
         return current.createSchema('schema_one').then(function() {
           return current.createSchema('schema_two');
         }).then(function() {
@@ -74,8 +74,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Add data via model.create, retrieve via model.findOne', function() {
         it('should be able to insert data into the table in schema_one using create', function() {
-          var Restaurant = this.Restaurant;
-          var restaurantId;
+          const Restaurant = this.Restaurant;
+          let restaurantId;
 
           return Restaurant.create({
             foo: 'one',
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should fail to insert data into schema_two using create', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
           return Restaurant.create({
             foo: 'test'
@@ -107,8 +107,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be able to insert data into the table in schema_two using create', function() {
-          var Restaurant = this.Restaurant;
-          var restaurantId;
+          const Restaurant = this.Restaurant;
+          let restaurantId;
 
           return Restaurant.create({
             foo: 'two',
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
         it('should fail to find schema_one object in schema_two', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
           return Restaurant.findOne({where: {foo: 'one'}, searchPath: SEARCH_PATH_TWO}).then(function(RestaurantObj) {
             expect(RestaurantObj).to.be.null;
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should fail to find schema_two object in schema_one', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
           return Restaurant.findOne({where: {foo: 'two'}, searchPath: SEARCH_PATH_ONE}).then(function(RestaurantObj) {
             expect(RestaurantObj).to.be.null;
@@ -149,9 +149,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Add data via instance.save, retrieve via model.findAll', function() {
         it('should be able to insert data into both schemas using instance.save and retrieve it via findAll', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
-          var restaurauntModel = Restaurant.build({bar: 'one.1'});
+          let restaurauntModel = Restaurant.build({bar: 'one.1'});
 
           return restaurauntModel.save({searchPath: SEARCH_PATH_ONE})
             .then(function() {
@@ -203,9 +203,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Add data via instance.save, retrieve via model.count and model.find', function() {
         it('should be able to insert data into both schemas using instance.save count it and retrieve it via findAll with where', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
-          var restaurauntModel = Restaurant.build({bar: 'one.1'});
+          let restaurauntModel = Restaurant.build({bar: 'one.1'});
 
           return restaurauntModel.save({searchPath: SEARCH_PATH_ONE}).then(function() {
             restaurauntModel = Restaurant.build({bar: 'one.2'});
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Get associated data in public schema via include', function() {
         beforeEach(function() {
-          var Location = this.Location;
+          const Location = this.Location;
 
           return Location.sync({force: true})
             .then(function() {
@@ -273,8 +273,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', function() {
-          var Restaurant = this.Restaurant;
-          var Location = this.Location;
+          const Restaurant = this.Restaurant;
+          const Location = this.Location;
 
           return Restaurant.create({
             foo: 'one',
@@ -295,8 +295,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
         it('should be able to insert and retrieve associated data into the table in schema_two', function() {
-          var Restaurant = this.Restaurant;
-          var Location = this.Location;
+          const Restaurant = this.Restaurant;
+          const Location = this.Location;
 
           return Restaurant.create({
             foo: 'two',
@@ -319,7 +319,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('Get schema specific associated data via include', function() {
         beforeEach(function() {
-          var Employee = this.Employee;
+          const Employee = this.Employee;
           return Employee.sync({force: true, searchPath: SEARCH_PATH_ONE})
             .then(function() {
               return Employee.sync({force: true, searchPath: SEARCH_PATH_TWO});
@@ -330,9 +330,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', function() {
-          var Restaurant = this.Restaurant;
-          var Employee = this.Employee;
-          var restaurantId;
+          const Restaurant = this.Restaurant;
+          const Employee = this.Employee;
+          let restaurantId;
 
           return Restaurant.create({
             foo: 'one'
@@ -382,9 +382,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
         it('should be able to insert and retrieve associated data into the table in schema_two', function() {
-          var Restaurant = this.Restaurant;
-          var Employee = this.Employee;
-          var restaurantId;
+          const Restaurant = this.Restaurant;
+          const Employee = this.Employee;
+          let restaurantId;
 
           return Restaurant.create({
             foo: 'two'
@@ -435,10 +435,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       describe('concurency tests', function() {
         it('should build and persist instances to 2 schemas concurrently in any order', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
-          var restaurauntModelSchema1 = Restaurant.build({bar: 'one.1'});
-          var restaurauntModelSchema2 = Restaurant.build({bar: 'two.1'});
+          let restaurauntModelSchema1 = Restaurant.build({bar: 'one.1'});
+          const restaurauntModelSchema2 = Restaurant.build({bar: 'two.1'});
 
           return restaurauntModelSchema1.save({searchPath: SEARCH_PATH_ONE})
             .then(function() {

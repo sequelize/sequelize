@@ -1,18 +1,18 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , DataTypes = require(__dirname + '/../../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../../support');
+const dialect = Support.getTestDialect();
+const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Associations', function() {
     describe('many-to-many', function() {
       describe('where tables have the same prefix', function() {
         it('should create a table wp_table1wp_table2s', function() {
-          var Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
+          let Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING})
             , self = this;
 
@@ -28,7 +28,7 @@ if (dialect === 'mysql') {
 
       describe('when join table name is specified', function() {
         beforeEach(function() {
-          var Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
+          let Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
             , Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
           Table1.belongsToMany(Table2, {through: 'table1_to_table2'});
@@ -56,15 +56,15 @@ if (dialect === 'mysql') {
         this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'UserTasks'});
         this.Task.belongsToMany(this.User, {as: 'Users', through: 'UserTasks'});
 
-        var self = this
+        let self = this
           , users = []
           , tasks = [];
 
-        for (var i = 0; i < 5; ++i) {
+        for (let i = 0; i < 5; ++i) {
           users[users.length] = {name: 'User' + Math.random()};
         }
 
-        for (var x = 0; x < 5; ++x) {
+        for (let x = 0; x < 5; ++x) {
           tasks[tasks.length] = {name: 'Task' + Math.random()};
         }
 
@@ -77,7 +77,7 @@ if (dialect === 'mysql') {
 
       describe('addDAO / getModel', function() {
         beforeEach(function() {
-          var self = this;
+          const self = this;
 
           self.user = null;
           self.task = null;
@@ -91,7 +91,7 @@ if (dialect === 'mysql') {
         });
 
         it('should correctly add an association to the dao', function() {
-          var self = this;
+          const self = this;
 
           return self.user.getTasks().then(function(_tasks) {
             expect(_tasks.length).to.equal(0);
@@ -106,7 +106,7 @@ if (dialect === 'mysql') {
 
       describe('removeDAO', function() {
         beforeEach(function() {
-          var self = this;
+          const self = this;
 
           self.user = null;
           self.tasks = null;
@@ -120,7 +120,7 @@ if (dialect === 'mysql') {
         });
 
         it('should correctly remove associated objects', function() {
-          var self = this;
+          const self = this;
 
           return self.user.getTasks().then(function(__tasks) {
             expect(__tasks.length).to.equal(0);

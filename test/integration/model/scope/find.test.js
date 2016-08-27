@@ -2,7 +2,7 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , Sequelize = require('../../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support');
@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       return this.sequelize.sync({force: true}).then(function() {
-        var records = [
+        const records = [
           {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7, parent_id: 1},
           {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, parent_id: 2},
           {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10, parent_id: 1},
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should be able to handle $and in scopes', function () {
+    it('should be able to handle $and in scopes', function() {
       return this.ScopeMe.scope('andScope').findAll().then(function(users) {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('tony');

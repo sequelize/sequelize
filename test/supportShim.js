@@ -1,6 +1,6 @@
 'use strict';
 
-var QueryInterface = require(__dirname + '/../lib/query-interface')
+let QueryInterface = require(__dirname + '/../lib/query-interface')
   , hintsModule = require('hints')
   , _ = require('lodash')
   , util = require('util');
@@ -24,7 +24,7 @@ module.exports = function(Sequelize) {
   ['hasOne', 'belongsTo', 'hasMany', 'belongsToMany'].forEach(function(type) {
     shimMethod(Sequelize.Model, type, function(original) {
       return function(targetModel, options) {
-        var model = this,
+        let model = this,
           association = original.apply(this, arguments);
 
         _.forIn(association.accessors, function(accessor, accessorName) {
@@ -45,7 +45,7 @@ module.exports = function(Sequelize) {
    */
   function shimAll(obj, objName) {
     forOwn(obj, function(method, name) {
-      var result = examine(method, name);
+      const result = examine(method, name);
       if (result) shim(obj, name, result.index, result.conform, objName + name);
     });
   }
@@ -85,21 +85,21 @@ module.exports = function(Sequelize) {
     if (name === 'constructor' || !name.match(/^[a-z]/)) return;
 
     // find test hints if provided
-    var fnStr = getFunctionCode(method),
+    let fnStr = getFunctionCode(method),
       obj = hintsModule.full(fnStr, 'testhint'),
       hints = obj.hints,
       tree = obj.tree;
 
-    var result = {};
+    const result = {};
 
     // extract function arguments
-    var args = getFunctionArguments(tree);
+    const args = getFunctionArguments(tree);
 
     // create args conform function
     result.conform = getArgumentsConformFn(method, args, obj.hintsPos, tree);
 
     // use hints to find index
-    var hint = hints.options;
+    const hint = hints.options;
     if (hint === 'none') return;
     if (hint && hint.match(/^\d+$/)) {
       result.index = hint * 1;
@@ -107,7 +107,7 @@ module.exports = function(Sequelize) {
     }
 
     // find 'options' argument - if none, then skip
-    var index = args.indexOf('options');
+    const index = args.indexOf('options');
     if (index === -1) return;
 
     result.index = index + 1;
@@ -130,19 +130,19 @@ module.exports = function(Sequelize) {
     index--;
 
     shimMethod(obj, name, function(original) {
-      var sequelizeProto = (obj === Sequelize.prototype);
+      const sequelizeProto = obj === Sequelize.prototype;
 
       return function() {
-        var sequelize = (sequelizeProto ? this : this.sequelize);
+        let sequelize = sequelizeProto ? this : this.sequelize;
         if (this instanceof Sequelize.Association) sequelize = this.target.sequelize;
         if (!sequelize) throw new Error('Object does not have a `sequelize` attribute');
 
-        var args = Sequelize.Utils.sliceArgs(arguments),
+        let args = Sequelize.Utils.sliceArgs(arguments),
           fromTests = calledFromTests();
 
         if (conform) args = conform.apply(this, arguments);
 
-        var options = args[index];
+        let options = args[index];
 
         if (fromTests) {
           args[index] = options = addLogger(options, sequelize);
@@ -150,12 +150,12 @@ module.exports = function(Sequelize) {
           testLogger(options, debugName);
         }
 
-        var originalOptions = cloneOptions(options);
+        const originalOptions = cloneOptions(options);
 
-        var result = original.apply(this, args);
+        let result = original.apply(this, args);
 
         if (result && typeof result.then === 'function') {
-          var err;
+          let err;
           try {
             checkOptions(options, originalOptions, debugName);
           } catch (e) {
@@ -190,7 +190,7 @@ module.exports = function(Sequelize) {
    * @param {Function} wrapper - Wrapper function
    */
   function shimMethod(obj, name, wrapper) {
-    var original = obj[name];
+    const original = obj[name];
     if (original.__testShim) return;
 
     if (original.__testShimmedTo) {
@@ -212,11 +212,11 @@ module.exports = function(Sequelize) {
   function addLogger(options, sequelize) {
     if (!options) options = {};
 
-    var hadLogging = options.hasOwnProperty('logging'),
+    let hadLogging = options.hasOwnProperty('logging'),
       originalLogging = options.logging;
 
     options.logging = function() {
-      var logger = originalLogging !== undefined ? originalLogging : sequelize.options.logging;
+      const logger = originalLogging !== undefined ? originalLogging : sequelize.options.logging;
       if (logger) {
         if ((sequelize.options.benchmark || options.benchmark) && logger === console.log) {
           return logger.call(this, arguments[0] + ' Elapsed time: ' + arguments[1] + 'ms');
@@ -262,11 +262,11 @@ module.exports = function(Sequelize) {
    *
    * @returns {boolean} - true if this method called from within the tests
    */
-  var pathRegStr = _.escapeRegExp(__dirname + '/'),
+  let pathRegStr = _.escapeRegExp(__dirname + '/'),
     regExp = new RegExp('^\\s+at\\s+(' + pathRegStr + '|.+ \\(' + pathRegStr + ')');
 
   function calledFromTests() {
-    return !!((new Error()).stack.split(/[\r\n]+/)[3].match(regExp));
+    return !!(new Error()).stack.split(/[\r\n]+/)[3].match(regExp);
   }
 };
 
@@ -298,7 +298,7 @@ function forOwn(obj, fn) {
  * @returns {string} - Code of function
  */
 function getFunctionCode(fn) {
-  var code = fn.toString();
+  let code = fn.toString();
   if (code.match(/^function[\s\*\(]/) || code.match(/^class[\s\{]/)) return code;
   if (code.match(/^(import|delete)[\s\*\(]/)) code = '_' + code.substr(1);
   return 'function ' + code;
@@ -335,7 +335,7 @@ function getArgumentsConformFn(method, args, hints, tree) {
   if (!hints.end) return;
 
   // extract
-  var start = hints.start ? hints.start.end : tree.body[0].body.start + 1,
+  let start = hints.start ? hints.start.end : tree.body[0].body.start + 1,
     body = getFunctionCode(method).slice(start, hints.end.start);
 
   // create function that conforms arguments
@@ -375,6 +375,6 @@ function checkOptions(options, original, name) {
  */
 function optionsEqual(options, original) {
   return _.isEqualWith(options, original, function(value1, value2) {
-    if ((typeof value1 === 'object' && !_.isPlainObject(value1)) || (typeof value2 === 'object' && !_.isPlainObject(value2))) return value1 === value2;
+    if (typeof value1 === 'object' && !_.isPlainObject(value1) || typeof value2 === 'object' && !_.isPlainObject(value2)) return value1 === value2;
   });
 }

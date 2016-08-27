@@ -1,6 +1,6 @@
 'use strict';
 
-var chai = require('chai')
+let chai = require('chai')
   , Sequelize = require('../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
@@ -9,8 +9,8 @@ var chai = require('chai')
 if (current.dialect.supports.tmpTableTrigger) {
   describe(Support.getTestDialectTeaser('Model'), function() {
     describe('trigger', function() {
-      var User;
-      var triggerQuery = 'create trigger User_ChangeTracking on [users] for insert,update, delete \n' +
+      let User;
+      const triggerQuery = 'create trigger User_ChangeTracking on [users] for insert,update, delete \n' +
                           'as\n' +
                             'SET NOCOUNT ON\n' +
                             'if exists(select 1 from inserted)\n' +
@@ -22,25 +22,25 @@ if (current.dialect.supports.tmpTableTrigger) {
                               'select * from deleted\n' +
                             'end\n';
 
-      beforeEach(function () {
+      beforeEach(function() {
         User = this.sequelize.define('user', {
           username: {
             type: Sequelize.STRING,
             field:'user_name'
           }
-        },{
+        }, {
           hasTrigger:true
         });
 
-        return User.sync({force: true}).bind(this).then(function () {
-          return this.sequelize.query(triggerQuery,{type:this.sequelize.QueryTypes.RAW});
+        return User.sync({force: true}).bind(this).then(function() {
+          return this.sequelize.query(triggerQuery, {type:this.sequelize.QueryTypes.RAW});
         });
       });
 
       it('should return output rows after insert', function() {
         return User.create({
           username: 'triggertest'
-        }).then(function () {
+        }).then(function() {
           return expect(User.find({username: 'triggertest'})).to.eventually.have.property('username').which.equals('triggertest');
         });
       });
@@ -52,7 +52,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           user.username = 'usernamechanged';
           return user.save();
         })
-        .then(function (user) {
+        .then(function(user) {
           return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
         });
       });
@@ -69,7 +69,7 @@ if (current.dialect.supports.tmpTableTrigger) {
             }
           });
         })
-        .then(function (user) {
+        .then(function(user) {
           return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
         });
       });
@@ -79,7 +79,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           username: 'triggertest'
         }).then(function(user){
           return user.destroy();
-        }).then(function (user) {
+        }).then(function(user) {
           return expect(User.find({username: 'triggertest'})).to.eventually.be.null;
         });
       });

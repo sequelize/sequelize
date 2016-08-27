@@ -2,17 +2,17 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , Sequelize = require('../../../../index')
   , expect = chai.expect
   , Promise = Sequelize.Promise
   , Support = require(__dirname + '/../../support');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('scope', function () {
-    describe('associations', function () {
-      beforeEach(function () {
-        var sequelize = this.sequelize;
+  describe('scope', function() {
+    describe('associations', function() {
+      beforeEach(function() {
+        const sequelize = this.sequelize;
 
         this.ScopeMe = this.sequelize.define('ScopeMe', {
           username: Sequelize.STRING,
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 username: 'tony'
               }
             },
-            includeActiveProjects: function(){
+            includeActiveProjects(){
               return {
                 include: [{
                   model: sequelize.models.company,
@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             this.Company.create({ id: 1, active: true}),
             this.Company.create({ id: 2, active: false})
           ]);
-        }).spread(function (u1, u2, u3, u4, u5, c1, c2) {
+        }).spread(function(u1, u2, u3, u4, u5, c1, c2) {
           return Promise.all([
             c1.setUsers([u1, u2, u3, u4]),
             c2.setUsers([u5])
@@ -116,8 +116,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      describe('include', function () {
-        it('should scope columns properly', function () {
+      describe('include', function() {
+        it('should scope columns properly', function() {
           // Will error with ambigous column if id is not scoped properly to `Company`.`id`
           return expect(this.Company.findAll({
             where: { id: 1 },
@@ -125,156 +125,156 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           })).not.to.be.rejected;
         });
 
-        it('should apply default scope when including an associations', function () {
+        it('should apply default scope when including an associations', function() {
           return this.Company.findAll({
             include: [this.UserAssociation]
-          }).get(0).then(function (company) {
+          }).get(0).then(function(company) {
             expect(company.users).to.have.length(2);
           });
         });
 
-        it('should apply default scope when including a model', function () {
+        it('should apply default scope when including a model', function() {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe, as: 'users'}]
-          }).get(0).then(function (company) {
+          }).get(0).then(function(company) {
             expect(company.users).to.have.length(2);
           });
         });
 
-        it('should be able to include a scoped model', function () {
+        it('should be able to include a scoped model', function() {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe.scope('isTony'), as: 'users'}]
-          }).get(0).then(function (company) {
+          }).get(0).then(function(company) {
             expect(company.users).to.have.length(1);
             expect(company.users[0].get('username')).to.equal('tony');
           });
         });
       });
 
-      describe('get', function () {
-        beforeEach(function () {
+      describe('get', function() {
+        beforeEach(function() {
           return Promise.all([
             this.Project.create(),
             this.Company.unscoped().findAll()
-          ]).spread(function (p, companies) {
+          ]).spread(function(p, companies) {
             return p.setCompanies(companies);
           });
         });
 
-        describe('it should be able to unscope', function () {
-          it('hasMany', function () {
-            return this.Company.findById(1).then(function (company) {
+        describe('it should be able to unscope', function() {
+          it('hasMany', function() {
+            return this.Company.findById(1).then(function(company) {
               return company.getUsers({ scope: false});
-            }).then(function (users) {
+            }).then(function(users) {
               expect(users).to.have.length(4);
             });
           });
 
-          it('hasOne', function () {
+          it('hasOne', function() {
             return this.Profile.create({
               active: false,
               userId: 1
-            }).bind(this).then(function () {
+            }).bind(this).then(function() {
               return this.ScopeMe.findById(1);
-            }).then(function (user) {
+            }).then(function(user) {
               return user.getProfile({ scope: false });
-            }).then(function (profile) {
+            }).then(function(profile) {
               expect(profile).to.be.ok;
             });
           });
 
-          it('belongsTo', function () {
-            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(function (user) {
+          it('belongsTo', function() {
+            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(function(user) {
               return user.getCompany({ scope: false });
-            }).then(function (company) {
+            }).then(function(company) {
               expect(company).to.be.ok;
             });
           });
 
-          it('belongsToMany', function () {
-            return this.Project.findAll().get(0).then(function (p) {
+          it('belongsToMany', function() {
+            return this.Project.findAll().get(0).then(function(p) {
               return p.getCompanies({ scope: false});
-            }).then(function (companies) {
+            }).then(function(companies) {
               expect(companies).to.have.length(2);
             });
           });
         });
 
-        describe('it should apply default scope', function () {
-          it('hasMany', function () {
-            return this.Company.findById(1).then(function (company) {
+        describe('it should apply default scope', function() {
+          it('hasMany', function() {
+            return this.Company.findById(1).then(function(company) {
               return company.getUsers();
-            }).then(function (users) {
+            }).then(function(users) {
               expect(users).to.have.length(2);
             });
           });
 
-          it('hasOne', function () {
+          it('hasOne', function() {
             return this.Profile.create({
               active: false,
               userId: 1
-            }).bind(this).then(function () {
+            }).bind(this).then(function() {
               return this.ScopeMe.findById(1);
-            }).then(function (user) {
+            }).then(function(user) {
               return user.getProfile();
-            }).then(function (profile) {
+            }).then(function(profile) {
               expect(profile).not.to.be.ok;
             });
           });
 
-          it('belongsTo', function () {
-            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(function (user) {
+          it('belongsTo', function() {
+            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(function(user) {
               return user.getCompany();
-            }).then(function (company) {
+            }).then(function(company) {
               expect(company).not.to.be.ok;
             });
           });
 
-          it('belongsToMany', function () {
-            return this.Project.findAll().get(0).then(function (p) {
+          it('belongsToMany', function() {
+            return this.Project.findAll().get(0).then(function(p) {
               return p.getCompanies();
-            }).then(function (companies) {
+            }).then(function(companies) {
               expect(companies).to.have.length(1);
               expect(companies[0].get('active')).to.be.ok;
             });
           });
         });
 
-        describe('it should be able to apply another scope', function () {
-          it('hasMany', function () {
-            return this.Company.findById(1).then(function (company) {
+        describe('it should be able to apply another scope', function() {
+          it('hasMany', function() {
+            return this.Company.findById(1).then(function(company) {
               return company.getUsers({ scope: 'isTony'});
-            }).then(function (users) {
+            }).then(function(users) {
               expect(users).to.have.length(1);
               expect(users[0].get('username')).to.equal('tony');
             });
           });
 
-          it('hasOne', function () {
+          it('hasOne', function() {
             return this.Profile.create({
               active: true,
               userId: 1
-            }).bind(this).then(function () {
+            }).bind(this).then(function() {
               return this.ScopeMe.findById(1);
-            }).then(function (user) {
+            }).then(function(user) {
               return user.getProfile({ scope: 'notActive' });
-            }).then(function (profile) {
+            }).then(function(profile) {
               expect(profile).not.to.be.ok;
             });
           });
 
-          it('belongsTo', function () {
-            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(function (user) {
+          it('belongsTo', function() {
+            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(function(user) {
               return user.getCompany({ scope: 'notActive' });
-            }).then(function (company) {
+            }).then(function(company) {
               expect(company).to.be.ok;
             });
           });
 
-          it('belongsToMany', function () {
-            return this.Project.findAll().get(0).then(function (p) {
+          it('belongsToMany', function() {
+            return this.Project.findAll().get(0).then(function(p) {
               return p.getCompanies({ scope: 'reversed' });
-            }).then(function (companies) {
+            }).then(function(companies) {
               expect(companies).to.have.length(2);
               expect(companies[0].id).to.equal(2);
               expect(companies[1].id).to.equal(1);
@@ -284,17 +284,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       describe('scope with includes', function() {
-        beforeEach(function () {
+        beforeEach(function() {
           return Promise.all([
             this.Company.findById(1),
             this.Project.create({ id: 1, active: true}),
-            this.Project.create({ id: 2, active: false}),
-          ]).spread(function (c, p1, p2) {
+            this.Project.create({ id: 2, active: false})
+          ]).spread(function(c, p1, p2) {
             return c.setProjects([p1, p2]);
           });
         });
 
-        it('should scope columns properly', function () {
+        it('should scope columns properly', function() {
           return expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
         });
 

@@ -11,15 +11,15 @@ var Support   = require(__dirname + '/../support')
 
 if (current.dialect.supports.JSON) {
   suite(Support.getTestDialectTeaser('SQL'), function() {
-    suite('JSON', function () {
-      suite('escape', function () {
-        test('plain string', function () {
+    suite('JSON', function() {
+      suite('escape', function() {
+        test('plain string', function() {
           expectsql(sql.escape('string', { type: new DataTypes.JSON() }), {
             default: '\'"string"\''
           });
         });
 
-        test('plain int', function () {
+        test('plain int', function() {
           expectsql(sql.escape(0, { type: new DataTypes.JSON() }), {
             default: '\'0\''
           });
@@ -28,7 +28,7 @@ if (current.dialect.supports.JSON) {
           });
         });
 
-        test('boolean', function () {
+        test('boolean', function() {
           expectsql(sql.escape(true, { type: new DataTypes.JSON() }), {
             default: '\'true\''
           });
@@ -37,19 +37,19 @@ if (current.dialect.supports.JSON) {
           });
         });
 
-        test('NULL', function () {
+        test('NULL', function() {
           expectsql(sql.escape(null, { type: new DataTypes.JSON() }), {
             default: 'NULL'
           });
         });
 
-        test('nested object', function () {
+        test('nested object', function() {
           expectsql(sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
             default: '\'{"some":"nested","more":{"nested":true},"answer":42}\''
           });
         });
 
-        test('array of JSON', function () {
+        test('array of JSON', function() {
           expectsql(sql.escape([
             { some: 'nested', more: { nested: true }, answer: 42 },
             43,
@@ -58,7 +58,7 @@ if (current.dialect.supports.JSON) {
             postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]'
           });
         });
-        test('array of JSONB', function () {
+        test('array of JSONB', function() {
           expectsql(sql.escape([
             { some: 'nested', more: { nested: true }, answer: 42 },
             43,

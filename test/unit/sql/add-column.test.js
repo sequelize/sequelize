@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030, -W110 */
-var Support   = require(__dirname + '/../support')
+let Support   = require(__dirname + '/../support')
   , DataTypes = require('../../../lib/data-types')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
@@ -10,9 +10,9 @@ var Support   = require(__dirname + '/../support')
 
 if (current.dialect.name === 'mysql') {
   describe(Support.getTestDialectTeaser('SQL'), function() {
-    describe('addColumn', function () {
+    describe('addColumn', function() {
 
-      var Model = current.define('users', {
+      const Model = current.define('users', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -23,9 +23,9 @@ if (current.dialect.name === 'mysql') {
       it('properly generate alter queries', function(){
         return expectsql(sql.addColumnQuery(Model.getTableName(), 'level_id', current.normalizeAttribute({
           type: DataTypes.FLOAT,
-          allowNull: false,
+          allowNull: false
         })), {
-            mysql: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;',
+          mysql: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;'
         });
       });
 
@@ -39,7 +39,7 @@ if (current.dialect.name === 'mysql') {
           onUpdate: 'cascade',
           onDelete: 'cascade'
         })), {
-            mysql: 'ALTER TABLE `users` ADD `level_id` INTEGER, ADD CONSTRAINT `users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+          mysql: 'ALTER TABLE `users` ADD `level_id` INTEGER, ADD CONSTRAINT `users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;'
         });
       });
 

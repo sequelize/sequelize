@@ -2,12 +2,12 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
-var current = Support.sequelize;
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   if (current.dialect.supports.GEOGRAPHY) {
@@ -21,23 +21,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.User.sync({ force: true });
       });
 
-      it('works with aliases fields', function () {
-        var Pub = this.sequelize.define('Pub', {
-          location: {field: 'coordinates', type: DataTypes.GEOGRAPHY}
-        })
+      it('works with aliases fields', function() {
+        let Pub = this.sequelize.define('Pub', {
+            location: {field: 'coordinates', type: DataTypes.GEOGRAPHY}
+          })
           , point = {type: 'Point', coordinates: [39.807222, -76.984722]};
 
-        return Pub.sync({ force: true }).then(function () {
+        return Pub.sync({ force: true }).then(function() {
           return Pub.create({location: point});
-        }).then(function (pub) {
+        }).then(function(pub) {
           expect(pub).not.to.be.null;
           expect(pub.location).to.be.deep.eql(point);
         });
       });
 
       it('should create a geography object', function() {
-        var User = this.User;
-        var point = { type: 'Point', coordinates: [39.807222,-76.984722]};
+        const User = this.User;
+        const point = { type: 'Point', coordinates: [39.807222, -76.984722]};
 
         return User.create({username: 'username', geography: point }).then(function(newUser) {
           expect(newUser).not.to.be.null;
@@ -46,10 +46,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should update a geography object', function() {
-        var User = this.User;
-        var point1 = { type: 'Point', coordinates: [39.807222,-76.984722]}
-          , point2 = { type: 'Point', coordinates: [49.807222,-86.984722]};
-        var props = {username: 'username', geography: point1};
+        const User = this.User;
+        let point1 = { type: 'Point', coordinates: [39.807222, -76.984722]}
+          , point2 = { type: 'Point', coordinates: [49.807222, -86.984722]};
+        const props = {username: 'username', geography: point1};
 
         return User.create(props).then(function(user) {
           return User.update({geography: point2}, {where: {username: props.username}});
@@ -72,8 +72,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create a geography object', function() {
-        var User = this.User;
-        var point = { type: 'Point', coordinates: [39.807222,-76.984722]};
+        const User = this.User;
+        const point = { type: 'Point', coordinates: [39.807222, -76.984722]};
 
         return User.create({username: 'username', geography: point }).then(function(newUser) {
           expect(newUser).not.to.be.null;
@@ -82,10 +82,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should update a geography object', function() {
-        var User = this.User;
-        var point1 = { type: 'Point', coordinates: [39.807222,-76.984722]}
-          , point2 = { type: 'Point', coordinates: [49.807222,-86.984722]};
-        var props = {username: 'username', geography: point1};
+        const User = this.User;
+        let point1 = { type: 'Point', coordinates: [39.807222, -76.984722]}
+          , point2 = { type: 'Point', coordinates: [49.807222, -86.984722]};
+        const props = {username: 'username', geography: point1};
 
         return User.create(props).then(function(user) {
           return User.update({geography: point2}, {where: {username: props.username}});
@@ -108,8 +108,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create a geography object', function() {
-        var User = this.User;
-        var point = { type: 'LineString', 'coordinates': [ [100.0, 0.0], [101.0, 1.0] ] };
+        const User = this.User;
+        const point = { type: 'LineString', 'coordinates': [ [100.0, 0.0], [101.0, 1.0] ] };
 
         return User.create({username: 'username', geography: point }).then(function(newUser) {
           expect(newUser).not.to.be.null;
@@ -118,10 +118,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should update a geography object', function() {
-        var User = this.User;
-        var point1 = { type: 'LineString', coordinates: [ [100.0, 0.0], [101.0, 1.0] ] }
+        const User = this.User;
+        let point1 = { type: 'LineString', coordinates: [ [100.0, 0.0], [101.0, 1.0] ] }
           , point2 = { type: 'LineString', coordinates: [ [101.0, 0.0], [102.0, 1.0] ] };
-        var props = {username: 'username', geography: point1};
+        const props = {username: 'username', geography: point1};
 
         return User.create(props).then(function(user) {
           return User.update({geography: point2}, {where: {username: props.username}});
@@ -144,11 +144,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create a geography object', function() {
-        var User = this.User;
-        var point = { type: 'Polygon', coordinates: [
+        const User = this.User;
+        const point = { type: 'Polygon', coordinates: [
              [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
                [100.0, 1.0], [100.0, 0.0] ]
-             ]};
+        ]};
 
         return User.create({username: 'username', geography: point }).then(function(newUser) {
           expect(newUser).not.to.be.null;
@@ -157,16 +157,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should update a geography object', function() {
-        var User = this.User;
-        var polygon1 = { type: 'Polygon', coordinates: [
+        const User = this.User;
+        let polygon1 = { type: 'Polygon', coordinates: [
               [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
                 [100.0, 1.0], [100.0, 0.0] ]
-              ]}
+          ]}
           , polygon2 = { type: 'Polygon', coordinates: [
               [ [100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
                 [100.0, 1.0], [100.0, 0.0] ]
-              ]};
-        var props = {username: 'username', geography: polygon1};
+          ]};
+        const props = {username: 'username', geography: polygon1};
 
         return User.create(props).then(function(user) {
           return User.update({geography: polygon2}, {where: {username: props.username}});
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    describe('sql injection attacks', function () {
+    describe('sql injection attacks', function() {
       beforeEach(function() {
         this.Model = this.sequelize.define('Model', {
           location: DataTypes.GEOGRAPHY
@@ -186,14 +186,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.sequelize.sync({ force: true });
       });
 
-      it('should properly escape the single quotes', function () {
+      it('should properly escape the single quotes', function() {
         return this.Model.create({
           location: {
-            type: "Point",
+            type: 'Point',
             properties: {
               exploit: "'); DELETE YOLO INJECTIONS; -- "
             },
-            coordinates: [39.807222,-76.984722]
+            coordinates: [39.807222, -76.984722]
           }
         });
       });

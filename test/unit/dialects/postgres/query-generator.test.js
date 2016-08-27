@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , QueryGenerator = require('../../../../lib/dialects/postgres/query-generator')
   , Support = require(__dirname + '/../../support')
@@ -13,7 +13,7 @@ var chai = require('chai')
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
-    var suites = {
+    const suites = {
       attributesToSQL: [
         {
           arguments: [{id: 'INTEGER'}],
@@ -252,19 +252,19 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC;',
           context: QueryGenerator,
           needsSequelize: true
-        },{
+        }, {
           title: 'uses limit 0',
           arguments: ['myTable', {limit: 0}],
           expectation: 'SELECT * FROM "myTable" LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: 'uses offset 0',
-         arguments: ['myTable', {offset: 0}],
-         expectation: 'SELECT * FROM "myTable" OFFSET 0;',
-         context: QueryGenerator
-       }, {
-         title: 'raw arguments are neither quoted nor escaped',
-          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
+          title: 'uses offset 0',
+          arguments: ['myTable', {offset: 0}],
+          expectation: 'SELECT * FROM "myTable" OFFSET 0;',
+          context: QueryGenerator
+        }, {
+          title: 'raw arguments are neither quoted nor escaped',
+          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
           context: QueryGenerator
         }, {
@@ -293,7 +293,7 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" WHERE (LOWER("user"."name") LIKE \'%t%\' AND "myTable"."type" = 1);',
           context: QueryGenerator,
           needsSequelize: true
-        },{
+        }, {
           title: 'functions can take functions as arguments',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -338,14 +338,14 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
         }, {
           title: 'functions work for group by',
-         arguments: ['myTable', function(sequelize) {
+          arguments: ['myTable', function(sequelize) {
             return {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
             };
           }],
           expectation: 'SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\");',
           needsSequelize: true
-        },{
+        }, {
           title: 'It is possible to mix sequelize.fn and string arguments to group by',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -880,10 +880,10 @@ if (dialect.match(/^postgres/)) {
         });
 
         tests.forEach(function(test) {
-          var title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+          const title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            var context = test.context || {options: {}};
+            const context = test.context || {options: {}};
 
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
@@ -891,7 +891,7 @@ if (dialect.match(/^postgres/)) {
             }
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

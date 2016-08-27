@@ -1,13 +1,14 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Sequelize = Support.Sequelize
-  , sinon = require('sinon')
-  , Promise = require('bluebird');
+/* jshint -W079 */
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Sequelize = Support.Sequelize;
+const sinon = require('sinon');
+const Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -27,7 +28,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('#create', function() {
     describe('on success', function() {
       it('should run hooks', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , afterHook = sinon.spy()
           , beforeSave = sinon.spy()
           , afterSave = sinon.spy();
@@ -48,7 +49,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('on error', function() {
       it('should return an error from before', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , beforeSave = sinon.spy()
           , afterHook = sinon.spy()
           , afterSave = sinon.spy();
@@ -70,7 +71,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should return an error from after', function() {
-        var beforeHook = sinon.spy()
+        let beforeHook = sinon.spy()
           , beforeSave = sinon.spy()
           , afterHook = sinon.spy()
           , afterSave = sinon.spy();
@@ -94,14 +95,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     it('should not trigger hooks on parent when using N:M association setters', function() {
-      var A = this.sequelize.define('A', {
+      const A = this.sequelize.define('A', {
         name: Sequelize.STRING
       });
-      var B = this.sequelize.define('B', {
+      const B = this.sequelize.define('B', {
         name: Sequelize.STRING
       });
 
-      var hookCalled = 0;
+      let hookCalled = 0;
 
       A.addHook('afterCreate', function(instance, options) {
         hookCalled++;
@@ -125,7 +126,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('preserves changes to instance', function() {
       it('beforeValidate', function(){
-        var hookCalled = 0;
+        let hookCalled = 0;
 
         this.User.beforeValidate(function(user, options) {
           user.mood = 'happy';
@@ -140,7 +141,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('afterValidate', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
         this.User.afterValidate(function(user, options) {
           user.mood = 'neutral';
@@ -155,7 +156,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeCreate', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
         this.User.beforeCreate(function(user, options) {
           user.mood = 'happy';
@@ -170,7 +171,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeSave', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
         this.User.beforeSave(function(user, options) {
           user.mood = 'happy';
@@ -185,7 +186,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeSave with beforeCreate', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
         this.User.beforeCreate(function(user, options) {
           user.mood = 'sad';

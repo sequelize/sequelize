@@ -1,21 +1,21 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  var Project = current.define('project')
+  let Project = current.define('project')
     , User = current.define('user')
     , Company;
 
-  var scopes = {
-    complexFunction: function(value) {
+  const scopes = {
+    complexFunction(value) {
       return {
-        where: [(value + ' IN (SELECT foobar FROM some_sql_function(foo.bar))')]
+        where: [value + ' IN (SELECT foobar FROM some_sql_function(foo.bar))']
       };
     },
     somethingTrue: {
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     projects: {
       include: [Project]
     },
-    noArgs: function () {
+    noArgs() {
       // This does not make much sense, since it does not actually need to be in a function,
       // In reality it could be used to do for example new Date or random in the scope - but we want it deterministic
 
@@ -53,13 +53,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       };
     },
-    actualValue: function(value) {
+    actualValue(value) {
       return {
         where: {
           other_value: value
         }
       };
-    },
+    }
   };
 
   Company = current.define('company', {}, {
@@ -67,12 +67,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       include: [Project],
       where: { active: true }
     },
-    scopes: scopes
+    scopes
   });
 
-  describe('.scope', function () {
-    describe('attribute exclude / include', function () {
-      var User = current.define('user', {
+  describe('.scope', function() {
+    describe('attribute exclude / include', function() {
+      const User = current.define('user', {
         password: DataTypes.STRING,
         name: DataTypes.STRING
       }, {
@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      it('should be able to exclude in defaultScope #4735', function () {
+      it('should be able to exclude in defaultScope #4735', function() {
         expect(User._scope.attributes).to.deep.equal([
           'id',
           'name',
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         ]);
       });
 
-      it('should be able to exclude in a scope #4925', function () {
+      it('should be able to exclude in a scope #4925', function() {
         expect(User.scope('aScope')._scope.attributes).to.deep.equal([
           'id',
           'name',
@@ -109,20 +109,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('defaultScope should be an empty object if not overridden', function () {
-      var Foo = current.define('foo', {}, {});
+    it('defaultScope should be an empty object if not overridden', function() {
+      const Foo = current.define('foo', {}, {});
 
       expect(Foo.scope('defaultScope')._scope).to.deep.equal({});
     });
 
-    it('should apply default scope', function () {
+    it('should apply default scope', function() {
       expect(Company._scope).to.deep.equal({
         include: [{ model: Project }],
         where: { active: true }
       });
     });
 
-    it('should be able to unscope', function () {
+    it('should be able to unscope', function() {
       expect(Company.scope(null)._scope).to.be.empty;
       expect(Company.unscoped()._scope).to.be.empty;
       // Yes, being unscoped is also a scope - this prevents inject defaultScope, when including a scoped model, see #4663
@@ -139,15 +139,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should support multiple, coexistent scoped models', function () {
-      var scoped1 = Company.scope('somethingTrue')
+    it('should support multiple, coexistent scoped models', function() {
+      let scoped1 = Company.scope('somethingTrue')
         , scoped2 = Company.scope('somethingFalse');
 
-        expect(scoped1._scope).to.deep.equal(scopes.somethingTrue);
-        expect(scoped2._scope).to.deep.equal(scopes.somethingFalse);
+      expect(scoped1._scope).to.deep.equal(scopes.somethingTrue);
+      expect(scoped2._scope).to.deep.equal(scopes.somethingFalse);
     });
 
-    it('should work with function scopes', function () {
+    it('should work with function scopes', function() {
       expect(Company.scope({method: ['actualValue', 11]})._scope).to.deep.equal({
         where: {
           other_value: 11
@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should be able to merge two scoped includes', function () {
+    it('should be able to merge two scoped includes', function() {
       expect(Company.scope('users', 'projects')._scope).to.deep.equal({
         include: [
           { model: User },
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(Company.scope('somethingTrue')._scope).to.deep.equal(scopes.somethingTrue);
     });
 
-    it('should be able to combine default with another scope', function () {
+    it('should be able to combine default with another scope', function() {
       expect(Company.scope(['defaultScope', {method: ['actualValue', 11]}])._scope).to.deep.equal({
         include: [{ model: Project }],
         where: {
@@ -184,13 +184,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should be able to use raw queries', function () {
+    it('should be able to use raw queries', function() {
       expect(Company.scope([{method: ['complexFunction', 'qux']}])._scope).to.deep.equal({
         where: [ 'qux IN (SELECT foobar FROM some_sql_function(foo.bar))' ]
       });
     });
 
-    it('should override the default scope', function () {
+    it('should override the default scope', function() {
       expect(Company.scope(['defaultScope', {method: ['complexFunction', 'qux']}])._scope).to.deep.equal({
         include: [{ model: Project }],
         where: [ 'qux IN (SELECT foobar FROM some_sql_function(foo.bar))' ]
@@ -198,23 +198,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('should emit an error for scopes that dont exist', function() {
-      expect(function () {
+      expect(function() {
         Company.scope('doesntexist');
       }).to.throw('Invalid scope doesntexist called.');
     });
   });
 
-  describe('addScope', function () {
-    it('works if the model does not have any initial scopes', function () {
-      var Model = current.define('model');
+  describe('addScope', function() {
+    it('works if the model does not have any initial scopes', function() {
+      const Model = current.define('model');
 
-      expect(function () {
+      expect(function() {
         Model.addScope('anything', {});
       }).not.to.throw();
     });
 
-    it('allows me to add a new scope', function ()  {
-      expect(function () {
+    it('allows me to add a new scope', function()  {
+      expect(function() {
         Company.scope('newScope');
       }).to.throw('Invalid scope newScope called.');
 
@@ -231,13 +231,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('warns me when overriding an existing scope', function () {
-      expect(function () {
+    it('warns me when overriding an existing scope', function() {
+      expect(function() {
         Company.addScope('somethingTrue', {});
       }).to.throw('The scope somethingTrue already exists. Pass { override: true } as options to silence this error');
     });
 
-    it('allows me to override an existing scope', function () {
+    it('allows me to override an existing scope', function() {
       Company.addScope('somethingTrue', {
         where: {
           something: false
@@ -245,17 +245,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }, { override: true });
 
       expect(Company.scope('somethingTrue')._scope).to.deep.equal({
-        where: { something: false },
+        where: { something: false }
       });
     });
 
-    it('warns me when overriding an existing default scope', function () {
-      expect(function () {
+    it('warns me when overriding an existing default scope', function() {
+      expect(function() {
         Company.addScope('defaultScope', {});
       }).to.throw('The scope defaultScope already exists. Pass { override: true } as options to silence this error');
     });
 
-    it('allows me to override a default scope', function () {
+    it('allows me to override a default scope', function() {
       Company.addScope('defaultScope', {
         include: [Project]
       }, { override: true });
@@ -265,7 +265,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('works with exclude and include attributes', function () {
+    it('works with exclude and include attributes', function() {
       Company.addScope('newIncludeScope', {
         attributes: {
           include: ['foobar'],
@@ -280,9 +280,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   });
 
-  describe('_injectScope', function () {
-    it('should be able to merge scope and where', function () {
-      var scope = {
+  describe('_injectScope', function() {
+    it('should be able to merge scope and where', function() {
+      const scope = {
         where: {
           something: true,
           somethingElse: 42
@@ -291,7 +291,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         offset: 3
       };
 
-      var options = {
+      const options = {
         where: {
           something: false
         },
@@ -312,15 +312,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should be able to overwrite multiple scopes with the same include', function () {
-      var scope = {
+    it('should be able to overwrite multiple scopes with the same include', function() {
+      const scope = {
         include: [
           { model: Project, where: { something: false }},
           { model: Project, where: { something: true }}
         ]
       };
 
-      var options = {};
+      const options = {};
 
       current.Model._injectScope.call({
         _scope: scope
@@ -330,12 +330,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
     });
 
-    it('should be able to override scoped include', function () {
-      var scope = {
+    it('should be able to override scoped include', function() {
+      const scope = {
         include: [{ model: Project, where: { something: false }}]
       };
 
-      var options = {
+      const options = {
         include: [{ model: Project, where: { something: true }}]
       };
 
@@ -347,12 +347,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
     });
 
-    it('should be able to merge aliassed includes with the same model', function () {
-      var scope = {
+    it('should be able to merge aliassed includes with the same model', function() {
+      const scope = {
         include: [{model: User, as: 'someUser'}]
       };
 
-      var options = {
+      const options = {
         include: [{model: User, as: 'otherUser'}]
       };
 
@@ -365,14 +365,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(options.include[1]).to.deep.equal({model: User, as: 'someUser'});
     });
 
-    it('should be able to merge scoped include with include in find', function () {
-      var scope = {
+    it('should be able to merge scoped include with include in find', function() {
+      const scope = {
         include: [
           { model: Project, where: { something: false }}
         ]
       };
 
-      var options = {
+      const options = {
         include: [
           { model: User, where: { something: true }}
         ]
@@ -387,15 +387,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(options.include[1]).to.deep.equal({ model: Project, where: { something: false }});
     });
 
-    describe('include all', function () {
-      it('scope with all', function () {
-        var scope = {
+    describe('include all', function() {
+      it('scope with all', function() {
+        const scope = {
           include: [
             { all: true }
           ]
         };
 
-        var options = {
+        const options = {
           include: [
             { model: User, where: { something: true }}
           ]
@@ -411,14 +411,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
 
-      it('options with all', function () {
-        var scope = {
+      it('options with all', function() {
+        const scope = {
           include: [
             { model: User, where: { something: true }}
           ]
         };
 
-        var options = {
+        const options = {
           include: [
             { all: true }
           ]

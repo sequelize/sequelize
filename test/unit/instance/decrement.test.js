@@ -1,6 +1,6 @@
 'use strict';
 
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/../support')
   , current   = Support.sequelize
@@ -8,14 +8,14 @@ var chai = require('chai')
   , sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('decrement', function () {
+  describe('decrement', function() {
     describe('options tests', function() {
-      var stub
+      let stub
         , Model = current.define('User', {
           id: {
             type:          Sequelize.BIGINT,
             primaryKey:    true,
-            autoIncrement: true,
+            autoIncrement: true
           }
         })
         , instance;
@@ -33,9 +33,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         stub.restore();
       });
 
-      it('should allow decrements even if options are not given', function () {
+      it('should allow decrements even if options are not given', function() {
         instance = Model.build({id: 3}, {isNewRecord: false});
-        expect(function () {
+        expect(function() {
           instance.decrement(['id']);
         }).to.not.throw();
       });
