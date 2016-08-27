@@ -2,7 +2,7 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -12,8 +12,8 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   if (current.dialect.supports.JSONB) {
-    describe('JSONB', function () {
-      beforeEach(function () {
+    describe('JSONB', function() {
+      beforeEach(function() {
         this.Event = this.sequelize.define('Event', {
           data: {
             type: DataTypes.JSONB,
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       if (current.dialect.supports.lock) {
         it('findOrCreate supports transactions, json and locks', function() {
-          var self = this;
+          const self = this;
           return current.transaction().then(function(t) {
             return self.Event.findOrCreate({
               where: {
@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               },
               transaction: t,
               lock: t.LOCK.UPDATE,
-              logging: function (sql) {
+              logging(sql) {
                 if (sql.indexOf('SELECT') !== -1 && sql.indexOf('CREATE') === -1) {
                   expect(sql.indexOf('FOR UPDATE')).not.to.be.equal(-1);
                 }
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
-      it('should create an instance with JSONB data', function () {
+      it('should create an instance with JSONB data', function() {
         return this.Event.create({
           data: {
             name: {
@@ -68,9 +68,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             employment: 'Nuclear Safety Inspector'
           }
-        }).bind(this).then(function () {
-          return this.Event.findAll().then(function (events) {
-            var event = events[0];
+        }).bind(this).then(function() {
+          return this.Event.findAll().then(function(events) {
+            const event = events[0];
 
             expect(event.get('data')).to.eql({
               name: {
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should update an instance with JSONB data', function () {
+      it('should update an instance with JSONB data', function() {
         return this.Event.create({
           data: {
             name: {
@@ -92,7 +92,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             employment: 'Nuclear Safety Inspector'
           }
-        }).bind(this).then(function (event) {
+        }).bind(this).then(function(event) {
           return event.update({
             data: {
               name: {
@@ -102,9 +102,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: null
             }
           });
-        }).then(function () {
-          return this.Event.findAll().then(function (events) {
-            var event = events[0];
+        }).then(function() {
+          return this.Event.findAll().then(function(events) {
+            const event = events[0];
 
             expect(event.get('data')).to.eql({
               name: {
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should be possible to query a nested value', function () {
+      it('should be possible to query a nested value', function() {
         return Promise.join(
           this.Event.create({
             data: {
@@ -137,15 +137,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: 'Housewife'
             }
           })
-        ).bind(this).then(function () {
+        ).bind(this).then(function() {
           return this.Event.findAll({
             where: {
               data: {
                 employment: 'Housewife'
               }
             }
-          }).then(function (events) {
-            var event = events[0];
+          }).then(function(events) {
+            const event = events[0];
 
             expect(events.length).to.equal(1);
             expect(event.get('data')).to.eql({
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should be possible to query a nested integer value', function () {
+      it('should be possible to query a nested integer value', function() {
         return Promise.join(
           this.Event.create({
             data: {
@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               age: 37
             }
           })
-        ).bind(this).then(function () {
+        ).bind(this).then(function() {
           return this.Event.findAll({
             where: {
               data: {
@@ -188,8 +188,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 }
               }
             }
-          }).then(function (events) {
-            var event = events[0];
+          }).then(function(events) {
+            const event = events[0];
 
             expect(events.length).to.equal(1);
             expect(event.get('data')).to.eql({
@@ -203,7 +203,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should be possible to query a nested null value', function () {
+      it('should be possible to query a nested null value', function() {
         return Promise.join(
           this.Event.create({
             data: {
@@ -223,14 +223,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: null
             }
           })
-        ).bind(this).then(function () {
+        ).bind(this).then(function() {
           return this.Event.findAll({
             where: {
               data: {
                 employment: null
               }
             }
-          }).then(function (events) {
+          }).then(function(events) {
             expect(events.length).to.equal(1);
             expect(events[0].get('data')).to.eql({
               name: {
@@ -243,8 +243,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should be possible to query multiple nested values', function () {
-        var self = this;
+      it('should be possible to query multiple nested values', function() {
+        const self = this;
         return this.Event.create({
           data: {
             name: {
@@ -274,7 +274,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               }
             })
           );
-        }).then(function () {
+        }).then(function() {
           return self.Event.findAll({
             where: {
               data: {
@@ -289,7 +289,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             order: [
               ['id', 'ASC']
             ]
-          }).then(function (events) {
+          }).then(function(events) {
             expect(events.length).to.equal(2);
 
             expect(events[0].get('data')).to.eql({
@@ -311,8 +311,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should be possible to destroy with where', function () {
-        var conditionSearch = {
+      it('should be possible to destroy with where', function() {
+        const conditionSearch = {
           where: {
             data: {
               employment : 'Hacker'
@@ -348,13 +348,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: 'CTO'
             }
           })
-        ).bind(this).then(function () {
-            return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
-          }).then(function() {
-            return this.Event.destroy(conditionSearch);
-          }).then(function(){
-            return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
-          });
+        ).bind(this).then(function() {
+          return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
+        }).then(function() {
+          return this.Event.destroy(conditionSearch);
+        }).then(function(){
+          return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
+        });
       });
 
     });

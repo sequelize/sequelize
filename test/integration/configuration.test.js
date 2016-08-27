@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , config = require(__dirname + '/../config/config')
   , Support = require(__dirname + '/support')
@@ -17,7 +17,7 @@ if (dialect === 'sqlite') {
 describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Connections problems should fail with a nice message', function() {
     it('when we don\'t have the correct server details', function() {
-      var seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect: dialect});
+      const seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect});
       if (dialect === 'sqlite') {
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
         return;
       }
 
-      var seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect: dialect});
+      const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {logging: false, host: config[dialect].host, port: 1, dialect});
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         return expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
@@ -53,11 +53,11 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Instantiation with arguments', function() {
     if (dialect === 'sqlite') {
       it('should respect READONLY / READWRITE connection modes', function() {
-        var p = path.join(__dirname, '../tmp', 'foo.sqlite');
-        var createTableFoo = 'CREATE TABLE foo (faz TEXT);';
-        var createTableBar = 'CREATE TABLE bar (baz TEXT);';
+        const p = path.join(__dirname, '../tmp', 'foo.sqlite');
+        const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
+        const createTableBar = 'CREATE TABLE bar (baz TEXT);';
 
-        var testAccess = Sequelize.Promise.method(function() {
+        const testAccess = Sequelize.Promise.method(function() {
           if (fs.access) {
             return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
           } else { // Node v0.10 and older don't have fs.access
@@ -73,13 +73,13 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
           expect(err.code).to.equal('ENOENT');
         })
         .then(function() {
-          var sequelizeReadOnly = new Sequelize('sqlite://foo', {
+          const sequelizeReadOnly = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
               mode: sqlite3.OPEN_READONLY
             }
           });
-          var sequelizeReadWrite = new Sequelize('sqlite://foo', {
+          const sequelizeReadWrite = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
               mode: sqlite3.OPEN_READWRITE
@@ -98,20 +98,20 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
         })
         .then(function() {
           // By default, sqlite creates a connection that's READWRITE | CREATE
-          var sequelize = new Sequelize('sqlite://foo', {
+          const sequelize = new Sequelize('sqlite://foo', {
             storage: p
           });
           return sequelize.query(createTableFoo);
         })
         .then(testAccess)
         .then(function() {
-          var sequelizeReadOnly = new Sequelize('sqlite://foo', {
+          const sequelizeReadOnly = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
               mode: sqlite3.OPEN_READONLY
             }
           });
-          var sequelizeReadWrite = new Sequelize('sqlite://foo', {
+          const sequelizeReadWrite = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
               mode: sqlite3.OPEN_READWRITE

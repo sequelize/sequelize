@@ -1,15 +1,16 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , Sequelize = require('../../../index')
-  , Promise = Sequelize.Promise;
+/* jshint -W079 */
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const Sequelize = require('../../../index');
+const Promise = Sequelize.Promise;
 
 describe(Support.getTestDialectTeaser('Alias'), function() {
   it('should uppercase the first letter in alias getter, but not in eager loading', function() {
-    var User = this.sequelize.define('user', {})
+    let User = this.sequelize.define('user', {})
       , Task = this.sequelize.define('task', {});
 
     User.hasMany(Task, { as: 'assignments', foreignKey: 'userId' });
@@ -35,7 +36,7 @@ describe(Support.getTestDialectTeaser('Alias'), function() {
   });
 
   it('shouldnt touch the passed alias', function() {
-    var User = this.sequelize.define('user', {})
+    let User = this.sequelize.define('user', {})
       , Task = this.sequelize.define('task', {});
 
     User.hasMany(Task, { as: 'ASSIGNMENTS', foreignKey: 'userId' });
@@ -61,7 +62,7 @@ describe(Support.getTestDialectTeaser('Alias'), function() {
   });
 
   it('should allow me to pass my own plural and singular forms to hasMany', function() {
-    var User = this.sequelize.define('user', {})
+    let User = this.sequelize.define('user', {})
       , Task = this.sequelize.define('task', {});
 
     User.hasMany(Task, { as: { singular: 'task', plural: 'taskz'} });
@@ -80,13 +81,13 @@ describe(Support.getTestDialectTeaser('Alias'), function() {
   });
 
   it('should allow me to define plural and singular forms on the model', function() {
-    var User = this.sequelize.define('user', {})
+    let User = this.sequelize.define('user', {})
       , Task = this.sequelize.define('task', {}, {
-          name: {
-            singular: 'assignment',
-            plural: 'assignments'
-          }
-        });
+        name: {
+          singular: 'assignment',
+          plural: 'assignments'
+        }
+      });
 
     User.hasMany(Task);
 

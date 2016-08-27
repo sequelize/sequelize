@@ -1,6 +1,6 @@
 'use strict';
 
-var Support   = require(__dirname + '/../support')
+let Support   = require(__dirname + '/../support')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
   , sql       = current.dialect.QueryGenerator;
@@ -9,15 +9,15 @@ var Support   = require(__dirname + '/../support')
 
 if (current.dialect.name !== 'sqlite') {
   suite(Support.getTestDialectTeaser('SQL'), function() {
-    suite('removeColumn', function () {
-      test('schema', function () {
+    suite('removeColumn', function() {
+      test('schema', function() {
         expectsql(sql.removeColumnQuery({
           schema: 'archive',
           tableName: 'user'
         }, 'email'), {
           mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
           mysql: 'ALTER TABLE `archive.user` DROP `email`;',
-          postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
+          postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";'
         });
       });
     });

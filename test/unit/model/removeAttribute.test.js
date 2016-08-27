@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/../support')
   , current   = Support.sequelize
@@ -9,9 +9,9 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('removeAttribute', function () {
-    it('should support removing the primary key', function () {
-      var Model = current.define('m', {
+  describe('removeAttribute', function() {
+    it('should support removing the primary key', function() {
+      const Model = current.define('m', {
         name: DataTypes.STRING
       });
 

@@ -1,13 +1,14 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , sinon = require('sinon')
-  , dialect = Support.getTestDialect()
-  , Promise = require('bluebird');
+/* jshint -W079 */
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const sinon = require('sinon');
+const dialect = Support.getTestDialect();
+const Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -40,7 +41,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('1:1', function() {
       describe('cascade onUpdate', function() {
         beforeEach(function() {
-          var self = this;
+          const self = this;
 
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -59,7 +60,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         it('on success', function() {
-          var self = this
+          let self = this
           , beforeHook = false
           , afterHook = false;
 
@@ -86,7 +87,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         it('on error', function() {
-          var self = this;
+          const self = this;
 
           this.Tasks.afterUpdate(function(task, options) {
             return Promise.reject(new Error('Whoops!'));
@@ -120,7 +121,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('#remove', function() {
           it('with no errors', function() {
-            var self = this
+            let self = this
             , beforeProject = sinon.spy()
             , afterProject = sinon.spy()
             , beforeTask = sinon.spy()
@@ -146,7 +147,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           });
 
           it('with errors', function() {
-            var self = this
+            let self = this
             , beforeProject = false
             , afterProject = false
             , beforeTask = false
@@ -176,7 +177,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             return this.Projects.create({title: 'New Project'}).then(function(project) {
               return self.Tasks.create({title: 'New Task'}).then(function(task) {
                 return project.setTask(task).then(function() {
-                  return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function () {
+                  return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function() {
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
                     expect(beforeTask).to.be.true;
@@ -191,7 +192,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('no cascade update', function() {
         beforeEach(function() {
-          var self = this;
+          const self = this;
 
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -210,7 +211,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         it('on success', function() {
-          var self = this
+          let self = this
           , beforeHook = sinon.spy()
           , afterHook = sinon.spy();
 
@@ -230,7 +231,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
 
         it('on error', function() {
-          var self = this;
+          const self = this;
 
           this.Tasks.afterUpdate(function(task, options) {
             throw new Error('Whoops!');
@@ -246,7 +247,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       describe('no cascade delete', function() {
         beforeEach(function() {
-          var self = this;
+          const self = this;
 
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
@@ -266,7 +267,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('#remove', function() {
           it('with no errors', function() {
-            var self = this
+            let self = this
             , beforeProject = sinon.spy()
             , afterProject = sinon.spy()
             , beforeTask = sinon.spy()
@@ -292,7 +293,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           });
 
           it('with errors', function() {
-            var self = this
+            let self = this
             , beforeProject = sinon.spy()
             , afterProject = sinon.spy()
             , beforeTask = sinon.spy()
@@ -325,7 +326,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('1:M', function() {
       describe('cascade', function() {
         beforeEach(function() {
-          var self = this;
+          const self = this;
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING
           });
@@ -344,7 +345,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('#remove', function() {
           it('with no errors', function() {
-            var self = this
+            let self = this
             , beforeProject = sinon.spy()
             , afterProject = sinon.spy()
             , beforeTask = sinon.spy()
@@ -370,7 +371,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           });
 
           it('with errors', function() {
-            var self = this
+            let self = this
             , beforeProject = false
             , afterProject = false
             , beforeTask = false
@@ -431,7 +432,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('#remove', function() {
           it('with no errors', function() {
-            var self = this
+            let self = this
             , beforeProject = sinon.spy()
             , afterProject = sinon.spy()
             , beforeTask = sinon.spy()
@@ -457,7 +458,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           });
 
           it('with errors', function() {
-            var self = this
+            let self = this
             , beforeProject = false
             , afterProject = false
             , beforeTask = false
@@ -518,7 +519,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('#remove', function() {
           it('with no errors', function() {
-            var self = this
+            let self = this
             , beforeProject = sinon.spy()
             , afterProject = sinon.spy()
             , beforeTask = sinon.spy()
@@ -545,7 +546,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           });
 
           it('with errors', function() {
-            var self = this
+            let self = this
             , beforeProject = false
             , afterProject = false
             , beforeTask = false
@@ -605,7 +606,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         describe('#remove', function() {
           it('with no errors', function() {
-            var self = this
+            let self = this
             , beforeProject = sinon.spy()
             , afterProject = sinon.spy()
             , beforeTask = sinon.spy()
@@ -631,7 +632,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           });
 
           it('with errors', function() {
-            var self = this
+            let self = this
             , beforeProject = false
             , afterProject = false
             , beforeTask = false
@@ -674,7 +675,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     // NOTE: Reenable when FK constraints create table query is fixed when using hooks
     if (dialect !== 'mssql') {
-      describe('multiple 1:M', function () {
+      describe('multiple 1:M', function() {
 
         describe('cascade', function() {
           beforeEach(function() {
@@ -704,7 +705,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('#remove', function() {
             it('with no errors', function() {
-              var beforeProject = false
+              let beforeProject = false
               , afterProject = false
               , beforeTask = false
               , afterTask = false
@@ -760,7 +761,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             });
 
             it('with errors', function() {
-              var beforeProject = false
+              let beforeProject = false
               , afterProject = false
               , beforeTask = false
               , afterTask = false
@@ -817,7 +818,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
 
-      describe('multiple 1:M sequential hooks', function () {
+      describe('multiple 1:M sequential hooks', function() {
         describe('cascade', function() {
           beforeEach(function() {
             this.Projects = this.sequelize.define('Project', {
@@ -846,7 +847,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
           describe('#remove', function() {
             it('with no errors', function() {
-              var beforeProject = false
+              let beforeProject = false
               , afterProject = false
               , beforeTask = false
               , afterTask = false
@@ -905,7 +906,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
             });
 
             it('with errors', function() {
-              var beforeProject = false
+              let beforeProject = false
               , afterProject = false
               , beforeTask = false
               , afterTask = false
@@ -948,7 +949,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
                   project.addTask(task)
                 ]).return(project);
               }).then(function(project) {
-                return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function () {
+                return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(function() {
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
                   expect(beforeTask).to.be.true;

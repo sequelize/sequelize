@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
 , expect = chai.expect
 , Support = require(__dirname + '/../support')
 , DataTypes = require(__dirname + '/../../../lib/data-types')
@@ -26,7 +26,7 @@ if (Support.sequelize.dialect.supports.upserts) {
     describe('#upsert', function() {
       describe('on success', function() {
         it('should run hooks', function() {
-          var beforeHook = sinon.spy()
+          let beforeHook = sinon.spy()
           , afterHook = sinon.spy();
 
           this.User.beforeUpsert(beforeHook);
@@ -41,7 +41,7 @@ if (Support.sequelize.dialect.supports.upserts) {
 
       describe('on error', function() {
         it('should return an error from before', function() {
-          var beforeHook = sinon.spy()
+          let beforeHook = sinon.spy()
           , afterHook = sinon.spy();
 
           this.User.beforeUpsert(function(values, options) {
@@ -57,7 +57,7 @@ if (Support.sequelize.dialect.supports.upserts) {
         });
 
         it('should return an error from after', function() {
-          var beforeHook = sinon.spy()
+          let beforeHook = sinon.spy()
           , afterHook = sinon.spy();
 
 
@@ -76,8 +76,8 @@ if (Support.sequelize.dialect.supports.upserts) {
 
       describe('preserves changes to values', function() {
         it('beforeUpsert', function(){
-          var hookCalled = 0;
-          var valuesOriginal = { mood: 'sad', username: 'leafninja' };
+          let hookCalled = 0;
+          const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 
           this.User.beforeUpsert(function(values, options) {
             values.mood = 'happy';

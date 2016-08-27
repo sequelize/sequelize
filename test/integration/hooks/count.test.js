@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
 , expect = chai.expect
 , Support = require(__dirname + '/../support')
 , DataTypes = require(__dirname + '/../../../lib/data-types');
@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('on success', function() {
       it('hook runs', function() {
-        var beforeHook = false;
+        let beforeHook = false;
 
         this.User.beforeCount(function() {
           beforeHook = true;

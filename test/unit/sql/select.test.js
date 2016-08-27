@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W110 */
-var Support   = require(__dirname + '/../support')
+let Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Model = require(__dirname + '/../../../lib/model')
   , util = require('util')
@@ -12,11 +12,11 @@ var Support   = require(__dirname + '/../support')
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 suite(Support.getTestDialectTeaser('SQL'), function() {
-  suite('select', function () {
-    var testsql = function (options, expectation) {
-      var model = options.model;
+  suite('select', function() {
+    const testsql = function(options, expectation) {
+      const model = options.model;
 
-      test(util.inspect(options, {depth: 2}), function () {
+      test(util.inspect(options, {depth: 2}), function() {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -73,8 +73,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       +') AS [User];'
     });
 
-    (function () {
-      var User = Support.sequelize.define('user', {
+    (function() {
+      const User = Support.sequelize.define('user', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -91,36 +91,36 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           field: 'last_name'
         }
       },
-      {
-        tableName: 'users'
-      });
-      var Post = Support.sequelize.define('Post', {
+        {
+          tableName: 'users'
+        });
+      const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING,
         userId: {
           type: DataTypes.INTEGER,
           field: 'user_id'
         }
       },
-      {
-        tableName: 'post'
-      });
+        {
+          tableName: 'post'
+        });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'userId', as: 'POSTS'});
 
-      var Comment = Support.sequelize.define('Comment', {
+      const Comment = Support.sequelize.define('Comment', {
         title: DataTypes.STRING,
         postId: {
           type: DataTypes.INTEGER,
           field: 'post_id'
         }
       },
-      {
-        tableName: 'comment'
-      });
+        {
+          tableName: 'comment'
+        });
 
       Post.Comments = Post.hasMany(Comment, {foreignKey: 'postId', as: 'COMMENTS'});
 
-      var include = Model._validateIncludedElements({
+      const include = Model._validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts
@@ -131,7 +131,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql({
         table: User.getTableName(),
         model: User,
-        include: include,
+        include,
         attributes: [
           ['id_user', 'id'],
           'email',
@@ -158,7 +158,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];'
       });
 
-      var nestedInclude = Model._validateIncludedElements({
+      const nestedInclude = Model._validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts,
@@ -201,20 +201,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     })();
 
-    it('include (left outer join)', function () {
-      var User = Support.sequelize.define('User', {
+    it('include (left outer join)', function() {
+      const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-      {
-        freezeTableName: true
-      });
-      var Post = Support.sequelize.define('Post', {
+        {
+          freezeTableName: true
+        });
+      const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-      {
-        freezeTableName: true
-      });
+        {
+          freezeTableName: true
+        });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -234,22 +234,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
   });
 
-  suite('queryIdentifiersFalse', function () {
-    suiteSetup(function () {
+  suite('queryIdentifiersFalse', function() {
+    suiteSetup(function() {
       sql.options.quoteIdentifiers = false;
     });
-    suiteTeardown(function () {
+    suiteTeardown(function() {
       sql.options.quoteIdentifiers = true;
     });
 
-    test('*', function () {
+    test('*', function() {
       expectsql(sql.selectQuery('User'), {
         default: 'SELECT * FROM [User];',
         postgres: 'SELECT * FROM User;'
       });
     });
 
-    test('with attributes', function () {
+    test('with attributes', function() {
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age']
       }), {
@@ -258,20 +258,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    test('include (left outer join)', function () {
-      var User = Support.sequelize.define('User', {
+    test('include (left outer join)', function() {
+      const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-      {
-        freezeTableName: true
-      });
-      var Post = Support.sequelize.define('Post', {
+        {
+          freezeTableName: true
+        });
+      const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-      {
-        freezeTableName: true
-      });
+        {
+          freezeTableName: true
+        });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -292,23 +292,23 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
 
 
-    test('nested include (left outer join)', function () {
-      var User = Support.sequelize.define('User', {
-          name: DataTypes.STRING,
-          age: DataTypes.INTEGER
-        },
+    test('nested include (left outer join)', function() {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      },
         {
           freezeTableName: true
         });
-      var Post = Support.sequelize.define('Post', {
-          title: DataTypes.STRING
-        },
+      const Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING
+      },
         {
           freezeTableName: true
         });
-      var Comment = Support.sequelize.define('Comment', {
-          title: DataTypes.STRING
-        },
+      const Comment = Support.sequelize.define('Comment', {
+        title: DataTypes.STRING
+      },
         {
           freezeTableName: true
         });
@@ -339,11 +339,11 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
   });
 
-  suite('raw query', function () {
-    test('raw replacements', function () {
+  suite('raw query', function() {
+    test('raw replacements', function() {
       expectsql(sql.selectQuery('User', {
         attributes: ['*'],
-        having: ['name IN (?)', [1, 'test', 3, "derp"]]
+        having: ['name IN (?)', [1, 'test', 3, 'derp']]
       }), {
         default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');",
         mssql: "SELECT * FROM [User] HAVING name IN (1,N'test',3,N'derp');"

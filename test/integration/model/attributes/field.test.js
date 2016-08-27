@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../../index')
   , Promise = Sequelize.Promise
@@ -12,18 +12,18 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('Model'), function() {
 
-  before(function () {
+  before(function() {
     this.clock = sinon.useFakeTimers();
   });
 
-  after(function () {
+  after(function() {
     this.clock.restore();
   });
 
   describe('attributes', function() {
     describe('field', function() {
       beforeEach(function() {
-        var queryInterface = this.sequelize.getQueryInterface();
+        const queryInterface = this.sequelize.getQueryInterface();
 
         this.User = this.sequelize.define('user', {
           id: {
@@ -174,14 +174,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
 
-        it('should support instance.destroy()', function () {
-          return this.User.create().then(function (user) {
+        it('should support instance.destroy()', function() {
+          return this.User.create().then(function(user) {
             return user.destroy();
           });
         });
 
-        it('should support Model.destroy()', function () {
-          return this.User.create().bind(this).then(function (user) {
+        it('should support Model.destroy()', function() {
+          return this.User.create().bind(this).then(function(user) {
             return this.User.destroy({
               where: {
                 id: user.get('id')
@@ -201,8 +201,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         it('bulkCreate should work', function() {
           return this.Comment.findAll().then(function(comments) {
-           expect(comments[0].notes).to.equal('Number one');
-           expect(comments[1].notes).to.equal('Number two');
+            expect(comments[0].notes).to.equal('Number one');
+            expect(comments[1].notes).to.equal('Number two');
           });
         });
 
@@ -232,7 +232,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create, fetch and update with alternative field names from a simple model', function() {
-        var self = this;
+        const self = this;
 
         return this.User.create({
           name: 'Foobar'
@@ -255,8 +255,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should bulk update', function() {
-        var Entity = this.sequelize.define('Entity', {
-            strField: {type: Sequelize.STRING, field: 'str_field'}
+        const Entity = this.sequelize.define('Entity', {
+          strField: {type: Sequelize.STRING, field: 'str_field'}
         });
 
         return this.sequelize.sync({force: true}).then(function() {
@@ -279,7 +279,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should not contain the field properties after create', function() {
-        var Model = this.sequelize.define('test', {
+        const Model = this.sequelize.define('test', {
           id: {
             type: Sequelize.INTEGER,
             field: 'test_id',
@@ -317,7 +317,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should work with where on includes for find', function() {
-        var self = this;
+        const self = this;
 
         return this.User.create({
           name: 'Barfoo'
@@ -345,7 +345,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should work with where on includes for findAll', function() {
-        var self = this;
+        const self = this;
 
         return this.User.create({
           name: 'Foobar'
@@ -374,14 +374,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should work with increment', function () {
-        return this.User.create().then(function (user) {
+      it('should work with increment', function() {
+        return this.User.create().then(function(user) {
           return user.increment('taskCount');
         });
       });
 
       it('should work with a simple where', function() {
-        var self = this;
+        const self = this;
 
         return this.User.create({
           name: 'Foobar'
@@ -397,7 +397,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should work with a where or', function() {
-        var self = this;
+        const self = this;
 
         return this.User.create({
           name: 'Foobar'
@@ -415,7 +415,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should work with bulkCreate and findAll', function() {
-        var self = this;
+        const self = this;
         return this.User.bulkCreate([{
           name: 'Abc'
         }, {
@@ -432,14 +432,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should support renaming of sequelize method fields', function() {
-        var Test = this.sequelize.define('test', {
+        const Test = this.sequelize.define('test', {
           someProperty: Sequelize.VIRTUAL // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
         });
 
         return this.sequelize.sync({ force: true }).then(function() {
           return Test.create({});
         }).then(function() {
-          var findAttributes;
+          let findAttributes;
           if (dialect === 'mssql') {
             findAttributes = [
               Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"'),
@@ -465,7 +465,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('should sync foreign keys with custom field names', function() {
         return this.sequelize.sync({ force: true })
         .then(function() {
-          var attrs = this.Task.tableAttributes;
+          const attrs = this.Task.tableAttributes;
           expect(attrs.user_id.references.model).to.equal('users');
           expect(attrs.user_id.references.key).to.equal('userId');
         }.bind(this));
@@ -482,7 +482,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('field names that are the same as property names should create, update, and read correctly', function() {
-        var self = this;
+        const self = this;
 
         return this.Comment.create({
           notes: 'Foobar'
@@ -505,7 +505,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should work with with an belongsTo association getter', function() {
-        var userId = Math.floor(Math.random() * 100000);
+        const userId = Math.floor(Math.random() * 100000);
         return Promise.join(
           this.User.create({
             id: userId
@@ -522,8 +522,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should work with paranoid instance.destroy()', function () {
-        var User = this.sequelize.define('User', {
+      it('should work with paranoid instance.destroy()', function() {
+        const User = this.sequelize.define('User', {
           deletedAt: {
             type: DataTypes.DATE,
             field: 'deleted_at'
@@ -535,23 +535,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return User.sync({force: true})
           .bind(this)
-          .then(function () {
+          .then(function() {
             return User.create();
           })
-          .then(function (user) {
+          .then(function(user) {
             return user.destroy();
           })
-          .then(function () {
+          .then(function() {
             this.clock.tick(1000);
             return User.findAll();
           })
-          .then(function (users) {
+          .then(function(users) {
             expect(users.length).to.equal(0);
           });
       });
 
-      it('should work with paranoid Model.destroy()', function () {
-        var User = this.sequelize.define('User', {
+      it('should work with paranoid Model.destroy()', function() {
+        const User = this.sequelize.define('User', {
           deletedAt: {
             type: DataTypes.DATE,
             field: 'deleted_at'
@@ -561,11 +561,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           paranoid: true
         });
 
-        return User.sync({force: true}).then(function () {
-          return User.create().then(function (user) {
+        return User.sync({force: true}).then(function() {
+          return User.create().then(function(user) {
             return User.destroy({where: {id: user.get('id')}});
-          }).then(function () {
-            return User.findAll().then(function (users) {
+          }).then(function() {
+            return User.findAll().then(function(users) {
               expect(users.length).to.equal(0);
             });
           });

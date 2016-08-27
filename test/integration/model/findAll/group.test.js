@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
 , expect = chai.expect
 , Support = require(__dirname + '/../../support')
 , Sequelize = Support.Sequelize
@@ -9,16 +9,16 @@ var chai = require('chai')
 , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('findAll', function () {
-    describe('group', function () {
+  describe('findAll', function() {
+    describe('group', function() {
       it('should correctly group with attributes, #3009', function() {
 
-        var Post = current.define('Post', {
+        const Post = current.define('Post', {
           id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
           name: { type: DataTypes.STRING, allowNull: false }
         });
 
-        var Comment = current.define('Comment', {
+        const Comment = current.define('Comment', {
           id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
           text: { type: DataTypes.STRING, allowNull: false }
         });
@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             { text: 'Text', PostId: 2},
             { text: 'Abc', PostId: 2},
             { text: 'Semaphor', PostId: 1},
-            { text: 'Text', PostId: 1},
+            { text: 'Text', PostId: 1}
           ]);
         }).then(function(p) {
           return Post.findAll({

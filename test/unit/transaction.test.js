@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
 , expect = chai.expect
 , sinon = require('sinon')
 , Support = require(__dirname + '/support')
@@ -12,25 +12,25 @@ var chai = require('chai')
 
 describe('Transaction', function() {
 
-  before(function () {
+  before(function() {
     this.stub = sinon.stub(current, 'query').returns(Promise.resolve({}));
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
-    .returns(Promise.resolve({ uuid: 'ssfdjd-434fd-43dfg23-2d', close : function() { }}));
+    .returns(Promise.resolve({ uuid: 'ssfdjd-434fd-43dfg23-2d', close() { }}));
   });
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.stub.reset();
     this.stubConnection.reset();
   });
 
-  after(function () {
+  after(function() {
     this.stub.restore();
     this.stubConnection.restore();
   });
 
   it('should run auto commit query only when needed', function() {
-    var expectations = {
+    const expectations = {
       all: [
         'START TRANSACTION;'
       ],

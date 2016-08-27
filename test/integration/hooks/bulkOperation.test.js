@@ -1,12 +1,13 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , sinon = require('sinon')
-  , Promise = require('bluebird');
+/* jshint -W079 */
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const sinon = require('sinon');
+const Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -37,7 +38,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('#bulkCreate', function() {
     describe('on success', function() {
       it('should run hooks', function() {
-        var beforeBulk = sinon.spy()
+        let beforeBulk = sinon.spy()
           , afterBulk = sinon.spy();
 
         this.User.beforeBulkCreate(beforeBulk);
@@ -99,7 +100,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the afterCreate/beforeCreate functions for each item created successfully', function() {
-        var beforeBulkCreate = false
+        let beforeBulkCreate = false
           , afterBulkCreate = false;
 
         this.User.beforeBulkCreate(function(daos, options) {
@@ -133,7 +134,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the afterCreate/beforeCreate functions for each item created with an error', function() {
-        var beforeBulkCreate = false
+        let beforeBulkCreate = false
           , afterBulkCreate = false;
 
         this.User.beforeBulkCreate(function(daos, options) {
@@ -167,7 +168,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('#bulkUpdate', function() {
     describe('on success', function() {
       it('should run hooks', function() {
-        var self = this
+        let self = this
           , beforeBulk = sinon.spy()
           , afterBulk = sinon.spy();
 
@@ -188,7 +189,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('on error', function() {
       it('should return an error from before', function() {
-        var self = this;
+        const self = this;
 
         this.User.beforeBulkUpdate(function(options) {
           throw new Error('Whoops!');
@@ -203,7 +204,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should return an error from after', function() {
-        var self = this;
+        const self = this;
 
         this.User.afterBulkUpdate(function(options) {
           throw new Error('Whoops!');
@@ -239,7 +240,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the after/before functions for each item created successfully', function() {
-        var self = this
+        let self = this
           , beforeBulk = sinon.spy()
           , afterBulk = sinon.spy();
 
@@ -271,7 +272,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the after/before functions for each item created successfully changing some data before updating', function() {
-        var self = this;
+        const self = this;
 
         this.User.beforeUpdate(function(user, options) {
           expect(user.changed()).to.not.be.empty;
@@ -292,7 +293,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the after/before functions for each item created with an error', function() {
-        var self = this
+        let self = this
           , beforeBulk = sinon.spy()
           , afterBulk = sinon.spy();
 
@@ -323,7 +324,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   describe('#bulkDestroy', function() {
     describe('on success', function() {
       it('should run hooks', function() {
-        var beforeBulk = sinon.spy()
+        let beforeBulk = sinon.spy()
           , afterBulk = sinon.spy();
 
         this.User.beforeBulkDestroy(beforeBulk);
@@ -375,7 +376,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the after/before functions for each item created successfully', function() {
-        var self = this
+        let self = this
           , beforeBulk = false
           , afterBulk = false
           , beforeHook = false
@@ -414,7 +415,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the after/before functions for each item created with an error', function() {
-        var self = this
+        let self = this
           , beforeBulk = false
           , afterBulk = false
           , beforeHook = false
@@ -465,7 +466,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
     describe('on success', function() {
       it('should run hooks', function() {
-        var beforeBulk = sinon.spy()
+        let beforeBulk = sinon.spy()
           , afterBulk = sinon.spy();
 
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
@@ -511,7 +512,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the after/before functions for each item restored successfully', function() {
-        var self = this
+        let self = this
           , beforeBulk = sinon.spy()
           , afterBulk = sinon.spy()
           , beforeHook = sinon.spy()
@@ -537,7 +538,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should run the after/before functions for each item restored with an error', function() {
-        var self = this
+        let self = this
           , beforeBulk = sinon.spy()
           , afterBulk = sinon.spy()
           , beforeHook = sinon.spy()

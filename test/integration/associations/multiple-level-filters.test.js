@@ -1,13 +1,13 @@
 'use strict';
 
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
   it('can filter through belongsTo', function() {
-    var User = this.sequelize.define('User', {username: DataTypes.STRING })
+    let User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
@@ -26,20 +26,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
         return Project.bulkCreate([{
           UserId: 1,
           title: 'republic'
-        },{
+        }, {
           UserId: 2,
           title: 'empire'
         }]).then(function() {
           return Task.bulkCreate([{
             ProjectId: 1,
             title: 'fight empire'
-          },{
+          }, {
             ProjectId: 1,
             title: 'stablish republic'
-          },{
+          }, {
             ProjectId: 2,
             title: 'destroy rebel alliance'
-          },{
+          }, {
             ProjectId: 2,
             title: 'rule everything'
           }]).then(function() {
@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
   });
 
   it('avoids duplicated tables in query', function() {
-    var User = this.sequelize.define('User', {username: DataTypes.STRING })
+    let User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
@@ -80,20 +80,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
         return Project.bulkCreate([{
           UserId: 1,
           title: 'republic'
-        },{
+        }, {
           UserId: 2,
           title: 'empire'
         }]).then(function() {
           return Task.bulkCreate([{
             ProjectId: 1,
             title: 'fight empire'
-          },{
+          }, {
             ProjectId: 1,
             title: 'stablish republic'
-          },{
+          }, {
             ProjectId: 2,
             title: 'destroy rebel alliance'
-          },{
+          }, {
             ProjectId: 2,
             title: 'rule everything'
           }]).then(function() {
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
   });
 
   it('can filter through hasMany', function() {
-    var User = this.sequelize.define('User', {username: DataTypes.STRING })
+    let User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Task = this.sequelize.define('Task', {title: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
@@ -137,20 +137,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
         return Project.bulkCreate([{
           UserId: 1,
           title: 'republic'
-        },{
+        }, {
           UserId: 2,
           title: 'empire'
         }]).then(function() {
           return Task.bulkCreate([{
             ProjectId: 1,
             title: 'fight empire'
-          },{
+          }, {
             ProjectId: 1,
             title: 'stablish republic'
-          },{
+          }, {
             ProjectId: 2,
             title: 'destroy rebel alliance'
-          },{
+          }, {
             ProjectId: 2,
             title: 'rule everything'
           }]).then(function() {
@@ -171,7 +171,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
   });
 
   it('can filter through hasMany connector', function() {
-    var User = this.sequelize.define('User', {username: DataTypes.STRING })
+    let User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsToMany(User, {through: 'user_project'});
@@ -185,7 +185,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
       }]).then(function() {
         return Project.bulkCreate([{
           title: 'republic'
-        },{
+        }, {
           title: 'empire'
         }]).then(function() {
           return User.findById(1).then(function(user) {

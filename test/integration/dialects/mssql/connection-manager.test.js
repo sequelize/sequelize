@@ -1,15 +1,16 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require('../../support')
-  , dialect = Support.getTestDialect();
+/* jshint -W079 */
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require('../../support');
+const dialect = Support.getTestDialect();
 
 if (dialect.match(/^mssql/)) {
-  describe('[MSSQL Specific] Query Queue', function () {
+  describe('[MSSQL Specific] Query Queue', function() {
     it('should work with handleDisconnects', function() {
-      var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, idle: 5000}})
+      let sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, idle: 5000}})
         , cm = sequelize.connectionManager
         , conn;
 

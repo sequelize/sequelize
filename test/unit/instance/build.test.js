@@ -1,16 +1,16 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('build', function () {
-    it('should popuplate NOW default values', function () {
-      var Model = current.define('Model', {
+  describe('build', function() {
+    it('should popuplate NOW default values', function() {
+      let Model = current.define('Model', {
           created_time: {
             type: DataTypes.DATE,
             allowNull: true,
@@ -51,15 +51,15 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return instance.validate();
     });
 
-    it('should popuplate explicitely undefined UUID primary keys', function () {
-      var Model = current.define('Model', {
-        id: {
-          type: DataTypes.UUID,
-          primaryKey: true,
-          allowNull: false,
-          defaultValue: DataTypes.UUIDV4
-        }
-      })
+    it('should popuplate explicitely undefined UUID primary keys', function() {
+      let Model = current.define('Model', {
+          id: {
+            type: DataTypes.UUID,
+            primaryKey: true,
+            allowNull: false,
+            defaultValue: DataTypes.UUIDV4
+          }
+        })
         , instance;
 
       instance = Model.build({
@@ -70,17 +70,17 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('id')).to.be.ok;
     });
 
-    it('should populate undefined columns with default value', function () {
-      var Model = current.define('Model', {
-        number1: {
-          type: DataTypes.INTEGER,
-          defaultValue: 1
-        },
-        number2: {
-          type: DataTypes.INTEGER,
-          defaultValue: 2
-        }
-      })
+    it('should populate undefined columns with default value', function() {
+      let Model = current.define('Model', {
+          number1: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1
+          },
+          number2: {
+            type: DataTypes.INTEGER,
+            defaultValue: 2
+          }
+        })
         , instance;
 
       instance = Model.build({
@@ -93,13 +93,13 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('number2')).to.equal(2);
     });
 
-    it('should clone the default values', function () {
-      var Model = current.define('Model', {
-        data: {
-          type: DataTypes.JSONB,
-          defaultValue: { foo: 'bar' }
-        }
-      })
+    it('should clone the default values', function() {
+      let Model = current.define('Model', {
+          data: {
+            type: DataTypes.JSONB,
+            defaultValue: { foo: 'bar' }
+          }
+        })
         , instance;
 
       instance = Model.build();

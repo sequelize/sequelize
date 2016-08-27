@@ -1,14 +1,14 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/../support')
   , current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model') + 'Schemas', function() {
   if (current.dialect.supports.schemas) {
-    var Project = current.define('project'),
+    let Project = current.define('project'),
       Company = current.define('company', {}, {
         schema: 'default',
         schemaDelimiter: '&'
@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Model') + 'Schemas', function() {
       });
 
       it('should support multiple, coexistent schema models', function() {
-        var schema1 = Company.schema('schema1')
+        let schema1 = Company.schema('schema1')
           , schema2 = Company.schema('schema1');
 
         expect(schema1._schema).to.equal('schema1');
@@ -50,12 +50,12 @@ describe(Support.getTestDialectTeaser('Model') + 'Schemas', function() {
       });
 
       it('should be able to override the default schema delimiter', function() {
-        expect(Company.schema(Company._schema,'^')._schemaDelimiter).to.equal('^');
+        expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal('^');
       });
 
       it('should support multiple, coexistent schema delimiter models', function() {
-        var schema1 = Company.schema(Company._schema,'$')
-          , schema2 = Company.schema(Company._schema,'#');
+        let schema1 = Company.schema(Company._schema, '$')
+          , schema2 = Company.schema(Company._schema, '#');
 
         expect(schema1._schemaDelimiter).to.equal('$');
         expect(schema2._schemaDelimiter).to.equal('#');

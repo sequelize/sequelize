@@ -1,6 +1,6 @@
 'use strict';
 
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
@@ -9,9 +9,9 @@ var chai = require('chai')
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 suite(Support.getTestDialectTeaser('Utils'), function() {
-  suite('merge', function () {
-    test('does not clone sequelize models', function () {
-      var User = this.sequelize.define('user')
+  suite('merge', function() {
+    test('does not clone sequelize models', function() {
+      let User = this.sequelize.define('user')
         , merged = Utils.merge({}, { include: [{model : User }]})
         , merged2 = Utils.merge({}, { user: User });
 
@@ -20,29 +20,29 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
     });
   });
 
-  suite('toDefaultValue', function () {
-    test('return plain data types', function () {
+  suite('toDefaultValue', function() {
+    test('return plain data types', function() {
       expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
     });
-    test('return uuid v1', function () {
+    test('return uuid v1', function() {
       expect(/^[a-z0-9\-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
     });
-    test('return uuid v4', function () {
+    test('return uuid v4', function() {
       expect(/^[a-z0-9\-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
     });
-    test('return now', function () {
+    test('return now', function() {
       expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
     });
-    test('return plain string', function () {
+    test('return plain string', function() {
       expect(Utils.toDefaultValue('Test')).to.equal('Test');
     });
-    test('return plain object', function () {
+    test('return plain object', function() {
       chai.assert.deepEqual({}, Utils.toDefaultValue({}));
     });
   });
 
-  suite('mapFinderOptions', function () {
-    test('virtual attribute dependencies', function () {
+  suite('mapFinderOptions', function() {
+    test('virtual attribute dependencies', function() {
       expect(Utils.mapFinderOptions({
         attributes: [
           'active'
@@ -63,8 +63,8 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       ]);
     });
 
-    test('multiple calls', function () {
-      var Model = this.sequelize.define('User', {
+    test('multiple calls', function() {
+      const Model = this.sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at'
@@ -92,8 +92,8 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
     });
   });
 
-  suite('mapOptionFieldNames', function () {
-    test('plain where', function () {
+  suite('mapOptionFieldNames', function() {
+    test('plain where', function() {
       expect(Utils.mapOptionFieldNames({
         where: {
           firstName: 'Paul',
@@ -116,7 +116,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
 
-    test('$or where', function () {
+    test('$or where', function() {
       expect(Utils.mapOptionFieldNames({
         where: {
           $or: {
@@ -143,7 +143,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
 
-    test('$or[] where', function () {
+    test('$or[] where', function() {
       expect(Utils.mapOptionFieldNames({
         where: {
           $or: [
@@ -170,7 +170,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
 
-    test('$and where', function () {
+    test('$and where', function() {
       expect(Utils.mapOptionFieldNames({
         where: {
           $and: {
@@ -198,7 +198,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
     });
     test('string field order', function() {
       expect(Utils.mapOptionFieldNames({
-       order: 'firstName DESC'
+        order: 'firstName DESC'
       }, this.sequelize.define('User', {
         firstName: {
           type: DataTypes.STRING,
@@ -295,13 +295,13 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
     test('multi field alias sub model order', function() {
-      var Location = this.sequelize.define('Location', {
+      const Location = this.sequelize.define('Location', {
         latLong: {
           type: DataTypes.STRING,
           field: 'lat_long'
         }
       });
-      var Item = this.sequelize.define('Item', {
+      const Item = this.sequelize.define('Item', {
         fontColor: {
           type: DataTypes.STRING,
           field: 'font_color'
@@ -318,13 +318,13 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
     test('multi field alias sub model no direction order', function() {
-      var Location = this.sequelize.define('Location', {
+      const Location = this.sequelize.define('Location', {
         latLong: {
           type: DataTypes.STRING,
           field: 'lat_long'
         }
       });
-      var Item = this.sequelize.define('Item', {
+      const Item = this.sequelize.define('Item', {
         fontColor: {
           type: DataTypes.STRING,
           field: 'font_color'
@@ -341,7 +341,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
     test('function order', function() {
-      var fn = this.sequelize.fn('otherfn', 123);
+      const fn = this.sequelize.fn('otherfn', 123);
       expect(Utils.mapOptionFieldNames({
         order: [[fn, 'ASC']]
       }, this.sequelize.define('User', {
@@ -353,7 +353,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
     test('function no direction order', function() {
-      var fn = this.sequelize.fn('otherfn', 123);
+      const fn = this.sequelize.fn('otherfn', 123);
       expect(Utils.mapOptionFieldNames({
         order: [[fn]]
       }, this.sequelize.define('User', {
@@ -377,7 +377,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
     test('model alias order', function() {
-      var Item = this.sequelize.define('Item', {
+      const Item = this.sequelize.define('Item', {
         fontColor: {
           type: DataTypes.STRING,
           field: 'font_color'
@@ -397,7 +397,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
     test('model alias no direction order', function() {
-      var Item = this.sequelize.define('Item', {
+      const Item = this.sequelize.define('Item', {
         fontColor: {
           type: DataTypes.STRING,
           field: 'font_color'
@@ -414,7 +414,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
     test('model alias wrong field order', function() {
-      var Item = this.sequelize.define('Item', {
+      const Item = this.sequelize.define('Item', {
         fontColor: {
           type: DataTypes.STRING,
           field: 'font_color'
@@ -448,7 +448,7 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
         return Utils.stack();
       }
 
-      var stack = a();
+      const stack = a();
 
       expect(stack[0].getFunctionName()).to.eql('c');
       expect(stack[1].getFunctionName()).to.eql('b');

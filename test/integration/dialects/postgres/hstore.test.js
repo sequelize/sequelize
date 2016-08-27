@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W110 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
   , dialect = Support.getTestDialect()
@@ -76,7 +76,7 @@ if (dialect.match(/^postgres/)) {
     });
     describe('stringify and parse', function() {
       it('should stringify then parse back the same structure', function() {
-        var testObj = {foo: 'bar', count: '1', emptyString: '', quotyString: '""', extraQuotyString: '"""a"""""', backslashes: '\\f023', moreBackslashes: '\\f\\0\\2\\1', backslashesAndQuotes: '\\"\\"uhoh"\\"', nully: null};
+        const testObj = {foo: 'bar', count: '1', emptyString: '', quotyString: '""', extraQuotyString: '"""a"""""', backslashes: '\\f023', moreBackslashes: '\\f\\0\\2\\1', backslashesAndQuotes: '\\"\\"uhoh"\\"', nully: null};
         expect(hstore.parse(hstore.stringify(testObj))).to.deep.equal(testObj);
         expect(hstore.parse(hstore.stringify(hstore.parse(hstore.stringify(testObj))))).to.deep.equal(testObj);
       });

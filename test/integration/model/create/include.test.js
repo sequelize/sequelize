@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , Sequelize = require('../../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
@@ -11,21 +11,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('create', function() {
     describe('include', function() {
       it('should create data for BelongsTo relations', function() {
-        var Product = this.sequelize.define('Product', {
+        const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         }, {
           hooks: {
-            afterCreate: function (product) {
+            afterCreate(product) {
               product.isIncludeCreatedOnAfterCreate = !!(product.User && product.User.id);
             }
           }
         });
-        var User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
           first_name: Sequelize.STRING,
           last_name: Sequelize.STRING
         }, {
           hooks: {
-            beforeCreate: function (user, options) {
+            beforeCreate(user, options) {
               user.createOptions = options;
             }
           }
@@ -62,15 +62,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create data for BelongsTo relations with alias', function() {
-        var Product = this.sequelize.define('Product', {
+        const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         });
-        var User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
           first_name: Sequelize.STRING,
           last_name: Sequelize.STRING
         });
 
-        var Creator = Product.belongsTo(User, {as: 'creator'});
+        const Creator = Product.belongsTo(User, {as: 'creator'});
 
         return this.sequelize.sync({ force: true }).then(function() {
           return Product.create({
@@ -95,23 +95,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create data for HasMany relations', function() {
-        var Product = this.sequelize.define('Product', {
+        const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         }, {
           hooks: {
-            afterCreate: function (product) {
+            afterCreate(product) {
               product.areIncludesCreatedOnAfterCreate = product.Tags &&
-                product.Tags.every(function (tag) {
+                product.Tags.every(function(tag) {
                   return !!tag.id;
                 });
             }
           }
         });
-        var Tag = this.sequelize.define('Tag', {
+        const Tag = this.sequelize.define('Tag', {
           name: Sequelize.STRING
         }, {
           hooks: {
-            afterCreate: function (tag, options) {
+            afterCreate(tag, options) {
               tag.createOptions = options;
             }
           }
@@ -150,14 +150,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create data for HasMany relations with alias', function() {
-        var Product = this.sequelize.define('Product', {
+        const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         });
-        var Tag = this.sequelize.define('Tag', {
+        const Tag = this.sequelize.define('Tag', {
           name: Sequelize.STRING
         });
 
-        var Categories = Product.hasMany(Tag, {as: 'categories'});
+        const Categories = Product.hasMany(Tag, {as: 'categories'});
 
         return this.sequelize.sync({ force: true }).then(function() {
           return Product.create({
@@ -182,11 +182,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create data for HasOne relations', function() {
-        var User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
           username: Sequelize.STRING
         });
 
-        var Task = this.sequelize.define('Task', {
+        const Task = this.sequelize.define('Task', {
           title: Sequelize.STRING
         });
 
@@ -212,15 +212,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create data for HasOne relations with alias', function() {
-        var User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
           username: Sequelize.STRING
         });
 
-        var Task = this.sequelize.define('Task', {
+        const Task = this.sequelize.define('Task', {
           title: Sequelize.STRING
         });
 
-        var Job = User.hasOne(Task, {as: 'job'});
+        const Job = User.hasOne(Task, {as: 'job'});
 
 
         return this.sequelize.sync({ force: true }).then(function() {
@@ -243,25 +243,25 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create data for BelongsToMany relations', function() {
-        var User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
           username: DataTypes.STRING
-        },{
+        }, {
           hooks: {
-            afterCreate: function (user) {
+            afterCreate(user) {
               user.areIncludesCreatedOnAfterCreate = user.Tasks &&
-                user.Tasks.every(function (task) {
+                user.Tasks.every(function(task) {
                   return !!task.id;
                 });
             }
           }
         });
 
-        var Task = this.sequelize.define('Task', {
+        const Task = this.sequelize.define('Task', {
           title: DataTypes.STRING,
           active: DataTypes.BOOLEAN
         }, {
           hooks: {
-            afterCreate: function (task, options) {
+            afterCreate(task, options) {
               task.createOptions = options;
             }
           }
@@ -300,16 +300,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should create data for BelongsToMany relations with alias', function() {
-        var User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
           username: DataTypes.STRING
         });
 
-        var Task = this.sequelize.define('Task', {
+        const Task = this.sequelize.define('Task', {
           title: DataTypes.STRING,
           active: DataTypes.BOOLEAN
         });
 
-        var Jobs = User.belongsToMany(Task, {through: 'user_job', as: 'jobs'});
+        const Jobs = User.belongsToMany(Task, {through: 'user_job', as: 'jobs'});
         Task.belongsToMany(User, {through: 'user_job'});
 
         return this.sequelize.sync({ force: true }).then(function() {

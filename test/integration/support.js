@@ -1,6 +1,6 @@
 'use strict';
 
-var Support = require('../support')
+let Support = require('../support')
   , dialect = Support.getTestDialect();
 
 before(function() {
@@ -18,7 +18,7 @@ beforeEach(function() {
   return Support.clearDatabase(this.sequelize);
 });
 
-afterEach(function () {
+afterEach(function() {
   try {
     this.sequelize.test.verifyNoRunningQueries();
   } catch (err) {

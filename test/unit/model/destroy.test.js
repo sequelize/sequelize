@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , current = Support.sequelize
@@ -12,37 +12,37 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('Model'), function() {
 
-  describe('method destroy', function () {
-    var User = current.define('User', {
+  describe('method destroy', function() {
+    const User = current.define('User', {
       name: DataTypes.STRING,
       secretValue: DataTypes.INTEGER
     });
 
-    before(function () {
-      this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete', function () {
+    before(function() {
+      this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete', function() {
         return Promise.resolve([]);
       });
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.deloptions = {where: {secretValue: '1'}};
       this.cloneOptions = _.clone(this.deloptions);
       this.stubDelete.reset();
     });
 
-    afterEach(function () {
+    afterEach(function() {
       delete this.deloptions;
       delete this.cloneOptions;
     });
 
-    after(function () {
+    after(function() {
       this.stubDelete.restore();
     });
 
     it('can detect complexe objects', function() {
-      var Where = function () { this.secretValue = '1'; };
+      const Where = function() { this.secretValue = '1'; };
 
-      expect(function () {
+      expect(function() {
         User.destroy({where: new Where()});
       }).to.throw();
 

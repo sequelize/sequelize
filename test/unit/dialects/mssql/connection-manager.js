@@ -1,20 +1,20 @@
 'use strict';
 
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Sequelize = require(__dirname + '/../../../../index');
 
 
-var tedious = require('tedious')
+let tedious = require('tedious')
   , sinon = require('sinon')
   , connectionStub = sinon.stub(tedious, 'Connection');
 
-connectionStub.returns({on: function () {}});
+connectionStub.returns({on() {}});
 
-describe('[MSSQL] Connection Manager', function () {
-  var instance
+describe('[MSSQL] Connection Manager', function() {
+  let instance
     , config;
-  beforeEach(function () {
+  beforeEach(function() {
     config = {
       dialect: 'mssql',
       database: 'none',
@@ -34,7 +34,7 @@ describe('[MSSQL] Connection Manager', function () {
   });
   
   it('connectionManager._connect() Does not delete `domain` from config.dialectOptions',
-     function () {
+     function() {
        expect(config.dialectOptions.domain).to.equal('TEST.COM');
        instance.dialect.connectionManager._connect(config);
        expect(config.dialectOptions.domain).to.equal('TEST.COM');

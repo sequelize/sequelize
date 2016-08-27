@@ -1,14 +1,14 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
   , dialect = Support.getTestDialect()
   , _ = require('lodash')
   , count = 0
-  , log = function (sql) {
+  , log = function(sql) {
     // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
     if (dialect !== 'sqlite' || count === 0) {
       count++;
@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
   describe('dropAllTables', function() {
     it('should drop all tables', function() {
-      var self = this;
+      const self = this;
       return this.queryInterface.dropAllTables().then(function() {
         return self.queryInterface.showAllTables().then(function(tableNames) {
           expect(tableNames).to.be.empty;
@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('should be able to skip given tables', function() {
-      var self = this;
+      const self = this;
       return self.queryInterface.createTable('skipme', {
         name: DataTypes.STRING
       }).then(function() {
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
   describe('indexes', function() {
     beforeEach(function() {
-      var self = this;
+      const self = this;
       return this.queryInterface.dropTable('Group').then(function() {
         return self.queryInterface.createTable('Group', {
           username: DataTypes.STRING,
@@ -75,10 +75,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('adds, reads and removes an index to the table', function() {
-      var self = this;
+      const self = this;
       return this.queryInterface.addIndex('Group', ['username', 'isAdmin']).then(function() {
         return self.queryInterface.showIndex('Group').then(function(indexes) {
-          var indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
+          let indexColumns = _.uniq(indexes.map(function(index) { return index.name; }));
           expect(indexColumns).to.include('group_username_is_admin');
           return self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).then(function() {
             return self.queryInterface.showIndex('Group').then(function(indexes) {
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('works with schemas', function() {
-      var self = this;
+      const self = this;
       return self.sequelize.createSchema('schema').then(function() {
         return self.queryInterface.createTable('table', {
           name: {
@@ -108,15 +108,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           schema: 'schema',
           tableName: 'table'
         }, ['name', 'isAdmin'], null, 'schema_table').then(function() {
-            return self.queryInterface.showIndex({
-              schema: 'schema',
-              tableName: 'table'
-            }).then(function(indexes) {
-              expect(indexes.length).to.eq(1);
-            });
+          return self.queryInterface.showIndex({
+            schema: 'schema',
+            tableName: 'table'
+          }).then(function(indexes) {
+            expect(indexes.length).to.eq(1);
           });
         });
       });
+    });
 
     it('does not fail on reserved keywords', function() {
       return this.queryInterface.addIndex('Group', ['from']);
@@ -125,8 +125,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
   describe('describeTable', function() {
     it('reads the metadata of the table', function() {
-      var self = this;
-      var Users = self.sequelize.define('_Users', {
+      const self = this;
+      const Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING,
         city: {
           type: DataTypes.STRING,
@@ -138,15 +138,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
       return Users.sync({ force: true }).then(function() {
         return self.queryInterface.describeTable('_Users').then(function(metadata) {
-          var id = metadata.id;
-          var username = metadata.username;
-          var city = metadata.city;
-          var isAdmin = metadata.isAdmin;
-          var enumVals = metadata.enumVals;
+          const id = metadata.id;
+          const username = metadata.username;
+          const city = metadata.city;
+          const isAdmin = metadata.isAdmin;
+          const enumVals = metadata.enumVals;
 
           expect(id.primaryKey).to.be.ok;
 
-          var assertVal = 'VARCHAR(255)';
+          let assertVal = 'VARCHAR(255)';
           switch (dialect) {
             case 'postgres':
               assertVal = 'CHARACTER VARYING';
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         }
       }).bind(this).then(function() {
         return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(response) {
-          expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
+          expect(response.table_id || typeof response !== 'object' && response).to.be.ok;
         });
       });
     });
@@ -244,7 +244,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('should work with schemas', function() {
-      var self = this;
+      const self = this;
       return self.sequelize.createSchema('hero').then(function() {
         return self.queryInterface.createTable('User', {
           name: {
@@ -259,8 +259,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
   describe('renameColumn', function() {
     it('rename a simple column', function() {
-      var self = this;
-      var Users = self.sequelize.define('_Users', {
+      const self = this;
+      const Users = self.sequelize.define('_Users', {
         username: DataTypes.STRING
       }, { freezeTableName: true });
 
@@ -268,16 +268,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return self.queryInterface.renameColumn('_Users', 'username', 'pseudo');
       }).bind(this).then(function() {
         return this.queryInterface.describeTable('_Users');
-      }).then(function (table) {
+      }).then(function(table) {
         expect(table).to.have.property('pseudo');
         expect(table).to.not.have.property('username');
       });
     });
 
     it('works with schemas', function() {
-      var self = this;
+      const self = this;
       return self.sequelize.createSchema('archive').then(function() {
-        var Users = self.sequelize.define('User', {
+        const Users = self.sequelize.define('User', {
           username: DataTypes.STRING
         }, {
           tableName: 'Users',
@@ -294,15 +294,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           schema: 'archive',
           tableName: 'Users'
         });
-      }).then(function (table) {
+      }).then(function(table) {
         expect(table).to.have.property('pseudo');
         expect(table).to.not.have.property('username');
       });
     });
 
     it('rename a column non-null without default value', function() {
-      var self = this;
-      var Users = self.sequelize.define('_Users', {
+      const self = this;
+      const Users = self.sequelize.define('_Users', {
         username: {
           type: DataTypes.STRING,
           allowNull: false
@@ -313,15 +313,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return self.queryInterface.renameColumn('_Users', 'username', 'pseudo');
       }).bind(this).then(function() {
         return this.queryInterface.describeTable('_Users');
-      }).then(function (table) {
+      }).then(function(table) {
         expect(table).to.have.property('pseudo');
         expect(table).to.not.have.property('username');
       });
     });
 
     it('rename a boolean column non-null without default value', function() {
-      var self = this;
-      var Users = self.sequelize.define('_Users', {
+      const self = this;
+      const Users = self.sequelize.define('_Users', {
         active: {
           type: DataTypes.BOOLEAN,
           allowNull: false,
@@ -333,15 +333,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return self.queryInterface.renameColumn('_Users', 'active', 'enabled');
       }).bind(this).then(function() {
         return this.queryInterface.describeTable('_Users');
-      }).then(function (table) {
+      }).then(function(table) {
         expect(table).to.have.property('enabled');
         expect(table).to.not.have.property('active');
       });
     });
 
     it('renames a column primary key autoIncrement column', function() {
-      var self = this;
-      var Fruits = self.sequelize.define('Fruit', {
+      const self = this;
+      const Fruits = self.sequelize.define('Fruit', {
         fruitId: {
           type: DataTypes.INTEGER,
           allowNull: false,
@@ -354,7 +354,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return self.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
       }).bind(this).then(function() {
         return this.queryInterface.describeTable('Fruit');
-      }).then(function (table) {
+      }).then(function(table) {
         expect(table).to.have.property('fruit_id');
         expect(table).to.not.have.property('fruitId');
       });
@@ -386,7 +386,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
             tableName: 'users',
             schema: 'archive'
           });
-        }).then(function (table) {
+        }).then(function(table) {
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             expect(table.currency.type).to.equal('DOUBLE PRECISION');
           } else {
@@ -397,49 +397,49 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('should change columns', function() {
-        return this.queryInterface.createTable({
+      return this.queryInterface.createTable({
+        tableName: 'users'
+      }, {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        currency: DataTypes.INTEGER
+      }).bind(this).then(function() {
+        return this.queryInterface.changeColumn('users', 'currency', {
+          type: DataTypes.FLOAT,
+          allowNull: true
+        });
+      }).then(function() {
+        return this.queryInterface.describeTable({
           tableName: 'users'
-        }, {
+        });
+      }).then(function(table) {
+        if (dialect === 'postgres' || dialect === 'postgres-native') {
+          expect(table.currency.type).to.equal('DOUBLE PRECISION');
+        } else {
+          expect(table.currency.type).to.equal('FLOAT');
+        }
+      });
+    });
+  });
+
+    //SQlite navitely doesnt support ALTER Foreign key
+  if (dialect !== 'sqlite') {
+    describe('should support foreign keys', function() {
+      beforeEach(function() {
+        return this.queryInterface.createTable('users', {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
           },
-          currency: DataTypes.INTEGER
-        }).bind(this).then(function() {
-          return this.queryInterface.changeColumn('users', 'currency', {
-            type: DataTypes.FLOAT,
-            allowNull: true
-          });
-        }).then(function() {
-            return this.queryInterface.describeTable({
-              tableName: 'users'
-            });
-        }).then(function (table) {
-          if (dialect === 'postgres' || dialect === 'postgres-native') {
-            expect(table.currency.type).to.equal('DOUBLE PRECISION');
-          } else {
-            expect(table.currency.type).to.equal('FLOAT');
+          level_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
           }
-        });
-      });
-    });
-
-    //SQlite navitely doesnt support ALTER Foreign key
-    if (dialect !== 'sqlite') {
-      describe('should support foreign keys', function() {
-        beforeEach(function() {
-          return this.queryInterface.createTable('users', {
-            id: {
-              type: DataTypes.INTEGER,
-              primaryKey: true,
-              autoIncrement: true
-            },
-            level_id: {
-              type: DataTypes.INTEGER,
-              allowNull: false
-            }
-          })
+        })
           .bind(this).then(function() {
             return this.queryInterface.createTable('level', {
               id: {
@@ -449,25 +449,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
               }
             });
           });
-        });
-
-        it('able to change column to foreign key', function() {
-          return this.queryInterface.changeColumn('users', 'level_id', {
-            type: DataTypes.INTEGER,
-            references: {
-              model: 'level',
-              key:   'id'
-            },
-            onUpdate: 'cascade',
-            onDelete: 'cascade'
-          }, {logging: log}).then(function() {
-            expect(count).to.be.equal(1);
-            count = 0;
-          });
-        });
-
       });
-    }
+
+      it('able to change column to foreign key', function() {
+        return this.queryInterface.changeColumn('users', 'level_id', {
+          type: DataTypes.INTEGER,
+          references: {
+            model: 'level',
+            key:   'id'
+          },
+          onUpdate: 'cascade',
+          onDelete: 'cascade'
+        }, {logging: log}).then(function() {
+          expect(count).to.be.equal(1);
+          count = 0;
+        });
+      });
+
+    });
+  }
 
   describe('addColumn', function() {
     beforeEach(function() {
@@ -501,7 +501,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         });
       }).then(function() {
         return this.queryInterface.describeTable('users');
-      }).then(function (table) {
+      }).then(function(table) {
         expect(table).to.have.property('level_id');
       });
     });
@@ -527,7 +527,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
             tableName: 'users',
             schema: 'archive'
           });
-        }).then(function (table) {
+        }).then(function(table) {
           expect(table).to.have.property('level_id');
         });
       });
@@ -575,7 +575,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return this.queryInterface.removeColumn('users', 'firstName').bind(this).then(function() {
           return this.queryInterface.describeTable('users');
         }).then(function(table) {
-            expect(table).to.not.have.property('firstName');
+          expect(table).to.not.have.property('firstName');
         });
       });
 
@@ -591,7 +591,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
           return this.queryInterface.describeTable('users');
         }).then(function(table) {
-            expect(table).to.not.have.property('manager');
+          expect(table).to.not.have.property('manager');
         });
       });
     });
@@ -621,32 +621,32 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
       it('should be able to remove a column with a default value', function() {
         return this.queryInterface.removeColumn({
+          tableName: 'users',
+          schema: 'archive'
+        }, 'firstName'
+        ).bind(this).then(function() {
+          return this.queryInterface.describeTable({
             tableName: 'users',
             schema: 'archive'
-          }, 'firstName'
-        ).bind(this).then(function() {
-            return this.queryInterface.describeTable({
-              tableName: 'users',
-              schema: 'archive'
-            });
-          }).then(function(table) {
-            expect(table).to.not.have.property('firstName');
           });
+        }).then(function(table) {
+          expect(table).to.not.have.property('firstName');
+        });
       });
 
       it('should be able to remove a column without default value', function() {
         return this.queryInterface.removeColumn({
+          tableName: 'users',
+          schema: 'archive'
+        }, 'lastName'
+        ).bind(this).then(function() {
+          return this.queryInterface.describeTable({
             tableName: 'users',
             schema: 'archive'
-          }, 'lastName'
-        ).bind(this).then(function() {
-            return this.queryInterface.describeTable({
-              tableName: 'users',
-              schema: 'archive'
-            });
-          }).then(function(table) {
-            expect(table).to.not.have.property('lastName');
           });
+        }).then(function(table) {
+          expect(table).to.not.have.property('lastName');
+        });
       });
     });
   });
@@ -695,13 +695,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('should get a list of foreign keys for the table', function() {
-      var sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
-      var self = this;
+      const sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
+      const self = this;
       return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then(function(fks) {
         expect(fks).to.have.length(3);
-        var keys = Object.keys(fks[0]),
-            keys2 = Object.keys(fks[1]),
-            keys3 = Object.keys(fks[2]);
+        let keys = Object.keys(fks[0]),
+          keys2 = Object.keys(fks[1]),
+          keys3 = Object.keys(fks[2]);
 
         if (dialect === 'postgres' || dialect === 'postgres-native') {
           expect(keys).to.have.length(6);

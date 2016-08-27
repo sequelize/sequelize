@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , Sequelize = require('../../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -17,17 +17,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             storage: Sequelize.STRING,
             field1: {
               type: Sequelize.VIRTUAL,
-              set: function(val) {
+              set(val) {
                 this.setDataValue('storage', val);
                 this.setDataValue('field1', val);
               },
-              get: function() {
+              get() {
                 return this.getDataValue('field1');
               }
             },
             field2: {
               type: Sequelize.VIRTUAL,
-              get: function() {
+              get() {
                 return 42;
               }
             },
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should not be ignored in dataValues get', function() {
-          var user = this.User.build({
+          const user = this.User.build({
             field1: 'field1_value',
             field2: 'field2_value'
           });
@@ -91,17 +91,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should allow me to store selected values', function() {
-          var Post = this.sequelize.define('Post', {
-              text: Sequelize.TEXT,
-              someBoolean: {
-                type: Sequelize.VIRTUAL
-              }
-            });
+          const Post = this.sequelize.define('Post', {
+            text: Sequelize.TEXT,
+            someBoolean: {
+              type: Sequelize.VIRTUAL
+            }
+          });
 
           return this.sequelize.sync({ force: true}).then(function() {
-            return Post.bulkCreate([{ text: 'text1' },{ text: 'text2' }]);
+            return Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
           }).then(function() {
-            var boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
+            let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
             if (dialect === 'mssql') {
               boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
             }
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be ignored in bulkCreate and and bulkUpdate', function() {
-          var self = this;
+          const self = this;
           return this.User.bulkCreate([{
             field1: 'something'
           }], {

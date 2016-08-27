@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , current = Support.sequelize
@@ -12,36 +12,36 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('Model'), function() {
 
-  describe('method findOrCreate', function () {
+  describe('method findOrCreate', function() {
 
-    before(function () {
+    before(function() {
       current.constructor.cls = cls.createNamespace('sequelize');
     });
 
-    after(function () {
+    after(function() {
       delete current.constructor.cls;
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.User = current.define('User', {}, {
         name: 'John'
       });
 
       this.transactionStub = stub(this.User.sequelize, 'transaction');
-      this.transactionStub.returns(new Promise(function () {}));
+      this.transactionStub.returns(new Promise(function() {}));
 
       this.clsStub = stub(current.constructor.cls, 'get');
       this.clsStub.returns({ id: 123 });
     });
 
-    afterEach(function () {
+    afterEach(function() {
       this.transactionStub.restore();
       this.clsStub.restore();
     });
 
-    it('should use transaction from cls if available', function () {
+    it('should use transaction from cls if available', function() {
 
-      var options = {
+      const options = {
         where : {
           name : 'John'
         }
@@ -52,9 +52,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
     });
 
-    it('should not use transaction from cls if provided as argument', function () {
+    it('should not use transaction from cls if provided as argument', function() {
 
-      var options = {
+      const options = {
         where : {
           name : 'John'
         },

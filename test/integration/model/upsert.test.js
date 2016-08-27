@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
@@ -12,7 +12,7 @@ var chai = require('chai')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  before(function () {
+  before(function() {
     this.clock = sinon.useFakeTimers();
   });
 
@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     return this.sequelize.sync({ force: true });
   });
 
-  after(function () {
+  after(function() {
     this.clock.restore();
   });
 
@@ -107,8 +107,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should work with UUIDs wth default values', function () {
-        var User = this.sequelize.define('User', {
+      it('should work with UUIDs wth default values', function() {
+        const User = this.sequelize.define('User', {
           id: {
             primaryKey: true,
             allowNull: false,
@@ -118,33 +118,33 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           },
 
           name: {
-            type: Sequelize.STRING,
+            type: Sequelize.STRING
           }
         });
 
-        return User.sync({ force: true }).then(function () {
+        return User.sync({ force: true }).then(function() {
           return User.upsert({ name: 'John Doe' });
         });
       });
 
       it('works with upsert on a composite primary key', function() {
-        var User = this.sequelize.define('user', {
+        const User = this.sequelize.define('user', {
           a: {
             type: Sequelize.STRING,
-            primaryKey: true,
+            primaryKey: true
           },
           b: {
             type: Sequelize.STRING,
-            primaryKey: true,
+            primaryKey: true
           },
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         });
 
-        return User.sync({ force: true }).bind(this).then(function  () {
+        return User.sync({ force: true }).bind(this).then(function() {
           return Promise.all([
               // Create two users
-             User.upsert({ a: 'a', b: 'b', username: 'john' }),
-             User.upsert({ a: 'a', b: 'a', username: 'curt' }),
+            User.upsert({ a: 'a', b: 'b', username: 'john' }),
+            User.upsert({ a: 'a', b: 'a', username: 'curt' })
           ]);
         }).spread(function(created1, created2) {
           if (dialect === 'sqlite') {
@@ -167,13 +167,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }
 
           return User.find({ where: { a: 'a', b: 'b' }});
-        }).then(function (user1) {
+        }).then(function(user1) {
           expect(user1.createdAt).to.be.ok;
           expect(user1.username).to.equal('doe');
           expect(user1.updatedAt).to.be.afterTime(user1.createdAt);
 
           return User.find({ where: { a: 'a', b: 'a' }});
-        }).then(function (user2) {
+        }).then(function(user2) {
           // The second one should not be updated
           expect(user2.createdAt).to.be.ok;
           expect(user2.username).to.equal('curt');
@@ -181,8 +181,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('supports validations', function () {
-        var User = this.sequelize.define('user', {
+      it('supports validations', function() {
+        const User = this.sequelize.define('user', {
           email: {
             type: Sequelize.STRING,
             validate: {
@@ -194,7 +194,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(this.sequelize.ValidationError);
       });
 
-      it('works with BLOBs', function () {
+      it('works with BLOBs', function() {
         return this.User.upsert({ id: 42, username: 'john', blob: new Buffer('kaj') }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('works with .field', function () {
+      it('works with .field', function() {
         return this.User.upsert({ id: 42, baz: 'foo' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('works with primary key using .field', function () {
+      it('works with primary key using .field', function() {
         return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
@@ -293,9 +293,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('does not overwrite createdAt time on update', function() {
-        var originalCreatedAt;
-        var originalUpdatedAt;
-        var clock = sinon.useFakeTimers();
+        let originalCreatedAt;
+        let originalUpdatedAt;
+        const clock = sinon.useFakeTimers();
         return this.User.create({ id: 42, username: 'john'}).bind(this).then(function() {
           return this.User.findById(42);
         }).then(function(user) {

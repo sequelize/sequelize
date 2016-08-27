@@ -1,16 +1,16 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
+let chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , current = Support.sequelize
   , DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('indexes', function () {
-    it('should automatically set a gin index for JSONB indexes', function () {
-      var Model = current.define('event', {
+  describe('indexes', function() {
+    it('should automatically set a gin index for JSONB indexes', function() {
+      const Model = current.define('event', {
         eventData: {
           type: DataTypes.JSONB,
           index: true,
@@ -24,8 +24,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(Model.options.indexes[0].using).to.equal('gin');
     });
 
-    it('should set the unique property when type is unique', function () {
-      var Model = current.define('m', {}, {
+    it('should set the unique property when type is unique', function() {
+      const Model = current.define('m', {}, {
         indexes: [
           {
             type: 'unique'
