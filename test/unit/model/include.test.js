@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     describe('_conformInclude: string alias', function () {
       it('should expand association from string alias', function () {
-        var options = {
+        const options = {
           include: ['Owner']
         };
         Sequelize.Model._conformOptions(options, this.Company);
