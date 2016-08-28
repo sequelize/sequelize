@@ -260,7 +260,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.attributes.include] | Array.&lt;String&gt; | Select all the attributes of the model, plus some additional ones. Useful for aggregations, e.g. `{ attributes: { include: [[sequelize.fn('COUNT', sequelize.col('id')), 'total']] }` |
 | [options.attributes.exclude] | Array.&lt;String&gt; | Select all the attributes of the model, except some few. Useful for security purposes e.g. `{ attributes: { exclude: ['password'] } }` |
 | [options.paranoid=true] | Boolean | If true, only non-deleted records will be returned. If false, both deleted and non-deleted records will be returned. Only applies if `options.paranoid` is true for the model. |
-| [options.include] | Array.&lt;Object &#124; Model&gt; | A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }]}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in the as attribute when eager loading Y). |
+| [options.include] | Array.&lt;Object &#124; Model &#124; String&gt; | A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }, ...]}` or `{ include: ['Alias', ...]}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in the as attribute when eager loading Y). |
 | [options.include[].model] | Model | The model you want to eagerly load |
 | [options.include[].as] | String | The alias of the relation, in case the model you want to eagerly load is aliased. For `hasOne` / `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural |
 | [options.include[].association] | Association | The association you want to eagerly load. (This can be used instead of providing a model/as pair) |
@@ -273,7 +273,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.include[].limit] | Number | Limit the joined rows, only supported with include.separate=true |
 | [options.include[].through.where] | Object | Filter on the join model for belongsToMany relations |
 | [options.include[].through.attributes] | Array | A list of attributes to select from the join model for belongsToMany relations |
-| [options.include[].include] | Array.&lt;Object &#124; Model&gt; | Load further nested related models |
+| [options.include[].include] | Array.&lt;Object &#124; Model &#124; String&gt; | Load further nested related models |
 | [options.order] | String &#124; Array &#124; Sequelize.fn | Specifies an ordering. If a string is provided, it will be escaped. Using an array, you can provide several columns / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction. For example: `order: [['name', 'DESC']]`. In this way the column will be escaped, but the direction will not. |
 | [options.limit] | Number |  |
 | [options.offset] | Number |  |

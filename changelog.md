@@ -1,4 +1,5 @@
 # Future
+- [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
 - [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
 
 # 4.0.0-1
