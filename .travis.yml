@@ -21,7 +21,6 @@ env:
     - DIALECT=postgres
     - DIALECT=postgres-native
     - DIALECT=sqlite
-    - DIALECT=mssql
 
 addons:
   apt:
@@ -53,8 +52,6 @@ matrix:
       env: COVERAGE=true DIALECT=postgres-native
     - node_js: "6"
       env: COVERAGE=true DIALECT=sqlite
-    - node_js: "6"
-      env: COVERAGE=true DIALECT=mssql
 
 notifications:
   webhooks: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
