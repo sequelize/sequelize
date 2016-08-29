@@ -266,6 +266,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           as: 'Owner'
         });
       });
+
+      it('should expand string association', function () {
+        const options = {
+          include: [{
+            association: 'Owner',
+            attributes: ['id']
+          }]
+        };
+        Sequelize.Model._conformOptions(options, this.Company);
+
+        expect(options.include[0]).to.deep.equal({
+          model: this.User,
+          association: this.Company.Owner,
+          attributes: ['id'],
+          as: 'Owner'
+        });
+      });
     });
 
     describe('subQuery', function () {
