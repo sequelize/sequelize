@@ -1,5 +1,13 @@
 'use strict';
 
+const fs = require('fs');
+let mssqlConfig;
+try {
+  mssqlConfig = JSON.parse(fs.readFileSync(__dirname + '/mssql.json', 'utf8'));
+} catch (e) {
+  // ignore
+}
+
 module.exports = {
   username: process.env.SEQ_USER || 'root',
   password: process.env.SEQ_PW   || null,
@@ -14,7 +22,7 @@ module.exports = {
     return parseInt(Math.random() * 999, 10);
   },
 
-  mssql: {
+  mssql: mssqlConfig || {
     database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || (function () {
       var db = 'sequelize-test-' + ~~(Math.random() * 100);
       console.log('Using database: ', db);

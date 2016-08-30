@@ -1004,7 +1004,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
               'password authentication failed for user "bar"'
             ].indexOf(err.message.trim()) !== -1);
           } else if (dialect === 'mssql') {
-            expect(err.message).to.match(/.*ECONNREFUSED.*/);
+            expect(err.message).to.equal('Login failed for user \'bar\'.');
           } else {
             expect(err.message.toString()).to.match(/.*Access\ denied.*/);
           }
