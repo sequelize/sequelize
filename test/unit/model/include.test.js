@@ -253,6 +253,38 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    describe('_conformInclude: string alias', function () {
+      it('should expand association from string alias', function () {
+        const options = {
+          include: ['Owner']
+        };
+        Sequelize.Model._conformOptions(options, this.Company);
+
+        expect(options.include[0]).to.deep.equal({
+          model: this.User,
+          association: this.Company.Owner,
+          as: 'Owner'
+        });
+      });
+
+      it('should expand string association', function () {
+        const options = {
+          include: [{
+            association: 'Owner',
+            attributes: ['id']
+          }]
+        };
+        Sequelize.Model._conformOptions(options, this.Company);
+
+        expect(options.include[0]).to.deep.equal({
+          model: this.User,
+          association: this.Company.Owner,
+          attributes: ['id'],
+          as: 'Owner'
+        });
+      });
+    });
+
     describe('subQuery', function () {
       it('should be true if theres a duplicating association', function () {
         var options = Sequelize.Model._validateIncludedElements({

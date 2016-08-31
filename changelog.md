@@ -1,4 +1,10 @@
 # Future
+- [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
+- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
+
+# 4.0.0-1
+- [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)
+- [FIXED] Made `Model.init()` behave like `sequelize.define()` (hooks are called and options have proper defaults) [#6437](https://github.com/sequelize/sequelize/issues/6437)
 - [ADDED] `restartIdentity` option for truncate in postgres [#5356](https://github.com/sequelize/sequelize/issues/5356)
 - [INTERNAL] Migrated to `node-mysql2` for prepared statements [#6354](https://github.com/sequelize/sequelize/issues/6354)
 - [ADDED] SQLCipher support via the SQLite connection manager
@@ -38,6 +44,7 @@
 [#6406](https://github.com/sequelize/sequelize/issues/6406)
 - [FIXED] Nested query return correct result when quoteIdentifiers is false. (Postgres) [#6363](https://github.com/sequelize/sequelize/issues/6363)
 - [FIXED] Fixed an issue where changing multiple ENUM columns in PostgreSQL could break. [#6203] (https://github.com/sequelize/sequelize/issues/6203)
+- [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
