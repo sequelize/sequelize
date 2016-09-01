@@ -94,6 +94,7 @@
 - All associations type will prefer `as` when constructing the `foreignKey` name. You can override this by `foreignKey` option.
 - Removed default `AUTO COMMIT` for transaction. Its only sent if explicitly set by user or required by dialects (like `mysql`)
 - Hooks no longer provide a callback - you can return a `then`-able instead if you are doing async stuff
+- Table names of a select query have change internally from 'originModel.associatedModel.field' to 'originModel->associatedModel.field'
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
