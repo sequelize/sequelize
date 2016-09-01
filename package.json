@@ -36,7 +36,7 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "bluebird": "^3.4.4",
+    "bluebird": "^3.4.6",
     "debug": "^2.2.0",
     "depd": "^1.1.0",
     "dottie": "^1.0.0",
