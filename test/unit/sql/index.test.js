@@ -121,6 +121,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           using: 'gin',
           operator: 'jsonb_path_ops'
         }), {
+          sqlite: 'CREATE INDEX `table_event` ON `table` (`gin`)',
           postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)'
         });
       });
