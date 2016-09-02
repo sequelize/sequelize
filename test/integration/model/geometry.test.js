@@ -191,11 +191,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('should properly escape the single quotes', function () {
         return this.Model.create({
           location: {
-            type: "Point",
+            type: 'Point',
             properties: {
               exploit: "'); DELETE YOLO INJECTIONS; -- "
             },
-            coordinates: [39.807222,-76.984722]
+            coordinates: [39.807222, -76.984722]
           }
         });
       });
@@ -209,11 +209,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return this.Model.create({
           location: {
-            type: "Point",
+            type: 'Point',
             properties: {
               exploit: "'); DELETE YOLO INJECTIONS; -- "
             },
-            coordinates: [39.807222,"'); DELETE YOLO INJECTIONS; --"]
+            coordinates: [39.807222, "'); DELETE YOLO INJECTIONS; --"]
           }
         });
       });
