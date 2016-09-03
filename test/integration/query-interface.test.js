@@ -25,22 +25,23 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     return this.sequelize.dropAllSchemas();
   });
 
-  describe.only('dropAllTables', function() {
+  describe('dropAllTables', function() {
     it('should drop all tables', function() {
+      const filterMSSQLDefault = tableNames => tableNames.filter(t => t.tableName !== 'spt_values');
       const self = this;
       return this.queryInterface.dropAllTables().then(function() {
         return self.queryInterface.showAllTables().then(function(tableNames) {
           // MSSQL include spt_values table which is system defined, hence cant be dropped
-          tableNames = tableNames.filter(t => t.tableName !== 'spt_values');
+          tableNames = filterMSSQLDefault(tableNames);
           expect(tableNames).to.be.empty;
           return self.queryInterface.createTable('table', { name: DataTypes.STRING }).then(function() {
             return self.queryInterface.showAllTables().then(function(tableNames) {
-              tableNames = tableNames.filter(t => t.tableName !== 'spt_values');
+              tableNames = filterMSSQLDefault(tableNames);
               expect(tableNames).to.have.length(1);
               return self.queryInterface.dropAllTables().then(function() {
                 return self.queryInterface.showAllTables().then(function(tableNames) {
                   // MSSQL include spt_values table which is system defined, hence cant be dropped
-                  tableNames = tableNames.filter(t => t.tableName !== 'spt_values');
+                  tableNames = filterMSSQLDefault(tableNames);
                   expect(tableNames).to.be.empty;
                 });
               });
