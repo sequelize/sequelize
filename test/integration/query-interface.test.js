@@ -18,6 +18,7 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   beforeEach(function() {
     this.sequelize.options.quoteIdenifiers = true;
+    this.sequelize.options.logging = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
@@ -25,7 +26,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     return this.sequelize.dropAllSchemas();
   });
 
-  describe('dropAllTables', function() {
+  describe.only('dropAllTables', function() {
     it('should drop all tables', function() {
       var self = this;
       return this.queryInterface.dropAllTables().then(function() {
