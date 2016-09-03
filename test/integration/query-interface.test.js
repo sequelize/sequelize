@@ -30,6 +30,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       var self = this;
       return this.queryInterface.dropAllTables().then(function() {
         return self.queryInterface.showAllTables().then(function(tableNames) {
+          console.log(tableNames);
           expect(tableNames).to.be.empty;
           return self.queryInterface.createTable('table', { name: DataTypes.STRING }).then(function() {
             return self.queryInterface.showAllTables().then(function(tableNames) {
