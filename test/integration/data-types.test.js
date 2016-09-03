@@ -288,7 +288,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         current.query(`SELECT extversion FROM pg_catalog.pg_extension WHERE extname='postgis';`)
             .then((result) => {
               if (result[0][0] && semver.lte(result[0][0].extversion, '2.1.7')) {
-                console.log(result[0][0]); //ya I know :)
                 resolve(true);
               } else {
                 resolve();
