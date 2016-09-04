@@ -61,7 +61,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             options,
             User
           ), {
-            postgres: 'TRUNCATE "public"."test_users" CASCADE RESTART IDENTITY',
+            postgres: 'TRUNCATE "public"."test_users" RESTART IDENTITY CASCADE',
             mssql:    'TRUNCATE TABLE [public].[test_users]',
             mysql:    'TRUNCATE `public.test_users`',
             sqlite:   'DELETE FROM `public.test_users`'
