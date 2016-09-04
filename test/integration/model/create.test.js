@@ -1852,6 +1852,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.secret).to.be.eql(M2.secret);
       });
     });
+    
+    it('should return autoIncrement primary key (create)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1, {returning: true}))
+      .then((m) => {
+        expect(m.id).to.be.eql(1);
+      });
+    });
+  
+    it('should return autoIncrement primary key (bulkCreate)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+      var M2 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
+      .then((ms) => {
+        expect(ms[0].id).to.be.eql(1);
+        expect(ms[1].id).to.be.eql(2);
+      });
+    });
   });
 
   it('should support logging', function () {
