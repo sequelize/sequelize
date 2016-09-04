@@ -15,6 +15,7 @@ var chai = require('chai')
   , Transaction = require(__dirname + '/../../lib/transaction')
   , sinon = require('sinon')
   , fs = require('fs')
+  , semver = require('semver')
   , current = Support.sequelize;
 
 
@@ -267,6 +268,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       // We can only test MySQL warnings when using MySQL.
       if (dialect === 'mysql') {
         it('logs warnings when there are warnings', function() {
+
+          // Due to strict MySQL 5.7 all cases below will throw errors rather than warnings
+          if (semver.gte(current.options.databaseVersion, '5.7.0')) {
+            return;
+          }
+
           var logger = sinon.spy();
           var sequelize = Support.createSequelizeInstance({
             logging: logger,

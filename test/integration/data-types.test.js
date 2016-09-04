@@ -12,7 +12,8 @@ var chai = require('chai')
   , current = Support.sequelize
   , uuid = require('node-uuid')
   , DataTypes = require('../../lib/data-types')
-  , dialect = Support.getTestDialect();
+  , dialect = Support.getTestDialect()
+  , semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), function() {
   afterEach(function () {
@@ -44,14 +45,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
   it('allows me to return values from a custom parse function', function () {
     var parse = Sequelize.DATE.parse = sinon.spy(function (value) {
-      return moment(value, 'YYYY-MM-DD HH:mm:ss Z');
+      return moment(value, 'YYYY-MM-DD HH:mm:ss');
     });
 
     var stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
       if (!moment.isMoment(value)) {
         value = this._applyTimezone(value, options);
       }
-      return value.format('YYYY-MM-DD HH:mm:ss Z');
+      return value.format('YYYY-MM-DD HH:mm:ss');
     });
 
     current.refreshTypes();
@@ -275,35 +276,55 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   });
 
   it('should parse an empty GEOMETRY field', function () {
-   var Type = new Sequelize.GEOMETRY();
+    var Type = new Sequelize.GEOMETRY();
 
-   if (current.dialect.supports.GEOMETRY) {
-     current.refreshTypes();
+    // MySQL 5.7 or above doesn't support POINT EMPTY
+    if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.7.0')) {
+      return;
+    }
 
-     var User = current.define('user', { field: Type }, { timestamps: false });
-     var point = { type: "Point", coordinates: [] };
+    return new Sequelize.Promise((resolve, reject) => {
+      if (/^postgres/.test(dialect)) {
+        current.query(`SELECT extversion FROM pg_catalog.pg_extension WHERE extname='postgis';`)
+            .then((result) => {
+              if (result[0][0] && semver.lte(result[0][0].extversion, '2.1.7')) {
+                resolve(true);
+              } else {
+                resolve();
+              }
+            }).catch(reject);
+      } else {
+        resolve(true);
+      }
+    }).then((runTests) => {
+      if (current.dialect.supports.GEOMETRY && runTests) {
+        current.refreshTypes();
 
-     return current.sync({ force: true }).then(function () {
-       return User.create({
-          //insert a null GEOMETRY type
-          field: point
+        var User = current.define('user', { field: Type }, { timestamps: false });
+        var point = { type: "Point", coordinates: [] };
+
+        return current.sync({ force: true }).then(function () {
+          return User.create({
+            //insert a null GEOMETRY type
+            field: point
+          });
+        }).then(function () {
+          //This case throw unhandled exception
+          return User.findAll();
+        }).then(function(users){
+          if (dialect === 'mysql') {
+            // MySQL will return NULL, becuase they lack EMPTY geometry data support.
+            expect(users[0].field).to.be.eql(null);
+          } else if (dialect === 'postgres' || dialect === 'postgres-native') {
+            //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
+            expect(users[0].field).to.be.deep.eql({ type: "Point", coordinates: [0,0] });
+          } else {
+            expect(users[0].field).to.be.deep.eql(point);
+          }
         });
-      }).then(function () {
-        //This case throw unhandled exception
-        return User.findAll();
-      }).then(function(users){
-        if (dialect === 'mysql') {
-          // MySQL will return NULL, becuase they lack EMPTY geometry data support.
-          expect(users[0].field).to.be.eql(null);
-        } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-          //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
-          expect(users[0].field).to.be.deep.eql({ type: "Point", coordinates: [0,0] });
-        } else {
-          expect(users[0].field).to.be.deep.eql(point);
-        }
-      });
-   }
- });
+      }
+    });
+  });
 
   if (dialect === 'postgres' || dialect === 'sqlite') {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
