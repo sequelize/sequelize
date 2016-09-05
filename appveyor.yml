@@ -31,7 +31,7 @@ before_test:
   - ps: . .\appveyor-setup.ps1
 
 test_script:
-  - 'IF "%COVERAGE%" == "true" (npm run ci-coverage) ELSE (npm test)'
+  - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
   
 after_test:
   - bash <(curl -s https://codecov.io/bash)
