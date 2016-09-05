@@ -28,13 +28,13 @@ install:
 build: off
 
 before_test:
-  - ps: echo (Get-Command git)
   - ps: . .\appveyor-setup.ps1
 
 test_script:
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
   
 after_test:
+  - ps: $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
   - ps: |
       if (Test-Path env:\COVERAGE) {
         Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
