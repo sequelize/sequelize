@@ -26,6 +26,7 @@ install:
       $pkg.devDependencies.PSObject.Properties.Remove('sqlite3')
       $pkg.devDependencies.PSObject.Properties.Remove('pg-native')
       ConvertTo-Json $pkg | Out-File package.json -Encoding UTF8
+  - npm install -g node-gyp
   - npm install
 
 build: off
