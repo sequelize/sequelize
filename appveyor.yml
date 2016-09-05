@@ -12,9 +12,6 @@ cache:
   - node_modules
 
 environment:
-  global:
-    COVERALLS_REPO_TOKEN: 751SiA6QhY5EH4P2ygq7JFWulqiD2ETXO
-    COVERALLS_PARALLEL: true
   matrix:
     - {NODE_VERSION: 4,   DIALECT: mssql}
     - {NODE_VERSION: 6.3, DIALECT: mssql, COVERAGE: true}
@@ -26,7 +23,6 @@ install:
       $pkg.devDependencies.PSObject.Properties.Remove('sqlite3')
       $pkg.devDependencies.PSObject.Properties.Remove('pg-native')
       ConvertTo-Json $pkg | Out-File package.json -Encoding UTF8
-  - npm install -g node-gyp
   - npm install
 
 build: off
@@ -36,9 +32,6 @@ before_test:
 
 test_script:
   - 'IF "%COVERAGE%" == "true" (npm run ci-coverage) ELSE (npm test)'
-
-notifications:
-  - provider: Webhook
-    url: https://coveralls.io/webhook?repo_token=751SiA6QhY5EH4P2ygq7JFWulqiD2ETXO
-    on_build_success: true
-    on_build_failure: true
+  
+after_test:
+  - bash <(curl -s https://codecov.io/bash)
