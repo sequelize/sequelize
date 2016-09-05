@@ -36,6 +36,6 @@ test_script:
 after_test:
   - ps: |
     if (Test-Path env:\COVERAGE) {
-       Invoke-WebRequest https://codecov.io/bash -OutFile codecov.sh
-       ./codecov.sh -f .\coverage\lcov.info
+       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+       bash ./codecov.sh -f .\coverage\lcov.info
     }
