@@ -14,8 +14,6 @@ env:
     - CC=clang
     - CXX=clang++
     - npm_config_clang=1
-    - COVERALLS_REPO_TOKEN=751SiA6QhY5EH4P2ygq7JFWulqiD2ETXO
-    - COVERALLS_PARALLEL=true
   matrix:
     - DIALECT=mysql
     - DIALECT=postgres
@@ -40,7 +38,7 @@ before_script:
   - "psql sequelize_test -c 'create extension postgis;' -U postgres"
 
 script:
-  - "if [ $COVERAGE ]; then npm run ci-coverage; else npm run test; fi"
+  - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
 
 matrix:
   include:
@@ -53,5 +51,3 @@ matrix:
     - node_js: "6"
       env: COVERAGE=true DIALECT=sqlite
 
-notifications:
-  webhooks: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
