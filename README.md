@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/sequelize/sequelize.svg?branch=master)](https://travis-ci.org/sequelize/sequelize)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/8xhttm9pxmbmtbwb/branch/master?svg=true)](https://ci.appveyor.com/project/felixfbecker/sequelize/branch/master)
-[![Coverage Status](https://coveralls.io/repos/github/sequelize/sequelize/badge.svg?branch=master)](https://coveralls.io/github/sequelize/sequelize?branch=master)
+[![codecov](https://codecov.io/gh/sequelize/sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/sequelize/sequelize)
 [![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize.slack.com)
 [![npm](https://img.shields.io/npm/dm/sequelize.svg?maxAge=2592000)](https://www.npmjs.com/package/sequelize)

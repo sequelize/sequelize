@@ -34,7 +34,7 @@ before_test:
   - ps: . .\appveyor-setup.ps1
 
 test_script:
-  - 'IF "%COVERAGE%" == "true" (npm run coveralls) ELSE (npm test)'
+  - 'IF "%COVERAGE%" == "true" (npm run ci-coverage) ELSE (npm test)'
 
 notifications:
   - provider: Webhook

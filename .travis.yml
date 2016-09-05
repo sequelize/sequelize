@@ -40,7 +40,7 @@ before_script:
   - "psql sequelize_test -c 'create extension postgis;' -U postgres"
 
 script:
-  - "if [ $COVERAGE ]; then npm run coveralls; else npm run test; fi"
+  - "if [ $COVERAGE ]; then npm run ci-coverage; else npm run test; fi"
 
 matrix:
   include:
