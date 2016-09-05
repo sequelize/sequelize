@@ -34,4 +34,4 @@ test_script:
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
   
 after_test:
-  - bash <(curl -s https://codecov.io/bash)
+  - ps: (Invoke-WebRequest https://codecov.io/bash).toString() | bash
