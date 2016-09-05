@@ -12,9 +12,6 @@ cache:
   - node_modules
 
 environment:
-  global:
-    COVERALLS_REPO_TOKEN: 751SiA6QhY5EH4P2ygq7JFWulqiD2ETXO
-    COVERALLS_PARALLEL: true
   matrix:
     - {NODE_VERSION: 4,   DIALECT: mssql}
     - {NODE_VERSION: 6.3, DIALECT: mssql, COVERAGE: true}
@@ -34,10 +31,12 @@ before_test:
   - ps: . .\appveyor-setup.ps1
 
 test_script:
-  - 'IF "%COVERAGE%" == "true" (npm run coveralls) ELSE (npm test)'
-
-notifications:
-  - provider: Webhook
-    url: https://coveralls.io/webhook?repo_token=751SiA6QhY5EH4P2ygq7JFWulqiD2ETXO
-    on_build_success: true
-    on_build_failure: true
+  - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
+  
+after_test:
+  - ps: $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
+  - ps: |
+      if (Test-Path env:\COVERAGE) {
+        Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+        bash codecov.sh -f "coverage\lcov.info"
+      }
