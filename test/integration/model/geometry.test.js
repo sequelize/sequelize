@@ -5,7 +5,9 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types');
+  , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , dialect = Support.getTestDialect()
+  , semver = require('semver');
 
 var current = Support.sequelize;
 
@@ -174,6 +176,45 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           return User.findOne({where: {username: props.username}});
         }).then(function(user) {
           expect(user.geometry).to.be.deep.eql(polygon2);
+        });
+      });
+    });
+
+    describe('sql injection attacks', function () {
+      beforeEach(function() {
+        this.Model = this.sequelize.define('Model', {
+          location: DataTypes.GEOMETRY
+        });
+        return this.sequelize.sync({ force: true });
+      });
+
+      it('should properly escape the single quotes', function () {
+        return this.Model.create({
+          location: {
+            type: 'Point',
+            properties: {
+              exploit: "'); DELETE YOLO INJECTIONS; -- "
+            },
+            coordinates: [39.807222, -76.984722]
+          }
+        });
+      });
+
+      it('should properly escape the single quotes in coordinates', function () {
+
+        // MySQL 5.7, those guys finally fixed this
+        if (dialect === 'mysql' && semver.gte(this.sequelize.options.databaseVersion, '5.7.0')) {
+          return;
+        }
+
+        return this.Model.create({
+          location: {
+            type: 'Point',
+            properties: {
+              exploit: "'); DELETE YOLO INJECTIONS; -- "
+            },
+            coordinates: [39.807222, "'); DELETE YOLO INJECTIONS; --"]
+          }
         });
       });
     });

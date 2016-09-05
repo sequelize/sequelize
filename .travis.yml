@@ -21,7 +21,6 @@ env:
     - DIALECT=postgres
     - DIALECT=postgres-native
     - DIALECT=sqlite
-    - DIALECT=mssql
 
 addons:
   apt:
@@ -41,7 +40,7 @@ before_script:
   - "psql sequelize_test -c 'create extension postgis;' -U postgres"
 
 script:
-  - "npm test"
+  - "if [ $COVERAGE ]; then npm run coveralls; else npm run test; fi"
 
 matrix:
   include:
@@ -53,8 +52,6 @@ matrix:
       env: COVERAGE=true DIALECT=postgres-native
     - node_js: "6"
       env: COVERAGE=true DIALECT=sqlite
-    - node_js: "6"
-      env: COVERAGE=true DIALECT=mssql
 
 notifications:
   webhooks: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN

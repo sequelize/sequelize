@@ -1,4 +1,14 @@
 # Future
+- [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
+- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
+- [FIXED] - ORDER clause was not included in subquery if `order` option value was provided as plain string (not as an array value)
+
+# 4.0.0-1
+- [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)
+- [FIXED] Made `Model.init()` behave like `sequelize.define()` (hooks are called and options have proper defaults) [#6437](https://github.com/sequelize/sequelize/issues/6437)
+- [ADDED] `restartIdentity` option for truncate in postgres [#5356](https://github.com/sequelize/sequelize/issues/5356)
+- [INTERNAL] Migrated to `node-mysql2` for prepared statements [#6354](https://github.com/sequelize/sequelize/issues/6354)
+- [ADDED] SQLCipher support via the SQLite connection manager
 - [CHANGED] Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive) [#5990](https://github.com/sequelize/sequelize/issues/5990)
 - [ADDED] Support for range operators [#5990](https://github.com/sequelize/sequelize/issues/5990)
 - [FIXED] Broken transactions in `MySQL` [#3568](https://github.com/sequelize/sequelize/issues/3568)
@@ -21,6 +31,21 @@
 - [FIXED] Don't patch `validator` library globally [#6196](https://github.com/sequelize/sequelize/issues/6196)
 - [CHANGED] `ignore` for create was renamed to `ignoreDuplicates` [#6138](https://github.com/sequelize/sequelize/issues/6138)
 - [FIXED] Index names not quoted properly in `removeIndex` [#5888](https://github.com/sequelize/sequelize/issues/5888)
+- [FIXED] `Int4` range not properly parsed [#5747](https://github.com/sequelize/sequelize/issues/5747)
+- [FIXED] `upsert` does not fail anymore on not null validations [#5711](https://github.com/sequelize/sequelize/issues/5711)
+- [FIXED] Don't remove includes from count queries and unify findAndCount and count queries. [#6123](https://github.com/sequelize/sequelize/issues/6123)
+- [FIXED] `Model.count` with `options.col` and `options.include` works properly now
+- [FIXED] `bulkCreate` don't map fields to attributes properly [#4476](https://github.com/sequelize/sequelize/issues/4476)[#3908](https://github.com/sequelize/sequelize/issues/3908)[#4103](https://github.com/sequelize/sequelize/issues/4103)[#3764](https://github.com/sequelize/sequelize/issues/3764)[#3789](https://github.com/sequelize/sequelize/issues/3789)[#4600](https://github.com/sequelize/sequelize/issues/4600)
+- [FIXED] `sync` don't handle global `options.logging` properly [#5788](https://github.com/sequelize/sequelize/issues/5788)
+- [FIXED] `attribute:[]` throw errors with `include` or `through` [#5078](https://github.com/sequelize/sequelize/issues/5078) [#4222](https://github.com/sequelize/sequelize/issues/4222) [#5958](https://github.com/sequelize/sequelize/issues/5958) [#5590](https://github.com/sequelize/sequelize/issues/5590) [#6139](https://github.com/sequelize/sequelize/issues/6139) [#4866](https://github.com/sequelize/sequelize/issues/4866) [#6242](https://github.com/sequelize/sequelize/issues/6242)
+- [SECURITY] `GEOMETRY` and `GEOGRAPHY` SQL injection attacks [#6194](https://github.com/sequelize/sequelize/issues/6194)
+- [FIXED] `DECIMAL` now supports `UNSIGNED` / `ZEROFILL` (MySQL) [#2038](https://github.com/sequelize/sequelize/issues/2038)
+- [FIXED] Generate correct SQL of nested include when quoteIdentifiers is false. (Postgres) [#6351](https://github.com/sequelize/sequelize/issues/6351)
+- [FIXED] Generate correct SQL for JSON attributes with quote.
+[#6406](https://github.com/sequelize/sequelize/issues/6406)
+- [FIXED] Nested query return correct result when quoteIdentifiers is false. (Postgres) [#6363](https://github.com/sequelize/sequelize/issues/6363)
+- [FIXED] Fixed an issue where changing multiple ENUM columns in PostgreSQL could break. [#6203] (https://github.com/sequelize/sequelize/issues/6203)
+- [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)

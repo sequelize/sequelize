@@ -123,6 +123,7 @@ $gte: 6,               // >= 6
 $lt: 10,               // < 10
 $lte: 10,              // <= 10
 $ne: 20,               // != 20
+$eq: 3,                // = 3
 $not: true,            // IS NOT TRUE
 $between: [6, 10],     // BETWEEN 6 AND 10
 $notBetween: [11, 15], // NOT BETWEEN 11 AND 15

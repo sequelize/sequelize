@@ -7,7 +7,7 @@ $ npm install --save sequelize
 
 # And one of the following:
 $ npm install --save pg pg-hstore
-$ npm install --save mysql
+$ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
 ```
@@ -59,16 +59,14 @@ Models are defined with `sequelize.define('name', {attributes}, {options})`.
 ```js
 var User = sequelize.define('user', {
   firstName: {
-    type: Sequelize.STRING,
-    field: 'first_name' // Will result in an attribute that is firstName when user facing but first_name in the database
+    type: Sequelize.STRING
   },
   lastName: {
     type: Sequelize.STRING
   }
-}, {
-  freezeTableName: true // Model tableName will be the same as the model name
 });
 
+// force: true will drop the table if it already exists
 User.sync({force: true}).then(function () {
   // Table created
   return User.create({
@@ -78,7 +76,17 @@ User.sync({force: true}).then(function () {
 });
 ```
 
-Many more options can be found in the [Model API reference](http://sequelize.readthedocs.org/en/latest/api/model/)
+You can read more about creating models at [Model API reference](http://sequelize.readthedocs.org/en/latest/api/model/)
+
+## Your first query
+
+```
+User.findAll().then(function(users) {
+  console.log(users)
+})
+```
+
+You can read more about finder functions on models like `.findAll()` at [Data retrieval](http://docs.sequelizejs.com/en/latest/docs/models-usage/) or how to do specific queries like `WHERE` and `JSONB` at [Querying](http://docs.sequelizejs.com/en/latest/docs/querying/).
 
 ### Application wide model options
 
@@ -98,9 +106,10 @@ var Post = sequelize.define('post', {}, {
 ```
 
 ## Promises
-Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](http://bluebirdjs.com/docs/why-promises.html)
 
-Basically a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
+Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, don't worry, you can read up on them here, [here](https://github.com/wbinnssmith/awesome-promises) and [here](http://bluebirdjs.com/docs/why-promises.html)
+
+Basically, a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
 
 ```js
 // DON'T DO THIS
@@ -117,4 +126,4 @@ User.findOne().then(function (user) {
 });
 ```
 
-Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.  
+Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go-to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.  
