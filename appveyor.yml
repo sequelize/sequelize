@@ -28,6 +28,7 @@ install:
 build: off
 
 before_test:
+  - echo (Get-Command git)
   - ps: . .\appveyor-setup.ps1
 
 test_script:
