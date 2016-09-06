@@ -158,6 +158,28 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];'
       });
 
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        include: include,
+        attributes: [
+          ['id_user', 'id'],
+          'email',
+          ['first_name', 'firstName'],
+          ['last_name', 'lastName']
+        ],
+        order: '[user].[last_name] ASC'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+        limit: 30,
+        offset: 10,
+        hasMultiAssociation: true,//must be set only for mssql dialect here
+        subQuery: true
+      }, {
+          default: 'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (' +
+                       'SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].[last_name] ASC' +
+                       sql.addLimitAndOffset({ limit: 30, offset:10, order: '`user`.`last_name` ASC' }) +
+                   ') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;'
+      });
+
       var nestedInclude = Model._validateIncludedElements({
         include: [{
           attributes: ['title'],

@@ -36,7 +36,7 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "bluebird": "^3.4.4",
+    "bluebird": "^3.4.6",
     "debug": "^2.2.0",
     "depd": "^1.1.0",
     "dottie": "^1.0.0",
@@ -51,7 +51,7 @@
     "shimmer": "1.1.0",
     "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
-    "validator": "^5.2.0",
+    "validator": "^5.6.0",
     "wkx": "0.3.0"
   },
   "devDependencies": {
@@ -61,10 +61,9 @@
     "chai-spies": "^0.7.0",
     "commander": "^2.6.0",
     "continuation-local-storage": "^3.1.4",
-    "coveralls": "^2.11.9",
     "cross-env": "^2.0.1",
     "dox": "~0.9.0",
-    "eslint": "^3.1.0",
+    "eslint": "^3.4.0",
     "git": "^0.1.5",
     "hints": "^1.1.0",
     "istanbul": "^0.4.5",
@@ -130,7 +129,6 @@
     "cover-integration": "cross-env COVERAGE=true node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 60000 --ui tdd \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 30000 --ui tdd \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
     "merge-coverage": "lcov-result-merger \"coverage/*.info\" \"coverage/lcov.info\"",
-    "coveralls": "npm run cover && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rimraf ./coverage",
     "sscce": "docker-compose run sequelize /bin/sh -c \"node sscce.js\"",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
