@@ -89,14 +89,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       User.Projects = User.belongsToMany(Project, { through: 'project_user' });
       Project.belongsToMany(User, { through: 'project_user' });
 
-      var include = Model._validateIncludedElements({
-        include: [{
-          attributes: [],
-          association: User.Projects.manyFromSource
-        }],
-        model: User
-      }).include;
-
       testsql({
         table: User.getTableName(),
         model: User,
@@ -107,9 +99,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ['last_name', 'ASC']
         ],
         groupedLimit: {
-          include,
           limit: 3,
-          on: 'companyId',
+          on: [User.Projects.manyFromSource, 'companyId'],
           values: [
             1,
             5
