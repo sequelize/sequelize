@@ -76,7 +76,7 @@ If running on Mac OSX, install [Docker for Mac](https://docs.docker.com/docker-f
 Now launch the docker mysql and postgres servers with this command (you can add `-d` to run them in daemon mode):
 
 ```sh
-docker-compose up
+docker-compose up postgres-95 mysql-57
 ```
 
 Then to run the tests simply run:
