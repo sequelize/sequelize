@@ -6,3 +6,14 @@ README.md
 changelog.md
 Makefile
 coverage*
+
+appveyor-setup.ps1
+appveyor.yml
+codecov.yml
+docker-compose.yml
+mkdocs.yml
+.dockerignore
+.editorconfig
+.eslintrc.json
+.jshintrc
+.travis.yml
