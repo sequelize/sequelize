@@ -80,6 +80,58 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           primaryKey: true,
           autoIncrement: true,
           field: 'id_user'
+        }
+      });
+      var Project = Support.sequelize.define('project', {
+        title: DataTypes.STRING
+      });
+
+      User.Projects = User.belongsToMany(Project, { through: 'project_user' });
+      Project.belongsToMany(User, { through: 'project_user' });
+
+      var include = Model._validateIncludedElements({
+        include: [{
+          attributes: [],
+          association: User.Projects.manyFromSource
+        }],
+        model: User
+      }).include;
+
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        attributes: [
+          ['id_user', 'id']
+        ],
+        order: [
+          ['last_name', 'ASC']
+        ],
+        groupedLimit: {
+          include,
+          limit: 3,
+          on: 'companyId',
+          values: [
+            1,
+            5
+          ]
+        }
+      }, {
+        default: 'SELECT [user].* FROM ('+
+          [
+            '(SELECT [user].[id_user] AS [id] FROM [users] AS [user] INNER JOIN [project_user] AS [projects] ON [user].[id_user] = [projects].[userId] AND [projects[.[companyId] = 1 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+            '(SELECT [user].[id_user] AS [id] FROM [users] AS [user] INNER JOIN [project_user] AS [projects] ON [user].[id_user] = [projects].[userId] AND [projects[.[companyId] = 5 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+        +') AS [user];'
+      });
+    }());
+
+    (function () {
+      var User = Support.sequelize.define('user', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          field: 'id_user'
         },
         email: DataTypes.STRING,
         firstName: {
