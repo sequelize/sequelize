@@ -15,11 +15,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('method findOrCreate', function () {
 
     before(function () {
-      current.constructor.cls = cls.createNamespace('sequelize');
+      current.constructor.useCls(cls.createNamespace('sequelize'));
     });
 
     after(function () {
-      delete current.constructor.cls;
+      delete current.constructor._cls;
     });
 
     beforeEach(function () {
@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       this.transactionStub = stub(this.User.sequelize, 'transaction');
       this.transactionStub.returns(new Promise(function () {}));
 
-      this.clsStub = stub(current.constructor.cls, 'get');
+      this.clsStub = stub(current.constructor._cls, 'get');
       this.clsStub.returns({ id: 123 });
     });
 
