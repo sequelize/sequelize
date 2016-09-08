@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('method findOrCreate', function () {
 
     before(function () {
-      current.constructor.useCls(cls.createNamespace('sequelize'));
+      current.constructor.useCLS(cls.createNamespace('sequelize'));
     });
 
     after(function () {

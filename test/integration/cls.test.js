@@ -14,7 +14,7 @@ if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), function () {
     before(function () {
       this.thenOriginal = Promise.prototype.then;
-      Sequelize.useCls(cls.createNamespace('sequelize'));
+      Sequelize.useCLS(cls.createNamespace('sequelize'));
     });
 
     after(function () {
