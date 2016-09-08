@@ -51,3 +51,7 @@ matrix:
     - node_js: "6"
       env: COVERAGE=true DIALECT=sqlite
 
+branches:
+  only:
+  - master
+  - v3
