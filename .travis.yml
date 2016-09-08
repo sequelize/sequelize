@@ -1,9 +1,6 @@
 sudo: required
 dist: trusty
 
-# services:
-#   - docker
-
 language: node_js
 
 node_js:
@@ -14,10 +11,6 @@ branches:
   only:
   - master
   - v3
-
-# cache:
-#   directories:
-#     - node_modules
 
 env:
   global:
@@ -46,9 +39,6 @@ before_script:
 
 script:
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
-
-# after_script:
-#   - "docker-compose down"
 
 matrix:
   include:
