@@ -285,10 +285,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
     return new Sequelize.Promise((resolve, reject) => {
       if (/^postgres/.test(dialect)) {
-        current.query(`SELECT PostGIS_full_version();`)
+        current.query(`SELECT PostGIS_Lib_Version();`)
           .then((result) => {
-            const version = result[0][0].postgis_full_version.match(/^POSTGIS="(\d*.\d*.\d*)/)[1];
-            if (result[0][0] && semver.lte(version, '2.1.7')) {
+            if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
               resolve(true);
             } else {
               resolve();
