@@ -73,8 +73,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       +') AS [User];'
     });
 
-    (function () {
-      var User = Support.sequelize.define('user', {
+    (function() {
+      const User = Support.sequelize.define('user', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -82,7 +82,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           field: 'id_user'
         }
       });
-      var Project = Support.sequelize.define('project', {
+      const Project = Support.sequelize.define('project', {
         title: DataTypes.STRING
       });
 
@@ -100,7 +100,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         ],
         groupedLimit: {
           limit: 3,
-          on: [User.Projects.manyFromSource, 'companyId'],
+          attributes: ['projectId'],
+          on: User.Projects,
           values: [
             1,
             5
@@ -109,8 +110,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, {
         default: 'SELECT [user].* FROM ('+
           [
-            '(SELECT [user].[id_user] AS [id] FROM [users] AS [user] INNER JOIN [project_user] AS [projects] ON [user].[id_user] = [projects].[userId] AND [projects[.[companyId] = 1 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
-            '(SELECT [user].[id_user] AS [id] FROM [users] AS [user] INNER JOIN [project_user] AS [projects] ON [user].[id_user] = [projects].[userId] AND [projects[.[companyId] = 5 ORDER BY [user].[last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+            '(SELECT [user].[id_user] AS [id], [projects].[userId] AS [projects.userId], [projects].[projectId] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_user] AS [projects] ON [user].[id_user] = [projects].[userId] AND [projects].[projectId] = 1 ORDER BY [user].[last_name] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+            '(SELECT [user].[id_user] AS [id], [projects].[userId] AS [projects.userId], [projects].[projectId] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_user] AS [projects] ON [user].[id_user] = [projects].[userId] AND [projects].[projectId] = 5 ORDER BY [user].[last_name] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') +sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') AS [user];'
       });
