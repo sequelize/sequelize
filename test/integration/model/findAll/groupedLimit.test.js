@@ -82,8 +82,8 @@ if (current.dialect.supports['UNION ALL']) {
                project2 - 3, 4, 5
                */
               expect(users).to.have.length(5);
-              expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
 
+              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 2, 3, 4, 5]);
 
               expect(users[2].get('tasks')).to.have.length(2);
               users.filter(function (u) { return u.get('id') !== 3; }).forEach(function (u) {
@@ -180,7 +180,7 @@ if (current.dialect.supports['UNION ALL']) {
 
               expect(byUser[1]).to.have.length(1);
               expect(byUser[2]).to.have.length(3);
-              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([2, 3, 4]);
+              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
               expect(byUser[3]).to.have.length(2);
             });
           });
