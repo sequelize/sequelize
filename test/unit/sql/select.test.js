@@ -111,10 +111,41 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }, {
         default: 'SELECT [user].* FROM ('+
           [
-            '(SELECT [user].[id_user] AS [id], [project_users].[userId] AS [project_users.userId], [project_users].[projectId] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[userId] AND [project_users].[projectId] = 1 ORDER BY [user].[last_name] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
-            '(SELECT [user].[id_user] AS [id], [project_users].[userId] AS [project_users.userId], [project_users].[projectId] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[userId] AND [project_users].[projectId] = 5 ORDER BY [user].[last_name] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') +sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+            '(SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[userId] AS [project_users.userId], [project_users].[projectId] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[userId] AND [project_users].[projectId] = 1 ORDER BY [user].[subquery_order_0] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+            '(SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[userId] AS [project_users.userId], [project_users].[projectId] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[userId] AND [project_users].[projectId] = 5 ORDER BY [user].[subquery_order_0] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') +sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
-        +') AS [user];'
+        +') AS [user] ORDER BY [user].[subquery_order_0] ASC;'
+      });
+
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        attributes: [
+          ['id_user', 'id']
+        ],
+        order: [
+          ['id_user', 'ASC']
+        ],
+        where: {
+          age: {
+            $gte: 21
+          }
+        },
+        groupedLimit: {
+          limit: 3,
+          on: User.Projects,
+          values: [
+            1,
+            5
+          ]
+        }
+      }, {
+        default: 'SELECT [user].* FROM ('+
+          [
+            '(SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_users].[userId] AS [project_users.userId], [project_users].[projectId] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[userId] AND [project_users].[projectId] = 1 WHERE [user].[age] >= 21 ORDER BY [user].[subquery_order_0] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+            '(SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_users].[userId] AS [project_users.userId], [project_users].[projectId] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[userId] AND [project_users].[projectId] = 5 WHERE [user].[age] >= 21 ORDER BY [user].[subquery_order_0] ASC'+ (current.dialect.name === 'mssql' ? ', [user].[id_user]' : '') +sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+        +') AS [user] ORDER BY [user].[subquery_order_0] ASC;'
       });
     }());
 
