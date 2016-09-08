@@ -32,7 +32,7 @@ if (current.dialect.supports['UNION ALL']) {
 
           return this.sequelize.sync({force: true}).bind(this).then(function() {
             return Promise.join(
-              this.User.bulkCreate([{age: -5}, {age: 45}, {age: 7}, {age: -9}, {age: 8}, {age: 15}]),
+              this.User.bulkCreate([{age: -5}, {age: 45}, {age: 7}, {age: -9}, {age: 8}, {age: 15}, {age: -9}]),
               this.Project.bulkCreate([{}, {}]),
               this.Task.bulkCreate([{}, {}])
             );
@@ -77,7 +77,13 @@ if (current.dialect.supports['UNION ALL']) {
               order: ['id'],
               include: [this.User.Tasks]
             }).then(function (users) {
+              /*
+               project1 - 1, 2, 3
+               project2 - 3, 4, 5
+               */
               expect(users).to.have.length(5);
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
+
 
               expect(users[2].get('tasks')).to.have.length(2);
               users.filter(function (u) { return u.get('id') !== 3; }).forEach(function (u) {
@@ -102,8 +108,35 @@ if (current.dialect.supports['UNION ALL']) {
               ],
               include: [this.User.Tasks]
             }).then(function (users) {
+              /*
+               project1 - 1, 3, 4
+               project2 - 3, 5, 4
+             */
               expect(users).to.have.length(4);
-              expect(users.map(function(u) { return u.get('id') })).to.deep.equal([1, 3, 5, 4]);
+              expect(users.map(function(u) { return u.get('id'); })).to.deep.equal([1, 3, 5, 4]);
+            });
+          });
+
+          it('works with multiple orders', function () {
+            return this.User.findAll({
+              attributes: ['id'],
+              groupedLimit: {
+                limit: 3,
+                on: this.User.Projects,
+                values: this.projects.map(function (item) { return item.get('id'); })
+              },
+              order: [
+                Sequelize.fn('ABS', Sequelize.col('age')),
+                ['id', 'DESC']
+              ],
+              include: [this.User.Tasks]
+            }).then(function (users) {
+              /*
+                project1 - 1, 3, 4
+                project2 - 3, 5, 7
+               */
+              expect(users).to.have.length(5);
+              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 3, 5, 7, 4]);
             });
           });
         });
@@ -147,7 +180,7 @@ if (current.dialect.supports['UNION ALL']) {
 
               expect(byUser[1]).to.have.length(1);
               expect(byUser[2]).to.have.length(3);
-              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
+              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([2, 3, 4]);
               expect(byUser[3]).to.have.length(2);
             });
           });
