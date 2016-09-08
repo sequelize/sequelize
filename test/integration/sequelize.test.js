@@ -269,7 +269,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
         it('logs warnings when there are warnings', function() {
 
           // Due to strict MySQL 5.7 all cases below will throw errors rather than warnings
-          if (semver.gte(current.options.databaseVersion, '5.7.0')) {
+          if (semver.gte(current.options.databaseVersion, '5.6.0')) {
             return;
           }
 

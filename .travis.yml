@@ -28,10 +28,10 @@ env:
     - SEQ_PG_PORT: 8999
 
   matrix:
-    - COVERAGE=true DIALECT=sqlite
-    - COVERAGE=true DIALECT=mysql MYSQL_VER=mysql-57
-    - COVERAGE=true DIALECT=postgres POSTGRES_VER=postgres-95
-    - COVERAGE=true DIALECT=postgres-native POSTGRES_VER=postgres-95
+    - DIALECT=sqlite COVERAGE=true
+    - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
+    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
+    - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
 
 before_script:
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
@@ -43,8 +43,8 @@ script:
 matrix:
   include:
     - node_js: "6"
-      env: DIALECT=postgres POSTGRES_VER=postgres-94
+      env: POSTGRES_VER=postgres-94 DIALECT=postgres
     - node_js: "6"
-      env: DIALECT=mysql MYSQL_VER=mysql-55
+      env: MYSQL_VER=mysql-55 DIALECT=mysql
     - node_js: "6"
-      env: DIALECT=mysql MYSQL_VER=mysql-56
+      env: MYSQL_VER=mysql-56 DIALECT=mysql
