@@ -179,7 +179,7 @@ if (current.dialect.supports['UNION ALL']) {
 
               expect(byUser[1]).to.have.length(1);
               expect(byUser[2]).to.have.length(3);
-              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([2, 3, 4]);
+              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
               expect(byUser[3]).to.have.length(2);
             });
           });
