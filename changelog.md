@@ -1,4 +1,4 @@
-# Future
+# 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
 - [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
 - [FIXED] - ORDER clause was not included in subquery if `order` option value was provided as plain string (not as an array value)
