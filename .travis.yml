@@ -18,7 +18,6 @@ env:
   - DIALECT=postgres-native
   - DIALECT=sqlite
   - DIALECT=mariadb
-  - DIALECT=mssql
 
 addons:
   postgresql: "9.4"
@@ -30,15 +29,6 @@ before_script:
 
 script:
   - "npm test"
-
-matrix:
-  fast_finish: true
-  include:
-    - node_js: "0.10"
-      env: COVERAGE=true
-  allow_failures:
-    - node_js: "0.10"
-      env: COVERAGE=true
 
 branches:
   only:
