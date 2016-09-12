@@ -2,7 +2,6 @@ language: node_js
 
 node_js:
   - "0.10"
-  - "0.12"
   - "iojs-v1"
   - "iojs-v2"
 
@@ -17,7 +16,6 @@ env:
   - DIALECT=postgres
   - DIALECT=postgres-native
   - DIALECT=sqlite
-  - DIALECT=mariadb
 
 addons:
   postgresql: "9.4"
@@ -28,10 +26,20 @@ before_script:
   - "psql sequelize_test -c 'create extension postgis;' -U postgres"
 
 script:
-  - "npm test"
+  - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
+
+matrix:
+  include:
+    - node_js: "0.12"
+      env: COVERAGE=true DIALECT=mysql
+    - node_js: "0.12"
+      env: COVERAGE=true DIALECT=postgres
+    - node_js: "0.12"
+      env: COVERAGE=true DIALECT=postgres-native
+    - node_js: "0.12"
+      env: COVERAGE=true DIALECT=sqlite
 
 branches:
   only:
   - master
   - v3
-
