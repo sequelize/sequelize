@@ -4,7 +4,7 @@
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/8xhttm9pxmbmtbwb/branch/master?svg=true)](https://ci.appveyor.com/project/felixfbecker/sequelize/branch/master)
 [![codecov](https://codecov.io/gh/sequelize/sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/sequelize/sequelize)
 [![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
-[![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize.slack.com)
+[![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
 [![npm](https://img.shields.io/npm/dm/sequelize.svg?maxAge=2592000)](https://www.npmjs.com/package/sequelize)
 [![License](https://img.shields.io/npm/l/sequelize.svg?maxAge=2592000?style=plastic)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
 
