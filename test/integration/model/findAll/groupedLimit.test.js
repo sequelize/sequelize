@@ -22,11 +22,8 @@ if (current.dialect.supports['UNION ALL']) {
             title: DataTypes.STRING
           });
           this.Task = this.sequelize.define('task');
-
-          this.ProjectUser = this.sequelize.define('project_user', {}, {timestamps: false});
-
-          this.User.Projects = this.User.belongsToMany(this.Project, {through: this.ProjectUser});
-          this.Project.belongsToMany(this.User, {as: 'members', through: this.ProjectUser});
+          this.User.Projects = this.User.belongsToMany(this.Project, {through: 'project_user' });
+          this.Project.belongsToMany(this.User, {as: 'members', through: 'project_user' });
 
           this.User.Tasks = this.User.hasMany(this.Task);
 
@@ -59,10 +56,10 @@ if (current.dialect.supports['UNION ALL']) {
             }).then(users => {
               expect(users).to.have.length(5);
               users.filter(u => u.get('id') !== 3).forEach(u => {
-                expect(u.get('project_users')).to.have.length(1);
+                expect(u.get('projects')).to.have.length(1);
               });
               users.filter(u => u.get('id') === 3).forEach(u => {
-                expect(u.get('project_users')).to.have.length(2);
+                expect(u.get('projects')).to.have.length(2);
               });
             });
           });
@@ -86,10 +83,10 @@ if (current.dialect.supports['UNION ALL']) {
 
               expect(users[2].get('tasks')).to.have.length(2);
               users.filter(u => u.get('id') !== 3).forEach(u => {
-                expect(u.get('project_users')).to.have.length(1);
+                expect(u.get('projects')).to.have.length(1);
               });
               users.filter(u => u.get('id') === 3).forEach(u => {
-                expect(u.get('project_users')).to.have.length(2);
+                expect(u.get('projects')).to.have.length(2);
               });
             });
           });
