@@ -4,13 +4,15 @@
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/8xhttm9pxmbmtbwb/branch/master?svg=true)](https://ci.appveyor.com/project/felixfbecker/sequelize/branch/master)
 [![codecov](https://codecov.io/gh/sequelize/sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/sequelize/sequelize)
 [![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
-[![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize.slack.com)
+[![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
 [![npm](https://img.shields.io/npm/dm/sequelize.svg?maxAge=2592000)](https://www.npmjs.com/package/sequelize)
 [![License](https://img.shields.io/npm/l/sequelize.svg?maxAge=2592000?style=plastic)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
 
 Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
-[Documentation](http://sequelize.readthedocs.org/en/stable/)
+[Stable (v3) documentation](http://docs.sequelizejs.com/en/v3/)
+
+[Master / unstable (v4-pre) documentation](http://docs.sequelizejs.com/en/latest/)
 
 ## Installation
 
@@ -40,8 +42,7 @@ If you have any security issue to report, contact project maintainers privately.
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
 - [Getting Started](http://docs.sequelizejs.com/en/stable/docs/getting-started/)
 - [Express Example](https://github.com/sequelize/express-example)
-- [Documentation](http://docs.sequelizejs.com/en/stable/)
-- [API Reference](http://docs.sequelizejs.com/en/stable/)
+- [Documentation](http://docs.sequelizejs.com/en/latest/)
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 - [Roadmap](https://github.com/sequelize/sequelize/issues/2869)
 - [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS
