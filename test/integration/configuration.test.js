@@ -7,11 +7,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/support')
   , dialect = Support.getTestDialect()
   , Sequelize = Support.Sequelize
-  , sqlite3 = require('sqlite3')
   , fs = require('fs')
   , path = require('path');
-
-
 
 describe(Support.getTestDialectTeaser('Configuration'), function() {
   describe('Connections problems should fail with a nice message', function() {
@@ -149,6 +146,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     });
 
     if (dialect === 'sqlite') {
+      var sqlite3 = require('sqlite3');
       it('should respect READONLY / READWRITE connection modes', function() {
         var p = path.join(__dirname, '../tmp', 'foo.sqlite');
         var createTableFoo = 'CREATE TABLE foo (faz TEXT);';

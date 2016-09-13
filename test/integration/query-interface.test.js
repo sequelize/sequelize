@@ -27,15 +27,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
   describe('dropAllTables', function() {
     it('should drop all tables', function() {
+      function filterMSSQLDefault(tableNames) {
+        return tableNames.filter(function (t) {
+          return t.tableName !== 'spt_values';
+        });
+      }
       var self = this;
       return this.queryInterface.dropAllTables().then(function() {
         return self.queryInterface.showAllTables().then(function(tableNames) {
+          // MSSQL include spt_values table which is system defined, hence cant be dropped
+          tableNames = filterMSSQLDefault(tableNames);
           expect(tableNames).to.be.empty;
           return self.queryInterface.createTable('table', { name: DataTypes.STRING }).then(function() {
             return self.queryInterface.showAllTables().then(function(tableNames) {
+              tableNames = filterMSSQLDefault(tableNames);
               expect(tableNames).to.have.length(1);
               return self.queryInterface.dropAllTables().then(function() {
                 return self.queryInterface.showAllTables().then(function(tableNames) {
+                  // MSSQL include spt_values table which is system defined, hence cant be dropped
+                  tableNames = filterMSSQLDefault(tableNames);
                   expect(tableNames).to.be.empty;
                 });
               });

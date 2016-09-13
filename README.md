@@ -1,6 +1,9 @@
 # Sequelize
 
-[![Build Status](https://travis-ci.org/sequelize/sequelize.svg?branch=master)](https://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.svg)](https://david-dm.org/sequelize/sequelize) [![Test Coverage](https://codeclimate.com/github/sequelize/sequelize/badges/coverage.svg)](https://codeclimate.com/github/sequelize/sequelize)
+[![Build Status](https://travis-ci.org/sequelize/sequelize.svg?branch=v3)](https://travis-ci.org/sequelize/sequelize)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/8xhttm9pxmbmtbwb/branch/v3?svg=true)](https://ci.appveyor.com/project/felixfbecker/sequelize/branch/master)
+[![codecov](https://codecov.io/gh/sequelize/sequelize/branch/v3/graph/badge.svg)](https://codecov.io/gh/sequelize/sequelize)
+[![Dependency Status](https://david-dm.org/sequelize/sequelize.svg)](https://david-dm.org/sequelize/sequelize)
 [![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com)
 
