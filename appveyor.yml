@@ -13,8 +13,8 @@ cache:
 
 environment:
   matrix:
-    - {NODE_VERSION: 4,   DIALECT: mssql}
-    - {NODE_VERSION: 6.3, DIALECT: mssql, COVERAGE: true}
+    - {NODE_VERSION: 4, DIALECT: mssql}
+    - {NODE_VERSION: 6, DIALECT: mssql, COVERAGE: true}
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
@@ -32,7 +32,7 @@ before_test:
 
 test_script:
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
-  
+
 after_test:
   - ps: |
       $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
