@@ -103,7 +103,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       }
     );
 
-
     testsql(
       "include[0]",
       {

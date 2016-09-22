@@ -860,12 +860,10 @@ describe(Support.getTestDialectTeaser('Include'), function() {
   });
 
   describe('nested includes', function () {
-
     beforeEach(function () {
       var Employee = this.sequelize.define('Employee', { 'name': DataTypes.STRING });
       var Team = this.sequelize.define('Team', { 'name': DataTypes.STRING });
       var Clearence = this.sequelize.define('Clearence', { 'level': DataTypes.INTEGER });
-
 
       Team.Members = Team.hasMany(Employee, { as: 'members' });
       Employee.Clearence = Employee.hasOne(Clearence, { as: 'clearence' });
@@ -897,7 +895,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
     });
 
     it('should not ripple grandchild required to top level find when required of child is set to false', function () {
-
       return this.Team.findAll({
         include: [
           {
@@ -917,7 +914,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
     });
 
     it('should not ripple grandchild required to top level find when required of child is not given (implicitly false)', function () {
-
       return this.Team.findAll({
         include: [
           {
@@ -936,7 +932,6 @@ describe(Support.getTestDialectTeaser('Include'), function() {
     });
 
     it('should ripple grandchild required to top level find when required of child is set to true as well', function () {
-
       return this.Team.findAll({
         include: [
           {
