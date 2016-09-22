@@ -1275,7 +1275,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       });
     });
 
@@ -1285,7 +1285,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       });
     });
 
@@ -1309,7 +1309,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           expect(err.get('validateTest')).to.exist;
           expect(err.get('validateTest')).to.be.instanceof(Array);
           expect(err.get('validateTest')[0]).to.exist;
-          expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+          expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
         });
       });
     });
