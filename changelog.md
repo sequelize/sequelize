@@ -78,6 +78,7 @@
 - [FIXED] All associations now prefer aliases to construct foreign key [#5267](https://github.com/sequelize/sequelize/issues/5267)
 - [REMOVED] Default transaction auto commit [#5094](https://github.com/sequelize/sequelize/issues/5094)
 - [REMOVED] Callback support for hooks [#5228](https://github.com/sequelize/sequelize/issues/5228)
+- [FIXED] Setting required in a nested include will not force the parent include to be required as well [#5999](https://github.com/sequelize/sequelize/issues/5999)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
@@ -95,6 +96,7 @@
 - All associations type will prefer `as` when constructing the `foreignKey` name. You can override this by `foreignKey` option.
 - Removed default `AUTO COMMIT` for transaction. Its only sent if explicitly set by user or required by dialects (like `mysql`)
 - Hooks no longer provide a callback - you can return a `then`-able instead if you are doing async stuff
+- Table names of a select query have change internally from 'originModel.associatedModel.field' to 'originModel->associatedModel.field'
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)
