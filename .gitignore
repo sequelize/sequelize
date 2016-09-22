@@ -13,3 +13,4 @@ coverage-*
 site
 docs/api/tmp.md
 ssce.js
+*.sublime-*
