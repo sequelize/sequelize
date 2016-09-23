@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return Model.create({name: 'World'}).then(function(model) {
           return model.updateAttributes({name: ''}).catch(function(err) {
             expect(err).to.be.an.instanceOf(Error);
-            expect(err.get('name')[0].message).to.equal('Validation notEmpty failed');
+            expect(err.get('name')[0].message).to.equal('Validation notEmpty on name failed');
           });
         });
       });
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return Model.create({name: 'World'}).then(function() {
           return Model.update({name: ''}, {where: {id: 1}}).catch(function(err) {
             expect(err).to.be.an.instanceOf(Error);
-            expect(err.get('name')[0].message).to.equal('Validation notEmpty failed');
+            expect(err.get('name')[0].message).to.equal('Validation notEmpty on name failed');
           });
         });
       });
@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return User.sync({ force: true }).then(function() {
           return User.create({id: 'helloworld'}).catch(function(err) {
             expect(err).to.be.an.instanceOf(Error);
-            expect(err.get('id')[0].message).to.equal('Validation isInt failed');
+            expect(err.get('id')[0].message).to.equal('Validation isInt on id failed');
           });
         });
       });
@@ -490,7 +490,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
     return expect(failingBar.validate()).to.be.rejected.then(function(errors) {
       expect(errors.get('field')).to.have.length(1);
-      expect(errors.get('field')[0].message).to.equal('Validation isIn failed');
+      expect(errors.get('field')[0].message).to.equal('Validation isIn on field failed');
     });
   });
 
@@ -527,7 +527,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         expect(user.getDataValue('name')).to.equal('RedCat');
         user.setDataValue('name', 'YellowCat');
         return expect(user.save()).to.be.rejected.then(function(errors) {
-          expect(errors.get('name')[0].message).to.eql('Validation isImmutable failed');
+          expect(errors.get('name')[0].message).to.eql('Validation isImmutable on name failed');
         });
       });
     });
@@ -689,7 +689,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         name: 'a'
       }).validate()).to.be.rejected;
     }).then(function(errors) {
-      expect(errors.get('name')[0].message).to.equal('Validation isExactly7Characters failed');
+      expect(errors.get('name')[0].message).to.equal('Validation isExactly7Characters on name failed');
     });
   });
 });
