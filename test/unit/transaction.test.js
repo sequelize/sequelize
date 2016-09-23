@@ -34,10 +34,6 @@ describe('Transaction', function() {
       all: [
         'START TRANSACTION;'
       ],
-      mysql: [
-        'START TRANSACTION;',
-        'SET autocommit = 1;'
-      ],
       sqlite: [
         'BEGIN DEFERRED TRANSACTION;'
       ],

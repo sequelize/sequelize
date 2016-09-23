@@ -10,7 +10,7 @@ var chai = require('chai')
   , Promise = Sequelize.Promise;
 
 describe('connection manager', function () {
-  describe('$connect', function () {
+  describe('_connect', function () {
     beforeEach(function () {
       this.sinon = sinon.sandbox.create();
 
@@ -35,7 +35,7 @@ describe('connection manager', function () {
 
       var config = {};
 
-      return expect(connectionManager.$connect(config)).to.eventually.equal(connection).then(function () {
+      return expect(connectionManager._connect(config)).to.eventually.equal(connection).then(function () {
         expect(this.dialect.connectionManager.connect).to.have.been.calledWith(config);
       }.bind(this));
     });
@@ -52,7 +52,7 @@ describe('connection manager', function () {
 
       var connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
-      return connectionManager.$connect({}).then(function () {
+      return connectionManager._connect({}).then(function () {
         expect(this.dialect.connectionManager.connect).to.have.been.calledWith({
           username: username,
           password: password

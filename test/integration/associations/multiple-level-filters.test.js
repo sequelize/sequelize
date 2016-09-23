@@ -45,11 +45,16 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
           }]).then(function() {
             return Task.findAll({
               include: [
-                {model: Project, include: [
-                  {model: User, where: {username: 'leia'}}
-                ]}
+                {
+                  model: Project, 
+                  include: [
+                    {model: User, where: {username: 'leia'}}
+                  ],
+                  required: true,
+                }
               ]
             }).then(function(tasks) {
+
               expect(tasks.length).to.be.equal(2);
               expect(tasks[0].title).to.be.equal('fight empire');
               expect(tasks[1].title).to.be.equal('stablish republic');
@@ -99,12 +104,16 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
           }]).then(function() {
             return Task.findAll({
               include: [
-                {model: Project, include: [
-                  {model: User, where: {
+                {
+                  model: Project, 
+                  include: [
+                    {model: User, where: {
                     username: 'leia',
                     id: 1
-                  }}
-                ]}
+                    }}
+                  ],
+                  required: true,
+                }
               ]
             }).then(function(tasks) {
               expect(tasks.length).to.be.equal(2);
@@ -156,9 +165,13 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
           }]).then(function() {
             return User.findAll({
               include: [
-                {model: Project, include: [
-                  {model: Task, where: {title: 'fight empire'}}
-                ]}
+                {
+                  model: Project, 
+                  include: [
+                    {model: Task, where: {title: 'fight empire'}}
+                  ],
+                  required: true,
+                }
               ]
             }).then(function(users) {
               expect(users.length).to.be.equal(1);

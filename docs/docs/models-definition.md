@@ -34,7 +34,6 @@ var Foo = sequelize.define('foo', {
  // Creating two objects with the same value will throw an error. The unique property can be either a
  // boolean, or a string. If you provide the same string for multiple columns, they will form a
  // composite unique key.
- someUnique: {type: Sequelize.STRING, unique: true},
  uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
  uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
 
@@ -107,7 +106,7 @@ Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
 
 Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
-Sequelize.DATE(6)                     // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision 
+Sequelize.DATE(6)                     // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision
 Sequelize.DATEONLY                    // DATE without time.
 Sequelize.BOOLEAN                     // TINYINT(1)
 
@@ -169,6 +168,71 @@ sequelize.define('model', {
     values: ['active', 'pending', 'deleted']
   }
 })
+```
+
+### Range types
+
+Since range types have extra information for their bound inclusion/exclusion it's not
+very straightforward to just use a tuple to represent them in javascript.
+
+When supplying ranges as values you can choose from the following APIs:
+
+```js
+// defaults to '["2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00")'
+// inclusive lower bound, exclusive upper bound
+Timeline.create({ range: [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))] });
+
+// control inclusion
+const range = [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))];
+range.inclusive = false; // '()'
+range.inclusive = [false, true]; // '(]'
+range.inclusive = true; // '[]'
+range.inclusive = [true, false]; // '[)'
+
+// or as a single expression
+const range = [
+  { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false },
+  { value: new Date(Date.UTC(2016, 1, 1)), inclusive: true },
+];
+// '("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]'
+
+// composite form
+const range = [
+  { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false },
+  new Date(Date.UTC(2016, 1, 1)),
+];
+// '("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00")'
+
+Timeline.create({ range });
+```
+
+However, please note that whenever you get back a value that is range you will
+receive:
+
+```js
+// stored value: ("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]
+range // [Date, Date]
+range.inclusive // [false, true]
+```
+
+Make sure you turn that into a serializable format before serialization since array
+extra properties will not be serialized.
+
+#### Special Cases
+
+```js
+// empty range:
+Timeline.create({ range: [] }); // range = 'empty'
+
+// Unbounded range:
+Timeline.create({ range: [null, null] }); // range = '[,)'
+// range = '[,"2016-01-01 00:00:00+00:00")'
+Timeline.create({ range: [null, new Date(Date.UTC(2016, 0, 1))] });
+
+// Infinite range:
+// range = '[-infinity,"2016-01-01 00:00:00+00:00")'
+Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
+
 ```
 
 ## Deferrable
@@ -566,59 +630,33 @@ sequelize.sync({ force: true, match: /_test$/ });
 
 ## Expansion of models
 
-Sequelize allows you to pass custom methods to a model and its instances. Just do the following:
+Sequelize Models are ES6 classes. You can very easily add custom instance or class level methods.
 
 ```js
-var Foo = sequelize.define('foo', { /* attributes */}, {
-  classMethods: {
-    method1: function(){ return 'smth' }
-  },
-  instanceMethods: {
-    method2: function() { return 'foo' }
-  }
-})
+var User = sequelize.define('user', { firstname: Sequelize.STRING });
 
-// Example:
-Foo.method1()
-Foo.build().method2()
+// Adding a class level method
+User.classLevelMethod = function() {
+  return 'foo';
+};
+
+// Adding an instance level method
+User.prototype.instanceLevelMethod = function() {
+  return 'bar';
+};
 ```
 
 Of course you can also access the instance's data and generate virtual getters:
 
 ```js
-var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
-  instanceMethods: {
-    getFullname: function() {
-      return [this.firstname, this.lastname].join(' ')
-    }
-  }
-})
+var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING });
+
+User.prototype.getFullname = function() {
+  return [this.firstname, this.lastname].join(' ');
+};
 
 // Example:
 User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
-```
-
-You can also set custom methods to all of your models during the instantiation:
-
-```js
-var sequelize = new Sequelize('database', 'username', 'password', {
-  // Other options during the initialization could be here
-  define: {
-    classMethods: {
-      method1: function() {},
-      method2: function() {}
-    },
-    instanceMethods: {
-      method3: function() {}
-    }
-  }
-})
-
-// Example:
-var Foo = sequelize.define('foo', { /* attributes */});
-Foo.method1()
-Foo.method2()
-Foo.build().method3()
 ```
 
 ### Indexes

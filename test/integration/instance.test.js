@@ -223,7 +223,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('should still work right with other concurrent increments', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return this.sequelize.Promise.all([
+        return self.sequelize.Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
@@ -349,7 +349,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('should still work right with other concurrent increments', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return this.sequelize.Promise.all([
+        return self.sequelize.Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
@@ -532,12 +532,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                 return Book.findOne({
                   where: { id: book.id }
                 }).then(function(leBook) {
-                  var oldOptions = leBook.$options;
+                  var oldOptions = leBook._options;
                   return leBook.reload({
                     include: [Page]
                   }).then(function(leBook) {
-                    expect(oldOptions).not.to.equal(leBook.$options);
-                    expect(leBook.$options.include.length).to.equal(1);
+                    expect(oldOptions).not.to.equal(leBook._options);
+                    expect(leBook._options.include.length).to.equal(1);
                     expect(leBook.Pages.length).to.equal(1);
                     expect(leBook.get({plain: true}).Pages.length).to.equal(1);
                   });
@@ -1167,12 +1167,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       it('does not update timestamps', function() {
         var self = this;
         return self.User.create({ username: 'John' }).then(function() {
-          return self.User.findOne({ username: 'John' }).then(function(user) {
+          return self.User.findOne({ where: { username: 'John' } }).then(function(user) {
             var updatedAt = user.updatedAt;
             self.clock.tick(2000);
             return user.save().then(function(newlySavedUser) {
               expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
-              return self.User.findOne({ username: 'John' }).then(function(newlySavedUser) {
+              return self.User.findOne({ where: { username: 'John' } }).then(function(newlySavedUser) {
                 expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
               });
             });

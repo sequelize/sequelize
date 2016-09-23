@@ -15,7 +15,6 @@ var sortById = function(a, b) {
 
 describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
   describe('findAll', function() {
-    this.timeout(30000);
     beforeEach(function() {
       var self = this;
       this.fixtureA = function() {
@@ -276,8 +275,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                 ]).spread(function(user, products) {
                   return Promise.all([
                     GroupMember.bulkCreate([
-                      {MembershipsId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                      {MembershipsId: user.id, GroupId: groups[1].id, RankId: ranks[1].id}
+                      {AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                      {AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id}
                     ]),
                     user.setProducts([
                       products[(i * 2) + 0],

@@ -342,7 +342,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return this.Project.create({}).catch(function(err) {
           expect(err).to.be.an.instanceOf(Error);
           delete err.stack; // longStackTraces
-          expect(Object.keys(err)).to.have.length(3);
+          expect(err.errors).to.have.length(3);
         });
       });
     });

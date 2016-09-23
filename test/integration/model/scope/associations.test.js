@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         this.ScopeMe.hasOne(this.Profile, { foreignKey: 'userId' });
 
         this.ScopeMe.belongsTo(this.Company);
-        this.UserAssociation = this.Company.hasMany(this.ScopeMe, { as: 'users', foreignKey: 'companyId'});
+        this.UserAssociation = this.Company.hasMany(this.ScopeMe, { as: 'users' });
 
         return this.sequelize.sync({force: true}).bind(this).then(function() {
           return Promise.all([

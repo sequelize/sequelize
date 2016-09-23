@@ -189,7 +189,7 @@ var Project = sequelize.define('project', {/* ... */})
 Project.hasMany(User, {as: 'Workers'})
 ```
 
-This will add the attribute `WorkersId` or `Workers_id` to User. Instances of Project will get the accessors getWorkers and setWorkers.  We could just leave it the way it is and let it be a one-way association.
+This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
 But we want more! Let's define it the other way around by creating a many to many association in the next section:
 
 ## Belongs-To-Many associations
@@ -285,13 +285,11 @@ this.Comment = this.sequelize.define('comment', {
   title: Sequelize.STRING,
   commentable: Sequelize.STRING,
   commentable_id: Sequelize.INTEGER
-}, {
-  instanceMethods: {
-    getItem: function() {
-      return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
-    }
-  }
 });
+
+this.Comment.prototype.getItem = function() {
+  return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+};
 
 this.Post.hasMany(this.Comment, {
   foreignKey: 'commentable_id',
@@ -344,6 +342,11 @@ For brevity, the example only shows a Post model, but in reality Tag would be re
 
 ```js
 ItemTag = sequelize.define('item_tag', {
+  id : {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   tag_id: {
     type: DataTypes.INTEGER,
     unique: 'item_tag_taggable'
@@ -378,7 +381,8 @@ Tag.belongsToMany(Post, {
     model: ItemTag,
     unique: false
   },
-  foreignKey: 'tag_id'
+  foreignKey: 'tag_id',
+  constraints: false
 });
 ```
 
@@ -745,7 +749,7 @@ A new `Product` and `User` can be created in one step in the following way:
 ```js
 return Product.create({
   title: 'Chair',
-  User: {
+  user: {
     first_name: 'Mick',
     last_name: 'Broadstone'
   }
@@ -753,6 +757,8 @@ return Product.create({
   include: [ User ]
 });
 ```
+
+Here, our user model is called `user`, with a lowercase u - This means that the property in the object should also be `user`. If the name given to `sequelize.define` was `User`, the key in the object should also be `User`.
 
 ### Creating elements of a "BelongsTo" association with an alias
 
@@ -791,7 +797,7 @@ Now we can create a project with multiple tags in the following way:
 Product.create({
   id: 1,
   title: 'Chair',
-  Tags: [
+  tags: [
     { name: 'Alpha'},
     { name: 'Beta'}
   ]

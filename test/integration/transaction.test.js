@@ -72,15 +72,6 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       });
     });
 
-    it('errors when no promise chain is returned', function() {
-      var t;
-      return (expect(this.sequelize.transaction(function(transaction) {
-        t = transaction;
-      })).to.eventually.be.rejected).then(function() {
-        expect(t.finished).to.be.equal('rollback');
-      });
-    });
-
     if (dialect === 'postgres' || dialect === 'mssql') {
       it('do not rollback if already committed', function() {
         var SumSumSum = this.sequelize.define('transaction', {

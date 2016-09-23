@@ -1,0 +1,8 @@
+dir: lib
+packageJson: package.json
+articles:
+    - Getting started: docs/articles/getting-started.md
+branches:
+    - master
+    - doclets
+

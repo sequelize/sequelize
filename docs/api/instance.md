@@ -210,6 +210,7 @@ This error will have a property for each of the fields for which validation fail
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.transaction] | Transaction |  |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
+| [options.returning] | Boolean | Append RETURNING * to get back auto generated values (Postgres only) |
 
 
 ***
@@ -299,7 +300,7 @@ Destroy the row corresponding to this instance. Depending on your setting for pa
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.transaction] | Transaction |  |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
-
+| [options.silent=false] | Boolean | If true, the updatedAt timestamp will not be updated. |
 
 ***
 

@@ -148,7 +148,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       }).then(function() {
         return User.findAndCountAll({
           where: {id: userId},
-          include: [Project]
+          include: [Project],
+          distinct: true
         });
       }).then(function(result) {
         expect(result.rows.length).to.equal(1);
@@ -209,7 +210,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         // Query for the first instance of Foo which have related Bars with m === 'yes'
         return Foo.findAndCountAll({
           include: [{ model: Bar, where: { m: 'yes' } }],
-          limit: 1
+          limit: 1,
+          distinct: true
         });
       }).then(function(result) {
         // There should be 2 instances matching the query (Instances 1 and 2), see the findAll statement
@@ -291,6 +293,58 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           expect(result.count).to.equal(2);
           expect(result.rows.length).to.equal(1);
       });
+    });
+
+    it('should properly work with sequelize.function', function() {
+      var sequelize = this.sequelize;
+      var User = this.sequelize.define('User', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        first_name: { type: DataTypes.STRING },
+        last_name: { type: DataTypes.STRING }
+      });
+
+      var Project = this.sequelize.define('Project', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING}
+      });
+
+      User.hasMany(Project);
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return User.bulkCreate([
+          { first_name: 'user-fname-1', last_name: 'user-lname-1' },
+          { first_name: 'user-fname-2', last_name: 'user-lname-2' },
+          { first_name: 'user-xfname-1', last_name: 'user-xlname-1' }
+        ]);
+      }).then(function(u) {
+        return Project.bulkCreate([
+          { name: 'naam-satya', UserId: 1},
+          { name: 'guru-satya', UserId: 2},
+          { name: 'app-satya', UserId: 2}
+        ]);
+      }).then(function() {
+        return User.findAndCountAll({
+          limit: 1,
+          offset: 1,
+          where: sequelize.or(
+              { first_name : { like: '%user-fname%' } },
+              { last_name : { like: '%user-lname%' } }
+          ),
+          include: [
+            {
+              model: Project,
+              required: true,
+              where: { name: {
+                $in: ['naam-satya', 'guru-satya']
+              }}
+            }
+          ]
+        });
+      }).then(function(result) {
+        expect(result.count).to.equal(2);
+        expect(result.rows.length).to.equal(1);
+      });
+
     });
   });
 });

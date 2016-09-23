@@ -394,6 +394,45 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
+      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
+        var User = this.sequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
+            field: 'user_name'
+          }
+        });
+
+        User.beforeCreate(instance => {
+          instance.set('username', instance.get('username').trim());
+        });
+
+        let spy = sinon.spy();
+
+        let names = [
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick '
+        ];
+
+        return User.sync({force: true}).then(() => {
+          return Promise.all(
+            names.map(username => {
+              return User.findOrCreate({where: {username}}).catch(err => {
+                spy();
+                expect(err.message).to.equal(`user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick ' vs 'mick'`);
+              });
+            })
+          );
+        }).then(() => {
+          expect(spy).to.have.been.called;
+        });
+      });
+
       (dialect !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', function () {
         var User = this.sequelize.define('user', {
           objectId: {
@@ -586,8 +625,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
 
           return User.findOne({
-            updatedAt: {
-              ne: null
+            where: {
+              updatedAt: {
+                ne: null
+              }
             }
           }).then(function (user) {
             expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
@@ -1363,8 +1404,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           silent: true
         }).then(function () {
           return User.findAll({
-            updatedAt: {
-              ne: null
+            where: {
+              updatedAt: {
+                ne: null
+              }
             }
           }).then(function (users) {
             users.forEach(function (user) {
@@ -1763,6 +1806,74 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
           });
         });
+      });
+    });
+
+    it('should properly map field names to attribute names', function() {
+      var Maya = this.sequelize.define('Maya', {
+        name: Sequelize.STRING,
+        secret: {
+          field: 'secret_given',
+          type: Sequelize.STRING
+        },
+        createdAt: {
+            field: 'created_at',
+            type: Sequelize.DATE
+        },
+        updatedAt: {
+            field: 'updated_at',
+            type: Sequelize.DATE
+        }
+      });
+
+      var M1 = { id: 1, name: 'Prathma Maya', secret: 'You are on list #1'};
+      var M2 = { id: 2, name: 'Dwitiya Maya', secret: 'You are on list #2'};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1))
+      .then((m) => {
+        expect(m.createdAt).to.be.ok;
+        expect(m.id).to.be.eql(M1.id);
+        expect(m.name).to.be.eql(M1.name);
+        expect(m.secret).to.be.eql(M1.secret);
+
+        return Maya.bulkCreate([M2]);
+      }).spread((m) => {
+
+        // only attributes are returned, no fields are mixed
+        expect(m.createdAt).to.be.ok;
+        expect(m.created_at).to.not.exist;
+        expect(m.secret_given).to.not.exist;
+        expect(m.get('secret_given')).not.to.be.defined;
+        expect(m.get('created_at')).not.to.be.defined;
+
+        // values look fine
+        expect(m.id).to.be.eql(M2.id);
+        expect(m.name).to.be.eql(M2.name);
+        expect(m.secret).to.be.eql(M2.secret);
+      });
+    });
+    
+    it('should return autoIncrement primary key (create)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1, {returning: true}))
+      .then((m) => {
+        expect(m.id).to.be.eql(1);
+      });
+    });
+  
+    it('should return autoIncrement primary key (bulkCreate)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+      var M2 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
+      .then((ms) => {
+        expect(ms[0].id).to.be.eql(1);
+        expect(ms[1].id).to.be.eql(2);
       });
     });
   });

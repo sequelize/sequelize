@@ -22,13 +22,11 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         }
-      }, {
-        instanceMethods: {
-          getItem: function() {
-            return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
-          }
-        }
       });
+      
+      this.Comment.prototype.getItem = function() {
+        return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+      };
 
       this.Post.addScope('withComments', {
         include: [this.Comment]
@@ -261,8 +259,8 @@ describe(Support.getTestDialectTeaser('associations'), function() {
             this.PostTag = this.sequelize.define('post_tag');
 
             this.Tag.belongsToMany(this.Post, {through: this.PostTag});
-            this.Post.belongsToMany(this.Tag, {as: 'categories', through: this.PostTag, foreignKey: 'PostId', scope: { type: 'category' }});
-            this.Post.belongsToMany(this.Tag, {as: 'tags', through: this.PostTag, foreignKey: 'PostId', scope: { type: 'tag' }});
+            this.Post.belongsToMany(this.Tag, {as: 'categories', through: this.PostTag, scope: { type: 'category' }});
+            this.Post.belongsToMany(this.Tag, {as: 'tags', through: this.PostTag, scope: { type: 'tag' }});
           });
 
           it('should create, find and include associations with scope values', function() {

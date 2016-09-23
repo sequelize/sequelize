@@ -48,6 +48,27 @@ sequelize.query('SELECT * FROM projects WHERE status = :status ',
 })
 ```
 
+Array replacements will automatically be handled, the following query searches for projects where the status matches an array of values.
+
+```js
+sequelize.query('SELECT * FROM projects WHERE status IN(:status) ',
+  { replacements: { status: ['active', 'inactive'] }, type: sequelize.QueryTypes.SELECT }
+).then(function(projects) {
+  console.log(projects)
+})
+```
+
+To use the wildcard operator %, append it to your replacement. The following query matches users with names that start with 'ben'.
+
+```js
+sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
+  { replacements: { search_name: 'ben%'  }, type: sequelize.QueryTypes.SELECT }
+).then(function(projects) {
+  console.log(projects)
+})
+```
+
+
 # Bind Parameter
 Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements.
 
