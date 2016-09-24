@@ -14,7 +14,6 @@ var chai = require('chai')
   , moment = require('moment')
   , Transaction = require(__dirname + '/../../lib/transaction')
   , sinon = require('sinon')
-  , fs = require('fs')
   , semver = require('semver')
   , current = Support.sequelize;
 
@@ -1180,10 +1179,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     it('imports a dao definition with a default export', function () {
       var Project = this.sequelize.import(__dirname + '/assets/es6project');
       expect(Project).to.exist;
-    });
-
-    after(function(){
-      fs.unlink(__dirname + '/assets/es6project.js');
     });
 
     it('imports a dao definition from a function', function() {
