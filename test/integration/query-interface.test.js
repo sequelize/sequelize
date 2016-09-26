@@ -218,7 +218,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           autoIncrement: true
         }
       }).bind(this).then(function() {
-        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(response) {
+        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(results) {
+          var response = _.head(results);
           expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
         });
       });
