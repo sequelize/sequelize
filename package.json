@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "bluebird": "^3.4.6",
+    "chai-things": "^0.2.0",
     "cls-bluebird": "^2.0.1",
     "debug": "^2.2.0",
     "depd": "^1.1.0",
