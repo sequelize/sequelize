@@ -3,8 +3,7 @@
 const Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , chai = require('chai')
-  , expect = chai.expect
-  , _ = require('lodash');
+  , expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('optimistic locking', function () {
@@ -31,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('prevents stale instances from being saved', function() {
-      return Account.create({number: 1}).then(function(accountA) {
+      return expect(Account.create({number: 1}).then(function(accountA) {
         return Account.findById(accountA.id).then(function(accountB) {
           accountA.number += 1;
           return accountA.save().then(function() { return accountB; });
@@ -39,11 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }).then(function(accountB) {
         accountB.number += 1;
         return accountB.save();
-      }).then(function() {
-        expect.fail('Expect save() to throw OptimisticLockError');
-      }).catch(function(error) {
-        expect(error.name).to.eq('OptimisticLockError');
-      });
+      })).to.be.rejectedWith(Support.Sequelize.OptimisticLockError);
     });
 
     it('increment() also increments the version', function() {
