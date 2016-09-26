@@ -40,7 +40,7 @@ If you have any security issue to report, contact project maintainers privately.
 
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
-- [Getting Started](http://docs.sequelizejs.com/en/stable/docs/getting-started/)
+- [Getting Started](http://docs.sequelizejs.com/en/latest/docs/getting-started/)
 - [Express Example](https://github.com/sequelize/express-example)
 - [Documentation](http://docs.sequelizejs.com/en/latest/)
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)

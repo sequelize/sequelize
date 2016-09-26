@@ -478,13 +478,13 @@ sequelize.models.modelName // The model will now be available in models under th
 
 As shown above, column definitions can be either strings, a reference to one of the datatypes that are predefined on the Sequelize constructor, or an object that allows you to specify both the type of the column, and other attributes such as default values, foreign key constraints and custom setters and getters.
 
-For a list of possible data types, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#data-types
+For a list of possible data types, see [Data Types](http://docs.sequelizejs.com/en/latest/docs/models-definition/#data-types).
 
-For more about getters and setters, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#getters-setters
+For more about getters and setters, see [Getters and Setters](http://docs.sequelizejs.com/en/latest/docs/models-definition/#getters-setters).
 
-For more about instance and class methods, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#expansion-of-models
+For more about instance and class methods, see [Expansion of Models](http://docs.sequelizejs.com/en/latest/docs/models-definition/#expansion-of-models).
 
-For more about validation, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#validations
+For more about validation, see [Validations](http://docs.sequelizejs.com/en/latest/docs/models-definition/#validations).
 
 **See:**
 
