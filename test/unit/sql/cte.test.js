@@ -19,6 +19,9 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
 
       var selectTest = function(options, expected) {
         
+        // just for testing
+        options.model = User;
+
         current.Model._conformOptions.call(User, options, User);
         current.Model._validateCTEElements.call(User, options);
         
@@ -84,7 +87,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [user].[id], [user].[amount], [user].[createdAt], [user].[updatedAt], [user].[reportId] FROM [users] AS [user] INNER JOIN [projects] AS [assigned] ON [user].[id] = [assigned].[assignedId] AND [assigned].[name] = \'Rebuilding\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [user].[id], [user].[amount], [user].[createdAt], [user].[updatedAt], [user].[reportId] FROM [users] AS [user] INNER JOIN [projects] AS [assigned] ON [user].[id] = [assigned].[userId] AND [assigned].[name] = \'Rebuilding\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
 
       });
@@ -128,7 +131,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] INNER JOIN [projects] AS [assigned] ON [report].[id] = [assigned].[assignedId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] INNER JOIN [projects] AS [assigned] ON [report].[id] = [assigned].[userId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
       });
       
