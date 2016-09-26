@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Account.create({number: 1}).then(function(accountA) {
         return Account.findById(accountA.id).then(function(accountB) {
           accountA.number += 1;
-          return accountA.save().then(function() { return accountB });
+          return accountA.save().then(function() { return accountB; });
         });
       }).then(function(accountB) {
         accountB.number += 1;
@@ -42,7 +42,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }).then(function() {
         expect.fail('Expect save() to throw OptimisticLockError');
       }).catch(function(error) {
-        expect(error).to.exist;
         expect(error.name).to.eq('OptimisticLockError');
       });
     });
@@ -53,7 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return account.increment('number', { by: 1} );
       }).then(function(account) {
         return account.reload();
-      }).then(function() {
+      }).then(function(account) {
         expect(account.version).to.eq(1);
       });
     });
