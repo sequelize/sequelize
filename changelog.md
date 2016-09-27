@@ -1,4 +1,5 @@
-# FUTURE
+# Future
+- [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
 - [ADDED] Optimistic locking support [#6637]
 
 # 4.0.0-2
