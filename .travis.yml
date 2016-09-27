@@ -39,12 +39,3 @@ before_script:
 
 script:
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
-
-matrix:
-  include:
-    - node_js: "6"
-      env: POSTGRES_VER=postgres-94 DIALECT=postgres
-    - node_js: "6"
-      env: MYSQL_VER=mysql-55 DIALECT=mysql
-    - node_js: "6"
-      env: MYSQL_VER=mysql-56 DIALECT=mysql
