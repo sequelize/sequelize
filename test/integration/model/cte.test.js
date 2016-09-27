@@ -8,7 +8,7 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current = Support.sequelize;
 
-  chai.use(things);
+chai.use(things);
 
 
 
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
           });
         });
       });
-      
+
       it('can follow a one-to-one association', function () {
         var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
 
@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
             { user_id: 1, username: 'user1', manager_id: 2 },
             { user_id: 2, username: 'user2' },
             { user_id: 3, username: 'user3' },
-            { user_id: 4, username: 'user4', manager_id: 2}
+            { user_id: 4, username: 'user4', manager_id: 2 }
           ]).then(function () {
             return User.findAll({
               cte: [{
@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
               expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
               expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
               expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
-              
+
             });
           });
         });
@@ -177,118 +177,119 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
 
       if (current.dialect.supports.cteLimitOffsetOrder) {
 
-       it('limit option will stop query at correct limit', function () {
-        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+        it('limit option will stop query at correct limit', function () {
+          var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
 
-        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+          User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
 
-        return this.sequelize.sync({ force: true }).then(function () {
-          return User.bulkCreate([
-            { user_id: 1, username: 'user1', manager_id: 2 },
-            { user_id: 2, username: 'user2', manager_id: 3 },
-            { user_id: 3, username: 'user3', manager_id: 4 },
-            { user_id: 4, username: 'user4', manager_id: 1 }
-          ]).then(function () {
-            return User.findAll({
-              cte: [{
-                name: 'a',
-                model: User,
-                initial: { where: { username: 'user2' } },
-                recursive: { next: 'report' },
-                limit: 50,
-                unique: false
-              }]
-            }).then(function (selectedUsers) {
-              expect(selectedUsers).to.have.length(50);
-              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
-              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
-              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
-              
+          return this.sequelize.sync({ force: true }).then(function () {
+            return User.bulkCreate([
+              { user_id: 1, username: 'user1', manager_id: 2 },
+              { user_id: 2, username: 'user2', manager_id: 3 },
+              { user_id: 3, username: 'user3', manager_id: 4 },
+              { user_id: 4, username: 'user4', manager_id: 1 }
+            ]).then(function () {
+              return User.findAll({
+                cte: [{
+                  name: 'a',
+                  model: User,
+                  initial: { where: { username: 'user2' } },
+                  recursive: { next: 'report' },
+                  limit: 50,
+                  unique: false
+                }]
+              }).then(function (selectedUsers) {
+                expect(selectedUsers).to.have.length(50);
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
+
+              });
             });
           });
         });
-      });
 
-       it('limit and offset option select the correct users', function () {
-         var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+        it('limit and offset option select the correct users', function () {
+          var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
 
-         User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+          User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
 
-         return this.sequelize.sync({ force: true }).then(function () {
-           return User.bulkCreate([
-             { user_id: 1, username: 'user1' },
-             { user_id: 2, username: 'user2', manager_id: 1 },
-             { user_id: 3, username: 'user3', manager_id: 2 },
-             { user_id: 4, username: 'user4', manager_id: 3 },
-             { user_id: 5, username: 'user5', manager_id: 4 }
-           ]).then(function () {
-             return User.findAll({
-               cte: [{
-                 name: 'a',
-                 model: User,
-                 initial: { where: { username: 'user1' } },
-                 recursive: { next: 'report' },
-                 limit: 2,
-                 offset: 2
-               }]
-             }).then(function (selectedUsers) {
-               expect(selectedUsers).to.have.length(2);
-               expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
-               expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
+          return this.sequelize.sync({ force: true }).then(function () {
+            return User.bulkCreate([
+              { user_id: 1, username: 'user1' },
+              { user_id: 2, username: 'user2', manager_id: 1 },
+              { user_id: 3, username: 'user3', manager_id: 2 },
+              { user_id: 4, username: 'user4', manager_id: 3 },
+              { user_id: 5, username: 'user5', manager_id: 4 }
+            ]).then(function () {
+              return User.findAll({
+                cte: [{
+                  name: 'a',
+                  model: User,
+                  initial: { where: { username: 'user1' } },
+                  recursive: { next: 'report' },
+                  limit: 2,
+                  offset: 2
+                }]
+              }).then(function (selectedUsers) {
+                expect(selectedUsers).to.have.length(2);
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
 
-             });
-           });
-         });
-       });
-       
-       it('with \'order\' in recursive query', function () {
-         var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+              });
+            });
+          });
+        });
 
-         User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+        it('with \'order\' in recursive query', function () {
+          var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
 
-         return this.sequelize.sync({ force: true }).then(function () {
-           return User.bulkCreate([
-             { user_id: 1, username: 'user1' },
-             { user_id: 2, username: 'user1.1', manager_id: 1 },
-             { user_id: 3, username: 'user1.2', manager_id: 1 },
-             { user_id: 4, username: 'user1.1.1', manager_id: 2 },
-             { user_id: 5, username: 'user1.1.2', manager_id: 2 },
-             { user_id: 6, username: 'user1.2.1', manager_id: 3 }
-           ]).then(function () {
-             return User.findAll({
-               cte: [{
-                 name: 'a',
-                 model: User,
-                 cteAttributes: ['level'],
-                 initial: {
-                   level: 1,
-                   where: { username: 'user1' }
-                 },
-                 recursive: {
-                   level: { $add: [{ $cte: 'level' }, 1] },
-                   next: 'reports',
-                 },
-                 order: [['level', 'DESC']]
-               }]
-             }).then(function (selectedUsers) {
-               expect(selectedUsers).to.have.length(6);
-               expect(selectedUsers[0]).to.have.property('username', 'user1');
-               expect(selectedUsers[1]).to.have.property('username', 'user1.1');
-               expect(selectedUsers[2]).to.have.property('username', 'user1.1.1');
-               expect(selectedUsers[3]).to.have.property('username', 'user1.1.2');
-               expect(selectedUsers[4]).to.have.property('username', 'user1.2');
-               expect(selectedUsers[5]).to.have.property('username', 'user1.2.1');
-             });
-           });
-         });
-       });
+          User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+
+          return this.sequelize.sync({ force: true }).then(function () {
+            return User.bulkCreate([
+              { user_id: 1, username: 'user1' },
+              { user_id: 2, username: 'user1.1', manager_id: 1 },
+              { user_id: 3, username: 'user1.2', manager_id: 1 },
+              { user_id: 4, username: 'user1.1.1', manager_id: 2 },
+              { user_id: 5, username: 'user1.1.2', manager_id: 2 },
+              { user_id: 6, username: 'user1.2.1', manager_id: 3 }
+            ]).then(function () {
+              return User.findAll({
+                cte: [{
+                  name: 'a',
+                  model: User,
+                  cteAttributes: ['level'],
+                  initial: {
+                    level: 1,
+                    where: { username: 'user1' }
+                  },
+                  recursive: {
+                    level: { $add: [{ $cte: 'level' }, 1] },
+                    next: 'reports',
+                  },
+                  order: [['level', 'DESC']]
+                }]
+              }).then(function (selectedUsers) {
+                expect(selectedUsers).to.have.length(6);
+                expect(selectedUsers[0]).to.have.property('username', 'user1');
+                expect(selectedUsers[1]).to.have.property('username', 'user1.1');
+                expect(selectedUsers[2]).to.have.property('username', 'user1.1.1');
+                expect(selectedUsers[3]).to.have.property('username', 'user1.1.2');
+                expect(selectedUsers[4]).to.have.property('username', 'user1.2');
+                expect(selectedUsers[5]).to.have.property('username', 'user1.2.1');
+              });
+            });
+          });
+        });
 
       } // if dialect supports order, limit, and offsets
 
       it('can use scopes', function () {
         var User = this.sequelize.define('UserXYZ',
-          { username: DataTypes.STRING,
-            user_id: { type: DataTypes.INTEGER, primaryKey: true } 
+          {
+            username: DataTypes.STRING,
+            user_id: { type: DataTypes.INTEGER, primaryKey: true }
           }, {
             defaultScope: {},
             scopes: {
@@ -320,44 +321,43 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
         });
       });
 
-
-    it('can use function scopes', function () {
-      var User = this.sequelize.define('UserXYZ',
-        { username: DataTypes.STRING,
-        user_id: { type: DataTypes.INTEGER, primaryKey: true }
-        }, {
-          defaultScope: {},
-          scopes: {
-            cte: function (username) {
-              return {
-                cte: [{
-                  name: 'a',
-                  initial: { where: { username: username } },
-                  recursive: { next: 'report' }
-                }],
-                cteSelect: 'a'
-              };
+      it('can use function scopes', function () {
+        var User = this.sequelize.define('UserXYZ',
+          {
+            username: DataTypes.STRING,
+            user_id: { type: DataTypes.INTEGER, primaryKey: true }
+          }, {
+            defaultScope: {},
+            scopes: {
+              cte: function (username) {
+                return {
+                  cte: [{
+                    name: 'a',
+                    initial: { where: { username: username } },
+                    recursive: { next: 'report' }
+                  }],
+                  cteSelect: 'a'
+                };
+              }
             }
-          }
-        });
+          });
 
-      User.hasOne(User, { foreignKey: 'manager_id',  as: 'report' });
+        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
 
-      return this.sequelize.sync({ force: true }).then(function () {
-        return User.bulkCreate([
-          { user_id: 1, username: 'user1' },
-          { user_id: 2, username: 'user2', manager_id: 1 },
-          { user_id: 3, username: 'user3', manager_id: 2 }
-        ]).then(function () {
-          return User.scope({ method: ['cte', 'user2'] }).findAll().then(function (selectedUsers) {
-            expect(selectedUsers).to.have.length(2);
-            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
-            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.bulkCreate([
+            { user_id: 1, username: 'user1' },
+            { user_id: 2, username: 'user2', manager_id: 1 },
+            { user_id: 3, username: 'user3', manager_id: 2 }
+          ]).then(function () {
+            return User.scope({ method: ['cte', 'user2'] }).findAll().then(function (selectedUsers) {
+              expect(selectedUsers).to.have.length(2);
+              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+            });
           });
         });
       });
-    });
-
 
       it('can use include in an initial statement to limit intial selection', function () {
         var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
@@ -366,21 +366,23 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
 
         return this.sequelize.sync({ force: true }).then(function () {
           return User.bulkCreate([
-            { user_id: 1,   username: 'user1' },
-            { user_id: 10,  username: 'user10',  manager_id: 1 },
+            { user_id: 1, username: 'user1' },
+            { user_id: 10, username: 'user10', manager_id: 1 },
             { user_id: 100, username: 'user100', manager_id: 10 }
           ]).then(function () {
             return User.findAll({
-                      cte: [{
-                        name: 'a',
-                        model: User,
-                        initial: { include: [{
-                          model: User,
-                          as: 'report',
-                          where: { user_id: { $gt: 99 }}
-                        }]},
-                        recursive: { next: 'report'}
-                      }]
+              cte: [{
+                name: 'a',
+                model: User,
+                initial: {
+                  include: [{
+                    model: User,
+                    as: 'report',
+                    where: { user_id: { $gt: 99 } }
+                  }]
+                },
+                recursive: { next: 'report' }
+              }]
             }).then(function (selectedUsers) {
               expect(selectedUsers).to.have.length(2);
               expect(selectedUsers).to.contain.a.thing.with.property('username', 'user10');
@@ -422,7 +424,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
                 user2.addFriends([user5]),
                 user4.addFriends([user6, user7]),
                 function () { }
-                );
+              );
             });
         }).then(function () {
           return User.findAll({
@@ -457,7 +459,6 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
         });
       });
 
-
       it('can use an attribute on a cte to end a query', function () {
         var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
 
@@ -468,7 +469,7 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
             { user_id: 1, username: 'user1' },
             { user_id: 2, username: 'user2', manager_id: 1 },
             { user_id: 3, username: 'user3', manager_id: 2 },
-            { user_id: 4, username: 'user4', manager_id: 3 },            
+            { user_id: 4, username: 'user4', manager_id: 3 },
           ]).then(function () {
             return User.findAll({
               cte: [{
@@ -583,23 +584,25 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
           });
         });
       });
-      
+
       it('can use a counter based on a model attribute in a recursive CTE', function () {
-        var User = this.sequelize.define('UserXYZ', 
-        { user_id: { type: DataTypes.INTEGER, primaryKey: true }, 
-          username: DataTypes.STRING,
-          amount: DataTypes.INTEGER });
+        var User = this.sequelize.define('UserXYZ',
+          {
+            user_id: { type: DataTypes.INTEGER, primaryKey: true },
+            username: DataTypes.STRING,
+            amount: DataTypes.INTEGER
+          });
 
         User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
 
         return this.sequelize.sync({ force: true }).then(function () {
           return User.bulkCreate([
             { user_id: 1, username: 'user1', amount: 12 },
-            { user_id: 2, username: 'user2', amount: 5,  manager_id: 1 },
-            { user_id: 3, username: 'user3', amount: 2,  manager_id: 2 },
+            { user_id: 2, username: 'user2', amount: 5, manager_id: 1 },
+            { user_id: 3, username: 'user3', amount: 2, manager_id: 2 },
             { user_id: 4, username: 'user4', amount: 23, manager_id: 3 },
             { user_id: 5, username: 'user5', amount: 13, manager_id: 4 },
-            { user_id: 6, username: 'user6', amount: 7,  manager_id: 5 }
+            { user_id: 6, username: 'user6', amount: 7, manager_id: 5 }
           ]).then(function () {
             return User.findAll({
               cte: [{
@@ -636,7 +639,241 @@ describe(Support.getTestDialectTeaser('CTEs'), function () {
           });
         });
       });
-      
+
+      it('can use a counter based on a model attribute in a recursive CTE (with $col cte operand)', function () {
+        var User = this.sequelize.define('UserXYZ',
+          {
+            user_id: { type: DataTypes.INTEGER, primaryKey: true },
+            username: DataTypes.STRING,
+            amount: DataTypes.INTEGER
+          });
+
+        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.bulkCreate([
+            { user_id: 1, username: 'user1', amount: 12 },
+            { user_id: 2, username: 'user2', amount: 5, manager_id: 1 },
+            { user_id: 3, username: 'user3', amount: 2, manager_id: 2 },
+            { user_id: 4, username: 'user4', amount: 23, manager_id: 3 },
+            { user_id: 5, username: 'user5', amount: 13, manager_id: 4 },
+            { user_id: 6, username: 'user6', amount: 7, manager_id: 5 }
+          ]).then(function () {
+            return User.findAll({
+              cte: [{
+                name: 'a',
+                model: User,
+                cteAttributes: ['totalAmount'],
+                initial: {
+                  totalAmount: { $model: 'amount' },
+                  where: { username: 'user1' }
+                },
+                recursive: {
+                  totalAmount: {
+                    $add: [{ $cte: 'totalAmount' },
+                      { $col: 'report.amount' }]
+                  },
+                  next: 'report',
+                  order: [['level', 'DESC']],
+                  where: {
+                    cte: {
+                      totalAmount: {
+                        $lt: 20
+                      }
+                    }
+                  }
+                }
+              }]
+            }).then(function (selectedUsers) {
+              expect(selectedUsers).to.have.length(4);
+              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
+              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user2');
+              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+              expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
+            });
+          });
+        });
+      });
+
     }); // describe [CTEs] with findAll
+
+    describe('with findAll and Errors', () => {
+
+      it('throws an error if given a CTE without a name', function () {
+        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+
+        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.findAll({
+            cte: [{
+              model: User,
+              initial: { where: { username: 'user3' } },
+              recursive: { next: 'report' }
+            }]
+          }).catch((err) => {
+            expect(err.message).to.equal(`No 'name' property given to CTE.`);
+          });
+        });
+      });
+
+      it('throws an error if given a CTE without an initial property', function () {
+        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+
+        User.hasOne(User, { foreignKey: 'manager_id', as: 'report' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.findAll({
+            cte: [{
+              model: User,
+              name: 'a',
+              recursive: { next: 'report' }
+            }]
+          }).catch((err) => {
+            expect(err.message).to.equal(`No 'initial' property given to CTE.`);
+          });
+        });
+      });
+
+      it('throws an error if given a CTE without an a CTE attribute defined it its initial property', function () {
+        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+
+        User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.findAll({
+            cte: [{
+              name: 'a',
+              model: User,
+              cteAttributes: ['level'],
+              initial: {
+                where: { username: 'user1' }
+              },
+              recursive: {
+                level: { $add: [{ $cte: 'level' }, 1] },
+                next: 'reports',
+                order: [['level', 'ASC']]
+              },
+            }],
+            includeCTEAttributes: ['level']
+          }).catch((err) => {
+            expect(err.message).to.equal(`Missing attribute level value in CTE definition of initial selection.`);
+          });
+        });
+      });
+
+      it('throws an error if given a CTE without an a CTE attribute defined it its recursive property', function () {
+        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+
+        User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.findAll({
+            cte: [{
+              name: 'a',
+              model: User,
+              cteAttributes: ['level'],
+              initial: {
+                level: 1,
+                where: { username: 'user1' }
+              },
+              recursive: {
+                next: 'reports',
+                order: [['level', 'ASC']]
+              },
+            }],
+            includeCTEAttributes: ['level']
+          }).catch((err) => {
+            expect(err.message).to.equal(`Missing attribute level value in CTE definition of recursive selection.`);
+          });
+        });
+      });
+
+      it('throws an error if given a CTE with a malformed recursive attribute definition', function () {
+        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+
+        User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.findAll({
+            cte: [{
+              name: 'a',
+              model: User,
+              cteAttributes: ['level'],
+              initial: {
+                level: 1,
+                where: { username: 'user1' }
+              },
+              recursive: {
+                level: { $add: [{ $cte: 'level' }, 1], $sub: 4 },
+                next: 'reports',
+                order: [['level', 'ASC']]
+              },
+            }],
+            includeCTEAttributes: ['level']
+          }).catch((err) => {
+            expect(err.message).to.equal(`Unexpected structure of attribute object.`);
+          });
+        });
+      });
+
+      it('throws an error if given a CTE with a recursive attribute definition with unknown operator', function () {
+        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+
+        User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.findAll({
+            cte: [{
+              name: 'a',
+              model: User,
+              cteAttributes: ['level'],
+              initial: {
+                level: 1,
+                where: { username: 'user1' }
+              },
+              recursive: {
+                level: { $swizzle: [{ $cte: 'level' }, 1]},
+                next: 'reports',
+                order: [['level', 'ASC']]
+              },
+            }],
+            includeCTEAttributes: ['level']
+          }).catch((err) => {
+            expect(err.message).to.equal(`Unrecognized property key in attribute`);
+          });
+        });
+      });
+
+      it('throws an error if given a CTE with a recursive attribute definition with non-array operand', function () {
+        var User = this.sequelize.define('UserXYZ', { user_id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+
+        User.hasMany(User, { foreignKey: 'manager_id', as: 'reports' });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return User.findAll({
+            cte: [{
+              name: 'a',
+              model: User,
+              cteAttributes: ['level'],
+              initial: {
+                level: 1,
+                where: { username: 'user1' }
+              },
+              recursive: {
+                level: { $add: 1},
+                next: 'reports',
+                order: [['level', 'ASC']]
+              },
+            }],
+            includeCTEAttributes: ['level']
+          }).catch((err) => {
+            expect(err.message).to.equal(`Value of operands not an array`);
+          });
+        });
+      });
+
+    });
+
   } // if the dialect supports ctes
 }); // descirbe CTEs

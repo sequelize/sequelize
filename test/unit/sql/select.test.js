@@ -73,6 +73,34 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       +') AS [User];'
     });
 
+    testsql({
+      table: 'User',
+      attributes: [
+        'email',
+        ['first_name', 'firstName'],
+        ['last_name', 'lastName']
+      ],
+      order: [
+        ['last_name', 'ASC']
+      ],
+      groupedLimit: {
+        limit: 3,
+        on: 'companyId',
+        values: [
+          1,
+          5
+        ]
+      },
+      include: [],
+    }, {
+      default: 'SELECT [User].* FROM ('+
+        [
+          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+          '(SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+        ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+      +') AS [User];'
+    });
+
     (function() {
       const User = Support.sequelize.define('user', {
         id: {
