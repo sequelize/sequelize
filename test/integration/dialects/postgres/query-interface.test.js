@@ -115,7 +115,6 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('can drop a function', function () {
-        
         //call drop function
         return expect(this.queryInterface.dropFunction('droptest',[{type:'varchar',name:'test'}])
         //now call the function we attempted to drop.. if dropFunction worked as expect it should produce an error.
@@ -128,7 +127,6 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('produces an error when missing expected parameters', function () {
-       
         return Promise.all([
           expect( () => {
             return this.queryInterface.dropFunction(); 
