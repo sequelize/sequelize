@@ -51,7 +51,7 @@
     "semver": "^5.0.1",
     "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
-    "validator": "^5.6.0",
+    "validator": "^6.0.0",
     "wkx": "0.3.0"
   },
   "devDependencies": {
