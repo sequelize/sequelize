@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }).then(function(accountB) {
         accountB.number += 1;
         return accountB.save();
-      })).to.be.rejectedWith(Support.Sequelize.OptimisticLockError);
+      })).to.eventually.be.rejectedWith(Support.Sequelize.OptimisticLockError);
     });
 
     it('increment() also increments the version', function() {
