@@ -884,7 +884,7 @@ describe('Association', function() {
         return self.Entry.create({ mailId: mail.id, ownerId: 1 })
           .then(function() { return self.Entry.create({ mailId: mail.id, ownerId: 1 }); })
           // set recipients
-          .then(function() { return mail.setRecipients([1]); })
+          .then(function() { return mail.setRecipients([1]); });
       })
       .then(function() {
         return self.Entry.findAndCount({
