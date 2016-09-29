@@ -839,9 +839,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
 describe('Association', function() {
   it('should set foreignKey on foreign table', function () {
-    const Mail = this.sequelize.define('mail', {});
-    const Entry = this.sequelize.define('entry', {});
-    const User = this.sequelize.define('user', {});
+    const Mail = this.sequelize.define('mail', {}, { timestamps: false });
+    const Entry = this.sequelize.define('entry', {}, { timestamps: false });
+    const User = this.sequelize.define('user', {}, { timestamps: false });
     Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
     Entry.belongsTo(Mail, {
       as: 'mail',
@@ -860,7 +860,8 @@ describe('Association', function() {
       foreignKey: {
         name: 'mailId',
         allowNull: false
-      }
+      },
+      timestamps: false
     });
     Mail.hasMany(Entry, {
       as: 'entries',
@@ -906,6 +907,25 @@ describe('Association', function() {
             required: true
           }
         ]
-      }));
+      })).then(result => {
+        expect(result.count).to.equal(2);
+        expect(result.rows[0].get({ plain: true })).to.deep.equal(
+          {
+            id: 2,
+            ownerId: 1,
+            mailId: 1,
+            mail: {
+              id: 1,
+              recipients: [{
+                id: 1,
+                MailRecipients: {
+                  mailId: 1,
+                  recipientId: 1
+                }
+              }]
+            }
+          }
+        );
+      });
   });
 });
