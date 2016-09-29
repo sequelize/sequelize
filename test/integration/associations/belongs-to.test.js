@@ -837,28 +837,20 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
   });
 });
 
-describe('Association', function () {
+describe('Association', function() {
   it('should set foreignKey on foreign table', function () {
-    var self = this;
-    self.Mail = self.sequelize.define('mail', {});
-    self.Entry = self.sequelize.define('entry', {});
-    self.User = self.sequelize.define('user', {});
-    self.Entry.belongsTo(self.User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
-    self.Entry.belongsTo(self.Mail, {
+    const Mail = this.sequelize.define('mail', {});
+    const Entry = this.sequelize.define('entry', {});
+    const User = this.sequelize.define('user', {});
+    Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
+    Entry.belongsTo(Mail, {
       as: 'mail',
       foreignKey: {
         name: 'mailId',
         allowNull: false
       }
     });
-    self.Mail.belongsTo(self.User, {
-      as: 'sender',
-      foreignKey: {
-        name: 'senderId',
-        allowNull: false
-      }
-    });
-    self.Mail.belongsToMany(self.User, {
+    Mail.belongsToMany(User, {
       as: 'recipients',
       through: 'MailRecipients',
       otherKey: {
@@ -870,85 +862,50 @@ describe('Association', function () {
         allowNull: false
       }
     });
-    self.Mail.hasMany(self.Entry, {
+    Mail.hasMany(Entry, {
       as: 'entries',
       foreignKey: {
         name: 'mailId',
         allowNull: false
       }
     });
-    self.User.hasMany(self.Entry, {
+    User.hasMany(Entry, {
       as: 'entries',
       foreignKey: {
         name: 'ownerId',
         allowNull: false
       }
     });
-    return self.sequelize.sync({ force: true })
-      .then(() => self.User.bulkCreate([{}, {}]))
-      .then(() => self.Mail.bulkCreate(
-        [
-          {
-            senderId: 1,
-            subject: 'Lorem Dolor',
-            content: 'Dolor has send ipsum dolor emailit'
-          },
-          {
-            senderId: 2,
-            subject: 'John Mail',
-            content: 'John_doe'
-          },
-          {
-            senderId: 1,
-            subject: 'Lorem Dolor',
-            content: 'Dolor has send ipsum dolor emailit'
-          },
-          {
-            senderId: 2,
-            subject: 'John Mail',
-            content: 'John_doe'
-          }
-        ],
-        { returning: true }
-      ))
-      .then(mails =>
-        self.Entry.create({ mailId: mails[0].id, ownerId: 2 })
-          .then(() => self.Entry.create({ mailId: mails[1].id, ownerId: 1 }))
-          .then(() => self.Entry.create({ mailId: mails[0].id, ownerId: 1 }))
-          .then(() => self.Entry.create({ mailId: mails[1].id, ownerId: 2 }))
-          .then(() => self.Entry.create({ mailId: mails[2].id, ownerId: 1, movedToTrashAt: new Date() }))
-          .then(() => self.Entry.create({ mailId: mails[2].id, ownerId: 2, movedToTrashAt: new Date() }))
-          .then(() => self.Entry.create({ mailId: mails[3].id, ownerId: 1, movedToTrashAt: new Date() }))
-          .then(() => self.Entry.create({ mailId: mails[3].id, ownerId: 2, movedToTrashAt: new Date() }))
+    return this.sequelize.sync({ force: true })
+      .then(() => User.create({}))
+      .then(() => Mail.create({}))
+      .then(mail =>
+        Entry.create({ mailId: mail.id, ownerId: 1 })
+          .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
           // set recipients
-          .then(() => mails[0].setRecipients([2]))
-          .then(() => mails[1].setRecipients([1]))
-          .then(() => mails[2].setRecipients([2]))
-          .then(() => mails[3].setRecipients([1]))
-          .then(() => self.Entry.findAndCount({
-            offset: 0,
-            limit: 10,
-            order: [['id', 'DESC']],
+          .then(() => mail.setRecipients([1]))
+      )
+      .then(() => Entry.findAndCount({
+        offset: 0,
+        limit: 10,
+        order: [['id', 'DESC']],
+        include: [
+          {
+            association: Entry.associations.mail,
             include: [
               {
-                association: self.Entry.associations.mail,
-                include: [
-                  {
-                    association: self.Mail.associations.recipients,
-                    through: {
-                      where: {
-                        recipientId: 1
-                      }
-                    },
-                    required: true
+                association: Mail.associations.recipients,
+                through: {
+                  where: {
+                    recipientId: 1
                   }
-                ],
+                },
                 required: true
               }
-            ]
-          }))
-          .then(function () {
-            // empty
-          }))
+            ],
+            required: true
+          }
+        ]
+      }));
   });
 });
