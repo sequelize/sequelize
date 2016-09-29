@@ -837,7 +837,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
   });
 });
 
-describe.only('Association', function() {
+describe('Association', function() {
   it('should set foreignKey on foreign table', function () {
     const Mail = this.sequelize.define('mail', {});
     const Entry = this.sequelize.define('entry', {});
