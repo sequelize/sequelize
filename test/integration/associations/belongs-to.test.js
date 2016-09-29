@@ -839,9 +839,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
 describe('Association', function() {
   it('should set foreignKey on foreign table', function () {
-    const Mail = this.sequelize.define('mail', {});
-    const Entry = this.sequelize.define('entry', {});
-    const User = this.sequelize.define('user', {});
+    var self = this;
+    var Mail = self.Mail = this.sequelize.define('mail', {});
+    var Entry = self.Entry = this.sequelize.define('entry', {});
+    var User = self.User = this.sequelize.define('user', {});
     Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
     Entry.belongsTo(Mail, {
       as: 'mail',
@@ -877,35 +878,37 @@ describe('Association', function() {
       }
     });
     return this.sequelize.sync({ force: true })
-      .then(() => User.create({}))
-      .then(() => Mail.create({}))
-      .then(mail =>
-        Entry.create({ mailId: mail.id, ownerId: 1 })
-          .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
+      .then(function() { return self.User.create({}); })
+      .then(function() { return self.Mail.create({}); })
+      .then(function(mail) {
+        return self.Entry.create({ mailId: mail.id, ownerId: 1 })
+          .then(function() { return self.Entry.create({ mailId: mail.id, ownerId: 1 }); })
           // set recipients
-          .then(() => mail.setRecipients([1]))
-      )
-      .then(() => Entry.findAndCount({
-        offset: 0,
-        limit: 10,
-        order: [['id', 'DESC']],
-        include: [
-          {
-            association: Entry.associations.mail,
-            include: [
-              {
-                association: Mail.associations.recipients,
-                through: {
-                  where: {
-                    recipientId: 1
-                  }
-                },
-                required: true
-              }
-            ],
-            required: true
-          }
-        ]
-      }));
+          .then(function() { return mail.setRecipients([1]); })
+      })
+      .then(function() {
+        return self.Entry.findAndCount({
+          offset: 0,
+          limit: 10,
+          order: [['id', 'DESC']],
+          include: [
+            {
+              association: self.Entry.associations.mail,
+              include: [
+                {
+                  association: self.Mail.associations.recipients,
+                  through: {
+                    where: {
+                      recipientId: 1
+                    }
+                  },
+                  required: true
+                }
+              ],
+              required: true
+            }
+          ]
+        });
+      });
   });
 });
