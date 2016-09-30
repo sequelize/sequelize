@@ -1231,7 +1231,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
     beforeEach(function() {
       var User = this.sequelize.define('UserXYZ',
         { username: Sequelize.STRING, email: Sequelize.STRING },
-        { indexes: [ {fields: ['email']} ] }
+        { indexes: [ {fields: ['email'], unique: true} ] }
       );
       var Task = this.sequelize.define('TaskXYZ',
         { title: Sequelize.STRING, userEmail: { type: Sequelize.STRING, field: 'user_email_xyz'} });
