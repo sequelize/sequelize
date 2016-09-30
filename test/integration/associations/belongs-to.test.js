@@ -836,3 +836,97 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
     });
   });
 });
+
+describe('Association', function() {
+  it('should set foreignKey on foreign table', function () {
+    var self = this;
+    var Mail = self.Mail = this.sequelize.define('mail', {}, { updatedAt: false, createdAt: false });
+    var Entry = self.Entry = this.sequelize.define('entry', {}, { updatedAt: false, createdAt: false });
+    var User = self.User = this.sequelize.define('user', {}, { updatedAt: false, createdAt: false });
+    Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false }});
+    Entry.belongsTo(Mail, {
+      as: 'mail',
+      foreignKey: {
+        name: 'mailId',
+        allowNull: false
+      }
+    });
+    Mail.belongsToMany(User, {
+      as: 'recipients',
+      through: 'MailRecipients',
+      otherKey: {
+        name: 'recipientId',
+        allowNull: false
+      },
+      foreignKey: {
+        name: 'mailId',
+        allowNull: false
+      }
+    });
+    Mail.hasMany(Entry, {
+      as: 'entries',
+      foreignKey: {
+        name: 'mailId',
+        allowNull: false
+      }
+    });
+    User.hasMany(Entry, {
+      as: 'entries',
+      foreignKey: {
+        name: 'ownerId',
+        allowNull: false
+      }
+    });
+    return this.sequelize.sync({ force: true })
+      .then(function() { return self.User.create({}); })
+      .then(function() { return self.Mail.create({}); })
+      .then(function(mail) {
+        return self.Entry.create({ mailId: mail.id, ownerId: 1 })
+          .then(function() { return self.Entry.create({ mailId: mail.id, ownerId: 1 }); })
+          // set recipients
+          .then(function() { return mail.setRecipients([1]); });
+      })
+      .then(function() {
+        return self.Entry.findAndCount({
+          offset: 0,
+          limit: 1,
+          order: [['id', 'DESC']],
+          include: [
+            {
+              association: self.Entry.associations.mail,
+              include: [
+                {
+                  association: self.Mail.associations.recipients,
+                  through: {
+                    where: {
+                      recipientId: 1
+                    }
+                  },
+                  required: true
+                }
+              ],
+              required: true
+            }
+          ]
+        });
+      }).then(function(result) {
+        expect(result.count).to.equal(2);
+        expect(result.rows[0].get({ plain: true })).to.deep.equal(
+          {
+            id: 2,
+            ownerId: 1,
+            mailId: 1,
+            mail: {
+              id: 1,
+              recipients: [{
+                id: 1,
+                MailRecipients: {
+                  mailId: 1,
+                  recipientId: 1
+                }
+              }]
+            }
+          });
+      });
+  });
+});

@@ -1,6 +1,7 @@
 # Future
 - [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
 - [FIXED] - ORDER clause was not included in subquery if `order` option value was provided as plain string (not as an array value)
+- [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
 - [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
 
 # 3.24.1
