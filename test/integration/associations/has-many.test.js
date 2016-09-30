@@ -1227,7 +1227,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
     });
   });
 
-  describe("sourceKey", function() {
+  describe('sourceKey', function() {
     beforeEach(function() {
       var User = this.sequelize.define('UserXYZ',
         { username: Sequelize.STRING, email: Sequelize.STRING },
@@ -1244,7 +1244,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       return this.sequelize.sync({ force: true });
     });
 
-    it("should use sourceKey", function () {
+    it('should use sourceKey', function () {
       var User = this.User, Task = this.Task;
 
       return User.create({ username: 'John', email: 'john@example.com' }).then(function(user) {
@@ -1257,7 +1257,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
     });
 
-    it("should count related records", function () {
+    it('should count related records', function () {
       var User = this.User, Task = this.Task;
 
       return User.create({ username: 'John', email: 'john@example.com' }).then(function(user) {
@@ -1269,7 +1269,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
     });
 
-    it("should set right field when add relative", function () {
+    it('should set right field when add relative', function () {
       var User = this.User, Task = this.Task;
 
       return User.create({ username: 'John', email: 'john@example.com' }).then(function(user) {
