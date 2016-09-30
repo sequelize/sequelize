@@ -1,6 +1,7 @@
 # Future
 - [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
 - [FIXED] - ORDER clause was not included in subquery if `order` option value was provided as plain string (not as an array value)
+- [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
 
 # 3.24.1
 - [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
