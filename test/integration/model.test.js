@@ -12,7 +12,8 @@ var chai = require('chai')
   , _ = require('lodash')
   , moment = require('moment')
   , Promise = require('bluebird')
-  , current = Support.sequelize;
+  , current = Support.sequelize
+  , semver = require('semver');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   before(function () {
@@ -2383,7 +2384,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return;
       }).catch (function(err) {
         if (dialect === 'mysql') {
-          expect(err.message).to.match(/Can\'t create table/);
+          // MySQL 5.7 or above doesn't support POINT EMPTY
+          if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.6.0')) {
+            expect(err.message).to.match(/Cannot add foreign key constraint/);
+          } else {
+            expect(err.message).to.match(/Can\'t create table/);
+          }
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2);
