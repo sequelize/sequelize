@@ -62,8 +62,8 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.native=false] | Boolean | A flag that defines if native library shall be used or not. Currently only has an effect for postgres |
 | [options.replication=false] | Boolean | Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database` |
 | [options.pool={}] | Object | Should sequelize use a connection pool. Default is true |
-| [options.pool.max] | Integer |  |
-| [options.pool.min] | Integer |  |
+| [options.pool.max] | Integer | Maximum number of connections in pool. Default is 5 |
+| [options.pool.min] | Integer | Minimum number of connections in pool. Default is 0 |
 | [options.pool.idle] | Integer | The maximum time, in milliseconds, that a connection can be idle before being released |
 | [options.pool.validateConnection] | Function | A function that validates a connection. Called with client. The default function checks that client is an object, and that its state is not disconnected |
 | [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. |
