@@ -79,7 +79,7 @@ The available methods of the queryInterface object are the following.
 
 ## Functions
 
-Using the `queryInterface` object describe before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
+Using the `queryInterface` object described before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
 
 ### createTable(tableName, attributes, options)
 
