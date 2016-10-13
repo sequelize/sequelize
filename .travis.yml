@@ -1,57 +1,41 @@
-language: node_js
+sudo: required
+dist: trusty
 
-sudo: false
+language: node_js
 
 node_js:
   - "4"
-
-cache:
-  directories:
-    - node_modules
-
-env:
-  global:
-    - CC=clang
-    - CXX=clang++
-    - npm_config_clang=1
-  matrix:
-    - DIALECT=mysql
-    - DIALECT=postgres
-    - DIALECT=postgres-native
-    - DIALECT=sqlite
-
-addons:
-  apt:
-    sources:
-      - llvm-toolchain-precise-3.6
-      - ubuntu-toolchain-r-test
-    packages:
-      - clang-3.6
-      - g++-4.8
-
-addons:
-  postgresql: "9.4"
-
-before_script:
-  - "mysql -e 'create database sequelize_test;'"
-  - "psql -c 'create database sequelize_test;' -U postgres"
-  - "psql sequelize_test -c 'create extension postgis;' -U postgres"
-
-script:
-  - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
-
-matrix:
-  include:
-    - node_js: "6"
-      env: COVERAGE=true DIALECT=mysql
-    - node_js: "6"
-      env: COVERAGE=true DIALECT=postgres
-    - node_js: "6"
-      env: COVERAGE=true DIALECT=postgres-native
-    - node_js: "6"
-      env: COVERAGE=true DIALECT=sqlite
+  - "6"
 
 branches:
   only:
   - master
   - v3
+
+env:
+  global:
+    # mysql info
+    - SEQ_MYSQL_DB: sequelize_test
+    - SEQ_MYSQL_USER: sequelize_test
+    - SEQ_MYSQL_PW: sequelize_test
+    - SEQ_MYSQL_HOST: 127.0.0.1
+    - SEQ_MYSQL_PORT: 8998
+    # postgres info
+    - SEQ_PG_DB: sequelize_test
+    - SEQ_PG_USER: sequelize_test
+    - SEQ_PG_PW: sequelize_test
+    - SEQ_PG_HOST: 127.0.0.1
+    - SEQ_PG_PORT: 8999
+
+  matrix:
+    - DIALECT=sqlite COVERAGE=true
+    - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
+    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
+    - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
+
+before_script:
+  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
+  - "sleep 30s" # This allows enough time for docker to get up and running before tests occur
+
+script:
+  - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"

@@ -285,14 +285,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
     return new Sequelize.Promise((resolve, reject) => {
       if (/^postgres/.test(dialect)) {
-        current.query(`SELECT extversion FROM pg_catalog.pg_extension WHERE extname='postgis';`)
-            .then((result) => {
-              if (result[0][0] && semver.lte(result[0][0].extversion, '2.1.7')) {
-                resolve(true);
-              } else {
-                resolve();
-              }
-            }).catch(reject);
+        current.query(`SELECT PostGIS_Lib_Version();`)
+          .then((result) => {
+            if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
+              resolve(true);
+            } else {
+              resolve();
+            }
+          }).catch(reject);
       } else {
         resolve(true);
       }
