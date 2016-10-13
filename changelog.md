@@ -2,6 +2,7 @@
 - [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
 - [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
 - [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
+- [FIXED] Issue with scopes where `group by` got not merged [#6690] (https://github.com/sequelize/sequelize/issues/6690)
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
