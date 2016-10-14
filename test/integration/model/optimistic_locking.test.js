@@ -1,9 +1,9 @@
 'use strict';
 
-const Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , chai = require('chai')
-  , expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('optimistic locking', function () {
