@@ -1,8 +1,15 @@
-# Future
-- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
+# 3.24.4
 - [FIXED] - ORDER clause was not included in subquery if `order` option value was provided as plain string (not as an array value)
 - [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
 - [FIXED] Check that parent exists before appending attributes [#6472](https://github.com/sequelize/sequelize/issues/6472)
+- [FIXED] Default options for insert queries [#6644](https://github.com/sequelize/sequelize/pull/6644)
+
+# 3.24.3
+- [ADDED] Backport of grouped limit include support 
+- [ADDED] Export datatypes [#6578](https://github.com/sequelize/sequelize/pull/6578)
+
+# 3.24.2
+- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
 
 # 3.24.1
 - [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
