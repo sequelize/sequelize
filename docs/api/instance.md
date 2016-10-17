@@ -256,7 +256,8 @@ Emits null if and only if validation successful; otherwise an Error instance con
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [options] | Object | Options that are passed to the validator |
-| [options.skip] | Array | An array of strings. All properties that are in this array will not be validated |
+| [options.fields] | Array | An array of strings. Only the properties that are in this array will be validated |
+| [options.skip] | Array | An array of strings. All properties that are in this array will not be validated. If this option is specified, `[options.fields]` will be ignored |
 
 
 ***
