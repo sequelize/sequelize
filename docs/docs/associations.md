@@ -455,8 +455,8 @@ Subscription.hasMany(Invoice)
 Without `as`, this adds `subscriptionId` as expected. However, if you were to say `Invoice.belongsTo(Subscription, { as: 'TheSubscription' })`, you will have both `subscriptionId` and `theSubscriptionId`, because sequelize is not smart enough to figure that the calls are two sides of the same relation. 'foreignKey' fixes this problem;
 
 ```js
-Invoice.belongsTo(Subscription, , { as: 'TheSubscription', foreignKey: 'subscription_id' })
-Subscription.hasMany(Invoice, { foreignKey: 'subscription_id' )
+Invoice.belongsTo(Subscription, { as: 'TheSubscription', foreignKey: 'subscription_id' })
+Subscription.hasMany(Invoice, { foreignKey: 'subscription_id'} )
 ```
 
 ## Associating objects
