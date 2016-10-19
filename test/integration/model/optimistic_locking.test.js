@@ -19,13 +19,27 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Account.sync({force: true});
     });
 
-    it('should increment the version on update', function() {
+    it('should increment the version on save', function() {
       return Account.create({number: 1}).then(function(account) {
         account.number += 1;
         expect(account.version).to.eq(0);
         return account.save();
       }).then(function(account) {
         expect(account.version).to.eq(1);
+      });
+    });
+
+    it('should increment the version on update', function() {
+      return Account.create({number: 1}).then(function(account) {
+        expect(account.version).to.eq(0);
+        return account.update({ number: 2 });
+      }).then(function(account) {
+        expect(account.version).to.eq(1);
+        account.number += 1;
+        return account.save();
+      }).then(function(account) {
+        expect(account.number).to.eq(3);
+        expect(account.version).to.eq(2);
       });
     });
 
