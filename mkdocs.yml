@@ -8,6 +8,7 @@ extra_css:
 - css/custom.css
 extra_javascript:
 - //cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js
+copyright: <image src="images/beta.svg" alt="Beta" id="beta-ribbon">
 pages:
 - Home: 'index.md'
 - Documentation:
