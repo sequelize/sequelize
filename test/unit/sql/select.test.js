@@ -133,6 +133,38 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ['id_user', 'id']
         ],
         order: [
+          ['last_name', 'ASC']
+        ],
+        groupedLimit: {
+          limit: 3,
+          through: {
+            where: {
+              status: 1
+            }
+          },
+          on: User.Projects,
+          values: [
+            1,
+            5
+          ]
+        }
+      }, {
+        default: 'SELECT [user].* FROM ('+
+        [
+          '(SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 1 AND [project_users].[status] = 1 ORDER BY [subquery_order_0] ASC'+ (current.dialect.name === 'mssql' ? ', [id_user]' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+          '(SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 5 AND [project_users].[status] = 1 ORDER BY [subquery_order_0] ASC'+ (current.dialect.name === 'mssql' ? ', [id_user]' : '') +sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+        ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+        +') AS [user] ORDER BY [subquery_order_0] ASC;'
+      });
+
+
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        attributes: [
+          ['id_user', 'id']
+        ],
+        order: [
           ['id_user', 'ASC']
         ],
         where: {

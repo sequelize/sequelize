@@ -1,3 +1,6 @@
+# NEXT
+- [FIXED] groupedLimit.through.where support
+
 # 3.24.5
 - [FIXED] GroupedLimit when foreignKey has a field alias
 
