@@ -1,4 +1,4 @@
-# NEXT
+# 3.24.6
 - [FIXED] groupedLimit.through.where support
 
 # 3.24.5
