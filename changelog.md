@@ -4,6 +4,7 @@
 - [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
 - [FIXED] GroupedLimit when foreignKey has a field alias
 - [FIXED] groupedLimit.through.where support
+- [FIXED] Issue with overrriding custom methods with association mixins (all association methods are now exposed) [#6682](https://github.com/sequelize/sequelize/issues/6682)
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
