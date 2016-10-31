@@ -6,7 +6,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Model'), function() {
-  describe.only('optimistic locking', function () {
+  describe('optimistic locking', function () {
     var Account;
     beforeEach(function() {
       Account = this.sequelize.define('Account', {
