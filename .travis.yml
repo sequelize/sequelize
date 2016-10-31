@@ -19,7 +19,7 @@ env:
     - SEQ_MYSQL_USER: sequelize_test
     - SEQ_MYSQL_PW: sequelize_test
     - SEQ_MYSQL_HOST: 127.0.0.1
-    - SEQ_MYSQL_PORT: 8998
+    - SEQ_MYSQL_PORT: 8999
     # postgres info
     - SEQ_PG_DB: sequelize_test
     - SEQ_PG_USER: sequelize_test
@@ -35,7 +35,8 @@ env:
 
 before_script:
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
-  - "sleep 30s" # This allows enough time for docker to get up and running before tests occur
+  - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
 
 script:
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
