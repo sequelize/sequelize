@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('calls parse and stringify for DATEONLY', function () {
     var Type = new Sequelize.DATEONLY();
 
-    return testSuccess(Type, new Date());
+    return testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
   });
 
   it('calls parse and stringify for TIME', function () {
@@ -436,6 +436,24 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     }).then(function (record) {
       expect(record.type).to.be.eql('class s');
     });
+  });
+
+  it('should return YYYY-MM-DD format string for DATEONLY', function () {
+    const Model = this.sequelize.define('user', {
+      stamp: Sequelize.DATEONLY
+    });
+    const testDate = moment().format('YYYY-MM-DD');
+
+    return Model.sync({ force: true})
+      .then(() => Model.create({ stamp: testDate }))
+      .then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+        return Model.findById(record.id);
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+      });
   });
 
 });
