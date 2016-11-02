@@ -753,7 +753,7 @@ var User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
-A new `Product`, `User`, and `Address` can be created in one step in the following way:
+A new `Product`, `User`, and one or more `Address`es can be created in one step in the following way:
 
 ```js
 return Product.create({
