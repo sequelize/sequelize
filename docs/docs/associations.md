@@ -764,7 +764,7 @@ return Product.create({
     addresses: [{
       type: 'home',
       line_1: '100 Main St.',
-      city: 'Austin,
+      city: 'Austin',
       state: 'TX',
       zip: '78704'
     }]
