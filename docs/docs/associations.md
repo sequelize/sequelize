@@ -727,7 +727,7 @@ Trainer.hasMany(Series);
 
 An instance can be created with nested association in one step, provided all elements are new.
 
-### Creating elements of a "BelongsTo" or "HasOne" association
+### Creating elements of a "BelongsTo", "Has Many" or "HasOne" association
 
 Consider the following models:
 
