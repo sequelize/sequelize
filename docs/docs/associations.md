@@ -753,7 +753,7 @@ var User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
-A new `Product`, `User`, and one or more `Address`es can be created in one step in the following way:
+A new `Product`, `User`, and one or more `Address` can be created in one step in the following way:
 
 ```js
 return Product.create({
@@ -762,7 +762,7 @@ return Product.create({
     first_name: 'Mick',
     last_name: 'Broadstone',
     addresses: [{
-      type: 'home",
+      type: 'home',
       line_1: '100 Main St.',
       city: 'Austin,
       state: 'TX',
