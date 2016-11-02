@@ -739,26 +739,45 @@ var User = this.sequelize.define('user', {
   first_name: Sequelize.STRING,
   last_name: Sequelize.STRING
 });
+var Address = this.sequelize.define('address', {
+  type: Sequelize.STRING,
+  line_1: Sequelize.STRING,
+  line_2: Sequelize.STRING,
+  city: Sequelize.STRING,
+  state: Sequelize.STRING,
+  zip: Sequelize.STRING,
+});
 
-Product.belongsTo(User);
+var Product.User = Product.belongsTo(User);
+var User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
-A new `Product` and `User` can be created in one step in the following way:
+A new `Product`, `User`, and `Address` can be created in one step in the following way:
 
 ```js
 return Product.create({
   title: 'Chair',
   user: {
     first_name: 'Mick',
-    last_name: 'Broadstone'
+    last_name: 'Broadstone',
+    addresses: [{
+      type: 'home",
+      line_1: '100 Main St.',
+      city: 'Austin,
+      state: 'TX',
+      zip: '78704'
+    }]
   }
 }, {
-  include: [ User ]
+  include: [{ 
+    association: Product.User, 
+    include: [ User.Addresses ] 
+  }]
 });
 ```
 
-Here, our user model is called `user`, with a lowercase u - This means that the property in the object should also be `user`. If the name given to `sequelize.define` was `User`, the key in the object should also be `User`.
+Here, our user model is called `user`, with a lowercase u - This means that the property in the object should also be `user`. If the name given to `sequelize.define` was `User`, the key in the object should also be `User`. Likewise for `addresses`, except it's pluralized being a `hasMany` association.
 
 ### Creating elements of a "BelongsTo" association with an alias
 
