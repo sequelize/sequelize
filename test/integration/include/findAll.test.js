@@ -2043,10 +2043,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             }]
           }],
           limit: 5,
-          offset: 0,
-          order: [
-            [ { raw: '\`Entity.votes\`' }, 'DESC' ]
-          ]
+          offset: 0
         });
       }).then(function (posts) {
         expect(posts.length).to.equal(1);
