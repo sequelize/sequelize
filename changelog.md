@@ -1,4 +1,4 @@
-# FUTURE
+# 3.24.7
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed [#6782]
 
 # 3.24.6
