@@ -1,3 +1,6 @@
+# FUTURE
+- [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed [#6782]
+
 # 3.24.6
 - [FIXED] groupedLimit.through.where support
 
