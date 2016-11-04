@@ -928,6 +928,39 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
         return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
       });
+
+      it('should not fail due to ambiguous field', function () {
+        var subtasks = this.Task.hasMany(this.Task, {
+          as: 'subtasks'
+        });
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return this.User.create({
+            username: 'John',
+            Tasks: [{
+              title: 'Get rich', active: true
+            }]
+          }, {
+            include: [this.Task]
+          });
+        }).then(user => {
+          return Promise.join(
+            user.get('Tasks')[0].createSubtask({ title: 'Make a startup', active: false }),
+            user.get('Tasks')[0].createSubtask({ title: 'Engage rock stars', active: true })
+          ).return(user);
+        }).then(user => {
+          return expect(user.countTasks({
+            attributes: [],
+            include: [{
+              attributes: [],
+              association: subtasks,
+              where: {
+                active: true
+              }
+            }]
+          })).to.eventually.equal(1);
+        });
+      });
     });
 
     describe('selfAssociations', function() {
