@@ -1,3 +1,6 @@
+# Future
+- [FIXED] `restore` don't use `field` from `deletedAt`
+
 # 3.24.7
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed [#6782]
 
@@ -14,7 +17,7 @@
 - [FIXED] Default options for insert queries [#6644](https://github.com/sequelize/sequelize/pull/6644)
 
 # 3.24.3
-- [ADDED] Backport of grouped limit include support 
+- [ADDED] Backport of grouped limit include support
 - [ADDED] Export datatypes [#6578](https://github.com/sequelize/sequelize/pull/6578)
 
 # 3.24.2
