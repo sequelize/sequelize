@@ -67,7 +67,8 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         },
         deletedAt: {
           type: DataTypes.DATE,
-          allowNull: true
+          allowNull: true,
+          field: 'deleted_at'
         }
       }, {
         paranoid: true,
