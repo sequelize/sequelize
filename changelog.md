@@ -1,5 +1,5 @@
 # Future
-- [FIXED] `restore` don't use `field` from `deletedAt`
+- [FIXED] `restore` now uses `field` from `deletedAt`
 
 # 3.24.7
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed [#6782]
