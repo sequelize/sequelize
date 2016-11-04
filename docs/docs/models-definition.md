@@ -107,7 +107,7 @@ Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
 
 Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
-Sequelize.DATE(6)                     // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision 
+Sequelize.DATE(6)                     // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision
 Sequelize.DATEONLY                    // DATE without time.
 Sequelize.BOOLEAN                     // TINYINT(1)
 
@@ -425,7 +425,7 @@ var Bar = sequelize.define('bar', { /* bla */ }, {
 
   // don't delete database entries but set the newly added attribute deletedAt
   // to the current date (when deletion was done). paranoid will only work if
-  // timestamps are enabled
+  // timestamps are enabled or option `deletedAt` is set
   paranoid: true,
 
   // don't use camelcase for automatically added attributes but underscore style
