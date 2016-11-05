@@ -1,5 +1,5 @@
 # Future
-- [FIXED] `restore` now uses `field` from `deletedAt` 
+- [FIXED] `restore` now uses `field` from `deletedAt`
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
 - [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
 - [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
@@ -8,6 +8,7 @@
 - [FIXED] GroupedLimit when foreignKey has a field alias
 - [FIXED] groupedLimit.through.where support
 - [ADDED] `option.silent` for increment and decrement [#6795](https://github.com/sequelize/sequelize/pull/6795)
+- [FIXED] `Increment` / `Decrement` properly maps to timestamp fields [#6296](https://github.com/sequelize/sequelize/issues/6296)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
