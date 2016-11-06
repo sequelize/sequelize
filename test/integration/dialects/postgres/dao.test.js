@@ -332,6 +332,56 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
+      it('should not rename hstore fields', function() {
+        const Equipment = this.sequelize.define('Equipment', {
+          grapplingHook: {
+            type: DataTypes.STRING,
+            field: 'grappling_hook'
+          },
+          utilityBelt: {
+            type: DataTypes.HSTORE
+          }
+        });
+
+        return Equipment.sync({ force: true }).then(() => {
+          return Equipment.findAll({
+            where: {
+              utilityBelt: {
+                grapplingHook: true
+              }
+            },
+            logging(sql) {
+              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';');
+            }
+          });
+        });
+      });
+
+      it('should not rename json fields', function() {
+        const Equipment = this.sequelize.define('Equipment', {
+          grapplingHook: {
+            type: DataTypes.STRING,
+            field: 'grappling_hook'
+          },
+          utilityBelt: {
+            type: DataTypes.JSON
+          }
+        });
+
+        return Equipment.sync({ force: true }).then(() => {
+          return Equipment.findAll({
+            where: {
+              utilityBelt: {
+                grapplingHook: true
+              }
+            },
+            logging(sql) {
+              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE ("Equipment"."utilityBelt"#>>\'{grapplingHook}\')::boolean = true;');
+            }
+          });
+        });
+      });
+
     });
 
     describe('range', function() {
