@@ -1,5 +1,6 @@
 # Future
 - [FIXED] `restore` now uses `field` from `deletedAt`
+- [ADDED] `option.silent` for increment and decrement [#6793](https://github.com/sequelize/sequelize/pull/6793)
 
 # 3.24.7
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed [#6782]
