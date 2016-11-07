@@ -44,7 +44,7 @@
     "env-cmd": "^2.1.0",
     "generic-pool": "2.4.4",
     "inflection": "1.10.0",
-    "lodash": "4.16.2",
+    "lodash": "4.16.5",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "node-uuid": "~1.4.4",
