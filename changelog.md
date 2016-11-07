@@ -1,4 +1,5 @@
 # Future
+- [FIXED] `restore` now uses `field` from `deletedAt` 
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
 - [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
 - [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
