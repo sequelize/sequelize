@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
     ports:
-      - "127.0.0.1:8999:5432"
+      - "127.0.0.1:8998:5432"
     container_name: postgres-95
   postgres-94:
     image: mdillon/postgis:9.4
@@ -16,7 +16,7 @@ services:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
     ports:
-      - "127.0.0.1:8999:5432"
+      - "127.0.0.1:8998:5432"
     container_name: postgres-94
 
   # MySQL
