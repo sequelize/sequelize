@@ -924,10 +924,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       expect(DAO.options.collate).to.equal('utf8_bin');
     });
 
+    it('overwrites global format options', function() {
+      var sequelize = Support.createSequelizeInstance({ define: { collate: 'utf8_general_ci', format: 'compact' } });
+      var DAO = sequelize.define('foo', {bar: DataTypes.STRING}, {collate: 'utf8_bin', format: 'default'});
+      expect(DAO.options.collate).to.equal('utf8_bin');
+    });
+
     it('inherits global collate option', function() {
       var sequelize = Support.createSequelizeInstance({ define: { collate: 'utf8_general_ci' } });
       var DAO = sequelize.define('foo', {bar: DataTypes.STRING});
       expect(DAO.options.collate).to.equal('utf8_general_ci');
+    });
+
+    it('inherits global format option', function() {
+      var sequelize = Support.createSequelizeInstance({ define: { format: 'default' } });
+      var DAO = sequelize.define('foo', {bar: DataTypes.STRING});
+      expect(DAO.options.format).to.equal('default');
     });
 
     it('uses the passed tableName', function() {
