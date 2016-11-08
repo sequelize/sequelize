@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "prefer-arrow-callback": "off"
+
+  },
+  "env": {
+    "mocha": true
+  }
+}
