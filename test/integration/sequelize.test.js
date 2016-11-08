@@ -927,7 +927,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     it('overwrites global format options', function() {
       var sequelize = Support.createSequelizeInstance({ define: { format: 'compact' } });
       var DAO = sequelize.define('foo', {bar: DataTypes.STRING}, { format: 'default' });
-      expect(DAO.options.format).to.equal('utf8_bin');
+      expect(DAO.options.format).to.equal('default');
     });
 
     it('inherits global collate option', function() {

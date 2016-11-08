@@ -102,7 +102,7 @@ if (dialect === 'mysql') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;'
         },
         {
-          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {charset: 'utf8', collate: 'utf8_unicode_ci', format: 'default'}],
+          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {format: 'default'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB ROW_FORMAT=default;'
         },
         {
