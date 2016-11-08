@@ -45,6 +45,7 @@
     "teardown",
     "suiteSetup",
     "suiteTeardown",
-    "test"
+    "test",
+    "-Promise"
   ]
 }
