@@ -2588,6 +2588,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should not overwrite a specified deletedAt (complex query) by setting paranoid: false', function() {
       return this.User.findAll({
         paranoid: false,
+        logging: true,
         where: [
           this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
           this.sequelize.and(
