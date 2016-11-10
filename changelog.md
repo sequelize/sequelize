@@ -1,4 +1,4 @@
-# Future
+# 3.25.0
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
 - [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
 - [FIXED] `restore` now uses `field` from `deletedAt`
