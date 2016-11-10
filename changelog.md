@@ -1,4 +1,6 @@
 # Future
+- [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
+- [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
 - [FIXED] `restore` now uses `field` from `deletedAt`
 - [ADDED] `option.silent` for increment and decrement [#6793](https://github.com/sequelize/sequelize/pull/6793)
 
