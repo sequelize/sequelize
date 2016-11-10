@@ -387,7 +387,6 @@ var ValidateMe = sequelize.define('foo', {
       isBefore: "2011-11-05",   // only allow date strings before a specific date
       max: 23,                  // only allow values
       min: 23,                  // only allow values >= 23
-      isArray: true,            // only allow arrays
       isCreditCard: true,       // check for valid credit card numbers
 
       // custom validations are also possible:
