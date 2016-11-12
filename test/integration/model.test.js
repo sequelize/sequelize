@@ -395,7 +395,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         engine: 'MyISAM'
       });
 
-      return this.sequelize.sync().bind(this).then(function() {
+      return this.sequelize.sync({ force: true }).bind(this).then(function() {
         return this.sequelize.sync(); // The second call should not try to create the indices again
       }).then(function() {
         return this.sequelize.queryInterface.showIndex(Model.tableName);
@@ -2588,7 +2588,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should not overwrite a specified deletedAt (complex query) by setting paranoid: false', function() {
       return this.User.findAll({
         paranoid: false,
-        logging: true,
         where: [
           this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
           this.sequelize.and(
