@@ -18,13 +18,13 @@ module.exports = {
     idle: process.env.SEQ_POOL_IDLE || 30000
   },
 
-  rand: function() {
+  rand() {
     return parseInt(Math.random() * 999, 10);
   },
 
   mssql: mssqlConfig || {
-    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || (function () {
-      var db = 'sequelize-test-' + ~~(Math.random() * 100);
+    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || (function() {
+      const db = 'sequelize-test-' + ~~(Math.random() * 100);
       console.log('Using database: ', db);
       return db;
     }()),
