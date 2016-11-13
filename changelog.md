@@ -1,5 +1,5 @@
 # Future
-- [FIXED] `restore` now uses `field` from `deletedAt` 
+- [FIXED] `restore` now uses `field` from `deletedAt`
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
 - [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
 - [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
@@ -7,6 +7,7 @@
 - [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
 - [FIXED] GroupedLimit when foreignKey has a field alias
 - [FIXED] groupedLimit.through.where support
+- [ADDED] `options.noImplicitTransactions` requires that application code explicitly manage transactions for all data access. [#6786](https://github.com/sequelize/sequelize/pull/6786)
 - [ADDED] `option.silent` for increment and decrement [#6795](https://github.com/sequelize/sequelize/pull/6795)
 
 ## BC breaks:
