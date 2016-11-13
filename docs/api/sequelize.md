@@ -545,6 +545,7 @@ For more about validation, see [Validations](http://docs.sequelizejs.com/en/late
 | [options.schema='public'] | String |  |
 | [options.engine] | String |  |
 | [options.charset] | String |  |
+| [options.rowFormat] | String |  |
 | [options.comment] | String |  |
 | [options.collate] | String |  |
 | [options.initialAutoIncrement] | String | Set the initial AUTO_INCREMENT value for the table in MySQL. |

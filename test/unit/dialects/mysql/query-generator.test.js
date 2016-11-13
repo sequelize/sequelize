@@ -116,6 +116,10 @@ if (dialect === 'mysql') {
         {
           arguments: ['myTable', {id: 'INTEGER auto_increment PRIMARY KEY'}, {initialAutoIncrement: 1000001}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;'
+        },
+        {
+          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {charset: 'utf8mb4', rowFormat: 'DYNAMIC'}],
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;'
         }
       ],
 

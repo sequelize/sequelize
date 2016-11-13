@@ -121,6 +121,7 @@ queryInterface.createTable(
   {
     engine: 'MYISAM',                     // default: 'InnoDB'
     charset: 'latin1',                    // default: null
+    rowFormat: 'DYNAMIC',                 // default: null
     schema: 'public'                      // default: public, PostgreSQL only.
   }
 )
