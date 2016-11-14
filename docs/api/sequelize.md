@@ -547,7 +547,7 @@ For more about validation, see [Validations](http://docs.sequelizejs.com/en/late
 | [options.charset] | String |  |
 | [options.comment] | String |  |
 | [options.collate] | String |  |
-| [options.format] | String |  Specify the ROW_FORMAT for use with the MySQL InnoDB engine. |
+| [options.rowFormat] | String |  Specify the ROW_FORMAT for use with the MySQL InnoDB engine. |
 | [options.initialAutoIncrement] | String | Set the initial AUTO_INCREMENT value for the table in MySQL. |
 | [options.hooks] | Object | An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, afterDestroy, afterUpdate, afterBulkCreate, afterBulkDestory and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions. |
 | [options.validate] | Object | An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error. |
