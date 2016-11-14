@@ -241,9 +241,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('increment should work', function() {
         return this.Comment.destroy({ truncate: true })
           .then(() => this.Comment.create({ note: 'oh boy, here I go again', likes: 23 }))
-          .then((comment) => comment.increment('likes'))
-          .then((comment) => comment.reload())
-          .then((comment) => {
+          .then(comment => comment.increment('likes'))
+          .then(comment => comment.reload())
+          .then(comment => {
             expect(comment.likes).to.be.equal(24);
           });
       });
@@ -251,9 +251,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('decrement should work', function() {
         return this.Comment.destroy({ truncate: true })
           .then(() => this.Comment.create({ note: 'oh boy, here I go again', likes: 23 }))
-          .then((comment) => comment.decrement('likes'))
-          .then((comment) => comment.reload())
-          .then((comment) => {
+          .then(comment => comment.decrement('likes'))
+          .then(comment => comment.reload())
+          .then(comment => {
             expect(comment.likes).to.be.equal(22);
           });
       });
@@ -262,7 +262,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.Comment.destroy({ truncate: true })
           .then(() => this.Comment.create({ note: 'oh boy, here I go again', likes: 23 }))
           .then(() => this.Comment.sum('likes'))
-          .then((likes) => {
+          .then(likes => {
             expect(likes).to.be.equal(23);
           });
       });
