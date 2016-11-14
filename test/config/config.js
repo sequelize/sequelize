@@ -50,6 +50,15 @@ module.exports = {
   sqlite: {
   },
 
+  oracle: {
+    user : process.env.NODE_ORACLEDB_USER || "DEV_RD",
+    password : process.env.NODE_ORACLEDB_PASSWORD || "DEV_RD",
+    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
+    connectString : process.env.NODE_ORACLEDB_CONNECTIONSTRING || "vm2008ora12hot:1521/ORCL12HOT.kimdomain.local",
+    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
+    externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? true : false
+  },
+
   postgres: {
     database: process.env.SEQ_PG_DB   || process.env.SEQ_DB    || 'sequelize_test',
     username: process.env.SEQ_PG_USER || process.env.SEQ_USER  || 'postgres',
