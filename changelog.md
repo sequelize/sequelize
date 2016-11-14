@@ -1,8 +1,17 @@
 # Future
 - [FIXED] Execute queries parallel in findAndCount [#6695](https://github.com/sequelize/sequelize/issues/6695)
+- [FIXED] `restore` now uses `field` from `deletedAt`
+- [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
+- [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
 - [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
 - [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
 - [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
+- [FIXED] GroupedLimit when foreignKey has a field alias
+- [FIXED] groupedLimit.through.where support
+- [ADDED] `option.silent` for increment and decrement [#6795](https://github.com/sequelize/sequelize/pull/6795)
+
+## BC breaks:
+- `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
