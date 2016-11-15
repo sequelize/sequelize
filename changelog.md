@@ -12,6 +12,7 @@
 - [ADDED] `option.silent` for increment and decrement [#6795](https://github.com/sequelize/sequelize/pull/6795)
 - [CHANGED] `now` function allow milliseconds in timestamps on mysql [#6441](https://github.com/sequelize/sequelize/issues/6441)
 - [ADDED] `options.rowFormat` added to Query Generator for MySQL dialect using InnoDB engines [#6824] (https://github.com/sequelize/sequelize/issues/6824)
+- [FIXED] `Increment` / `Decrement` properly maps to timestamp fields [#6296](https://github.com/sequelize/sequelize/issues/6296)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
