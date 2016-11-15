@@ -1,7 +1,7 @@
 'use strict';
 
 /**
-  * The entry point.
+  * The EVIL entry point.
   *
   * @module Sequelize
   */
