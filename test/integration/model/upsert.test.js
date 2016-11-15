@@ -331,6 +331,49 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('Works when two separate uniqueKeys are passed', function() {
+        var User = this.sequelize.define('User', {
+          username: {
+            type: Sequelize.STRING,
+            unique: true
+          },
+          email: {
+            type: Sequelize.STRING,
+            unique: true
+          },
+          city: {
+            type: Sequelize.STRING
+          }
+        });
+        var clock = sinon.useFakeTimers();
+        return User.sync({ force: true }).bind(this).then(function() {
+          return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
+            .then(function(created) {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).to.be.ok;              
+              }
+              clock.tick(1000);            
+              return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
+            }).then(function(created) {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).not.to.be.ok;              
+              }
+              clock.tick(1000);
+              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' }});              
+            })
+            .then(function(user) {
+              expect(user.createdAt).to.be.ok;
+              expect(user.city).to.equal('New City');
+              expect(user.updatedAt).to.be.afterTime(user.createdAt);
+            });
+        });
+      });
+      
+
     });
   }
 });
