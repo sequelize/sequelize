@@ -1,5 +1,6 @@
 # Future
 - [ADDED] UPSERT support for MSSQL
+- [FIXED] Incorrect column name for generateThroughJoin
 
 # 3.25.0
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
