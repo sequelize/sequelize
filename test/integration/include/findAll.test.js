@@ -1961,5 +1961,101 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         expect(parseInt(post["comments.commentCount"], 10)).to.equal(3);
       });
     });
+
+    it('Should return posts with nested include with inner join with a m:n association', function () {
+
+      const User = this.sequelize.define('User', {
+        username: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        }
+      });
+
+      const Entity = this.sequelize.define('Entity', {
+        entity_id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        creator: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
+        votes: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 0
+        }
+      });
+
+      const Post = this.sequelize.define('Post', {
+        post_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true
+        }
+      });
+
+      const TaggableSentient = this.sequelize.define('TaggableSentient', {
+        nametag: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        }
+      });
+
+      Entity.belongsTo(User, { foreignKey: 'creator', targetKey: 'username' });
+      Post.belongsTo(Entity, { foreignKey: 'post_id', targetKey: 'entity_id' });
+
+      Entity.belongsToMany(TaggableSentient, {
+        as: 'tags',
+        through: { model: 'EntityTag', unique: false },
+        foreignKey: 'entity_id',
+        otherKey: 'tag_name'
+      });
+
+      TaggableSentient.belongsToMany(Entity, {
+        as: 'tags',
+        through: { model: 'EntityTag', unique: false },
+        foreignKey: 'tag_name',
+        otherKey: 'entity_id'
+      });
+
+      return this.sequelize.sync({ force: true })
+        .then(() => User.create({ username: 'bob' }))
+        .then(() => TaggableSentient.create({ nametag: 'bob' }))
+        .then(() => Entity.create({ creator: 'bob' }))
+        .then(entity => Promise.all([
+          Post.create({ post_id: entity.entity_id }),
+          entity.addTags('bob')
+        ]))
+        .then(() => Post.findAll({
+          include: [{
+            model: Entity,
+            required: true,
+            include: [{
+              model: User,
+              required: true
+            }, {
+              model: TaggableSentient,
+              as: 'tags',
+              required: true,
+              through: {
+                where: {
+                  tag_name: ['bob']
+                }
+              }
+            }]
+          }],
+          limit: 5,
+          offset: 0
+        }))
+        .then(posts => {
+          expect(posts.length).to.equal(1);
+          expect(posts[0].Entity.creator).to.equal('bob');
+          expect(posts[0].Entity.tags.length).to.equal(1);
+          expect(posts[0].Entity.tags[0].EntityTag.tag_name).to.equal('bob');
+          expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
+        });
+    });
   });
 });
