@@ -745,7 +745,7 @@ A new `Product` and `User` can be created in one step in the following way:
 ```js
 return Product.create({
   title: 'Chair',
-  User: {
+  user: {
     first_name: 'Mick',
     last_name: 'Broadstone'
   }
@@ -791,7 +791,7 @@ Now we can create a project with multiple tags in the following way:
 Product.create({
   id: 1,
   title: 'Chair',
-  Tags: [
+  tags: [
     { name: 'Alpha'},
     { name: 'Beta'}
   ]
