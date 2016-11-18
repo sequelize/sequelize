@@ -1,6 +1,13 @@
 # Future
-- [ADDED] UPSERT support for MSSQL
-- [FIXED] Incorrect column name for generateThroughJoin
+- [FIXED] Incorrect column name for generateThroughJoin [#6878](https://github.com/sequelize/sequelize/pull/6878)
+- [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
+
+# 3.26.0
+- [ADDED] Backport of mssql upsert [#6875](https://github.com/sequelize/sequelize/pull/6875)
+
+# 3.25.1
+- [FIXED] fix instance.set '1970-01-01' to null field [#6839](https://github.com/sequelize/sequelize/pull/6839)
+- [FIXED] Can not execute raw SQL queries for sqlite3 [#6865](https://github.com/sequelize/sequelize/pull/6865)
 
 # 3.25.0
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
