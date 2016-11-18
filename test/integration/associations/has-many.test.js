@@ -10,6 +10,7 @@ var chai = require('chai')
   , sinon = require('sinon')
   , Promise = Sequelize.Promise
   , current = Support.sequelize
+  , _ = require('lodash')
   , dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasMany'), function() {
@@ -684,8 +685,26 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           expect(users).to.have.length(3);
         });
       });
-    });
 
+      it('handles decent sized bulk creates', function() {
+        var User = this.sequelize.define('User', { username: DataTypes.STRING, num: DataTypes.INTEGER, status: DataTypes.STRING })
+          , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+        Task.hasMany(User);
+
+        return this.sequelize.sync({ force: true }).then(function() {
+          var users = _.range(1000).map(function(i) {return {username: "user"+i, num: i, status: "live"};});
+          return User.bulkCreate(users);
+        }).bind({}).then(function() {
+          return Task.create({ title: 'task' });
+        }).then(function(task) {
+          this.task = task;
+          return User.findAll();
+        }).then(function(users) {
+          expect(users).to.have.length(1000);
+        });
+      });
+    });
     it('clears associations when passing null to the set-method with omitNull set to true', function() {
       this.sequelize.options.omitNull = true;
 

@@ -28,6 +28,12 @@ module.exports = {
     password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || null,
     host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || '127.0.0.1',
     port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 11433,
+    dialectOptions: {
+      instanceName:  process.env.MSSQL_INSTANCE ? process.env.MSSQL_INSTANCE : 'SQLEXPRESS',
+      //domain: 'ADMIN-PC'
+      // big insert queries need a while
+      requestTimeout: 60000
+    },
     pool:     {
       maxConnections: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
       maxIdleTime:    process.env.SEQ_MSSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
