@@ -861,6 +861,16 @@ instance.updateAttributes({
 })
 ```
 
+Alternatively, a condition object can be used as an argument e.g. to get the count of rows for which the predicate evaluates to true. Works on mysql and sqlite.
+```js
+sequelize.fn('sum', { age: { $gt: 25 }, name: 'Joe' })
+```
+
+An explicit cast is required on postgres.
+```js
+sequelize.fn('sum', sequelize.cast({ age: { $gt: 25 }, name: 'Joe' }, 'int'))
+```
+
 **See:**
 
 * [Model#find](model#find)
@@ -874,7 +884,7 @@ instance.updateAttributes({
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | fn | String | The function you want to call |
-| args | any | All further arguments will be passed as arguments to the function |
+| args | any | All further arguments will be passed as arguments to the function. An argument may be a condition object. |
 
 
 ***
