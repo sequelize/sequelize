@@ -456,4 +456,24 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
       });
   });
 
+  it('should return YYYY formatted string for YEAR', function () {
+    const Model = this.sequelize.define('dates', {
+      year: Sequelize.YEAR
+    });
+    const testDate = 2014
+
+    return Model.sync({ force: true})
+      .then(() => Model.create({ year: testDate }))
+      .then(record => {
+        console.log(record)
+        expect(record.year).to.be.eql('2014')
+        expect(typeof record.year).to.be.eql('string');
+        expect(record.year).to.be.eql(testDate);
+        return Model.findById(record.id);
+      }).then(record => {
+        expect(typeof record.year).to.be.eql('string');
+        expect(record.year).to.be.eql(testDate);
+      });
+  })
+
 });
