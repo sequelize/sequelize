@@ -113,7 +113,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ), {
             postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
             sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
-            oracle: "DELETE FROM public.test_users WHERE name = 'foo\\';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);",
+            oracle: "DELETE FROM public.test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }
@@ -145,7 +145,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           query, {
             postgres: new Error("Cannot LIMIT delete without a model."),
             sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
-            oracle: "DELETE FROM public.test_users WHERE name = 'foo\\';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);",
+            oracle: "DELETE FROM public.test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }

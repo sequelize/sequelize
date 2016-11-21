@@ -54,7 +54,7 @@ module.exports = {
     user : process.env.NODE_ORACLEDB_USER || "DEV_RD",
     password : process.env.NODE_ORACLEDB_PASSWORD || "DEV_RD",
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
-    connectString : process.env.NODE_ORACLEDB_CONNECTIONSTRING || "vm2008ora12hot:1521/ORCL12HOT.kimdomain.local",
+    database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || "vm2008ora12hot:1521/ORCL12HOT.kimdomain.local",
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
     externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? true : false
   },

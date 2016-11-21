@@ -326,9 +326,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
              sql.addLimitAndOffset({ limit: 30, offset:10, order: '`user`.`last_name` ASC' }) +
           ') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;',
           oracle: 'SELECT user.*, POSTS.id AS "POSTS.id", POSTS.title AS "POSTS.title" FROM (' +
-            'SELECT user.id_user AS id, user.email, user.first_name AS firstName, user.last_name AS lastName FROM users user ORDER BY user.last_name ASC' +
+            'SELECT user.id_user AS id, user.email, user.first_name AS firstName, user.last_name AS lastName FROM users user ORDER BY "user"."last_name" ASC' +
              sql.addLimitAndOffset({ limit: 30, offset:10, order: 'user.last_name ASC' }) +
-          ') user LEFT OUTER JOIN post POSTS ON user.id_user = POSTS.user_id ORDER BY user.last_name ASC;'
+          ') user LEFT OUTER JOIN post POSTS ON user.id_user = POSTS.user_id ORDER BY "user"."last_name" ASC;'
       });
 
       var nestedInclude = Model.$validateIncludedElements({

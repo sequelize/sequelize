@@ -17,14 +17,13 @@ describe('[ORACLE] Connection Manager', function () {
 
   this.timeout(50000);
 
-  it('full connectString, should connect to Oracle', function (done) {
+  it('full database, should connect to Oracle', function (done) {
     //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
     config = {
       dialect: 'oracle',
-      database: 'none',
+      database: 'vm2008ora12hot:1521/ORCL12HOT.kimdomain.local',
       username: 'DEV_RD',
-      password: 'DEV_RD',
-      connectString: 'vm2008ora12hot:1521/ORCL12HOT.kimdomain.local'
+      password: 'DEV_RD'
     };
     instance = new Sequelize(config.database, config.username, config.password, config);
 
@@ -41,15 +40,14 @@ describe('[ORACLE] Connection Manager', function () {
       });
   });
 
-  it('connectString with only service_name, should connect to Oracle', function (done) {
+  it('database with only service_name, should connect to Oracle', function (done) {
     //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
     config = {
       dialect: 'oracle',
-      database: 'none',
       host: 'vm2008ora12hot',
       username: 'DEV_RD',
       password: 'DEV_RD',
-      connectString: 'ORCL12HOT.kimdomain.local'
+      database: 'ORCL12HOT.kimdomain.local'
     };
     instance = new Sequelize(config.database, config.username, config.password, config);
 
@@ -66,15 +64,14 @@ describe('[ORACLE] Connection Manager', function () {
       });
   });
 
-  it('connectString with only service_name no host, should fail', function (done) {
+  it('database with only service_name no host, should fail', function (done) {
     //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
     config = {
       dialect: 'oracle',
-      database: 'none',
       host: '',
       username: 'DEV_RD',
       password: 'DEV_RD',
-      connectString: 'ORCL12HOT.kimdomain.local'
+      database: 'ORCL12HOT.kimdomain.local'
     };
     instance = new Sequelize(config.database, config.username, config.password, config);
 
@@ -92,15 +89,14 @@ describe('[ORACLE] Connection Manager', function () {
       });
   });
 
-  it('connectString empty, should fail', function (done) {
+  it('database empty, should fail', function (done) {
     //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
     config = {
       dialect: 'oracle',
-      database: 'none',
       host: 'vm2008ora12hot',
       username: 'DEV_RD',
       password: 'DEV_RD',
-      connectString: ''
+      database: ''
     };
     instance = new Sequelize(config.database, config.username, config.password, config);
 

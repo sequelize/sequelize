@@ -13,7 +13,7 @@ var chai = require('chai')
 
 describe("TESTING ORACLE", function() {
 it.only('testing oracle connection', function() {
-      var sequelize = new Sequelize(null, "DEV_RD", "DEV_RD", {dialect : "oracle", connectString : "vm2008ora12hot:1521/ORCL12HOT.kimdomain.local"});
+      var sequelize = new Sequelize(null, "DEV_RD", "DEV_RD", {dialect : "oracle", database : "vm2008ora12hot:1521/ORCL12HOT.kimdomain.local"});
       var config = sequelize.config;
 
       expect(config.username).to.not.be.ok;

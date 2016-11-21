@@ -35,7 +35,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           $schema: 'schema',
           tableName: 'table'
         })), ['column1', 'column2'], {}), {
-          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
+          oracle: 'CREATE INDEX schema_table_column1_column2 ON schema.table (column1, column2)'
         });
       }
     });

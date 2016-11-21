@@ -57,7 +57,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }, {
       default: " LIMIT ''';DELETE FROM user'",
       mysql: " LIMIT '\\';DELETE FROM user'",
-      oracle:' OFFSET 0 ROWS FETCH NEXT \'\\\';DELETE FROM user\' ROWS ONLY',
+      oracle:" OFFSET 0 ROWS FETCH NEXT \''';DELETE FROM user\' ROWS ONLY",
       mssql: " OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY"
     });
 
@@ -70,7 +70,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }, {
       sqlite: " LIMIT ''';DELETE FROM user', 10",
       postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'",
-      oracle:' OFFSET \'\\\';DELETE FROM user\' ROWS FETCH NEXT 10 ROWS ONLY',
+      oracle:" OFFSET \''';DELETE FROM user\' ROWS FETCH NEXT 10 ROWS ONLY",
       mysql: " LIMIT '\\';DELETE FROM user', 10",
       mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
     });
