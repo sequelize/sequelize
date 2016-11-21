@@ -30,7 +30,6 @@ module.exports = {
     port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 11433,
     dialectOptions: {
       instanceName:  process.env.MSSQL_INSTANCE ? process.env.MSSQL_INSTANCE : 'SQLEXPRESS',
-      //domain: 'ADMIN-PC'
       // big insert queries need a while
       requestTimeout: 60000
     },
