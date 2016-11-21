@@ -206,7 +206,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
             expect(function () {
               type.validate('foobar');
-            }).to.throw(Sequelize.ValidationError, 'foobar is not a valid hstore');
+            }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid hstore');
           });
 
           test('should return `true` if `value` is an hstore', function() {
