@@ -21,6 +21,7 @@ describe('[ORACLE] Connection Manager', function () {
     //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
     config = {
       dialect: 'oracle',
+      host : 'vm2008ora12hot',
       database: 'vm2008ora12hot:1521/ORCL12HOT.kimdomain.local',
       username: 'DEV_RD',
       password: 'DEV_RD'
