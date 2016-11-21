@@ -65,6 +65,7 @@
     "lcov-result-merger": "^1.2.0",
     "mocha": "^2.4.2",
     "mysql": "~2.10.1",
+    "oracledb": "^1.11.0",
     "pg": "^4.4.6",
     "pg-hstore": "^2.3.1",
     "pg-native": "^1.8.0",
@@ -82,6 +83,7 @@
     "postgresql",
     "postgres",
     "mssql",
+    "oracle",
     "orm",
     "nodejs",
     "object relational mapper"

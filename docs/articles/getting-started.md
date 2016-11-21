@@ -36,7 +36,10 @@ $ npm install --save pg       # for postgres
 $ npm install --save mysql    # for mysql
 $ npm install --save sqlite3  # for sqlite
 $ npm install --save mariasql # for mariasql
+$ npm install --save oracledb # for oracle
 ```
+
+For Oracle specific case, refer to https://github.com/oracle/node-oracledb/blob/master/INSTALL.md to install the dependents packages
 
 ## Connecting to the database
 
