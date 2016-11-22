@@ -687,20 +687,20 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       it('handles decent sized bulk creates', function() {
-        var User = this.sequelize.define('User', { username: DataTypes.STRING, num: DataTypes.INTEGER, status: DataTypes.STRING })
+        const User = this.sequelize.define('User', { username: DataTypes.STRING, num: DataTypes.INTEGER, status: DataTypes.STRING })
           , Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
         Task.hasMany(User);
 
-        return this.sequelize.sync({ force: true }).then(function() {
+        return this.sequelize.sync({ force: true }).then(() => {
           const users = _.range(1000).map(i => ({username: "user"+i, num: i, status: "live"}));
           return User.bulkCreate(users);
-        }).bind({}).then(function() {
+        }).bind({}).then(() => {
           return Task.create({ title: 'task' });
         }).then(function(task) {
           this.task = task;
           return User.findAll();
-        }).then(function(users) {
+        }).then(users=> {
           expect(users).to.have.length(1000);
         });
       });
