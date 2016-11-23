@@ -383,7 +383,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
           return Model.findAll();
         })
         .spread(function(m){
-          console.log(m.interval);
+          expect(m.interval.inclusive[0]).to.be.eql(true);
+          expect(m.interval.inclusive[1]).to.be.eql(false);
           expect(m.interval[0]).to.be.eql(1);
           expect(m.interval[1]).to.be.eql(4);
         });
