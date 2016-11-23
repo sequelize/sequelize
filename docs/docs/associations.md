@@ -45,7 +45,7 @@ In cases where `as` has been defined it will be used in place of the target mode
 var User = this.sequelize.define('user', {/* attributes */})
   , UserRole  = this.sequelize.define('userRole', {/* attributes */});
 
-User.belongsTo(UserRole, {as: 'role'}); // Adds roleId to user rather than userRoleId
+User.belongsTo(UserRole, {as: 'roleId'}); // Adds roleId to user rather than userRoleId
 ```
 
 In all cases the default foreign key can be overwritten with the `foreignKey` option.
