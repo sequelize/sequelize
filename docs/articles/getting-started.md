@@ -381,12 +381,12 @@ As there are some more advanced features in Sequelize which are a bit inappropri
 * [Data types][1]
 * [Configuration of the model][2]
 * [Validations][3]
-* [Finders][4]
+* [Getters and Setters][4]
 * [Associations][5]
 
-[0]: /docs/latest/migrations
-[1]: /docs/latest/models#data-types
-[2]: /docs/latest/models#configuration
-[3]: /docs/latest/models#validations
-[4]: /docs/latest/models#finders
-[5]: /docs/latest/associations
+[0]: https://github.com/sequelize/sequelize/blob/master/docs/docs/migrations.md
+[1]: https://github.com/sequelize/sequelize/blob/master/docs/docs/models-definition.md#data-types
+[2]: https://github.com/sequelize/sequelize/blob/master/docs/docs/models-definition.md#configuration
+[3]: https://github.com/sequelize/sequelize/blob/master/docs/docs/models-definition.md#validations
+[4]: https://github.com/sequelize/sequelize/blob/master/docs/docs/models-definition.md#getters--setters
+[5]: https://github.com/sequelize/sequelize/blob/master/docs/docs/associations.md
