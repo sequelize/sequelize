@@ -25,6 +25,14 @@ tr:nth-child(2n) {
   background-color: #f8f8f8;
 }
 
+.rst-content table.docutils td {
+  vertical-align: top;
+}
+
+.docutils tr > td:first-child {
+  white-space: nowrap;
+}
+
 #teaser-home {
   height: 250px;
   position: relative;
