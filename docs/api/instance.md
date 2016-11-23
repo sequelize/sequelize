@@ -33,10 +33,10 @@ Returns true if this instance has not yet been persisted to the database
 ***
 
 <a name="model"></a>
-## `Model()` -> `Model`
+## `Model` -> `Model`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/instance.js#L107)
 
-Returns the Model the instance was created from.
+A reference to the Model the instance was created from.
 
 **See:**
 
@@ -46,7 +46,7 @@ Returns the Model the instance was created from.
 ***
 
 <a name="sequelize"></a>
-## `sequelize()` -> `Sequelize`
+## `sequelize` -> `Sequelize`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/instance.js#L116)
 
 A reference to the sequelize instance
