@@ -38,7 +38,10 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         .then(function () { return Account.count(); })
         .then(function (count) {
           expect(count).to.be.equal(1);
-          return Account.destroy({ where: { ownerId: 12 }});
+          return Account.destroy({ where: { ownerId: 12 }})
+          .then(function (result) {
+            expect(result).to.be.equal(1);
+          });
         })
         .then(function () { return Account.count(); })
         .then(function (count) {
