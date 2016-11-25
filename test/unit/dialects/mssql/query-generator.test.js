@@ -47,7 +47,7 @@ if (current.dialect.name === 'mssql') {
 
     test('updateQuery', function () {
       expectsql(QueryGenerator.updateQuery('myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, { id: 2 }), {
-        mssql: "UPDATE [myTable] SET [name]=N'foo',[birthday]='2011-03-27 15:31:55.000' OUTPUT INSERTED.* WHERE [id] = 2"
+        mssql: "UPDATE [myTable] SET [name]=N'foo',[birthday]='2011-03-27 10:01:55.000' OUTPUT INSERTED.* WHERE [id] = 2"
       });
 
       expectsql(QueryGenerator.updateQuery('myTable', {bar: 2}, {name: 'foo'}), {
