@@ -51,6 +51,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       {
         mssql: "UPDATE TOP(1) [Users] SET [username]=N'new.username' OUTPUT INSERTED.* WHERE [username] = N'username'",
         postgres: "UPDATE \"Users\" SET \"username\"=\'new.username\' WHERE \"username\" = \'username\'",
+        sqlite: "UPDATE `Users` SET `username`='new.username' WHERE `username` = 'username' LIMIT 1",
         default: "UPDATE `Users` SET `username`=\'new.username\' WHERE `username` = \'username\' LIMIT 1"
       });
     });
