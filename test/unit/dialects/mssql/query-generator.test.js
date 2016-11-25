@@ -45,6 +45,46 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
+    test('updateQuery', function () {
+      expectsql(QueryGenerator.updateQuery('myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, { id: 2 }), {
+        mssql: "UPDATE [myTable] SET [name]=N'foo',[birthday]='2011-03-27 15:31:55.000' OUTPUT INSERTED.* WHERE [id] = 2"
+      });
+
+      expectsql(QueryGenerator.updateQuery('myTable', {bar: 2}, {name: 'foo'}), {
+        mssql: "UPDATE [myTable] SET [bar]=2 OUTPUT INSERTED.* WHERE [name] = N'foo'"
+      });
+
+      expectsql(QueryGenerator.updateQuery('myTable', {bar: 2, nullValue: null}, {name: 'foo'}), {
+        mssql: "UPDATE [myTable] SET [bar]=2,[nullValue]=NULL OUTPUT INSERTED.* WHERE [name] = N'foo'"
+      });
+
+      expectsql(QueryGenerator.updateQuery('myTable', {bar: 2, nullValue: null}, {name: 'foo'}, { omitNull: false }), {
+        mssql: "UPDATE [myTable] SET [bar]=2,[nullValue]=NULL OUTPUT INSERTED.* WHERE [name] = N'foo'"
+      });
+
+      expectsql(QueryGenerator.updateQuery('myTable', {bar: 2, nullValue: null}, {name: 'foo'}, { omitNull: true }), {
+        mssql: "UPDATE [myTable] SET [bar]=2 OUTPUT INSERTED.* WHERE [name] = N'foo'"
+      });
+
+      expectsql(QueryGenerator.updateQuery('myTable', {bar:false}, {name: 'foo'}), {
+        mssql: "UPDATE [myTable] SET [bar]=0 OUTPUT INSERTED.* WHERE [name] = N'foo'"
+      });
+
+      expectsql(QueryGenerator.updateQuery('myTable', {bar:true}, {name: 'foo'}), {
+        mssql: "UPDATE [myTable] SET [bar]=1 OUTPUT INSERTED.* WHERE [name] = N'foo'"
+      });
+
+      //Limit
+      expectsql(QueryGenerator.updateQuery('myTable', { foo: 'bar' }, {}, { limit: 1 }), {
+        mssql: "UPDATE TOP(1) [myTable] SET [foo]=N'bar' OUTPUT INSERTED.*"
+      });
+
+      expectsql(QueryGenerator.updateQuery('myTable', { foo: 'bar' }, { foo: 'value' }, { limit: 1 }), {
+        mssql: "UPDATE TOP(1) [myTable] SET [foo]=N'bar' OUTPUT INSERTED.* WHERE [foo] = N'value'"
+      });
+
+    });
+
     test('selectFromTableFragment', function() {
       var modifiedGen = _.clone(QueryGenerator);
       // Test newer versions first
