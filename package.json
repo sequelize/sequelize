@@ -47,7 +47,7 @@
     "lodash": "^4.17.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
-    "node-uuid": "^1.4.4",
+    "uuid": "^3.0.0",
     "retry-as-promised": "^2.0.0",
     "semver": "^5.0.1",
     "terraformer-wkt-parser": "^1.1.2",
@@ -80,7 +80,8 @@
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
-    "tedious": "^1.14.0"
+    "tedious": "^1.14.0",
+    "uuid-validate": "^0.0.2"
   },
   "keywords": [
     "mysql",
