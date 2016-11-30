@@ -465,7 +465,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     return Model.sync({ force: true})
       .then(() => Model.create({ year: testDate }))
       .then(record => {
-        console.log(record)
         expect(record.year).to.be.eql('2014')
         expect(typeof record.year).to.be.eql('string');
         expect(record.year).to.be.eql(testDate);
