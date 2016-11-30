@@ -157,7 +157,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           );
         })
         .spread(function(a, b) {
-          return a.addB(b, {name : 'Foobar'});
+          return a.addB(b, { through: {name : 'Foobar'}});
         })
         .then(function() {
           return A.find({
