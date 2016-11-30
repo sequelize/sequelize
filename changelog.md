@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Soft-delete not returning number of affected rows on mssql [#6916](https://github.com/sequelize/sequelize/pull/6916)
+
 # 3.27.0
 - [FIXED] Incorrect column name for generateThroughJoin [#6878](https://github.com/sequelize/sequelize/pull/6878)
 - [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
