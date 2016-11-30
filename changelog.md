@@ -1,4 +1,6 @@
 # Future
+- [FIXED] N:M `through` option naming collisions [#4597](https://github.com/sequelize/sequelize/issues/4597)
+ [#6444](https://github.com/sequelize/sequelize/issues/6444)
 - [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#6919](https://github.com/sequelize/sequelize/pull/6919)
 - [ADDED] UPSERT Support for MSSQL [#6842](https://github.com/sequelize/sequelize/pull/6842)
 - [FIXED] Execute queries parallel in findAndCount [#6695](https://github.com/sequelize/sequelize/issues/6695)
@@ -20,6 +22,7 @@
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
+- With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
