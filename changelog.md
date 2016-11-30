@@ -1,4 +1,5 @@
 # Future
+- [ADDED] `YEAR` datatype [#6862](https://github.com/sequelize/sequelize/pull/6862)
 - [ADDED] UPSERT Support for MSSQL [#6842](https://github.com/sequelize/sequelize/pull/6842)
 - [FIXED] Execute queries parallel in findAndCount [#6695](https://github.com/sequelize/sequelize/issues/6695)
 - [FIXED] `restore` now uses `field` from `deletedAt`
