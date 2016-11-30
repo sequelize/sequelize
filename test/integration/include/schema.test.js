@@ -518,12 +518,12 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           ]);
         }).spread(function(products, tags) {
           return Promise.all([
-            products[0].addTag(tags[0], {priority: 1}),
-            products[0].addTag(tags[1], {priority: 2}),
-            products[1].addTag(tags[1], {priority: 1}),
-            products[2].addTag(tags[0], {priority: 3}),
-            products[2].addTag(tags[1], {priority: 1}),
-            products[2].addTag(tags[2], {priority: 2})
+            products[0].addTag(tags[0], { through: {priority: 1}}),
+            products[0].addTag(tags[1], { through: {priority: 2}}),
+            products[1].addTag(tags[1], { through: {priority: 1}}),
+            products[2].addTag(tags[0], { through: {priority: 3}}),
+            products[2].addTag(tags[1], { through: {priority: 1}}),
+            products[2].addTag(tags[2], { through: {priority: 2}})
           ]);
         }).spread(function() {
           return Product.findAll({
