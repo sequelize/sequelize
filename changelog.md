@@ -19,6 +19,8 @@
 - [FIXED] Issue with overrriding custom methods with association mixins (all association methods are now exposed) [#6682](https://github.com/sequelize/sequelize/issues/6682)
 - [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
 - [FIXED] HSTORE and JSON fields being renamed when `options.field` is specified on a matching model attribute
+- [FIXED] Soft-delete not returning number of affected rows on mssql [#6930](https://github.com/sequelize/sequelize/pull/6930)
+
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
