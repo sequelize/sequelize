@@ -8,7 +8,7 @@ var chai = require('chai')
 
 if (dialect.match(/^mssql/)) {
   describe('[MSSQL Specific] Query Queue', function () {
-    it('should work with handleDisconnects', function() {
+    it.only('should work with handleDisconnects', function() {
       var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, idle: 5000}})
         , cm = sequelize.connectionManager
         , conn;
@@ -22,9 +22,8 @@ if (dialect.match(/^mssql/)) {
           conn = connection;
 
           // simulate a unexpected end
-          connection.unwrap().emit('error', {code: 'ECONNRESET'});
-        })
-        .then(function() {
+          conn.unwrap().emit('error', {code: 'ECONNRESET'});
+
           return cm.releaseConnection(conn);
         })
         .then(function() {

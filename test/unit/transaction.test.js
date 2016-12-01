@@ -1,36 +1,41 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-, expect = chai.expect
-, sinon = require('sinon')
-, Support = require(__dirname + '/support')
-, Sequelize = Support.Sequelize
-, dialect = Support.getTestDialect()
-, current = Support.sequelize
-, Promise = Sequelize.Promise;
+const chai = require('chai');
+const expect = chai.expect;
+const sinon = require('sinon');
+const Support = require(__dirname + '/support');
+const Sequelize = Support.Sequelize;
+const dialect = Support.getTestDialect();
+const current = Support.sequelize;
 
 describe('Transaction', function() {
-
-  before(function () {
-    this.stub = sinon.stub(current, 'query').returns(Promise.resolve({}));
+  before(() => {
+    this.stub = sinon.stub(current, 'query').returns(Sequelize.Promise.resolve({}));
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
-    .returns(Promise.resolve({ uuid: 'ssfdjd-434fd-43dfg23-2d', close : function() { }}));
+    .returns(Sequelize.Promise.resolve({
+      uuid: 'ssfdjd-434fd-43dfg23-2d',
+      close(){}
+    }));
+
+    this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection')
+    .returns(Sequelize.Promise.resolve());
   });
 
-  beforeEach(function () {
+  beforeEach(() => {
     this.stub.reset();
     this.stubConnection.reset();
+    this.stubRelease.reset();
   });
 
-  after(function () {
+  after(() => {
     this.stub.restore();
     this.stubConnection.restore();
   });
 
-  it('should run auto commit query only when needed', function() {
-    var expectations = {
+  it('should run auto commit query only when needed', () => {
+    const expectations = {
       all: [
         'START TRANSACTION;'
       ],
@@ -43,7 +48,7 @@ describe('Transaction', function() {
     };
     return current.transaction(() => {
       expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
-      return Promise.resolve();
+      return Sequelize.Promise.resolve();
     });
   });
 });
