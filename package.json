@@ -42,7 +42,7 @@
     "depd": "^1.1.0",
     "dottie": "^1.0.0",
     "env-cmd": "^2.1.0",
-    "generic-pool": "^2.4.4",
+    "generic-pool": "^3.1.2",
     "inflection": "1.10.0",
     "lodash": "^4.17.1",
     "moment": "^2.13.0",
