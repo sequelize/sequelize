@@ -38,21 +38,22 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "cls-bluebird": "^2.0.1",
-    "debug": "^2.2.0",
+    "debug": "^2.3.0",
     "depd": "^1.1.0",
     "dottie": "^1.0.0",
-    "generic-pool": "2.4.2",
+    "env-cmd": "^2.1.0",
+    "generic-pool": "^2.4.4",
     "inflection": "1.10.0",
-    "lodash": "4.16.2",
+    "lodash": "^4.17.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
-    "node-uuid": "~1.4.4",
+    "uuid": "^3.0.0",
     "retry-as-promised": "^2.0.0",
     "semver": "^5.0.1",
     "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
     "validator": "^5.6.0",
-    "wkx": "0.3.0"
+    "wkx": "^0.3.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -63,7 +64,7 @@
     "commander": "^2.9.0",
     "continuation-local-storage": "^3.2.0",
     "cross-env": "^3.0.0",
-    "dox": "~0.9.0",
+    "dox": "^0.9.0",
     "eslint": "^3.6.0",
     "git": "^0.1.5",
     "hints": "^1.1.0",
@@ -80,7 +81,8 @@
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
-    "tedious": "^1.14.0"
+    "tedious": "^1.14.0",
+    "uuid-validate": "^0.0.2"
   },
   "keywords": [
     "mysql",
@@ -96,10 +98,9 @@
   "scripts": {
     "lint": "eslint lib test",
     "test": "npm run jshint && npm run teaser && npm run test-unit && npm run test-integration",
-    "test-docker": "docker-compose run sequelize /bin/sh -c \"npm run test-all\"",
-    "test-docker-unit": "docker-compose run sequelize /bin/sh -c \"npm run test-unit-all\"",
-    "test-docker-integration": "docker-compose run sequelize /bin/sh -c \"npm run test-integration-all\"",
-    "build-docker": "docker-compose build",
+    "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
+    "test-docker-unit": "env-cmd ./test/config/.docker.env npm run test-unit",
+    "test-docker-integration": "env-cmd ./test/config/.docker.env npm run test-integration",
     "docs": "node docs/docs-generator.js",
     "jshint": "jshint lib test",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",

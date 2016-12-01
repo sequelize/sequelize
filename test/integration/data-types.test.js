@@ -10,7 +10,7 @@ var chai = require('chai')
   , _ = require('lodash')
   , moment = require('moment')
   , current = Support.sequelize
-  , uuid = require('node-uuid')
+  , uuid = require('uuid')
   , DataTypes = require('../../lib/data-types')
   , dialect = Support.getTestDialect()
   , semver = require('semver');
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('calls parse and stringify for DATEONLY', function () {
     var Type = new Sequelize.DATEONLY();
 
-    return testSuccess(Type, new Date());
+    return testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
   });
 
   it('calls parse and stringify for TIME', function () {
@@ -285,14 +285,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
     return new Sequelize.Promise((resolve, reject) => {
       if (/^postgres/.test(dialect)) {
-        current.query(`SELECT extversion FROM pg_catalog.pg_extension WHERE extname='postgis';`)
-            .then((result) => {
-              if (result[0][0] && semver.lte(result[0][0].extversion, '2.1.7')) {
-                resolve(true);
-              } else {
-                resolve();
-              }
-            }).catch(reject);
+        current.query(`SELECT PostGIS_Lib_Version();`)
+          .then((result) => {
+            if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
+              resolve(true);
+            } else {
+              resolve();
+            }
+          }).catch(reject);
       } else {
         resolve(true);
       }
@@ -436,6 +436,24 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     }).then(function (record) {
       expect(record.type).to.be.eql('class s');
     });
+  });
+
+  it('should return YYYY-MM-DD format string for DATEONLY', function () {
+    const Model = this.sequelize.define('user', {
+      stamp: Sequelize.DATEONLY
+    });
+    const testDate = moment().format('YYYY-MM-DD');
+
+    return Model.sync({ force: true})
+      .then(() => Model.create({ stamp: testDate }))
+      .then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+        return Model.findById(record.id);
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+      });
   });
 
 });

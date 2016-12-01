@@ -1,7 +1,7 @@
 # Sequelize
 
 [![Build Status](https://travis-ci.org/sequelize/sequelize.svg?branch=master)](https://travis-ci.org/sequelize/sequelize)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/8xhttm9pxmbmtbwb/branch/master?svg=true)](https://ci.appveyor.com/project/felixfbecker/sequelize/branch/master)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/9l1ypgwsp5ij46m3/branch/master?svg=true)](https://ci.appveyor.com/project/sushantdhiman/sequelize/branch/master)
 [![codecov](https://codecov.io/gh/sequelize/sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/sequelize/sequelize)
 [![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
