@@ -201,6 +201,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
           return expect(failingUser.validate()).to.be.rejected.then(function(_errors) {
             expect(_errors.get('name')[0].message).to.equal(message);
+            expect(_errors.get('name')[0].value).to.equal(failingValue);
           });
         });
       }
