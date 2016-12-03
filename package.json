@@ -53,7 +53,7 @@
     "toposort-class": "^1.0.1",
     "uuid": "^3.0.0",
     "validator": "^6.2.0",
-    "wkx": "^0.3.0"
+    "wkx": "^0.4.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
