@@ -1,4 +1,5 @@
 # Future
+- [FIXED] Custom error message not used for `notNull` validation [#6531](https://github.com/sequelize/sequelize/issues/6531)
 - [FIXED] N:M `through` option naming collisions [#4597](https://github.com/sequelize/sequelize/issues/4597)
  [#6444](https://github.com/sequelize/sequelize/issues/6444)
 - [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#6919](https://github.com/sequelize/sequelize/pull/6919)
