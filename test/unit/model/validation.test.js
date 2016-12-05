@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     before(function () {
       this.stub = sinon.stub(current, 'query', function () {
         return new Promise(function (resolve) {
-          resolve(User.build({}));
+          resolve([User.build({}), 1]);
         });
       });
     });
@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').returns(Promise.resolve(User.build()));
+      this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
     after(function () {
@@ -512,7 +512,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').returns(Promise.resolve(User.build()));
+      this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
     after(function () {
