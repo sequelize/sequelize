@@ -47,13 +47,13 @@
     "lodash": "^4.17.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
-    "uuid": "^3.0.0",
     "retry-as-promised": "^2.0.0",
     "semver": "^5.0.1",
     "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
-    "validator": "^5.6.0",
-    "wkx": "^0.3.0"
+    "uuid": "^3.0.0",
+    "validator": "^6.2.0",
+    "wkx": "^0.4.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
