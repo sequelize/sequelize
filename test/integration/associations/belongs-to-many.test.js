@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.u = u;
         return AcmeProject.create();
       }).then(function(p) {
-        return this.u.addProject(p, { status: 'active', data: 42 });
+        return this.u.addProject(p, { through: { status: 'active', data: 42 }});
       }).then(function() {
         return this.u.getProjects();
       }).then(function(projects) {
@@ -489,12 +489,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return Promise.join(
         this.Task.create().then(function (task) {
           return user.addTask(task, {
-            started: true
+            through: { started: true }
           });
         }),
         this.Task.create().then(function (task) {
           return user.addTask(task, {
-            started: true
+            through: { started: true }
           });
         })
       ).then(function () {
@@ -687,8 +687,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return Group.create({});
       }).then(function(group) {
         return Promise.join(
-          group.createUser({ id: 1 }, { isAdmin: true }),
-          group.createUser({ id: 2 }, { isAdmin: false }),
+          group.createUser({ id: 1 }, { through: {isAdmin: true }}),
+          group.createUser({ id: 2 }, { through: {isAdmin: false }}),
           function() {
             return UserGroups.findAll();
           }
@@ -810,9 +810,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           this.task = task;
           this.user = user;
           this.t = t;
-          return task.addUser(user, { status: 'pending' }); // Create without transaction, so the old value is accesible from outside the transaction
+          return task.addUser(user, { through: {status: 'pending'} }); // Create without transaction, so the old value is accesible from outside the transaction
         }).then(function() {
-          return this.task.addUser(this.user, { transaction: this.t, status: 'completed' }); // Add an already exisiting user in a transaction, updating a value in the join table
+          return this.task.addUser(this.user, { transaction: this.t, through: {status: 'completed'}}); // Add an already exisiting user in a transaction, updating a value in the join table
         }).then(function() {
           return Promise.all([
             this.user.getTasks(),
@@ -991,15 +991,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('runs on add', function () {
-      return expect(this.project.addParticipant(this.employee, { role: ''})).to.be.rejected;
+      return expect(this.project.addParticipant(this.employee, { through: {role: ''}})).to.be.rejected;
     });
 
     it('runs on set', function () {
-      return expect(this.project.setParticipants([this.employee], { role: ''})).to.be.rejected;
+      return expect(this.project.setParticipants([this.employee], { through: {role: ''}})).to.be.rejected;
     });
 
     it('runs on create', function () {
-      return expect(this.project.createParticipant({ name: 'employee 2'}, { role: ''})).to.be.rejected;
+      return expect(this.project.createParticipant({ name: 'employee 2'}, { through: {role: ''}})).to.be.rejected;
     });
   });
 
@@ -1453,7 +1453,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           this.User.create(),
           this.Project.create()
         ]).spread(function(user, project) {
-          return user.addProject(project, { status: 'active', data: 42 }).return (user);
+          return user.addProject(project, { through: { status: 'active', data: 42 }}).return (user);
         }).then(function(user) {
           return user.getProjects();
         }).then(function(projects) {
@@ -1471,7 +1471,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           this.User.create(),
           this.Project.create()
         ]).spread(function(user, project) {
-          return user.addProject(project, { status: 'active', data: 42 }).return (user);
+          return user.addProject(project, { through: { status: 'active', data: 42 }}).return (user);
         }).then(function(user) {
           return user.getProjects({ joinTableAttributes: ['status']});
         }).then(function(projects) {
@@ -1512,7 +1512,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
             this.u = u;
             this.p = p;
 
-            return u.addProject(p, { status: 'active' });
+            return u.addProject(p, { through: { status: 'active' }});
           }).then(function() {
             return this.UserProjects.findOne({ where: { UserId: this.u.id, ProjectId: this.p.id }});
           }).then(function(up) {
@@ -1599,7 +1599,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
             this.p1.UserProjects = { status: 'inactive' };
 
-            return user.setProjects([this.p1, this.p2], { status: 'active' });
+            return user.setProjects([this.p1, this.p2], { through: { status: 'active' }});
           }).then(function() {
             return Promise.all([
               self.UserProjects.findOne({ where: { UserId: this.user.id, ProjectId: this.p1.id }}),
@@ -1638,9 +1638,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         it('should support query the through model', function () {
           return this.User.create().then(function (user) {
             return Promise.all([
-              user.createProject({}, { status: 'active', data: 1 }),
-              user.createProject({}, { status: 'inactive', data: 2 }),
-              user.createProject({}, { status: 'inactive', data: 3 })
+              user.createProject({}, { through: { status: 'active', data: 1 }}),
+              user.createProject({}, { through: { status: 'inactive', data: 2 }}),
+              user.createProject({}, { through: { status: 'inactive', data: 3 }})
             ]).then(function () {
               return Promise.all([
                 user.getProjects({ through: { where: { status: 'active' } } }),

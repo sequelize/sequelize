@@ -58,6 +58,39 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
     expect(AB.options.validate).to.deep.equal({});
   });
 
+  it('should not override custom methods with association mixin', function(){
+    const methods = {
+      getTasks: 'get',
+      countTasks: 'count',
+      hasTask: 'has',
+      hasTasks: 'has',
+      setTasks: 'set',
+      addTask: 'add',
+      addTasks: 'add',
+      removeTask: 'remove',
+      removeTasks: 'remove',
+      createTask: 'create',
+    };
+    const User = current.define('User');
+    const Task = current.define('Task');
+
+    current.Utils._.each(methods, (alias, method) => {
+      User.prototype[method] = function () {
+        const realMethod = this.constructor.associations.task[alias];
+        expect(realMethod).to.be.a('function');
+        return realMethod;
+      };
+    });
+
+    User.belongsToMany(Task, { through: 'UserTasks', as: 'task' });
+
+    const user = User.build();
+
+    current.Utils._.each(methods, (alias, method) => {
+      expect(user[method]()).to.be.a('function');
+    });
+  });
+
   describe('timestamps', function () {
     it('follows the global timestamps true option', function () {
       var User = current.define('User', {})
