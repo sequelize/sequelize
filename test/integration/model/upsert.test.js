@@ -389,7 +389,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
         });
       });
-
     });
   }
 });
