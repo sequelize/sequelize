@@ -213,7 +213,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         code:     {type: DataTypes.STRING, primaryKey: true },
         name:     {type: DataTypes.STRING, allowNull: false}
       }, { freezeTableName: true });
-      
       var Alumni = self.sequelize.define('_Alumni', {
         year:     {type: DataTypes.INTEGER, primaryKey: true },
         num:      {type: DataTypes.INTEGER, primaryKey: true },
