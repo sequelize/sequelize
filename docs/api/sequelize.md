@@ -143,7 +143,25 @@ A handy reference to the bluebird Promise class
 ## `QueryTypes`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/sequelize.js#L272)
 
-Available query types for use with `sequelize.query`
+A convenience object with query types for use with `sequelize.query`. Available options include:
+
+- SELECT
+- INSERT
+- UPDATE
+- BULKUPDATE
+- BULKDELETE
+- DELETE
+- UPSERT
+- VERSION
+- SHOWTABLES
+- SHOWINDEXES
+- DESCRIBE
+- RAW
+- FOREIGNKEYS
+
+**See:**
+
+* [Sequelize#query](sequelize#querysql-options-promise)
 
 ***
 
@@ -627,6 +645,7 @@ sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(functio
 **See:**
 
 * [Model#build](model#build)
+* [Sequelize#QueryTypes](sequelize#querytypes)
 
 
 **Params:**
