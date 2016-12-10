@@ -12,7 +12,8 @@ var chai = require('chai')
   , _ = require('lodash')
   , moment = require('moment')
   , Promise = require('bluebird')
-  , current = Support.sequelize;
+  , current = Support.sequelize
+  , semver = require('semver');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   before(function () {
@@ -55,21 +56,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var factorySize2 = this.sequelize.modelManager.all.length;
 
       expect(factorySize).to.equal(factorySize2);
-    });
-
-    it('attaches class and instance methods', function() {
-      var User = this.sequelize.define('UserWithClassAndInstanceMethods', {}, {
-        classMethods: { doSmth: function() { return 1; } },
-        instanceMethods: { makeItSo: function() { return 2; } }
-      });
-
-      expect(User.doSmth).to.exist;
-      expect(User.doSmth()).to.equal(1);
-      expect(User.makeItSo).not.to.exist;
-
-      expect(User.build().doSmth).not.to.exist;
-      expect(User.build().makeItSo).to.exist;
-      expect(User.build().makeItSo()).to.equal(2);
     });
 
     it('allows us us to predefine the ID column with our own specs', function() {
@@ -392,12 +378,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           fields: ['fieldC'],
           concurrently: true
         });
+
+        indices.push({
+          type: 'FULLTEXT',
+          fields: ['fieldD']
+        });
       }
 
       var Model = this.sequelize.define('model', {
         fieldA: Sequelize.STRING,
         fieldB: Sequelize.INTEGER,
-        fieldC: Sequelize.STRING
+        fieldC: Sequelize.STRING,
+        fieldD: Sequelize.STRING
       }, {
         indexes: indices,
         engine: 'MyISAM'
@@ -408,7 +400,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       }).then(function() {
         return this.sequelize.queryInterface.showIndex(Model.tableName);
       }).spread(function() {
-        var primary, idx1, idx2;
+        var primary, idx1, idx2, idx3;
 
         if (dialect === 'sqlite') {
           // PRAGMA index_info does not return the primary index
@@ -435,6 +427,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           primary = arguments[2];
           idx1 = arguments[0];
           idx2 = arguments[1];
+          idx3 = arguments[2];
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
@@ -443,6 +436,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined}
+          ]);
+
+          expect(idx3.fields).to.deep.equal([
+            { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined}
           ]);
         } else {
           // And finally mysql returns the primary first, and then the rest in the order they were defined
@@ -623,9 +620,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(product.Tags).to.be.ok;
         expect(product.Tags.length).to.equal(2);
-        expect(product.Tags[0].Model).to.equal(Tag);
+        expect(product.Tags[0]).to.be.instanceof(Tag);
         expect(product.User).to.be.ok;
-        expect(product.User.Model).to.equal(User);
+        expect(product.User).to.be.instanceof(User);
       });
 
       it('should support includes with aliases', function() {
@@ -674,10 +671,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         expect(product.categories).to.be.ok;
         expect(product.categories.length).to.equal(4);
-        expect(product.categories[0].Model).to.equal(Tag);
+        expect(product.categories[0]).to.be.instanceof(Tag);
         expect(product.followers).to.be.ok;
         expect(product.followers.length).to.equal(2);
-        expect(product.followers[0].Model).to.equal(User);
+        expect(product.followers[0]).to.be.instanceof(User);
       });
     });
   });
@@ -1140,7 +1137,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     }
 
-    if (Support.dialectIsMySQL()) {
+    if (dialect === 'mysql') {
       it('supports limit clause', function() {
         var self = this
           , data = [{ username: 'Peter', secretValue: '42' },
@@ -1787,24 +1784,22 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('supports distinct option', function() {
-      var Post = this.sequelize.define('Post', {});
-      var PostComment = this.sequelize.define('PostComment', {});
+    it('supports distinct option', function () {
+      const Post = this.sequelize.define('Post', {});
+      const PostComment = this.sequelize.define('PostComment', {});
       Post.hasMany(PostComment);
-      return Post.sync({ force: true }).then(function() {
-        return PostComment.sync({ force: true }).then(function() {
-          return Post.create({}).then(function(post) {
-            return PostComment.bulkCreate([{ PostId: post.id },{ PostId: post.id }]).then(function() {
-              return Post.count({ include: [{ model: PostComment, required: false }] }).then(function(count1) {
-                return Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }).then(function(count2) {
-                  expect(count1).to.equal(2);
-                  expect(count2).to.equal(1);
-                });
-              });
-            });
-          });
-        });
-      });
+      return Post.sync({ force: true })
+        .then(() => PostComment.sync({ force: true }))
+        .then(() => Post.create({}))
+        .then((post) => PostComment.bulkCreate([{ PostId: post.id },{ PostId: post.id }]))
+        .then(() => Promise.join(
+            Post.count({ distinct: false, include: [{ model: PostComment, required: false }] }),
+            Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }),
+          (count1, count2) => {
+            expect(count1).to.equal(2);
+            expect(count2).to.equal(1);
+          })
+        );
     });
 
   });
@@ -2135,7 +2130,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    if (Support.dialectIsMySQL() || dialect === 'sqlite') {
+    if (dialect === 'mysql' || dialect === 'sqlite') {
       it('should take schemaDelimiter into account if applicable', function() {
         var test = 0;
         var UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {age: Sequelize.INTEGER}, {schema: 'hello', schemaDelimiter: '_'});
@@ -2175,7 +2170,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserPublic.schema('special').sync({ force: true }).then(function() {
           return self.sequelize.queryInterface.describeTable('Publics', {
             logging: function(sql) {
-              if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
+              if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
                 expect(sql).to.not.contain('special');
                 count++;
               }
@@ -2188,7 +2183,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             return self.sequelize.queryInterface.describeTable('Publics', {
               schema: 'special',
               logging: function(sql) {
-                if (dialect === 'sqlite' || Support.dialectIsMySQL() || dialect === 'mssql') {
+                if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
                   expect(sql).to.contain('special');
                   count++;
                 }
@@ -2316,12 +2311,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    ([ true, false ]).forEach(function (useNewReferencesStyle) {
     it('uses an existing dao factory and references the author table', function() {
-      var authorIdColumn = useNewReferencesStyle
-        ? { type: Sequelize.INTEGER, references: this.Author, referencesKey: 'id' }
-        : { type: Sequelize.INTEGER, references: { model: this.Author, key: 'id' } }
-        ;
+      var authorIdColumn = { type: Sequelize.INTEGER, references: { model: this.Author, key: 'id' } };
 
       var Post = this.sequelize.define('post', {
         title: Sequelize.STRING,
@@ -2335,7 +2326,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Post.sync({logging: _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (Support.dialectIsMySQL()) {
+        } else if (dialect === 'mysql') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
@@ -2348,10 +2339,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('uses a table name as a string and references the author table', function() {
-      var authorIdColumn = useNewReferencesStyle
-        ? { type: Sequelize.INTEGER, references: 'authors', referencesKey: 'id' }
-        : { type: Sequelize.INTEGER, references: { model: 'authors', key: 'id' } }
-        ;
+      var authorIdColumn = { type: Sequelize.INTEGER, references: { model: 'authors', key: 'id' } };
 
       var self = this
         , Post = self.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
@@ -2363,7 +2351,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Post.sync({logging: _.once(function(sql) {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (Support.dialectIsMySQL()) {
+        } else if (dialect === 'mysql') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
@@ -2376,10 +2364,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('emits an error event as the referenced table name is invalid', function() {
-      var authorIdColumn = useNewReferencesStyle
-        ? { type: Sequelize.INTEGER, references: '4uth0r5', referencesKey: 'id' }
-        : { type: Sequelize.INTEGER, references: { model: '4uth0r5', key: 'id' } }
-        ;
+      var authorIdColumn = { type: Sequelize.INTEGER, references: { model: '4uth0r5', key: 'id' } };
 
       var Post = this.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
 
@@ -2398,10 +2383,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         return;
       }).catch (function(err) {
-        if (Support.dialectIsMySQL(true)) {
-          expect(err.message).to.match(/ER_CANNOT_ADD_FOREIGN|ER_CANT_CREATE_TABLE/);
-        } else if (dialect === 'mariadb') {
-          expect(err.message).to.match(/Can\'t create table/);
+        if (dialect === 'mysql') {
+          // MySQL 5.7 or above doesn't support POINT EMPTY
+          if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.6.0')) {
+            expect(err.message).to.match(/Cannot add foreign key constraint/);
+          } else {
+            expect(err.message).to.match(/Can\'t create table/);
+          }
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2);
@@ -2426,18 +2414,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         comment: 'asdf'
       };
 
-      if (useNewReferencesStyle) {
-        idColumn.references = { model: Member, key: 'id' };
-      } else {
-        idColumn.references = Member;
-        idColumn.referencesKey = 'id';
-      }
+      idColumn.references = { model: Member, key: 'id' };
 
       var Profile = this.sequelize.define('Profile', { id: idColumn });
       // jshint ignore:end
 
       return this.sequelize.sync({ force: true });
-    });
     });
   });
 
@@ -2623,7 +2605,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', function() {
-      this.timeout(50000);
+      this.timeout(90000);
       var self = this;
       return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
         var User = sequelize.define('User', { username: Sequelize.STRING });
@@ -2754,13 +2736,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
       });
 
-      return user.bulkCreate(data, {
+      return expect(user.bulkCreate(data, {
         validate: true,
         individualHooks: true
-      })
-      .catch(function(errors) {
-        expect(errors).to.be.instanceof(Array);
-      });
+      })).to.be.rejectedWith(Promise.AggregateError);
     });
   });
 });

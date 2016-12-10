@@ -130,8 +130,8 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
               b: self.sequelize.col('always_false')
             });
 
-            expect(user.get('d')).to.be.instanceof(self.sequelize.Utils.fn);
-            expect(user.get('b')).to.be.instanceof(self.sequelize.Utils.col);
+            expect(user.get('d')).to.be.instanceof(self.sequelize.Utils.Fn);
+            expect(user.get('b')).to.be.instanceof(self.sequelize.Utils.Col);
 
             return user.save().then(function() {
               return user.reload().then(function() {
@@ -183,9 +183,9 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
 
           expect(product.tags).to.be.ok;
           expect(product.tags.length).to.equal(2);
-          expect(product.tags[0].Model).to.equal(Tag);
+          expect(product.tags[0]).to.be.instanceof(Tag);
           expect(product.user).to.be.ok;
-          expect(product.user.Model).to.equal(User);
+          expect(product.user).to.be.instanceof(User);
         });
 
         it('should support basic includes (with raw: true)', function() {
@@ -227,9 +227,9 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
 
           expect(product.tags).to.be.ok;
           expect(product.tags.length).to.equal(2);
-          expect(product.tags[0].Model).to.equal(Tag);
+          expect(product.tags[0]).to.be.instanceof(Tag);
           expect(product.user).to.be.ok;
-          expect(product.user.Model).to.equal(User);
+          expect(product.user).to.be.instanceof(User);
         });
       });
     });
@@ -350,8 +350,8 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
             }
           }, {raw: true});
 
-          expect(product.get('user', {plain: true}).$Model).not.to.be.ok;
-          expect(product.get({plain: true}).user.$Model).not.to.be.ok;
+          expect(product.get('user', {plain: true})).not.to.be.instanceof(User);
+          expect(product.get({plain: true}).user).not.to.be.instanceof(User);
         });
       });
 

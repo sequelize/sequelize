@@ -13,8 +13,8 @@ cache:
 
 environment:
   matrix:
-    - {NODE_VERSION: 0.10,   DIALECT: mssql}
-    - {NODE_VERSION: 0.12,   DIALECT: mssql, COVERAGE: true}
+    - {NODE_VERSION: 4, DIALECT: mssql}
+    - {NODE_VERSION: 6, DIALECT: mssql, COVERAGE: true}
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64

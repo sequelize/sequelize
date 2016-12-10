@@ -5,7 +5,7 @@ var Support   = require(__dirname + '/../support')
   , Sequelize = Support.Sequelize
   , chai = require('chai')
   , util = require('util')
-  , uuid = require('node-uuid')
+  , uuid = require('uuid')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
   , expect = chai.expect;
@@ -72,29 +72,25 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT',
-        mariadb: 'TINYTEXT'
+        mysql: 'TINYTEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT',
-        mariadb: 'TINYTEXT'
+        mysql: 'TINYTEXT'
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mysql: 'MEDIUMTEXT',
-        mariadb: 'MEDIUMTEXT'
+        mysql: 'MEDIUMTEXT'
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mysql: 'LONGTEXT',
-        mariadb: 'LONGTEXT'
+        mysql: 'LONGTEXT'
       });
 
       suite('validate', function () {
@@ -210,7 +206,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
             expect(function () {
               type.validate('foobar');
-            }).to.throw(Sequelize.ValidationError, 'foobar is not a valid hstore');
+            }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid hstore');
           });
 
           test('should return `true` if `value` is an hstore', function() {
@@ -806,6 +802,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       testsql('DECIMAL({ precision: 10 })', DataTypes.DECIMAL({ precision: 10 }), {
         default: 'DECIMAL(10)'
+      });
+
+      testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
+        mysql: 'DECIMAL UNSIGNED',
+        default: 'DECIMAL'
+      });
+
+      testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
+        mysql: 'DECIMAL UNSIGNED ZEROFILL',
+        default: 'DECIMAL'
+      });
+
+      testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
+        mysql: 'DECIMAL(10,2) UNSIGNED',
+        default: 'DECIMAL(10,2)'
       });
 
       suite('validate', function () {

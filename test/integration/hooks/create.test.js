@@ -6,7 +6,8 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = Support.Sequelize
-  , sinon = require('sinon');
+  , sinon = require('sinon')
+  , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -27,14 +28,20 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('on success', function() {
       it('should run hooks', function() {
         var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+          , afterHook = sinon.spy()
+          , beforeSave = sinon.spy()
+          , afterSave = sinon.spy();
 
         this.User.beforeCreate(beforeHook);
         this.User.afterCreate(afterHook);
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
+          expect(beforeSave).to.have.been.calledOnce;
+          expect(afterSave).to.have.been.calledOnce;
         });
       });
     });
@@ -42,33 +49,46 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     describe('on error', function() {
       it('should return an error from before', function() {
         var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+          , beforeSave = sinon.spy()
+          , afterHook = sinon.spy()
+          , afterSave = sinon.spy();
 
         this.User.beforeCreate(function(user, options) {
           beforeHook();
           throw new Error('Whoops!');
         });
         this.User.afterCreate(afterHook);
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
 
         return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(function(err) {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).not.to.have.been.called;
+          expect(beforeSave).not.to.have.been.called;
+          expect(afterSave).not.to.have.been.called;
         });
       });
 
       it('should return an error from after', function() {
         var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+          , beforeSave = sinon.spy()
+          , afterHook = sinon.spy()
+          , afterSave = sinon.spy();
+
 
         this.User.beforeCreate(beforeHook);
         this.User.afterCreate(function(user, options) {
           afterHook();
           throw new Error('Whoops!');
         });
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
 
         return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(function(err) {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
+          expect(beforeSave).to.have.been.calledOnce;
+          expect(afterSave).not.to.have.been.called;
         });
       });
     });
@@ -83,9 +103,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
       var hookCalled = 0;
 
-      A.addHook('afterCreate', function(instance, options, next) {
+      A.addHook('afterCreate', function(instance, options) {
         hookCalled++;
-        next();
+        return Promise.resolve();
       });
 
       B.belongsToMany(A, {through: 'a_b'});
@@ -134,7 +154,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
 
-      it('beforeCreate', function(){
+      it('beforeCreate', function() {
         var hookCalled = 0;
 
         this.User.beforeCreate(function(user, options) {
@@ -148,6 +168,42 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           expect(hookCalled).to.equal(1);
         });
       });
+
+      it('beforeSave', function() {
+        var hookCalled = 0;
+
+        this.User.beforeSave(function(user, options) {
+          user.mood = 'happy';
+          hookCalled++;
+        });
+
+        return this.User.create({username: 'akira'}).then(function(user) {
+          expect(user.mood).to.equal('happy');
+          expect(user.username).to.equal('akira');
+          expect(hookCalled).to.equal(1);
+        });
+      });
+
+      it('beforeSave with beforeCreate', function() {
+        var hookCalled = 0;
+
+        this.User.beforeCreate(function(user, options) {
+          user.mood = 'sad';
+          hookCalled++;
+        });
+
+        this.User.beforeSave(function(user, options) {
+          user.mood = 'happy';
+          hookCalled++;
+        });
+
+        return this.User.create({username: 'akira'}).then(function(user) {
+          expect(user.mood).to.equal('happy');
+          expect(user.username).to.equal('akira');
+          expect(hookCalled).to.equal(2);
+        });
+      });
+
 
     });
 

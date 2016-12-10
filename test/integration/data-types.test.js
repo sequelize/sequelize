@@ -10,9 +10,10 @@ var chai = require('chai')
   , _ = require('lodash')
   , moment = require('moment')
   , current = Support.sequelize
-  , uuid = require('node-uuid')
+  , uuid = require('uuid')
   , DataTypes = require('../../lib/data-types')
-  , dialect = Support.getTestDialect();
+  , dialect = Support.getTestDialect()
+  , semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), function() {
   afterEach(function () {
@@ -36,7 +37,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         });
         break;
       default:
-        this.sequelize.connectionManager.$clearTypeParser();
+        this.sequelize.connectionManager._clearTypeParser();
     }
 
     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
@@ -44,14 +45,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
   it('allows me to return values from a custom parse function', function () {
     var parse = Sequelize.DATE.parse = sinon.spy(function (value) {
-      return moment(value, 'YYYY-MM-DD HH:mm:ss Z');
+      return moment(value, 'YYYY-MM-DD HH:mm:ss');
     });
 
     var stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
       if (!moment.isMoment(value)) {
-        value = this.$applyTimezone(value, options);
+        value = this._applyTimezone(value, options);
       }
-      return value.format('YYYY-MM-DD HH:mm:ss Z');
+      return value.format('YYYY-MM-DD HH:mm:ss');
     });
 
     current.refreshTypes();
@@ -155,7 +156,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('calls parse and stringify for DATEONLY', function () {
     var Type = new Sequelize.DATEONLY();
 
-    return testSuccess(Type, new Date());
+    return testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
   });
 
   it('calls parse and stringify for TIME', function () {
@@ -248,7 +249,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   it('calls parse and stringify for GEOMETRY', function () {
     var Type = new Sequelize.GEOMETRY();
 
-    if (['postgres', 'mysql', 'mariadb'].indexOf(dialect) !== -1) {
+    if (['postgres', 'mysql'].indexOf(dialect) !== -1) {
       return testSuccess(Type, { type: "Point", coordinates: [125.6, 10.1] });
     } else {
       // Not implemented yet
@@ -275,35 +276,55 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
   });
 
   it('should parse an empty GEOMETRY field', function () {
-   var Type = new Sequelize.GEOMETRY();
+    var Type = new Sequelize.GEOMETRY();
 
-   if (current.dialect.supports.GEOMETRY) {
-     current.refreshTypes();
+    // MySQL 5.7 or above doesn't support POINT EMPTY
+    if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.7.0')) {
+      return;
+    }
 
-     var User = current.define('user', { field: Type }, { timestamps: false });
-     var point = { type: "Point", coordinates: [] };
+    return new Sequelize.Promise((resolve, reject) => {
+      if (/^postgres/.test(dialect)) {
+        current.query(`SELECT PostGIS_Lib_Version();`)
+          .then((result) => {
+            if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
+              resolve(true);
+            } else {
+              resolve();
+            }
+          }).catch(reject);
+      } else {
+        resolve(true);
+      }
+    }).then((runTests) => {
+      if (current.dialect.supports.GEOMETRY && runTests) {
+        current.refreshTypes();
 
-     return current.sync({ force: true }).then(function () {
-       return User.create({
-          //insert a null GEOMETRY type
-          field: point
+        var User = current.define('user', { field: Type }, { timestamps: false });
+        var point = { type: "Point", coordinates: [] };
+
+        return current.sync({ force: true }).then(function () {
+          return User.create({
+            //insert a null GEOMETRY type
+            field: point
+          });
+        }).then(function () {
+          //This case throw unhandled exception
+          return User.findAll();
+        }).then(function(users){
+          if (dialect === 'mysql') {
+            // MySQL will return NULL, becuase they lack EMPTY geometry data support.
+            expect(users[0].field).to.be.eql(null);
+          } else if (dialect === 'postgres' || dialect === 'postgres-native') {
+            //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
+            expect(users[0].field).to.be.deep.eql({ type: "Point", coordinates: [0,0] });
+          } else {
+            expect(users[0].field).to.be.deep.eql(point);
+          }
         });
-      }).then(function () {
-        //This case throw unhandled exception
-        return User.findAll();
-      }).then(function(users){
-        if (Support.dialectIsMySQL()) {
-          // MySQL will return NULL, becuase they lack EMPTY geometry data support.
-          expect(users[0].field).to.be.eql(null);
-        } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-          //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
-          expect(users[0].field).to.be.deep.eql({ type: "Point", coordinates: [0,0] });
-        } else {
-          expect(users[0].field).to.be.deep.eql(point);
-        }
-      });
-   }
- });
+      }
+    });
+  });
 
   if (dialect === 'postgres' || dialect === 'sqlite') {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
@@ -322,7 +343,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
           real: -Infinity
         });
       }).then(function () {
-        return Model.find({id: 1});
+        return Model.find({ where:{ id: 1 } });
       }).then(function (user) {
         expect(user.get('float')).to.be.NaN;
         expect(user.get('double')).to.eq(Infinity);
@@ -362,6 +383,77 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
     });
+
+    it('should return Int4 range properly #5747', function() {
+      var Model = this.sequelize.define('M', {
+        interval: {
+            type: Sequelize.RANGE(Sequelize.INTEGER),
+            allowNull: false,
+            unique: true
+        }
+      });
+
+      return Model.sync({ force: true })
+              .then(() => Model.create({ interval: [1,4] }) )
+              .then(() => Model.findAll() )
+              .spread((m) => {
+                expect(m.interval[0]).to.be.eql(1);
+                expect(m.interval[1]).to.be.eql(4);
+              });
+    });
   }
+
+  if (dialect === 'mysql') {
+    it('should parse BIGINT as string', function () {
+      var Model = this.sequelize.define('model', {
+        jewelPurity: Sequelize.BIGINT
+      });
+
+      var sampleData = {
+        id: 1,
+        jewelPurity: '9223372036854775807',
+      };
+
+      return Model.sync({ force: true }).then(function () {
+        return Model.create(sampleData);
+      }).then(function () {
+        return Model.findById(1);
+      }).then(function (user) {
+        expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
+        expect(user.get('jewelPurity')).to.be.string;
+      });
+    });
+  }
+
+  it('should allow spaces in ENUM', function () {
+    var Model = this.sequelize.define('user', {
+      name: Sequelize.STRING,
+      type: Sequelize.ENUM(['action', 'mecha', 'canon', 'class s'])
+    });
+
+    return Model.sync({ force: true}).then(function () {
+      return Model.create({ name: 'sakura', type: 'class s' });
+    }).then(function (record) {
+      expect(record.type).to.be.eql('class s');
+    });
+  });
+
+  it('should return YYYY-MM-DD format string for DATEONLY', function () {
+    const Model = this.sequelize.define('user', {
+      stamp: Sequelize.DATEONLY
+    });
+    const testDate = moment().format('YYYY-MM-DD');
+
+    return Model.sync({ force: true})
+      .then(() => Model.create({ stamp: testDate }))
+      .then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+        return Model.findById(record.id);
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+      });
+  });
 
 });

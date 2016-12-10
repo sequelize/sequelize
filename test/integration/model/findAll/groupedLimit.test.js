@@ -22,38 +22,24 @@ if (current.dialect.supports['UNION ALL']) {
             title: DataTypes.STRING
           });
           this.Task = this.sequelize.define('task');
-
-          this.ProjectUser = this.sequelize.define('project_user', {}, {timestamps: false});
-          this.ProjectUserParanoid = this.sequelize.define('project_user_paranoid', {}, {
-            timestamps: true,
-            paranoid: true,
-            createdAt: false,
-            updatedAt: false
-          });
-
-          this.User.Projects = this.User.belongsToMany(this.Project, {through: this.ProjectUser});
-          this.Project.belongsToMany(this.User, {as: 'members', through: this.ProjectUser});
-
-          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, {through: this.ProjectUserParanoid});
-          this.Project.belongsToMany(this.User, {as: 'paranoidMembers', through: this.ProjectUserParanoid});
+          this.User.Projects = this.User.belongsToMany(this.Project, {through: 'project_user' });
+          this.Project.belongsToMany(this.User, {as: 'members', through: 'project_user' });
 
           this.User.Tasks = this.User.hasMany(this.Task);
 
-          return this.sequelize.sync({force: true}).bind(this).then(function() {
+          return this.sequelize.sync({force: true}).then(() => {
             return Promise.join(
               this.User.bulkCreate([{age: -5}, {age: 45}, {age: 7}, {age: -9}, {age: 8}, {age: 15}, {age: -9}]),
               this.Project.bulkCreate([{}, {}]),
               this.Task.bulkCreate([{}, {}])
             );
           })
-            .then(function() { return [this.User.findAll(), this.Project.findAll(), this.Task.findAll()]; })
-            .spread(function (users, projects, tasks) {
+            .then(() => [this.User.findAll(), this.Project.findAll(), this.Task.findAll()])
+            .spread((users, projects, tasks) => {
               this.projects = projects;
               return Promise.join(
                 projects[0].setMembers(users.slice(0, 4)),
                 projects[1].setMembers(users.slice(2)),
-                projects[0].setParanoidMembers(users.slice(0, 4)),
-                projects[1].setParanoidMembers(users.slice(2)),
                 users[2].setTasks(tasks)
               );
             });
@@ -65,15 +51,15 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map(function (item) { return item.get('id'); })
+                values: this.projects.map(item => item.get('id'))
               }
-            }).then(function (users) {
+            }).then(users => {
               expect(users).to.have.length(5);
-              users.filter(function (u) { return u.get('id') !== 3; }).forEach(function (u) {
-                expect(u.get('project_users')).to.have.length(1);
+              users.filter(u => u.get('id') !== 3).forEach(u => {
+                expect(u.get('projects')).to.have.length(1);
               });
-              users.filter(function (u) { return u.get('id') === 3; }).forEach(function(u) {
-                expect(u.get('project_users')).to.have.length(2);
+              users.filter(u => u.get('id') === 3).forEach(u => {
+                expect(u.get('projects')).to.have.length(2);
               });
             });
           });
@@ -83,25 +69,24 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map(function (item) { return item.get('id'); })
+                values: this.projects.map(item => item.get('id'))
               },
               order: ['id'],
               include: [this.User.Tasks]
-            }).then(function (users) {
+            }).then(users => {
               /*
                project1 - 1, 2, 3
                project2 - 3, 4, 5
                */
               expect(users).to.have.length(5);
-
-              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 2, 3, 4, 5]);
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
 
               expect(users[2].get('tasks')).to.have.length(2);
-              users.filter(function (u) { return u.get('id') !== 3; }).forEach(function (u) {
-                expect(u.get('project_users')).to.have.length(1);
+              users.filter(u => u.get('id') !== 3).forEach(u => {
+                expect(u.get('projects')).to.have.length(1);
               });
-              users.filter(function (u) { return u.get('id') === 3; }).forEach(function(u) {
-                expect(u.get('project_users')).to.have.length(2);
+              users.filter(u => u.get('id') === 3).forEach(u => {
+                expect(u.get('projects')).to.have.length(2);
               });
             });
           });
@@ -112,19 +97,19 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map(function (item) { return item.get('id'); })
+                values: this.projects.map(item => item.get('id'))
               },
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age'))
               ],
               include: [this.User.Tasks]
-            }).then(function (users) {
+            }).then(users => {
               /*
                project1 - 1, 3, 4
                project2 - 3, 5, 4
              */
               expect(users).to.have.length(4);
-              expect(users.map(function(u) { return u.get('id'); })).to.deep.equal([1, 3, 5, 4]);
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
             });
           });
 
@@ -134,69 +119,20 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map(function (item) { return item.get('id'); })
+                values: this.projects.map(item => item.get('id'))
               },
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age')),
                 ['id', 'DESC']
               ],
               include: [this.User.Tasks]
-            }).then(function (users) {
+            }).then(users => {
               /*
                 project1 - 1, 3, 4
                 project2 - 3, 5, 7
                */
               expect(users).to.have.length(5);
-              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 3, 5, 7, 4]);
-            });
-          });
-
-          it('works with paranoid junction models', function () {
-            return this.User.findAll({
-              attributes: ['id'],
-              groupedLimit: {
-                limit: 3,
-                on: this.User.ParanoidProjects,
-                values: this.projects.map(function (item) { return item.get('id'); })
-              },
-              order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
-                ['id', 'DESC']
-              ],
-              include: [this.User.Tasks]
-            }).bind(this).then(function (users) {
-              /*
-                project1 - 1, 3, 4
-                project2 - 3, 5, 7
-               */
-              expect(users).to.have.length(5);
-              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 3, 5, 7, 4]);
-
-              return Sequelize.Promise.join(
-                this.projects[0].setParanoidMembers(users.slice(0, 2)),
-                this.projects[1].setParanoidMembers(users.slice(4))
-              );
-            }).then(function () {
-              return this.User.findAll({
-                attributes: ['id'],
-                groupedLimit: {
-                  limit: 3,
-                  on: this.User.ParanoidProjects,
-                  values: this.projects.map(function (item) { return item.get('id'); })
-                },
-                order: [
-                  Sequelize.fn('ABS', Sequelize.col('age')),
-                  ['id', 'DESC']
-                ],
-                include: [this.User.Tasks]
-              });
-            }).then(function (users) {
-              /*
-                project1 - 1, 3
-                project2 - 4
-               */
-              expect(users).to.have.length(3);
-              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 3, 4]);
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
             });
           });
         });
@@ -207,14 +143,14 @@ if (current.dialect.supports['UNION ALL']) {
             this.Task = this.sequelize.define('task');
             this.User.Tasks = this.User.hasMany(this.Task);
 
-            return this.sequelize.sync({force: true}).bind(this).then(function() {
+            return this.sequelize.sync({force: true}).then(() => {
               return Promise.join(
                 this.User.bulkCreate([{}, {}, {}]),
                 this.Task.bulkCreate([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}])
               );
             })
-              .then(function() { return [this.User.findAll(), this.Task.findAll()]; })
-              .spread(function(users, tasks) {
+              .then(() => [this.User.findAll(), this.Task.findAll()])
+              .spread((users, tasks) => {
                 this.users = users;
                 return Promise.join(
                   users[0].setTasks(tasks[0]),
@@ -232,10 +168,10 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Tasks,
-                values: this.users.map(function (item) { return item.get('id'); })
+                values: this.users.map(item => item.get('id'))
               }
-            }).then(function (tasks) {
-              var byUser = _.groupBy(tasks, _.property('userId'));
+            }).then(tasks => {
+              const byUser = _.groupBy(tasks, _.property('userId'));
               expect(Object.keys(byUser)).to.have.length(3);
 
               expect(byUser[1]).to.have.length(1);

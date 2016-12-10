@@ -770,12 +770,12 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           })
         }).then(function (results) {
           return Promise.join(
-            results.products[0].addTag(results.tags[0], {priority: 1}),
-            results.products[0].addTag(results.tags[1], {priority: 2}),
-            results.products[1].addTag(results.tags[1], {priority: 1}),
-            results.products[2].addTag(results.tags[0], {priority: 3}),
-            results.products[2].addTag(results.tags[1], {priority: 1}),
-            results.products[2].addTag(results.tags[2], {priority: 2})
+            results.products[0].addTag(results.tags[0], { through: {priority: 1}}),
+            results.products[0].addTag(results.tags[1], { through: {priority: 2}}),
+            results.products[1].addTag(results.tags[1], { through: {priority: 1}}),
+            results.products[2].addTag(results.tags[0], { through: {priority: 3}}),
+            results.products[2].addTag(results.tags[1], { through: {priority: 1}}),
+            results.products[2].addTag(results.tags[2], { through: {priority: 2}})
           );
         }).then(function () {
           return Product.findAll({
@@ -1964,14 +1964,14 @@ describe(Support.getTestDialectTeaser('Include'), function() {
 
     it('Should return posts with nested include with inner join with a m:n association', function () {
 
-      var User = this.sequelize.define('User', {
+      const User = this.sequelize.define('User', {
         username: {
           type: DataTypes.STRING,
           primaryKey: true
         }
       });
 
-      var Entity = this.sequelize.define('Entity', {
+      const Entity = this.sequelize.define('Entity', {
         entity_id: {
           type: DataTypes.INTEGER,
           autoIncrement: true,
@@ -1988,7 +1988,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         }
       });
 
-      var Post = this.sequelize.define('Post', {
+      const Post = this.sequelize.define('Post', {
         post_id: {
           type: DataTypes.INTEGER,
           allowNull: false,
@@ -1996,7 +1996,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         }
       });
 
-      var TaggableSentient = this.sequelize.define('TaggableSentient', {
+      const TaggableSentient = this.sequelize.define('TaggableSentient', {
         nametag: {
           type: DataTypes.STRING,
           primaryKey: true
@@ -2021,46 +2021,35 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
 
       return this.sequelize.sync({ force: true })
-        .then(function () {
-          return User.create({ username: 'bob' });
-        })
-        .then(function () {
-          return TaggableSentient.create({ nametag: 'bob' });
-        })
-        .then(function () {
-          return Entity.create({ creator: 'bob' });
-        })
-        .then(function(entity) {
-          return Promise.all([
-            Post.create({ post_id: entity.entity_id }),
-            entity.addTags('bob')
-          ]);
-        })
-        .then(function() {
-          var options = {
+        .then(() => User.create({ username: 'bob' }))
+        .then(() => TaggableSentient.create({ nametag: 'bob' }))
+        .then(() => Entity.create({ creator: 'bob' }))
+        .then(entity => Promise.all([
+          Post.create({ post_id: entity.entity_id }),
+          entity.addTags('bob')
+        ]))
+        .then(() => Post.findAll({
+          include: [{
+            model: Entity,
+            required: true,
             include: [{
-              model: Entity,
+              model: User,
+              required: true
+            }, {
+              model: TaggableSentient,
+              as: 'tags',
               required: true,
-              include: [{
-                model: User,
-                required: true
-              }, {
-                model: TaggableSentient,
-                as: 'tags',
-                required: true,
-                through: {
-                  where: {
-                    tag_name: ['bob']
-                  }
+              through: {
+                where: {
+                  tag_name: ['bob']
                 }
-              }]
-            }],
-            limit: 5,
-            offset: 0
-          };
-          return Post.findAll(options);
-        })
-        .then(function(posts) {
+              }
+            }]
+          }],
+          limit: 5,
+          offset: 0
+        }))
+        .then(posts => {
           expect(posts.length).to.equal(1);
           expect(posts[0].Entity.creator).to.equal('bob');
           expect(posts[0].Entity.tags.length).to.equal(1);
@@ -2068,6 +2057,5 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
         });
     });
-
   });
 });

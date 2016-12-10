@@ -48,55 +48,6 @@ if (dialect.match(/^postgres/)) {
           expectation: {id: 'INTEGER UNIQUE'}
         },
 
-        // Old references style
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("pk")'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onDelete: 'CASCADE'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT'}
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (id)'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (pk)'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onDelete: 'CASCADE'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-
         // New references style
         {
           arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
@@ -247,6 +198,16 @@ if (dialect.match(/^postgres/)) {
           arguments: [{tableName: 'myTable', schema: 'mySchema'}, {cascade: true}],
           expectation: 'DROP TABLE IF EXISTS mySchema.myTable CASCADE;',
           context: {options: {quoteIdentifiers: false}}
+        }
+      ],
+
+      changeColumnQuery: [
+        {
+          arguments: ['myTable', {
+            col_1: "ENUM('value 1', 'value 2') NOT NULL",
+            col_2: "ENUM('value 3', 'value 4') NOT NULL"
+          }],
+          expectation: 'ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;CREATE TYPE "public"."enum_myTable_col_1" AS ENUM(\'value 1\', \'value 2\');ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."enum_myTable_col_1" USING ("col_1"::"public.enum_myTable_col_1");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;CREATE TYPE "public"."enum_myTable_col_2" AS ENUM(\'value 3\', \'value 4\');ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."enum_myTable_col_2" USING ("col_2"::"public.enum_myTable_col_2");'
         }
       ],
 

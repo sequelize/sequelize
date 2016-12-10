@@ -22,13 +22,11 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         }
-      }, {
-        instanceMethods: {
-          getItem: function() {
-            return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
-          }
-        }
       });
+      
+      this.Comment.prototype.getItem = function() {
+        return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+      };
 
       this.Post.addScope('withComments', {
         include: [this.Comment]
@@ -199,9 +197,9 @@ describe(Support.getTestDialectTeaser('associations'), function() {
             questionComment.getItem()
           );
         }).spread(function(post, image, question) {
-          expect(post.Model).to.equal(self.Post);
-          expect(image.Model).to.equal(self.Image);
-          expect(question.Model).to.equal(self.Question);
+          expect(post).to.be.instanceof(self.Post);
+          expect(image).to.be.instanceof(self.Image);
+          expect(question).to.be.instanceof(self.Question);
         }).then(function() {
           return Promise.join(
             self.Post.find({

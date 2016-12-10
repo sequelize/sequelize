@@ -157,7 +157,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           );
         })
         .spread(function(a, b) {
-          return a.addB(b, {name : 'Foobar'});
+          return a.addB(b, { through: {name : 'Foobar'}});
         })
         .then(function() {
           return A.find({
@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           return Task.create({ title: 'some task' }).then(function(newTask) {
             return newTask.setUser(newUser).then(function() {
               return Task.find({
-                title: 'some task',
+                where: { title: 'some task' },
                 include: [ { model: User } ]
               })
                 .then(function (foundTask) {

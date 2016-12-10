@@ -260,7 +260,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.attributes.include] | Array.&lt;String&gt; | Select all the attributes of the model, plus some additional ones. Useful for aggregations, e.g. `{ attributes: { include: [[sequelize.fn('COUNT', sequelize.col('id')), 'total']] }` |
 | [options.attributes.exclude] | Array.&lt;String&gt; | Select all the attributes of the model, except some few. Useful for security purposes e.g. `{ attributes: { exclude: ['password'] } }` |
 | [options.paranoid=true] | Boolean | If true, only non-deleted records will be returned. If false, both deleted and non-deleted records will be returned. Only applies if `options.paranoid` is true for the model. |
-| [options.include] | Array.&lt;Object &#124; Model&gt; | A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }]}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in the as attribute when eager loading Y). |
+| [options.include] | Array.&lt;Object &#124; Model &#124; String&gt; | A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }, ...]}` or `{ include: ['Alias', ...]}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in the as attribute when eager loading Y). |
 | [options.include[].model] | Model | The model you want to eagerly load |
 | [options.include[].as] | String | The alias of the relation, in case the model you want to eagerly load is aliased. For `hasOne` / `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural |
 | [options.include[].association] | Association | The association you want to eagerly load. (This can be used instead of providing a model/as pair) |
@@ -273,7 +273,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.include[].limit] | Number | Limit the joined rows, only supported with include.separate=true |
 | [options.include[].through.where] | Object | Filter on the join model for belongsToMany relations |
 | [options.include[].through.attributes] | Array | A list of attributes to select from the join model for belongsToMany relations |
-| [options.include[].include] | Array.&lt;Object &#124; Model&gt; | Load further nested related models |
+| [options.include[].include] | Array.&lt;Object &#124; Model &#124; String&gt; | Load further nested related models |
 | [options.order] | String &#124; Array &#124; Sequelize.fn | Specifies an ordering. If a string is provided, it will be escaped. Using an array, you can provide several columns / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction. For example: `order: [['name', 'DESC']]`. In this way the column will be escaped, but the direction will not. |
 | [options.limit] | Number |  |
 | [options.offset] | Number |  |
@@ -541,7 +541,8 @@ Builds a new model instance and calls save on it.
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
-
+| [options.returning] | Boolean | Append RETURNING * to get back auto generated values (Postgres only) |
+| [options.silent=false] | Boolean | If true, the updatedAt timestamp will not be updated. |
 
 ***
 
@@ -575,7 +576,7 @@ Find a row that matches the query, or build and save the row if none is found
 The successful result of the promise will be (instance, created) - Make sure to use .spread()
 
 If no transaction is passed in the `options` object, a new transaction will be created internally, to prevent the race condition where a matching row is created by another connection after the find but before the insert call.
-However, it is not always possible to handle this case in SQLite, specifically if one transaction inserts and another tries to select before the first one has committed. In this case, an instance of sequelize.TimeoutError will be thrown instead.
+However, it is not always possible to handle this case in SQLite, specifically if one transaction inserts and another tries to select before the first one has committed. In this case, an instance of sequelize. TimeoutError will be thrown instead.
 If a transaction is created, a savepoint will be created instead, and any unique constraint violation will be handled internally.
 
 **See:**
@@ -671,7 +672,7 @@ To obtain Instances for the newly created values, you will need to query for the
 | [options.hooks=true] | Boolean | Run before / after bulk create hooks? |
 | [options.individualHooks=false] | Boolean | Run before / after create hooks for each individual Instance? BulkCreate hooks will still be run if options.hooks is true. |
 | [options.ignoreDuplicates=false] | Boolean | Ignore duplicate values for primary keys? (not supported by postgres) |
-| [options.updateOnDuplicate] | Array | Fields to update if row key already exists (on duplicate key update)? (only supported by mysql & mariadb). By default, all fields are updated. |
+| [options.updateOnDuplicate] | Array | Fields to update if row key already exists (on duplicate key update)? (only supported by mysql). By default, all fields are updated. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.returning=false] | Boolean | Append RETURNING * to get back auto generated values (Postgres only) |
@@ -698,7 +699,7 @@ Truncate all instances of the model. This is a convenient method for Model.destr
 | ---- | ---- | ----------- |
 | [options] | object | The options passed to Model.destroy in addition to truncate |
 | [options.transaction] | Boolean &#124; function | Transaction to run query under |
-| [options.cascade | Boolean &#124; function | = false] Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
+| [options.cascade=false] | Boolean &#124; function | Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE. |
 | [options.transaction] | Transaction | Transaction to run query under |
 | [options.logging] | Boolean &#124; function | A function that logs sql queries, or false for no logging |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
@@ -776,7 +777,7 @@ of affected rows, while the second element is the actual affected rows (only sup
 | [options.sideEffects=true] | Boolean | Whether or not to update the side effects of any virtual setters. |
 | [options.individualHooks=false] | Boolean | Run before / after update hooks?. If true, this will execute a SELECT followed by individual UPDATEs. A select is needed, because the row data needs to be passed to the hooks |
 | [options.returning=false] | Boolean | Return the affected rows (only for postgres) |
-| [options.limit] | Number | How many rows to update (only for mysql and mariadb) |
+| [options.limit] | Number | How many rows to update (only for mysql) |
 | [options.logging=false] | Function | A function that gets executed while running the query to log the sql. |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 | [options.transaction] | Transaction | Transaction to run query under |

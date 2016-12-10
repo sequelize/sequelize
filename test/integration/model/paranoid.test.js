@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
     });
 
     it('should be able to soft delete with timestamps', function () {
-      var Account = this.sequelize.define('Account', {
+      const Account = this.sequelize.define('Account', {
         ownerId: {
           type: DataTypes.INTEGER,
           allowNull: false,
@@ -34,29 +34,32 @@ describe(Support.getTestDialectTeaser('Model'), function () {
       });
 
       return Account.sync({force: true})
-        .then(function () { return Account.create({ ownerId: 12 }); })
-        .then(function () { return Account.count(); })
-        .then(function (count) {
+        .then(() => Account.create({ ownerId: 12 }))
+        .then(() => Account.count())
+        .then((count) => {
           expect(count).to.be.equal(1);
-          return Account.destroy({ where: { ownerId: 12 }});
+          return Account.destroy({ where: { ownerId: 12 }})
+          .then((result) => {
+            expect(result).to.be.equal(1);
+          });
         })
-        .then(function () { return Account.count(); })
-        .then(function (count) {
+        .then(() => Account.count())
+        .then((count) => {
           expect(count).to.be.equal(0);
           return Account.count({ paranoid: false });
         })
-        .then(function (count) {
+        .then((count) => {
           expect(count).to.be.equal(1);
           return Account.restore({ where: { ownerId: 12 }});
         })
-        .then(function () { return Account.count(); })
-        .then(function (count) {
+        .then(() => Account.count())
+        .then((count) => {
           expect(count).to.be.equal(1);
         });
     });
 
     it('should be able to soft delete without timestamps', function () {
-      var Account = this.sequelize.define('Account', {
+      const Account = this.sequelize.define('Account', {
         ownerId: {
           type: DataTypes.INTEGER,
           allowNull: false,
@@ -79,23 +82,23 @@ describe(Support.getTestDialectTeaser('Model'), function () {
       });
 
       return Account.sync({force: true})
-        .then(function () { return Account.create({ ownerId: 12 }); })
-        .then(function () { return Account.count(); })
-        .then(function (count) {
+        .then(() => Account.create({ ownerId: 12 }))
+        .then(() => Account.count())
+        .then((count) => {
           expect(count).to.be.equal(1);
           return Account.destroy({ where: { ownerId: 12 }});
         })
-        .then(function () { return Account.count(); })
-        .then(function (count) {
+        .then(() => Account.count())
+        .then((count) => {
           expect(count).to.be.equal(0);
           return Account.count({ paranoid: false });
         })
-        .then(function (count) {
+        .then((count) => {
           expect(count).to.be.equal(1);
           return Account.restore({ where: { ownerId: 12 }});
         })
-        .then(function () { return Account.count(); })
-        .then(function (count) {
+        .then(() => Account.count())
+        .then((count) => {
           expect(count).to.be.equal(1);
         });
     });

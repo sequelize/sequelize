@@ -10,7 +10,7 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../config/config')
   , sinon = require('sinon')
-  , uuid = require('node-uuid')
+  , validateUUID = require('uuid-validate')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
@@ -223,7 +223,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('should still work right with other concurrent increments', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return this.sequelize.Promise.all([
+        return self.sequelize.Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
@@ -366,7 +366,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     it('should still work right with other concurrent increments', function() {
       var self = this;
       return this.User.findById(1).then(function(user1) {
-        return this.sequelize.Promise.all([
+        return self.sequelize.Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
@@ -566,12 +566,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                 return Book.findOne({
                   where: { id: book.id }
                 }).then(function(leBook) {
-                  var oldOptions = leBook.$options;
+                  var oldOptions = leBook._options;
                   return leBook.reload({
                     include: [Page]
                   }).then(function(leBook) {
-                    expect(oldOptions).not.to.equal(leBook.$options);
-                    expect(leBook.$options.include.length).to.equal(1);
+                    expect(oldOptions).not.to.equal(leBook._options);
+                    expect(leBook._options.include.length).to.equal(1);
                     expect(leBook.Pages.length).to.equal(1);
                     expect(leBook.get({plain: true}).Pages.length).to.equal(1);
                   });
@@ -703,10 +703,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(user.uuidv4).to.have.length(36);
       });
 
-      it('should store a valid uuid in uuidv1 and uuidv4 that can be parsed to something of length 16', function() {
+      it('should store a valid uuid in uuidv1 and uuidv4 that conforms to the UUID v1 and v4 specifications', function() {
         var user = this.User.build({ username: 'a user'});
-        expect(uuid.parse(user.uuidv1)).to.have.length(16);
-        expect(uuid.parse(user.uuidv4)).to.have.length(16);
+        expect(validateUUID(user.uuidv1, 1)).to.be.true;
+        expect(validateUUID(user.uuidv4, 4)).to.be.true;
       });
 
       it('should store a valid uuid if the field is a primary key named id', function() {
@@ -1201,12 +1201,12 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       it('does not update timestamps', function() {
         var self = this;
         return self.User.create({ username: 'John' }).then(function() {
-          return self.User.findOne({ username: 'John' }).then(function(user) {
+          return self.User.findOne({ where: { username: 'John' } }).then(function(user) {
             var updatedAt = user.updatedAt;
             self.clock.tick(2000);
             return user.save().then(function(newlySavedUser) {
               expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
-              return self.User.findOne({ username: 'John' }).then(function(newlySavedUser) {
+              return self.User.findOne({ where: { username: 'John' } }).then(function(newlySavedUser) {
                 expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
               });
             });
@@ -1309,7 +1309,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       });
     });
 
@@ -1319,7 +1319,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       });
     });
 
@@ -1343,7 +1343,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           expect(err.get('validateTest')).to.exist;
           expect(err.get('validateTest')).to.be.instanceof(Array);
           expect(err.get('validateTest')[0]).to.exist;
-          expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+          expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
         });
       });
     });
@@ -1912,7 +1912,9 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                     expect(user1.get('Projects')).to.not.exist;
                     expect(user2.get('Projects')).to.exist;
                     expect(user1.equals(user2)).to.be.true;
+                    expect(user2.equals(user1)).to.be.true;
                     expect(user1.equals(user3)).to.not.be.true;
+                    expect(user3.equals(user1)).to.not.be.true;
                   });
                 });
               });

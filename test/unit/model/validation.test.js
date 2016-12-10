@@ -199,10 +199,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
           var failingUser = UserFail.build({ name: failingValue });
 
-          return failingUser.validate().then(function(_errors) {
-            expect(_errors).not.to.be.null;
-            expect(_errors).to.be.an.instanceOf(Error);
+          return expect(failingUser.validate()).to.be.rejected.then(function(_errors) {
             expect(_errors.get('name')[0].message).to.equal(message);
+            expect(_errors.get('name')[0].value).to.equal(failingValue);
           });
         });
       }
@@ -230,11 +229,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
               }
             });
             var successfulUser = UserSuccess.build({ name: succeedingValue });
-            return successfulUser.validate().then(function(errors) {
-              expect(errors).to.be.null;
-            }).catch(function(err) {
-              expect(err).to.deep.equal({});
-            });
+            return expect(successfulUser.validate()).not.to.be.rejected;
           });
         };
 
@@ -281,7 +276,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     before(function () {
       this.stub = sinon.stub(current, 'query', function () {
         return new Promise(function (resolve) {
-          resolve(User.build({}));
+          resolve([User.build({}), 1]);
         });
       });
     });
@@ -443,7 +438,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').returns(Promise.resolve(User.build()));
+      this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
     after(function () {
@@ -518,7 +513,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').returns(Promise.resolve(User.build()));
+      this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
     after(function () {

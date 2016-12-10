@@ -33,9 +33,8 @@ Once done, you can install Sequelize and the connector for your database of choi
 ```bash
 $ npm install --save sequelize
 $ npm install --save pg       # for postgres
-$ npm install --save mysql    # for mysql
+$ npm install --save mysql2   # for mysql
 $ npm install --save sqlite3  # for sqlite
-$ npm install --save mariasql # for mariasql
 ```
 
 ## Connecting to the database
@@ -45,7 +44,7 @@ Open the created directory in your favorite text editor and add a new file calle
 ```js
 var Sequelize = require('sequelize')
   , sequelize = new Sequelize('database_name', 'username', 'password', {
-      dialect: "mysql", // or 'sqlite', 'postgres', 'mariadb', 'mssql'
+      dialect: "mysql", // or 'sqlite', 'postgres', 'mssql'
       port:    3306 // or 5432 (for postgres)
     });
 

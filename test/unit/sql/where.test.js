@@ -154,7 +154,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('equipment', {
         $notIn: []
       }, {
-        default: '[equipment] NOT IN (NULL)'
+        default: ''
       });
 
       testsql('equipment', {
@@ -377,7 +377,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('$offer.organization.id$', {
         $col: 'offer.user.organizationId'
       }, {
-        default: '[offer.organization].[id] = [offer.user].[organizationId]'
+        default: '[offer->organization].[id] = [offer->user].[organizationId]'
       });
     });
 
@@ -607,6 +607,111 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: "\"userId\" NOT ILIKE ALL ARRAY['foo','bar','baz']"
           });
         });
+      });
+    }
+
+    if (current.dialect.supports.RANGE) {
+      suite('RANGE', function () {
+
+        testsql('range', {
+          $contains: new Date(Date.UTC(2000, 1, 1))
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"range\" @> '2000-02-01 00:00:00.000 +00:00'::timestamptz"
+        });
+
+        testsql('range', {
+          $contains: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"range\" @> '[\"2000-02-01 00:00:00.000 +00:00\",\"2000-03-01 00:00:00.000 +00:00\")'"
+        });
+
+        testsql('range', {
+          $contained: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"range\" <@ '[\"2000-02-01 00:00:00.000 +00:00\",\"2000-03-01 00:00:00.000 +00:00\")'"
+        });
+
+        testsql('reservedSeats', {
+          $overlap: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" && '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $adjacent: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" -|- '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $strictLeft: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" << '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $strictRight: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" >> '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $noExtendRight: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" &< '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $noExtendLeft: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" &> '[1,4)'"
+        });
+
       });
     }
 

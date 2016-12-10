@@ -458,23 +458,6 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
     });
   });
 
-  suite('formatReferences', function () {
-    ([
-      [{referencesKey: 1}, {references: {model: undefined, key: 1, deferrable: undefined}, referencesKey: undefined, referencesDeferrable: undefined}],
-      [{references: 'a'}, {references: {model: 'a', key: undefined, deferrable: undefined}, referencesKey: undefined, referencesDeferrable: undefined}],
-      [{references: 'a', referencesKey: 1}, {references: {model: 'a', key: 1, deferrable: undefined}, referencesKey: undefined, referencesDeferrable: undefined}],
-      [{references: {model: 1}}, {references: {model: 1}}],
-      [{references: 1, referencesKey: 2, referencesDeferrable: 3}, {references: {model: 1, key: 2, deferrable: 3}, referencesKey: undefined, referencesDeferrable: undefined}]
-    ]).forEach(function (test) {
-      var input  = test[0];
-      var output = test[1];
-
-      it(JSON.stringify(input) + ' to ' + JSON.stringify(output), function () {
-        expect(Utils.formatReferences(input)).to.deep.equal(output);
-      });
-    });
-  });
-
   suite('Sequelize.cast', function() {
     var sql = Support.sequelize;
     var generator = sql.queryInterface.QueryGenerator;
@@ -492,5 +475,5 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
         mssql: 'SUM(CAST(([foo] = N\'foo\' OR [bar] = N\'bar\') AS INT))'
       });
     });
-  });
+});
 });

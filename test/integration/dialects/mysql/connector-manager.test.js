@@ -4,10 +4,11 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , dialect = Support.getTestDialect()
   , sinon = require('sinon')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-if (Support.dialectIsMySQL()) {
+if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connector Manager', function() {
     it('works correctly after being idle', function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
@@ -34,8 +35,11 @@ if (Support.dialectIsMySQL()) {
     });
 
     it('accepts new queries after shutting down a connection', function() {
-      // Create a sequelize instance with pooling disabled
-      var sequelize = Support.createSequelizeInstance({ pool: false });
+      // Create a sequelize instance with fast disconnecting connection
+      var sequelize = Support.createSequelizeInstance({ pool: {
+        idle: 50,
+        max: 1
+      } });
       var User = sequelize.define('User', { username: DataTypes.STRING });
 
       return User.sync({force: true}).then(function() {
@@ -52,7 +56,7 @@ if (Support.dialectIsMySQL()) {
     });
 
     // This should run only on direct mysql
-    if (Support.dialectIsMySQL(true)) {
+    if (dialect === 'mysql') {
       it('should maintain connection', function() {
         var sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}})
           , cm = sequelize.connectionManager
@@ -96,7 +100,7 @@ if (Support.dialectIsMySQL()) {
             conn = connection;
 
             // simulate a unexpected end
-            connection._protocol.end();
+            connection.close();
           })
           .then(function() {
             return cm.releaseConnection(conn);

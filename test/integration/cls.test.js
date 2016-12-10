@@ -13,11 +13,12 @@ var chai      = require('chai')
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), function () {
     before(function () {
-      Sequelize.cls = cls.createNamespace('sequelize');
+      this.thenOriginal = Promise.prototype.then;
+      Sequelize.useCLS(cls.createNamespace('sequelize'));
     });
 
     after(function () {
-      delete Sequelize.cls;
+      delete Sequelize._cls;
     });
 
     beforeEach(function () {
@@ -144,246 +145,14 @@ if (current.dialect.supports.transactions) {
       });
     });
 
-    describe('bluebird shims', function () {
-      beforeEach(function () {
-        // Make sure we have some data so the each, map, filter, ... actually run and validate asserts
-        return this.sequelize.Promise.all([this.User.create({ name: 'bob' }), this.User.create({ name: 'joe' })]);
-      });
-
-      it('join', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.join(self.User.findAll(), function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('then fulfilled', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().then(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('then rejected', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.reject(new Error('test rejection handler')).then(null,function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('spread', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().spread(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          },function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('catch', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.try(function () {
-            throw new Error('To test catch');
-          }).catch(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('error', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.try(function () {
-            throw new self.sequelize.Promise.OperationalError('To test catch');
-          }).error(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('finally', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().finally( function(){
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('map', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().map(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('static map', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.map(self.User.findAll(), function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('reduce', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().reduce(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('static reduce', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.reduce(self.User.findAll(), function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('filter', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().filter(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('static filter', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.filter(self.User.findAll(), function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('each', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().each(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('static each', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.sequelize.Promise.each(self.User.findAll(), function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('nodeify', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().nodeify(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('tap', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return self.User.findAll().tap(function () {
-            expect(self.ns.get('transaction').id).to.be.ok;
-            expect(self.ns.get('transaction').id).to.equal(tid);
-          });
-        });
-      });
-
-      it('done fulfilled', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return new Promise(function (resolve, reject) {
-            self.User.findAll().done(function () {
-              try {
-                expect(self.ns.get('transaction').id).to.be.ok;
-                expect(self.ns.get('transaction').id).to.equal(tid);
-                resolve();
-              } catch (err) {
-                reject(err);
-              }
-            }, function (err) {
-              reject(err);
-            });
-          });
-        });
-      });
-
-      it('done rejected', function () {
-        var self = this;
-        return this.sequelize.transaction(function () {
-          var tid = self.ns.get('transaction').id;
-          return new Promise(function (resolve, reject) {
-            Promise.reject(new Error('test rejection handler')).done(function () {
-              reject(new Error('Should not have called first done handler'));
-            }, function (err) {
-              try {
-                expect(self.ns.get('transaction').id).to.be.ok;
-                expect(self.ns.get('transaction').id).to.equal(tid);
-                resolve();
-              } catch (err) {
-                reject(err);
-              }
-            });
-          });
-        });
-      });
+    it('bluebird patch is applied', function() {
+      expect(Promise.prototype.then).to.be.a('function');
+      expect(this.thenOriginal).to.be.a('function');
+      expect(Promise.prototype.then).not.to.equal(this.thenOriginal);
     });
 
+    it('CLS namespace is stored in Sequelize._cls', function() {
+      expect(Sequelize._cls).to.equal(this.ns);
+    });
   });
 }

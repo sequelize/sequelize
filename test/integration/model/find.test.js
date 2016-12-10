@@ -7,7 +7,9 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
+  , moment = require('moment')
   , Support = require(__dirname + '/../support')
+  , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
@@ -73,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
@@ -151,6 +153,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(user) {
           expect(user.dataValues.name).to.equal('barfooz');
         });
+      });
+
+      it('should fail with meaningful error message on invalid attributes definition', function() {
+        expect(this.User.findOne({
+          where: { id: 1 },
+          attributes: ['id', ['username']]
+        })).to.be.rejectedWith('["username"] is not a valid attribute definition. Please use the following format: [\'attribute definition\', \'alias\']');
       });
 
       it('should not try to convert boolean values if they are not selected', function() {
@@ -897,21 +906,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('should return a DAO when queryOptions are not set', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}}).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.Instance);
+          expect(user).to.be.instanceOf(self.User);
         });
       });
 
       it('should return a DAO when raw is false', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: false }).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.Instance);
+          expect(user).to.be.instanceOf(self.User);
         });
       });
 
       it('should return raw data when raw is true', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: true }).then(function(user) {
-          expect(user).to.not.be.instanceOf(self.User.Instance);
+          expect(user).to.not.be.instanceOf(self.User);
           expect(user).to.be.instanceOf(Object);
         });
       });
@@ -985,6 +994,29 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
       });
 
+    });
+
+    it('should find records where deletedAt set to future', function() {
+      var User = this.sequelize.define('paranoiduser', {
+        username: Sequelize.STRING
+      }, { paranoid: true });
+
+      return User.sync({ force: true }).then(function() {
+        return User.bulkCreate([
+          {username: 'Bob'},
+          {username: 'Tobi', deletedAt: moment().add(30, 'minutes').format()},
+          {username: 'Max', deletedAt: moment().add(30, 'days').format()},
+          {username: 'Tony', deletedAt: moment().subtract(30, 'days').format()}
+        ]);
+      }).then(function() {
+        return User.find({ where: {username: 'Tobi'} });
+      }).then(function(tobi) {
+        expect(tobi).not.to.be.null;
+      }).then(function() {
+        return User.findAll();
+      }).then(function(users) {
+        expect(users.length).to.be.eql(3);
+      });
     });
 
   });

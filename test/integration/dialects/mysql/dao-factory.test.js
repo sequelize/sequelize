@@ -4,10 +4,11 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , config = require(__dirname + '/../../../config/config');
 
-if (Support.dialectIsMySQL()) {
+if (dialect === 'mysql') {
   describe('[MYSQL Specific] DAOFactory', function() {
     describe('constructor', function() {
       it('handles extended attributes (unique)', function() {

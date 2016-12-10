@@ -6,7 +6,9 @@ var chai = require('chai')
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , Sequelize = Support.Sequelize
-  , sinon = require('sinon');
+  , dialect = Support.getTestDialect()
+  , sinon = require('sinon')
+  , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -82,7 +84,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         sequelize.options.protocol = 'udp';
       });
 
-      this.seq = new Sequelize('db', 'user', 'pass', {});
+      this.seq = new Sequelize('db', 'user', 'pass', { dialect : dialect });
     });
 
     it('beforeInit hook can alter config', function() {
@@ -111,15 +113,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeValidate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            beforeValidate: function(user, options) {
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterValidate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            afterValidate: function(user, options) {
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -141,15 +143,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeCreate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            beforeCreate: function(user, options) {
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterCreate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            afterCreate: function(user, options) {
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -171,15 +173,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeDestroy: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            beforeDestroy: function(user, options) {
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterDestroy: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            afterDestroy: function(user, options) {
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -203,15 +205,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeDelete: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            beforeDelete: function(user, options) {
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterDelete: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            afterDelete: function(user, options) {
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -235,15 +237,15 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeUpdate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            beforeUpdate: function(user, options) {
+              expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              fn();
+              return Promise.resolve();
             },
-            afterUpdate: function(user, options, fn) {
-              expect(user).to.be.instanceof(User.Instance);
+            afterUpdate: function(user, options) {
+              expect(user).to.be.instanceof(User);
               afterHooked = true;
-              fn();
+              return Promise.resolve();
             }
           }
         });
@@ -412,4 +414,60 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
   });
 
+  describe('#removal', function() {
+    it('should be able to remove by name', function() {
+      var sasukeHook = sinon.spy()
+        , narutoHook = sinon.spy();
+
+      this.User.hook('beforeCreate', 'sasuke', sasukeHook);
+      this.User.hook('beforeCreate', 'naruto', narutoHook);
+
+      return this.User.create({ username: 'makunouchi'}).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledOnce;
+        this.User.removeHook('beforeCreate', 'sasuke');
+        return this.User.create({ username: 'sendo'});
+      }).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledTwice;
+      });
+    });
+
+    it('should be able to remove by reference', function() {
+      var sasukeHook = sinon.spy()
+        , narutoHook = sinon.spy();
+
+      this.User.hook('beforeCreate', sasukeHook);
+      this.User.hook('beforeCreate', narutoHook);
+
+      return this.User.create({ username: 'makunouchi'}).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledOnce;
+        this.User.removeHook('beforeCreate', sasukeHook);
+        return this.User.create({ username: 'sendo'});
+      }).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledTwice;
+      });
+    });
+
+    it('should be able to remove proxies', function() {
+      var sasukeHook = sinon.spy()
+        , narutoHook = sinon.spy();
+
+      this.User.hook('beforeSave', sasukeHook);
+      this.User.hook('beforeSave', narutoHook);
+
+      return this.User.create({ username: 'makunouchi'}).then((user) => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledOnce;
+        this.User.removeHook('beforeSave', sasukeHook);
+        return user.updateAttributes({ username: 'sendo'});
+      }).then(() => {
+        expect(sasukeHook).to.have.been.calledOnce;
+        expect(narutoHook).to.have.been.calledTwice;
+      });
+    });
+
+  });
 });

@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
     it('Should have the Error constructors exposed', function() {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
-      var sequelize = new Sequelize();
+      var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
       expect(sequelize).to.have.property('Error');
       expect(sequelize).to.have.property('ValidationError');
     });
@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       , new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
       ]);
 
-      var sequelize = new Sequelize();
+      var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
       var instError = new sequelize.Error();
       var instValidationError = new sequelize.ValidationError();
 

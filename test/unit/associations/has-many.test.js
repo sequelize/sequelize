@@ -84,6 +84,37 @@ describe(Support.getTestDialectTeaser('hasMany'), function() {
       expect(obj[association.accessors.hasAll]).to.be.an('function');
       expect(obj[association.accessors.count]).to.be.an('function');
     });
+
+    it('should not override custom methods', function(){
+      const methods = {
+        getTasks: 'get',
+        countTasks: 'count',
+        hasTask: 'has',
+        hasTasks: 'has',
+        setTasks: 'set',
+        addTask: 'add',
+        addTasks: 'add',
+        removeTask: 'remove',
+        removeTasks: 'remove',
+        createTask: 'create',
+      };
+
+      current.Utils._.each(methods, (alias, method) => {
+        User.prototype[method] = function () {
+          const realMethod = this.constructor.associations.task[alias];
+          expect(realMethod).to.be.a('function');
+          return realMethod;
+        };
+      });
+
+      User.hasMany(Task, { as: 'task' });
+
+      const user = User.build();
+
+      current.Utils._.each(methods, (alias, method) => {
+        expect(user[method]()).to.be.a('function');
+      });
+    });
   });
 
   describe('get', function () {

@@ -394,6 +394,45 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
+      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
+        var User = this.sequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
+            field: 'user_name'
+          }
+        });
+
+        User.beforeCreate(instance => {
+          instance.set('username', instance.get('username').trim());
+        });
+
+        let spy = sinon.spy();
+
+        let names = [
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick ',
+          'mick '
+        ];
+
+        return User.sync({force: true}).then(() => {
+          return Promise.all(
+            names.map(username => {
+              return User.findOrCreate({where: {username}}).catch(err => {
+                spy();
+                expect(err.message).to.equal(`user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick ' vs 'mick'`);
+              });
+            })
+          );
+        }).then(() => {
+          expect(spy).to.have.been.called;
+        });
+      });
+
       (dialect !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', function () {
         var User = this.sequelize.define('user', {
           objectId: {
@@ -586,8 +625,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
 
           return User.findOne({
-            updatedAt: {
-              ne: null
+            where: {
+              updatedAt: {
+                ne: null
+              }
             }
           }).then(function (user) {
             expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
@@ -705,7 +746,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     it('is possible to use casting when creating an instance', function() {
       var self = this
-        , type = Support.dialectIsMySQL() ? 'signed' : 'integer'
+        , type = dialect === 'mysql' ? 'signed' : 'integer'
         , match = false;
 
       return this.User.create({
@@ -728,7 +769,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         , type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer')
         , match = false;
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed');
       }
 
@@ -736,7 +777,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         intVal: type
       }, {
         logging: function(sql) {
-          if (Support.dialectIsMySQL()) {
+          if (dialect === 'mysql') {
             expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
           } else {
             expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');
@@ -755,7 +796,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       var self = this;
 
       return this.User.create({
-        intVal: this.sequelize.literal('CAST(1-2 AS ' + (Support.dialectIsMySQL() ? 'SIGNED' : 'INTEGER') + ')')
+        intVal: this.sequelize.literal('CAST(1-2 AS ' + (dialect === 'mysql' ? 'SIGNED' : 'INTEGER') + ')')
       }).then(function(user) {
         return self.User.findById(user.id).then(function(user) {
           expect(user.intVal).to.equal(-1);
@@ -918,7 +959,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return UserNull.create({ username: 'foo2', smth: null }).catch(function(err) {
           expect(err).to.exist;
           expect(err.get('smth')[0].path).to.equal('smth');
-          if (Support.dialectIsMySQL()) {
+          if (dialect === 'mysql') {
             // We need to allow two different errors for MySQL, see:
             // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
             expect(err.get('smth')[0].type).to.match(/notNull Violation/);
@@ -963,7 +1004,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(str2.str).to.equal('http://sequelizejs.org');
             return StringIsNullOrUrl.create({ str: '' }).catch(function(err) {
               expect(err).to.exist;
-              expect(err.get('str')[0].message).to.match(/Validation isURL failed/);
+              expect(err.get('str')[0].message).to.match(/Validation isURL on str failed/);
             });
           });
         });
@@ -1363,8 +1404,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           silent: true
         }).then(function () {
           return User.findAll({
-            updatedAt: {
-              ne: null
+            where: {
+              updatedAt: {
+                ne: null
+              }
             }
           }).then(function (users) {
             users.forEach(function (user) {
@@ -1403,7 +1446,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               expect(sql.indexOf('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT')).not.be.equal(-1);
             } else if (dialect === 'mssql') {
               expect(sql.indexOf('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES')).not.be.equal(-1);
-            } else { // mysql, sqlite, mariadb
+            } else { // mysql, sqlite
               expect(sql.indexOf('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL')).not.be.equal(-1);
             }
           }
@@ -1570,14 +1613,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           {code: '1234'},
           {name: 'bar', code: '1'}
         ], { validate: true }).catch(function(errors) {
-          expect(errors).to.not.be.null;
-          expect(errors).to.be.an('Array');
+          expect(errors).to.be.instanceof(Promise.AggregateError);
           expect(errors).to.have.length(2);
           expect(errors[0].record.code).to.equal('1234');
           expect(errors[0].errors.get('name')[0].type).to.equal('notNull Violation');
           expect(errors[1].record.name).to.equal('bar');
           expect(errors[1].record.code).to.equal('1');
-          expect(errors[1].errors.get('code')[0].message).to.equal('Validation len failed');
+          expect(errors[1].errors.get('code')[0].message).to.equal('Validation len on code failed');
         });
       });
     });
@@ -1764,6 +1806,74 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
           });
         });
+      });
+    });
+
+    it('should properly map field names to attribute names', function() {
+      var Maya = this.sequelize.define('Maya', {
+        name: Sequelize.STRING,
+        secret: {
+          field: 'secret_given',
+          type: Sequelize.STRING
+        },
+        createdAt: {
+            field: 'created_at',
+            type: Sequelize.DATE
+        },
+        updatedAt: {
+            field: 'updated_at',
+            type: Sequelize.DATE
+        }
+      });
+
+      var M1 = { id: 1, name: 'Prathma Maya', secret: 'You are on list #1'};
+      var M2 = { id: 2, name: 'Dwitiya Maya', secret: 'You are on list #2'};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1))
+      .then((m) => {
+        expect(m.createdAt).to.be.ok;
+        expect(m.id).to.be.eql(M1.id);
+        expect(m.name).to.be.eql(M1.name);
+        expect(m.secret).to.be.eql(M1.secret);
+
+        return Maya.bulkCreate([M2]);
+      }).spread((m) => {
+
+        // only attributes are returned, no fields are mixed
+        expect(m.createdAt).to.be.ok;
+        expect(m.created_at).to.not.exist;
+        expect(m.secret_given).to.not.exist;
+        expect(m.get('secret_given')).not.to.be.defined;
+        expect(m.get('created_at')).not.to.be.defined;
+
+        // values look fine
+        expect(m.id).to.be.eql(M2.id);
+        expect(m.name).to.be.eql(M2.name);
+        expect(m.secret).to.be.eql(M2.secret);
+      });
+    });
+    
+    it('should return autoIncrement primary key (create)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1, {returning: true}))
+      .then((m) => {
+        expect(m.id).to.be.eql(1);
+      });
+    });
+  
+    it('should return autoIncrement primary key (bulkCreate)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+      var M2 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
+      .then((ms) => {
+        expect(ms[0].id).to.be.eql(1);
+        expect(ms[1].id).to.be.eql(2);
       });
     });
   });

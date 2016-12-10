@@ -51,17 +51,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             self.Student.create({no: 1, name: 'ryan'}),
             self.Course.create({no: 100, name: 'history'})
           ).spread(function(student, course) {
-            return student.addCourse(course, {score: 98, test_value: 1000});
+            return student.addCourse(course, { through: {score: 98, test_value: 1000}});
           }).then(function() {
             expect(self.callCount).to.equal(1);
-            return self.Score.find({StudentId: 1, CourseId: 100}).then(function(score) {
+            return self.Score.find({ where: { StudentId: 1, CourseId: 100 } }).then(function(score) {
               expect(score.test_value).to.equal(1001);
             });
           })
           .then(function() {
             return Promise.join(
               self.Student.build({no: 1}).getCourses({where: {no: 100}}),
-              self.Score.find({StudentId: 1, CourseId: 100})
+              self.Score.find({ where: { StudentId: 1, CourseId: 100 } })
             );
           })
           .spread(function(courses, score) {
