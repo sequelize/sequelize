@@ -1,5 +1,10 @@
 # Sequelize-oracle
-  
+
+## This repository is no longer maintained
+## For updates, go to : https://github.com/nhuanhoangduc/cu8-sequelize-oracle
+
+--
+
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lebretr/sequelize-oracle/trend.png)](https://bitdeli.com/free "Bitdeli Badge") 
 [![Build Status](https://travis-ci.org/lebretr/sequelize-oracle.svg?branch=master-Oracle)](https://travis-ci.org/lebretr/sequelize-oracle) 
 [![Dependency Status](https://david-dm.org/lebretr/sequelize-oracle.png)](https://david-dm.org/lebretr/sequelize-oracle) 
