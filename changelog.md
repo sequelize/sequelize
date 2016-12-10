@@ -1,4 +1,5 @@
 # Future
+- [FIXED] Transaction Name too long for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
 - [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
 - [FIXED] MSSQL handle large bulk inserts [#6866](https://github.com/sequelize/sequelize/issues/6866)
 - [FIXED] describeTable returns a wrong value for primaryKey [#5756] (https://github.com/sequelize/sequelize/issues/5756)

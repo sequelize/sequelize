@@ -73,6 +73,7 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
             break;
           case 'mssql':
             query = 'WAITFOR DELAY \'00:00:02\';';
+            break;
           default:
             break;
           }
