@@ -10,6 +10,58 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('findAll', function () {
     describe('order', function () {
+      it('should work on a model field whose name doesnt match the database, while offsetting and including a hasMany.', function() {
+        var Foo = current.define('foo', {
+          fooId: {
+            field: 'foo_id',
+            type: DataTypes.UUID,
+            primaryKey: true
+          },
+          baseNumber: {
+            field: 'base_number',
+            type: DataTypes.STRING(25)
+          }
+        }, {
+          timestamps: false
+        }),
+          Bar = current.define('bar', {
+            barId: {
+              field: 'bar_id',
+              type: DataTypes.UUID,
+              primaryKey: true
+            },
+            fooId: {
+              field: 'foo_id',
+              type: DataTypes.UUID,
+              allowNull: false
+            }
+          }, {
+            timestamps: false
+          });
+
+        Foo.hasMany(Bar, {foreignKey: 'foo_id', as: 'bars'});
+
+        return current.sync({force: true})
+          .then(function () {
+            var options = {
+              include: [
+                {
+                  model: Bar, as: 'bars'
+                }
+              ],
+              offset: 0,
+              limit: 50,
+              order: [['base_number', 'ASC']]
+            };
+
+            return Foo.findAll(options).then(function () {
+              console.log('success!');
+            }, function (err) {
+              throw err;
+            });
+          });
+       });
+
       describe('Sequelize.literal()', function () {
         beforeEach(function () {
           this.User = this.sequelize.define('User', {

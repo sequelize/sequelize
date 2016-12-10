@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
-    it('should count on a where and not use an uneeded include', function() {
+    it('should count on a where', function() {
       var Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
         project_name: { type: DataTypes.STRING}

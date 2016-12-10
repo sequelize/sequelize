@@ -52,6 +52,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
 
   describe('Instantiation with arguments', function() {
     if (dialect === 'sqlite') {
+      var sqlite3 = require('sqlite3');
       it('should respect READONLY / READWRITE connection modes', function() {
         var p = path.join(__dirname, '../tmp', 'foo.sqlite');
         var createTableFoo = 'CREATE TABLE foo (faz TEXT);';
