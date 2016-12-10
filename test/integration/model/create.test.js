@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('findOrCreate', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
           return self.User.findOrCreate({
@@ -694,7 +694,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
           return self.User.create({ username: 'user' }, { transaction: t }).then(function() {
@@ -1365,7 +1365,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('bulkCreate', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
           return self.User

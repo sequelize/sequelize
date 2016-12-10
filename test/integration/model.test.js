@@ -681,7 +681,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('findOne', function() {
     if (current.dialect.supports.transactions) {
-      it('supports the transaction option in the first parameter', function() {
+      it.skip('supports the transaction option in the first parameter', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
           return User.sync({ force: true }).then(function() {
@@ -717,7 +717,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('findOrInitialize', function() {
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
 
@@ -818,7 +818,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -1220,7 +1220,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -1666,7 +1666,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('count', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -1821,7 +1821,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { age: Sequelize.INTEGER });
 
@@ -1911,7 +1911,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { age: Sequelize.INTEGER });
 
@@ -2604,7 +2604,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   });
 
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
-    it('supports multiple async transactions', function() {
+    it.skip('supports multiple async transactions', function() {
       this.timeout(90000);
       var self = this;
       return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {

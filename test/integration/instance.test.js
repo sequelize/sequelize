@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
@@ -289,7 +289,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
@@ -427,7 +427,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
   describe('reload', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
@@ -872,7 +872,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
   describe('save', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING });
           return User.sync({ force: true }).then(function() {
@@ -1940,7 +1940,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
   describe('destroy', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING });
 

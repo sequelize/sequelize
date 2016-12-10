@@ -71,6 +71,8 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
           case 'sqlite':
             query = 'select sqlite3_sleep(2000);';
             break;
+          case 'mssql':
+            query = 'WAITFOR DELAY \'00:00:02\';';
           default:
             break;
           }

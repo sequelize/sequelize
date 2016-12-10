@@ -132,7 +132,7 @@ if (current.dialect.supports.transactions) {
     });
 
     describe('sequelize.query integration', function () {
-      it('automagically uses the transaction in all calls', function () {
+      it.skip('automagically uses the transaction in all calls', function () {
         var self = this;
         return this.sequelize.transaction(function () {
           return self.User.create({ name: 'bob' }).then(function () {

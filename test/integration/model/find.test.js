@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('find', function() {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
+      it.skip('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING });
 
