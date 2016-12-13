@@ -5,7 +5,7 @@ var Support   = require(__dirname + '/../support')
   , Sequelize = Support.Sequelize
   , chai = require('chai')
   , util = require('util')
-  , uuid = require('node-uuid')
+  , uuid = require('uuid')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
   , expect = chai.expect;
@@ -231,7 +231,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
             expect(function () {
               type.validate('foobar');
-            }).to.throw(Sequelize.ValidationError, 'foobar is not a valid hstore');
+            }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid hstore');
           });
 
           test('should return `true` if `value` is an hstore', function() {

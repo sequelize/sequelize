@@ -201,6 +201,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
           return expect(failingUser.validate()).to.be.rejected.then(function(_errors) {
             expect(_errors.get('name')[0].message).to.equal(message);
+            expect(_errors.get('name')[0].value).to.equal(failingValue);
           });
         });
       }
@@ -275,7 +276,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     before(function () {
       this.stub = sinon.stub(current, 'query', function () {
         return new Promise(function (resolve) {
-          resolve(User.build({}));
+          resolve([User.build({}), 1]);
         });
       });
     });
@@ -437,7 +438,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').returns(Promise.resolve(User.build()));
+      this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
     after(function () {
@@ -512,7 +513,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').returns(Promise.resolve(User.build()));
+      this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
     after(function () {
