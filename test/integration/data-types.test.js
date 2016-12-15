@@ -460,12 +460,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     const Model = this.sequelize.define('dates', {
       year: Sequelize.YEAR
     });
-    const testDate = 2014
+    const testDate = 2014;
 
     return Model.sync({ force: true})
       .then(() => Model.create({ year: testDate }))
       .then(record => {
-        expect(record.year).to.be.eql('2014')
+        expect(record.year).to.be.eql('2014');
         expect(typeof record.year).to.be.eql('string');
         expect(record.year).to.be.eql(testDate);
         return Model.findById(record.id);
@@ -473,6 +473,5 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         expect(typeof record.year).to.be.eql('string');
         expect(record.year).to.be.eql(testDate);
       });
-  })
-
+  });
 });
