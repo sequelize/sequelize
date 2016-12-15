@@ -460,7 +460,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     const Model = this.sequelize.define('dates', {
       year: Sequelize.YEAR
     });
-    const testDate = 2014;
+    const testDate = '2014';
 
     return Model.sync({ force: true})
       .then(() => Model.create({ year: testDate }))
