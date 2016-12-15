@@ -70,6 +70,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
       removeTask: 'remove',
       removeTasks: 'remove',
       createTask: 'create',
+      destroyTasks: 'destroy'
     };
     const User = current.define('User');
     const Task = current.define('Task');
@@ -532,6 +533,9 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
 
       expect(Service.prototype).to.have.property('addSupplemented').which.is.a.function;
       expect(Service.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
+
+      expect(Service.prototype).to.have.property('destroySupplemented').which.is.a.function;
+      expect(Service.prototype).not.to.have.property('detroySupplementeds').which.is.a.function;
     });
   });
 

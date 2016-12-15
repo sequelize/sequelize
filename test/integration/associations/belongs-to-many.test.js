@@ -1715,6 +1715,32 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           expect(tasks.length).to.equal(1);
         });
       });
+      it('should remove all entries on the through model', function() {
+        var Worker = this.sequelize.define('Worker', {})
+          , Task = this.sequelize.define('Task', {})
+          , WorkerTasks = this.sequelize.define('WorkerTasks', {});
+
+        Worker.belongsToMany(Task, { through: WorkerTasks });
+        Task.belongsToMany(Worker, { through: WorkerTasks });
+
+        // Test setup
+        return this.sequelize.sync({force: true}).then(function() {
+          return Sequelize.Promise.all([
+            Worker.create({}),
+            Task.bulkCreate([{}, {}, {}, {}, {}]).then(function() {
+              return Task.findAll();
+            })
+          ]);
+        }).spread(function(worker, tasks) {
+          return worker.setTasks(tasks).then(function() {
+            return worker.destroyTasks();
+          }).then(function() {
+            return worker.getTasks();
+          });
+        }).then(function(tasks) {
+          expect(tasks.length).to.equal(0);
+        });
+      });
     });
   });
 
