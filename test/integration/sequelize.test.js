@@ -924,10 +924,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       expect(DAO.options.collate).to.equal('utf8_bin');
     });
 
+    it('overwrites global rowFormat options', function() {
+      var sequelize = Support.createSequelizeInstance({ define: { rowFormat: 'compact' } });
+      var DAO = sequelize.define('foo', {bar: DataTypes.STRING}, { rowFormat: 'default' });
+      expect(DAO.options.rowFormat).to.equal('default');
+    });
+
     it('inherits global collate option', function() {
       var sequelize = Support.createSequelizeInstance({ define: { collate: 'utf8_general_ci' } });
       var DAO = sequelize.define('foo', {bar: DataTypes.STRING});
       expect(DAO.options.collate).to.equal('utf8_general_ci');
+    });
+
+    it('inherits global rowFormat option', function() {
+      var sequelize = Support.createSequelizeInstance({ define: { rowFormat: 'default' } });
+      var DAO = sequelize.define('foo', {bar: DataTypes.STRING});
+      expect(DAO.options.rowFormat).to.equal('default');
     });
 
     it('uses the passed tableName', function() {

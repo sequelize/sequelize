@@ -30,9 +30,28 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       {
         mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));UPDATE [users] SET [user_name]=N\'triggertest\' OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = 2;select * from @tmp',
         postgres:'UPDATE "users" SET "user_name"=\'triggertest\' WHERE "id" = 2 RETURNING *',
-        default: "UPDATE `users` SET `user_name`=\'triggertest\' WHERE `id` = 2",
+        default: "UPDATE `users` SET `user_name`=\'triggertest\' WHERE `id` = 2"
       });
     });
 
+    
+    it('Works with limit', function () {
+      const User = Support.sequelize.define('User', {
+        username: {
+          type: DataTypes.STRING
+        },
+        userId: {
+          type: DataTypes.INTEGER
+        }
+      }, {
+        timestamps: false
+      });
+
+      expectsql(sql.updateQuery(User.tableName, { username: 'new.username' }, { username: 'username' }, { limit: 1 }), {
+        mssql: "UPDATE TOP(1) [Users] SET [username]=N'new.username' OUTPUT INSERTED.* WHERE [username] = N'username'",
+        mysql: "UPDATE `Users` SET `username`='new.username' WHERE `username` = 'username' LIMIT 1",
+        default: "UPDATE [Users] SET [username]='new.username' WHERE [username] = 'username'"
+      });
+    });
   });
 });

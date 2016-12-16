@@ -5,7 +5,9 @@
 var chai = require('chai')
   , expect = chai.expect
   , Utils = require(__dirname + '/../../lib/utils')
-  , Support = require(__dirname + '/support');
+  , Support = require(__dirname + '/support')
+  , DataTypes = require(__dirname + '/../../lib/data-types')
+  , Sequelize = require('../../index');
 
 describe(Support.getTestDialectTeaser('Utils'), function() {
   describe('removeCommentsFromFunctionString', function() {
@@ -225,5 +227,83 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
 
       expect(Utils.singularize('status')).to.equal('status');
     });
+  });
+
+  describe('Sequelize.fn', function() {
+    var Airplane;
+
+    beforeEach(function() {
+      Airplane = this.sequelize.define('Airplane', {
+        wings: DataTypes.INTEGER,
+        engines: DataTypes.INTEGER
+      });
+
+      return Airplane.sync({ force: true }).then(function () {
+        return Airplane.bulkCreate([
+          {
+            wings: 2,
+            engines: 0
+          }, {
+            wings: 4,
+            engines: 1
+          }, {
+            wings: 2,
+            engines: 2
+          }
+        ]);
+      });
+    });
+
+    if (Support.getTestDialect() !== 'mssql') {
+      it('accepts condition object (with cast)', function() {
+        const type = (Support.getTestDialect() === 'mysql') ? 'unsigned': 'int';
+
+        return Airplane.findAll({
+          attributes: [
+            [this.sequelize.fn('COUNT', '*'), 'count'],
+            [Sequelize.fn('SUM', Sequelize.cast({
+              engines: 1
+          }, type)), 'count-engines'],
+            [Sequelize.fn('SUM', Sequelize.cast({
+              $or: {
+                engines: {
+                  $gt: 1
+                },
+                wings: 4
+              }
+          }, type)), 'count-engines-wings']
+          ]
+        }).spread(function (airplane) {
+          expect(parseInt(airplane.get('count'))).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
+        });
+      });
+    }
+
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
+      it('accepts condition object (auto casting)', function() {
+        return Airplane.findAll({
+          attributes: [
+          [this.sequelize.fn('COUNT', '*'), 'count'],
+          [Sequelize.fn('SUM', {
+            engines: 1
+          }), 'count-engines'],
+          [Sequelize.fn('SUM', {
+            $or: {
+              engines: {
+                $gt: 1
+              },
+              wings: 4
+            }
+          }), 'count-engines-wings']
+          ]
+        }).spread(function (airplane) {
+          expect(parseInt(airplane.get('count'))).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
+        });
+      });
+    }
   });
 });

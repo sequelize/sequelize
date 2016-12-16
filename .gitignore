@@ -14,3 +14,4 @@ site
 docs/api/tmp.md
 ssce.js
 coverage
+.vscode/
