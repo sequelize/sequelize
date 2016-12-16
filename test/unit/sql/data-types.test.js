@@ -198,6 +198,31 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
+    suite('YEAR', function () {
+      testsql('YEAR', DataTypes.YEAR, {
+        mysql: 'YEAR'
+      });
+
+      testsql('YEAR(2016)', DataTypes.YEAR(2016), {
+        mysql: 'YEAR'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.YEAR();
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid year');
+        });
+
+        test('should return `true` if `value` is a date', function() {
+          var type = DataTypes.YEAR();
+          expect(type.validate(2016)).to.equal(true);
+        });
+      });
+    });
+
     if (current.dialect.supports.HSTORE) {
       suite('HSTORE', function () {
         suite('validate', function () {
