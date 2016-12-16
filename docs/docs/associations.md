@@ -240,10 +240,10 @@ User.belongsToMany(Project, { through: UserProjects })
 Project.belongsToMany(User, { through: UserProjects })
 ```
 
-To add a new project to a user and set its status, you pass an extra object to the setter, which contains the attributes for the join table
+To add a new project to a user and set its status, you pass extra `options.through` to the setter, which contains the attributes for the join table
 
 ```js
-user.addProject(project, { status: 'started' })
+user.addProject(project, { through: { status: 'started' }})
 ```
 
 By default the code above will add projectId and userId to the UserProjects table, and _remove any previously defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
@@ -542,8 +542,8 @@ project.UserProjects = {
 }
 u.addProject(project)
  
-// Or by providing a second argument when adding the association, containing the data that should go in the join table
-u.addProject(project, { status: 'active' })
+// Or by providing a second options.through argument when adding the association, containing the data that should go in the join table
+u.addProject(project, { through: { status: 'active' }})
  
  
 // When associating multiple objects, you can combine the two options above. In this case the second argument
@@ -552,7 +552,7 @@ project1.UserProjects = {
     status: 'inactive'
 }
  
-u.setProjects([project1, project2], { status: 'active' })
+u.setProjects([project1, project2], { through: { status: 'active' }})
 // The code above will record inactive for project one, and active for project two in the join table
 ```
 
@@ -770,9 +770,9 @@ return Product.create({
     }]
   }
 }, {
-  include: [{ 
-    association: Product.User, 
-    include: [ User.Addresses ] 
+  include: [{
+    association: Product.User,
+    include: [ User.Addresses ]
   }]
 });
 ```

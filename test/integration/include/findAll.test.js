@@ -770,12 +770,12 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           })
         }).then(function (results) {
           return Promise.join(
-            results.products[0].addTag(results.tags[0], {priority: 1}),
-            results.products[0].addTag(results.tags[1], {priority: 2}),
-            results.products[1].addTag(results.tags[1], {priority: 1}),
-            results.products[2].addTag(results.tags[0], {priority: 3}),
-            results.products[2].addTag(results.tags[1], {priority: 1}),
-            results.products[2].addTag(results.tags[2], {priority: 2})
+            results.products[0].addTag(results.tags[0], { through: {priority: 1}}),
+            results.products[0].addTag(results.tags[1], { through: {priority: 2}}),
+            results.products[1].addTag(results.tags[1], { through: {priority: 1}}),
+            results.products[2].addTag(results.tags[0], { through: {priority: 3}}),
+            results.products[2].addTag(results.tags[1], { through: {priority: 1}}),
+            results.products[2].addTag(results.tags[2], { through: {priority: 2}})
           );
         }).then(function () {
           return Product.findAll({
