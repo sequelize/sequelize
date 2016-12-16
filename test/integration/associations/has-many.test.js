@@ -693,7 +693,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         Task.hasMany(User);
 
         return this.sequelize.sync({ force: true }).then(() => {
-          const users = _.range(1000).map(i => ({username: "user"+i, num: i, status: "live"}));
+          const users = _.range(1000).map(i => ({username: 'user' + i, num: i, status: 'live'}));
           return User.bulkCreate(users);
         }).bind({}).then(() => {
           return Task.create({ title: 'task' });
