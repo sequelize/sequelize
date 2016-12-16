@@ -547,6 +547,7 @@ For more about validation, see [Validations](http://docs.sequelizejs.com/en/late
 | [options.charset] | String |  |
 | [options.comment] | String |  |
 | [options.collate] | String |  |
+| [options.rowFormat] | String |  Specify the ROW_FORMAT for use with the MySQL InnoDB engine. |
 | [options.initialAutoIncrement] | String | Set the initial AUTO_INCREMENT value for the table in MySQL. |
 | [options.hooks] | Object | An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, afterDestroy, afterUpdate, afterBulkCreate, afterBulkDestory and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions. |
 | [options.validate] | Object | An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error. |
@@ -860,6 +861,16 @@ instance.updateAttributes({
 })
 ```
 
+Alternatively, a condition object can be used as an argument e.g. to get the count of rows for which the predicate evaluates to true. Works on mysql and sqlite.
+```js
+sequelize.fn('sum', { age: { $gt: 25 }, name: 'Joe' })
+```
+
+An explicit cast is required on postgres.
+```js
+sequelize.fn('sum', sequelize.cast({ age: { $gt: 25 }, name: 'Joe' }, 'int'))
+```
+
 **See:**
 
 * [Model#find](model#find)
@@ -873,7 +884,7 @@ instance.updateAttributes({
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | fn | String | The function you want to call |
-| args | any | All further arguments will be passed as arguments to the function |
+| args | any | All further arguments will be passed as arguments to the function. An argument may be a condition object. |
 
 
 ***

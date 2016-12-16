@@ -1,7 +1,36 @@
 # Future
-- [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
-- [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
 - [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
+- [FIXED] MSSQL handle large bulk inserts #6866
+- [FIXED] describeTable returns a wrong value for primaryKey [#5756] (https://github.com/sequelize/sequelize/issues/5756)
+- [FIXED] MSSQL LIMIT IN UPDATE [#6636](https://github.com/sequelize/sequelize/issues/6636)
+- [FIXED] Custom error message not used for `notNull` validation [#6531](https://github.com/sequelize/sequelize/issues/6531)
+- [FIXED] N:M `through` option naming collisions [#4597](https://github.com/sequelize/sequelize/issues/4597)
+ [#6444](https://github.com/sequelize/sequelize/issues/6444)
+- [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#6919](https://github.com/sequelize/sequelize/pull/6919)
+- [ADDED] UPSERT Support for MSSQL [#6842](https://github.com/sequelize/sequelize/pull/6842)
+- [FIXED] Execute queries parallel in findAndCount [#6695](https://github.com/sequelize/sequelize/issues/6695)
+- [FIXED] `restore` now uses `field` from `deletedAt`
+- [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
+- [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
+- [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
+- [ADDED] Optimistic locking support [#6637] (https://github.com/sequelize/sequelize/pull/6637)
+- [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
+- [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
+- [FIXED] GroupedLimit when foreignKey has a field alias
+- [FIXED] groupedLimit.through.where support
+- [ADDED] `option.silent` for increment and decrement [#6795](https://github.com/sequelize/sequelize/pull/6795)
+- [CHANGED] `now` function allow milliseconds in timestamps on mysql [#6441](https://github.com/sequelize/sequelize/issues/6441)
+- [ADDED] `options.rowFormat` added to Query Generator for MySQL dialect using InnoDB engines [#6824] (https://github.com/sequelize/sequelize/issues/6824)
+- [FIXED] `Increment` / `Decrement` properly maps to timestamp fields [#6296](https://github.com/sequelize/sequelize/issues/6296)
+- [FIXED] Issue with overrriding custom methods with association mixins (all association methods are now exposed) [#6682](https://github.com/sequelize/sequelize/issues/6682)
+- [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
+- [FIXED] HSTORE and JSON fields being renamed when `options.field` is specified on a matching model attribute
+- [FIXED] Soft-delete not returning number of affected rows on mssql [#6930](https://github.com/sequelize/sequelize/pull/6930)
+- [FIXED] No `value` in built-in/custom validation errors [#3899](https://github.com/sequelize/sequelize/pull/3899)
+
+## BC breaks:
+- `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
+- With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations

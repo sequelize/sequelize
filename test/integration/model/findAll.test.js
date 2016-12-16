@@ -1121,10 +1121,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               });
 
               return self.sequelize.Promise.all([
-                self.england.addIndustry(self.energy, {numYears: 20}),
-                self.england.addIndustry(self.media, {numYears: 40}),
-                self.france.addIndustry(self.media, {numYears: 80}),
-                self.korea.addIndustry(self.tech, {numYears: 30})
+                self.england.addIndustry(self.energy, { through: { numYears: 20 }}),
+                self.england.addIndustry(self.media, { through: { numYears: 40 }}),
+                self.france.addIndustry(self.media, { through: { numYears: 80 }}),
+                self.korea.addIndustry(self.tech, { through: { numYears: 30 }})
               ]);
             });
           });

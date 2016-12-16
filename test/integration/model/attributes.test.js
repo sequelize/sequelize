@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             self.Student.create({no: 1, name: 'ryan'}),
             self.Course.create({no: 100, name: 'history'})
           ).spread(function(student, course) {
-            return student.addCourse(course, {score: 98, test_value: 1000});
+            return student.addCourse(course, { through: {score: 98, test_value: 1000}});
           }).then(function() {
             expect(self.callCount).to.equal(1);
             return self.Score.find({ where: { StudentId: 1, CourseId: 100 } }).then(function(score) {

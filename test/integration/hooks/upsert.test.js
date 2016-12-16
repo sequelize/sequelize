@@ -13,7 +13,8 @@ if (Support.sequelize.dialect.supports.upserts) {
       this.User = this.sequelize.define('User', {
         username: {
           type: DataTypes.STRING,
-          allowNull: false
+          allowNull: false,
+          unique: true //Either Primary Key/Unique Keys should be passed to upsert
         },
         mood: {
           type: DataTypes.ENUM,
