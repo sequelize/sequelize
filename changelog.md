@@ -1,4 +1,5 @@
 # Future
+- [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
 - [FIXED] MSSQL handle large bulk inserts #6866
 - [FIXED] describeTable returns a wrong value for primaryKey [#5756] (https://github.com/sequelize/sequelize/issues/5756)
 - [FIXED] MSSQL LIMIT IN UPDATE [#6636](https://github.com/sequelize/sequelize/issues/6636)
