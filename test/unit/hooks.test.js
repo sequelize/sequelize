@@ -304,7 +304,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
   });
 
   describe('sync hooks', function() {
-
     beforeEach(function () {
       this.hook1 = sinon.spy();
       this.hook2 = sinon.spy();
@@ -352,7 +351,5 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       expect(this.hook3).to.have.been.calledOnce;
       expect(this.hook4).to.have.been.calledOnce;
     });
-
   });
-
 });
