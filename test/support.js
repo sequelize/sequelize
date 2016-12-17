@@ -139,22 +139,6 @@ var Support = {
       });
   },
 
-  /*
-   * READ_COMMITTED, the default isolation level for SQL server uses locks for transactions.
-   * This blocks reads on modified row(s) until transaction completes.
-   * Turning on READ_COMMITTED_SNAPSHOT uses row version instead of locks and allows reads to complete.
-   */
-  allowReadCommittedSnapshot: function (sequelize) {
-    let dialect = this.getTestDialect();
-    if (dialect === 'mssql') {
-      sequelize
-        .query(`ALTER DATABASE [${sequelize.config.database}] SET READ_COMMITTED_SNAPSHOT ON;`)
-        .catch(err => {
-          throw new Error(err);
-        });
-    }
-  },
-
   getSupportedDialects: function() {
     return fs.readdirSync(__dirname + '/../lib/dialects').filter(function(file) {
       return ((file.indexOf('.js') === -1) && (file.indexOf('abstract') === -1));
@@ -235,5 +219,4 @@ if (typeof beforeEach !== 'undefined') {
   });
 }
 Support.sequelize = Support.createSequelizeInstance();
-Support.allowReadCommittedSnapshot(Support.sequelize);
 module.exports = Support;
