@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('findOrCreate', function() {
     if (current.dialect.supports.transactions) {
-      it.skip('supports transactions', function() {
+      it('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
           return self.User.findOrCreate({
@@ -694,7 +694,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it.skip('supports transactions', function() {
+      it('supports transactions', function() {
         var self = this;
         return this.sequelize.transaction().then(function(t) {
           return self.User.create({ username: 'user' }, { transaction: t }).then(function() {
@@ -1365,21 +1365,27 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
   describe('bulkCreate', function() {
     if (current.dialect.supports.transactions) {
-      it.skip('supports transactions', function() {
-        var self = this;
-        return this.sequelize.transaction().then(function(t) {
-          return self.User
-            .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
-            .then(function() {
-              return self.User.count().then(function(count1) {
-                return self.User.count({ transaction: t }).then(function(count2) {
-                  expect(count1).to.equal(0);
-                  expect(count2).to.equal(2);
-                  return t.rollback();
-                });
-              });
-            });
+      it('supports transactions', function() {
+        const User = this.sequelize.define('User', {
+          username: DataTypes.STRING
         });
+        let transaction, count1;
+        return User.sync({ force: true })
+          .then(() => this.sequelize.transaction())
+          .then(t => {
+            transaction = t;
+            return User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
+          })
+          .then(() => User.count())
+          .then((count) => {
+            count1 = count;
+            return User.count({ transaction });
+          })
+          .then((count2) => {
+              expect(count1).to.equal(0);
+              expect(count2).to.equal(2);
+              return transaction.rollback();
+          });
       });
     }
 

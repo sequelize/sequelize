@@ -1333,7 +1333,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             });
           });
         } else {
-          it.skip('correctly handles multiple transactions', function() {
+          it('correctly handles multiple transactions', function() {
             var TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false })
               , self = this;
 
@@ -1396,7 +1396,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           });
         });
 
-        describe.skip('supports rolling back to savepoints', function() {
+        describe('supports rolling back to savepoints', function() {
           beforeEach(function() {
             this.User = this.sequelizeWithTransaction.define('user', {});
             return this.sequelizeWithTransaction.sync({ force: true });
@@ -1481,7 +1481,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           });
         });
 
-        it.skip('supports rolling back outermost transaction', function() {
+        it('supports rolling back outermost transaction', function() {
           var self = this;
           var User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });
 

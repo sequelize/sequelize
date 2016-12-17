@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
   describe('getAssocation', function() {
     if (current.dialect.supports.transactions) {
-      it.skip('supports transactions', function() {
+      it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).then(function (sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
   describe('setAssociation', function() {
     if (current.dialect.supports.transactions) {
-      it.skip('supports transactions', function() {
+      it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).then(function(sequelize) {
           var User = sequelize.define('User', { username: Support.Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
 
     if (current.dialect.supports.transactions) {
-      it.skip('supports transactions', function() {
+      it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).then(function(sequelize) {
           var User = sequelize.define('User', { username: Sequelize.STRING })
             , Group = sequelize.define('Group', { name: Sequelize.STRING });

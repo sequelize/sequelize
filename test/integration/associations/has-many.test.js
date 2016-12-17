@@ -308,7 +308,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       if (current.dialect.supports.transactions) {
-        it.skip('supports transactions', function() {
+        it('supports transactions', function() {
           var Article, Label, sequelize, article, label, t;
           return Support.prepareTransactionTest(this.sequelize).then(function(_sequelize) {
             sequelize = _sequelize;
@@ -415,7 +415,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       if (current.dialect.supports.transactions) {
-        it.skip('supports transactions', function() {
+        it('supports transactions', function() {
           return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
             this.sequelize = sequelize;
             this.Article = sequelize.define('Article', { 'title': DataTypes.STRING });
@@ -512,7 +512,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
     describe('setAssociations', function() {
 
       if (current.dialect.supports.transactions) {
-        it.skip('supports transactions', function() {
+        it('supports transactions', function() {
           return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
             this.Article = sequelize.define('Article', { 'title': DataTypes.STRING });
             this.Label = sequelize.define('Label', { 'text': DataTypes.STRING });
@@ -601,7 +601,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
     describe('addAssociations', function() {
       if (current.dialect.supports.transactions) {
-        it.skip('supports transactions', function() {
+        it('supports transactions', function() {
           return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
             this.Article = sequelize.define('Article', { 'title': DataTypes.STRING });
             this.Label = sequelize.define('Label', { 'text': DataTypes.STRING });
@@ -735,7 +735,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
     });
 
     describe('createAssociations', function() {
-      it.skip('creates a new associated object', function() {
+      it('creates a new associated object', function() {
         var Article = this.sequelize.define('Article', { 'title': DataTypes.STRING })
           , Label = this.sequelize.define('Label', { 'text': DataTypes.STRING });
 
@@ -776,7 +776,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       });
 
       if (current.dialect.supports.transactions) {
-        it.skip('supports transactions', function() {
+        it('supports transactions', function() {
           return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
             this.sequelize = sequelize;
             this.Article = sequelize.define('Article', { 'title': DataTypes.STRING });
