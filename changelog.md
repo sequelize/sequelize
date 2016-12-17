@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
+
 # 3.28.0
 - [FIXED] Soft-delete not returning number of affected rows on mssql [#6916](https://github.com/sequelize/sequelize/pull/6916)
 - [ADDED] `afterConnect` hook

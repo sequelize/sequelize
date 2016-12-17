@@ -1325,20 +1325,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('bulkCreate', function() {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        var self = this;
-        return this.sequelize.transaction().then(function(t) {
-          return self.User
-            .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
-            .then(function() {
-              return self.User.count().then(function(count1) {
-                return self.User.count({ transaction: t }).then(function(count2) {
-                  expect(count1).to.equal(0);
-                  expect(count2).to.equal(2);
-                  return t.rollback();
-                });
-              });
-            });
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
         });
+        return User.sync({ force: true })
+          .bind(this)
+          .then(function () {
+             return this.sequelize.transaction();
+          })
+          .then(function(t) {
+            this.transaction = t;
+            return User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: this.transaction });
+          })
+          .then(function() {
+            return User.count();
+          })
+          .then(function(count1) {
+            this.count1 = count1;
+            return User.count({ transaction: this.transaction });
+          })
+          .then(function(count2) {
+            expect(this.count1).to.equal(0);
+            expect(count2).to.equal(2);
+            return this.transaction.rollback();
+          });
       });
     }
 
