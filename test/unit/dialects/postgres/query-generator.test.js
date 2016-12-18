@@ -330,13 +330,6 @@ if (dialect.match(/^postgres/)) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'IN operator should become = operator when only one element is in array',
-          arguments: ['myTable', {where: {number: {in: [1]}}}],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."number" = 1;',
-          context: QueryGenerator,
-          needsSequelize: true
-        },
-        {
           title: 'single string argument is not quoted',
           arguments: ['myTable', {group: 'name'}],
           expectation: 'SELECT * FROM \"myTable\" GROUP BY name;'
