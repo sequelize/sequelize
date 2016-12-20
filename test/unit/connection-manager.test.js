@@ -62,16 +62,16 @@ describe('connection manager', function () {
     });
 
     it('should call afterConnect', function() {
-      const spy = sinon.spy();
+      var spy = sinon.spy();
       this.sequelize.afterConnect(spy);
 
       var connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
-      return connectionManager.$connect({}).then(() => {
+      return connectionManager.$connect({}).then(function() {
         expect(spy.callCount).to.equal(1);
         expect(spy.firstCall.args[0]).to.equal(this.connection);
         expect(spy.firstCall.args[1]).to.eql({});
-      });
+      }.bind(this));
     });
   });
 });
