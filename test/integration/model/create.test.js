@@ -1244,6 +1244,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('Works even when SQL query has a values of transaction keywords such as BEGIN TRANSACTION', function () {
+      const Task = this.sequelize.define('task', {
+        title: DataTypes.STRING
+      });
+      return Task.sync({ force: true })
+        .then(() => {
+          return Sequelize.Promise.all([
+            Task.create({ title: 'BEGIN TRANSACTION' }),
+            Task.create({ title: 'COMMIT TRANSACTION' }),
+            Task.create({ title: 'ROLLBACK TRANSACTION' }),
+            Task.create({ title: 'SAVE TRANSACTION' }),
+          ]);
+        })
+        .then(newTasks => {
+          expect(newTasks).to.have.lengthOf(4);
+          expect(newTasks[0].title).to.equal('BEGIN TRANSACTION');
+          expect(newTasks[1].title).to.equal('COMMIT TRANSACTION');
+          expect(newTasks[2].title).to.equal('ROLLBACK TRANSACTION');
+          expect(newTasks[3].title).to.equal('SAVE TRANSACTION');
+        });
+    });
+
     describe('enums', function() {
       it('correctly restores enum values', function() {
         var self = this

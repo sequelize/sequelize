@@ -29,7 +29,6 @@ module.exports = {
     host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || 'mssql.sequelizejs.com',
     port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
     dialectOptions: {
-      instanceName:  process.env.MSSQL_INSTANCE ? process.env.MSSQL_INSTANCE : 'SQLEXPRESS',
       // big insert queries need a while
       requestTimeout: 60000
     },
