@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Soft-delete not returning number of affected rows on mssql [#6916](https://github.com/sequelize/sequelize/pull/6916)
+- [ADDED] `afterConnect` hook
 
 # 3.27.0
 - [FIXED] Incorrect column name for generateThroughJoin [#6878](https://github.com/sequelize/sequelize/pull/6878)

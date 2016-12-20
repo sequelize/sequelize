@@ -13,10 +13,11 @@ describe('connection manager', function () {
   describe('$connect', function () {
     beforeEach(function () {
       this.sinon = sinon.sandbox.create();
+      this.connection = {};
 
       this.dialect = {
         connectionManager: {
-          connect: this.sinon.stub().returns(Promise.resolve())
+          connect: this.sinon.stub().returns(Promise.resolve(this.connection))
         }
       };
 
@@ -58,6 +59,19 @@ describe('connection manager', function () {
           password: password
         });
       }.bind(this));
+    });
+
+    it('should call afterConnect', function() {
+      const spy = sinon.spy();
+      this.sequelize.afterConnect(spy);
+
+      var connectionManager = new ConnectionManager(this.dialect, this.sequelize);
+
+      return connectionManager.$connect({}).then(() => {
+        expect(spy.callCount).to.equal(1);
+        expect(spy.firstCall.args[0]).to.equal(this.connection);
+        expect(spy.firstCall.args[1]).to.eql({});
+      });
     });
   });
 });
