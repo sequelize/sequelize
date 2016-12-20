@@ -285,7 +285,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    describe.only('_getIncludedAssociation', function () {
+    describe('_getIncludedAssociation', function () {
       it('returns an association when there is a single unaliased association', function () {
         expect(this.User._getIncludedAssociation(this.Task)).to.equal(this.User.Tasks);
       });
