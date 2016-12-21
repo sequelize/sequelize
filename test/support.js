@@ -218,6 +218,5 @@ if (typeof beforeEach !== 'undefined') {
     this.sequelize = Support.sequelize;
   });
 }
-
 Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;
