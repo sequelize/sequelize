@@ -1203,6 +1203,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('Works even when SQL query has a values of transaction keywords such as BEGIN TRANSACTION', function () {
+      var Task = this.sequelize.define('task', {
+        title: DataTypes.STRING
+      });
+      return Task.sync({ force: true })
+        .then(function () {
+          return Sequelize.Promise.all([
+            Task.create({ title: 'BEGIN TRANSACTION' }),
+            Task.create({ title: 'COMMIT TRANSACTION' }),
+            Task.create({ title: 'ROLLBACK TRANSACTION' }),
+            Task.create({ title: 'SAVE TRANSACTION' }),
+          ]);
+        })
+        .then(function (newTasks) {
+          expect(newTasks).to.have.lengthOf(4);
+          expect(newTasks[0].title).to.equal('BEGIN TRANSACTION');
+          expect(newTasks[1].title).to.equal('COMMIT TRANSACTION');
+          expect(newTasks[2].title).to.equal('ROLLBACK TRANSACTION');
+          expect(newTasks[3].title).to.equal('SAVE TRANSACTION');
+        });
+    });
+
     describe('enums', function() {
       it('correctly restores enum values', function() {
         var self = this
@@ -1325,20 +1347,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('bulkCreate', function() {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        var self = this;
-        return this.sequelize.transaction().then(function(t) {
-          return self.User
-            .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
-            .then(function() {
-              return self.User.count().then(function(count1) {
-                return self.User.count({ transaction: t }).then(function(count2) {
-                  expect(count1).to.equal(0);
-                  expect(count2).to.equal(2);
-                  return t.rollback();
-                });
-              });
-            });
+        var User = this.sequelize.define('User', {
+          username: DataTypes.STRING
         });
+        return User.sync({ force: true })
+          .bind(this)
+          .then(function () {
+             return this.sequelize.transaction();
+          })
+          .then(function(t) {
+            this.transaction = t;
+            return User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: this.transaction });
+          })
+          .then(function() {
+            return User.count();
+          })
+          .then(function(count1) {
+            this.count1 = count1;
+            return User.count({ transaction: this.transaction });
+          })
+          .then(function(count2) {
+            expect(this.count1).to.equal(0);
+            expect(count2).to.equal(2);
+            return this.transaction.rollback();
+          });
       });
     }
 
