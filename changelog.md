@@ -1,5 +1,5 @@
 # Future
-- [FIXED] Format MSSQL MERGE Statement foreignKey violations as ForeignKeyConstraintError, [#7024](https://github.com/sequelize/sequelize/pull/7024)
+- [FIXED] Throw MSSQL MERGE Statement foreignKey violations as ForeignKeyConstraintError [#7024](https://github.com/sequelize/sequelize/pull/7024)
 - [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
 - [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
 - [FIXED] MSSQL handle large bulk inserts [#6866](https://github.com/sequelize/sequelize/issues/6866)
