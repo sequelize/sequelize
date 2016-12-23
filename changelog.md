@@ -29,6 +29,7 @@
 - [FIXED] Soft-delete not returning number of affected rows on mssql [#6930](https://github.com/sequelize/sequelize/pull/6930)
 - [FIXED] No `value` in built-in/custom validation errors [#3899](https://github.com/sequelize/sequelize/pull/3899)
 - [FIXED] Custom error messages used for incorrect eager loading [#7005](https://github.com/sequelize/sequelize/pull/7005)
+- [FIXED] Enforce unique association aliases [#7025](https://github.com/sequelize/sequelize/pull/7025)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
