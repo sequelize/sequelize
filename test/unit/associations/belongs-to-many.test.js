@@ -11,7 +11,7 @@ const BelongsTo = require(__dirname + '/../../../lib/associations/belongs-to');
 const HasMany = require(__dirname + '/../../../lib/associations/has-many');
 const HasOne = require(__dirname + '/../../../lib/associations/has-one');
 const current = Support.sequelize;
-const Promise = current.Promise;
+var Promise = current.Promise;
 const AssociationError = require(__dirname + '/../../../lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), function() {
