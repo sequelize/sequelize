@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('Does not warn the user if they use a model attribute without a where clause that shares its name with a query option', () => {
       const User = current.define('User', {order: 'string'});
       User.warnOnInvalidOptions({order: []});
-      expect(this.loggerSpy.called).to.be.false;  
+      expect(this.loggerSpy.called).to.be.false;
     });
 
     it('Does not warn the user if they use valid query options', () => {
