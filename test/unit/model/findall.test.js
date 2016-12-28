@@ -8,8 +8,8 @@ const sinon = require('sinon');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const Utils = require('../../../lib/utils.js');
 
-describe(Support.getTestDialectTeaser('Model'), function() {
-  describe.only('throws warnings on bad input', () => {
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('warnOnInvalidOptions', () => {
     beforeEach(() => {
       this.loggerSpy = sinon.spy(Utils, 'warn');
     });
@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('Does not warn the user if they use a model attribute without a where clause that shares its name with a query option', () => {
       const User = current.define('User', {order: 'string'});
       User.warnOnInvalidOptions({order: []});
-      expect(this.loggerSpy.called).to.be.false;
+      expect(this.loggerSpy.called).to.be.false;  
     });
 
     it('Does not warn the user if they use valid query options', () => {
@@ -45,32 +45,32 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
   });
 
-  describe('method findAll', function () {
+  describe('method findAll', () => {
     const Model = current.define('model', {
       name: DataTypes.STRING
     }, { timestamps: false });
 
-    before(function () {
-      this.stub = sinon.stub(current.getQueryInterface(), 'select', function () {
+    before(() => {
+      this.stub = sinon.stub(current.getQueryInterface(), 'select', () => {
         return Model.build({});
       });
     });
 
-    beforeEach(function () {
+    beforeEach(() => {
       this.stub.reset();
     });
 
-    after(function () {
+    after(() => {
       this.stub.restore();
     });
 
-    describe('attributes include / exclude', function () {
-      it('allows me to include additional attributes', function () {
+    describe('attributes include / exclude', () => {
+      it('allows me to include additional attributes', () => {
         return Model.findAll({
           attributes: {
             include: ['foobar']
           }
-        }).bind(this).then(function () {
+        }).bind(this).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'id',
             'name',
@@ -79,25 +79,25 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('allows me to exclude attributes', function () {
+      it('allows me to exclude attributes', () => {
         return Model.findAll({
           attributes: {
             exclude: ['name']
           }
-        }).bind(this).then(function () {
+        }).bind(this).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'id'
           ]);
         });
       });
 
-      it('include takes precendence over exclude', function () {
+      it('include takes precendence over exclude', () => {
         return Model.findAll({
           attributes: {
             exclude: ['name'],
             include: ['name']
           }
-        }).bind(this).then(function () {
+        }).bind(this).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'id',
             'name'
@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('works for models without PK #4607', function () {
+      it('works for models without PK #4607', () => {
         const Model = current.define('model', {}, { timestamps: false });
         const Foo = current.define('foo');
         Model.hasOne(Foo);
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             include: ['name']
           },
           include: [Foo]
-        }).bind(this).then(function () {
+        }).bind(this).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'name'
           ]);
