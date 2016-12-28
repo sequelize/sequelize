@@ -8,7 +8,7 @@ const sinon = require('sinon');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const Utils = require('../../../lib/utils.js');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe.only(Support.getTestDialectTeaser('Model'), () => {
   describe('warnOnInvalidOptions', () => {
     beforeEach(() => {
       this.loggerSpy = sinon.spy(Utils, 'warn');
@@ -54,14 +54,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.stub = sinon.stub(current.getQueryInterface(), 'select', () => {
         return Model.build({});
       });
+      this.warnOnInvalidOptionsStub = sinon.stub(Model, 'warnOnInvalidOptions');
     });
 
     beforeEach(() => {
       this.stub.reset();
+      this.warnOnInvalidOptionsStub.reset();
     });
 
     after(() => {
       this.stub.restore();
+      this.warnOnInvalidOptionsStub.restore();
+    });
+
+    describe('handles input validation', () => {
+      it('calls warnOnInvalidOptions', () => {
+        Model.findAll();
+        expect(this.warnOnInvalidOptionsStub.calledOnce).to.equal(true);
+      });
     });
 
     describe('attributes include / exclude', () => {
