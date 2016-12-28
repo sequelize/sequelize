@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           attributes: {
             include: ['foobar']
           }
-        }).bind(this).then(() => {
+        }).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'id',
             'name',
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           attributes: {
             exclude: ['name']
           }
-        }).bind(this).then(() => {
+        }).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'id'
           ]);
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             exclude: ['name'],
             include: ['name']
           }
-        }).bind(this).then(() => {
+        }).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'id',
             'name'
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: ['name']
           },
           include: [Foo]
-        }).bind(this).then(() => {
+        }).then(() => {
           expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
             'name'
           ]);
