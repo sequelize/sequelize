@@ -31,7 +31,7 @@
 - [FIXED] No `value` in built-in/custom validation errors [#3899](https://github.com/sequelize/sequelize/pull/3899)
 - [FIXED] Custom error messages used for incorrect eager loading [#7005](https://github.com/sequelize/sequelize/pull/7005)
 - [FIXED] Enforce unique association aliases [#7025](https://github.com/sequelize/sequelize/pull/7025)
-- [FIXED] Information warnings when findAll is given incorrect inputs [#7030](https://github.com/sequelize/sequelize/pull/7030)
+- [FIXED] Information warnings when findAll is given incorrect inputs [#7047](https://github.com/sequelize/sequelize/pull/7047)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
